@@ -290,9 +290,10 @@ export default function LpjManagement() {
       key: 'TenggatLPJ',
       label: 'Tenggat LPJ',
       className: 'w-[130px]',
-      render: v => {
-        if (!v) return <span className="text-[10px] text-slate-300 italic">—</span>
-        const tenggat = new Date(v)
+      render: (v, row) => {
+        const val = row.Proposal?.tenggat_lpj || row.Proposal?.TenggatLPJ || v;
+        if (!val) return <span className="text-[10px] text-slate-300 italic">—</span>
+        const tenggat = new Date(val)
         const now = new Date()
         const diffDays = Math.ceil((tenggat - now) / (1000 * 60 * 60 * 24))
         const isLate = diffDays < 0

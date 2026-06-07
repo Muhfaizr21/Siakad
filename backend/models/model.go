@@ -478,6 +478,22 @@ func (Notifikasi) TableName() string {
 // ORMAWA
 // ========================
 
+// KategoriOrmawa adalah master data kategori ormawa yang dapat dikonfigurasi oleh Super Admin.
+// Flag TerafiliasiFakultas menentukan alur proposal (melalui Fakultas atau langsung ke Universitas).
+type KategoriOrmawa struct {
+	BaseModel
+	Nama                string `gorm:"uniqueIndex;size:80;not null" json:"nama"`
+	Deskripsi           string `gorm:"type:text" json:"deskripsi"`
+	TerafiliasiFakultas bool   `gorm:"default:false" json:"terafiliasi_fakultas"`
+	WajibProdi          bool   `gorm:"default:false" json:"wajib_prodi"` // jika true, prodi wajib diisi
+	IsSystem            bool   `gorm:"default:false" json:"is_system"`  // built-in, tidak bisa dihapus
+	Urutan              int    `gorm:"default:0" json:"urutan"`
+}
+
+func (KategoriOrmawa) TableName() string {
+	return "ormawa.kategori_ormawa"
+}
+
 type Ormawa struct {
 	BaseModel
 	Nama       string
@@ -501,9 +517,13 @@ type Ormawa struct {
 
 	// Faculty Admin fields
 	Status        string `gorm:"default:'Aktif'"`
-	Kategori      string `gorm:"default:'Himpunan'"` // BEM, Himpunan, UKM, Komunitas, Lainnya
+	Kategori      string `gorm:"default:'Himpunan'"` // legacy free-text, dipertahankan untuk backward compat
 	JumlahAnggota int    `json:"JumlahAnggota"`
 	Poin          int    `gorm:"default:0" json:"poin"`
+
+	// Relasi ke KategoriOrmawa (master data kategori dinamis)
+	KategoriOrmawaID *uint           `gorm:"index" json:"kategori_ormawa_id,omitempty"`
+	KategoriDetail   *KategoriOrmawa `gorm:"foreignKey:KategoriOrmawaID" json:"kategori_detail,omitempty"`
 
 	Visi      string
 	Misi      string

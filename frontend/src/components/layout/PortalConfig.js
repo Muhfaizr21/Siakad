@@ -237,13 +237,10 @@ export const PORTAL_CONFIG = {
               { name: 'Pengumuman', icon: 'campaign', path: '/admin/ormawa-pengumuman' },
               { name: 'Role & Akses (RBAC)', icon: 'security', path: '/admin/ormawa-rbac' },
               { name: 'Setting Gamifikasi', icon: 'emoji_events', path: '/admin/gamifikasi' },
+              { name: 'Proposal Organisasi', icon: 'description', path: '/admin/proposals' },
             ]
           },
-          {
-            name: 'Proposal Universitas',
-            icon: 'description',
-            path: '/admin/proposals'
-          },
+
         ]
       },
       {
@@ -253,6 +250,7 @@ export const PORTAL_CONFIG = {
           { name: 'Prestasi Mahasiswa', icon: 'emoji_events', path: '/admin/achievements' },
           { name: 'Aspirasi', icon: 'chat', path: '/admin/aspirations' },
           { name: 'Kelola Asuransi', icon: 'health_and_safety', path: '/admin/insurance' },
+          { name: 'Kategori Organisasi', icon: 'category', path: '/admin/ormawa-kategori' },
         ]
       },
       {

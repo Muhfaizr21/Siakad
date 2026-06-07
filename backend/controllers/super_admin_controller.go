@@ -1013,7 +1013,11 @@ func GetDashboardStats(c *fiber.Ctx) error {
 	dbAsp.Session(&gorm.Session{}).Where("mahasiswa.aspirasi.status != ?", "Selesai").Count(&aspirasiAktif)
 	dbAsp.Session(&gorm.Session{}).Where("mahasiswa.aspirasi.status != ? AND mahasiswa.aspirasi.deadline < ?", "Selesai", now).Count(&slaOverdue)
 	dbAsp.Session(&gorm.Session{}).Where("mahasiswa.aspirasi.status = ? AND mahasiswa.aspirasi.updated_at >= ?", "Selesai", todayStart).Count(&resolvedToday)
-	dbProp.Session(&gorm.Session{}).Where("ormawa.proposal.status = ?", "disetujui_fakultas").Count(&antreanProposal)
+	dbProp.Session(&gorm.Session{}).
+		Joins("JOIN ormawa.ormawa o ON o.id = ormawa.proposal.ormawa_id").
+		Where("(ormawa.proposal.status = ?) OR (ormawa.proposal.status = ? AND o.fakultas_id IS NULL)", "disetujui_fakultas", "diajukan").
+		Count(&antreanProposal)
+
 	dbAnggota.Session(&gorm.Session{}).Count(&totalAnggotaOrmawa)
 
 	dbBerita := config.DB.Model(&models.Berita{})
@@ -1064,17 +1068,26 @@ func GetDashboardStats(c *fiber.Ctx) error {
 }
 
 // GetGlobalProposals returns proposals waiting for university approval.
-// This includes:
-// 1. Proposals from faculty-affiliated ORMAWA that have been approved by faculty (status = "disetujui_fakultas")
-// 2. Proposals from university-level ORMAWA (BEM-U, UKM, MPM) that have FakultasID = NULL — these skip the faculty step
+// Logika dinamis:
+//   - Proposal dari Ormawa dengan kategori.TerafiliasiFakultas=true WAJIB lewat Fakultas dulu (status disetujui_fakultas)
+//   - Proposal dari Ormawa dengan kategori.TerafiliasiFakultas=false bypass Fakultas (status diajukan langsung ke univ)
+//   - Backward compat: jika KategoriOrmawaID NULL, fallback ke cek FakultasID IS NULL
 func GetGlobalProposals(c *fiber.Ctx) error {
 	var proposals []models.Proposal
-	// Show all proposals that are either:
-	// - Approved by faculty (ready for univ approval)
-	// - From univ-level ORMAWA (no faculty, goes straight to univ)
-	result := config.DB.Preload("Ormawa").Preload("Fakultas").
-		Where("status = ? OR (fakultas_id IS NULL AND status IN (?, ?))", "disetujui_fakultas", "diajukan", "revisi").
-		Order("created_at desc").Find(&proposals)
+	result := config.DB.
+		Preload("Ormawa").Preload("Ormawa.Fakultas").Preload("Ormawa.KategoriDetail").Preload("Fakultas").
+		Joins("JOIN ormawa.ormawa o ON o.id = ormawa.proposal.ormawa_id").
+		Joins("LEFT JOIN ormawa.kategori_ormawa kat ON kat.id = o.kategori_ormawa_id").
+		Where(`(
+			ormawa.proposal.status = 'disetujui_fakultas'
+		) OR (
+			ormawa.proposal.status = 'diajukan'
+			AND (
+				(kat.id IS NOT NULL AND kat.terafiliasi_fakultas = false)
+				OR (kat.id IS NULL AND o.fakultas_id IS NULL)
+			)
+		)`).
+		Order("ormawa.proposal.created_at desc").Find(&proposals)
 	if result.Error != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": result.Error.Error()})
 	}
@@ -1086,17 +1099,39 @@ func ApproveProposalUniv(c *fiber.Ctx) error {
 	id := c.Params("id")
 	var proposal models.Proposal
 
-	// Preload Ormawa for notification and balance update
-	if err := config.DB.Preload("Ormawa").First(&proposal, id).Error; err != nil {
+	// Preload Ormawa (beserta KategoriDetail) untuk routing dinamis dan notifikasi
+	if err := config.DB.Preload("Ormawa").Preload("Ormawa.KategoriDetail").First(&proposal, id).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Proposal not found"})
 	}
 
-	// Double check to only approve if it's ready for university review:
-	// - "disetujui_fakultas" = approved by faculty, now waiting for university
-	// - "diajukan" with FakultasID = NULL = university-level ORMAWA (BEM-U/UKM/MPM), skip faculty step
-	isUnivLevelDirect := proposal.FakultasID == nil && (proposal.Status == "diajukan" || proposal.Status == "revisi")
-	if proposal.Status != "disetujui_fakultas" && !isUnivLevelDirect {
-		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Proposal must be approved by Faculty first (or be from a university-level ORMAWA)"})
+	// Status guard dinamis berdasarkan KategoriOrmawa.TerafiliasiFakultas:
+	// - TerafiliasiFakultas=true (misal Himpunan): WAJIB lewat Fakultas, status harus disetujui_fakultas
+	// - TerafiliasiFakultas=false (misal BEM/UKM): bypass Fakultas, bisa approve dari status diajukan
+	// - Backward compat: jika KategoriDetail null, fallback ke cek FakultasID
+	isUnivLevel := false
+	if proposal.Ormawa.KategoriDetail != nil {
+		// Menggunakan flag kategori dinamis
+		isUnivLevel = !proposal.Ormawa.KategoriDetail.TerafiliasiFakultas
+	} else {
+		// Fallback legacy: organisasi univ level jika FakultasID null
+		isUnivLevel = proposal.Ormawa.FakultasID == nil
+	}
+
+	validStatuses := map[string]bool{
+		"disetujui_fakultas": true,
+	}
+	if isUnivLevel {
+		validStatuses["diajukan"] = true
+	}
+	if !validStatuses[proposal.Status] {
+		if isUnivLevel {
+			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Proposal harus berstatus 'diajukan' atau 'disetujui_fakultas' untuk bisa disetujui"})
+		}
+		kategoriNama := "Himpunan"
+		if proposal.Ormawa.KategoriDetail != nil {
+			kategoriNama = proposal.Ormawa.KategoriDetail.Nama
+		}
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Proposal " + kategoriNama + " harus disetujui Fakultas terlebih dahulu"})
 	}
 
 	var body struct {
@@ -1118,10 +1153,11 @@ func ApproveProposalUniv(c *fiber.Ctx) error {
 		// 2. Create financial mutation (Disbursement)
 		mutation := models.OrmawaMutasiSaldo{
 			OrmawaID:   proposal.OrmawaID,
-			Tipe:       "masuk",
+			Tipe:       "pemasukan",
 			Nominal:    proposal.Anggaran, // Now using Anggaran field from proposal
 			Kategori:   "Pencairan Proposal",
 			Deskripsi:  fmt.Sprintf("Pencairan dana Universitas untuk kegiatan: %s", proposal.Judul),
+			Sumber:     "kampus",
 			ProposalID: &proposal.ID,
 			Tanggal:    time.Now(),
 		}

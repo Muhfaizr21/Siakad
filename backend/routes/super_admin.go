@@ -3,6 +3,7 @@ package routes
 import (
 	"siakad-backend/controllers"
 	fakultas "siakad-backend/controllers/fakultas"
+	ormawa "siakad-backend/controllers/ormawa"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -44,6 +45,12 @@ func SetupSuperAdminRoutes(r fiber.Router) {
 	r.Put("/ormawa/lpjs/:id/review", controllers.ReviewLPJ)
 	r.Put("/ormawa/:id", controllers.UpdateOrmawa)
 	r.Delete("/ormawa/:id", controllers.DeleteOrmawa)
+
+	// Kategori Ormawa — Master Data (Super Admin CRUD)
+	r.Get("/ormawa-kategori", ormawa.GetAllKategoriOrmawa)
+	r.Post("/ormawa-kategori", ormawa.CreateKategoriOrmawa)
+	r.Put("/ormawa-kategori/:id", ormawa.UpdateKategoriOrmawa)
+	r.Delete("/ormawa-kategori/:id", ormawa.DeleteKategoriOrmawa)
 
 	r.Get("/students", controllers.GetAllStudents)
 	r.Post("/students", controllers.CreateStudent)

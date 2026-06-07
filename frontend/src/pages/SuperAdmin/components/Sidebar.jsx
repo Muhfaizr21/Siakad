@@ -21,6 +21,7 @@ const menuGroups = [
       { name: "Kelola Ormawa", icon: 'group', path: "/admin/organizations" },
       { name: "Global Proposals", icon: 'assignment', path: "/admin/proposals" },
       { name: "Setting Gamifikasi", icon: 'emoji_events', path: "/admin/gamifikasi" },
+      { name: "Kategori Organisasi", icon: 'category', path: "/admin/ormawa-kategori" },
     ]
   },
   {

@@ -2,6 +2,7 @@ package routes
 
 import (
 	fakultas "siakad-backend/controllers/fakultas"
+	ormawa "siakad-backend/controllers/ormawa"
 	"siakad-backend/middleware"
 
 	"github.com/gofiber/fiber/v2"
@@ -88,6 +89,9 @@ func InisialisasiRuteFakultas(aplikasi *fiber.App) {
 	api.Post("/organizations", fakultas.TambahOrganisasi)
 	api.Put("/organizations/:id", fakultas.PerbaruiOrganisasi)
 	api.Delete("/organizations/:id", fakultas.HapusOrganisasi)
+
+	// Kategori Ormawa — read-only untuk Faculty Admin (dipakai form Tambah/Edit Ormawa)
+	api.Get("/ormawa-kategori", ormawa.GetAllKategoriOrmawa)
 
 	api.Get("/ormawa/proposals", fakultas.AmbilDaftarProposalOrmawa)
 	api.Put("/ormawa/proposals/:id", fakultas.ValidasiProposalOrmawa)

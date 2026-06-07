@@ -100,6 +100,7 @@ func migrateModels(db *gorm.DB) error {
 	// ORMAWA
 	// ========================
 	if err := db.AutoMigrate(
+		&models.KategoriOrmawa{},
 		&models.Proposal{},
 		&models.ProposalRiwayat{},
 		&models.Ormawa{},
@@ -275,3 +276,70 @@ func InitialSyncGamifikasiRules(db *gorm.DB) {
 	}
 	log.Println("[Initial Sync] Sinkronisasi aturan gamifikasi selesai.")
 }
+
+// InitialSyncKategoriOrmawa seeds the default KategoriOrmawa master data.
+// Called once on server startup. IsSystem = true means the category cannot be deleted.
+func InitialSyncKategoriOrmawa(db *gorm.DB) {
+	log.Println("[Initial Sync] Memulai sinkronisasi Kategori Ormawa...")
+
+	defaults := []models.KategoriOrmawa{
+		{
+			Nama:                "BEM",
+			Deskripsi:           "Badan Eksekutif Mahasiswa — tingkat universitas, proposal langsung ke Universitas",
+			TerafiliasiFakultas: false,
+			WajibProdi:          false,
+			IsSystem:            true,
+			Urutan:              1,
+		},
+		{
+			Nama:                "Himpunan",
+			Deskripsi:           "Himpunan Mahasiswa — terafiliasi dengan Fakultas, proposal WAJIB lewat Fakultas dahulu",
+			TerafiliasiFakultas: true,
+			WajibProdi:          true,
+			IsSystem:            true,
+			Urutan:              2,
+		},
+		{
+			Nama:                "UKM",
+			Deskripsi:           "Unit Kegiatan Mahasiswa — tingkat universitas, proposal langsung ke Universitas",
+			TerafiliasiFakultas: false,
+			WajibProdi:          false,
+			IsSystem:            true,
+			Urutan:              3,
+		},
+		{
+			Nama:                "MPM",
+			Deskripsi:           "Majelis Permusyawaratan Mahasiswa — tingkat universitas",
+			TerafiliasiFakultas: false,
+			WajibProdi:          false,
+			IsSystem:            true,
+			Urutan:              4,
+		},
+		{
+			Nama:                "Komunitas",
+			Deskripsi:           "Komunitas mahasiswa — bebas afiliasi",
+			TerafiliasiFakultas: false,
+			WajibProdi:          false,
+			IsSystem:            false,
+			Urutan:              5,
+		},
+		{
+			Nama:                "Lainnya",
+			Deskripsi:           "Kategori umum untuk organisasi yang tidak termasuk kategori di atas",
+			TerafiliasiFakultas: false,
+			WajibProdi:          false,
+			IsSystem:            false,
+			Urutan:              6,
+		},
+	}
+
+	for _, kat := range defaults {
+		var existing models.KategoriOrmawa
+		if err := db.Where("nama = ?", kat.Nama).First(&existing).Error; err != nil {
+			db.Create(&kat)
+			log.Printf("[Initial Sync] Seed KategoriOrmawa: %s (TerafiliasiFakultas=%v)\n", kat.Nama, kat.TerafiliasiFakultas)
+		}
+	}
+	log.Println("[Initial Sync] Sinkronisasi Kategori Ormawa selesai.")
+}
+

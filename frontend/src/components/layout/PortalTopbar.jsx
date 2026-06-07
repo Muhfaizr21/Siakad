@@ -452,7 +452,7 @@ export default function PortalTopbar({ config, onMenuClick }) {
 
 
           {/* Ormawa Switcher for Super Admin on Ormawa pages */}
-          {user?.role === 'super_admin' && ormawasList.length > 0 && location.pathname.includes('/admin/ormawa') && (
+          {user?.role === 'super_admin' && ormawasList.length > 0 && location.pathname.includes('/admin/ormawa') && !location.pathname.includes('/admin/ormawa-kategori') && (
             <div className="flex items-center gap-2 ml-2 bg-violet-50 border border-violet-100 rounded-xl px-2.5 py-1 shrink-0">
               <span className="material-symbols-outlined text-violet-500 !text-[16px]">groups</span>
               <select

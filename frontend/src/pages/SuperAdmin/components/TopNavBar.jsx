@@ -44,7 +44,7 @@ const TopNavBar = ({ setIsOpen }) => {
     { name: 'Data Master Fakultas', path: '/admin/faculties', icon: 'grid_view' },
     { name: 'Program Studi Global', path: '/admin/prodi', icon: 'grid_view' },
     { name: 'Basis Data Mahasiswa', path: '/admin/students', icon: 'person' },
-    { name: 'Proposal Universitas', path: '/admin/proposals', icon: 'description' },
+    { name: 'Proposal Organisasi', path: '/admin/proposals', icon: 'description' },
     { name: 'Manajemen Organisasi', path: '/admin/organizations', icon: 'grid_view' },
     { name: 'Katalog Beasiswa', path: '/admin/scholarships', icon: 'emoji_events' },
     { name: 'Pusat Aspirasi', path: '/admin/aspirations', icon: 'campaign' },

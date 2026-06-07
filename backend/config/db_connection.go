@@ -48,6 +48,7 @@ func ConnectDB() {
 		InitialSyncFakultas(db)
 		SeedThemeSettings(db)
 		InitialSyncGamifikasiRules(db)
+		InitialSyncKategoriOrmawa(db)
 	}
 
 	DB = db

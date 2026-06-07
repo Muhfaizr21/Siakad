@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
+import useAuthStore from '@/store/useAuthStore'
 import axios from 'axios'
 import { toast, Toaster } from 'react-hot-toast'
-import useAuthStore from '@/store/useAuthStore'
 
 import { cn } from '@/lib/utils'
 import { API_BASE_URL } from '../../services/api'
@@ -22,7 +22,7 @@ const ShieldCheck = ({ size, className, ...props }) => <span className={`materia
 
 
 const API = "/faculty"
-const EMPTY_FORM = { kode_org: '', nama_org: '', ketua_nama: '', KetuaID: null, jumlah_anggota: 0, status: 'Aktif', kategori: 'Himpunan', email: '', password: '', phone: '', fakultas_id: '', program_studi_id: '' }
+const EMPTY_FORM = { kode_org: '', nama_org: '', ketua_nama: '', KetuaID: null, jumlah_anggota: 0, status: 'Aktif', kategori: '', kategori_ormawa_id: null, email: '', password: '', phone: '', fakultas_id: '', program_studi_id: '' }
 
 export default function FacultyOrganisasi() {
   const [organizations, setOrgs] = useState([])
@@ -30,10 +30,10 @@ export default function FacultyOrganisasi() {
   const [faculties, setFaculties] = useState([])
   const [prodis, setProdis] = useState([]) // all prodis from backend
   const [loading, setLoading] = useState(true)
-  const authUser = useAuthStore(state => state.user)
-  const user = authUser || JSON.parse(localStorage.getItem('user') || '{}')
-  const userRole = (user.role || user.Role || '').toLowerCase()
+  const { user } = useAuthStore()
+  const userRole = (user?.role || user?.Role || '').toLowerCase()
   const isSuperAdmin = userRole === 'super_admin' || userRole === 'kencana_admin'
+  const facultyIdFromCtx = user?.fakultas_id || user?.FakultasID || null
   const [showModal, setModal] = useState(false)
   const [editingOrg, setEdit] = useState(null)
   const [isSubmitting, setIsSub] = useState(false)
@@ -47,8 +47,12 @@ export default function FacultyOrganisasi() {
   const [isStudentDropdownOpen, setIsStudentDropdownOpen] = useState(false)
   const [fakultasSearch, setFakultasSearch] = useState('')
   const [isFakultasDropdownOpen, setIsFakultasDropdownOpen] = useState(false)
+  const [prodis, setProdis] = useState([])
   const [prodiSearch, setProdiSearch] = useState('')
   const [isProdiDropdownOpen, setIsProdiDropdownOpen] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  // Kategori Ormawa — master data dinamis dari API
+  const [kategoriList, setKategoriList] = useState([])
 
   // Filtered faculties for dropdown search
   const filteredFaculties = useMemo(() => {
@@ -56,21 +60,9 @@ export default function FacultyOrganisasi() {
     return faculties.filter(f => (f.nama || f.Nama)?.toLowerCase().includes(fakultasSearch.toLowerCase()))
   }, [faculties, fakultasSearch])
 
-  // Prodis filtered by currently selected fakultas_id (and by search)
-  const availableProdis = useMemo(() => {
-    if (!formData.fakultas_id) return prodis
-    const fid = parseInt(formData.fakultas_id)
-    return prodis.filter(p => {
-      // Backend returns FakultasID (Go struct) or fakultas_id (json tag)
-      const pFakId = p.FakultasID || p.fakultas_id
-      return parseInt(pFakId) === fid
-    })
-  }, [prodis, formData.fakultas_id])
-
   const filteredProdis = useMemo(() => {
-    if (!prodiSearch) return availableProdis
-    return availableProdis.filter(p => (p.Nama || p.nama)?.toLowerCase().includes(prodiSearch.toLowerCase()))
-  }, [availableProdis, prodiSearch])
+    return prodis.filter(p => !prodiSearch || (p.nama || p.Nama)?.toLowerCase().includes(prodiSearch.toLowerCase()))
+  }, [prodis, prodiSearch])
 
   const filteredStudents = useMemo(() => {
     return students.filter(s => {
@@ -88,14 +80,23 @@ export default function FacultyOrganisasi() {
   const fetchData = async () => {
     setLoading(true)
     try {
-      const endpoint = isSuperAdmin ? '/admin/ormawa' : `${API}/organizations`
-      const res = await axios.get(endpoint)
-      const data = res.data
-      const items = Array.isArray(data.data) ? data.data : []
-      setOrgs(items)
-
-      const stdRes = await axios.get('/faculty/students')
+      const [orgRes, stdRes, katRes] = await Promise.all([
+        axios.get(`${API}/organizations`),
+        axios.get('/faculty/students'),
+        axios.get(`${API}/ormawa-kategori`),
+      ])
+      const data = orgRes.data
+      const mapped = Array.isArray(data.data) ? data.data.map(item => ({
+        id: item.ID, nama: item.Nama, kode: item.Singkatan || item.Kode || '',
+        status: item.Status || 'Aktif', kategori: item.Kategori || '',
+        kategori_ormawa_id: item.kategori_ormawa_id || item.KategoriOrmawaID || null,
+        kategori_detail: item.kategori_detail || null,
+        jumlah_anggota: item.JumlahAnggota || 0, deskripsi: item.Deskripsi || '',
+        email: item.Email || '', phone: item.Phone || ''
+      })) : []
+      setOrgs(mapped)
       setStudents(stdRes.data.data || [])
+      setKategoriList(katRes.data.data || [])
 
       // Always fetch prodis (needed for Himpunan dropdown)
       const prodiRes = await axios.get('/faculty/majors')
@@ -127,14 +128,14 @@ export default function FacultyOrganisasi() {
       payload.KetuaID = parseInt(formData.KetuaID)
       payload.KetuaNama = formData.ketua_nama
     }
-    if (isSuperAdmin) {
-      payload.fakultas_id = formData.fakultas_id ? parseInt(formData.fakultas_id) : null
-    }
-    // Only send program_studi_id for Himpunan
-    if (formData.kategori === 'Himpunan' && formData.program_studi_id) {
-      payload.program_studi_id = parseInt(formData.program_studi_id)
-    } else {
-      payload.program_studi_id = null
+    // Gunakan kategori_ormawa_id untuk relasi dinamis
+    if (formData.kategori_ormawa_id) payload.kategori_ormawa_id = parseInt(formData.kategori_ormawa_id)
+    // Cek terafiliasi_fakultas dari master data kategori (dinamis)
+    const selectedKat = kategoriList.find(k => k.id === parseInt(formData.kategori_ormawa_id))
+    const isTerafiliasi = selectedKat?.terafiliasi_fakultas || false
+    if (isTerafiliasi || (isSuperAdmin && formData.fakultas_id)) {
+      if (formData.fakultas_id) payload.fakultas_id = parseInt(formData.fakultas_id)
+      if (formData.program_studi_id) payload.program_studi_id = parseInt(formData.program_studi_id)
     }
     try {
       const targetId = getOrmId(editingOrg)
@@ -177,64 +178,45 @@ export default function FacultyOrganisasi() {
     finally { setIsSub(false) }
   }
 
-  const openEdit = (org) => {
-    console.log('[EDIT] raw org object:', org)
-    setEdit(org)
-    const facId = org.fakultas_id || org.FakultasID || org.Fakultas?.id || org.Fakultas?.ID || ''
-    const prodiId = org.program_studi_id || org.ProgramStudiID || org.ProgramStudi?.id || org.ProgramStudi?.ID || ''
-    setFormData({
-      kode_org: org.Singkatan || org.kode || org.singkatan || '',
-      nama_org: org.Nama || org.nama || '',
-      ketua_nama: org.Deskripsi || org.deskripsi || org.ketua_nama || '',
-      KetuaID: org.KetuaID || org.ketua_id || null,
-      jumlah_anggota: org.JumlahAnggota || org.jumlah_anggota || 0,
-      status: org.Status || org.status || 'Aktif',
-      kategori: org.Kategori || org.kategori || 'Himpunan',
-      email: org.Email || org.email || '',
-      password: '',
-      phone: org.Phone || org.phone || '',
-      fakultas_id: facId,
-      program_studi_id: prodiId,
-    })
-    const foundFac = faculties.find(f => (f.id || f.ID) === facId)
-    setFakultasSearch(foundFac ? (foundFac.nama || foundFac.Nama) : (org.Fakultas?.Nama || org.Fakultas?.nama || ''))
-    const foundProdi = prodis.find(p => (p.id || p.ID) === prodiId)
-    setProdiSearch(foundProdi ? (foundProdi.Nama || foundProdi.nama) : (org.ProgramStudi?.Nama || org.ProgramStudi?.nama || ''))
-    setModal(true)
-  }
-  const openAdd = () => {
-    setEdit(null)
-    // For faculty admins, pre-populate fakultas_id from their own context
-    const userFakId = user.fakultas_id || user.FakultasID || ''
-    setFormData({ ...EMPTY_FORM, fakultas_id: isSuperAdmin ? '' : userFakId })
-    // Show faculty name in the read-only badge for faculty admins
-    if (!isSuperAdmin && userFakId) {
-      // Try to get faculty name from any existing org in the list
-      const anyOrg = organizations.find(o => (o.FakultasID || o.fakultas_id) == userFakId)
-      const facName = anyOrg?.Fakultas?.Nama || anyOrg?.Fakultas?.nama || user.fakultas_nama || ''
-      setFakultasSearch(facName)
+  const openEdit = (org) => { 
+    console.log('Open Edit ORMAWA:', org);
+    setEdit(org); 
+    setFormData({ kode_org: org.kode || org.Singkatan || '', nama_org: org.nama || org.Nama || '', ketua_nama: org.deskripsi || org.Deskripsi || org.ketua_nama || '', KetuaID: org.ketua_id || org.KetuaID || null, jumlah_anggota: org.jumlah_anggota || org.JumlahAnggota || 0, status: org.status || org.Status || 'Aktif', kategori: org.kategori || org.Kategori || '', kategori_ormawa_id: org.kategori_ormawa_id || null, email: org.email || org.Email || '', password: '', phone: org.phone || org.Phone || '', fakultas_id: org.fakultas_id || org.FakultasID || '', program_studi_id: org.program_studi_id || org.ProgramStudiID || '' }); 
+    const facIdToFind = org.fakultas_id || org.FakultasID;
+    const foundFac = faculties.find(f => (f.id || f.ID) === facIdToFind)
+    setFakultasSearch(foundFac ? (foundFac.nama || foundFac.Nama) : '')
+    // Cek terafiliasi dari kategori detail ormawa ini
+    const katDetail = org.kategori_detail || kategoriList.find(k => k.id === (org.kategori_ormawa_id || org.KategoriOrmawaID))
+    const isTerafiliasi = katDetail?.terafiliasi_fakultas || org.kategori === 'Himpunan'
+    if (facIdToFind && isTerafiliasi) {
+      axios.get(`/admin/prodi?fakultasId=${facIdToFind}`).then(r => {
+        const prodiList = r.data.data || r.data || []
+        setProdis(prodiList)
+        const foundProdi = prodiList.find(p => (p.id || p.ID) === (org.program_studi_id || org.ProgramStudiID))
+        setProdiSearch(foundProdi ? (foundProdi.nama || foundProdi.Nama) : '')
+      }).catch(() => {})
     } else {
-      setFakultasSearch('')
+      setProdis([])
+      setProdiSearch('')
     }
-    setProdiSearch('')
-    setStudentSearch('')
-    setIsStudentDropdownOpen(false)
-    setIsFakultasDropdownOpen(false)
-    setIsProdiDropdownOpen(false)
-    setModal(true)
-  }
-  const closeModal = () => {
-    setModal(false)
-    setFakultasSearch('')
-    setProdiSearch('')
-    setStudentSearch('')
-    setIsStudentDropdownOpen(false)
-    setIsFakultasDropdownOpen(false)
-    setIsProdiDropdownOpen(false)
+    setShowPassword(false)
+    setModal(true) 
   }
   const set = (k, v) => setFormData(p => ({ ...p, [k]: v }))
 
   useEffect(() => { fetchData() }, [])
+
+  // Auto-set fakultas untuk Faculty Admin saat kategori yang dipilih terafiliasi fakultas
+  useEffect(() => {
+    const selectedKat = kategoriList.find(k => k.id === parseInt(formData.kategori_ormawa_id))
+    const isTerafiliasi = selectedKat?.terafiliasi_fakultas || formData.kategori === 'Himpunan'
+    if (isTerafiliasi && !isSuperAdmin && facultyIdFromCtx && !formData.fakultas_id) {
+      set('fakultas_id', facultyIdFromCtx)
+      axios.get(`/admin/prodi?fakultasId=${facultyIdFromCtx}`)
+        .then(r => setProdis(r.data.data || r.data || []))
+        .catch(() => {})
+    }
+  }, [formData.kategori_ormawa_id, formData.kategori, showModal])
 
   const filtered = useMemo(() => organizations.filter(o => {
     const q = search.toLowerCase()
@@ -301,6 +283,11 @@ export default function FacultyOrganisasi() {
 
   const PIE_COLORS = ['#00236f', '#10b981', '#f59e0b', '#3b82f6', '#8b5cf6', '#ef4444', '#ec4899', '#14b8a6']
 
+  // Pre-computed untuk menghindari IIFE dalam JSX (tidak didukung OXC parser Vite)
+  const selectedKatDetail = kategoriList.find(k => k.id === parseInt(formData.kategori_ormawa_id))
+  const isTerafiliasiKategori = selectedKatDetail?.terafiliasi_fakultas ||
+    (!selectedKatDetail && formData.kategori === 'Himpunan')
+
   return (
     <div className="min-h-screen bg-transparent font-inter">
       <Toaster position="top-right" />
@@ -354,7 +341,19 @@ export default function FacultyOrganisasi() {
             {/* Action and quick count balance box */}
             <div className="flex flex-row lg:flex-col items-end gap-3 shrink-0 self-stretch lg:self-auto justify-between lg:justify-center border-t lg:border-t-0 pt-4 lg:pt-0 border-slate-100">
               <div className="flex items-center gap-2">
-                <button onClick={openAdd}
+                <button onClick={() => { 
+                  setEdit(null); 
+                  const initFid = !isSuperAdmin && facultyIdFromCtx ? facultyIdFromCtx : ''
+                  setFormData({ ...EMPTY_FORM, fakultas_id: initFid })
+                  setFakultasSearch('')
+                  setProdiSearch('')
+                  setProdis([])
+                  if (initFid) {
+                    axios.get(`/admin/prodi?fakultasId=${initFid}`).then(r => setProdis(r.data.data || r.data || [])).catch(() => {})
+                  }
+                  setShowPassword(false); 
+                  setModal(true) 
+                }}
                   className="h-10 px-4 rounded-xl bg-primary hover:bg-bku-hover text-white text-xs font-bold uppercase tracking-wider gap-2 flex items-center transition-all active:scale-95 shadow-lg shadow-bku-primary/20 shrink-0">
                   <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >add</span> Tambah ORMAWA
                 </button>
@@ -629,157 +628,191 @@ export default function FacultyOrganisasi() {
                   <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Kode Akronim</label>
                     <input value={formData.kode_org} onChange={e => set('kode_org', e.target.value.toUpperCase())} placeholder="BEM-FT" required className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-black uppercase text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all" /></div>
                   <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Kategori</label>
-                    <select value={formData.kategori} onChange={e => set('kategori', e.target.value)} className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 focus:outline-none focus:border-primary appearance-none">
-                      {['BEM', 'Himpunan', 'UKM', 'Komunitas', 'Lainnya'].map(v => <option key={v} value={v}>{v}</option>)}
-                    </select></div>
+                    <select
+                      value={formData.kategori_ormawa_id || ''}
+                      onChange={e => {
+                        const katId = e.target.value ? parseInt(e.target.value) : null
+                        const kat = kategoriList.find(k => k.id === katId)
+                        set('kategori_ormawa_id', katId)
+                        set('kategori', kat?.nama || '') // sync legacy field
+                        // Reset fakultas/prodi jika tidak terafiliasi
+                        if (!kat?.terafiliasi_fakultas) {
+                          set('fakultas_id', '')
+                          set('program_studi_id', '')
+                          setProdis([])
+                        } else if (!isSuperAdmin && facultyIdFromCtx) {
+                          set('fakultas_id', facultyIdFromCtx)
+                          axios.get(`/admin/prodi?fakultasId=${facultyIdFromCtx}`).then(r => setProdis(r.data.data || r.data || [])).catch(()=>{})
+                        }
+                      }}
+                      className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 focus:outline-none focus:border-primary appearance-none"
+                    >
+                      <option value="">-- Pilih Kategori --</option>
+                      {kategoriList.map(k => (
+                        <option key={k.id} value={k.id}>
+                          {k.nama}{k.terafiliasi_fakultas ? ' 🏛️' : ''}
+                        </option>
+                      ))}
+                    </select>
+                    {formData.kategori_ormawa_id && selectedKatDetail && (
+                      <p className={`mt-1 text-[10px] font-bold ${selectedKatDetail.terafiliasi_fakultas ? 'text-blue-600' : 'text-emerald-600'}`}>
+                        {selectedKatDetail.terafiliasi_fakultas
+                          ? '🏛️ Proposal wajib melewati Fakultas terlebih dahulu'
+                          : '✅ Proposal langsung ke Universitas'}
+                      </p>
+                    )}
+                  </div>
                 </div>
-                <div className="space-y-3">
-                  {/* === FAKULTAS SELECTOR === */}
-                  {/* Super Admin: editable dropdown (for all categories) */}
-                  {/* Faculty Admin + Himpunan: read-only badge showing their faculty */}
-                  {(isSuperAdmin || formData.kategori === 'Himpunan') && (
-                    <div className="relative">
-                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">
-                        Fakultas Induk
-                        {formData.kategori === 'Himpunan' && <span className="ml-1 text-red-400">*</span>}
-                      </label>
 
-                      {isSuperAdmin ? (
-                        /* Super Admin: editable dropdown */
+                {/* ── Pilih Fakultas + Prodi — tampil jika kategori terafiliasi_fakultas ── */}
+                {isTerafiliasiKategori && (
+                  <div className="space-y-3 p-3 rounded-xl border border-blue-100 bg-blue-50/50">
+                    <p className="text-[10px] font-black text-blue-600 uppercase tracking-[0.18em]">
+                      <span className="material-symbols-outlined text-[13px] align-middle mr-1">account_tree</span>
+                      Afiliasi Fakultas &amp; Prodi — wajib untuk kategori ini
+                    </p>
+
+                    {/* Pilih Fakultas — dropdown untuk Super Admin, badge untuk Faculty Admin */}
+                    {isSuperAdmin ? (
+                      <div className="relative">
+                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Pilih Fakultas</label>
                         <div className="relative">
                           <div
-                            className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 flex items-center justify-between cursor-pointer"
+                            className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-white text-sm font-medium text-slate-900 flex items-center justify-between cursor-pointer"
                             onClick={() => setIsFakultasDropdownOpen(!isFakultasDropdownOpen)}
                           >
-                            <span className={`truncate ${!formData.fakultas_id ? 'text-slate-500' : ''}`}>
-                              {fakultasSearch || '-- Tingkat Universitas --'}
-                            </span>
+                            <span className={`truncate ${!formData.fakultas_id ? 'text-slate-400' : ''}`}>{fakultasSearch || '-- Pilih Fakultas --'}</span>
                             <span className="material-symbols-outlined text-slate-400">expand_more</span>
                           </div>
                           {isFakultasDropdownOpen && (
-                            <div className="absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg max-h-56 overflow-y-auto overflow-x-hidden">
+                            <div className="absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto overflow-x-hidden">
                               <div className="sticky top-0 bg-white p-2 border-b border-slate-100">
                                 <input
                                   type="text"
                                   placeholder="Cari fakultas..."
-                                  value={fakultasSearch === '-- Tingkat Universitas --' ? '' : fakultasSearch}
+                                  value={fakultasSearch === '-- Pilih Fakultas --' ? '' : fakultasSearch}
                                   onChange={e => setFakultasSearch(e.target.value)}
                                   className="w-full h-9 px-3 rounded-lg bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:border-primary"
                                   onClick={e => e.stopPropagation()}
                                 />
                               </div>
                               <div className="p-1">
-                                {formData.kategori !== 'Himpunan' && (
-                                  <div
-                                    onMouseDown={e => e.preventDefault()}
-                                    onClick={() => { set('fakultas_id', ''); set('program_studi_id', ''); setFakultasSearch('-- Tingkat Universitas --'); setProdiSearch(''); setIsFakultasDropdownOpen(false) }}
-                                    className={`px-3 py-2 text-sm rounded-lg cursor-pointer hover:bg-slate-50 ${!formData.fakultas_id ? 'bg-primary/10 text-primary font-bold' : 'text-slate-700'}`}
-                                  >
-                                    -- Tingkat Universitas --
-                                  </div>
+                                <div
+                                  onMouseDown={e => e.preventDefault()}
+                                  onClick={() => { set('fakultas_id', ''); set('program_studi_id', ''); setFakultasSearch(''); setProdiSearch(''); setProdis([]); setIsFakultasDropdownOpen(false) }}
+                                  className={`px-3 py-2 text-sm rounded-lg cursor-pointer hover:bg-slate-50 ${!formData.fakultas_id ? 'bg-primary/10 text-primary font-bold' : 'text-slate-500'}`}
+                                >
+                                  -- Pilih Fakultas --
+                                </div>
+                                {filteredFaculties.length === 0 ? (
+                                  <div className="px-3 py-2 text-sm text-slate-400 text-center">Tidak ada fakultas ditemukan</div>
+                                ) : (
+                                  filteredFaculties.map(f => (
+                                    <div
+                                      key={f.id || f.ID}
+                                      onMouseDown={e => e.preventDefault()}
+                                      onClick={() => {
+                                        const fid = f.id || f.ID
+                                        set('fakultas_id', fid)
+                                        set('program_studi_id', '')
+                                        setFakultasSearch(f.nama || f.Nama)
+                                        setProdiSearch('')
+                                        setIsFakultasDropdownOpen(false)
+                                        axios.get(`/admin/prodi?fakultasId=${fid}`).then(r => {
+                                          setProdis(r.data.data || r.data || [])
+                                        }).catch(() => setProdis([]))
+                                      }}
+                                      className={`px-3 py-2 text-sm rounded-lg cursor-pointer hover:bg-slate-50 ${parseInt(formData.fakultas_id) === (f.id || f.ID) ? 'bg-primary/10 text-primary font-bold' : 'text-slate-700'}`}
+                                    >
+                                      {f.nama || f.Nama}
+                                    </div>
+                                  ))
                                 )}
-                                {filteredFaculties.map(f => (
-                                  <div
-                                    key={f.id || f.ID}
-                                    onMouseDown={e => e.preventDefault()}
-                                    onClick={() => { set('fakultas_id', f.id || f.ID); set('program_studi_id', ''); setFakultasSearch(f.nama || f.Nama); setProdiSearch(''); setIsFakultasDropdownOpen(false) }}
-                                    className={`px-3 py-2 text-sm rounded-lg cursor-pointer hover:bg-slate-50 ${parseInt(formData.fakultas_id) === (f.id || f.ID) ? 'bg-primary/10 text-primary font-bold' : 'text-slate-700'}`}
-                                  >
-                                    {f.nama || f.Nama}
-                                  </div>
-                                ))}
                               </div>
                             </div>
                           )}
                         </div>
-                      ) : (
-                        /* Faculty Admin: read-only badge — fakultas sudah terkunci */
-                        <div className="w-full h-11 px-4 rounded-xl border border-slate-200/40 bg-slate-100 text-sm font-semibold text-slate-700 flex items-center gap-2 select-none">
-                          <span className="material-symbols-outlined text-primary" style={{ fontSize: '16px' }}>account_balance</span>
-                          <span className="truncate">{fakultasSearch || 'Fakultas Anda'}</span>
-                          <span className="ml-auto text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-200 px-2 py-0.5 rounded-full">Terkunci</span>
-                        </div>
-                      )}
-
-                      {formData.kategori === 'Himpunan' && !formData.fakultas_id && isSuperAdmin && (
-                        <p className="mt-1 text-[10px] text-amber-600 font-medium">⬆ Pilih Fakultas dahulu sebelum memilih Program Studi</p>
-                      )}
-                    </div>
-                  )}
-
-                  {/* === PROGRAM STUDI SELECTOR — hanya untuk Himpunan, setelah Fakultas === */}
-                  {formData.kategori === 'Himpunan' && (
-                    <div className="relative">
-                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">
-                        Program Studi (Parent Himpunan)
-                        <span className="ml-1 text-red-400">*</span>
-                      </label>
-                      <div className="relative">
-                        {/* Disabled state when super admin hasn't selected a faculty yet */}
-                        {isSuperAdmin && !formData.fakultas_id ? (
-                          <div className="w-full h-11 px-4 rounded-xl border border-dashed border-slate-300 bg-slate-50/30 text-sm text-slate-400 flex items-center gap-2 cursor-not-allowed select-none">
-                            <span className="material-symbols-outlined text-slate-300" style={{ fontSize: '16px' }}>lock</span>
-                            Pilih Fakultas terlebih dahulu
-                          </div>
-                        ) : (
-                          <>
-                            <div
-                              className={`w-full h-11 px-4 rounded-xl border ${!formData.program_studi_id ? 'border-amber-300 bg-amber-50/50' : 'border-emerald-300 bg-emerald-50/30'} text-sm font-medium text-slate-900 flex items-center justify-between cursor-pointer transition-all`}
-                              onClick={() => setIsProdiDropdownOpen(!isProdiDropdownOpen)}
-                            >
-                              <div className="flex items-center gap-2 min-w-0">
-                                {formData.program_studi_id && (
-                                  <span className="material-symbols-outlined text-emerald-600 flex-shrink-0" style={{ fontSize: '15px' }}>check_circle</span>
-                                )}
-                                <span className={`truncate ${!formData.program_studi_id ? 'text-amber-600' : 'text-slate-900 font-semibold'}`}>
-                                  {prodiSearch || '-- Pilih Program Studi --'}
-                                </span>
-                              </div>
-                              <span className="material-symbols-outlined text-slate-400 flex-shrink-0">expand_more</span>
-                            </div>
-                            {isProdiDropdownOpen && (
-                              <div className="absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg max-h-56 overflow-y-auto overflow-x-hidden">
-                                <div className="sticky top-0 bg-white p-2 border-b border-slate-100">
-                                  <input
-                                    type="text"
-                                    placeholder="Cari program studi..."
-                                    value={prodiSearch}
-                                    onChange={e => setProdiSearch(e.target.value)}
-                                    className="w-full h-9 px-3 rounded-lg bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:border-primary"
-                                    onClick={e => e.stopPropagation()}
-                                  />
-                                </div>
-                                <div className="p-1">
-                                  {filteredProdis.length === 0 ? (
-                                    <div className="px-3 py-4 text-sm text-slate-400 text-center flex flex-col items-center gap-1">
-                                      <span className="material-symbols-outlined text-slate-300" style={{ fontSize: '28px' }}>school</span>
-                                      Tidak ada program studi ditemukan
-                                    </div>
-                                  ) : (
-                                    filteredProdis.map(p => (
-                                      <div
-                                        key={p.id || p.ID}
-                                        onMouseDown={e => e.preventDefault()}
-                                        onClick={() => { set('program_studi_id', p.id || p.ID); setProdiSearch(p.Nama || p.nama); setIsProdiDropdownOpen(false) }}
-                                        className={`px-3 py-2.5 text-sm rounded-lg cursor-pointer hover:bg-slate-50 flex items-center justify-between ${parseInt(formData.program_studi_id) === (p.id || p.ID) ? 'bg-primary/10 text-primary font-bold' : 'text-slate-700'}`}
-                                      >
-                                        <span className="font-medium">{p.Nama || p.nama}</span>
-                                        {p.Jenjang && <span className="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{p.Jenjang}</span>}
-                                      </div>
-                                    ))
-                                  )}
-                                </div>
-                              </div>
-                            )}
-                          </>
-                        )}
                       </div>
-                      {!formData.program_studi_id && formData.fakultas_id && (
-                        <p className="mt-1 text-[10px] text-amber-600 font-medium">Himpunan harus terikat pada satu Program Studi</p>
-                      )}
-                    </div>
-                  )}
-                </div>
+                    ) : (
+                      /* Faculty Admin: Fakultas otomatis dari konteks login */
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-blue-100/60 border border-blue-200">
+                        <span className="material-symbols-outlined text-blue-600 text-[16px]">account_balance</span>
+                        <div>
+                          <p className="text-[9px] font-black text-blue-500 uppercase tracking-[0.15em]">Fakultas (otomatis dari akun Anda)</p>
+                          <p className="text-sm font-bold text-blue-800">
+                            {faculties.find(f => (f.id || f.ID) === (parseInt(formData.fakultas_id) || facultyIdFromCtx))?.nama ||
+                             faculties.find(f => (f.id || f.ID) === facultyIdFromCtx)?.Nama ||
+                             'Fakultas Anda'}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+
+                    {/* Pilih Prodi — muncul setelah Fakultas dipilih */}
+                    {formData.fakultas_id && (
+                      <div className="relative">
+                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Pilih Program Studi <span className="text-slate-300 normal-case font-medium">(opsional)</span></label>
+                        <div className="relative">
+                          <div 
+                            className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-white text-sm font-medium text-slate-900 flex items-center justify-between cursor-pointer"
+                            onClick={() => setIsProdiDropdownOpen(!isProdiDropdownOpen)}
+                          >
+                            <span className={`truncate ${!formData.program_studi_id ? 'text-slate-400' : ''}`}>{prodiSearch || '-- Semua Prodi --'}</span>
+                            <span className="material-symbols-outlined text-slate-400">expand_more</span>
+                          </div>
+                          
+                          {isProdiDropdownOpen && (
+                            <div className="absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto overflow-x-hidden">
+                              <div className="sticky top-0 bg-white p-2 border-b border-slate-100">
+                                <input 
+                                  type="text" 
+                                  placeholder="Cari program studi..." 
+                                  value={prodiSearch}
+                                  onChange={e => setProdiSearch(e.target.value)}
+                                  className="w-full h-9 px-3 rounded-lg bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:border-primary"
+                                  onClick={e => e.stopPropagation()}
+                                />
+                              </div>
+                              <div className="p-1">
+                                <div 
+                                  onMouseDown={e => e.preventDefault()}
+                                  onClick={() => {
+                                    set('program_studi_id', '')
+                                    setProdiSearch('')
+                                    setIsProdiDropdownOpen(false)
+                                  }}
+                                  className={`px-3 py-2 text-sm rounded-lg cursor-pointer hover:bg-slate-50 ${!formData.program_studi_id ? 'bg-primary/10 text-primary font-bold' : 'text-slate-500'}`}
+                                >
+                                  -- Semua Prodi --
+                                </div>
+                                {filteredProdis.length === 0 ? (
+                                  <div className="px-3 py-2 text-sm text-slate-400 text-center">Tidak ada prodi ditemukan</div>
+                                ) : (
+                                  filteredProdis.map(p => (
+                                    <div 
+                                      key={p.id || p.ID}
+                                      onMouseDown={e => e.preventDefault()}
+                                      onClick={() => {
+                                        set('program_studi_id', p.id || p.ID)
+                                        setProdiSearch(p.nama || p.Nama)
+                                        setIsProdiDropdownOpen(false)
+                                      }}
+                                      className={`px-3 py-2 text-sm rounded-lg cursor-pointer hover:bg-slate-50 ${parseInt(formData.program_studi_id) === (p.id || p.ID) ? 'bg-primary/10 text-primary font-bold' : 'text-slate-700'}`}
+                                    >
+                                      {p.nama || p.Nama}
+                                    </div>
+                                  ))
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {/* Nama Panjang */}
                 <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Nama Panjang Organisasi</label>
                   <input value={formData.nama_org} onChange={e => set('nama_org', e.target.value)} placeholder="Nama resmi organisasi..." required className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all" /></div>
                 <div className="grid grid-cols-2 gap-3">
@@ -840,8 +873,30 @@ export default function FacultyOrganisasi() {
                   <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Email Resmi</label>
                     <input type="email" value={formData.email} onChange={e => set('email', e.target.value)} placeholder="info@ormawa.com" className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all" /></div>
                 </div>
-                <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">{editingOrg ? 'Password (kosongkan jika tidak diubah)' : 'Password Akun Admin'}</label>
-                  <input type="password" value={formData.password} onChange={e => set('password', e.target.value)} placeholder="Password login admin ormawa..." required={!editingOrg} className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all" /></div>
+                <div>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">
+                    {editingOrg ? 'Password (kosongkan jika tidak diubah)' : 'Password Akun Admin'}
+                  </label>
+                  <div className="relative">
+                    <input 
+                      type={showPassword ? 'text' : 'password'} 
+                      value={formData.password} 
+                      onChange={e => set('password', e.target.value)} 
+                      placeholder="Password login admin ormawa..." 
+                      required={!editingOrg} 
+                      className="w-full h-11 pl-4 pr-12 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all" 
+                    />
+                    <button 
+                      type="button" 
+                      onClick={() => setShowPassword(!showPassword)} 
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors flex items-center justify-center"
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+                        {showPassword ? 'visibility_off' : 'visibility'}
+                      </span>
+                    </button>
+                  </div>
+                </div>
               </div>
               <div className="px-5 py-4 border-t border-slate-200/60 bg-transparent flex gap-3 flex-shrink-0">
                 <button type="button" onClick={closeModal} className="flex-1 h-11 rounded-xl border border-slate-200/60 bg-white text-xs font-bold text-slate-600 uppercase tracking-widest hover:bg-slate-50 transition-all">Batal</button>

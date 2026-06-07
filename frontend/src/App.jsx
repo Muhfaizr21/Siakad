@@ -152,6 +152,7 @@ import AspirationDetail from './pages/SuperAdmin/AspirationDetail'
 import KelolaOrganisasi from './pages/SuperAdmin/KelolaOrganisasi'
 import InsuranceManagement from './pages/SuperAdmin/InsuranceManagement'
 import GamifikasiOrmawa from './pages/SuperAdmin/GamifikasiOrmawa'
+import KategoriOrmawaPage from './pages/FacultyAdmin/KategoriOrmawa'
 import SuperAdminLayout from './pages/SuperAdmin/components/SuperAdminLayout'
 
 import InsuranceReview from './pages/TenagaKesehatan/InsuranceReview'
@@ -333,6 +334,7 @@ function App() {
                   <Route path="aspirations/:id" element={<AspirationDetail />} />
                   <Route path="organizations" element={<KelolaOrganisasi />} />
                   <Route path="gamifikasi" element={<GamifikasiOrmawa />} />
+                  <Route path="ormawa-kategori" element={<KategoriOrmawaPage />} />
                   <Route path="ormawa-dashboard" element={<SuperAdminOrmawaDashboardWrapped />} />
                   <Route path="ormawa-anggota" element={<SuperAdminAnggota />} />
                   <Route path="ormawa-struktur" element={<SuperAdminStruktur />} />
