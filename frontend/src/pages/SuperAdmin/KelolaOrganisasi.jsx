@@ -602,8 +602,7 @@ export default function KelolaOrganisasi() {
             <div className="flex bg-slate-100/50 p-1 rounded-xl border border-slate-200/40 select-none">
               {[
                 { key: 'xp', label: 'Skor XP' },
-                { key: 'lpj', label: 'Kepatuhan LPJ' },
-                { key: 'bintang', label: 'Bintang' }
+                { key: 'lpj', label: 'Kepatuhan LPJ' }
               ].map(tab => (
                 <button
                   key={tab.key}
@@ -637,11 +636,6 @@ export default function KelolaOrganisasi() {
                 </div>
                 <span className="text-[10px] font-black text-slate-800 uppercase tracking-wider font-headline leading-none text-center max-w-[120px] truncate" title={top2?.Nama}>{top2?.Singkatan || top2?.Nama}</span>
                 <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-1">{top2?.xp} XP</span>
-                <div className="flex items-center gap-0.5 text-amber-400 mt-1">
-                  {Array.from({ length: top2?.bintang || 3 }).map((_, i) => (
-                    <Star key={i} size={8} className="fill-amber-400 text-amber-400 border-none" />
-                  ))}
-                </div>
               </div>
 
               {/* 🥇 Rank 1 (Center - Taller Podium with Gold Highlight) */}
@@ -658,11 +652,6 @@ export default function KelolaOrganisasi() {
                   <Zap size={10} className="fill-amber-500 text-amber-500" />
                   <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest">{top1?.xp} XP</span>
                 </div>
-                <div className="flex items-center gap-0.5 text-amber-400 mt-1">
-                  {Array.from({ length: top1?.bintang || 3 }).map((_, i) => (
-                    <Star key={i} size={9} className="fill-amber-400 text-amber-400 border-none animate-pulse" />
-                  ))}
-                </div>
               </div>
 
               {/* 🥉 Rank 3 (Right Side) */}
@@ -675,11 +664,6 @@ export default function KelolaOrganisasi() {
                 </div>
                 <span className="text-[10px] font-black text-slate-800 uppercase tracking-wider font-headline leading-none text-center max-w-[120px] truncate" title={top3?.Nama}>{top3?.Singkatan || top3?.Nama}</span>
                 <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-1">{top3?.xp} XP</span>
-                <div className="flex items-center gap-0.5 text-amber-400 mt-1">
-                  {Array.from({ length: top3?.bintang || 3 }).map((_, i) => (
-                    <Star key={i} size={8} className="fill-amber-400 text-amber-400 border-none" />
-                  ))}
-                </div>
               </div>
 
             </div>
@@ -705,18 +689,6 @@ export default function KelolaOrganisasi() {
                     </div>
                   </th>
                   <th
-                    onClick={() => setSortBy('bintang')}
-                    className={cn(
-                      "py-3 px-3 w-[100px] text-center font-headline cursor-pointer select-none transition-all duration-150 rounded-t-lg hover:bg-bku-primary/5 hover:text-bku-primary",
-                      sortBy === 'bintang' ? "text-bku-primary font-black bg-bku-primary/5" : "text-slate-400"
-                    )}
-                  >
-                    <div className="flex items-center justify-center gap-1.5">
-                      <span>Bintang</span>
-                      {sortBy === 'bintang' && <span className="text-[10px] text-bku-primary font-black">▼</span>}
-                    </div>
-                  </th>
-                  <th
                     onClick={() => setSortBy('xp')}
                     className={cn(
                       "py-3 px-3 w-[120px] text-right font-headline cursor-pointer select-none transition-all duration-150 rounded-t-lg hover:bg-bku-primary/5 hover:text-bku-primary",
@@ -737,7 +709,6 @@ export default function KelolaOrganisasi() {
                       <td className="py-4 px-3"><div className="h-6 w-8 bg-slate-100 rounded mx-auto" /></td>
                       <td className="py-4 px-3"><div className="h-6 w-48 bg-slate-100 rounded" /></td>
                       <td className="py-4 px-3"><div className="h-4 w-24 bg-slate-100 rounded" /></td>
-                      <td className="py-4 px-3"><div className="h-4 w-16 bg-slate-100 rounded mx-auto" /></td>
                       <td className="py-4 px-3"><div className="h-6 w-16 bg-slate-100 rounded ml-auto" /></td>
                     </tr>
                   ))
@@ -788,16 +759,6 @@ export default function KelolaOrganisasi() {
                                 )}
                               />
                             </div>
-                          </div>
-                        </td>
-                        <td className={cn(
-                          "py-4 px-3 text-center transition-colors duration-150",
-                          sortBy === 'bintang' && "bg-bku-primary/[0.02]"
-                        )}>
-                          <div className="flex items-center justify-center gap-0.5 text-amber-400">
-                            {Array.from({ length: item.bintang || 3 }).map((_, i) => (
-                              <Star key={i} size={10} className="fill-amber-400 text-amber-400 border-none" />
-                            ))}
                           </div>
                         </td>
                         <td className={cn(
