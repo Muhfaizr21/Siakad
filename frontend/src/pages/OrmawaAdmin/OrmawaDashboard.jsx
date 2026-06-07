@@ -71,9 +71,9 @@ export default function OrmawaDashboard() {
         ])
         if (settingsJson.status === 'success') setIdentity(settingsJson.data || { Nama: 'Portal Ormawa' })
         if (statsJson.status === 'success') setStats(statsJson.data || {})
-        if (proposalJson.status === 'success') setProposals((proposalJson.data || []).slice(0, 5))
-        if (memberJson.status === 'success') setMembers((memberJson.data || []).slice(0, 5))
-        if (eventJson.status === 'success') setEvents((eventJson.data || []).slice(0, 4))
+        if (proposalJson.status === 'success') setProposals(proposalJson.data || [])
+        if (memberJson.status === 'success') setMembers(memberJson.data || [])
+        if (eventJson.status === 'success') setEvents(eventJson.data || [])
         if (gamJson.status === 'success') setGamifikasi(gamJson.data || { poin: 0, peringkat: 0, riwayat: [] })
       } catch {} finally { setIsLoading(false) }
     }
@@ -330,7 +330,7 @@ export default function OrmawaDashboard() {
               </div>
             )) : proposals.length === 0 ? (
               <div className="p-8 text-center"><p className="text-xs font-medium text-[var(--theme-text-muted)]">Belum ada proposal</p></div>
-            ) : proposals.map((p) => (
+            ) : proposals.slice(0, 5).map((p) => (
               <div key={p.id || p.ID} className="p-4 flex items-center gap-4 hover:bg-[var(--theme-bg)] transition-colors cursor-pointer" onClick={() => navigate('/ormawa/proposal')}>
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-[var(--theme-text)] text-sm truncate">{p.Judul}</p>
@@ -368,7 +368,7 @@ export default function OrmawaDashboard() {
               </div>
             )) : events.length === 0 ? (
               <div className="p-8 text-center"><p className="text-xs font-medium text-[var(--theme-text-muted)]">Belum ada kegiatan</p></div>
-            ) : events.map((ev) => {
+            ) : events.slice(0, 4).map((ev) => {
               const d = ev.TanggalMulai ? new Date(ev.TanggalMulai) : null
               return (
                 <div key={ev.id || ev.ID} className="p-4 flex items-center gap-4 hover:bg-[var(--theme-bg)] transition-colors cursor-pointer" onClick={() => navigate('/ormawa/jadwal')}>
@@ -552,7 +552,7 @@ export default function OrmawaDashboard() {
           <div className="p-5 flex flex-wrap gap-4">
             {isLoading ? Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-12 w-12 bg-[var(--theme-bg)] border border-[var(--theme-border-muted)] rounded-lg animate-pulse" />) :
               members.length === 0 ? <p className="text-xs font-medium text-[var(--theme-text-muted)]">Belum ada anggota terdaftar</p> :
-              members.map((m) => (
+              members.slice(0, 8).map((m) => (
                 <div key={m.id || m.ID} className="flex flex-col items-center gap-2 group cursor-pointer" onClick={() => navigate('/ormawa/anggota')}>
                   <div className="w-12 h-12 rounded-lg bg-[var(--theme-bg)] border border-[var(--theme-border-muted)] text-[var(--theme-text-muted)] flex items-center justify-center text-xs font-bold group-hover:bg-[var(--theme-primary)] group-hover:text-white group-hover:border-[var(--theme-primary)] transition-all shadow-sm">
                     {m.Mahasiswa?.Nama?.split(' ').map(n => n[0]).join('').substring(0, 2) || '?'}

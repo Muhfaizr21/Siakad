@@ -72,6 +72,52 @@ export default function AnggotaManagement() {
   const canEdit = isSuperOrAdmin || userPermissions.includes('edit_members')
   const canDelete = isSuperOrAdmin || userPermissions.includes('delete_members')
 
+  const [sortConfig, setSortConfig] = useState({ key: 'Nama', direction: 'asc' })
+  const handleSort = (key) => {
+    setSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }))
+  }
+
+  const [filterRole, setFilterRole] = useState('all')
+  const [filterDivisi, setFilterDivisi] = useState('all')
+  const [filterStatus, setFilterStatus] = useState('all')
+
+  const filteredMembers = useMemo(() => {
+    return members.filter(m => {
+      if (filterRole !== 'all' && (m.Role || 'Anggota') !== filterRole) return false
+      if (filterDivisi !== 'all' && (m.Divisi || '') !== filterDivisi) return false
+      if (filterStatus !== 'all') {
+        const s = String(m.Status || 'aktif').toLowerCase().trim()
+        if (filterStatus === 'aktif' && s !== 'aktif' && s !== '') return false
+        if (filterStatus === 'nonaktif' && (s === 'aktif' || s === '')) return false
+      }
+      return true
+    })
+  }, [members, filterRole, filterDivisi, filterStatus])
+
+  const sortedMembers = useMemo(() => {
+    const items = [...filteredMembers]
+    items.sort((a, b) => {
+      let aVal, bVal
+      if (sortConfig.key === 'Nama') {
+        aVal = (a.Mahasiswa?.Nama || '').toLowerCase()
+        bVal = (b.Mahasiswa?.Nama || '').toLowerCase()
+      } else if (sortConfig.key === 'NIM') {
+        aVal = (a.Mahasiswa?.NIM || '').toLowerCase()
+        bVal = (b.Mahasiswa?.NIM || '').toLowerCase()
+      } else {
+        aVal = String(a[sortConfig.key] || '').toLowerCase()
+        bVal = String(b[sortConfig.key] || '').toLowerCase()
+      }
+      if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1
+      if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1
+      return 0
+    })
+    return items
+  }, [filteredMembers, sortConfig])
+
   const [isAddingNewDiv, setIsAddingNewDiv] = useState(false)
   const [newDivName, setNewDivName] = useState('')
   const [isSavingDiv, setIsSavingDiv] = useState(false)
@@ -190,18 +236,15 @@ export default function AnggotaManagement() {
 
   const columns = [
     {
-      key: 'Mahasiswa', label: 'Profil Anggota', className: 'min-w-[280px]',
+      key: 'Nama', label: 'Profil Anggota', sortable: true, className: 'min-w-[280px]',
       render: (val, row) => {
         const fotoUrl = getFullUrl(row.Mahasiswa?.FotoURL || row.Mahasiswa?.foto_url || row.Mahasiswa?.Foto || row.Mahasiswa?.Pengguna?.Foto || null);
         return (
           <div className="flex items-center gap-3">
             {fotoUrl ? (
-              <img
-                src={fotoUrl}
-                alt={row.Mahasiswa?.Nama || 'Member'}
+              <img src={fotoUrl} alt={row.Mahasiswa?.Nama || 'Member'}
                 className="w-10 h-10 rounded-xl object-cover shrink-0 shadow-sm border border-slate-200"
-                onError={(e) => { e.target.src = ''; }}
-              />
+                onError={(e) => { e.target.src = ''; }} />
             ) : (
               <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-end justify-center overflow-hidden shrink-0 border border-slate-200/60 shadow-sm">
                 <span className="material-symbols-outlined text-slate-400 text-2xl mb-1">person</span>
@@ -216,7 +259,7 @@ export default function AnggotaManagement() {
       }
     },
     {
-      key: 'Role', label: 'Jabatan', className: 'w-[200px]',
+      key: 'Role', label: 'Jabatan', sortable: true, className: 'w-[200px]',
       render: (val) => (
         <Badge className={cn("font-black text-[10px] px-3 py-1 border shadow-sm rounded-lg uppercase tracking-wider", getRoleStyle(val))}>
           {val || 'Anggota'}
@@ -224,13 +267,13 @@ export default function AnggotaManagement() {
       )
     },
     {
-      key: 'Divisi', label: 'Divisi', className: 'w-[180px]',
+      key: 'Divisi', label: 'Divisi', sortable: true, className: 'w-[180px]',
       render: (val) => val
         ? <Badge className="bg-primary/5 text-primary font-extrabold text-[10px] border border-primary/10 rounded-lg px-2.5 py-0.5">{val}</Badge>
         : <span className="text-slate-400 text-xs font-bold uppercase tracking-wider font-headline">Umum</span>
     },
     {
-      key: 'Status', label: 'Status', className: 'w-[130px] text-center', cellClassName: 'text-center',
+      key: 'Status', label: 'Status', sortable: true, className: 'w-[130px] text-center', cellClassName: 'text-center',
       render: (val) => {
         const s = String(val || 'aktif').toLowerCase().trim();
         const isAktif = s === 'aktif' || s === '';
@@ -306,13 +349,45 @@ export default function AnggotaManagement() {
         </div>
       </div>
 
+      {/* ── Filter Bar ─────────────────────────────────────────────── */}
+      <div className="bg-white rounded-2xl border border-slate-200/60 p-4 flex flex-wrap items-center gap-3 shadow-sm">
+        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mr-1">Filter</span>
+        <select value={filterRole} onChange={e => setFilterRole(e.target.value)}
+          className="h-9 px-3 rounded-xl border border-slate-200 text-xs font-bold bg-white focus:outline-none focus:border-primary">
+          <option value="all">Semua Jabatan</option>
+          {combinedRoles.map(r => <option key={r} value={r}>{r}</option>)}
+        </select>
+        <select value={filterDivisi} onChange={e => setFilterDivisi(e.target.value)}
+          className="h-9 px-3 rounded-xl border border-slate-200 text-xs font-bold bg-white focus:outline-none focus:border-primary">
+          <option value="all">Semua Divisi</option>
+          {divisions.map(d => <option key={d.ID || d.id} value={d.Nama || d.nama}>{(d.Nama || d.nama)}</option>)}
+        </select>
+        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
+          className="h-9 px-3 rounded-xl border border-slate-200 text-xs font-bold bg-white focus:outline-none focus:border-primary">
+          <option value="all">Semua Status</option>
+          <option value="aktif">Aktif</option>
+          <option value="nonaktif">Nonaktif</option>
+        </select>
+        {(filterRole !== 'all' || filterDivisi !== 'all' || filterStatus !== 'all') && (
+          <button onClick={() => { setFilterRole('all'); setFilterDivisi('all'); setFilterStatus('all') }}
+            className="h-9 px-4 text-xs font-bold text-rose-600 bg-rose-50 rounded-xl border border-rose-200 hover:bg-rose-100">
+            Reset
+          </button>
+        )}
+        <div className="ml-auto text-[10px] font-bold text-slate-500">
+          {sortedMembers.length} / {members.length} anggota
+        </div>
+      </div>
+
       {/* ── Content Area ───────────────────────────────────────────── */}
       <Card className="border border-[#e5e5e5] shadow-sm overflow-hidden bg-white rounded-3xl">
         <CardContent className="p-0">
           <DataTable
             columns={columns}
-            data={members}
+            data={sortedMembers}
             loading={loading}
+            sortConfig={sortConfig}
+            onSort={handleSort}
             searchPlaceholder="Cari nama atau NIM anggota..."
             onAdd={canCreate ? handleOpenAdd : null}
             addLabel="Tambah Anggota"
