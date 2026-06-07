@@ -9,6 +9,7 @@ import { API_BASE_URL } from '../../services/api'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/Select"
 import { Button } from "@/components/ui/Button"
 import { DeleteConfirmModal } from "@/components/ui/DeleteConfirmModal"
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Users2 = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>groups</span>;
@@ -125,6 +126,24 @@ export default function FacultyOrganisasi() {
 
   const stats = { total: organizations.length, aktif: organizations.filter(o => o.status === 'Aktif').length, anggota: organizations.reduce((a, o) => a + (o.jumlah_anggota || 0), 0) }
 
+  const kategoriData = useMemo(() => {
+    const counts = {}
+    organizations.forEach(o => {
+      const k = o.kategori || 'Lainnya'
+      counts[k] = (counts[k] || 0) + 1
+    })
+    return Object.entries(counts).map(([name, value]) => ({ name, value }))
+  }, [organizations])
+
+  const topAnggotaData = useMemo(() => {
+    return [...organizations]
+      .sort((a, b) => (b.jumlah_anggota || 0) - (a.jumlah_anggota || 0))
+      .slice(0, 10)
+      .map(o => ({ name: o.kode || o.nama, value: o.jumlah_anggota || 0 }))
+  }, [organizations])
+
+  const PIE_COLORS = ['#00236f', '#10b981', '#f59e0b', '#3b82f6', '#8b5cf6', '#ef4444', '#ec4899', '#14b8a6']
+
   return (
     <div className="min-h-screen bg-transparent font-inter">
       <Toaster position="top-right" />
@@ -188,11 +207,12 @@ export default function FacultyOrganisasi() {
         </section>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
             { label: 'Total ORMAWA', value: stats.total, icon: Users2, bg: 'bg-[#eef4ff]', color: 'text-primary', desc: 'Organisasi terdaftar' },
             { label: 'Organisasi Aktif', value: stats.aktif, icon: CheckCircle2, bg: 'bg-emerald-50', color: 'text-emerald-600', desc: 'Status aktif beroperasi' },
             { label: 'Total Anggota', value: stats.anggota, icon: ShieldCheck, bg: 'bg-indigo-50', color: 'text-indigo-600', desc: 'Jangkauan anggota' },
+            { label: 'Total Kategori', value: kategoriData.length, icon: Users2, bg: 'bg-amber-50', color: 'text-amber-600', desc: 'Jenis organisasi' },
           ].map(s => (
             <div key={s.label} className="glass-card border border-slate-200/60 rounded-2xl p-5 shadow-none">
               <div className="flex items-center gap-3 mb-3">
@@ -204,6 +224,67 @@ export default function FacultyOrganisasi() {
             </div>
           ))}
         </div>
+
+        {/* Charts */}
+        {!loading && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Pie: Distribusi Kategori */}
+            <div className="glass-card border border-slate-200/60 rounded-2xl p-5 shadow-none">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-600 shrink-0">
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>pie_chart</span>
+                </div>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Distribusi Kategori</span>
+              </div>
+              <div className="h-[200px] w-full flex items-center justify-center">
+                {kategoriData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={200}>
+                    <PieChart>
+                      <Pie data={kategoriData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value" stroke="none">
+                        {kategoriData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+                      </Pie>
+                      <Tooltip contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : <span className="text-xs text-slate-400 italic">Tidak ada data</span>}
+              </div>
+              <div className="grid grid-cols-2 gap-1.5 mt-2">
+                {kategoriData.slice(0, 6).map((item, i) => (
+                  <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50 border border-slate-100">
+                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
+                    <div className="min-w-0">
+                      <p className="text-[9px] font-bold text-slate-400 truncate leading-none">{item.name}</p>
+                      <p className="text-xs font-extrabold text-slate-800 leading-none mt-1">{item.value}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Bar: Top 10 Anggota per Ormawa */}
+            <div className="glass-card border border-slate-200/60 rounded-2xl p-5 shadow-none">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-600 shrink-0">
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>bar_chart</span>
+                </div>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Anggota per Ormawa (Top 10)</span>
+              </div>
+              <div className="h-[200px] w-full">
+                {topAnggotaData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={200}>
+                    <BarChart data={topAnggotaData} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+                      <XAxis type="number" tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                      <YAxis type="category" dataKey="name" tick={{ fontSize: 8, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} width={60} />
+                      <Tooltip contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }} />
+                      <Bar dataKey="value" name="Anggota" fill="#00236f" radius={[0, 4, 4, 0]} barSize={14} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : <div className="h-full flex items-center justify-center"><span className="text-xs text-slate-400 italic">Tidak ada data</span></div>}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Table */}
         <div className="glass-card border border-slate-200/60 rounded-2xl shadow-none overflow-hidden">

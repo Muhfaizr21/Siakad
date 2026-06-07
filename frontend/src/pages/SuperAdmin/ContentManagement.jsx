@@ -15,7 +15,7 @@ import { DataTable } from '@/components/ui/DataTable'
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
 import { cn } from '@/lib/utils'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Newspaper = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>newspaper</span>;
@@ -93,6 +93,25 @@ export default function ContentManagement() {
             { name: 'Ormawa', value: counts.ormawa },
             { name: 'Mahasiswa', value: counts.mahasiswa }
         ].filter(d => d.value > 0)
+    }, [news])
+
+    const monthlyTrendData = useMemo(() => {
+        const byMonth = {}
+        news.forEach(n => {
+            const date = n.TanggalPublish || n.tanggal_publish
+            if (!date) return
+            const d = new Date(date)
+            if (isNaN(d.getTime())) return
+            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+            byMonth[key] = (byMonth[key] || 0) + 1
+        })
+        return Object.entries(byMonth)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([month, count]) => {
+                const [y, m] = month.split('-')
+                const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des']
+                return { month: `${months[parseInt(m)-1]} ${y}`, value: count }
+            })
     }, [news])
 
     const PIE_COLORS = ['#10b981', '#f59e0b', '#3b82f6', '#8b5cf6']
@@ -382,8 +401,50 @@ export default function ContentManagement() {
                     </div>
                 </section>
 
+                {/* ── Stat Cards ─────────────────────────────────────────── */}
+                {!loading && (
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-in fade-in duration-300">
+                        <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none flex items-center gap-4">
+                            <div className="w-12 h-12 bg-bku-primary/10 rounded-xl flex items-center justify-center text-bku-primary shrink-0">
+                                <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>newspaper</span>
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Total Berita</p>
+                                <p className="text-2xl font-black text-slate-800 font-headline tracking-tight">{news.length}</p>
+                            </div>
+                        </div>
+                        <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none flex items-center gap-4">
+                            <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-600 shrink-0">
+                                <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>check_circle</span>
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Published</p>
+                                <p className="text-2xl font-black text-emerald-600 font-headline tracking-tight">{news.filter(n => n.Status === 'Published').length}</p>
+                            </div>
+                        </div>
+                        <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none flex items-center gap-4">
+                            <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-600 shrink-0">
+                                <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>edit_note</span>
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Draft</p>
+                                <p className="text-2xl font-black text-amber-600 font-headline tracking-tight">{news.filter(n => n.Status !== 'Published').length}</p>
+                            </div>
+                        </div>
+                        <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none flex items-center gap-4">
+                            <div className="w-12 h-12 bg-violet-500/10 rounded-xl flex items-center justify-center text-violet-600 shrink-0">
+                                <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>group</span>
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Target Audien</p>
+                                <p className="text-2xl font-black text-violet-600 font-headline tracking-tight">{new Set(news.map(n => n.target_audience || n.TargetAudience || 'semua')).size}</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* ── Charts Section ──────────────────────────────────────── */}
-                {!loading && news.length > 0 && (
+                {!loading && (
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-300">
                         {/* Bar Chart: Target Penerima */}
                         <div className="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none">
@@ -455,6 +516,31 @@ export default function ContentManagement() {
                                     </div>
                                 ))}
                             </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* ── Line Chart: Tren Publikasi ──────────────────────────── */}
+                {!loading && monthlyTrendData.length > 1 && (
+                    <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none animate-in fade-in duration-300">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-10 h-10 bg-indigo-500/10 rounded-xl flex justify-center items-center text-indigo-600 flex-shrink-0">
+                                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>trending_up</span>
+                            </div>
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Tren Publikasi per Bulan</span>
+                        </div>
+                        <div className="h-[200px] w-full">
+                            <ResponsiveContainer width="100%" height={200}>
+                                <LineChart data={monthlyTrendData} margin={{ top: 10, right: 20, left: -20, bottom: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                    <XAxis dataKey="month" tick={{ fontSize: 8.5, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                                    <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                                    <Tooltip
+                                        contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "11px", fontWeight: "bold" }}
+                                    />
+                                    <Line type="monotone" dataKey="value" name="Jumlah Berita" stroke="#00236f" strokeWidth={2.5} dot={{ fill: '#00236f', r: 3 }} activeDot={{ r: 5, fill: '#00236f' }} />
+                                </LineChart>
+                            </ResponsiveContainer>
                         </div>
                     </div>
                 )}

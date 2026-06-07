@@ -109,6 +109,7 @@ func InisialisasiRuteFakultas(aplikasi *fiber.App) {
 
 	// Periode Akademik (Pengaturan)
 	api.Get("/academic-periods", fakultas.AmbilPengaturanAkademik)
+	api.Get("/academic-periods/all", fakultas.AmbilSemuaPeriodeAkademik)
 	api.Post("/academic-periods", fakultas.SimpanPengaturanAkademik)
 	api.Put("/academic-periods", fakultas.SimpanPengaturanAkademik) // ALIAS
 

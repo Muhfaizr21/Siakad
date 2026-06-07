@@ -46,8 +46,8 @@ export function withSuperAdminOrmawaAccess(Component, title) {
 
     return (
       <div>
-        {/* Header dengan dropdown hanya untuk halaman yang bukan dashboard */}
-        {title && title !== 'Dashboard Ormawa' && (
+        {/* Header dengan dropdown untuk semua halaman */}
+        {title && (
           <div className="px-4 md:px-6 lg:px-8 pt-6">
             <div className="max-w-7xl mx-auto">
               <SuperAdminOrmawaHeader title={title} />

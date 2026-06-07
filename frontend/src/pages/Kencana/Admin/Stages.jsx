@@ -384,22 +384,21 @@ const Stages = ({ phaseType = 'kencana_universitas' }) => {
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
 
-      <div className="bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 rounded-3xl p-6 md:p-7 text-white shadow-xl relative overflow-hidden">
-        <div className="absolute right-0 top-0 h-40 w-40 bg-cyan-400/20 rounded-full blur-3xl" />
+      <div className="bg-white border border-slate-100 rounded-3xl p-6 md:p-7 shadow-sm relative overflow-hidden">
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
           <div className="max-w-3xl">
             <div className="flex items-center gap-3 mb-3">
-              <p className="text-[10px] font-black text-cyan-200 uppercase tracking-[0.28em]">Konten Fase</p>
+              <p className="text-[10px] font-black text-cyan-600 uppercase tracking-[0.28em]">Konten Fase</p>
               <PhaseStatusBadge active={phaseTimeline?.is_active} status={phaseTimeline?.status} />
             </div>
-            <h1 className="text-2xl md:text-4xl font-black tracking-tight">{phaseConfig.title}</h1>
-            <p className="text-sm md:text-base text-slate-200 font-medium mt-2 leading-relaxed">{phaseConfig.subtitle}</p>
+            <h1 className="text-2xl md:text-4xl font-black tracking-tight text-slate-800">{phaseConfig.title}</h1>
+            <p className="text-sm md:text-base text-slate-500 font-medium mt-2 leading-relaxed">{phaseConfig.subtitle}</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
             <select
               value={selectedPeriodId}
               onChange={(e) => setSelectedPeriodId(e.target.value)}
-              className="w-full sm:w-64 px-4 py-3 bg-white/10 border border-white/20 rounded-2xl text-sm font-bold text-white outline-none backdrop-blur-md"
+              className="w-full sm:w-64 px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-800 outline-none focus:border-cyan-500 transition-colors"
               disabled={loadingPeriods}
             >
               <option value="" disabled className="text-slate-800">Pilih Periode...</option>
@@ -408,7 +407,7 @@ const Stages = ({ phaseType = 'kencana_universitas' }) => {
             <button
               onClick={() => openAddSession(phaseStage)}
               disabled={!selectedPeriodId || createStageMutation.isPending}
-              className="whitespace-nowrap bg-cyan-400 hover:bg-cyan-300 text-slate-950 px-5 py-3 rounded-2xl text-sm font-black shadow-lg disabled:opacity-50 transition-all"
+              className="whitespace-nowrap bg-cyan-500 hover:bg-cyan-600 text-white px-5 py-3 rounded-2xl text-sm font-black shadow-md disabled:opacity-50 transition-all"
             >
               + Tambah Sesi
             </button>

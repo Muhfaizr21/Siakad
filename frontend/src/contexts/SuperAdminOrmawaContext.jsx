@@ -1,5 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
-import axios from 'axios'
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import { fetchWithAuth, API_BASE_URL } from '../services/api'
+
+const ORMAWA_CHANGE_EVENT = 'superadmin-ormawa-change'
+const STORAGE_KEY = 'superadmin_ormawa_id'
 
 const SuperAdminOrmawaContext = createContext()
 
@@ -13,23 +16,22 @@ export function useSuperAdminOrmawa() {
 
 export function SuperAdminOrmawaProvider({ children }) {
   const [selectedOrmawaId, setSelectedOrmawaId] = useState(() => {
-    return localStorage.getItem('superadmin_ormawa_id') || null
+    return localStorage.getItem(STORAGE_KEY) || null
   })
   const [organizations, setOrganizations] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedOrmawa, setSelectedOrmawa] = useState(null)
 
-  // Fetch list ormawa saat mount
   useEffect(() => {
     const fetchOrganizations = async () => {
       setLoading(true)
       try {
-        const res = await axios.get('/admin/ormawa')
-        if (res.data.status === 'success') {
-          const orgs = res.data.data || []
+        const res = await fetchWithAuth(`${API_BASE_URL}/admin/ormawa`)
+        if (res.status === 'success') {
+          const orgs = res.data || []
           setOrganizations(orgs)
-          
-          const savedId = localStorage.getItem('superadmin_ormawa_id')
+
+          const savedId = localStorage.getItem(STORAGE_KEY)
           if (savedId) {
             const matched = orgs.find(o => String(o.ID || o.id) === String(savedId))
             if (matched) {
@@ -39,12 +41,11 @@ export function SuperAdminOrmawaProvider({ children }) {
             }
           }
 
-          // Auto-select ormawa pertama jika tidak ada di localStorage atau tidak match
           if (orgs.length > 0) {
             const firstId = orgs[0].ID || orgs[0].id
             setSelectedOrmawaId(firstId)
             setSelectedOrmawa(orgs[0])
-            localStorage.setItem('superadmin_ormawa_id', String(firstId))
+            localStorage.setItem(STORAGE_KEY, String(firstId))
           }
         }
       } catch (err) {
@@ -56,7 +57,7 @@ export function SuperAdminOrmawaProvider({ children }) {
     fetchOrganizations()
   }, [])
 
-  // Sync selectedOrmawa ketika selectedOrmawaId atau organizations berubah
+  // Sync selectedOrmawa when id or list changes
   useEffect(() => {
     if (selectedOrmawaId && organizations.length > 0) {
       const ormawa = organizations.find(o => String(o.ID || o.id) === String(selectedOrmawaId))
@@ -64,27 +65,39 @@ export function SuperAdminOrmawaProvider({ children }) {
     }
   }, [selectedOrmawaId, organizations])
 
-  // Listener untuk sinkronisasi antartab/komponen saat storage berubah
+  // Listen for cross-tab storage changes + custom intra-tab events
   useEffect(() => {
-    const handleStorageChange = () => {
-      const savedId = localStorage.getItem('superadmin_ormawa_id')
-      if (savedId && String(savedId) !== String(selectedOrmawaId)) {
-        setSelectedOrmawaId(savedId)
+    const handleStorageChange = (e) => {
+      if (e.key === STORAGE_KEY) {
+        const newId = e.newValue
+        if (newId && String(newId) !== String(selectedOrmawaId)) {
+          setSelectedOrmawaId(newId)
+        }
+      }
+    }
+    const handleCustomEvent = (e) => {
+      const newId = e.detail
+      if (newId && String(newId) !== String(selectedOrmawaId)) {
+        setSelectedOrmawaId(newId)
       }
     }
     window.addEventListener('storage', handleStorageChange)
-    return () => window.removeEventListener('storage', handleStorageChange)
+    window.addEventListener(ORMAWA_CHANGE_EVENT, handleCustomEvent)
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener(ORMAWA_CHANGE_EVENT, handleCustomEvent)
+    }
   }, [selectedOrmawaId])
 
-  const handleOrmawaChange = (newOrmawaId) => {
+  const handleOrmawaChange = useCallback((newOrmawaId) => {
     setSelectedOrmawaId(newOrmawaId)
     if (newOrmawaId) {
-      localStorage.setItem('superadmin_ormawa_id', String(newOrmawaId))
+      localStorage.setItem(STORAGE_KEY, String(newOrmawaId))
     } else {
-      localStorage.removeItem('superadmin_ormawa_id')
+      localStorage.removeItem(STORAGE_KEY)
     }
-    window.dispatchEvent(new Event('storage'))
-  }
+    window.dispatchEvent(new CustomEvent(ORMAWA_CHANGE_EVENT, { detail: newOrmawaId }))
+  }, [])
 
   return (
     <SuperAdminOrmawaContext.Provider

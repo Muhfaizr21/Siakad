@@ -387,6 +387,46 @@ func DeleteProposal(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"status": "success", "message": "Deleted"})
 }
 
+func ResubmitProposal(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	var proposal models.Proposal
+	if err := config.DB.First(&proposal, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Proposal tidak ditemukan"})
+	}
+
+	if strings.ToLower(strings.TrimSpace(proposal.Status)) != "revisi" {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Hanya proposal dengan status Revisi yang bisa diajukan ulang"})
+	}
+
+	err := config.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&proposal).Update("status", "diajukan").Error; err != nil {
+			return err
+		}
+
+		tx.Create(&models.ProposalRiwayat{
+			ProposalID: proposal.ID,
+			Status:     "diajukan",
+			Catatan:    "Proposal diajukan ulang setelah revisi",
+		})
+
+		tx.Create(&models.OrmawaNotifikasi{
+			OrmawaID: proposal.OrmawaID,
+			Tipe:     "proposal",
+			Judul:    "Proposal Diajukan Ulang",
+			Pesan:    fmt.Sprintf("Proposal '%s' telah diajukan ulang setelah revisi dan masuk ke antrian Fakultas.", proposal.Judul),
+		})
+
+		return nil
+	})
+
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "message": "Proposal berhasil diajukan ulang"})
+}
+
 // --- SETTINGS ---
 
 func GetOrmawaSettings(c *fiber.Ctx) error {
@@ -501,6 +541,8 @@ func GetCashMutations(c *fiber.Ctx) error {
 
 	if ormawaId != "" {
 		query = query.Where("ormawa_id = ?", ormawaId)
+	} else if tokenOrmawaID, ok := c.Locals("ormawa_id").(uint); ok && tokenOrmawaID != 0 {
+		query = query.Where("ormawa_id = ?", tokenOrmawaID)
 	}
 	query.Order("tanggal desc").Find(&mutasi)
 	return c.JSON(fiber.Map{"status": "success", "data": mutasi})
@@ -515,6 +557,23 @@ func CreateCashMutation(c *fiber.Ctx) error {
 	// Force OrmawaID from token/query context if present
 	if tokenOrmawaID, ok := c.Locals("ormawa_id").(uint); ok && tokenOrmawaID != 0 {
 		mutation.OrmawaID = tokenOrmawaID
+	}
+
+	// Saldo validation: cek cukup tidak untuk pengeluaran
+	if strings.ToLower(mutation.Tipe) == "pengeluaran" {
+		var prevBalance float64
+		tx := config.DB.Model(&models.OrmawaMutasiSaldo{}).
+			Select("COALESCE(SUM(CASE WHEN LOWER(tipe) = 'pemasukan' THEN nominal ELSE 0 END), 0) - COALESCE(SUM(CASE WHEN LOWER(tipe) = 'pengeluaran' THEN nominal ELSE 0 END), 0)")
+		if mutation.OrmawaID != 0 {
+			tx = tx.Where("ormawa_id = ?", mutation.OrmawaID)
+		}
+		tx.Scan(&prevBalance)
+		if prevBalance < mutation.Nominal {
+			return c.Status(400).JSON(fiber.Map{
+				"status":  "error",
+				"message": fmt.Sprintf("Saldo tidak mencukupi! Saldo saat ini: Rp %.0f, pengeluaran: Rp %.0f", prevBalance, mutation.Nominal),
+			})
+		}
 	}
 
 	err := config.DB.Transaction(func(tx *gorm.DB) error {
@@ -542,8 +601,10 @@ func CreateCashMutation(c *fiber.Ctx) error {
 
 func DeleteCashMutation(c *fiber.Ctx) error {
 	id := c.Params("id")
-	if err := config.DB.Delete(&models.OrmawaMutasiSaldo{}, id).Error; err != nil {
-		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menghapus mutasi kas"})
+	tokenOrmawaID, _ := c.Locals("ormawa_id").(uint)
+	result := config.DB.Where("id = ? AND ormawa_id = ?", id, tokenOrmawaID).Delete(&models.OrmawaMutasiSaldo{})
+	if result.RowsAffected == 0 {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Mutasi kas tidak ditemukan"})
 	}
 	return c.JSON(fiber.Map{"status": "success", "message": "Mutasi kas berhasil dihapus"})
 }
@@ -557,6 +618,8 @@ func GetEvents(c *fiber.Ctx) error {
 
 	if ormawaId != "" {
 		query = query.Where("ormawa_id = ?", ormawaId)
+	} else if tokenOrmawaID, ok := c.Locals("ormawa_id").(uint); ok && tokenOrmawaID != 0 {
+		query = query.Where("ormawa_id = ?", tokenOrmawaID)
 	}
 	query.Find(&events)
 	return c.JSON(fiber.Map{"status": "success", "data": events})
@@ -593,8 +656,10 @@ func CreateEvent(c *fiber.Ctx) error {
 
 func UpdateEvent(c *fiber.Ctx) error {
 	id := c.Params("id")
+	tokenOrmawaID, _ := c.Locals("ormawa_id").(uint)
+
 	var event models.OrmawaKegiatan
-	if err := config.DB.First(&event, id).Error; err != nil {
+	if err := config.DB.Where("id = ? AND ormawa_id = ?", id, tokenOrmawaID).First(&event).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Kegiatan tidak ditemukan"})
 	}
 
@@ -603,6 +668,7 @@ func UpdateEvent(c *fiber.Ctx) error {
 	if err := c.BodyParser(&event); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Format data tidak valid"})
 	}
+	event.OrmawaID = tokenOrmawaID
 
 	// Validasi Rentang Tanggal pada Update
 	if !event.TanggalSelesai.IsZero() && event.TanggalSelesai.Before(event.TanggalMulai) {
@@ -629,7 +695,11 @@ func UpdateEvent(c *fiber.Ctx) error {
 
 func DeleteEvent(c *fiber.Ctx) error {
 	id := c.Params("id")
-	config.DB.Delete(&models.OrmawaKegiatan{}, id)
+	tokenOrmawaID, _ := c.Locals("ormawa_id").(uint)
+	result := config.DB.Where("id = ? AND ormawa_id = ?", id, tokenOrmawaID).Delete(&models.OrmawaKegiatan{})
+	if result.RowsAffected == 0 {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Kegiatan tidak ditemukan"})
+	}
 	return c.JSON(fiber.Map{"status": "success"})
 }
 
@@ -641,6 +711,11 @@ func GetAttendance(c *fiber.Ctx) error {
 	var kegiatan models.OrmawaKegiatan
 	if err := config.DB.First(&kegiatan, eventId).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Kegiatan tidak ditemukan"})
+	}
+
+	tokenOrmawaID, _ := c.Locals("ormawa_id").(uint)
+	if tokenOrmawaID != 0 && kegiatan.OrmawaID != tokenOrmawaID {
+		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Akses ditolak"})
 	}
 
 	// 1. Fetch all active members of this ormawa
@@ -692,17 +767,22 @@ func SubmitAttendance(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "KegiatanID dan MahasiswaID wajib diisi"})
 	}
 
+	var kegiatan models.OrmawaKegiatan
+	if err := config.DB.First(&kegiatan, data.KegiatanID).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Kegiatan tidak ditemukan"})
+	}
+
+	tokenOrmawaID, _ := c.Locals("ormawa_id").(uint)
+	if tokenOrmawaID != 0 && kegiatan.OrmawaID != tokenOrmawaID {
+		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Akses ditolak"})
+	}
+
 	// Expiration check only for self-presensi (student scanning for themselves)
 	studentID, _ := c.Locals("student_id").(uint)
 	role, _ := c.Locals("role").(string)
 	isSelfPresensi := strings.ToLower(role) == "mahasiswa" && studentID == data.MahasiswaID
 
 	if isSelfPresensi {
-		var kegiatan models.OrmawaKegiatan
-		if err := config.DB.First(&kegiatan, data.KegiatanID).Error; err != nil {
-			return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Kegiatan tidak ditemukan"})
-		}
-
 		if kegiatan.Status == "selesai" || kegiatan.Status == "dibatalkan" {
 			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Presensi gagal: Kegiatan ini sudah selesai atau dibatalkan."})
 		}

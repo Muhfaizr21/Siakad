@@ -334,9 +334,10 @@ func Login(c *fiber.Ctx) error {
 
 	if student.ID != 0 {
 		nim = student.NIM
-		// Lookup active Ormawa membership
+		// Lookup active Ormawa membership (unlimited for multi-ormawa detection)
 		var memberships []models.OrmawaAnggota
-		if err := config.DB.Where("mahasiswa_id = ? AND LOWER(status) = 'aktif'", student.ID).Limit(1).Find(&memberships).Error; err == nil && len(memberships) > 0 {
+		config.DB.Where("mahasiswa_id = ? AND LOWER(status) = 'aktif'", student.ID).Find(&memberships)
+		if len(memberships) > 0 {
 			user.OrmawaID = &memberships[0].OrmawaID
 		}
 	}

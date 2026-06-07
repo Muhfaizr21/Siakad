@@ -134,12 +134,17 @@ const renderAttachment = (url, label) => {
 };
 
 const ReviewModal = ({ selectedApp, onClose, onSubmit, isSubmitting }) => {
-  const [status, setStatus] = useState('Proses');
+  const [status, setStatus] = useState('dikirim');
   const [catatan, setCatatan] = useState('');
 
   useEffect(() => {
     if (selectedApp) {
-      setStatus(selectedApp.Status === 'Disetujui Fakultas' ? 'Proses' : (selectedApp.Status || 'Proses'));
+      const s = selectedApp.Status;
+      if (s === 'Disetujui Fakultas' || s === 'Proses' || s === 'proses' || s === 'disetujui fakultas') {
+        setStatus('dikirim');
+      } else {
+        setStatus(s || 'dikirim');
+      }
       setCatatan(selectedApp.Catatan || '');
     }
   }, [selectedApp]);
@@ -293,7 +298,10 @@ export default function KelolaBeasiswa() {
   const appStatusData = useMemo(() => {
     const counts = { 'Diterima': 0, 'Ditolak': 0, 'Proses': 0, 'Disetujui Fakultas': 0 }
     appsData.forEach(a => {
-      const s = a.Status || 'Proses'
+      let s = a.Status || 'Proses'
+      if (s !== 'Diterima' && s !== 'Ditolak' && s !== 'Disetujui Fakultas') {
+        s = 'Proses'
+      }
       if (counts[s] !== undefined) counts[s]++
     })
     return Object.entries(counts)
@@ -328,7 +336,7 @@ export default function KelolaBeasiswa() {
   const [appFilters, setAppFilters] = useState({})
   const [selectedAppIds, setSelectedAppIds] = useState([])
   const [isBulkOpen, setIsBulkOpen] = useState(false)
-  const [bulkStatus, setBulkStatus] = useState('Proses')
+  const [bulkStatus, setBulkStatus] = useState('dikirim')
   const [bulkCatatan, setBulkCatatan] = useState('')
 
   const handleBulkAppUpdate = async () => {
@@ -776,7 +784,12 @@ export default function KelolaBeasiswa() {
           if (s === 'ditolak fakultas') return 'Ditolak Fakultas';
           if (s === 'diterima') return 'Diterima';
           if (s === 'ditolak') return 'Ditolak';
-          return 'Proses';
+          if (s === 'proses') return 'Proses';
+          if (s === 'menunggu' || s === 'menunggu verifikasi') return 'Menunggu';
+          if (['dikirim', 'seleksi_berkas', 'evaluasi', 'review', 'penetapan'].includes(s)) {
+            return status;
+          }
+          return status || 'Proses';
         }
 
         const normalized = (res.data || []).map(a => {
@@ -818,10 +831,8 @@ export default function KelolaBeasiswa() {
 
         // Super Admin only sees applications once approved by the faculty (or finalized by admin)
         const filtered = normalized.filter(a => 
-          a.Status === 'Disetujui Fakultas' || 
-          a.Status === 'Diterima' || 
-          a.Status === 'Ditolak' ||
-          a.Status === 'Proses'
+          a.Status !== 'Menunggu' && 
+          a.Status !== 'Ditolak Fakultas'
         )
         setAppsData(filtered)
       }
@@ -912,12 +923,23 @@ export default function KelolaBeasiswa() {
 
   const isDeadlinePassed = (d) => d && new Date(d) < new Date()
 
+  const getDaysLeft = (d) => {
+    if (!d) return -1
+    const diff = new Date(d) - new Date()
+    return Math.ceil(diff / (1000 * 60 * 60 * 24))
+  }
+
   // Stats Calculations
   const stats = {
     totalPrograms: data.length,
     pendingApps: appsData.filter(a => a.Status === 'Menunggu' || a.Status === 'Menunggu Verifikasi' || a.Status === 'Proses').length,
     activeAwardees: appsData.filter(a => a.Status === 'Diterima' || a.Status === 'Disetujui').length,
-    totalBudget: data.reduce((acc, curr) => acc + (parseFloat(curr.Anggaran) || 0), 0)
+    totalBudget: data.reduce((acc, curr) => acc + (parseFloat(curr.Anggaran) || 0), 0),
+    verificationProgress: appsData.length > 0 ? Math.round((appsData.filter(a => a.Status === 'Diterima' || a.Status === 'Ditolak').length / appsData.length) * 100) : 0,
+    urgentPrograms: data.filter(s => {
+      const days = getDaysLeft(s.Deadline)
+      return days <= 3 && days >= 0
+    }).length
   }
 
   const absorbedBudget = React.useMemo(() => {
@@ -997,6 +1019,30 @@ export default function KelolaBeasiswa() {
         { name: 'Mitra (Eksternal)', value: mitraCount, budget: mitraBudget }
       ]
     }
+  }, [data])
+
+  const facultyComparisonData = React.useMemo(() => {
+    const map = {}
+    appsData.forEach(a => {
+      const fac = a._fakultas || 'Lainnya'
+      if (!map[fac]) {
+        map[fac] = { name: getShortFacultyName(fac), pendaftar: 0, penerima: 0 }
+      }
+      map[fac].pendaftar++
+      if (a.Status === 'Diterima') {
+        map[fac].penerima++
+      }
+    })
+    return Object.values(map).sort((a, b) => b.pendaftar - a.pendaftar)
+  }, [appsData])
+
+  const categoryBreakdownData = React.useMemo(() => {
+    const counts = {}
+    data.forEach(s => {
+      const cat = s.Kategori || 'Lainnya'
+      counts[cat] = (counts[cat] || 0) + 1
+    })
+    return Object.entries(counts).map(([name, value]) => ({ name, value }))
   }, [data])
 
   const formatCurrency = (val) => {
@@ -1224,8 +1270,8 @@ export default function KelolaBeasiswa() {
              />
           </div>
 
-          {/* Row 2: Faculty Insights (2 Cards) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+          {/* Row 2: Faculty Insights & Extra Stats (4 Cards) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
              <StatCard 
               label="Pendaftar Terbanyak"
               value={getShortFacultyName(highestApplicantFaculty.name)}
@@ -1244,82 +1290,182 @@ export default function KelolaBeasiswa() {
               bg="bg-rose-50"
               loading={appsLoading}
              />
+             <StatCard 
+              label="Progres Review"
+              value={`${stats.verificationProgress}%`}
+              description="Dari total pengajuan"
+              icon="fact_check"
+              color="text-emerald-600"
+              bg="bg-emerald-50"
+              loading={appsLoading}
+             />
+             <StatCard 
+              label="Deadline Dekat"
+              value={`${stats.urgentPrograms} Program`}
+              description="Batas waktu <= 3 hari"
+              icon="alarm"
+              color={stats.urgentPrograms > 0 ? "text-rose-600" : "text-slate-500"}
+              bg={stats.urgentPrograms > 0 ? "bg-rose-50 animate-pulse" : "bg-slate-100"}
+              loading={loading}
+             />
           </div>
         </div>
 
         {/* ── Charts Section ──────────────────────────────────────── */}
         {!loading && data.length > 0 && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-300">
-            {/* Bar Chart: Program dengan Anggaran Terbesar */}
-            <div className="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-[#eef4ff] rounded-xl flex justify-center items-center text-primary flex-shrink-0">
-                  <span className="material-symbols-outlined text-primary" style={{ fontSize: '18px' }} >bar_chart</span>
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-300">
+              {/* Bar Chart: Program dengan Anggaran Terbesar */}
+              <div className="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-[#eef4ff] rounded-xl flex justify-center items-center text-primary flex-shrink-0">
+                    <span className="material-symbols-outlined text-primary" style={{ fontSize: '18px' }} >bar_chart</span>
+                  </div>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Alokasi Anggaran Beasiswa Terbesar</span>
                 </div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Alokasi Anggaran Beasiswa Terbesar</span>
+                <div className="h-[200px] w-full">
+                  <ResponsiveContainer width="100%" height={200}>
+                    <BarChart data={budgetByProgramData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                      <XAxis dataKey="name" tick={{ fontSize: 8.5, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                      <YAxis tickFormatter={v => `Rp ${new Intl.NumberFormat('id-ID', { notation: 'compact' }).format(v)}`} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                      <Tooltip
+                        cursor={{ fill: '#f8fafc' }}
+                        formatter={v => [formatCurrency(v), 'Alokasi Anggaran']}
+                        contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "11px", fontWeight: "bold" }}
+                      />
+                      <Bar dataKey="value" name="Anggaran" fill="var(--theme-primary, #00236f)" radius={[4, 4, 0, 0]} barSize={24} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
-              <div className="h-[200px] w-full">
-                <ResponsiveContainer width="100%" height={200}>
-                  <BarChart data={budgetByProgramData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="name" tick={{ fontSize: 8.5, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                    <YAxis tickFormatter={v => `Rp ${new Intl.NumberFormat('id-ID', { notation: 'compact' }).format(v)}`} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                    <Tooltip
-                      cursor={{ fill: '#f8fafc' }}
-                      formatter={v => [formatCurrency(v), 'Alokasi Anggaran']}
-                      contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "11px", fontWeight: "bold" }}
-                    />
-                    <Bar dataKey="value" name="Anggaran" fill="var(--theme-primary, #00236f)" radius={[4, 4, 0, 0]} barSize={24} />
-                  </BarChart>
-                </ResponsiveContainer>
+
+              {/* Pie Chart: Status Seleksi Pendaftaran */}
+              <div className="lg:col-span-1 bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none flex flex-col justify-between">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-success/10 rounded-xl flex justify-center items-center text-success flex-shrink-0">
+                    <span className="material-symbols-outlined text-success" style={{ fontSize: '18px' }} >pie_chart</span>
+                  </div>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Status Pendaftaran Seleksi</span>
+                </div>
+                <div className="h-[140px] w-full flex items-center justify-center">
+                  {appStatusData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={140}>
+                      <PieChart>
+                        <Pie
+                          data={appStatusData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={40}
+                          outerRadius={60}
+                          paddingAngle={4}
+                          dataKey="value"
+                          stroke="none"
+                        >
+                          {appStatusData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <span className="text-xs text-slate-400 italic">Tidak ada data pendaftaran</span>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-1.5 mt-2">
+                  {appStatusData.slice(0, 4).map((item, idx) => (
+                    <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50 border border-slate-100">
+                      <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
+                      <div className="min-w-0">
+                        <p className="text-[9px] font-bold text-slate-400 truncate leading-none">{item.name}</p>
+                        <p className="text-xs font-extrabold text-slate-800 leading-none mt-1">{item.value}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* Pie Chart: Status Seleksi Pendaftaran */}
-            <div className="lg:col-span-1 bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none flex flex-col justify-between">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-success/10 rounded-xl flex justify-center items-center text-success flex-shrink-0">
-                  <span className="material-symbols-outlined text-success" style={{ fontSize: '18px' }} >pie_chart</span>
-                </div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Status Pendaftaran Seleksi</span>
-              </div>
-              <div className="h-[140px] w-full flex items-center justify-center">
-                {appStatusData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={140}>
-                    <PieChart>
-                      <Pie
-                        data={appStatusData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={40}
-                        outerRadius={60}
-                        paddingAngle={4}
-                        dataKey="value"
-                        stroke="none"
-                      >
-                        {appStatusData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <span className="text-xs text-slate-400 italic">Tidak ada data pendaftaran</span>
-                )}
-              </div>
-              <div className="grid grid-cols-2 gap-1.5 mt-2">
-                {appStatusData.slice(0, 4).map((item, idx) => (
-                  <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50 border border-slate-100">
-                    <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
-                    <div className="min-w-0">
-                      <p className="text-[9px] font-bold text-slate-400 truncate leading-none">{item.name}</p>
-                      <p className="text-xs font-extrabold text-slate-800 leading-none mt-1">{item.value}</p>
-                    </div>
+            {/* Row 2 Charts: Faculty Comparison & Category Breakdown */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-300">
+              {/* Double Bar Chart: Pendaftar vs Penerima per Fakultas */}
+              <div className="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-[#eef4ff] rounded-xl flex justify-center items-center text-primary flex-shrink-0">
+                    <span className="material-symbols-outlined text-primary" style={{ fontSize: '18px' }} >compare_arrows</span>
                   </div>
-                ))}
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Komparasi Pendaftar vs Penerima per Fakultas</span>
+                </div>
+                <div className="h-[200px] w-full">
+                  {facultyComparisonData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={200}>
+                      <BarChart data={facultyComparisonData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                        <XAxis dataKey="name" tick={{ fontSize: 8.5, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                        <Tooltip
+                          cursor={{ fill: '#f8fafc' }}
+                          contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "11px", fontWeight: "bold" }}
+                        />
+                        <Bar dataKey="pendaftar" name="Total Pendaftar" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={16} />
+                        <Bar dataKey="penerima" name="Diterima" fill="#10b981" radius={[4, 4, 0, 0]} barSize={16} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-full flex items-center justify-center text-slate-400 italic text-xs">Belum ada data pendaftar</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Donut Chart: Kategori Beasiswa */}
+              <div className="lg:col-span-1 bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none flex flex-col justify-between">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-purple-50 text-purple-600 rounded-xl flex justify-center items-center flex-shrink-0">
+                    <span className="material-symbols-outlined text-purple-600" style={{ fontSize: '18px' }} >category</span>
+                  </div>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Distribusi Kategori Beasiswa</span>
+                </div>
+                <div className="h-[140px] w-full flex items-center justify-center">
+                  {categoryBreakdownData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={140}>
+                      <PieChart>
+                        <Pie
+                          data={categoryBreakdownData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={40}
+                          outerRadius={60}
+                          paddingAngle={4}
+                          dataKey="value"
+                          stroke="none"
+                        >
+                          {categoryBreakdownData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <span className="text-xs text-slate-400 italic">Tidak ada data beasiswa</span>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-1.5 mt-2">
+                  {categoryBreakdownData.slice(0, 4).map((item, idx) => (
+                    <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50 border border-slate-100">
+                      <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
+                      <div className="min-w-0">
+                        <p className="text-[9px] font-bold text-slate-400 truncate leading-none">{item.name}</p>
+                        <p className="text-xs font-extrabold text-slate-800 leading-none mt-1">{item.value}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -2191,11 +2337,7 @@ export default function KelolaBeasiswa() {
                   ) : (
                     <div className="space-y-2">
                       {first5Apps.map((a) => {
-                        const styleClass = 
-                          a.Status === 'Diterima' || a.Status === 'Disetujui' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                          a.Status === 'Ditolak' ? 'bg-rose-50 text-rose-700 border-rose-200' :
-                          'bg-amber-50 text-amber-700 border-amber-200';
-                        const label = a.Status || 'Proses';
+                        const st = getAppStatus(a.Status);
                         return (
                           <div key={a.ID || a.id} className="flex items-center justify-between p-2.5 bg-white border border-slate-100 rounded-xl hover:border-slate-200/80 transition-colors shadow-sm">
                             <div className="flex items-center gap-2.5 min-w-0">
@@ -2205,8 +2347,8 @@ export default function KelolaBeasiswa() {
                                 <p className="text-[9px] font-medium text-slate-400 mt-0.5">{a.MahasiswaNIM}</p>
                               </div>
                             </div>
-                            <span className={cn('text-[8px] font-extrabold uppercase tracking-wider px-2 py-0.5 border rounded-md flex-shrink-0', styleClass)}>
-                              {label}
+                            <span className={cn('text-[8px] font-extrabold uppercase tracking-wider px-2 py-0.5 border rounded-md flex-shrink-0', st.cls)}>
+                              {st.label}
                             </span>
                           </div>
                         );

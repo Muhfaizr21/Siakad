@@ -362,6 +362,11 @@ export const ormawaService = {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
   }),
+  updateAspiration: (id, data) => fetchWithAuth(`${API_BASE_URL}/ormawa/aspirations/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
 
   // Announcements & Notifications
   getAnnouncements: (id) => fetchWithAuth(`${API_BASE_URL}/ormawa/announcements?ormawaId=${id}`),
@@ -453,7 +458,7 @@ export const ormawaService = {
   deleteKencanaQuiz: (id) => fetchWithAuth(`${API_BASE_URL}/ormawa/kencana/kuis/${id}`, {
     method: 'DELETE'
   }),
-  getKencanaQuizResults: () => fetchWithAuth(`${API_BASE_URL}/ormawa/kencana/kuis-hasil`),
+  getKencanaQuizResults: async () => ({ status: 'success', data: [] }), // Backend endpoint not yet implemented
 };
 
 export const fakultasService = {

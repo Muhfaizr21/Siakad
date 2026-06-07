@@ -91,6 +91,7 @@ import AspirationManagement from './pages/OrmawaAdmin/AspirationManagement'
 
 const SuperAdminAspirasi = withSuperAdminOrmawaAccess(AspirationManagement, 'Aspirasi Masuk')
 const SuperAdminRbac = withSuperAdminOrmawaAccess(RoleBasedAccess, 'Manajemen Hak Akses')
+const SuperAdminOrmawaDashboardWrapped = withSuperAdminOrmawaAccess(SuperAdminOrmawaDashboard, 'Dashboard Ormawa')
 
 import FacultyAspirationManagement from './pages/FacultyAdmin/Aspirasi'
 import FacultyProdi from './pages/FacultyAdmin/Prodi'
@@ -331,7 +332,7 @@ function App() {
                   <Route path="aspirations/:id" element={<AspirationDetail />} />
                   <Route path="organizations" element={<KelolaOrganisasi />} />
                   <Route path="gamifikasi" element={<GamifikasiOrmawa />} />
-                  <Route path="ormawa-dashboard" element={<SuperAdminOrmawaDashboard />} />
+                  <Route path="ormawa-dashboard" element={<SuperAdminOrmawaDashboardWrapped />} />
                   <Route path="ormawa-anggota" element={<SuperAdminAnggota />} />
                   <Route path="ormawa-struktur" element={<SuperAdminStruktur />} />
                   <Route path="ormawa-proposal" element={<SuperAdminProposal />} />

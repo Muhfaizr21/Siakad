@@ -93,6 +93,10 @@ export default function FacultyKesehatan() {
 
   const [statsDetail, setStatsDetail] = useState(null)
   const [statsSearch, setStatsSearch] = useState('')
+  const [distribusiGol, setDistribusiGol] = useState({})
+  const [distribusiBMI, setDistribusiBMI] = useState([])
+  const [genderStats, setGenderStats] = useState([])
+  const [angkatanStats, setAngkatanStats] = useState([])
 
   const uniqueProdis = useMemo(() => {
     const prodis = new Set();
@@ -186,6 +190,53 @@ export default function FacultyKesehatan() {
       }
       if (summaryRes.data.status === 'success')
         setStatsData(summaryRes.data.data || { total: 0, condition: { prima: 0, stabil: 0, pantauan: 0, kritis: 0 } })
+
+      // Process distribusi Golongan Darah
+      const golMap = {}
+      healthRecords.forEach(r => {
+        const gol = r.GolonganDarah || 'Unknown'
+        if (!golMap[gol]) golMap[gol] = 0
+        golMap[gol]++
+      })
+      setDistribusiGol(golMap)
+
+      // Process distribusi BMI
+      const bmiRanges = { '<18.5': 0, '18.5-24.9': 0, '25-29.9': 0, '>=30': 0 }
+      healthRecords.forEach(r => {
+        const bmiVal = bmi(r)
+        if (bmiVal) {
+          const b = parseFloat(bmiVal)
+          if (b < 18.5) bmiRanges['<18.5']++
+          else if (b < 25) bmiRanges['18.5-24.9']++
+          else if (b < 30) bmiRanges['25-29.9']++
+          else bmiRanges['>=30']++
+        }
+      })
+      setDistribusiBMI([
+        { range: '<18.5', label: 'Kurus', count: bmiRanges['<18.5'] },
+        { range: '18.5-24.9', label: 'Normal', count: bmiRanges['18.5-24.9'] },
+        { range: '25-29.9', label: 'Gemuk', count: bmiRanges['25-29.9'] },
+        { range: '>=30', label: 'Obesitas', count: bmiRanges['>=30'] },
+      ])
+
+      // Process gender stats
+      const gMap = { 'Laki-laki': { total: 0, prima: 0 }, 'Perempuan': { total: 0, prima: 0 }, 'Unknown': { total: 0, prima: 0 } }
+      healthRecords.forEach(r => {
+        const g = r.Mahasiswa?.jenis_kelamin || r.Mahasiswa?.JenisKelamin || 'Unknown'
+        if (!gMap[g]) gMap[g] = { total: 0, prima: 0 }
+        gMap[g].total++
+        if ((r.StatusKesehatan || '').toLowerCase() === 'prima') gMap[g].prima++
+      })
+      setGenderStats(Object.entries(gMap).filter(([k]) => k !== 'Unknown' && gMap[k].total > 0).map(([gender, data]) => ({ gender, ...data })));
+
+      // Process angkatan stats
+      const aMap = {}
+      healthRecords.forEach(r => {
+        const ang = r.Mahasiswa?.Angkatan || r.Mahasiswa?.angkatan || 'Unknown'
+        if (!aMap[ang]) aMap[ang] = 0
+        aMap[ang]++
+      })
+      setAngkatanStats(Object.entries(aMap).map(([angkatan, count]) => ({ angkatan, count })).sort((a, b) => b.angkatan - a.angkatan))
     } catch { toast.error('Gagal sinkronisasi data kesehatan') }
     finally { setLoading(false) }
   }
@@ -446,7 +497,7 @@ export default function FacultyKesehatan() {
           </div>
         </section>
 
-        {/* Stats */}
+        {/* Stats Row 1 */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           {[
             { key: 'total', label: 'Total Skrining', value: statsData.total, icon: Activity, bg: 'bg-[#eef4ff]', color: 'text-primary', desc: 'Semua rekam medis' },
@@ -481,6 +532,194 @@ export default function FacultyKesehatan() {
               <p className="text-xs text-slate-400 font-medium mt-3">{s.desc}</p>
             </div>
           ))}
+        </div>
+
+        {/* NEW: 5W1H Charts Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* WHAT → Distribusi Golongan Darah */}
+          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>water_drop</span>
+              </div>
+              <div>
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Gol. Darah</h3>
+                <p className="text-[10px] text-slate-400">Distribusi golongan darah</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {Object.entries(distribusiGol).sort((a,b) => b[1]-a[1]).map(([gol, count]) => (
+                <div key={gol} className="bg-slate-50 rounded-xl p-3 text-center">
+                  <span className="text-2xl font-extrabold text-rose-600">{count}</span>
+                  <p className="text-xs font-bold text-slate-600 mt-1">Gol {gol}</p>
+                  <p className="text-[10px] text-slate-400">{healthRecords.length > 0 ? Math.round((count/healthRecords.length)*100) : 0}%</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* WHAT → Distribusi BMI */}
+          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-cyan-50 flex items-center justify-center text-cyan-600">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}> straighten</span>
+              </div>
+              <div>
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Distribusi BMI</h3>
+                <p className="text-[10px] text-slate-400">Sebaran indeks massa tubuh</p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              {distribusiBMI.map((item, i) => {
+                const maxCount = Math.max(...distribusiBMI.map(d => d.count), 1)
+                const colors = ['bg-amber-400', 'bg-emerald-400', 'bg-rose-400', 'bg-red-500']
+                return (
+                  <div key={i} className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-slate-500 w-16">{item.label}</span>
+                    <div className="flex-1 h-5 bg-slate-100 rounded-full overflow-hidden">
+                      <div className={cn('h-full rounded-full transition-all', colors[i])} style={{width:`${(item.count/maxCount)*100}%`}}/>
+                    </div>
+                    <span className="text-xs font-black text-slate-700 w-8 text-right">{item.count}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* WHO → Per Gender */}
+          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center text-violet-600">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>group</span>
+              </div>
+              <div>
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Per Gender</h3>
+                <p className="text-[10px] text-slate-400">Breakdown jenis kelamin</p>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {genderStats.length > 0 ? genderStats.map((item, i) => (
+                <div key={i} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">{item.gender === 'Laki-laki' ? '♂' : '♀'}</span>
+                    <span className="text-sm font-bold text-slate-700">{item.gender}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-lg font-extrabold text-slate-900">{item.total}</span>
+                    <span className="text-[10px] text-emerald-600 ml-1">({item.prima} prima)</span>
+                  </div>
+                </div>
+              )) : (
+                <div className="text-center py-6 text-xs text-slate-400">Tidak ada data</div>
+              )}
+            </div>
+          </div>
+
+          {/* WHO → Per Angkatan */}
+          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>calendar_month</span>
+              </div>
+              <div>
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Per Angkatan</h3>
+                <p className="text-[10px] text-slate-400">Jumlah per tahun masuk</p>
+              </div>
+            </div>
+            <div className="space-y-2 max-h-36 overflow-y-auto">
+              {angkatanStats.length > 0 ? angkatanStats.slice(0, 5).map((item, i) => (
+                <div key={i} className="flex items-center justify-between py-1.5 border-b border-slate-50 last:border-0">
+                  <span className="text-sm font-bold text-slate-700">{item.angkatan}</span>
+                  <span className="text-sm font-extrabold text-slate-900">{item.count}</span>
+                </div>
+              )) : (
+                <div className="text-center py-6 text-xs text-slate-400">Tidak ada data</div>
+              )}
+            </div>
+          </div>
+
+          {/* WHEN → Trend Bulanan */}
+          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>timeline</span>
+              </div>
+              <div>
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Trend Bulanan</h3>
+                <p className="text-[10px] text-slate-400">Jumlah skrining per bulan</p>
+              </div>
+            </div>
+            {(() => {
+              const monthly = {}
+              healthRecords.forEach(r => {
+                const d = new Date(r.Tanggal)
+                const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`
+                if (!monthly[key]) monthly[key] = 0
+                monthly[key]++
+              })
+              const sorted = Object.entries(monthly).sort().slice(-6)
+              const maxVal = Math.max(...sorted.map(([,v]) => v), 1)
+              return sorted.length > 0 ? (
+                <div className="flex items-end justify-between gap-1 h-24">
+                  {sorted.map(([month, count]) => (
+                    <div key={month} className="flex flex-col items-center flex-1">
+                      <div className="w-full bg-indigo-100 rounded-t-md relative" style={{height:`${(count/maxVal)*80}px`}}>
+                        <div className="absolute inset-0 bg-gradient-to-t from-indigo-500 to-indigo-300 rounded-t-md"/>
+                      </div>
+                      <span className="text-[9px] text-slate-500 mt-1">{month.split('-')[1]}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : <div className="text-center py-6 text-xs text-slate-400">Tidak ada data</div>
+            })()}
+          </div>
+
+          {/* HOW → Rata-rata Vital Signs */}
+          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center text-teal-600">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>monitor_heart</span>
+              </div>
+              <div>
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Rata-rata Vital</h3>
+                <p className="text-[10px] text-slate-400">Indikator kesehatan rata-rata</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {(() => {
+                const systolic = healthRecords.filter(r => r.Sistole).map(r => parseFloat(r.Sistole))
+                const diastolic = healthRecords.filter(r => r.Diastole).map(r => parseFloat(r.Diastole))
+                const gula = healthRecords.filter(r => r.GulaDarah).map(r => parseFloat(r.GulaDarah))
+                const avgSys = systolic.length ? Math.round(systolic.reduce((a,b)=>a+b,0)/systolic.length) : 0
+                const avgDia = diastolic.length ? Math.round(diastolic.reduce((a,b)=>a+b,0)/diastolic.length) : 0
+                const avgGula = gula.length ? Math.round(gula.reduce((a,b)=>a+b,0)/gula.length) : 0
+                return <>
+                  <div className="bg-rose-50 rounded-xl p-3 text-center">
+                    <p className="text-[10px] text-rose-600 font-bold">Sistole</p>
+                    <p className="text-lg font-extrabold text-rose-700">{avgSys}</p>
+                    <p className="text-[9px] text-rose-500">mmHg</p>
+                  </div>
+                  <div className="bg-blue-50 rounded-xl p-3 text-center">
+                    <p className="text-[10px] text-blue-600 font-bold">Diastole</p>
+                    <p className="text-lg font-extrabold text-blue-700">{avgDia}</p>
+                    <p className="text-[9px] text-blue-500">mmHg</p>
+                  </div>
+                  <div className="bg-amber-50 rounded-xl p-3 text-center">
+                    <p className="text-[10px] text-amber-600 font-bold">Gula Darah</p>
+                    <p className="text-lg font-extrabold text-amber-700">{avgGula}</p>
+                    <p className="text-[9px] text-amber-500">mg/dL</p>
+                  </div>
+                  <div className="bg-emerald-50 rounded-xl p-3 text-center">
+                    <p className="text-[10px] text-emerald-600 font-bold">Rata-rata BMI</p>
+                    <p className="text-lg font-extrabold text-emerald-700">
+                      {healthRecords.length ? (healthRecords.reduce((a,r) => a + (parseFloat(bmi(r))||0), 0) / healthRecords.filter(r => bmi(r)).length || 0).toFixed(1) : 0}
+                    </p>
+                    <p className="text-[9px] text-emerald-500">kg/m²</p>
+                  </div>
+                </>
+              })()}
+            </div>
+          </div>
         </div>
 
         {/* Table */}

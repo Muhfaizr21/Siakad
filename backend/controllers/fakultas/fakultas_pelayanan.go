@@ -658,6 +658,12 @@ func ValidasiProposalOrmawa(c *fiber.Ctx) error {
 		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Anda tidak berwenang memvalidasi proposal dari fakultas lain"})
 	}
 
+	// Status guard: only allow transition from "diajukan" or "revisi"
+	currentStatus := strings.ToLower(strings.TrimSpace(proposal.Status))
+	if currentStatus != "diajukan" && currentStatus != "revisi" {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Proposal sudah diproses, tidak bisa divalidasi lagi"})
+	}
+
 	err := config.DB.Transaction(func(tx *gorm.DB) error {
 		// Update status and catatan
 		if err := tx.Model(&proposal).Updates(map[string]interface{}{

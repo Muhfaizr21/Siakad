@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useKencanaDashboardQuery, useKencanaTimelineQuery } from '../../queries/useKencanaQuery';
 import { ErrorPanel, KencanaShell, LoadingPanel, MetricCard, PrimaryButton, ProgressBar, StatusBadge, fmtDate } from './Kencana/components';
 import useAuthStore from '../../store/useAuthStore';
+import { cn } from '@/lib/utils';
 
 export default function KencanaPage() {
   const user = useAuthStore(state => state.user);
@@ -54,6 +55,79 @@ export default function KencanaPage() {
         <MetricCard label="Progress" value={`${dashboardData?.progress_total || 0}%`} hint="Sesi dan materi selesai" icon="trending_up" />
         <MetricCard label="Nilai Univ" value={Number(dashboardData?.temporary_final_score || 0).toFixed(1)} hint="Bobot 25/35/40" icon="grade" />
         <MetricCard label="Remedial" value={dashboardData?.needs_remedial ? 'Perlu' : 'Tidak'} hint="Berdasarkan status saat ini" icon="rule" />
+      </section>
+
+      {/* NEW: 5W1H Charts Row */}
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        {/* WHAT → Komponen Nilai */}
+        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>grade</span>
+            </div>
+            <div>
+              <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Komponen Nilai</h3>
+              <p className="text-[10px] text-slate-400">WHAT: Bobot penilaian</p>
+            </div>
+          </div>
+          <div className="space-y-2">
+            {[
+              { name: 'Kehadiran', bobot: 25, color: 'bg-blue-400' },
+              { name: 'Kuis', bobot: 35, color: 'bg-emerald-400' },
+              { name: 'Tugas', bobot: 40, color: 'bg-violet-400' },
+            ].map((item, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <span className="text-[10px] font-bold text-slate-500 w-20">{item.name}</span>
+                <div className="flex-1 h-5 bg-slate-100 rounded-full overflow-hidden">
+                  <div className={cn('h-full rounded-full transition-all', item.color)} style={{width:`${item.bobot}%`}}/>
+                </div>
+                <span className="text-xs font-black text-slate-700 w-8 text-right">{item.bobot}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* WHEN → Tahapan Berikutnya */}
+        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>event</span>
+            </div>
+            <div>
+              <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Tahap Aktif</h3>
+              <p className="text-[10px] text-slate-400">WHEN: Tahapan saat ini</p>
+            </div>
+          </div>
+          <div className="text-center py-4">
+            <span className="text-2xl font-extrabold text-indigo-600">{dashboardData?.active_stage?.name || '-'}</span>
+            <p className="text-xs text-slate-500 mt-2">
+              {dashboardData?.active_stage ? `Batas: ${fmtDate(dashboardData.active_stage.end_date)}` : 'Menunggu jadwal'}
+            </p>
+          </div>
+        </div>
+
+        {/* HOW → Criteria Kelulusan */}
+        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>verified</span>
+            </div>
+            <div>
+              <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Criteria</h3>
+              <p className="text-[10px] text-slate-400">HOW: Syarat kelulusan</p>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between p-2 bg-emerald-50 rounded-lg">
+              <span className="text-xs font-medium text-emerald-700">Nilai Minimum</span>
+              <span className="text-sm font-extrabold text-emerald-600">70.0</span>
+            </div>
+            <div className="flex items-center justify-between p-2 bg-blue-50 rounded-lg">
+              <span className="text-xs font-medium text-blue-700">Remedial</span>
+              <span className="text-sm font-extrabold text-blue-600">{dashboardData?.needs_remedial ? 'Perlu' : 'Tidak'}</span>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Main Content */}

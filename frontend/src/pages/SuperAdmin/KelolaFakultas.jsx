@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { DataTable } from '@/components/ui/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -187,6 +187,64 @@ export default function KelolaFakultas() {
     'Jumlah Prodi': fac.JumlahProdi || fac.jumlah_prodi || fac.ProgramStudi?.length || fac.program_studi?.length || 0
   }))
 
+  const extraStats = useMemo(() => {
+    // 1. Who - Top Faculty (biggest by prodi count)
+    let topFaculty = '—'
+    let topFacultyProdiCount = 0
+    data.forEach(fac => {
+      const prodis = fac.ProgramStudi || fac.program_studi || []
+      if (prodis.length > topFacultyProdiCount) {
+        topFaculty = fac.Nama || fac.nama || '—'
+        topFacultyProdiCount = prodis.length
+      }
+    })
+    
+    // Shorten faculty name
+    let shortTopFaculty = '—'
+    if (topFaculty !== '—') {
+      shortTopFaculty = topFaculty
+        .replace(/Fakultas\s+/i, '')
+        .replace(/Sains\s+dan\s+Teknologi/i, 'Sains & Tek')
+        .replace(/Sains\s+&\s+Teknologi/i, 'Sains & Tek')
+    }
+
+    // 2. What - Top Jenjang
+    const jenjangCounts = {}
+    allProdis.forEach(p => {
+      const j = p.Jenjang || p.jenjang || 'Lainnya'
+      jenjangCounts[j] = (jenjangCounts[j] || 0) + 1
+    })
+    let topJenjang = '—'
+    let topJenjangCount = 0
+    Object.entries(jenjangCounts).forEach(([j, count]) => {
+      if (count > topJenjangCount) {
+        topJenjang = j
+        topJenjangCount = count
+      }
+    })
+
+    // 3. Why - Rasio Unggul
+    const akreditasiA = allProdis.filter(p => {
+      const akr = (p.Akreditasi || p.akreditasi || '').toUpperCase()
+      return akr === 'A' || akr === 'UNGGUL'
+    }).length
+    const rasioUnggulPct = allProdis.length > 0 ? Math.round((akreditasiA / allProdis.length) * 100) : 0
+
+    // 4. How - Rata-rata Kapasitas
+    const totalKapasitas = allProdis.reduce((acc, curr) => acc + (curr.Kapasitas || curr.kapasitas || 0), 0)
+    const rataKapasitas = allProdis.length > 0 ? Math.round(totalKapasitas / allProdis.length) : 0
+
+    return {
+      topFaculty: shortTopFaculty,
+      topFacultyProdiCount,
+      topJenjang,
+      topJenjangCount,
+      akreditasiA,
+      rasioUnggulPct,
+      rataKapasitas
+    }
+  }, [data, allProdis])
+
   return (
     <div className="min-h-screen bg-transparent font-inter">
       <Toaster position="top-right" />
@@ -236,61 +294,109 @@ export default function KelolaFakultas() {
         </section>
 
         {/* ── Enriched Stats Grid ─────────────────────────────────── */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-          <div
-            onClick={() => setIsAllFacultiesOpen(true)}
-            className="bg-white p-4 rounded-xl border border-[#e5e5e5] shadow-sm cursor-pointer hover:bg-neutral-50/50 hover:shadow-md hover:border-neutral-300 transition-all group flex flex-col justify-between"
-          >
-             <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-[#eef4ff] rounded-lg flex justify-center items-center text-[#00236F] shrink-0">
-                   <Building2 size={14} />
-                </div>
-                <span className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest">Total Fakultas</span>
-             </div>
-             <p className="text-2xl font-black text-[#171717] mt-3">{data.length}</p>
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+            <div
+              onClick={() => setIsAllFacultiesOpen(true)}
+              className="bg-white p-4 rounded-xl border border-[#e5e5e5] shadow-sm cursor-pointer hover:bg-neutral-50/50 hover:shadow-md hover:border-neutral-300 transition-all group flex flex-col justify-between"
+            >
+               <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-[#eef4ff] rounded-lg flex justify-center items-center text-[#00236F] shrink-0">
+                     <Building2 size={14} />
+                  </div>
+                  <span className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest">Total Fakultas</span>
+               </div>
+               <p className="text-2xl font-black text-[#171717] mt-3">{data.length}</p>
+            </div>
+
+            <div
+              onClick={() => setIsAllProdiOpen(true)}
+              className="bg-white p-4 rounded-xl border border-[#e5e5e5] shadow-sm cursor-pointer hover:bg-neutral-50/50 hover:shadow-md hover:border-neutral-300 transition-all group flex flex-col justify-between"
+            >
+               <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-indigo-50 rounded-lg flex justify-center items-center text-indigo-600 shrink-0">
+                     <LayoutGrid size={14} />
+                  </div>
+                  <span className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest">Total Prodi</span>
+               </div>
+               <p className="text-2xl font-black text-[#171717] mt-3">{totalProdi}</p>
+            </div>
+
+            <div className="bg-white p-4 rounded-xl border border-[#e5e5e5] shadow-sm flex flex-col justify-between">
+               <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-emerald-50 rounded-lg flex justify-center items-center text-emerald-600 shrink-0">
+                     <Group size={14} />
+                  </div>
+                  <span className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest">Kapasitas Tampung</span>
+               </div>
+               <p className="text-2xl font-black text-[#171717] mt-3">{kapasitasTampung.toLocaleString('id-ID')} Mhs</p>
+            </div>
+
+            <div className="bg-white p-4 rounded-xl border border-[#e5e5e5] shadow-sm flex flex-col justify-between">
+               <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-blue-50 rounded-lg flex justify-center items-center text-blue-600 shrink-0">
+                     <Building2 size={14} />
+                  </div>
+                  <span className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest">Rasio Prodi/Fak</span>
+               </div>
+               <p className="text-2xl font-black text-[#171717] mt-3">{rasioProdi} Prodi</p>
+            </div>
+
+            <div className="bg-white p-4 rounded-xl border border-[#e5e5e5] shadow-sm flex flex-col justify-between">
+               <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-amber-50 rounded-lg flex justify-center items-center text-amber-600 shrink-0">
+                     <Award size={14} />
+                  </div>
+                  <span className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest">Prodi Unggul/A</span>
+               </div>
+               <p className="text-2xl font-black text-[#171717] mt-3">{akreditasiA}</p>
+            </div>
           </div>
 
-          <div
-            onClick={() => setIsAllProdiOpen(true)}
-            className="bg-white p-4 rounded-xl border border-[#e5e5e5] shadow-sm cursor-pointer hover:bg-neutral-50/50 hover:shadow-md hover:border-neutral-300 transition-all group flex flex-col justify-between"
-          >
-             <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-indigo-50 rounded-lg flex justify-center items-center text-indigo-600 shrink-0">
-                   <LayoutGrid size={14} />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+             <div className="bg-white p-4 rounded-xl border border-[#e5e5e5] shadow-sm flex flex-col justify-between">
+                <div className="flex items-center gap-2">
+                   <div className="w-8 h-8 bg-blue-50 rounded-lg flex justify-center items-center text-blue-600 shrink-0">
+                      <span className="material-symbols-outlined text-blue-600" style={{ fontSize: '18px' }} >domain</span>
+                   </div>
+                   <span className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest">Fakultas Terbesar</span>
                 </div>
-                <span className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest">Total Prodi</span>
+                <p className="text-lg font-black text-[#171717] mt-3 truncate">{extraStats.topFaculty}</p>
+                <p className="text-[11px] text-slate-400 font-medium mt-1">{extraStats.topFacultyProdiCount} Program Studi</p>
              </div>
-             <p className="text-2xl font-black text-[#171717] mt-3">{totalProdi}</p>
-          </div>
 
-          <div className="bg-white p-4 rounded-xl border border-[#e5e5e5] shadow-sm flex flex-col justify-between">
-             <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-emerald-50 rounded-lg flex justify-center items-center text-emerald-600 shrink-0">
-                   <Group size={14} />
+             <div className="bg-white p-4 rounded-xl border border-[#e5e5e5] shadow-sm flex flex-col justify-between">
+                <div className="flex items-center gap-2">
+                   <div className="w-8 h-8 bg-emerald-50 rounded-lg flex justify-center items-center text-emerald-600 shrink-0">
+                      <span className="material-symbols-outlined text-emerald-600" style={{ fontSize: '18px' }} >school</span>
+                   </div>
+                   <span className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest">Jenjang Terbanyak</span>
                 </div>
-                <span className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest">Kapasitas Tampung</span>
+                <p className="text-lg font-black text-[#171717] mt-3">{extraStats.topJenjang}</p>
+                <p className="text-[11px] text-slate-400 font-medium mt-1">{extraStats.topJenjangCount} Program Studi</p>
              </div>
-             <p className="text-2xl font-black text-[#171717] mt-3">{kapasitasTampung.toLocaleString('id-ID')} Mhs</p>
-          </div>
 
-          <div className="bg-white p-4 rounded-xl border border-[#e5e5e5] shadow-sm flex flex-col justify-between">
-             <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-blue-50 rounded-lg flex justify-center items-center text-blue-600 shrink-0">
-                   <Building2 size={14} />
+             <div className="bg-white p-4 rounded-xl border border-[#e5e5e5] shadow-sm flex flex-col justify-between">
+                <div className="flex items-center gap-2">
+                   <div className="w-8 h-8 bg-indigo-50 rounded-lg flex justify-center items-center text-indigo-600 shrink-0">
+                      <span className="material-symbols-outlined text-indigo-600" style={{ fontSize: '18px' }} >stars</span>
+                   </div>
+                   <span className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest">Rasio Unggul / A</span>
                 </div>
-                <span className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest">Rasio Prodi/Fak</span>
+                <p className="text-lg font-black text-[#171717] mt-3">{extraStats.rasioUnggulPct}%</p>
+                <p className="text-[11px] text-slate-400 font-medium mt-1">{extraStats.akreditasiA} prodi terakreditasi A/Unggul</p>
              </div>
-             <p className="text-2xl font-black text-[#171717] mt-3">{rasioProdi} Prodi</p>
-          </div>
 
-          <div className="bg-white p-4 rounded-xl border border-[#e5e5e5] shadow-sm flex flex-col justify-between">
-             <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-amber-50 rounded-lg flex justify-center items-center text-amber-600 shrink-0">
-                   <Award size={14} />
+             <div className="bg-white p-4 rounded-xl border border-[#e5e5e5] shadow-sm flex flex-col justify-between">
+                <div className="flex items-center gap-2">
+                   <div className="w-8 h-8 bg-amber-50 rounded-lg flex justify-center items-center text-amber-600 shrink-0">
+                      <span className="material-symbols-outlined text-amber-600" style={{ fontSize: '18px' }} >group</span>
+                   </div>
+                   <span className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest">Rata-rata Kapasitas</span>
                 </div>
-                <span className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest">Prodi Unggul/A</span>
+                <p className="text-lg font-black text-[#171717] mt-3">{extraStats.rataKapasitas} Mhs</p>
+                <p className="text-[11px] text-slate-400 font-medium mt-1">Per Program Studi</p>
              </div>
-             <p className="text-2xl font-black text-[#171717] mt-3">{akreditasiA}</p>
           </div>
         </div>
 

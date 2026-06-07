@@ -22,7 +22,6 @@ const API = `${API_BASE_URL}/ormawa`
 
 const STATUS_CONFIG = {
   diajukan: { label: 'Diajukan', cls: 'bg-blue-50 text-blue-700 ring-1 ring-blue-500/20 border-blue-200', icon: 'schedule' },
-  disetujui_dosen: { label: 'ACC Dosen', cls: 'bg-indigo-50 text-indigo-700 ring-1 ring-indigo-500/20 border-indigo-200', icon: 'check_circle' },
   disetujui_fakultas: { label: 'ACC Fakultas', cls: 'bg-violet-50 text-violet-700 ring-1 ring-violet-500/20 border-violet-200', icon: 'check_circle' },
   disetujui_univ: { label: 'Disetujui Univ', cls: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-500/20 border-emerald-200', icon: 'check_circle' },
   revisi: { label: 'Butuh Revisi', cls: 'bg-amber-50 text-amber-700 ring-1 ring-amber-500/20 border-amber-200', icon: 'error' },
@@ -75,6 +74,7 @@ export default function ProposalManagement() {
   const [isDelOpen, setIsDelOpen] = useState(false)
   const [isEditMode, setIsEditMode] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isResubmitting, setIsResubmitting] = useState(false)
   const [komentar, setKomentar] = useState('')
   const [dokumenList, setDokumenList] = useState([])
   const [existingFileList, setExistingFileList] = useState([])
@@ -104,6 +104,7 @@ export default function ProposalManagement() {
 
 
   const fetchProposals = async () => {
+    if (!ormawaId) { setLoading(false); return }
     setLoading(true)
     try {
       const data = await fetchWithAuth(`${API}/proposals?ormawaId=${ormawaId}`)
@@ -348,6 +349,26 @@ export default function ProposalManagement() {
     }
   }
 
+  const handleResubmit = async () => {
+    const selectedId = selected?.id || selected?.ID
+    if (!selectedId) return
+    setIsResubmitting(true)
+    try {
+      const res = await fetchWithAuth(`${API}/proposals/${selectedId}/resubmit`, { method: 'POST' })
+      if (res.status === 'success') {
+        toast.success('Proposal berhasil diajukan ulang')
+        setIsDetailOpen(false)
+        fetchProposals()
+      } else {
+        toast.error(res.message || 'Gagal mengajukan ulang')
+      }
+    } catch (err) {
+      toast.error(err.message || 'Gagal mengajukan ulang')
+    } finally {
+      setIsResubmitting(false)
+    }
+  }
+
   const columns = [
     {
       key: 'ID',
@@ -420,7 +441,7 @@ export default function ProposalManagement() {
               </h1>
             </div>
             <p className="text-slate-500 font-medium text-sm max-w-2xl leading-relaxed">
-              Ajukan & Pantau Persetujuan Kegiatan: Ormawa → Dosen → Fakultas → Universitas
+              Ajukan & Pantau Persetujuan Kegiatan: Ormawa → Fakultas → Universitas
             </p>
           </div>
         </div>
@@ -619,17 +640,18 @@ export default function ProposalManagement() {
                 <div className="space-y-3">
                   <Label className="text-[10px] font-black text-slate-400 tracking-[0.15em] uppercase font-headline">Alur Persetujuan</Label>
                   <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-5 flex items-center justify-between gap-2">
-                    {['disetujui_dosen', 'disetujui_fakultas', 'disetujui_univ'].map((s, i) => {
-                      const active = (['disetujui_dosen', 'disetujui_fakultas', 'disetujui_univ', 'selesai'].indexOf(selected.Status) >= i)
+                    {['disetujui_fakultas', 'disetujui_univ'].map((s, i) => {
+                      const statuses = ['disetujui_fakultas', 'disetujui_univ', 'selesai']
+                      const active = statuses.indexOf(selected.Status) >= i
                       return (
                         <React.Fragment key={s}>
                           <div className={cn('flex flex-col items-center gap-1.5', active ? '' : 'opacity-30')}>
                             <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center border', active ? 'bg-emerald-50 text-emerald-600 border-emerald-100 shadow-sm' : 'bg-slate-100 text-slate-400 border-slate-200/40')}>
                               <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>check_circle</span>
                             </div>
-                            <span className="text-[9px] font-black tracking-wider text-slate-500 font-headline uppercase">{['Dosen', 'Fakultas', 'Univ'][i]}</span>
+                            <span className="text-[9px] font-black tracking-wider text-slate-500 font-headline uppercase">{['Fakultas', 'Universitas'][i]}</span>
                           </div>
-                          {i < 2 && <div className={cn('flex-1 h-[2px] rounded-full', active ? 'bg-emerald-300' : 'bg-slate-200')} />}
+                          {i < 1 && <div className={cn('flex-1 h-[2px] rounded-full', active ? 'bg-emerald-300' : 'bg-slate-200')} />}
                         </React.Fragment>
                       )
                     })}
@@ -680,8 +702,8 @@ export default function ProposalManagement() {
                   <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
                     Proposal diteruskan secara otomatis setelah disetujui masing-masing tingkat:
                   </p>
-                  {[{ s: 'disetujui_dosen', label: 'Dosen Pembimbing' }, { s: 'disetujui_fakultas', label: 'Admin Fakultas' }, { s: 'disetujui_univ', label: 'Universitas' }].map((step, i) => {
-                    const statuses = ['disetujui_dosen', 'disetujui_fakultas', 'disetujui_univ', 'selesai']
+                  {[{ s: 'disetujui_fakultas', label: 'Admin Fakultas' }, { s: 'disetujui_univ', label: 'Universitas' }].map((step, i) => {
+                    const statuses = ['disetujui_fakultas', 'disetujui_univ', 'selesai']
                     const done = statuses.indexOf(selected.Status) >= i
                     return (
                       <div key={step.s} className={`flex items-center gap-2.5 p-2.5 rounded-xl border ${done ? 'bg-emerald-50 border-emerald-100' : 'bg-slate-50 border-slate-100 opacity-50'
@@ -703,6 +725,21 @@ export default function ProposalManagement() {
                     <p className="text-[9px] font-black text-amber-600 uppercase tracking-widest">Catatan Reviewer</p>
                     <p className="text-[11px] text-amber-800 font-medium leading-relaxed">{selected.Catatan}</p>
                   </div>
+                )}
+
+                {/* Ajukan Ulang — only visible when status is revisi */}
+                {selected.Status === 'revisi' && (
+                  <button
+                    onClick={handleResubmit}
+                    disabled={isResubmitting}
+                    className="w-full h-11 rounded-2xl bg-[#00236F] hover:bg-[#00236F]/90 text-white text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-[#00236F]/20 flex items-center justify-center gap-2 border-none"
+                  >
+                    {isResubmitting ? (
+                      <><span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }}>sync</span> Mengirim...</>
+                    ) : (
+                      <><span className="material-symbols-outlined" style={{ fontSize: '16px' }}>refresh</span> Ajukan Ulang</>
+                    )}
+                  </button>
                 )}
               </div>
 

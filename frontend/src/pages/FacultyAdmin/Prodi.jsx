@@ -1,9 +1,10 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useMemo } from "react"
 import { toast, Toaster } from "react-hot-toast"
 import { cn } from "@/lib/utils"
 import api from "../../lib/axios"
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import { pddiktiService, API_BASE_URL } from "../../services/api"
 import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "@/components/ui/ResponsiveLayout"
 import { DataTable } from "@/components/ui/DataTable"
@@ -228,6 +229,35 @@ export default function ProdiPage() {
     kapasitas: majors.reduce((a, m) => a + (m.Kapasitas || 0), 0),
   }
 
+  const totalMahasiswa = majors.reduce((a, m) => a + (m.CurrentMahasiswa || 0), 0)
+
+  const jenjangData = useMemo(() => {
+    const counts = {}
+    majors.forEach(m => {
+      const j = m.Jenjang || 'Unknown'
+      counts[j] = (counts[j] || 0) + 1
+    })
+    return Object.entries(counts).map(([name, value]) => ({ name, value }))
+  }, [majors])
+
+  const akreditasiData = useMemo(() => {
+    const counts = {}
+    majors.forEach(m => {
+      const a = m.Akreditasi || 'Baik'
+      counts[a] = (counts[a] || 0) + 1
+    })
+    return Object.entries(counts).map(([name, value]) => ({ name, value }))
+  }, [majors])
+
+  const utilisasiData = useMemo(() => {
+    return [...majors].sort((a, b) => ((b.CurrentMahasiswa || 0) / (b.Kapasitas || 1)) - ((a.CurrentMahasiswa || 0) / (a.Kapasitas || 1))).slice(0, 8).map(m => ({
+      name: m.Kode || m.Nama?.substring(0, 12),
+      utilization: Math.min(100, Math.round(((m.CurrentMahasiswa || 0) / (m.Kapasitas || 1)) * 100))
+    }))
+  }, [majors])
+
+  const PIE_COLORS = ['#00236f', '#10b981', '#f59e0b', '#3b82f6', '#8b5cf6']
+
   const prodiColumns = [
     {
       key: "index",
@@ -382,29 +412,124 @@ export default function ProdiPage() {
       </section>
 
       {/* Stats Section */}
-      <ResponsiveGrid cols={3}>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'Total Program Studi', value: stats.total, icon: GraduationCap, bg: 'bg-primary/10', color: 'text-primary', accent: 'from-primary/10', desc: 'Prodi terdaftar' },
-          { label: 'Akreditasi Unggul', value: stats.unggul, icon: CheckCircle2, bg: 'bg-emerald-50 text-emerald-600', color: 'text-emerald-600', accent: 'from-emerald-500/10', desc: 'Prodi Unggul / A' },
-          { label: 'Total Kapasitas', value: stats.kapasitas, icon: Users, bg: 'bg-indigo-50 text-indigo-600', color: 'text-indigo-600', accent: 'from-indigo-500/10', desc: 'Slot mahasiswa tersedia' },
+          { label: 'Total Program Studi', value: stats.total, icon: GraduationCap, bg: 'bg-primary/10', color: 'text-primary', desc: 'Prodi terdaftar' },
+          { label: 'Akreditasi Unggul', value: stats.unggul, icon: CheckCircle2, bg: 'bg-emerald-50 text-emerald-600', color: 'text-emerald-600', desc: 'Prodi Unggul / A' },
+          { label: 'Total Mahasiswa', value: totalMahasiswa, icon: Users, bg: 'bg-amber-50 text-amber-600', color: 'text-amber-600', desc: 'Mahasiswa aktif' },
+          { label: 'Total Kapasitas', value: stats.kapasitas, icon: BookOpen, bg: 'bg-indigo-50 text-indigo-600', color: 'text-indigo-600', desc: 'Slot mahasiswa tersedia' },
         ].map(s => (
-          <ResponsiveCard key={s.label} className="relative group overflow-hidden border border-slate-200/60 shadow-sm hover:shadow-md transition-all duration-300 rounded-3xl p-0">
-            <div className={`absolute inset-0 bg-gradient-to-br ${s.accent} opacity-10`} />
-            <div className="p-6 relative flex items-center gap-4">
-              <div className={cn('p-4 rounded-2xl shadow-sm shrink-0 group-hover:scale-110 transition-transform duration-500', s.bg)}>
-                <s.icon className="size-6" />
+          <div key={s.label} className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', s.bg, s.color)}>
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{s.icon === GraduationCap ? 'school' : s.icon === CheckCircle2 ? 'check_circle' : s.icon === Users ? 'group' : 'menu_book'}</span>
               </div>
-              <div className="flex-1 min-w-0 space-y-1">
-                <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-headline truncate">{s.label}</p>
-                <h3 className="text-2xl font-black text-slate-900 font-jakarta tracking-tight leading-none">
-                  {loading ? "..." : s.value.toLocaleString()}
-                </h3>
-                <p className="text-[10px] font-bold text-slate-400 truncate uppercase tracking-widest leading-none pt-0.5">{s.desc}</p>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</span>
+            </div>
+            <p className="text-2xl font-extrabold text-slate-900 leading-none tabular-nums">
+              {loading ? <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span> : s.value.toLocaleString()}
+            </p>
+            <p className="text-xs text-slate-400 font-medium mt-1">{s.desc}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* 5W1H Charts */}
+      {!loading && majors.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* WHAT → Distribusi Jenjang */}
+          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-600 shrink-0">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>pie_chart</span>
+              </div>
+              <div>
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Distribusi Jenjang</h3>
+                <p className="text-[10px] text-slate-400">Rasio S1 / D3 / S2</p>
               </div>
             </div>
-          </ResponsiveCard>
-        ))}
-      </ResponsiveGrid>
+            <div className="h-[170px] w-full flex items-center justify-center">
+              {jenjangData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={170}>
+                  <PieChart>
+                    <Pie data={jenjangData} cx="50%" cy="50%" innerRadius={42} outerRadius={68} paddingAngle={3} dataKey="value" stroke="none">
+                      {jenjangData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : <span className="text-xs text-slate-400 italic">Tidak ada data</span>}
+            </div>
+            <div className="flex justify-center gap-3 mt-1">
+              {jenjangData.map((item, i) => (
+                <div key={item.name} className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
+                  <span className="text-[10px] font-bold text-slate-500">{item.name}: {item.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* WHAT → Distribusi Akreditasi */}
+          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-600 shrink-0">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>verified</span>
+              </div>
+              <div>
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Status Akreditasi</h3>
+                <p className="text-[10px] text-slate-400">Kualitas prodi</p>
+              </div>
+            </div>
+            <div className="h-[170px] w-full flex items-center justify-center">
+              {akreditasiData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={170}>
+                  <PieChart>
+                    <Pie data={akreditasiData} cx="50%" cy="50%" innerRadius={42} outerRadius={68} paddingAngle={3} dataKey="value" stroke="none">
+                      {akreditasiData.map((_, i) => <Cell key={i} fill={['#10b981', '#3b82f6', '#94a3b8'][i % 3]} />)}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : <span className="text-xs text-slate-400 italic">Tidak ada data</span>}
+            </div>
+            <div className="flex justify-center gap-3 mt-1">
+              {akreditasiData.map((item, i) => (
+                <div key={item.name} className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: ['#10b981', '#3b82f6', '#94a3b8'][i % 3] }} />
+                  <span className="text-[10px] font-bold text-slate-500">{item.name}: {item.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* HOW → Utilisasi Kapasitas (Top 8) */}
+          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-600 shrink-0">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>bar_chart</span>
+              </div>
+              <div>
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Utilisasi Kapasitas</h3>
+                <p className="text-[10px] text-slate-400">Mahasiswa vs daya tampung</p>
+              </div>
+            </div>
+            <div className="h-[170px] w-full">
+              {utilisasiData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={170}>
+                  <BarChart data={utilisasiData} layout="vertical" margin={{ top: 5, right: 20, left: 5, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+                    <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 8, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                    <YAxis type="category" dataKey="name" tick={{ fontSize: 8, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} width={50} />
+                    <Tooltip formatter={(v) => `${v}%`} />
+                    <Bar dataKey="utilization" name="Utilisasi" fill="#f59e0b" radius={[0, 4, 4, 0]} barSize={12} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : <div className="h-full flex items-center justify-center"><span className="text-xs text-slate-400 italic">Tidak ada data</span></div>}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Data Table */}
       <div className="pt-2">

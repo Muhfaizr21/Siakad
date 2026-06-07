@@ -19,6 +19,7 @@ func SetupOrmawaRoutes(app *fiber.App) {
 	api.Get("/proposals/:id/history", ormawa.GetProposalHistory)
 	api.Post("/proposals", ormawa.CreateProposal)
 	api.Put("/proposals/:id", ormawa.UpdateProposal)
+	api.Post("/proposals/:id/resubmit", ormawa.ResubmitProposal)
 	api.Delete("/proposals/:id", ormawa.DeleteProposal)
 
 	// SETTINGS & PROFILE

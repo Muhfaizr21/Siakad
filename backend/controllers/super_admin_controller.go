@@ -950,6 +950,9 @@ func GetDashboardStats(c *fiber.Ctx) error {
 	var resolvedToday int64
 	var antreanProposal int64
 	var totalAnggotaOrmawa int64
+	var totalBerita int64
+	var beritaDraft int64
+	var beritaPublished int64
 
 	now := time.Now()
 	todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
@@ -960,6 +963,14 @@ func GetDashboardStats(c *fiber.Ctx) error {
 	dbAsp.Session(&gorm.Session{}).Where("mahasiswa.aspirasi.status = ? AND mahasiswa.aspirasi.updated_at >= ?", "Selesai", todayStart).Count(&resolvedToday)
 	dbProp.Session(&gorm.Session{}).Where("ormawa.proposal.status = ?", "disetujui_fakultas").Count(&antreanProposal)
 	dbAnggota.Session(&gorm.Session{}).Count(&totalAnggotaOrmawa)
+
+	dbBerita := config.DB.Model(&models.Berita{})
+	if hasDateFilter {
+		dbBerita = dbBerita.Where("fakultas.berita.tanggal_publish BETWEEN ? AND ?", filterStartDate, filterEndDate)
+	}
+	dbBerita.Session(&gorm.Session{}).Count(&totalBerita)
+	config.DB.Model(&models.Berita{}).Where("status = ?", "Draft").Count(&beritaDraft)
+	config.DB.Model(&models.Berita{}).Where("status = ?", "Published").Count(&beritaPublished)
 
 	// Fetch dynamic list of available Tahun Masuk for the filter dropdown
 	var tahunMasukList []int
@@ -988,7 +999,10 @@ func GetDashboardStats(c *fiber.Ctx) error {
 			"resolved_today":       resolvedToday,
 			"antrean_proposal":     antreanProposal,
 			"total_anggota_ormawa": totalAnggotaOrmawa,
-			"tahun_masuk_list":     tahunMasukList,
+			"total_berita":        totalBerita,
+			"berita_draft":        beritaDraft,
+			"berita_published":    beritaPublished,
+			"tahun_masuk_list":    tahunMasukList,
 			"periods":              periods,
 			"detail_mahasiswa":     detailMhs,
 			"detail_aspirasi":      detailAsp,

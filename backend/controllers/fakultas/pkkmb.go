@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
 )
 
 // --- RINGKASAN & MONITORING (UNTUK DASHBOARD) ---
@@ -27,58 +28,147 @@ func AmbilRingkasanPkkmb(c *fiber.Ctx) error {
 	var totalLulus int64
 	var totalProses int64
 	var totalSertifikat int64
+	var totalGagal int64
 
+	// Helper function untuk get base query
+	getBaseQuery := func() *gorm.DB {
+		q := config.DB.Model(&models.PkkmbHasil{})
+		if role == "faculty_admin" {
+			q = q.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_hasil.mahasiswa_id").
+				Where("mahasiswa.mahasiswa.fakultas_id = ?", fid)
+		} else if role == "prodi_admin" {
+			pid, _ := c.Locals("program_studi_id").(uint)
+			q = q.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_hasil.mahasiswa_id").
+				Where("mahasiswa.mahasiswa.fakultas_id = ? AND mahasiswa.mahasiswa.program_studi_id = ?", fid, pid)
+		}
+		return q
+	}
+
+	getBaseQuery().Count(&totalMaba)
+	getBaseQuery().Where("status_kelulusan = ?", "Lulus").Count(&totalLulus)
+	getBaseQuery().Where("status_kelulusan = ?", "Proses").Count(&totalProses)
+	getBaseQuery().Where("status_kelulusan = ?", "Gagal").Count(&totalGagal)
+
+	// Count sertifikat
+	sertifikatQuery := config.DB.Model(&models.PkkmbSertifikat{})
 	if role == "faculty_admin" {
-		config.DB.Model(&models.PkkmbHasil{}).
-			Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_hasil.mahasiswa_id").
-			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid).
-			Count(&totalMaba)
-
-		config.DB.Model(&models.PkkmbHasil{}).
-			Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_hasil.mahasiswa_id").
-			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid).
-			Where("mahasiswa.pkkmb_hasil.status_kelulusan = ?", "Lulus").
-			Count(&totalLulus)
-
-		config.DB.Model(&models.PkkmbSertifikat{}).
-			Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_sertifikat.mahasiswa_id").
-			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid).
-			Count(&totalSertifikat)
-
-		config.DB.Model(&models.PkkmbHasil{}).
-			Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_hasil.mahasiswa_id").
-			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid).
-			Where("mahasiswa.pkkmb_hasil.status_kelulusan = ?", "Proses").
-			Count(&totalProses)
+		sertifikatQuery = sertifikatQuery.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_sertifikat.mahasiswa_id").
+			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid)
 	} else if role == "prodi_admin" {
 		pid, _ := c.Locals("program_studi_id").(uint)
-		config.DB.Model(&models.PkkmbHasil{}).
-			Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_hasil.mahasiswa_id").
-			Where("mahasiswa.mahasiswa.fakultas_id = ? AND mahasiswa.mahasiswa.program_studi_id = ?", fid, pid).
-			Count(&totalMaba)
-
-		config.DB.Model(&models.PkkmbHasil{}).
-			Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_hasil.mahasiswa_id").
-			Where("mahasiswa.mahasiswa.fakultas_id = ? AND mahasiswa.mahasiswa.program_studi_id = ?", fid, pid).
-			Where("mahasiswa.pkkmb_hasil.status_kelulusan = ?", "Lulus").
-			Count(&totalLulus)
-
-		config.DB.Model(&models.PkkmbSertifikat{}).
-			Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_sertifikat.mahasiswa_id").
-			Where("mahasiswa.mahasiswa.fakultas_id = ? AND mahasiswa.mahasiswa.program_studi_id = ?", fid, pid).
-			Count(&totalSertifikat)
-
-		config.DB.Model(&models.PkkmbHasil{}).
-			Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_hasil.mahasiswa_id").
-			Where("mahasiswa.mahasiswa.fakultas_id = ? AND mahasiswa.mahasiswa.program_studi_id = ?", fid, pid).
-			Where("mahasiswa.pkkmb_hasil.status_kelulusan = ?", "Proses").
-			Count(&totalProses)
-	} else {
-		config.DB.Model(&models.PkkmbHasil{}).Count(&totalMaba)
-		config.DB.Model(&models.PkkmbHasil{}).Where("status_kelulusan = ?", "Lulus").Count(&totalLulus)
-		config.DB.Model(&models.PkkmbSertifikat{}).Count(&totalSertifikat)
-		config.DB.Model(&models.PkkmbHasil{}).Where("status_kelulusan = ?", "Proses").Count(&totalProses)
+		sertifikatQuery = sertifikatQuery.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_sertifikat.mahasiswa_id").
+			Where("mahasiswa.mahasiswa.fakultas_id = ? AND mahasiswa.mahasiswa.program_studi_id = ?", fid, pid)
 	}
+	sertifikatQuery.Count(&totalSertifikat)
+
+	// Distribusi Status (untuk Pie/Donut Chart)
+	distribusi := fiber.Map{
+		"Lulus":   totalLulus,
+		"Proses":  totalProses,
+		"Gagal":   totalGagal,
+		"Total":   totalMaba,
+	}
+
+	// Breakdown per Angkatan
+	type AngkatanStats struct {
+		Angkatan  string `json:"angkatan"`
+		Total     int64  `json:"total"`
+		Lulus     int64  `json:"lulus"`
+		Proses    int64  `json:"proses"`
+		Gagal     int64  `json:"gagal"`
+	}
+	var angkatanList []AngkatanStats
+	angkatanQuery := `SELECT
+		COALESCE(mahasiswa.mahasiswa.angkatan, 'Unknown') as angkatan,
+		COUNT(*) as total,
+		SUM(CASE WHEN mahasiswa.pkkmb_hasil.status_kelulusan = 'Lulus' THEN 1 ELSE 0 END) as lulus,
+		SUM(CASE WHEN mahasiswa.pkkmb_hasil.status_kelulusan = 'Proses' THEN 1 ELSE 0 END) as proses,
+		SUM(CASE WHEN mahasiswa.pkkmb_hasil.status_kelulusan = 'Gagal' THEN 1 ELSE 0 END) as gagal
+	FROM mahasiswa.pkkmb_hasil
+	JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_hasil.mahasiswa_id`
+
+	if role == "faculty_admin" {
+		angkatanQuery += " WHERE mahasiswa.mahasiswa.fakultas_id = ? GROUP BY mahasiswa.mahasiswa.angkatan ORDER BY angkatan DESC"
+		config.DB.Raw(angkatanQuery, fid).Scan(&angkatanList)
+	} else if role == "prodi_admin" {
+		pid, _ := c.Locals("program_studi_id").(uint)
+		angkatanQuery += " WHERE mahasiswa.mahasiswa.fakultas_id = ? AND mahasiswa.mahasiswa.program_studi_id = ? GROUP BY mahasiswa.mahasiswa.angkatan ORDER BY angkatan DESC"
+		config.DB.Raw(angkatanQuery, fid, pid).Scan(&angkatanList)
+	} else {
+		angkatanQuery += " GROUP BY mahasiswa.mahasiswa.angkatan ORDER BY angkatan DESC"
+		config.DB.Raw(angkatanQuery).Scan(&angkatanList)
+	}
+
+	// Breakdown Gender
+	type GenderStats struct {
+		Gender  string `json:"gender"`
+		Total   int64  `json:"total"`
+		Lulus   int64  `json:"lulus"`
+	}
+	var genderList []GenderStats
+	genderQuery := `SELECT
+		COALESCE(mahasiswa.mahasiswa.jenis_kelamin, 'Unknown') as gender,
+		COUNT(*) as total,
+		SUM(CASE WHEN mahasiswa.pkkmb_hasil.status_kelulusan = 'Lulus' THEN 1 ELSE 0 END) as lulus
+	FROM mahasiswa.pkkmb_hasil
+	JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_hasil.mahasiswa_id`
+
+	if role == "faculty_admin" {
+		genderQuery += " WHERE mahasiswa.mahasiswa.fakultas_id = ? GROUP BY mahasiswa.mahasiswa.jenis_kelamin"
+		config.DB.Raw(genderQuery, fid).Scan(&genderList)
+	} else if role == "prodi_admin" {
+		pid, _ := c.Locals("program_studi_id").(uint)
+		genderQuery += " WHERE mahasiswa.mahasiswa.fakultas_id = ? AND mahasiswa.mahasiswa.program_studi_id = ? GROUP BY mahasiswa.mahasiswa.jenis_kelamin"
+		config.DB.Raw(genderQuery, fid, pid).Scan(&genderList)
+	} else {
+		genderQuery += " GROUP BY mahasiswa.mahasiswa.jenis_kelamin"
+		config.DB.Raw(genderQuery).Scan(&genderList)
+	}
+
+	// Distribusi Nilai (Histogram)
+	type NilaiDist struct {
+		Range string `json:"range"`
+		Count int64  `json:"count"`
+	}
+	var nilaiDist []NilaiDist
+	nilaiQuery := `SELECT
+		CASE
+			WHEN nilai >= 90 THEN '90-100'
+			WHEN nilai >= 80 THEN '80-89'
+			WHEN nilai >= 70 THEN '70-79'
+			WHEN nilai >= 60 THEN '60-69'
+			WHEN nilai >= 50 THEN '50-59'
+			ELSE '0-49'
+		END as range,
+		COUNT(*) as count
+	FROM mahasiswa.pkkmb_hasil
+	JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_hasil.mahasiswa_id`
+
+	if role == "faculty_admin" {
+		nilaiQuery += " WHERE mahasiswa.mahasiswa.fakultas_id = ? GROUP BY range ORDER BY range"
+		config.DB.Raw(nilaiQuery, fid).Scan(&nilaiDist)
+	} else if role == "prodi_admin" {
+		pid, _ := c.Locals("program_studi_id").(uint)
+		nilaiQuery += " WHERE mahasiswa.mahasiswa.fakultas_id = ? AND mahasiswa.mahasiswa.program_studi_id = ? GROUP BY range ORDER BY range"
+		config.DB.Raw(nilaiQuery, fid, pid).Scan(&nilaiDist)
+	} else {
+		nilaiQuery += " GROUP BY range ORDER BY range"
+		config.DB.Raw(nilaiQuery).Scan(&nilaiDist)
+	}
+
+	// Batas Nilai Kelulusan (threshold)
+	batasNilai := 70.0 // default
+
+	// Kegiatan (Agenda) PKKMB
+	type KegiatanInfo struct {
+		ID          uint    `json:"id"`
+		Nama        string  `json:"nama"`
+		Tanggal     string  `json:"tanggal"`
+		Lokasi      string  `json:"lokasi"`
+		Status      string  `json:"status"`
+	}
+	var kegiatanList []KegiatanInfo
+	config.DB.Model(&models.PkkmbKegiatan{}).Limit(5).Order("tanggal asc").Scan(&kegiatanList)
 
 	// Breakdown per Prodi
 	type ProdiStats struct {
@@ -146,9 +236,16 @@ func AmbilRingkasanPkkmb(c *fiber.Ctx) error {
 			"totalMaba":       totalMaba,
 			"totalLulus":      totalLulus,
 			"totalProses":     totalProses,
+			"totalGagal":      totalGagal,
 			"totalSertifikat": totalSertifikat,
 		},
-		"prodiBreakdown": listStats,
+		"distribusi":      distribusi,
+		"angkatanStats":   angkatanList,
+		"genderStats":     genderList,
+		"nilaiDist":       nilaiDist,
+		"batasNilai":      batasNilai,
+		"kegiatanList":    kegiatanList,
+		"prodiBreakdown":  listStats,
 	})
 }
 

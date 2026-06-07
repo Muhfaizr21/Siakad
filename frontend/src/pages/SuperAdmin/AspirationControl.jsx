@@ -28,6 +28,14 @@ const getCleanImageUrl = (url) => {
   return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`
 }
 
+const getShortFacultyName = (name) => {
+  if (!name || name === 'Tidak ada data' || name === '—' || name === 'Institusional') return '—'
+  return name
+    .replace(/Fakultas\s+/i, '')
+    .replace(/Sains\s+dan\s+Teknologi/i, 'Sains & Tek')
+    .replace(/Sains\s+&\s+Teknologi/i, 'Sains & Tek')
+}
+
 function StudentAvatar({ src, name, className = "w-9 h-9 rounded-xl" }) {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
@@ -165,13 +173,28 @@ const AspirationControl = () => {
     }
   }
 
-  const normalizedSearch = searchTerm.toLowerCase()
-  const filteredAspirations = aspirations.filter(asp => {
-    const statusLower = (asp.Status || '').toLowerCase();
+  const viewableAspirations = useMemo(() => {
     const allowedStatuses = ['disetujui fakultas', 'selesai', 'proses', 'ditinjau', 'ditolak'];
-    if (!allowedStatuses.includes(statusLower)) {
-      return false;
-    }
+    return aspirations.filter(asp => allowedStatuses.includes((asp.Status || '').toLowerCase()))
+  }, [aspirations])
+
+  const computedStats = useMemo(() => {
+    const active = viewableAspirations.filter(a => ['proses', 'disetujui fakultas', 'ditinjau'].includes((a.Status || '').toLowerCase())).length
+    const resolved = viewableAspirations.filter(a => (a.Status || '').toLowerCase() === 'selesai').length
+    const total = viewableAspirations.length
+    const overdue = viewableAspirations.filter(a => {
+      if (!a.Deadline) return false
+      const isPast = new Date(a.Deadline) < new Date()
+      const isPending = !['selesai', 'ditolak'].includes((a.Status || '').toLowerCase())
+      return isPast && isPending
+    }).length
+
+    return { active, overdue, resolved, total }
+  }, [viewableAspirations])
+
+  const normalizedSearch = searchTerm.toLowerCase()
+  const filteredAspirations = viewableAspirations.filter(asp => {
+    const statusLower = (asp.Status || '').toLowerCase();
 
     // Filter by Faculty
     if (selectedFaculty) {
@@ -210,7 +233,7 @@ const AspirationControl = () => {
   // ── Derived Chart Data ─────────────────────────────────────────────
   const statusDonutData = useMemo(() => {
     const counts = { proses: 0, selesai: 0, ditolak: 0, ditinjau: 0, 'disetujui fakultas': 0 }
-    aspirations.forEach(a => {
+    viewableAspirations.forEach(a => {
       const s = (a.Status || '').toLowerCase()
       if (counts[s] !== undefined) counts[s]++
     })
@@ -221,28 +244,108 @@ const AspirationControl = () => {
       { name: 'Ditinjau', value: counts['ditinjau'], color: '#f59e0b' },
       { name: 'Acc Fakultas', value: counts['disetujui fakultas'], color: '#8b5cf6' },
     ].filter(d => d.value > 0)
-  }, [aspirations])
+  }, [viewableAspirations])
 
   const priorityBarData = useMemo(() => {
     const counts = { CRITICAL: 0, HIGH: 0, NORMAL: 0, LOW: 0 }
-    aspirations.forEach(a => { const p = (a.Priority || 'NORMAL').toUpperCase(); if (counts[p] !== undefined) counts[p]++ })
+    viewableAspirations.forEach(a => { const p = (a.Priority || 'NORMAL').toUpperCase(); if (counts[p] !== undefined) counts[p]++ })
     return [
       { name: 'Critical', value: counts.CRITICAL, fill: '#ef4444' },
       { name: 'High', value: counts.HIGH, fill: '#f59e0b' },
       { name: 'Normal', value: counts.NORMAL, fill: '#3b82f6' },
       { name: 'Low', value: counts.LOW, fill: '#10b981' },
     ]
-  }, [aspirations])
+  }, [viewableAspirations])
 
   const facultyTrendData = useMemo(() => {
     const map = {}
-    aspirations.forEach(a => {
+    viewableAspirations.forEach(a => {
       const fac = a.Fakultas?.Nama || a.Mahasiswa?.Fakultas?.Nama || 'Lainnya'
       const shortFac = fac.replace('Fakultas ', 'F. ').substring(0, 14)
       map[shortFac] = (map[shortFac] || 0) + 1
     })
     return Object.entries(map).map(([name, value]) => ({ name, value })).sort((a,b) => b.value - a.value).slice(0,5)
-  }, [aspirations])
+  }, [viewableAspirations])
+
+  const extraStats = useMemo(() => {
+    // 1. Who - Top Faculty
+    const facultyCounts = {}
+    viewableAspirations.forEach(a => {
+      const fac = a.Fakultas?.Nama || a.Mahasiswa?.Fakultas?.Nama || 'Lainnya'
+      if (fac !== 'Lainnya' && fac !== 'Institusional') {
+        facultyCounts[fac] = (facultyCounts[fac] || 0) + 1
+      }
+    })
+    let topFaculty = '—'
+    let topFacultyCount = 0
+    Object.entries(facultyCounts).forEach(([fac, count]) => {
+      if (count > topFacultyCount) {
+        topFaculty = fac
+        topFacultyCount = count
+      }
+    })
+
+    // 2. What - Top Category
+    const categoryCounts = {}
+    viewableAspirations.forEach(a => {
+      const cat = a.Kategori || 'Umum'
+      categoryCounts[cat] = (categoryCounts[cat] || 0) + 1
+    })
+    let topCategory = '—'
+    let topCategoryCount = 0
+    Object.entries(categoryCounts).forEach(([cat, count]) => {
+      if (count > topCategoryCount) {
+        topCategory = cat
+        topCategoryCount = count
+      }
+    })
+
+    // 3. Where/Why - Dominant Urgency
+    const priorityCounts = {}
+    viewableAspirations.forEach(a => {
+      const prio = a.Priority || 'NORMAL'
+      priorityCounts[prio] = (priorityCounts[prio] || 0) + 1
+    })
+    let topPriority = '—'
+    let topPriorityCount = 0
+    Object.entries(priorityCounts).forEach(([prio, count]) => {
+      if (count > topPriorityCount) {
+        topPriority = prio
+        topPriorityCount = count
+      }
+    })
+    const topPriorityPct = viewableAspirations.length > 0 ? Math.round((topPriorityCount / viewableAspirations.length) * 100) : 0
+
+    // 4. When - Top Month/Day
+    const monthCounts = {}
+    viewableAspirations.forEach(a => {
+      try {
+        const date = new Date(a.CreatedAt)
+        const monthYear = date.toLocaleString('id-ID', { month: 'long', year: 'numeric' })
+        monthCounts[monthYear] = (monthCounts[monthYear] || 0) + 1
+      } catch (e) {}
+    })
+    let topMonth = '—'
+    let topMonthCount = 0
+    Object.entries(monthCounts).forEach(([m, count]) => {
+      if (count > topMonthCount) {
+        topMonth = m
+        topMonthCount = count
+      }
+    })
+
+    return {
+      topFaculty,
+      topFacultyCount,
+      topCategory,
+      topCategoryCount,
+      topPriority,
+      topPriorityCount,
+      topPriorityPct,
+      topMonth,
+      topMonthCount
+    }
+  }, [viewableAspirations])
 
   const CustomDonutLabel = ({ cx, cy, midAngle, outerRadius, percent, name }) => {
     if (percent < 0.05) return null
@@ -295,50 +398,98 @@ const AspirationControl = () => {
         </section>
 
         {/* ── Stats Grid ──────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-           <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none">
-              <div className="flex items-center gap-3 mb-3">
-                 <div className="w-10 h-10 bg-bku-primary/10 rounded-xl flex justify-center items-center text-bku-primary flex-shrink-0">
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>chat</span>
-                 </div>
-                 <span className="text-[10px] font-black text-slate-400 font-headline uppercase tracking-widest">Active Tickets</span>
-              </div>
-              <p className="text-2xl font-black text-slate-800 font-headline leading-none tabular-nums">{stats.active}</p>
-              <p className="text-[11px] text-slate-400 font-medium mt-1">Aspirasi menunggu respons</p>
-           </div>
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+             <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none">
+                <div className="flex items-center gap-3 mb-3">
+                   <div className="w-10 h-10 bg-bku-primary/10 rounded-xl flex justify-center items-center text-bku-primary flex-shrink-0">
+                      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>chat</span>
+                   </div>
+                   <span className="text-[10px] font-black text-slate-400 font-headline uppercase tracking-widest">Active Tickets</span>
+                </div>
+                <p className="text-2xl font-black text-slate-800 font-headline leading-none tabular-nums">{computedStats.active}</p>
+                <p className="text-[11px] text-slate-400 font-medium mt-1">Aspirasi menunggu respons</p>
+             </div>
 
-           <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none">
-              <div className="flex items-center gap-3 mb-3">
-                 <div className="w-10 h-10 bg-rose-50 rounded-xl flex justify-center items-center text-rose-500 flex-shrink-0">
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>error</span>
-                 </div>
-                 <span className="text-[10px] font-black text-slate-400 font-headline uppercase tracking-widest">SLA Overdue</span>
-              </div>
-              <p className="text-2xl font-black text-slate-800 font-headline leading-none tabular-nums">{stats.overdue}</p>
-              <p className="text-[11px] text-slate-400 font-medium mt-1">Melewati batas waktu SLA</p>
-           </div>
+             <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none">
+                <div className="flex items-center gap-3 mb-3">
+                   <div className="w-10 h-10 bg-rose-50 rounded-xl flex justify-center items-center text-rose-500 flex-shrink-0">
+                      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>error</span>
+                   </div>
+                   <span className="text-[10px] font-black text-slate-400 font-headline uppercase tracking-widest">SLA Overdue</span>
+                </div>
+                <p className="text-2xl font-black text-slate-800 font-headline leading-none tabular-nums">{computedStats.overdue}</p>
+                <p className="text-[11px] text-slate-400 font-medium mt-1">Melewati batas waktu SLA</p>
+             </div>
 
-           <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none">
-              <div className="flex items-center gap-3 mb-3">
-                 <div className="w-10 h-10 bg-emerald-50 rounded-xl flex justify-center items-center text-emerald-500 flex-shrink-0">
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>check_circle</span>
-                 </div>
-                 <span className="text-[10px] font-black text-slate-400 font-headline uppercase tracking-widest">Resolved Today</span>
-              </div>
-              <p className="text-2xl font-black text-slate-800 font-headline leading-none tabular-nums">{stats.resolved}</p>
-              <p className="text-[11px] text-slate-400 font-medium mt-1">Ditangani hari ini</p>
-           </div>
+             <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none">
+                <div className="flex items-center gap-3 mb-3">
+                   <div className="w-10 h-10 bg-emerald-50 rounded-xl flex justify-center items-center text-emerald-500 flex-shrink-0">
+                      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>check_circle</span>
+                   </div>
+                   <span className="text-[10px] font-black text-slate-400 font-headline uppercase tracking-widest">Resolved Today</span>
+                </div>
+                <p className="text-2xl font-black text-slate-800 font-headline leading-none tabular-nums">{computedStats.resolved}</p>
+                <p className="text-[11px] text-slate-400 font-medium mt-1">Ditangani hari ini</p>
+             </div>
 
-           <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none">
-              <div className="flex items-center gap-3 mb-3">
-                 <div className="w-10 h-10 bg-slate-100 rounded-xl flex justify-center items-center text-slate-600 flex-shrink-0">
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>storage</span>
-                 </div>
-                 <span className="text-[10px] font-black text-slate-400 font-headline uppercase tracking-widest">Total Aspirasi</span>
-              </div>
-              <p className="text-2xl font-black text-slate-800 font-headline leading-none tabular-nums">{stats.total ?? (stats.active + stats.overdue + stats.resolved)}</p>
-              <p className="text-[11px] text-slate-400 font-medium mt-1">Seluruh aspirasi masuk</p>
-           </div>
+             <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none">
+                <div className="flex items-center gap-3 mb-3">
+                   <div className="w-10 h-10 bg-slate-100 rounded-xl flex justify-center items-center text-slate-600 flex-shrink-0">
+                      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>storage</span>
+                   </div>
+                   <span className="text-[10px] font-black text-slate-400 font-headline uppercase tracking-widest">Total Aspirasi</span>
+                </div>
+                <p className="text-2xl font-black text-slate-800 font-headline leading-none tabular-nums">{computedStats.total}</p>
+                <p className="text-[11px] text-slate-400 font-medium mt-1">Seluruh aspirasi masuk</p>
+             </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+             <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none bg-white">
+                <div className="flex items-center gap-3 mb-3">
+                   <div className="w-10 h-10 bg-blue-50 rounded-xl flex justify-center items-center text-blue-600 flex-shrink-0">
+                      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>group</span>
+                   </div>
+                   <span className="text-[10px] font-black text-slate-400 font-headline uppercase tracking-widest">Fakultas Teraktif</span>
+                </div>
+                <p className="text-lg font-black text-slate-800 font-headline leading-none truncate">{getShortFacultyName(extraStats.topFaculty)}</p>
+                <p className="text-[11px] text-slate-400 font-medium mt-1">{extraStats.topFacultyCount} aspirasi masuk</p>
+             </div>
+
+             <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none bg-white">
+                <div className="flex items-center gap-3 mb-3">
+                   <div className="w-10 h-10 bg-emerald-50 rounded-xl flex justify-center items-center text-emerald-500 flex-shrink-0">
+                      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>chat</span>
+                   </div>
+                   <span className="text-[10px] font-black text-slate-400 font-headline uppercase tracking-widest">Kategori Terbanyak</span>
+                </div>
+                <p className="text-lg font-black text-slate-800 font-headline leading-none truncate">{extraStats.topCategory}</p>
+                <p className="text-[11px] text-slate-400 font-medium mt-1">{extraStats.topCategoryCount} pengajuan</p>
+             </div>
+
+             <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none bg-white">
+                <div className="flex items-center gap-3 mb-3">
+                   <div className="w-10 h-10 bg-indigo-50 rounded-xl flex justify-center items-center text-indigo-600 flex-shrink-0">
+                      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>error_outline</span>
+                   </div>
+                   <span className="text-[10px] font-black text-slate-400 font-headline uppercase tracking-widest">Urgensi Dominan</span>
+                </div>
+                <p className="text-lg font-black text-slate-800 font-headline leading-none truncate">{extraStats.topPriority}</p>
+                <p className="text-[11px] text-slate-400 font-medium mt-1">{extraStats.topPriorityPct}% dari total aspirasi</p>
+             </div>
+
+             <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none bg-white">
+                <div className="flex items-center gap-3 mb-3">
+                   <div className="w-10 h-10 bg-amber-50 rounded-xl flex justify-center items-center text-amber-500 flex-shrink-0">
+                      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>calendar_today</span>
+                   </div>
+                   <span className="text-[10px] font-black text-slate-400 font-headline uppercase tracking-widest">Periode Teraktif</span>
+                </div>
+                <p className="text-lg font-black text-slate-800 font-headline leading-none truncate">{extraStats.topMonth}</p>
+                <p className="text-[11px] text-slate-400 font-medium mt-1">{extraStats.topMonthCount} tiket terkumpul</p>
+             </div>
+          </div>
         </div>
 
         {/* ── Analytics Charts ─────────────────────────────────────── */}

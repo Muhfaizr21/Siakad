@@ -422,4 +422,12 @@ func SimpanPengaturanAkademik(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"status": "success", "message": "Periode akademik diperbarui", "data": period})
 }
 
+func AmbilSemuaPeriodeAkademik(c *fiber.Ctx) error {
+	var periods []models.AcademicPeriod
+	if err := config.DB.Order("id desc").Find(&periods).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mengambil data periode"})
+	}
+	return c.JSON(fiber.Map{"status": "success", "data": periods})
+}
+
 // --- END OF ACADEMIC CONTROLLERS ---

@@ -9,6 +9,7 @@ import api from "../../lib/axios"
 import useAuthStore from "../../store/useAuthStore"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/Select"
 import { Button } from "@/components/ui/Button"
+import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Download = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>download</span>;
@@ -424,6 +425,47 @@ export default function FacultyPrestasi() {
     pending: achievements.filter(a => !['verified', 'terverifikasi', 'disetujui', 'diverifikasi', 'rejected', 'ditolak'].includes((a.Status || '').toLowerCase())).length,
   }
 
+  const totalPoin = achievements.reduce((a, p) => a + (p.Poin || 0), 0)
+
+  const tingkatData = useMemo(() => {
+    const counts = {}
+    achievements.forEach(a => {
+      const t = a.Tingkat || 'Lokal'
+      counts[t] = (counts[t] || 0) + 1
+    })
+    return Object.entries(counts).map(([name, value]) => ({ name, value }))
+  }, [achievements])
+
+  const kategoriData = useMemo(() => {
+    const counts = {}
+    achievements.forEach(a => {
+      const k = a.Kategori || 'Umum'
+      counts[k] = (counts[k] || 0) + 1
+    })
+    return Object.entries(counts).sort(([,a],[,b]) => b - a).slice(0, 8).map(([name, value]) => ({ name, value }))
+  }, [achievements])
+
+  const monthlyTrendData = useMemo(() => {
+    const byMonth = {}
+    achievements.forEach(a => {
+      const date = a.created_at || a.CreatedAt
+      if (!date) return
+      const d = new Date(date)
+      if (isNaN(d.getTime())) return
+      const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`
+      byMonth[key] = (byMonth[key] || 0) + 1
+    })
+    const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des']
+    return Object.entries(byMonth)
+      .sort(([a],[b]) => a.localeCompare(b))
+      .map(([m, v]) => {
+        const [y, mo] = m.split('-')
+        return { month: `${months[parseInt(mo)-1]} ${y}`, value: v }
+      })
+  }, [achievements])
+
+  const PIE_COLORS = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444']
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] font-body">
       <Toaster position="top-right" />
@@ -491,11 +533,12 @@ export default function FacultyPrestasi() {
         </section>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
             { label: 'Total Pengajuan', value: stats.total, icon: Trophy, bg: 'bg-[#eef4ff]', color: 'text-primary', desc: 'Prestasi masuk' },
             { label: 'Tervalidasi', value: stats.verified, icon: CheckCircle2, bg: 'bg-emerald-50', color: 'text-emerald-600', desc: 'Sudah diverifikasi' },
             { label: 'Menunggu Review', value: stats.pending, icon: Clock, bg: 'bg-amber-50', color: 'text-amber-600', desc: 'Perlu tindak lanjut' },
+            { label: 'Total Poin', value: totalPoin, icon: Star, bg: 'bg-violet-50', color: 'text-violet-600', desc: 'Akumulasi poin' },
           ].map(s => (
             <div key={s.label} className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
               <div className="flex items-center gap-3 mb-3">
@@ -511,6 +554,90 @@ export default function FacultyPrestasi() {
             </div>
           ))}
         </div>
+
+        {/* Charts */}
+        {!loading && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Pie: Tingkat Prestasi */}
+            <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-600 shrink-0">
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>pie_chart</span>
+                </div>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tingkat Prestasi</span>
+              </div>
+              <div className="h-[180px] w-full flex items-center justify-center">
+                {tingkatData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={180}>
+                    <PieChart>
+                      <Pie data={tingkatData} cx="50%" cy="50%" innerRadius={45} outerRadius={70} paddingAngle={3} dataKey="value" stroke="none">
+                        {tingkatData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+                      </Pie>
+                      <Tooltip contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : <span className="text-xs text-slate-400 italic">Tidak ada data</span>}
+              </div>
+              <div className="grid grid-cols-2 gap-1.5 mt-2">
+                {tingkatData.slice(0, 5).map((item, i) => (
+                  <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50 border border-slate-100">
+                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
+                    <div className="min-w-0">
+                      <p className="text-[9px] font-bold text-slate-400 truncate leading-none">{item.name}</p>
+                      <p className="text-xs font-extrabold text-slate-800 leading-none mt-1">{item.value}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Bar: Kategori Terbanyak */}
+            <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-600 shrink-0">
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>bar_chart</span>
+                </div>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Kategori Terbanyak</span>
+              </div>
+              <div className="h-[180px] w-full">
+                {kategoriData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={180}>
+                    <BarChart data={kategoriData} layout="vertical" margin={{ top: 5, right: 20, left: 5, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+                      <XAxis type="number" tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                      <YAxis type="category" dataKey="name" tick={{ fontSize: 8, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} width={70} />
+                      <Tooltip contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }} />
+                      <Bar dataKey="value" name="Jumlah" fill="#10b981" radius={[0, 4, 4, 0]} barSize={14} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : <div className="h-full flex items-center justify-center"><span className="text-xs text-slate-400 italic">Tidak ada data</span></div>}
+              </div>
+            </div>
+
+            {/* Line: Tren Pengajuan */}
+            <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-600 shrink-0">
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>trending_up</span>
+                </div>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tren Pengajuan per Bulan</span>
+              </div>
+              <div className="h-[180px] w-full">
+                {monthlyTrendData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={180}>
+                    <LineChart data={monthlyTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                      <XAxis dataKey="month" tick={{ fontSize: 8, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                      <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                      <Tooltip contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }} />
+                      <Line type="monotone" dataKey="value" name="Prestasi" stroke="#f59e0b" strokeWidth={2.5} dot={{ fill: '#f59e0b', r: 3 }} activeDot={{ r: 5, fill: '#f59e0b' }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : <div className="h-full flex items-center justify-center"><span className="text-xs text-slate-400 italic">Tidak ada data</span></div>}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Table */}
         <div className="bg-white border border-slate-100/50 rounded-3xl shadow-sm overflow-hidden">

@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 import { API_BASE_URL } from '../../services/api'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/Select"
 import { Button } from "@/components/ui/Button"
+import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const RefreshCw = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>sync</span>;
@@ -39,9 +40,9 @@ const PROPOSAL_STATUS = {
   disetujui_univ:     {cls:'bg-emerald-50 text-emerald-700 border-emerald-200', dot:'bg-emerald-500', label:'Disyahkan Univ'},
   revisi:             {cls:'bg-blue-50 text-blue-700 border-blue-200',          dot:'bg-blue-500',    label:'Revisi'},
   ditolak:            {cls:'bg-rose-50 text-rose-700 border-rose-200',          dot:'bg-rose-500',    label:'Ditolak'},
-  pending:            {cls:'bg-amber-50 text-amber-700 border-amber-200',       dot:'bg-amber-500',   label:'Diajukan'},
+  diajukan:           {cls:'bg-amber-50 text-amber-700 border-amber-200',       dot:'bg-amber-500',   label:'Diajukan'},
 }
-const getStatus = (v='') => PROPOSAL_STATUS[(v||'pending').toLowerCase()] || PROPOSAL_STATUS.pending
+const getStatus = (v='') => PROPOSAL_STATUS[(v||'diajukan').toLowerCase()] || PROPOSAL_STATUS.diajukan
 
 export default function FacultyProposalApproval() {
   const [proposals, setProposals] = useState([])
@@ -135,6 +136,54 @@ export default function FacultyProposalApproval() {
     accUniv: proposals.filter(p=>p.Status==='disetujui_univ').length,
   }
 
+  const approvalRate = stats.total > 0 ? Math.round(((stats.accFakultas + stats.accUniv) / stats.total) * 100) : 0
+
+  const statusDistribution = useMemo(() => {
+    const counts = {}
+    proposals.forEach(p => {
+      const s = (p.Status || 'pending').toLowerCase()
+      counts[s] = (counts[s] || 0) + 1
+    })
+    return Object.entries(counts).map(([key, value]) => ({
+      name: getStatus(key).label,
+      value
+    }))
+  }, [proposals])
+
+  const topOrmawaData = useMemo(() => {
+    const counts = {}
+    proposals.forEach(p => {
+      const org = p.Ormawa || p.ormawa || p.Organisasi || {}
+      const name = org.Nama || org.nama || org.NamaOrg || 'Unknown'
+      counts[name] = (counts[name] || 0) + 1
+    })
+    return Object.entries(counts)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 5)
+      .map(([name, value]) => ({ name, value }))
+  }, [proposals])
+
+  const monthlyTrendData = useMemo(() => {
+    const byMonth = {}
+    proposals.forEach(p => {
+      const date = p.created_at || p.CreatedAt
+      if (!date) return
+      const d = new Date(date)
+      if (isNaN(d.getTime())) return
+      const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`
+      byMonth[key] = (byMonth[key] || 0) + 1
+    })
+    const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des']
+    return Object.entries(byMonth)
+      .sort(([a],[b]) => a.localeCompare(b))
+      .map(([m, v]) => {
+        const [y, mo] = m.split('-')
+        return { month: `${months[parseInt(mo)-1]} ${y}`, value: v }
+      })
+  }, [proposals])
+
+  const PIE_COLORS = ['#f59e0b', '#3b82f6', '#10b981', '#8b5cf6', '#00236f', '#ef4444']
+
   return (
     <div className="min-h-screen bg-transparent font-inter">
       <Toaster position="top-right"/>
@@ -198,11 +247,12 @@ export default function FacultyProposalApproval() {
         </section>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           {[
             {label:'Total Proposal',  value:stats.total,           icon:FileText,    bg:'bg-[#eef4ff]',  color:'text-primary',   desc:'Semua pengajuan'},
             {label:'Total Anggaran',  value:formatIDR(stats.totalBudget), icon:Activity, bg:'bg-emerald-50', color:'text-emerald-600', desc:'Akumulasi budget'},
-            {label:'ACC Fakultas',    value:stats.accFakultas,     icon:CheckCircle2,bg:'bg-indigo-50',  color:'text-indigo-600',  desc:'Disetujui fakultas'},
+            {label:'Approval Rate',   value:`${approvalRate}%`,    icon:CheckCircle2, bg:'bg-indigo-50',  color:'text-indigo-600', desc:'Disetujui / total'},
+            {label:'ACC Fakultas',    value:stats.accFakultas,     icon:ShieldCheck, bg:'bg-amber-50',   color:'text-amber-600',  desc:'Disetujui fakultas'},
             {label:'Disyahkan Univ',  value:stats.accUniv,         icon:ShieldCheck, bg:'bg-emerald-50', color:'text-emerald-600', desc:'Final disyahkan'},
           ].map(s=>(
             <div key={s.label} className="glass-card border border-slate-200/60 rounded-2xl p-5 shadow-none">
@@ -217,6 +267,90 @@ export default function FacultyProposalApproval() {
             </div>
           ))}
         </div>
+
+        {/* Charts */}
+        {!loading && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Pie: Status Distribution */}
+            <div className="glass-card border border-slate-200/60 rounded-2xl p-5 shadow-none">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-600 shrink-0">
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>pie_chart</span>
+                </div>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Distribusi Status</span>
+              </div>
+              <div className="h-[180px] w-full flex items-center justify-center">
+                {statusDistribution.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={180}>
+                    <PieChart>
+                      <Pie data={statusDistribution} cx="50%" cy="50%" innerRadius={45} outerRadius={70} paddingAngle={3} dataKey="value" stroke="none">
+                        {statusDistribution.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+                      </Pie>
+                      <Tooltip contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : <span className="text-xs text-slate-400 italic">Tidak ada data</span>}
+              </div>
+              <div className="grid grid-cols-2 gap-1.5 mt-2">
+                {statusDistribution.slice(0, 6).map((item, i) => (
+                  <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50 border border-slate-100">
+                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
+                    <div className="min-w-0">
+                      <p className="text-[9px] font-bold text-slate-400 truncate leading-none">{item.name}</p>
+                      <p className="text-xs font-extrabold text-slate-800 leading-none mt-1">{item.value}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Bar: Proposal per Ormawa (Top 5) */}
+            <div className="glass-card border border-slate-200/60 rounded-2xl p-5 shadow-none">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-600 shrink-0">
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>bar_chart</span>
+                </div>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pengajuan per Ormawa (Top 5)</span>
+              </div>
+              <div className="h-[180px] w-full">
+                {topOrmawaData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={180}>
+                    <BarChart data={topOrmawaData} layout="vertical" margin={{ top: 5, right: 20, left: 5, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+                      <XAxis type="number" tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                      <YAxis type="category" dataKey="name" tick={{ fontSize: 8, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} width={80} />
+                      <Tooltip contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }} />
+                      <Bar dataKey="value" name="Proposal" fill="#10b981" radius={[0, 4, 4, 0]} barSize={14} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : <div className="h-full flex items-center justify-center"><span className="text-xs text-slate-400 italic">Tidak ada data</span></div>}
+              </div>
+            </div>
+
+            {/* Line: Tren Pengajuan per Bulan */}
+            <div className="glass-card border border-slate-200/60 rounded-2xl p-5 shadow-none">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-600 shrink-0">
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>trending_up</span>
+                </div>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tren Pengajuan per Bulan</span>
+              </div>
+              <div className="h-[180px] w-full">
+                {monthlyTrendData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={180}>
+                    <LineChart data={monthlyTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                      <XAxis dataKey="month" tick={{ fontSize: 8, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                      <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                      <Tooltip contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }} />
+                      <Line type="monotone" dataKey="value" name="Proposal" stroke="#f59e0b" strokeWidth={2.5} dot={{ fill: '#f59e0b', r: 3 }} activeDot={{ r: 5, fill: '#f59e0b' }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : <div className="h-full flex items-center justify-center"><span className="text-xs text-slate-400 italic">Tidak ada data</span></div>}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Table */}
         <div className="glass-card border border-slate-200/60 rounded-2xl shadow-none overflow-hidden">

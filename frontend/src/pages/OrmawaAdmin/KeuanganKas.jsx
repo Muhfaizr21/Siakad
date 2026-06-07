@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { DataTable } from '@/components/ui/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/Label'
 
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
+import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 
 import { fetchWithAuth, API_BASE_URL } from '../../services/api'
 import useAuthStore from '../../store/useAuthStore'
@@ -37,21 +38,56 @@ export default function KeuanganKas() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const ormawaId = getOrmawaId()
+
+  const [sortConfig, setSortConfig] = useState({ key: 'Tanggal', direction: 'desc' })
+  const handleSort = (key) => {
+    setSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }))
+  }
+
   const [form, setForm] = useState({
     Deskripsi: '',
     Nominal: '',
     Tipe: 'pemasukan',
     Tanggal: '',
     OrmawaID: ormawaId,
-    Sumber: 'organisasi'
+    Sumber: 'organisasi',
+    Kategori: ''
   })
 
-  // Calculate totals
+  // Filters
+  const [filterSumber, setFilterSumber] = useState('all')
+  const [filterTipe, setFilterTipe] = useState('all')
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter(t => {
+      if (filterSumber !== 'all' && (t.Sumber || t.sumber || 'organisasi') !== filterSumber) return false
+      if (filterTipe !== 'all' && (t.Tipe || '').toLowerCase() !== filterTipe) return false
+      if (startDate && t.Tanggal && new Date(t.Tanggal) < new Date(startDate)) return false
+      if (endDate && t.Tanggal) {
+        const end = new Date(endDate)
+        end.setHours(23, 59, 59, 999)
+        if (new Date(t.Tanggal) > end) return false
+      }
+      return true
+    })
+  }, [transactions, filterSumber, filterTipe, startDate, endDate])
+
+  // Calculate totals from filtered
   const saldo = transactions.reduce((acc, t) => t.Tipe === 'pemasukan' ? acc + (t.Nominal || 0) : acc - (t.Nominal || 0), 0)
   const totalIn = transactions.filter(t => t.Tipe === 'pemasukan').reduce((a, t) => a + (t.Nominal || 0), 0)
   const totalOut = transactions.filter(t => t.Tipe === 'pengeluaran').reduce((a, t) => a + (t.Nominal || 0), 0)
 
-  // Isolated Campus vs Organisasi calculations (PAGU Duit Kampus)
+  // Filtered totals for display
+  const filteredIn = filteredTransactions.filter(t => t.Tipe === 'pemasukan').reduce((a, t) => a + (t.Nominal || 0), 0)
+  const filteredOut = filteredTransactions.filter(t => t.Tipe === 'pengeluaran').reduce((a, t) => a + (t.Nominal || 0), 0)
+  const filteredBalance = filteredIn - filteredOut
+
+  // Isolated Campus vs Organisasi calculations
   const campusIn = transactions.filter(t => t.Tipe === 'pemasukan' && (t.Sumber === 'kampus' || t.sumber === 'kampus')).reduce((a, t) => a + (t.Nominal || 0), 0)
   const campusOut = transactions.filter(t => t.Tipe === 'pengeluaran' && (t.Sumber === 'kampus' || t.sumber === 'kampus')).reduce((a, t) => a + (t.Nominal || 0), 0)
   const campusSaldo = campusIn - campusOut
@@ -59,6 +95,69 @@ export default function KeuanganKas() {
   const orgIn = transactions.filter(t => t.Tipe === 'pemasukan' && (t.Sumber === 'organisasi' || t.sumber === 'organisasi' || !t.sumber)).reduce((a, t) => a + (t.Nominal || 0), 0)
   const orgOut = transactions.filter(t => t.Tipe === 'pengeluaran' && (t.Sumber === 'organisasi' || t.sumber === 'organisasi' || !t.sumber)).reduce((a, t) => a + (t.Nominal || 0), 0)
   const orgSaldo = orgIn - orgOut
+
+  const sortedTransactions = useMemo(() => {
+    const items = [...filteredTransactions]
+    items.sort((a, b) => {
+      let aVal = a[sortConfig.key]
+      let bVal = b[sortConfig.key]
+      if (sortConfig.key === 'Nominal') {
+        aVal = Number(a.Nominal || 0)
+        bVal = Number(b.Nominal || 0)
+      } else if (sortConfig.key === 'Tanggal') {
+        aVal = a.Tanggal ? new Date(a.Tanggal).getTime() : 0
+        bVal = b.Tanggal ? new Date(b.Tanggal).getTime() : 0
+      } else {
+        aVal = String(aVal || '').toLowerCase()
+        bVal = String(bVal || '').toLowerCase()
+      }
+      if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1
+      if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1
+      return 0
+    })
+    return items
+  }, [filteredTransactions, sortConfig])
+
+  // Chart data
+  const tipeDistData = useMemo(() => [
+    { name: 'Pemasukan', value: totalIn },
+    { name: 'Pengeluaran', value: totalOut }
+  ].filter(d => d.value > 0), [totalIn, totalOut])
+
+  const sumberDistData = useMemo(() => [
+    { name: 'Pagu Kampus', value: campusIn + campusOut },
+    { name: 'Kas Mandiri', value: orgIn + orgOut }
+  ].filter(d => d.value > 0), [campusIn, campusOut, orgIn, orgOut])
+
+  const monthlyTrendData = useMemo(() => {
+    const byMonth = {}
+    transactions.forEach(t => {
+      const d = t.Tanggal
+      if (!d) return
+      const date = new Date(d)
+      if (isNaN(date.getTime())) return
+      const key = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`
+      if (!byMonth[key]) byMonth[key] = { pemasukan: 0, pengeluaran: 0 }
+      if (t.Tipe === 'pemasukan') byMonth[key].pemasukan += t.Nominal || 0
+      else byMonth[key].pengeluaran += t.Nominal || 0
+    })
+    const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des']
+    return Object.entries(byMonth).sort(([a],[b]) => a.localeCompare(b)).map(([m, v]) => {
+      const [y, mo] = m.split('-')
+      return { month: `${months[parseInt(mo)-1]} ${y}`, pemasukan: v.pemasukan, pengeluaran: v.pengeluaran }
+    })
+  }, [transactions])
+
+  const prokerSpendData = useMemo(() => {
+    const byProker = {}
+    transactions.filter(t => t.Tipe === 'pengeluaran').forEach(t => {
+      const proker = t.Kategori || t.kategori || t.Deskripsi || 'Tanpa Kategori'
+      byProker[proker] = (byProker[proker] || 0) + (t.Nominal || 0)
+    })
+    return Object.entries(byProker).sort(([,a],[,b]) => b - a).slice(0, 8).map(([name, value]) => ({ name, value }))
+  }, [transactions])
+
+  const PIE_COLORS = ['#10b981', '#ef4444', '#3b82f6', '#f59e0b', '#8b5cf6', '#14b8a6']
 
   const fetchData = async () => {
     setLoading(true)
@@ -89,6 +188,7 @@ export default function KeuanganKas() {
       Nominal: Number(form.Nominal),
       OrmawaID: Number(form.OrmawaID),
       Sumber: form.Sumber || 'organisasi',
+      Kategori: form.Kategori || form.Deskripsi,
       Tanggal: form.Tanggal ? new Date(form.Tanggal).toISOString() : new Date().toISOString()
     }
 
@@ -136,6 +236,7 @@ export default function KeuanganKas() {
     {
       key: 'Tanggal',
       label: 'Tanggal',
+      sortable: true,
       className: 'w-[150px]',
       render: v => (
         <span className="font-bold text-slate-500 text-[11px] font-headline">
@@ -146,6 +247,7 @@ export default function KeuanganKas() {
     {
       key: 'Deskripsi',
       label: 'Keterangan Transaksi',
+      sortable: true,
       className: 'min-w-[280px]',
       render: (v, row) => {
         const isCampus = row.Sumber === 'kampus' || row.sumber === 'kampus'
@@ -171,6 +273,7 @@ export default function KeuanganKas() {
     {
       key: 'Tipe',
       label: 'Jenis Mutasi',
+      sortable: true,
       className: 'w-[140px] text-center',
       cellClassName: 'text-center',
       render: v => {
@@ -190,6 +293,7 @@ export default function KeuanganKas() {
     {
       key: 'Nominal',
       label: 'Jumlah Nominal',
+      sortable: true,
       className: 'w-[200px] text-right',
       cellClassName: 'text-right',
       render: (v, row) => {
@@ -310,13 +414,173 @@ export default function KeuanganKas() {
         </Card>
       </div>
 
+      {/* ── Filter Bar ─────────────────────────────────────────────── */}
+      <div className="bg-white rounded-2xl border border-slate-200/60 p-4 flex flex-wrap items-center gap-3 shadow-sm">
+        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mr-1">Filter</span>
+        <select value={filterTipe} onChange={e => setFilterTipe(e.target.value)}
+          className="h-9 px-3 rounded-xl border border-slate-200 text-xs font-bold bg-white focus:outline-none focus:border-primary">
+          <option value="all">Semua Mutasi</option>
+          <option value="pemasukan">▲ Pemasukan</option>
+          <option value="pengeluaran">▼ Pengeluaran</option>
+        </select>
+        <select value={filterSumber} onChange={e => setFilterSumber(e.target.value)}
+          className="h-9 px-3 rounded-xl border border-slate-200 text-xs font-bold bg-white focus:outline-none focus:border-primary">
+          <option value="all">Semua Sumber</option>
+          <option value="kampus">🏛️ Pagu Kampus</option>
+          <option value="organisasi">💼 Kas Mandiri</option>
+        </select>
+        <div className="h-6 w-px bg-slate-200" />
+        <span className="text-[10px] font-bold text-slate-400">Dari</span>
+        <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
+          className="h-9 px-3 rounded-xl border border-slate-200 text-xs font-bold bg-white focus:outline-none focus:border-primary" />
+        <span className="text-[10px] font-bold text-slate-400">Sampai</span>
+        <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
+          className="h-9 px-3 rounded-xl border border-slate-200 text-xs font-bold bg-white focus:outline-none focus:border-primary" />
+        {(filterTipe !== 'all' || filterSumber !== 'all' || startDate || endDate) && (
+          <button onClick={() => { setFilterTipe('all'); setFilterSumber('all'); setStartDate(''); setEndDate('') }}
+            className="h-9 px-4 text-xs font-bold text-rose-600 bg-rose-50 rounded-xl border border-rose-200 hover:bg-rose-100">
+            Reset
+          </button>
+        )}
+        <div className="ml-auto text-[10px] font-bold text-slate-500">
+          {filteredTransactions.length} / {transactions.length} transaksi
+        </div>
+      </div>
+
+      {/* ── 5W1H Charts ─────────────────────────────────────────────── */}
+      {!loading && (
+        <>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* WHAT → Distribusi Tipe */}
+          <div className="bg-white rounded-2xl border border-slate-200/60 p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 shrink-0">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>pie_chart</span>
+              </div>
+              <div>
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Distribusi Mutasi</h3>
+                <p className="text-[9px] text-slate-400">Rasio pemasukan vs pengeluaran</p>
+              </div>
+            </div>
+            <div className="h-[160px] w-full flex items-center justify-center">
+              {tipeDistData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={160}>
+                  <PieChart>
+                    <Pie data={tipeDistData} cx="50%" cy="50%" innerRadius={42} outerRadius={68} paddingAngle={3} dataKey="value" stroke="none">
+                      {tipeDistData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+                    </Pie>
+                    <Tooltip formatter={(v) => formatRp(v)} />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : <span className="text-xs text-slate-400 italic">Tidak ada data</span>}
+            </div>
+            <div className="flex justify-center gap-3 mt-1">
+              {tipeDistData.map((item, i) => (
+                <div key={item.name} className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
+                  <span className="text-[10px] font-bold text-slate-500">{item.name}: {formatRp(item.value)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* WHERE → Sumber Dana */}
+          <div className="bg-white rounded-2xl border border-slate-200/60 p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 shrink-0">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>account_balance</span>
+              </div>
+              <div>
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sumber Dana</h3>
+                <p className="text-[9px] text-slate-400">Pagu Kampus vs Kas Mandiri</p>
+              </div>
+            </div>
+            <div className="h-[160px] w-full flex items-center justify-center">
+              {sumberDistData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={160}>
+                  <PieChart>
+                    <Pie data={sumberDistData} cx="50%" cy="50%" innerRadius={42} outerRadius={68} paddingAngle={3} dataKey="value" stroke="none">
+                      {sumberDistData.map((_, i) => <Cell key={i} fill={['#3b82f6', '#10b981'][i % 2]} />)}
+                    </Pie>
+                    <Tooltip formatter={(v) => formatRp(v)} />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : <span className="text-xs text-slate-400 italic">Tidak ada data</span>}
+            </div>
+            <div className="flex justify-center gap-3 mt-1">
+              {sumberDistData.map((item, i) => (
+                <div key={item.name} className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: ['#3b82f6', '#10b981'][i % 2] }} />
+                  <span className="text-[10px] font-bold text-slate-500">{item.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* WHEN → Trend Bulanan */}
+          <div className="bg-white rounded-2xl border border-slate-200/60 p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 shrink-0">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>trending_up</span>
+              </div>
+              <div>
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Trend Bulanan</h3>
+                <p className="text-[9px] text-slate-400">Pemasukan & pengeluaran per bulan</p>
+              </div>
+            </div>
+            <div className="h-[160px] w-full">
+              {monthlyTrendData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={160}>
+                  <LineChart data={monthlyTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="month" tick={{ fontSize: 8, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                    <Tooltip formatter={(v) => formatRp(v)} />
+                    <Line type="monotone" dataKey="pemasukan" name="Pemasukan" stroke="#10b981" strokeWidth={2} dot={{ r: 2 }} />
+                    <Line type="monotone" dataKey="pengeluaran" name="Pengeluaran" stroke="#ef4444" strokeWidth={2} dot={{ r: 2 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : <div className="h-full flex items-center justify-center"><span className="text-xs text-slate-400 italic">Tidak ada data</span></div>}
+            </div>
+          </div>
+        </div>
+        {/* HOW → Pengeluaran per Proker (full width) */}
+        {!loading && prokerSpendData.length > 0 && (
+          <div className="bg-white rounded-2xl border border-slate-200/60 p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center text-rose-600 shrink-0">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>receipt_long</span>
+              </div>
+              <div>
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pengeluaran per Proker</h3>
+                <p className="text-[9px] text-slate-400">Program kerja dengan pengeluaran terbesar</p>
+              </div>
+            </div>
+            <div className="h-[220px] w-full">
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={prokerSpendData} layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+                  <XAxis type="number" tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                  <YAxis type="category" dataKey="name" tick={{ fontSize: 8.5, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} width={120} />
+                  <Tooltip formatter={(v) => formatRp(v)} />
+                  <Bar dataKey="value" name="Pengeluaran" fill="#ef4444" radius={[0, 4, 4, 0]} barSize={16} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+      </>
+      )}
+
       {/* ── Transaction Table Card ──────────────────────────────────── */}
       <Card className="border border-slate-200/50 shadow-sm rounded-[2rem] overflow-hidden bg-white/70 backdrop-blur-md">
         <CardContent className="p-6">
           <DataTable
             columns={columns}
-            data={transactions}
+            data={sortedTransactions}
             loading={loading}
+            sortConfig={sortConfig}
+            onSort={handleSort}
             searchPlaceholder="Cari berdasarkan keterangan transaksi..."
             onAdd={() => {
               setForm({ Deskripsi: '', Nominal: '', Tipe: 'pemasukan', Tanggal: '', OrmawaID: ormawaId, Sumber: 'organisasi' })
@@ -381,6 +645,17 @@ export default function KeuanganKas() {
                 value={form.Deskripsi}
                 onChange={e => setForm({ ...form, Deskripsi: e.target.value })}
                 placeholder="Misal: Pembelian ATK / Sponsor Kegiatan"
+                className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm"
+              />
+            </div>
+
+            {/* Kategori / Proker */}
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Kategori / Program Kerja</Label>
+              <Input
+                value={form.Kategori}
+                onChange={e => setForm({ ...form, Kategori: e.target.value })}
+                placeholder="Misal: PKKMB, Seminar, Lapangan, dll"
                 className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm"
               />
             </div>

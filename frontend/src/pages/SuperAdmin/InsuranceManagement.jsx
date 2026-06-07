@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { insuranceService } from '../../services/api';
 import toast from 'react-hot-toast';
+import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 // Auto-injected Material Symbol fallbacks
 const InsuranceIcon = ({ size, className, ...props }) => (
@@ -179,6 +180,47 @@ export default function InsuranceManagement() {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
   };
 
+  // Total estimated amount
+  const totalEstimasi = useMemo(() => {
+    return claims.reduce((sum, c) => sum + (c.estimasi_biaya || 0), 0)
+  }, [claims])
+
+  // Status distribution chart
+  const statusDistData = useMemo(() => {
+    const counts = {}
+    claims.forEach(c => {
+      const s = c.status || 'PENDING_VERIFICATION'
+      counts[s] = (counts[s] || 0) + 1
+    })
+    return Object.entries(counts).map(([name, value]) => ({ name, value }))
+  }, [claims])
+
+  // Monthly trend chart
+  const monthlyTrendData = useMemo(() => {
+    const byMonth = {}
+    claims.forEach(c => {
+      const d = c.tanggal_kejadian || c.created_at
+      if (!d) return
+      const date = new Date(d)
+      if (isNaN(date.getTime())) return
+      const key = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`
+      byMonth[key] = (byMonth[key] || 0) + 1
+    })
+    const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des']
+    return Object.entries(byMonth).sort(([a],[b]) => a.localeCompare(b)).map(([m, v]) => {
+      const [y, mo] = m.split('-')
+      return { month: `${months[parseInt(mo)-1]} ${y}`, value: v }
+    })
+  }, [claims])
+
+  // Provider amount chart
+  const providerAmountData = useMemo(() => {
+    if (!stats?.by_provider) return []
+    return stats.by_provider.map(p => ({ name: p.provider, value: p.total }))
+  }, [stats])
+
+  const PIE_COLORS = ['#f59e0b', '#3b82f6', '#10b981', '#ef4444']
+
   // Filter by search
   const filteredClaims = claims.filter(claim => {
     if (!searchQuery) return true;
@@ -206,41 +248,109 @@ export default function InsuranceManagement() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <div className="bg-white rounded-xl p-4 border border-slate-200">
-          <p className="text-2xl font-bold text-slate-800">{stats?.summary?.total_pengajuan || 0}</p>
-          <p className="text-xs text-slate-500">Total Pengajuan</p>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Pengajuan</p>
+          <p className="text-2xl font-bold text-slate-800 mt-1">{stats?.summary?.total_pengajuan || 0}</p>
         </div>
         <div className="bg-white rounded-xl p-4 border border-amber-200 bg-amber-50">
-          <p className="text-2xl font-bold text-amber-700">{stats?.summary?.pending || 0}</p>
-          <p className="text-xs text-amber-600">Menunggu</p>
+          <p className="text-xs font-bold text-amber-500 uppercase tracking-widest">Menunggu</p>
+          <p className="text-2xl font-bold text-amber-700 mt-1">{stats?.summary?.pending || 0}</p>
         </div>
         <div className="bg-white rounded-xl p-4 border border-blue-200 bg-blue-50">
-          <p className="text-2xl font-bold text-blue-700">{stats?.summary?.approved_tk || 0}</p>
-          <p className="text-xs text-blue-600">Approved TK</p>
+          <p className="text-xs font-bold text-blue-500 uppercase tracking-widest">Approved TK</p>
+          <p className="text-2xl font-bold text-blue-700 mt-1">{stats?.summary?.approved_tk || 0}</p>
         </div>
         <div className="bg-white rounded-xl p-4 border border-emerald-200 bg-emerald-50">
-          <p className="text-2xl font-bold text-emerald-700">
-            {stats?.summary?.approved_final || 0}
-          </p>
-          <p className="text-xs text-emerald-600">Final Approved</p>
+          <p className="text-xs font-bold text-emerald-500 uppercase tracking-widest">Final Approved</p>
+          <p className="text-2xl font-bold text-emerald-700 mt-1">{stats?.summary?.approved_final || 0}</p>
+        </div>
+        <div className="bg-white rounded-xl p-4 border border-teal-200 bg-teal-50">
+          <p className="text-xs font-bold text-teal-500 uppercase tracking-widest">Total Nilai Klaim</p>
+          <p className="text-2xl font-bold text-teal-700 mt-1">{formatCurrency(totalEstimasi)}</p>
         </div>
       </div>
 
-      {/* Provider Stats */}
-      {stats?.by_provider && stats.by_provider.length > 0 && (
-        <div className="bg-white rounded-xl p-4 border border-slate-200">
-          <h3 className="text-sm font-bold text-slate-600 mb-3">Statistik per Provider</h3>
-          <div className="grid grid-cols-3 gap-4">
-            {stats.by_provider.map((item, idx) => (
-              <div key={idx} className="bg-slate-50 rounded-lg p-3">
-                <div className="flex items-center justify-between mb-2">
-                  <ProviderBadge provider={item.provider} />
-                  <span className="text-lg font-bold text-slate-700">{item.count}</span>
-                </div>
-                <p className="text-xs text-slate-500">Total: {formatCurrency(item.total)}</p>
+      {/* Charts */}
+      {!loading && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* Pie: Status Klaim */}
+          <div className="bg-white rounded-xl p-5 border border-slate-200">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 shrink-0">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>pie_chart</span>
               </div>
-            ))}
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status Klaim</span>
+            </div>
+            <div className="h-[170px] w-full flex items-center justify-center">
+              {statusDistData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={170}>
+                  <PieChart>
+                    <Pie data={statusDistData} cx="50%" cy="50%" innerRadius={42} outerRadius={68} paddingAngle={3} dataKey="value" stroke="none">
+                      {statusDistData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : <span className="text-xs text-slate-400 italic">Tidak ada data</span>}
+            </div>
+            <div className="grid grid-cols-2 gap-1.5 mt-2">
+              {statusDistData.slice(0, 4).map((item, i) => (
+                <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50 border border-slate-100">
+                  <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
+                  <div className="min-w-0">
+                    <p className="text-[9px] font-bold text-slate-400 truncate leading-none">{item.name}</p>
+                    <p className="text-xs font-extrabold text-slate-800 leading-none mt-1">{item.value}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Bar: Klaim per Provider */}
+          <div className="bg-white rounded-xl p-5 border border-slate-200">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 shrink-0">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>bar_chart</span>
+              </div>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nilai per Provider</span>
+            </div>
+            <div className="h-[170px] w-full">
+              {providerAmountData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={170}>
+                  <BarChart data={providerAmountData} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+                    <XAxis type="number" tick={{ fontSize: 8, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                    <YAxis type="category" dataKey="name" tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} width={80} />
+                    <Tooltip formatter={(v) => formatCurrency(v)} />
+                    <Bar dataKey="value" name="Total" fill="#10b981" radius={[0, 4, 4, 0]} barSize={14} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : <div className="h-full flex items-center justify-center"><span className="text-xs text-slate-400 italic">Tidak ada data</span></div>}
+            </div>
+          </div>
+
+          {/* Line: Tren Pengajuan */}
+          <div className="bg-white rounded-xl p-5 border border-slate-200">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 shrink-0">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>trending_up</span>
+              </div>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tren Pengajuan</span>
+            </div>
+            <div className="h-[170px] w-full">
+              {monthlyTrendData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={170}>
+                  <LineChart data={monthlyTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="month" tick={{ fontSize: 8, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="value" name="Klaim" stroke="#f59e0b" strokeWidth={2.5} dot={{ fill: '#f59e0b', r: 3 }} activeDot={{ r: 5 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : <div className="h-full flex items-center justify-center"><span className="text-xs text-slate-400 italic">Tidak ada data</span></div>}
+            </div>
           </div>
         </div>
       )}

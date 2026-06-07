@@ -55,6 +55,14 @@ const formatDate = (dateString) => {
   }
 }
 
+const getShortFacultyName = (name) => {
+  if (!name || name === 'Tidak ada data' || name === '—') return '—'
+  return name
+    .replace(/Fakultas\s+/i, '')
+    .replace(/Sains\s+dan\s+Teknologi/i, 'Sains & Tek')
+    .replace(/Sains\s+&\s+Teknologi/i, 'Sains & Tek')
+}
+
 export default function KelolaPrestasi() {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
@@ -167,6 +175,84 @@ export default function KelolaPrestasi() {
     const verified = data.filter(item => ["verified", "terverifikasi", "disetujui", "diverifikasi"].includes((item.status || "").toLowerCase())).length
     const rejected = data.filter(item => ["rejected", "ditolak"].includes((item.status || "").toLowerCase())).length
     return { total, pending, verified, rejected }
+  }, [data])
+
+  const extraStats = useMemo(() => {
+    const facultyCounts = {}
+    data.forEach(item => {
+      const fac = item.fakultas_nama || 'Lainnya'
+      facultyCounts[fac] = (facultyCounts[fac] || 0) + 1
+    })
+    let topFaculty = '—'
+    let topFacultyCount = 0
+    Object.entries(facultyCounts).forEach(([fac, count]) => {
+      if (count > topFacultyCount && fac !== 'Lainnya') {
+        topFaculty = fac
+        topFacultyCount = count
+      }
+    })
+    if (topFaculty === '—' && facultyCounts['Lainnya']) {
+      topFaculty = 'Lainnya'
+      topFacultyCount = facultyCounts['Lainnya']
+    }
+
+    const categoryCounts = {}
+    data.forEach(item => {
+      const cat = item.kategori || 'Umum'
+      categoryCounts[cat] = (categoryCounts[cat] || 0) + 1
+    })
+    let topCategory = '—'
+    let topCategoryCount = 0
+    Object.entries(categoryCounts).forEach(([cat, count]) => {
+      if (count > topCategoryCount) {
+        topCategory = cat
+        topCategoryCount = count
+      }
+    })
+
+    const tingkatCounts = {}
+    data.forEach(item => {
+      const t = item.tingkat || 'Lokal'
+      tingkatCounts[t] = (tingkatCounts[t] || 0) + 1
+    })
+    let topTingkat = '—'
+    let topTingkatCount = 0
+    Object.entries(tingkatCounts).forEach(([t, count]) => {
+      if (count > topTingkatCount) {
+        topTingkat = t
+        topTingkatCount = count
+      }
+    })
+    const topTingkatPct = data.length > 0 ? Math.round((topTingkatCount / data.length) * 100) : 0
+
+    const yearCounts = {}
+    data.forEach(item => {
+      const yr = item.periode_filter
+      if (yr) yearCounts[yr] = (yearCounts[yr] || 0) + 1
+    })
+    let topYear = '—'
+    let topYearCount = 0
+    Object.entries(yearCounts).forEach(([yr, count]) => {
+      if (count > topYearCount) {
+        topYear = yr
+        topYearCount = count
+      }
+    })
+
+    const totalDanaDisetujui = data.reduce((acc, curr) => acc + (parseFloat(curr.DanaDisetujui) || 0), 0)
+
+    return {
+      topFaculty,
+      topFacultyCount,
+      topCategory,
+      topCategoryCount,
+      topTingkat,
+      topTingkatCount,
+      topTingkatPct,
+      topYear,
+      topYearCount,
+      totalDanaDisetujui
+    }
   }, [data])
 
   const leaderboardData = useMemo(() => {
@@ -440,34 +526,34 @@ export default function KelolaPrestasi() {
       <div className="max-w-[1600px] mx-auto space-y-10">
         
         {/* ── Page Header ─────────────────────────────────────────── */}
-        <section className="relative overflow-hidden rounded-3xl p-8 border border-neutral-100 bg-gradient-to-br from-[#020617] via-[#0f172a] to-[#1e293b] shadow-xl">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(59,130,246,0.08),transparent_50%)]" />
-          <div className="absolute inset-0 opacity-[0.03]"
+        <section className="relative overflow-hidden rounded-3xl p-8 border border-slate-200/60 bg-white shadow-sm">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(59,130,246,0.04),transparent_50%)]" />
+          <div className="absolute inset-0 opacity-[0.015]"
             style={{
-              backgroundImage: `radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)`,
+              backgroundImage: `radial-gradient(circle at 20% 50%, black 1px, transparent 1px), radial-gradient(circle at 80% 20%, black 1px, transparent 1px)`,
               backgroundSize: "60px 60px"
             }}
           />
-          <div className="absolute -top-24 -right-24 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute -top-24 -right-24 w-80 h-80 bg-blue-500/5 rounded-full blur-3xl animate-pulse" />
           <div className="absolute -bottom-20 right-48 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl" />
 
           <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-6">
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <div className="h-4 w-1.5 bg-blue-500 rounded-full" />
-                <span className="text-[10px] font-black uppercase tracking-[0.25em] text-blue-400">Kemahasiswaan Portal</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.25em] text-blue-600">Kemahasiswaan Portal</span>
               </div>
-              <h1 className="text-3xl font-black text-white font-headline tracking-tight leading-tight">
-                Kelola <span className="text-blue-400">Prestasi Mahasiswa</span>
+              <h1 className="text-3xl font-black text-neutral-900 font-headline tracking-tight leading-tight">
+                Kelola <span className="text-blue-600">Prestasi Mahasiswa</span>
               </h1>
-              <p className="text-slate-400 font-medium text-xs max-w-xl leading-relaxed mt-1.5">
+              <p className="text-neutral-500 font-medium text-xs max-w-xl leading-relaxed mt-1.5">
                 Audit, verifikasi, dan validasi seluruh portofolio prestasi akademik/non-akademik mahasiswa secara terintegrasi.
               </p>
             </div>
             
             <div className="flex items-center gap-3 self-end md:self-auto">
-              <Button onClick={fetchData} disabled={loading} variant="outline" className="h-10 px-5 rounded-xl border-neutral-700 bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-white transition-all active:scale-95 text-xs font-bold uppercase tracking-widest gap-2">
-                <RefreshCw size={14} animate={loading} className="text-blue-400" />
+              <Button onClick={fetchData} disabled={loading} variant="outline" className="h-10 px-5 rounded-xl border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 transition-all active:scale-95 text-xs font-bold uppercase tracking-widest gap-2">
+                <RefreshCw size={14} animate={loading} className="text-blue-500" />
                 Refresh Data
               </Button>
             </div>
@@ -475,43 +561,86 @@ export default function KelolaPrestasi() {
         </section>
 
         {/* ── Stat Cards ──────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          <StatCard
-            label="Total Portofolio"
-            value={stats.total}
-            description="Prestasi terdaftar"
-            icon="emoji_events"
-            color="text-primary"
-            bg="bg-primary/10"
-            loading={loading}
-          />
-          <StatCard
-            label="Menunggu Review"
-            value={stats.pending}
-            description="Perlu tindakan verifikasi"
-            icon="schedule"
-            color="text-warning"
-            bg="bg-warning/10"
-            loading={loading}
-          />
-          <StatCard
-            label="Terverifikasi"
-            value={stats.verified}
-            description="Disetujui universitas"
-            icon="check_circle"
-            color="text-success"
-            bg="bg-success/10"
-            loading={loading}
-          />
-          <StatCard
-            label="Total Ditolak"
-            value={stats.rejected}
-            description="Pengajuan tidak sesuai kriteria"
-            icon="close"
-            color="text-error"
-            bg="bg-error/10"
-            loading={loading}
-          />
+        <div className="space-y-4 md:space-y-5">
+          {/* Row 1: Status Portofolio */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <StatCard
+              label="Total Portofolio"
+              value={stats.total}
+              description="Prestasi terdaftar"
+              icon="emoji_events"
+              color="text-primary"
+              bg="bg-primary/10"
+              loading={loading}
+            />
+            <StatCard
+              label="Menunggu Review"
+              value={stats.pending}
+              description="Perlu tindakan verifikasi"
+              icon="schedule"
+              color="text-warning"
+              bg="bg-warning/10"
+              loading={loading}
+            />
+            <StatCard
+              label="Terverifikasi"
+              value={stats.verified}
+              description="Disetujui universitas"
+              icon="check_circle"
+              color="text-success"
+              bg="bg-success/10"
+              loading={loading}
+            />
+            <StatCard
+              label="Total Ditolak"
+              value={stats.rejected}
+              description="Pengajuan tidak sesuai kriteria"
+              icon="close"
+              color="text-error"
+              bg="bg-error/10"
+              loading={loading}
+            />
+          </div>
+
+          {/* Row 2: 5W 1H Insights */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <StatCard
+              label="Fakultas Teraktif"
+              value={getShortFacultyName(extraStats.topFaculty)}
+              description={`${extraStats.topFacultyCount} prestasi terdaftar`}
+              icon="group"
+              color="text-primary"
+              bg="bg-primary/10"
+              loading={loading}
+            />
+            <StatCard
+              label="Kategori Terbanyak"
+              value={extraStats.topCategory}
+              description={`${extraStats.topCategoryCount} pengajuan`}
+              icon="military_tech"
+              color="text-emerald-600"
+              bg="bg-emerald-50"
+              loading={loading}
+            />
+            <StatCard
+              label="Tingkat Dominan"
+              value={extraStats.topTingkat}
+              description={`${extraStats.topTingkatPct}% dari total prestasi`}
+              icon="public"
+              color="text-indigo-600"
+              bg="bg-indigo-50"
+              loading={loading}
+            />
+            <StatCard
+              label="Periode Teraktif"
+              value={extraStats.topYear !== '—' ? `Tahun ${extraStats.topYear}` : '—'}
+              description={`${extraStats.topYearCount} prestasi diajukan`}
+              icon="calendar_today"
+              color="text-amber-600"
+              bg="bg-amber-50"
+              loading={loading}
+            />
+          </div>
         </div>
 
         {/* ── Analitik & Distribusi Section ────────────────────────── */}
@@ -833,59 +962,164 @@ export default function KelolaPrestasi() {
                 </div>
               )}
 
-              {/* Info Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[
-                  { icon: GraduationCap, label: "Program Studi", value: selected.mahasiswa?.ProgramStudi?.Nama || selected.mahasiswa?.program_studi?.nama },
-                  { icon: Apartment, label: "Fakultas", value: selected.mahasiswa?.Fakultas?.Nama || selected.mahasiswa?.fakultas?.nama },
-                  selected.Tipe === 'Pengajuan Dana' ? null : { icon: Award, label: "Peringkat", value: selected.peringkat || "—" },
-                  { icon: Calendar, label: "Diajukan Pada", value: formatDate(selected.created_at || selected.CreatedAt) },
-                  selected.Tipe === 'Pengajuan Dana' ? { icon: CheckCircle2, label: "Dana Diajukan", value: `Rp ${(selected.DanaDiajukan || 0).toLocaleString('id-ID')}` } : { icon: CheckCircle2, label: "Poin Didapat", value: selected.poin != null ? `${selected.poin} Poin` : '—' },
-                  selected.Tipe === 'Pengajuan Dana' && selected.DanaDisetujui > 0 ? { icon: CheckCircle2, label: "Dana Disetujui", value: `Rp ${selected.DanaDisetujui.toLocaleString('id-ID')}` } : null,
-                ].filter(Boolean).map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-3 p-3 rounded-xl bg-neutral-50 border border-neutral-100 hover:bg-neutral-100/30 transition-all">
-                    <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-primary shadow-sm border border-neutral-100 flex-shrink-0">
-                      <item.icon size={14} className="text-blue-600" />
+              {/* 5W 1H Breakdown */}
+              <div className="space-y-6">
+                {/* 1. WHO (Siapa) */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
+                    <span className="material-symbols-outlined text-blue-600" style={{ fontSize: 18 }}>person</span>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">WHO — Profil Mahasiswa</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
+                      <p className="text-[9px] font-black text-slate-400 uppercase">Nama Lengkap</p>
+                      <p className="text-xs font-extrabold text-slate-800 mt-0.5">{selected.mahasiswa?.Nama || selected.mahasiswa?.nama || "—"}</p>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[9px] font-black text-neutral-400 uppercase tracking-wider">{item.label}</p>
-                      <p className="text-xs font-bold text-neutral-800 truncate">{item.value || "—"}</p>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
+                      <p className="text-[9px] font-black text-slate-400 uppercase">NIM</p>
+                      <p className="text-xs font-extrabold text-slate-800 mt-0.5">{selected.mahasiswa?.NIM || selected.mahasiswa?.nim || "—"}</p>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
+                      <p className="text-[9px] font-black text-slate-400 uppercase">Fakultas</p>
+                      <p className="text-xs font-bold text-slate-800 mt-0.5">{selected.fakultas_nama || "—"}</p>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
+                      <p className="text-[9px] font-black text-slate-400 uppercase">Program Studi</p>
+                      <p className="text-xs font-bold text-slate-800 mt-0.5">{selected.prodi_nama || "—"}</p>
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
 
-              {/* Bukti Dokumen */}
-              <div>
-                <p className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-3">
-                  {selected.Tipe === 'Pengajuan Dana' ? 'Proposal / Dokumen Pendukung' : 'Bukti Fisik / Sertifikat'}
-                </p>
-                {selected.bukti_url ? (
-                  <a
-                    href={`${API_BASE_URL.replace("/api", "")}${selected.bukti_url}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center gap-3.5 p-4 rounded-xl border border-neutral-200 bg-white hover:bg-blue-50/20 hover:border-blue-300 transition-all group"
-                  >
-                    <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 flex-shrink-0 border border-blue-100">
-                      <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>description</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-neutral-900 group-hover:text-blue-600 text-sm transition-colors">
-                        {selected.Tipe === 'Pengajuan Dana' ? 'Lihat Proposal / Dokumen' : 'Lihat Dokumen Sertifikat'}
-                      </p>
-                      <p className="text-xs text-neutral-400 truncate mt-0.5">{selected.bukti_url}</p>
-                    </div>
-                    <ExternalLink size={16} className="text-neutral-300 group-hover:text-blue-500 transition-colors" />
-                  </a>
-                ) : (
-                  <div className="flex items-center gap-3.5 p-4 rounded-xl border border-dashed border-neutral-200 bg-neutral-50/50">
-                    <div className="w-10 h-10 bg-neutral-100 rounded-xl flex items-center justify-center text-neutral-300 flex-shrink-0">
-                      <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>description</span>
-                    </div>
-                    <p className="text-xs text-neutral-400 font-medium italic">Tidak ada berkas yang diunggah.</p>
+                {/* 2. WHAT (Apa) */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
+                    <span className="material-symbols-outlined text-blue-600" style={{ fontSize: 18 }}>emoji_events</span>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">WHAT — Rincian Kegiatan & Prestasi</span>
                   </div>
-                )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50 md:col-span-2">
+                      <p className="text-[9px] font-black text-slate-400 uppercase">Nama Kegiatan / Kompetisi</p>
+                      <p className="text-xs font-extrabold text-slate-800 mt-0.5">{selected.nama_kegiatan}</p>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
+                      <p className="text-[9px] font-black text-slate-400 uppercase">Kategori Prestasi</p>
+                      <p className="text-xs font-bold text-slate-800 mt-0.5">{selected.kategori || "—"}</p>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
+                      <p className="text-[9px] font-black text-slate-400 uppercase">Peringkat / Juara</p>
+                      <p className="text-xs font-extrabold text-primary mt-0.5">{selected.peringkat || "—"}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. WHERE (Di mana) */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
+                    <span className="material-symbols-outlined text-blue-600" style={{ fontSize: 18 }}>public</span>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">WHERE — Lokasi & Penyelenggara</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
+                      <p className="text-[9px] font-black text-slate-400 uppercase">Penyelenggara / Institusi</p>
+                      <p className="text-xs font-bold text-slate-800 mt-0.5">{selected.penyelenggara || "—"}</p>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
+                      <p className="text-[9px] font-black text-slate-400 uppercase">Tingkat Kompetisi</p>
+                      <p className="text-xs font-extrabold text-slate-800 mt-0.5 uppercase">{selected.tingkat || "Lokal"}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 4. WHEN (Kapan) */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
+                    <span className="material-symbols-outlined text-blue-600" style={{ fontSize: 18 }}>calendar_today</span>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">WHEN — Waktu & Periode</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
+                      <p className="text-[9px] font-black text-slate-400 uppercase">Tanggal Pelaksanaan / Lomba</p>
+                      <p className="text-xs font-bold text-slate-800 mt-0.5">{formatDate(selected.tanggal)}</p>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
+                      <p className="text-[9px] font-black text-slate-400 uppercase">Periode Akademik / Pengajuan</p>
+                      <p className="text-xs font-bold text-slate-800 mt-0.5">Tahun {selected.periode_filter}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 5. WHY (Mengapa) */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
+                    <span className="material-symbols-outlined text-blue-600" style={{ fontSize: 18 }}>contact_support</span>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">WHY — Verifikasi & Kelayakan</span>
+                  </div>
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100/50 space-y-2">
+                    <div>
+                      <p className="text-[9px] font-black text-slate-400 uppercase">Catatan Keputusan / Verifikator</p>
+                      <p className="text-xs font-bold text-slate-700 mt-1">
+                        {selected.CatatanVerifikator || "Belum ada catatan keputusan dari verifikator."}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 6. HOW (Bagaimana) */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
+                    <span className="material-symbols-outlined text-blue-600" style={{ fontSize: 18 }}>payments</span>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">HOW — Pendanaan, Poin & Berkas</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {selected.Tipe === 'Pengajuan Dana' ? (
+                      <>
+                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
+                          <p className="text-[9px] font-black text-slate-400 uppercase">Dana Diajukan</p>
+                          <p className="text-xs font-extrabold text-amber-600 mt-0.5">Rp {(selected.DanaDiajukan || 0).toLocaleString('id-ID')}</p>
+                        </div>
+                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
+                          <p className="text-[9px] font-black text-slate-400 uppercase">Dana Disetujui</p>
+                          <p className="text-xs font-extrabold text-emerald-600 mt-0.5">Rp {(selected.DanaDisetujui || 0).toLocaleString('id-ID')}</p>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50 md:col-span-2">
+                        <p className="text-[9px] font-black text-slate-400 uppercase">Poin SKPI Didapat</p>
+                        <p className="text-xs font-extrabold text-emerald-600 mt-0.5">{(selected.poin !== undefined ? selected.poin : selected.Poin) ?? 0} Poin</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Bukti File */}
+                  <div className="mt-3">
+                    <p className="text-[9px] font-black text-slate-400 uppercase mb-2">Dokumen Pendukung</p>
+                    {selected.bukti_url ? (
+                      <a
+                        href={`${API_BASE_URL.replace("/api", "")}${selected.bukti_url}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center justify-between p-3.5 rounded-xl border border-neutral-200 bg-white hover:bg-blue-50/20 hover:border-blue-300 transition-all group"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600 flex-shrink-0 border border-blue-100">
+                            <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>description</span>
+                          </div>
+                          <span className="font-bold text-neutral-900 group-hover:text-blue-600 text-xs transition-colors truncate max-w-[200px]">
+                            {selected.Tipe === 'Pengajuan Dana' ? 'Proposal / Dokumen Pengajuan' : 'Sertifikat Bukti Prestasi'}
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-black text-blue-600 flex items-center gap-1">
+                          Buka File <span className="material-symbols-outlined" style={{ fontSize: 12 }}>open_in_new</span>
+                        </span>
+                      </a>
+                    ) : (
+                      <div className="flex items-center gap-3 p-3.5 rounded-xl border border-dashed border-neutral-200 bg-neutral-50/30">
+                        <span className="material-symbols-outlined text-slate-300" style={{ fontSize: "18px" }}>description</span>
+                        <p className="text-xs text-slate-400 font-medium italic">Tidak ada berkas yang diunggah.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 

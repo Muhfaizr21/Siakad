@@ -107,6 +107,8 @@ export default function PsikologPage() {
   const [activeTab, setActiveTab] = useState('profile')
   const [bookings, setBookings] = useState([])
   const [loadingBookings, setLoadingBookings] = useState(false)
+  const [distribusiSpes, setDistribusiSpes] = useState([])
+  const [monthlyTrend, setMonthlyTrend] = useState([])
 
   const fetchBookingsForPsikolog = async (psikologId) => {
     setLoadingBookings(true)
@@ -148,10 +150,18 @@ export default function PsikologPage() {
         Foto: getFullUrl(p.foto_url || p.FotoURL || null),
         Lokasi: p.lokasi || p.Lokasi || '—',
         Bahasa: p.bahasa || p.Bahasa || 'Indonesia',
-
         IsAktif: p.is_aktif !== false,
         colorIdx: i % AVATAR_COLORS.length,
       })))
+
+      // Process distribusi spesialisasi
+      const spesMap = {}
+      list.forEach(p => {
+        const spes = p.spesialisasi || p.Spesialisasi || 'Umum'
+        if (!spesMap[spes]) spesMap[spes] = 0
+        spesMap[spes]++
+      })
+      setDistribusiSpes(Object.entries(spesMap).map(([name, count]) => ({ name, count })).sort((a,b) => b.count - a.count))
     } catch {
       toast.error("Gagal memuat data psikolog")
     } finally {
@@ -284,7 +294,7 @@ export default function PsikologPage() {
           </div>
         </section>
 
-        {/* ── Stat Cards ─────────────────────────────────────────── */}
+        {/* ── Stat Cards Row 1 ─────────────────────────────────────────── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             { label: 'Total Psikolog', value: stats.total, icon: Users, bg: 'bg-[#eef4ff]', color: 'text-primary', desc: 'Konselor terdaftar' },
@@ -305,6 +315,149 @@ export default function PsikologPage() {
               <p className="text-xs text-slate-400 font-medium mt-1">{s.desc}</p>
             </div>
           ))}
+        </div>
+
+        {/* NEW: 5W1H Charts Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* WHAT → Distribusi Spesialisasi */}
+          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center text-violet-600">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>psychology</span>
+              </div>
+              <div>
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Spesialisasi</h3>
+                <p className="text-[10px] text-slate-400">Distribusi bidang ahli</p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              {distribusiSpes.map((item, i) => {
+                const maxCount = Math.max(...distribusiSpes.map(d => d.count), 1)
+                const colors = ['bg-rose-400', 'bg-blue-400', 'bg-amber-400', 'bg-emerald-400', 'bg-violet-400']
+                return (
+                  <div key={i} className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-slate-500 w-20 truncate">{item.name}</span>
+                    <div className="flex-1 h-5 bg-slate-100 rounded-full overflow-hidden">
+                      <div className={cn('h-full rounded-full transition-all', colors[i % colors.length])} style={{width:`${(item.count/maxCount)*100}%`}}/>
+                    </div>
+                    <span className="text-xs font-black text-slate-700 w-6 text-right">{item.count}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+
+          {/* WHERE → Lokasi Praktik */}
+          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>location_on</span>
+              </div>
+              <div>
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Lokasi Praktik</h3>
+                <p className="text-[10px] text-slate-400">Mode layanan tersedia</p>
+              </div>
+            </div>
+            {(() => {
+              const online = psychologists.filter(p => (p.Lokasi || '').toLowerCase().includes('online')).length
+              const offline = psychologists.filter(p => (p.Lokasi || '').toLowerCase().includes('tatap') || (p.Lokasi || '').toLowerCase().includes('kampus')).length
+              const hybrid = psychologists.length - online - offline
+              return (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 bg-blue-50 rounded-xl">
+                    <span className="text-sm font-bold text-blue-700">Online</span>
+                    <span className="text-lg font-extrabold text-blue-600">{online}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-xl">
+                    <span className="text-sm font-bold text-emerald-700">Tatap Muka</span>
+                    <span className="text-lg font-extrabold text-emerald-600">{offline}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-violet-50 rounded-xl">
+                    <span className="text-sm font-bold text-violet-700">Hybrid</span>
+                    <span className="text-lg font-extrabold text-violet-600">{hybrid}</span>
+                  </div>
+                </div>
+              )
+            })()}
+          </div>
+
+          {/* WHEN → Aktivitas Booking */}
+          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>calendar_month</span>
+              </div>
+              <div>
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Status Booking</h3>
+                <p className="text-[10px] text-slate-400">Kondisi jadwal aktif</p>
+              </div>
+            </div>
+            {(() => {
+              const aktif = psychologists.filter(p => p.IsAktif).length
+              const nonaktif = psychologists.length - aktif
+              return (
+                <div className="flex items-center gap-4">
+                  <div className="text-center">
+                    <span className="text-3xl font-extrabold text-emerald-600">{aktif}</span>
+                    <p className="text-[10px] text-emerald-600 font-bold mt-1">Aktif</p>
+                  </div>
+                  <div className="h-12 w-px bg-slate-200"/>
+                  <div className="text-center">
+                    <span className="text-3xl font-extrabold text-slate-400">{nonaktif}</span>
+                    <p className="text-[10px] text-slate-400 font-bold mt-1">Nonaktif</p>
+                  </div>
+                </div>
+              )
+            })()}
+          </div>
+
+          
+          {/* HOW → Kontak Cepat */}
+          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>contact_phone</span>
+              </div>
+              <div>
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Kontak Cepat</h3>
+                <p className="text-[10px] text-slate-400">Info kontak tersedia</p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 p-2 bg-rose-50 rounded-lg">
+                <Mail size={14} className="text-rose-600"/>
+                <span className="text-xs font-medium text-slate-600">{psychologists.filter(p => p.Email && p.Email !== '—').length} Email Terdaftar</span>
+              </div>
+              <div className="flex items-center gap-2 p-2 bg-emerald-50 rounded-lg">
+                <Phone size={14} className="text-emerald-600"/>
+                <span className="text-xs font-medium text-slate-600">{psychologists.filter(p => p.NoHP && p.NoHP !== '—').length} No. HP Terdaftar</span>
+              </div>
+            </div>
+          </div>
+
+          {/* WHO → Prodi/Fakultas Tersebar */}
+          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center text-violet-600">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>school</span>
+              </div>
+              <div>
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Cakupan</h3>
+                <p className="text-[10px] text-slate-400">Prodi/Fakultas terlayani</p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between p-3 bg-violet-50 rounded-xl">
+                <span className="text-sm font-bold text-violet-700">Total Psikolog</span>
+                <span className="text-lg font-extrabold text-violet-600">{stats.total}</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-xl">
+                <span className="text-sm font-bold text-emerald-700">Aktif & Siap</span>
+                <span className="text-lg font-extrabold text-emerald-600">{stats.aktif}</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* ── Table Card ─────────────────────────────────────────── */}

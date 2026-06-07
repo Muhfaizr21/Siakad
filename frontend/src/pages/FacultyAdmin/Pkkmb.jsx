@@ -89,6 +89,12 @@ export default function FacultyPkkmb() {
   
   const [statsDetail, setStatsDetail] = useState(null)
   const [statsSearch, setStatsSearch] = useState('')
+  const [distribusi, setDistribusi] = useState({ Lulus: 0, Proses: 0, Gagal: 0, Total: 0 })
+  const [angkatanStats, setAngkatanStats] = useState([])
+  const [genderStats, setGenderStats] = useState([])
+  const [nilaiDist, setNilaiDist] = useState([])
+  const [kegiatanList, setKegiatanList] = useState([])
+  const [batasNilai, setBatasNilai] = useState(70)
 
   const handleOpenStatsDetail = (key, label) => {
     let list = []
@@ -127,7 +133,16 @@ export default function FacultyPkkmb() {
   const fetchSummary = async () => {
     try {
       const json = await fetchWithAuth(`${API}/ringkasan`)
-      if (json.status === 'success') { setData(json.prodiBreakdown||[]); setSummary(json.stats||{totalMaba:0,totalLulus:0,totalProses:0,totalSertifikat:0}) }
+      if (json.status === 'success') {
+        setData(json.prodiBreakdown||[])
+        setSummary(json.stats||{totalMaba:0,totalLulus:0,totalProses:0,totalSertifikat:0})
+        setDistribusi(json.distribusi||{Lulus:0,Proses:0,Gagal:0,Total:0})
+        setAngkatanStats(json.angkatanStats||[])
+        setGenderStats(json.genderStats||[])
+        setNilaiDist(json.nilaiDist||[])
+        setKegiatanList(json.kegiatanList||[])
+        setBatasNilai(json.batasNilai||70)
+      }
     } catch {}
   }
 
@@ -283,7 +298,7 @@ export default function FacultyPkkmb() {
           </div>
         </section>
 
-        {/* Stats */}
+        // Stats cards row 1 (existing 4)
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             {key:'totalMaba',       label:'Registrasi Maba',    value:summary.totalMaba,       icon:Users,        bg:'bg-[#eef4ff]',  color:'text-primary',       desc:'Total mahasiswa baru'},
@@ -317,6 +332,197 @@ export default function FacultyPkkmb() {
               <p className="text-xs text-slate-400 font-medium mt-3">{s.desc}</p>
             </div>
           ))}
+        </div>
+
+        {/* NEW: 5W1H Charts Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* WHAT → Distribusi Status (Donut/Pie Chart) */}
+          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center text-violet-600">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>pie_chart</span>
+              </div>
+              <div>
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Distribusi Status</h3>
+                <p className="text-[10px] text-slate-400">WHAT: Persentase kelulusan</p>
+              </div>
+            </div>
+            {/* Simple Donut visualization */}
+            <div className="flex items-center justify-center gap-4">
+              <div className="relative w-24 h-24">
+                <svg viewBox="0 0 36 36" className="w-full h-full">
+                  {distribusi.Total > 0 ? (
+                    <>
+                      {/* Lulus - emerald */}
+                      <circle cx="18" cy="18" r="15.9" fill="none" stroke="#10b981" strokeWidth="3" strokeDasharray={`${(distribusi.Lulus/distribusi.Total)*100} ${100-(distribusi.Lulus/distribusi.Total)*100}`} strokeDashoffset="0" transform="rotate(-90 18 18)"/>
+                      {/* Proses - amber */}
+                      <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f59e0b" strokeWidth="3" strokeDasharray={`${(distribusi.Proses/distribusi.Total)*100} ${100-(distribusi.Proses/distribusi.Total)*100}`} strokeDashoffset={`-${(distribusi.Lulus/distribusi.Total)*100}`} transform="rotate(-90 18 18)"/>
+                      {/* Gagal - rose */}
+                      <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f43f5e" strokeWidth="3" strokeDasharray={`${(distribusi.Gagal/distribusi.Total)*100} ${100-(distribusi.Gagal/distribusi.Total)*100}`} strokeDashoffset={`-${(distribusi.Lulus/distribusi.Total + distribusi.Proses/distribusi.Total)*100}`} transform="rotate(-90 18 18)"/>
+                    </>
+                  ) : (
+                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e2e8f0" strokeWidth="3"/>
+                  )}
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-lg font-extrabold text-slate-900">{distribusi.Total}</span>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-emerald-500"/>
+                  <span className="text-xs font-medium text-slate-600">Lulus: {distribusi.Lulus}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-amber-500"/>
+                  <span className="text-xs font-medium text-slate-600">Proses: {distribusi.Proses}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-rose-500"/>
+                  <span className="text-xs font-medium text-slate-600">Gagal: {distribusi.Gagal}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* WHAT → Distribusi Nilai (Bar Chart) */}
+          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-cyan-50 flex items-center justify-center text-cyan-600">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>bar_chart</span>
+              </div>
+              <div>
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Distribusi Nilai</h3>
+                <p className="text-[10px] text-slate-400">WHAT: Sebaran nilai maba</p>
+              </div>
+            </div>
+            {/* Horizontal Bar Chart */}
+            <div className="space-y-2">
+              {nilaiDist.length > 0 ? nilaiDist.map((item, i) => {
+                const maxCount = Math.max(...nilaiDist.map(d => d.count), 1)
+                return (
+                  <div key={i} className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-slate-500 w-12">{item.range}</span>
+                    <div className="flex-1 h-5 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-cyan-400 to-cyan-600 rounded-full transition-all" style={{width:`${(item.count/maxCount)*100}%`}}/>
+                    </div>
+                    <span className="text-xs font-black text-slate-700 w-8 text-right">{item.count}</span>
+                  </div>
+                )
+              }) : (
+                <div className="text-center py-8 text-xs text-slate-400">Tidak ada data nilai</div>
+              )}
+            </div>
+          </div>
+
+          {/* WHO → Breakdown Gender */}
+          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-pink-50 flex items-center justify-center text-pink-600">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>group</span>
+              </div>
+              <div>
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Per Gender</h3>
+                <p className="text-[10px] text-slate-400">WHO: Breakdown jenis kelamin</p>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {genderStats.length > 0 ? genderStats.map((item, i) => (
+                <div key={i} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">{item.gender === 'Laki-laki' ? '♂' : item.gender === 'Perempuan' ? '♀' : '?'}</span>
+                    <span className="text-sm font-bold text-slate-700">{item.gender || 'Unknown'}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-lg font-extrabold text-slate-900">{item.total}</span>
+                    <span className="text-[10px] text-emerald-600 ml-1">({item.lulus} lulus)</span>
+                  </div>
+                </div>
+              )) : (
+                <div className="text-center py-8 text-xs text-slate-400">Tidak ada data gender</div>
+              )}
+            </div>
+          </div>
+
+          {/* WHO → Per Angkatan */}
+          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>calendar_month</span>
+              </div>
+              <div>
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Per Angkatan</h3>
+                <p className="text-[10px] text-slate-400">WHO: Jumlah per tahun masuk</p>
+              </div>
+            </div>
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              {angkatanStats.length > 0 ? angkatanStats.slice(0, 5).map((item, i) => (
+                <div key={i} className="flex items-center justify-between py-1.5 border-b border-slate-50 last:border-0">
+                  <span className="text-sm font-bold text-slate-700">{item.angkatan}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-emerald-600 font-medium">{item.lulus} lulus</span>
+                    <span className="text-sm font-extrabold text-slate-900">{item.total}</span>
+                  </div>
+                </div>
+              )) : (
+                <div className="text-center py-8 text-xs text-slate-400">Tidak ada data angkatan</div>
+              )}
+            </div>
+          </div>
+
+          {/* WHEN → Timeline Kegiatan */}
+          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>event</span>
+              </div>
+              <div>
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Agenda Kegiatan</h3>
+                <p className="text-[10px] text-slate-400">WHEN: Jadwal sesi PKKMB</p>
+              </div>
+            </div>
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              {kegiatanList.length > 0 ? kegiatanList.map((k, i) => (
+                <div key={i} className="flex items-start gap-3 py-2 border-b border-slate-50 last:border-0">
+                  <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
+                    <span className="text-[10px] font-bold text-indigo-600">{k.tanggal?.split('-')[2]||'--'}</span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-slate-800 truncate">{k.nama||'Tidak ada nama'}</p>
+                    <p className="text-[10px] text-slate-400">{k.tanggal} · {k.lokasi||'-'}</p>
+                  </div>
+                </div>
+              )) : (
+                <div className="text-center py-8 text-xs text-slate-400">Tidak ada agenda</div>
+              )}
+            </div>
+          </div>
+
+          {/* HOW → Batas Nilai */}
+          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center text-teal-600">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>workspace_premium</span>
+              </div>
+              <div>
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Batas Kelulusan</h3>
+                <p className="text-[10px] text-slate-400">HOW: Threshold nilai minimum</p>
+              </div>
+            </div>
+            <div className="flex flex-col items-center justify-center py-4">
+              <div className="relative w-20 h-20">
+                <svg viewBox="0 0 36 36" className="w-full h-full">
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e2e8f0" strokeWidth="3"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#14b8a6" strokeWidth="3" strokeDasharray="75 25" strokeDashoffset="0" transform="rotate(-90 18 18)"/>
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-xl font-extrabold text-teal-600">{batasNilai}</span>
+                </div>
+              </div>
+              <p className="text-xs text-slate-500 mt-3 font-medium">Nilai minimum untuk lulus</p>
+              <p className="text-[10px] text-slate-400 mt-1">Di bawah ini = Gagal</p>
+            </div>
+          </div>
         </div>
 
         {/* Tabs */}
