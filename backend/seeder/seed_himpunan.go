@@ -40,7 +40,7 @@ func main() {
 		Nama:          "Himpunan Mahasiswa Farmasi",
 		Singkatan:     "HIMAFAR",
 		Deskripsi:     "Himpunan Mahasiswa Program Studi Farmasi",
-		FakultasID:    fakultasID,
+		FakultasID:    &fakultasID,
 		Status:        "Aktif",
 		Kategori:      "Himpunan",
 		JumlahAnggota: 1,
@@ -104,6 +104,53 @@ func main() {
 		fmt.Println("Anggota created")
 	} else {
 		fmt.Println("Anggota already exists")
+	}
+
+	proposal := models.Proposal{
+		OrmawaID:              ormawa.ID,
+		MahasiswaID:           mhs.ID,
+		FakultasID:            mhs.FakultasID,
+		Judul:                 "Loka Karya Kefarmasian Nasional 2026",
+		TanggalKegiatan:       time.Now().AddDate(0, 1, 15),
+		Anggaran:              18000000,
+		Jenis:                 "Kegiatan Mahasiswa",
+		Status:                "disetujui_fakultas",
+		Catatan:               "Telah divalidasi oleh Dekan Farmasi, menunggu persetujuan akhir Super Admin",
+		LandasanKegiatan:      "Program Kerja HIMAFAR 2026 Bidang Keilmuan",
+		Deskripsi:             "Loka karya nasional bertema Masa Depan Farmasi Klinik dan Komunitas di Era AI.",
+		BentukKegiatan:        "Seminar Nasional, Loka Karya, & Poster Competition",
+		Mitra:                 "Ikatan Apoteker Indonesia (IAI) Jawa Barat",
+		LatarBelakang:         "Perkembangan teknologi kecerdasan buatan dalam dunia kefarmasian memerlukan edukasi intensif.",
+		TujuanKegiatan:        "Membekali mahasiswa farmasi dengan kompetensi teknologi masa depan dan memperluas jaringan nasional.",
+		JadwalPelaksanaan:      "Sabtu, 25 Juli 2026, 08:00 - 16:00 WIB",
+		SasaranKegiatan:        "Mahasiswa Farmasi se-Indonesia & Apoteker Praktisi",
+		IndikatorKeberhasilan: "Diikuti oleh minimal 300 peserta dan 50 abstrak kompetisi poster.",
+		SumberDana:            "Dana Alokasi Ormawa & Biaya Pendaftaran Peserta",
+		PJKegiatan:            "Admin HIMAFAR (HIMAFAR)",
+	}
+
+	var existingProp models.Proposal
+	err = config.DB.Where("ormawa_id = ? AND judul = ?", ormawa.ID, proposal.Judul).First(&existingProp).Error
+	if err != nil {
+		config.DB.Create(&proposal)
+		fmt.Printf("Proposal created: %s (Status: %s)\n", proposal.Judul, proposal.Status)
+	} else {
+		proposal.ID = existingProp.ID
+		config.DB.Save(&proposal)
+		fmt.Printf("Proposal updated: %s (Status: %s)\n", proposal.Judul, proposal.Status)
+	}
+
+	var riwayat models.ProposalRiwayat
+	err = config.DB.Where("proposal_id = ? AND status = ?", proposal.ID, proposal.Status).First(&riwayat).Error
+	if err != nil {
+		riwayat = models.ProposalRiwayat{
+			ProposalID: proposal.ID,
+			Status:     proposal.Status,
+			Catatan:    proposal.Catatan,
+			CreatedBy:  user.ID,
+		}
+		config.DB.Create(&riwayat)
+		fmt.Println("Proposal history seeded")
 	}
 
 	fmt.Println("SUCCESS — Login: hima@bku.ac.id / hima12345")

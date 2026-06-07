@@ -334,13 +334,6 @@ export default function ProposalPipeline() {
               actions={(row) => (
                 <div className="flex items-center gap-1.5">
                   <Button onClick={() => { setSelected(row); setIsDetailOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-bku-primary hover:bg-bku-primary/10 rounded-lg transition-colors cursor-pointer shadow-none"><span className="material-symbols-outlined" style={{ fontSize: '18px' }} >visibility</span></Button>
-                  {row.Status === 'disetujui_fakultas' && (
-                    <>
-                       <div className="h-4 w-px bg-slate-200/40 mx-1" />
-                       <Button onClick={() => handleApprove(row.id || row.ID)} disabled={isSubmitting} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >check_circle</span></Button>
-                       <Button onClick={() => { setSelected(row); setIsRejectOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >close</span></Button>
-                    </>
-                  )}
                 </div>
               )}
             />
