@@ -95,7 +95,7 @@ export default function AuditLog() {
   ]
 
   return (
-    <div className="px-4 py-8 md:px-8 xl:px-12 min-h-screen bg-transparent font-inter">
+    <div className="min-h-screen bg-transparent font-inter">
       <Toaster position="top-right" />
       
       <div className="max-w-[1600px] mx-auto space-y-10">

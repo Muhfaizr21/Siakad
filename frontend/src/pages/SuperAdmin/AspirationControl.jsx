@@ -258,7 +258,7 @@ const AspirationControl = () => {
   }
 
   return (
-    <div className="px-1 py-4 md:px-2 xl:px-4 min-h-screen bg-transparent font-inter">
+    <div className="min-h-screen bg-transparent font-inter">
       <Toaster position="top-right" />
       
       <div className="max-w-[1600px] mx-auto space-y-8 select-none">

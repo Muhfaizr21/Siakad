@@ -280,7 +280,7 @@ export default function ProdiRBAC() {
   ]
 
   return (
-    <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-8 font-body">
+    <div className="max-w-[1600px] mx-auto space-y-8 font-body">
       <Toaster position="top-right" />
       
       {/* ── Welcome Banner ─────────────────────────────────────────── */}

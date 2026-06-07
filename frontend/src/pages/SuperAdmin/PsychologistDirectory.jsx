@@ -16,7 +16,7 @@ import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import { adminService, API_BASE_URL } from '../../services/api'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const BrainCircuit = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>psychology</span>;
@@ -224,6 +224,50 @@ export default function PsychologistDirectory() {
       .map(([name, value]) => ({ name, value }))
       .filter(d => d.value > 0)
   }, [bookings])
+
+  const specializationData = useMemo(() => {
+    const counts = {}
+    data.forEach(p => {
+      const sp = p.spesialisasi || p.Spesialisasi || 'Umum'
+      counts[sp] = (counts[sp] || 0) + 1
+    })
+    return Object.entries(counts)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+  }, [data])
+
+  const monthlyBookingData = useMemo(() => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
+    const counts = Array(12).fill(0)
+    bookings.forEach(b => {
+      const d = b.tanggal || b.Tanggal
+      if (d) {
+        const date = new Date(d)
+        counts[date.getMonth()]++
+      }
+    })
+    return months.map((name, index) => ({
+      name,
+      'Jumlah Booking': counts[index]
+    }))
+  }, [bookings])
+
+  const stats = useMemo(() => {
+    const totalBookings = bookings.length
+    const selesaiBookings = bookings.filter(b => {
+      const statusLower = String(b.status || b.Status || '').toLowerCase()
+      return statusLower === 'selesai' || statusLower === 'completed' || statusLower === 'disetujui' || statusLower === 'confirmed'
+    }).length
+    const tingkatPenyelesaian = totalBookings > 0 ? ((selesaiBookings / totalBookings) * 100).toFixed(0) + '%' : '0%'
+    
+    const activePsychologists = data.filter(p => p.is_aktif ?? p.IsAktif).length
+    const rerataBebanKerja = activePsychologists > 0 ? (totalBookings / activePsychologists).toFixed(1) : '0'
+
+    return {
+      tingkatPenyelesaian,
+      rerataBebanKerja
+    }
+  }, [bookings, data])
 
   const PIE_COLORS = ['#0d9488', '#4f46e5', '#f59e0b', '#10b981']
 
@@ -711,7 +755,7 @@ export default function PsychologistDirectory() {
   }
 
   return (
-    <div className="px-4 py-8 md:px-8 xl:px-12 min-h-screen bg-[#fafafa] font-body">
+    <div className="min-h-screen bg-[#fafafa] font-body">
       <Toaster position="top-right" />
       
       <div className="max-w-[1600px] mx-auto space-y-10">
@@ -747,7 +791,7 @@ export default function PsychologistDirectory() {
         </section>
 
         {/* ── Stats Grid ──────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
            <div className="bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center gap-3 mb-3">
                  <div className="w-10 h-10 bg-teal-50 rounded-xl flex justify-center items-center text-teal-600 flex-shrink-0">
@@ -762,28 +806,23 @@ export default function PsychologistDirectory() {
            <div className="bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center gap-3 mb-3">
                  <div className="w-10 h-10 bg-blue-50 rounded-xl flex justify-center items-center text-blue-600 flex-shrink-0">
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >calendar_month</span>
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >task_alt</span>
                  </div>
-                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Booking Hari Ini</span>
-                 {getTodayBookingsCount() > 0 && (
-                   <span className="bg-rose-500 text-white text-[8px] font-extrabold px-1.5 py-0.5 rounded-full animate-pulse ml-auto">LIVE</span>
-                 )}
+                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Tingkat Penyelesaian</span>
               </div>
-              <p className="text-3xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">
-                {getTodayBookingsCount()}
-              </p>
-              <p className="text-xs text-[#a3a3a3] font-medium mt-1">Mahasiswa booking hari ini</p>
+              <p className="text-3xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{stats.tingkatPenyelesaian}</p>
+              <p className="text-xs text-[#a3a3a3] font-medium mt-1">Rasio sesi konseling selesai</p>
            </div>
 
            <div className="bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center gap-3 mb-3">
                  <div className="w-10 h-10 bg-emerald-50 rounded-xl flex justify-center items-center text-emerald-600 flex-shrink-0">
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >medical_services</span>
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >analytics</span>
                  </div>
-                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Rekam Medis</span>
+                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Rerata Beban Kerja</span>
               </div>
-              <p className="text-3xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{medicalRecords.length}</p>
-              <p className="text-xs text-[#a3a3a3] font-medium mt-1">Catatan sesi & kondisi klinis</p>
+              <p className="text-3xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{stats.rerataBebanKerja}</p>
+              <p className="text-xs text-[#a3a3a3] font-medium mt-1">Sesi / psikolog aktif</p>
            </div>
 
            <div className="bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm">
@@ -791,85 +830,149 @@ export default function PsychologistDirectory() {
                  <div className="w-10 h-10 bg-indigo-50 rounded-xl flex justify-center items-center text-indigo-600 flex-shrink-0">
                     <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >forward_to_inbox</span>
                  </div>
-                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Tindak Lanjut</span>
+                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Rujukan Eksternal</span>
               </div>
               <p className="text-3xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{referrals.length}</p>
               <p className="text-xs text-[#a3a3a3] font-medium mt-1">Surat rujukan dikirim</p>
+           </div>
+
+           <div className="bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                 <div className="w-10 h-10 bg-rose-50 rounded-xl flex justify-center items-center text-rose-600 flex-shrink-0">
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >calendar_month</span>
+                 </div>
+                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Booking Hari Ini</span>
+                 {getTodayBookingsCount() > 0 && (
+                   <span className="bg-rose-500 text-white text-[8px] font-extrabold px-1.5 py-0.5 rounded-full animate-pulse ml-auto">LIVE</span>
+                 )}
+              </div>
+              <p className="text-3xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{getTodayBookingsCount()}</p>
+              <p className="text-xs text-[#a3a3a3] font-medium mt-1">Janji temu hari ini</p>
            </div>
         </div>
 
         {/* ── Charts Section ──────────────────────────────────────── */}
         {!loading && bookings.length > 0 && (
-           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-             {/* Bar Chart: Topik Konseling Terpopuler */}
-             <div className="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none">
-               <div className="flex items-center gap-3 mb-3">
-                 <div className="w-10 h-10 bg-teal-50 rounded-xl flex justify-center items-center text-teal-600 flex-shrink-0">
-                   <span className="material-symbols-outlined text-teal-600" style={{ fontSize: '18px' }} >bar_chart</span>
+           <div className="space-y-6">
+             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+               {/* Line Chart: Tren Booking Bulanan */}
+               <div className="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none">
+                 <div className="flex items-center gap-3 mb-3">
+                   <div className="w-10 h-10 bg-teal-50 rounded-xl flex justify-center items-center text-teal-600 flex-shrink-0">
+                     <span className="material-symbols-outlined text-teal-600" style={{ fontSize: '18px' }} >show_chart</span>
+                   </div>
+                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Tren Booking Bulanan</span>
                  </div>
-                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Topik Konseling Terpopuler</span>
+                 <div className="h-[220px] w-full">
+                   <ResponsiveContainer width="100%" height={220}>
+                     <LineChart data={monthlyBookingData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                       <XAxis dataKey="name" tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                       <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                       <Tooltip
+                         contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "11px", fontWeight: "bold" }}
+                       />
+                       <Line type="monotone" dataKey="Jumlah Booking" stroke="#0d9488" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#ffffff' }} activeDot={{ r: 6 }} />
+                     </LineChart>
+                   </ResponsiveContainer>
+                 </div>
                </div>
-               <div className="h-[200px] w-full">
-                 <ResponsiveContainer width="100%" height={200}>
-                   <BarChart data={topicChartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                     <XAxis dataKey="name" tick={{ fontSize: 8.5, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                     <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                     <Tooltip
-                       cursor={{ fill: '#f8fafc' }}
-                       contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "11px", fontWeight: "bold" }}
-                     />
-                     <Bar dataKey="value" name="Jumlah Sesi" fill="#0d9488" radius={[4, 4, 0, 0]} barSize={24} />
-                   </BarChart>
-                 </ResponsiveContainer>
+
+               {/* Pie Chart: Metode Konseling */}
+               <div className="lg:col-span-1 bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none flex flex-col justify-between">
+                 <div className="flex items-center gap-3 mb-3">
+                   <div className="w-10 h-10 bg-indigo-50 rounded-xl flex justify-center items-center text-indigo-600 flex-shrink-0">
+                     <span className="material-symbols-outlined text-indigo-600" style={{ fontSize: '18px' }} >pie_chart</span>
+                   </div>
+                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Metode Konseling</span>
+                 </div>
+                 <div className="h-[140px] w-full flex items-center justify-center">
+                   {modeChartData.length > 0 ? (
+                     <ResponsiveContainer width="100%" height={140}>
+                       <PieChart>
+                         <Pie
+                           data={modeChartData}
+                           cx="50%"
+                           cy="50%"
+                           innerRadius={40}
+                           outerRadius={60}
+                           paddingAngle={4}
+                           dataKey="value"
+                           stroke="none"
+                         >
+                           {modeChartData.map((entry, index) => (
+                             <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                           ))}
+                         </Pie>
+                         <Tooltip
+                           contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }}
+                         />
+                       </PieChart>
+                     </ResponsiveContainer>
+                   ) : (
+                     <span className="text-xs text-slate-400 italic">Tidak ada data</span>
+                   )}
+                 </div>
+                 <div className="grid grid-cols-2 gap-1.5 mt-2">
+                   {modeChartData.slice(0, 4).map((item, idx) => (
+                     <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50 border border-slate-100">
+                       <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
+                       <div className="min-w-0">
+                         <p className="text-[9px] font-bold text-slate-400 truncate leading-none">{item.name}</p>
+                         <p className="text-xs font-extrabold text-slate-800 leading-none mt-1">{item.value}</p>
+                       </div>
+                     </div>
+                   ))}
+                 </div>
                </div>
              </div>
 
-             {/* Pie Chart: Metode Konseling */}
-             <div className="lg:col-span-1 bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none flex flex-col justify-between">
-               <div className="flex items-center gap-3 mb-3">
-                 <div className="w-10 h-10 bg-indigo-50 rounded-xl flex justify-center items-center text-indigo-600 flex-shrink-0">
-                   <span className="material-symbols-outlined text-indigo-600" style={{ fontSize: '18px' }} >pie_chart</span>
-                 </div>
-                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Metode Konseling</span>
-               </div>
-               <div className="h-[140px] w-full flex items-center justify-center">
-                 {modeChartData.length > 0 ? (
-                   <ResponsiveContainer width="100%" height={140}>
-                     <PieChart>
-                       <Pie
-                         data={modeChartData}
-                         cx="50%"
-                         cy="50%"
-                         innerRadius={40}
-                         outerRadius={60}
-                         paddingAngle={4}
-                         dataKey="value"
-                         stroke="none"
-                       >
-                         {modeChartData.map((entry, index) => (
-                           <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                         ))}
-                       </Pie>
-                       <Tooltip
-                         contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }}
-                       />
-                     </PieChart>
-                   </ResponsiveContainer>
-                 ) : (
-                   <span className="text-xs text-slate-400 italic">Tidak ada data</span>
-                 )}
-               </div>
-               <div className="grid grid-cols-2 gap-1.5 mt-2">
-                 {modeChartData.slice(0, 4).map((item, idx) => (
-                   <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50 border border-slate-100">
-                     <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
-                     <div className="min-w-0">
-                       <p className="text-[9px] font-bold text-slate-400 truncate leading-none">{item.name}</p>
-                       <p className="text-xs font-extrabold text-slate-800 leading-none mt-1">{item.value}</p>
-                     </div>
+             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+               {/* Horizontal Bar Chart: Sebaran Spesialisasi Psikolog */}
+               <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none">
+                 <div className="flex items-center gap-3 mb-3">
+                   <div className="w-10 h-10 bg-amber-50 rounded-xl flex justify-center items-center text-amber-600 flex-shrink-0">
+                     <span className="material-symbols-outlined text-amber-600" style={{ fontSize: '18px' }} >badge</span>
                    </div>
-                 ))}
+                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Sebaran Spesialisasi Psikolog</span>
+                 </div>
+                 <div className="h-[200px] w-full">
+                   <ResponsiveContainer width="100%" height={200}>
+                     <BarChart layout="vertical" data={specializationData} margin={{ top: 10, right: 10, left: 15, bottom: 0 }}>
+                       <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+                       <XAxis type="number" allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                       <YAxis type="category" dataKey="name" tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                       <Tooltip
+                         contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "11px", fontWeight: "bold" }}
+                       />
+                       <Bar dataKey="value" name="Jumlah Praktisi" fill="#eab308" radius={[0, 4, 4, 0]} barSize={16} />
+                     </BarChart>
+                   </ResponsiveContainer>
+                 </div>
+               </div>
+
+               {/* Bar Chart: Topik Konseling Terpopuler */}
+               <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none">
+                 <div className="flex items-center gap-3 mb-3">
+                   <div className="w-10 h-10 bg-teal-50 rounded-xl flex justify-center items-center text-teal-600 flex-shrink-0">
+                     <span className="material-symbols-outlined text-teal-600" style={{ fontSize: '18px' }} >bar_chart</span>
+                   </div>
+                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Topik Konseling Terpopuler</span>
+                 </div>
+                 <div className="h-[200px] w-full">
+                   <ResponsiveContainer width="100%" height={200}>
+                     <BarChart data={topicChartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                       <XAxis dataKey="name" tick={{ fontSize: 8.5, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                       <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                       <Tooltip
+                         cursor={{ fill: '#f8fafc' }}
+                         contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "11px", fontWeight: "bold" }}
+                       />
+                       <Bar dataKey="value" name="Jumlah Sesi" fill="#0d9488" radius={[4, 4, 0, 0]} barSize={24} />
+                     </BarChart>
+                   </ResponsiveContainer>
+                 </div>
                </div>
              </div>
            </div>

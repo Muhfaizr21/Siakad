@@ -180,7 +180,7 @@ export default function KelolaProdi() {
   const PIE_COLORS = ['var(--theme-primary, #00236f)', '#4f46e5', '#10b981', '#f59e0b', '#f43f5e', '#14b8a6']
 
   return (
-    <div className="px-4 py-8 md:px-8 xl:px-12 min-h-screen bg-transparent font-inter">
+    <div className="min-h-screen bg-transparent font-inter">
       <Toaster position="top-right" />
       
       <div className="max-w-[1600px] mx-auto space-y-10">

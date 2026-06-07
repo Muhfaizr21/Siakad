@@ -13,13 +13,15 @@ import { Label } from '@/components/ui/Label'
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import { adminService } from '../../services/api'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Phone = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>phone</span>;
 const RefreshCw = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>sync</span>;
 const Building2 = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>business</span>;
 const LayoutGrid = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>grid_view</span>;
+const Group = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>group</span>;
+const Award = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>award_star</span>;
 
 
 
@@ -152,7 +154,33 @@ export default function KelolaFakultas() {
     }
   ]
 
-  const totalProdi = data.reduce((acc, curr) => acc + (curr.JumlahProdi || curr.jumlah_prodi || 0), 0)
+  // Enriched metrics calculations
+  const allProdis = data.flatMap(fac => fac.ProgramStudi || fac.program_studi || [])
+  const totalProdi = allProdis.length
+  const kapasitasTampung = allProdis.reduce((acc, curr) => acc + (curr.Kapasitas || curr.kapasitas || 0), 0)
+  const rasioProdi = data.length > 0 ? (totalProdi / data.length).toFixed(1) : 0
+  const akreditasiA = allProdis.filter(p => {
+    const akr = (p.Akreditasi || p.akreditasi || '').toUpperCase()
+    return akr === 'A' || akr === 'UNGGUL'
+  }).length
+
+  // Sebaran Jenjang (for Donut Chart)
+  const jenjangCounts = {}
+  allProdis.forEach(p => {
+    const j = p.Jenjang || p.jenjang || 'Lainnya'
+    jenjangCounts[j] = (jenjangCounts[j] || 0) + 1
+  })
+  const jenjangChartData = Object.entries(jenjangCounts).map(([name, value]) => ({ name, value }))
+
+  // Sebaran Akreditasi (for Bar Chart)
+  const akreditasiCounts = {}
+  allProdis.forEach(p => {
+    const a = p.Akreditasi || p.akreditasi || 'Belum Terakreditasi'
+    akreditasiCounts[a] = (akreditasiCounts[a] || 0) + 1
+  })
+  const akreditasiChartData = Object.entries(akreditasiCounts).map(([name, value]) => ({ name, value }))
+
+  const PIE_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#6366f1', '#ec4899', '#8b5cf6']
 
   const chartData = data.map(fac => ({
     name: fac.Kode || fac.Nama || '—',
@@ -160,7 +188,7 @@ export default function KelolaFakultas() {
   }))
 
   return (
-    <div className="px-4 py-8 md:px-8 xl:px-12 min-h-screen bg-transparent font-inter">
+    <div className="min-h-screen bg-transparent font-inter">
       <Toaster position="top-right" />
       
       <div className="max-w-[1600px] mx-auto space-y-10">
@@ -207,51 +235,75 @@ export default function KelolaFakultas() {
           </div>
         </section>
 
-        {/* ── Stats & Chart Grid ─────────────────────────────────── */}
+        {/* ── Enriched Stats Grid ─────────────────────────────────── */}
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+          <div
+            onClick={() => setIsAllFacultiesOpen(true)}
+            className="bg-white p-4 rounded-xl border border-[#e5e5e5] shadow-sm cursor-pointer hover:bg-neutral-50/50 hover:shadow-md hover:border-neutral-300 transition-all group flex flex-col justify-between"
+          >
+             <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-[#eef4ff] rounded-lg flex justify-center items-center text-[#00236F] shrink-0">
+                   <Building2 size={14} />
+                </div>
+                <span className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest">Total Fakultas</span>
+             </div>
+             <p className="text-2xl font-black text-[#171717] mt-3">{data.length}</p>
+          </div>
+
+          <div
+            onClick={() => setIsAllProdiOpen(true)}
+            className="bg-white p-4 rounded-xl border border-[#e5e5e5] shadow-sm cursor-pointer hover:bg-neutral-50/50 hover:shadow-md hover:border-neutral-300 transition-all group flex flex-col justify-between"
+          >
+             <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-indigo-50 rounded-lg flex justify-center items-center text-indigo-600 shrink-0">
+                   <LayoutGrid size={14} />
+                </div>
+                <span className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest">Total Prodi</span>
+             </div>
+             <p className="text-2xl font-black text-[#171717] mt-3">{totalProdi}</p>
+          </div>
+
+          <div className="bg-white p-4 rounded-xl border border-[#e5e5e5] shadow-sm flex flex-col justify-between">
+             <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-emerald-50 rounded-lg flex justify-center items-center text-emerald-600 shrink-0">
+                   <Group size={14} />
+                </div>
+                <span className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest">Kapasitas Tampung</span>
+             </div>
+             <p className="text-2xl font-black text-[#171717] mt-3">{kapasitasTampung.toLocaleString('id-ID')} Mhs</p>
+          </div>
+
+          <div className="bg-white p-4 rounded-xl border border-[#e5e5e5] shadow-sm flex flex-col justify-between">
+             <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-blue-50 rounded-lg flex justify-center items-center text-blue-600 shrink-0">
+                   <Building2 size={14} />
+                </div>
+                <span className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest">Rasio Prodi/Fak</span>
+             </div>
+             <p className="text-2xl font-black text-[#171717] mt-3">{rasioProdi} Prodi</p>
+          </div>
+
+          <div className="bg-white p-4 rounded-xl border border-[#e5e5e5] shadow-sm flex flex-col justify-between">
+             <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-amber-50 rounded-lg flex justify-center items-center text-amber-600 shrink-0">
+                   <Award size={14} />
+                </div>
+                <span className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest">Prodi Unggul/A</span>
+             </div>
+             <p className="text-2xl font-black text-[#171717] mt-3">{akreditasiA}</p>
+          </div>
+        </div>
+
+        {/* ── Enriched Visual Charts Grid ─────────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-           {/* Left Column: Stats Cards */}
-           <div className="lg:col-span-1 flex flex-col gap-4">
-              <div
-                onClick={() => setIsAllFacultiesOpen(true)}
-                className="flex-1 bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm cursor-pointer hover:bg-neutral-50/50 hover:shadow-md hover:border-neutral-300 transition-all group flex flex-col justify-between"
-              >
-                 <div>
-                    <div className="flex items-center gap-3 mb-2">
-                       <div className="w-10 h-10 bg-[#eef4ff] rounded-xl flex justify-center items-center text-[#00236F] flex-shrink-0 group-hover:bg-[#00236F] group-hover:text-white transition-all">
-                          <Building2 size={18} />
-                       </div>
-                       <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest group-hover:text-primary transition-all">Total Fakultas</span>
-                    </div>
-                    <p className="text-3xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums mt-1">{data.length}</p>
-                 </div>
-                 <p className="text-xs text-[#a3a3a3] font-medium mt-3">Klik untuk melihat rincian unit akademik aktif</p>
-              </div>
-
-              <div
-                onClick={() => setIsAllProdiOpen(true)}
-                className="flex-1 bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm cursor-pointer hover:bg-neutral-50/50 hover:shadow-md hover:border-neutral-300 transition-all group flex flex-col justify-between"
-              >
-                 <div>
-                    <div className="flex items-center gap-3 mb-2">
-                       <div className="w-10 h-10 bg-indigo-50 rounded-xl flex justify-center items-center text-indigo-600 flex-shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-all">
-                          <LayoutGrid size={18} />
-                       </div>
-                       <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest group-hover:text-indigo-600 transition-all">Total Prodi</span>
-                    </div>
-                    <p className="text-3xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums mt-1">{totalProdi}</p>
-                 </div>
-                 <p className="text-xs text-[#a3a3a3] font-medium mt-3">Klik untuk melihat rincian program studi terdaftar</p>
-              </div>
-           </div>
-
-           {/* Right Column: Chart */}
-           <div className="lg:col-span-2 bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm flex flex-col justify-between">
+           {/* Chart 1: Prodi per Fakultas */}
+           <div className="lg:col-span-1 bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm flex flex-col justify-between">
               <div>
                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-[#eef4ff] rounded-xl flex justify-center items-center text-[#00236F] flex-shrink-0">
-                       <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '18px' }} >bar_chart</span>
+                    <div className="w-8 h-8 bg-[#eef4ff] rounded-lg flex justify-center items-center text-[#00236F]">
+                       <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '16px' }} >bar_chart</span>
                     </div>
-                    <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Distribusi Program Studi per Fakultas</span>
+                    <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Jumlah Prodi / Fakultas</span>
                  </div>
                  <div className="h-[180px] w-full mt-1">
                     <ResponsiveContainer width="100%" height={180}>
@@ -263,7 +315,77 @@ export default function KelolaFakultas() {
                              cursor={{ fill: '#f8fafc' }}
                              contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "11px", fontWeight: "bold" }}
                           />
-                          <Bar dataKey="Jumlah Prodi" fill="var(--theme-primary, #00236f)" radius={[6, 6, 0, 0]} barSize={28} />
+                          <Bar dataKey="Jumlah Prodi" fill="var(--theme-primary, #00236f)" radius={[4, 4, 0, 0]} barSize={18} />
+                       </BarChart>
+                    </ResponsiveContainer>
+                 </div>
+              </div>
+           </div>
+
+           {/* Chart 2: Donut Chart - Distribusi Jenjang */}
+           <div className="lg:col-span-1 bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm flex flex-col justify-between">
+              <div>
+                 <div className="flex items-center gap-3 mb-3">
+                    <div className="w-8 h-8 bg-emerald-50 rounded-lg flex justify-center items-center text-emerald-600">
+                       <span className="material-symbols-outlined text-emerald-600" style={{ fontSize: '16px' }}>pie_chart</span>
+                    </div>
+                    <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Sebaran Jenjang Prodi</span>
+                 </div>
+                 <div className="h-[180px] w-full flex items-center justify-center relative">
+                    <ResponsiveContainer width="100%" height={180}>
+                       <PieChart>
+                          <Pie
+                             data={jenjangChartData}
+                             cx="50%"
+                             cy="50%"
+                             innerRadius={45}
+                             outerRadius={65}
+                             paddingAngle={4}
+                             dataKey="value"
+                             stroke="none"
+                          >
+                             {jenjangChartData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                             ))}
+                          </Pie>
+                          <Tooltip contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", fontSize: "11px", fontWeight: "bold" }} />
+                       </PieChart>
+                    </ResponsiveContainer>
+                 </div>
+              </div>
+              <div className="grid grid-cols-3 gap-1 mt-2">
+                 {jenjangChartData.map((item, idx) => (
+                    <div key={item.name} className="flex items-center gap-1.5 p-1 rounded bg-slate-50 border border-slate-100">
+                       <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
+                       <div className="min-w-0">
+                          <p className="text-[8px] font-bold text-slate-400 truncate leading-none">{item.name}</p>
+                          <p className="text-xs font-black text-slate-700 leading-none mt-1">{item.value}</p>
+                       </div>
+                    </div>
+                 ))}
+              </div>
+           </div>
+
+           {/* Chart 3: Akreditasi Prodi */}
+           <div className="lg:col-span-1 bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm flex flex-col justify-between">
+              <div>
+                 <div className="flex items-center gap-3 mb-3">
+                    <div className="w-8 h-8 bg-indigo-50 rounded-lg flex justify-center items-center text-indigo-600">
+                       <span className="material-symbols-outlined text-indigo-600" style={{ fontSize: '16px' }}>award</span>
+                    </div>
+                    <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Akreditasi Program Studi</span>
+                 </div>
+                 <div className="h-[180px] w-full mt-1">
+                    <ResponsiveContainer width="100%" height={180}>
+                       <BarChart data={akreditasiChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                          <XAxis dataKey="name" tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                          <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                          <Tooltip
+                             cursor={{ fill: '#f8fafc' }}
+                             contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", fontSize: "11px", fontWeight: "bold" }}
+                          />
+                          <Bar dataKey="value" name="Jumlah Prodi" fill="#8b5cf6" radius={[4, 4, 0, 0]} barSize={20} />
                        </BarChart>
                     </ResponsiveContainer>
                  </div>

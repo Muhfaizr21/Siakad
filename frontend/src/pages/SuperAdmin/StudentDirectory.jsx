@@ -17,7 +17,7 @@ import { adminService, API_BASE_URL } from '../../services/api'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from '@/components/ui/Select'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from "recharts"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const UserX = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>person_off</span>;
@@ -428,6 +428,54 @@ export default function StudentDirectory() {
     }
   ]
 
+  const avgIpk = useMemo(() => {
+    const active = students.filter(s => s.StatusAkun === 'Aktif')
+    if (active.length === 0) return 0
+    const sum = active.reduce((acc, curr) => acc + (curr.IPK || curr.ipk || 0), 0)
+    return (sum / active.length).toFixed(2)
+  }, [students])
+
+  const totalSks = useMemo(() => {
+    return students.reduce((acc, curr) => acc + (curr.TotalSKS || curr.total_sks || 0), 0)
+  }, [students])
+
+  const jalurMasukPopuler = useMemo(() => {
+    const counts = {}
+    students.forEach(s => {
+      const j = s.JalurMasuk || s.jalur_masuk || 'Reguler'
+      counts[j] = (counts[j] || 0) + 1
+    })
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1])
+    return sorted.length > 0 ? sorted[0][0] : 'Reguler'
+  }, [students])
+
+  const enrollmentTrendData = useMemo(() => {
+    const counts = {}
+    students.forEach(s => {
+      const yr = s.TahunMasuk || s.tahun_masuk || 2025
+      counts[yr] = (counts[yr] || 0) + 1
+    })
+    return Object.entries(counts).map(([name, value]) => ({ name: String(name), value })).sort((a, b) => Number(a.name) - Number(b.name))
+  }, [students])
+
+  const facultyIpkData = useMemo(() => {
+    const sums = {}
+    const counts = {}
+    students.forEach(s => {
+      const fac = s.Fakultas?.Nama || s.Fakultas?.nama || 'Lainnya'
+      const short = fac.replace('Fakultas ', '')
+      const ipkVal = s.IPK || s.ipk || 0
+      if (ipkVal > 0) {
+        sums[short] = (sums[short] || 0) + ipkVal
+        counts[short] = (counts[short] || 0) + 1
+      }
+    })
+    return Object.keys(sums).map(key => ({
+      name: key,
+      'Rerata IPK': parseFloat((sums[key] / counts[key]).toFixed(2))
+    }))
+  }, [students])
+
   const studentStatusData = useMemo(() => {
     const counts = {}
     students.forEach(s => {
@@ -495,124 +543,143 @@ export default function StudentDirectory() {
           </div>
         </section>
 
-        {/* ── Stats Grid ──────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-bku-primary/10 rounded-xl flex justify-center items-center text-bku-primary flex-shrink-0">
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >group</span>
+        {/* ── Enriched Stats Grid ─────────────────────────────────── */}
+        <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+          <div className="glass-card p-4 rounded-xl border border-slate-200/60 shadow-none flex flex-col justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-bku-primary/10 rounded-lg flex justify-center items-center text-bku-primary shrink-0">
+                <span className="material-symbols-outlined text-sm">group</span>
               </div>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline animate-in fade-in">Total Mahasiswa</span>
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Total Mahasiswa</span>
             </div>
-            <p className="text-2xl font-black text-slate-800 font-headline leading-none tabular-nums">{students.length}</p>
-            <p className="text-[11px] text-slate-400 font-medium mt-1">Seluruh mahasiswa terdaftar</p>
+            <p className="text-xl font-black text-slate-800 mt-2">{students.length}</p>
           </div>
 
-          <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex justify-center items-center text-emerald-600 flex-shrink-0">
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >school</span>
+          <div className="glass-card p-4 rounded-xl border border-slate-200/60 shadow-none flex flex-col justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-emerald-500/10 rounded-lg flex justify-center items-center text-emerald-600 shrink-0">
+                <span className="material-symbols-outlined text-sm">school</span>
               </div>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline animate-in fade-in">Mahasiswa Aktif</span>
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Status Aktif</span>
             </div>
-            <p className="text-2xl font-black text-slate-800 font-headline leading-none tabular-nums">{students.filter(s => s.StatusAkun === 'Aktif').length}</p>
-            <p className="text-[11px] text-slate-400 font-medium mt-1">Sedang menempuh studi</p>
+            <p className="text-xl font-black text-slate-800 mt-2">{students.filter(s => s.StatusAkun === 'Aktif').length}</p>
           </div>
 
-          <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex justify-center items-center text-blue-500 flex-shrink-0">
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >trending_up</span>
+          <div className="glass-card p-4 rounded-xl border border-slate-200/60 shadow-none flex flex-col justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex justify-center items-center text-blue-500 shrink-0">
+                <span className="material-symbols-outlined text-sm">trending_up</span>
               </div>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline animate-in fade-in">Lulus</span>
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Total Lulus</span>
             </div>
-            <p className="text-2xl font-black text-slate-800 font-headline leading-none tabular-nums">{students.filter(s => s.StatusAkun === 'Lulus').length}</p>
-            <p className="text-[11px] text-slate-400 font-medium mt-1">Telah menyelesaikan studi</p>
+            <p className="text-xl font-black text-slate-800 mt-2">{students.filter(s => s.StatusAkun === 'Lulus').length}</p>
           </div>
 
-          <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-rose-500/10 rounded-xl flex justify-center items-center text-rose-500 flex-shrink-0">
-                <UserX size={18} />
+          <div className="glass-card p-4 rounded-xl border border-slate-200/60 shadow-none flex flex-col justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-amber-500/10 rounded-lg flex justify-center items-center text-amber-600 shrink-0">
+                <span className="material-symbols-outlined text-sm">star</span>
               </div>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline animate-in fade-in">Non-Aktif</span>
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">IPK Rata-rata</span>
             </div>
-            <p className="text-2xl font-black text-slate-800 font-headline leading-none tabular-nums">{students.filter(s => s.StatusAkun !== 'Aktif' && s.StatusAkun !== 'Lulus').length}</p>
-            <p className="text-[11px] text-slate-400 font-medium mt-1">Cuti / Keluar / DO</p>
+            <p className="text-xl font-black text-slate-800 mt-2">{avgIpk}</p>
+          </div>
+
+          <div className="glass-card p-4 rounded-xl border border-slate-200/60 shadow-none flex flex-col justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-indigo-500/10 rounded-lg flex justify-center items-center text-indigo-600 shrink-0">
+                <span className="material-symbols-outlined text-sm">menu_book</span>
+              </div>
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Total SKS</span>
+            </div>
+            <p className="text-xl font-black text-slate-800 mt-2">{totalSks.toLocaleString('id-ID')}</p>
+          </div>
+
+          <div className="glass-card p-4 rounded-xl border border-slate-200/60 shadow-none flex flex-col justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-rose-500/10 rounded-lg flex justify-center items-center text-rose-500 shrink-0">
+                <span className="material-symbols-outlined text-sm">shortcut</span>
+              </div>
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Jalur Terbanyak</span>
+            </div>
+            <p className="text-xl font-black text-slate-800 mt-2 truncate text-xs" title={jalurMasukPopuler}>{jalurMasukPopuler}</p>
           </div>
         </div>
 
-        {/* ── Charts Section ──────────────────────────────────────── */}
+        {/* ── Enriched Visual Charts Grid ─────────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Bar Chart: Mahasiswa per Fakultas */}
-          <div className="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-bku-primary/10 rounded-xl flex justify-center items-center text-bku-primary flex-shrink-0">
-                <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '18px' }} >bar_chart</span>
+          {/* Chart 1: Mahasiswa per Fakultas */}
+          <div className="lg:col-span-1 bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none flex flex-col justify-between">
+            <div>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-8 h-8 bg-bku-primary/10 rounded-lg flex justify-center items-center text-bku-primary">
+                  <span className="material-symbols-outlined text-bku-primary text-sm">bar_chart</span>
+                </div>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Mahasiswa per Fakultas</span>
               </div>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline animate-in fade-in">Distribusi Mahasiswa per Fakultas</span>
-            </div>
-            <div className="h-[200px] w-full">
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={studentFacultyData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="name" tick={{ fontSize: 8.5, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                  <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                  <Tooltip
-                    cursor={{ fill: '#f8fafc' }}
-                    contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "11px", fontWeight: "bold" }}
-                  />
-                  <Bar dataKey="count" name="Jumlah Mahasiswa" fill="var(--theme-primary, #00236f)" radius={[4, 4, 0, 0]} barSize={24} />
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="h-[180px] w-full mt-1">
+                <ResponsiveContainer width="100%" height={180}>
+                  <BarChart data={studentFacultyData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="name" tick={{ fontSize: 8, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 8, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", fontSize: "11px", fontWeight: "bold" }} />
+                    <Bar dataKey="count" name="Mhs" fill="var(--theme-primary, #00236f)" radius={[4, 4, 0, 0]} barSize={18} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
 
-          {/* Pie Chart: Status Akademik */}
+          {/* Chart 2: Area Chart - Tren Angkatan */}
           <div className="lg:col-span-1 bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none flex flex-col justify-between">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex justify-center items-center text-emerald-600 flex-shrink-0">
-                <span className="material-symbols-outlined text-emerald-600" style={{ fontSize: '18px' }} >pie_chart</span>
-              </div>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline animate-in fade-in">Status Akademik</span>
-            </div>
-            <div className="h-[140px] w-full flex items-center justify-center">
-              {studentStatusData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={140}>
-                  <PieChart>
-                    <Pie
-                      data={studentStatusData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={40}
-                      outerRadius={60}
-                      paddingAngle={4}
-                      dataKey="value"
-                      stroke="none"
-                    >
-                      {studentStatusData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                <span className="text-xs text-slate-400 italic">Tidak ada data</span>
-              )}
-            </div>
-            <div className="grid grid-cols-2 gap-1.5 mt-2">
-              {studentStatusData.slice(0, 4).map((item, idx) => (
-                <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50 border border-slate-100">
-                  <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
-                  <div className="min-w-0">
-                    <p className="text-[9px] font-bold text-slate-400 truncate leading-none">{item.name}</p>
-                    <p className="text-xs font-extrabold text-slate-800 leading-none mt-1">{item.value}</p>
-                  </div>
+            <div>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-8 h-8 bg-indigo-50 rounded-lg flex justify-center items-center text-indigo-600">
+                  <span className="material-symbols-outlined text-indigo-600 text-sm">timeline</span>
                 </div>
-              ))}
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Tren Angkatan (Tahun Masuk)</span>
+              </div>
+              <div className="h-[180px] w-full mt-1">
+                <ResponsiveContainer width="100%" height={180}>
+                  <AreaChart data={enrollmentTrendData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorEnrollment" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4}/>
+                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="name" tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", fontSize: "11px", fontWeight: "bold" }} />
+                    <Area type="monotone" dataKey="value" name="Mhs Baru" stroke="#6366f1" fillOpacity={1} fill="url(#colorEnrollment)" strokeWidth={2} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+
+          {/* Chart 3: Rerata IPK per Fakultas */}
+          <div className="lg:col-span-1 bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none flex flex-col justify-between">
+            <div>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-8 h-8 bg-amber-50 rounded-lg flex justify-center items-center text-amber-600">
+                  <span className="material-symbols-outlined text-amber-600 text-sm">star</span>
+                </div>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Rata-rata IPK per Fakultas</span>
+              </div>
+              <div className="h-[180px] w-full mt-1">
+                <ResponsiveContainer width="100%" height={180}>
+                  <BarChart data={facultyIpkData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="name" tick={{ fontSize: 8, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                    <YAxis domain={[0, 4]} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", fontSize: "11px", fontWeight: "bold" }} />
+                    <Bar dataKey="Rerata IPK" fill="#f59e0b" radius={[4, 4, 0, 0]} barSize={18} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
         </div>

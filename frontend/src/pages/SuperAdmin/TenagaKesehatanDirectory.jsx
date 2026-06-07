@@ -215,7 +215,48 @@ export default function TenagaKesehatanDirectory() {
       .filter(d => d.value > 0)
   }, [bookings])
 
-  const PIE_COLORS = ['#3b82f6', '#f59e0b', '#ef4444', '#10b981']
+  const PIE_COLORS = ['#10b981', '#f59e0b', '#ef4444', '#3b82f6']
+
+  const healthStats = useMemo(() => {
+    const total = bookings.length
+    const selesai = bookings.filter(b => {
+      const s = String(b.status || '').toLowerCase()
+      return s === 'dikonfirmasi' || s === 'selesai'
+    }).length
+    const completionRate = total > 0 ? ((selesai / total) * 100).toFixed(0) + '%' : '0%'
+
+    const kondisiPrima = medicalRecords.filter(mr => {
+      const status = String(mr.status_kesehatan || '').toLowerCase()
+      return status === 'prima'
+    }).length
+
+    return { completionRate, kondisiPrima }
+  }, [bookings, medicalRecords])
+
+  const golDarahData = useMemo(() => {
+    const counts = { 'A': 0, 'B': 0, 'AB': 0, 'O': 0 }
+    medicalRecords.forEach(mr => {
+      const gol = String(mr.golongan_darah || mr.GolonganDarah || '').toUpperCase().trim()
+      if (counts.hasOwnProperty(gol)) counts[gol]++
+    })
+    return Object.entries(counts)
+      .map(([name, value]) => ({ name, value }))
+      .filter(d => d.value > 0)
+  }, [medicalRecords])
+
+  const screeningData = useMemo(() => {
+    const counts = { 'Prima': 0, 'Stabil': 0, 'Pantauan': 0, 'Kritis': 0 }
+    medicalRecords.forEach(mr => {
+      const s = String(mr.status_kesehatan || '').toLowerCase()
+      if (s === 'prima') counts['Prima']++
+      else if (s === 'stabil') counts['Stabil']++
+      else if (s === 'pantauan') counts['Pantauan']++
+      else if (s === 'kritis') counts['Kritis']++
+    })
+    return Object.entries(counts)
+      .map(([name, value]) => ({ name, value }))
+      .filter(d => d.value > 0)
+  }, [medicalRecords])
 
   const handleOpenEdit = (row) => {
     setForm({ 
@@ -666,7 +707,7 @@ export default function TenagaKesehatanDirectory() {
   }
 
   return (
-    <div className="px-4 py-8 md:px-8 xl:px-12 min-h-screen bg-[#fafafa] font-body">
+    <div className="min-h-screen bg-[#fafafa] font-body">
       <Toaster position="top-right" />
       
       <div className="max-w-[1600px] mx-auto space-y-10">
@@ -702,111 +743,220 @@ export default function TenagaKesehatanDirectory() {
         </section>
 
         {/* ── Stats Grid ──────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <StatCard
-            label="Total Tenaga Medis"
-            value={data.length}
-            description="Petugas terdaftar aktif"
-            icon="group"
-            color="text-primary"
-            bg="bg-primary/10"
-            loading={loading}
-          />
-          <StatCard
-            label="Booking Hari Ini"
-            value={getTodayBookingsCount()}
-            description="Booking antrean pasien hari ini"
-            icon="calendar_month"
-            color="text-info"
-            bg="bg-info/10"
-            loading={loading}
-            badge={getTodayBookingsCount() > 0 && (
-              <span className="bg-rose-500 text-white text-[8px] font-extrabold px-1.5 py-0.5 rounded-full animate-pulse">LIVE</span>
-            )}
-          />
-          <StatCard
-            label="Catatan Medis & Screening"
-            value={medicalRecords.length}
-            description="Riwayat pemeriksaan terinput"
-            icon="medical_services"
-            color="text-success"
-            bg="bg-success/10"
-            loading={loading}
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-primary/10 rounded-xl flex justify-center items-center text-primary flex-shrink-0">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>group</span>
+              </div>
+              <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Total Tenaga Medis</span>
+            </div>
+            <p className="text-3xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{data.length}</p>
+            <p className="text-xs text-[#a3a3a3] font-medium mt-1">Petugas terdaftar</p>
+          </div>
+
+          <div className="bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-blue-50 rounded-xl flex justify-center items-center text-blue-600 flex-shrink-0">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>task_alt</span>
+              </div>
+              <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Kunjungan Terselesaikan</span>
+            </div>
+            <p className="text-3xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{healthStats.completionRate}</p>
+            <p className="text-xs text-[#a3a3a3] font-medium mt-1">Rasio janji temu sukses</p>
+          </div>
+
+          <div className="bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-emerald-50 rounded-xl flex justify-center items-center text-emerald-600 flex-shrink-0">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>favorite</span>
+              </div>
+              <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Kondisi Prima</span>
+            </div>
+            <p className="text-3xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{healthStats.kondisiPrima}</p>
+            <p className="text-xs text-[#a3a3a3] font-medium mt-1">Mahasiswa status prima</p>
+          </div>
+
+          <div className="bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-indigo-50 rounded-xl flex justify-center items-center text-indigo-600 flex-shrink-0">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>medical_services</span>
+              </div>
+              <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Rekam Medis</span>
+            </div>
+            <p className="text-3xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{medicalRecords.length}</p>
+            <p className="text-xs text-[#a3a3a3] font-medium mt-1">Catatan screening terinput</p>
+          </div>
+
+          <div className="bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-rose-50 rounded-xl flex justify-center items-center text-rose-600 flex-shrink-0">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>calendar_month</span>
+              </div>
+              <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Booking Hari Ini</span>
+              {getTodayBookingsCount() > 0 && (
+                <span className="bg-rose-500 text-white text-[8px] font-extrabold px-1.5 py-0.5 rounded-full animate-pulse ml-auto">LIVE</span>
+              )}
+            </div>
+            <p className="text-3xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{getTodayBookingsCount()}</p>
+            <p className="text-xs text-[#a3a3a3] font-medium mt-1">Janji temu hari ini</p>
+          </div>
         </div>
 
         {/* ── Charts Section ──────────────────────────────────────── */}
         {!loading && bookings.length > 0 && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-300">
-            {/* Bar Chart: Jenis Layanan Kesehatan Terpopuler */}
-            <div className="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-primary/10 rounded-xl flex justify-center items-center text-primary flex-shrink-0">
-                  <span className="material-symbols-outlined text-primary" style={{ fontSize: '18px' }} >bar_chart</span>
+          <div className="space-y-6 animate-in fade-in duration-300">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Bar Chart: Jenis Layanan Kesehatan Terpopuler */}
+              <div className="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-primary/10 rounded-xl flex justify-center items-center text-primary flex-shrink-0">
+                    <span className="material-symbols-outlined text-primary" style={{ fontSize: '18px' }} >bar_chart</span>
+                  </div>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Layanan Kesehatan Terpopuler</span>
                 </div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Layanan Kesehatan Terpopuler</span>
+                <div className="h-[200px] w-full">
+                  <ResponsiveContainer width="100%" height={200}>
+                    <BarChart data={serviceChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                      <XAxis dataKey="name" tick={{ fontSize: 8.5, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                      <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                      <Tooltip
+                        cursor={{ fill: '#f8fafc' }}
+                        contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "11px", fontWeight: "bold" }}
+                      />
+                      <Bar dataKey="value" name="Jumlah Janji Temu" fill="var(--theme-primary, #00236f)" radius={[4, 4, 0, 0]} barSize={24} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
-              <div className="h-[200px] w-full">
-                <ResponsiveContainer width="100%" height={200}>
-                  <BarChart data={serviceChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="name" tick={{ fontSize: 8.5, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                    <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                    <Tooltip
-                      cursor={{ fill: '#f8fafc' }}
-                      contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "11px", fontWeight: "bold" }}
-                    />
-                    <Bar dataKey="value" name="Jumlah Janji Temu" fill="var(--theme-primary, #00236f)" radius={[4, 4, 0, 0]} barSize={24} />
-                  </BarChart>
-                </ResponsiveContainer>
+
+              {/* Pie Chart: Status Janji Temu */}
+              <div className="lg:col-span-1 bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none flex flex-col justify-between">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-blue-50 rounded-xl flex justify-center items-center text-blue-600 flex-shrink-0">
+                    <span className="material-symbols-outlined text-blue-600" style={{ fontSize: '18px' }} >pie_chart</span>
+                  </div>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Status Janji Temu</span>
+                </div>
+                <div className="h-[140px] w-full flex items-center justify-center">
+                  {statusChartData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={140}>
+                      <PieChart>
+                        <Pie
+                          data={statusChartData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={40}
+                          outerRadius={60}
+                          paddingAngle={4}
+                          dataKey="value"
+                          stroke="none"
+                        >
+                          {statusChartData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <span className="text-xs text-slate-400 italic">Tidak ada data</span>
+                  )}
+                </div>
+                <div className="grid grid-cols-1 gap-1.5 mt-2">
+                  {statusChartData.slice(0, 4).map((item, idx) => (
+                    <div key={item.name} className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-100">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
+                        <span className="text-[10px] font-bold text-slate-500 leading-none">{item.name}</span>
+                      </div>
+                      <span className="text-xs font-extrabold text-slate-800 leading-none">{item.value}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* Pie Chart: Status Janji Temu */}
-            <div className="lg:col-span-1 bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none flex flex-col justify-between">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-success/10 rounded-xl flex justify-center items-center text-success flex-shrink-0">
-                  <span className="material-symbols-outlined text-success" style={{ fontSize: '18px' }} >pie_chart</span>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Donut Chart: Hasil Skrining Kesehatan */}
+              <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-emerald-50 rounded-xl flex justify-center items-center text-emerald-600 flex-shrink-0">
+                    <span className="material-symbols-outlined text-emerald-600" style={{ fontSize: '18px' }} >health_and_safety</span>
+                  </div>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Hasil Skrining Kesehatan</span>
                 </div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Status Janji Temu</span>
-              </div>
-              <div className="h-[140px] w-full flex items-center justify-center">
-                {statusChartData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={140}>
-                    <PieChart>
-                      <Pie
-                        data={statusChartData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={40}
-                        outerRadius={60}
-                        paddingAngle={4}
-                        dataKey="value"
-                        stroke="none"
-                      >
-                        {statusChartData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
+                {screeningData.length > 0 ? (
+                  <div className="flex items-center gap-4">
+                    <div className="flex-shrink-0">
+                      <ResponsiveContainer width={140} height={140}>
+                        <PieChart>
+                          <Pie
+                            data={screeningData}
+                            cx="50%" cy="50%"
+                            innerRadius={42} outerRadius={64}
+                            paddingAngle={3}
+                            dataKey="value"
+                            stroke="none"
+                          >
+                            {screeningData.map((_, index) => (
+                              <Cell key={`scr-${index}`} fill={['#10b981', '#3b82f6', '#f59e0b', '#ef4444'][index % 4]} />
+                            ))}
+                          </Pie>
+                          <Tooltip contentStyle={{ fontSize: '10px', fontWeight: 'bold', borderRadius: '10px' }} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="flex flex-col gap-2 flex-1">
+                      {screeningData.map((item, idx) => (
+                        <div key={item.name} className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-100">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'][idx % 4] }} />
+                            <span className="text-[10px] font-bold text-slate-600">{item.name}</span>
+                          </div>
+                          <span className="text-xs font-extrabold text-slate-800">{item.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 ) : (
-                  <span className="text-xs text-slate-400 italic">Tidak ada data</span>
+                  <div className="h-[140px] flex items-center justify-center">
+                    <span className="text-xs text-slate-400 italic">Belum ada data screening</span>
+                  </div>
                 )}
               </div>
-              <div className="grid grid-cols-1 gap-1.5 mt-2">
-                {statusChartData.slice(0, 4).map((item, idx) => (
-                  <div key={item.name} className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-100">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
-                      <span className="text-[10px] font-bold text-slate-500 leading-none">{item.name}</span>
-                    </div>
-                    <span className="text-xs font-extrabold text-slate-800 leading-none">{item.value}</span>
+
+              {/* Bar Chart: Sebaran Golongan Darah */}
+              <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-rose-50 rounded-xl flex justify-center items-center text-rose-600 flex-shrink-0">
+                    <span className="material-symbols-outlined text-rose-600" style={{ fontSize: '18px' }} >water_drop</span>
                   </div>
-                ))}
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Sebaran Golongan Darah</span>
+                </div>
+                {golDarahData.length > 0 ? (
+                  <div className="h-[180px] w-full">
+                    <ResponsiveContainer width="100%" height={180}>
+                      <BarChart data={golDarahData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                        <XAxis dataKey="name" tick={{ fontSize: 12, fontWeight: 800, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                        <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                        <Tooltip
+                          cursor={{ fill: '#fef2f2' }}
+                          contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #fecaca", borderRadius: "12px", fontSize: "11px", fontWeight: "bold" }}
+                        />
+                        <Bar dataKey="value" name="Jumlah Mahasiswa" fill="#ef4444" radius={[6, 6, 0, 0]} barSize={36} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="h-[180px] flex items-center justify-center">
+                    <span className="text-xs text-slate-400 italic">Belum ada data golongan darah</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
