@@ -29,15 +29,15 @@ const Award = ({ size, className, ...props }) => <span className={`material-symb
 
 const API = `${API_BASE_URL}/faculty`
 
-const AVATAR_COLORS = ['from-blue-400 to-indigo-500','from-emerald-400 to-teal-500','from-amber-400 to-orange-500','from-rose-400 to-pink-500','from-violet-400 to-purple-500']
-const getInitials = (n='') => n.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase()||'?'
+const AVATAR_COLORS = ['from-blue-400 to-indigo-500', 'from-emerald-400 to-teal-500', 'from-amber-400 to-orange-500', 'from-rose-400 to-pink-500', 'from-violet-400 to-purple-500']
+const getInitials = (n = '') => n.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase() || '?'
 
 const LUL_STATUS = {
-  Lulus: {cls:'bg-emerald-50 text-emerald-700 border-emerald-200', dot:'bg-emerald-500'},
-  Proses:{cls:'bg-amber-50 text-amber-700 border-amber-200',       dot:'bg-amber-500'},
-  Gagal: {cls:'bg-rose-50 text-rose-700 border-rose-200',          dot:'bg-rose-500'},
+  Lulus: { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500' },
+  Proses: { cls: 'bg-amber-50 text-amber-700 border-amber-200', dot: 'bg-amber-500' },
+  Gagal: { cls: 'bg-rose-50 text-rose-700 border-rose-200', dot: 'bg-rose-500' },
 }
-const getLulus = (v='') => LUL_STATUS[v] || LUL_STATUS.Proses
+const getLulus = (v = '') => LUL_STATUS[v] || LUL_STATUS.Proses
 
 const getFullUrl = (path) => {
   if (!path || path.trim() === "" || path === "/" || path.endsWith("/profiles/") || path.endsWith("/students/")) return null;
@@ -49,7 +49,7 @@ const getFullUrl = (path) => {
 function StudentAvatar({ src, name, className = "w-9 h-9 rounded-xl" }) {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
-  
+
   const hasNoImage = !src || src.trim() === "" || src.endsWith("/profiles/") || src.endsWith("/students/") || src.endsWith("localhost:8000") || src.endsWith("localhost:8000/");
 
   return (
@@ -73,8 +73,8 @@ function StudentAvatar({ src, name, className = "w-9 h-9 rounded-xl" }) {
 }
 
 const TABS = [
-  {key:'prodi',   label:'Breakdown Prodi', icon:GraduationCap},
-  {key:'students',label:'Detail Peserta',  icon:Users},
+  { key: 'prodi', label: 'Breakdown Prodi', icon: GraduationCap },
+  { key: 'students', label: 'Detail Peserta', icon: Users },
 ]
 
 const parseDay = (dateStr) => {
@@ -109,14 +109,14 @@ const formatFullDate = (dateStr) => {
 
 export default function FacultyPkkmb() {
   const [activeTab, setTab] = useState('prodi')
-  const [loading, setLoading]   = useState(true)
-  const [data, setData]         = useState([])
+  const [loading, setLoading] = useState(true)
+  const [data, setData] = useState([])
   const [students, setStudents] = useState([])
-  const [summary, setSummary]   = useState({ totalMaba:0, totalLulus:0, totalProses:0, totalSertifikat:0 })
-  const [search, setSearch]     = useState('')
-  const [filterStatus, setFilter]= useState('all')
+  const [summary, setSummary] = useState({ totalMaba: 0, totalLulus: 0, totalProses: 0, totalSertifikat: 0 })
+  const [search, setSearch] = useState('')
+  const [filterStatus, setFilter] = useState('all')
   const [selected, setSelected] = useState(null)
-  
+
   const [statsDetail, setStatsDetail] = useState(null)
   const [statsSearch, setStatsSearch] = useState('')
   const [distribusi, setDistribusi] = useState({ Lulus: 0, Proses: 0, Gagal: 0, Total: 0 })
@@ -144,15 +144,15 @@ export default function FacultyPkkmb() {
   const filteredStatsDetailList = useMemo(() => {
     if (!statsDetail) return []
     const q = statsSearch.toLowerCase()
-    return statsDetail.list.filter(s => 
+    return statsDetail.list.filter(s =>
       !q || s.Mahasiswa?.Nama?.toLowerCase().includes(q) || s.Mahasiswa?.NIM?.includes(q) || s.Mahasiswa?.ProgramStudi?.Nama?.toLowerCase().includes(q)
     )
   }, [statsDetail, statsSearch])
 
   // Pagination & Sorting states
-  const [currentPage, setCurrentPage]   = useState(1)
-  const [pageSize, setPageSize]         = useState(10)
-  const [sortConfig, setSortConfig]     = useState({ key: null, direction: 'asc' })
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' })
 
   // Reset pagination when active tab changes
   useEffect(() => {
@@ -164,23 +164,23 @@ export default function FacultyPkkmb() {
     try {
       const json = await fetchWithAuth(`${API}/ringkasan`)
       if (json.status === 'success') {
-        setData(json.prodiBreakdown||[])
-        setSummary(json.stats||{totalMaba:0,totalLulus:0,totalProses:0,totalSertifikat:0})
-        setDistribusi(json.distribusi||{Lulus:0,Proses:0,Gagal:0,Total:0})
-        setAngkatanStats(json.angkatanStats||[])
-        setGenderStats(json.genderStats||[])
-        setNilaiDist(json.nilaiDist||[])
-        setKegiatanList(json.kegiatanList||[])
-        setBatasNilai(json.batasNilai||70)
+        setData(json.prodiBreakdown || [])
+        setSummary(json.stats || { totalMaba: 0, totalLulus: 0, totalProses: 0, totalSertifikat: 0 })
+        setDistribusi(json.distribusi || { Lulus: 0, Proses: 0, Gagal: 0, Total: 0 })
+        setAngkatanStats(json.angkatanStats || [])
+        setGenderStats(json.genderStats || [])
+        setNilaiDist(json.nilaiDist || [])
+        setKegiatanList(json.kegiatanList || [])
+        setBatasNilai(json.batasNilai || 70)
       }
-    } catch {}
+    } catch { }
   }
 
   const fetchStudents = async () => {
     setLoading(true)
     try {
       const json = await fetchWithAuth(`${API}/peserta`)
-      if (json.status === 'success') setStudents((json.data||[]).map((s,i)=>({...s, colorIdx: i % AVATAR_COLORS.length})))
+      if (json.status === 'success') setStudents((json.data || []).map((s, i) => ({ ...s, colorIdx: i % AVATAR_COLORS.length })))
     } catch { toast.error('Gagal memuat data peserta') }
     finally { setLoading(false) }
   }
@@ -190,7 +190,7 @@ export default function FacultyPkkmb() {
   const filteredStudents = useMemo(() => students.filter(s => {
     const q = search.toLowerCase()
     const matchQ = !q || s.Mahasiswa?.Nama?.toLowerCase().includes(q) || s.Mahasiswa?.NIM?.includes(q)
-    const matchS = filterStatus==='all' || s.StatusKelulusan===filterStatus
+    const matchS = filterStatus === 'all' || s.StatusKelulusan === filterStatus
     return matchQ && matchS
   }), [students, search, filterStatus])
 
@@ -268,7 +268,7 @@ export default function FacultyPkkmb() {
 
   return (
     <div className="min-h-screen bg-transparent font-inter">
-      <Toaster position="top-right"/>
+      <Toaster position="top-right" />
       <div className="w-full space-y-6">
 
         {/* ── Page Header ────────────────────────────────────────── */}
@@ -319,7 +319,7 @@ export default function FacultyPkkmb() {
             {/* Action and quick count balance box */}
             <div className="flex flex-row lg:flex-col items-end gap-3 shrink-0 self-stretch lg:self-auto justify-between lg:justify-center border-t lg:border-t-0 pt-4 lg:pt-0 border-slate-100">
               <div className="flex items-center gap-2">
-                <button onClick={()=>{ fetchSummary(); fetchStudents() }} disabled={loading}
+                <button onClick={() => { fetchSummary(); fetchStudents() }} disabled={loading}
                   className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-60 flex items-center gap-2">
                   {loading ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '13px' }} >sync</span> : <span className="material-symbols-outlined text-primary" style={{ fontSize: 13 }}>sync</span>} Refresh Data
                 </button>
@@ -328,14 +328,14 @@ export default function FacultyPkkmb() {
           </div>
         </section>
 
-        // Stats cards row 1 (existing 4)
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            {key:'totalMaba',       label:'Registrasi Maba',    value:summary.totalMaba,       icon:Users,        bg:'bg-[#eef4ff]',  color:'text-primary',       desc:'Total mahasiswa baru'},
-            {key:'totalLulus',      label:'Sertifikasi Lulus',  value:summary.totalLulus,      icon:CheckCircle,  bg:'bg-emerald-50', color:'text-emerald-600',   desc:'Dinyatakan lulus PKKMB'},
-            {key:'totalSertifikat', label:'Sertifikat Terbit',  value:summary.totalSertifikat, icon:Award,        bg:'bg-indigo-50',  color:'text-indigo-600',    desc:'Sertifikat telah di-generate'},
-            {key:'totalProses',     label:'Dalam Proses',       value:summary.totalProses,     icon:Clock,        bg:'bg-amber-50',   color:'text-amber-600',     desc:'Masih dalam penilaian'},
-          ].map(s=>(
+            { key: 'totalMaba', label: 'Registrasi Maba', value: summary.totalMaba, icon: Users, bg: 'bg-[#eef4ff]', color: 'text-primary', desc: 'Total mahasiswa baru' },
+            { key: 'totalLulus', label: 'Sertifikasi Lulus', value: summary.totalLulus, icon: CheckCircle, bg: 'bg-emerald-50', color: 'text-emerald-600', desc: 'Dinyatakan lulus PKKMB' },
+            { key: 'totalSertifikat', label: 'Sertifikat Terbit', value: summary.totalSertifikat, icon: Award, bg: 'bg-indigo-50', color: 'text-indigo-600', desc: 'Sertifikat telah di-generate' },
+            { key: 'totalProses', label: 'Dalam Proses', value: summary.totalProses, icon: Clock, bg: 'bg-amber-50', color: 'text-amber-600', desc: 'Masih dalam penilaian' },
+          ].map(s => (
             <div
               key={s.label}
               onClick={() => handleOpenStatsDetail(s.key, s.label)}
@@ -345,7 +345,7 @@ export default function FacultyPkkmb() {
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
                     <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110', s.bg, s.color)}>
-                      <s.icon size={18}/>
+                      <s.icon size={18} />
                     </div>
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</span>
                   </div>
@@ -384,14 +384,14 @@ export default function FacultyPkkmb() {
                   {distribusi.Total > 0 ? (
                     <>
                       {/* Lulus - emerald */}
-                      <circle cx="18" cy="18" r="15.9" fill="none" stroke="#10b981" strokeWidth="3" strokeDasharray={`${(distribusi.Lulus/distribusi.Total)*100} ${100-(distribusi.Lulus/distribusi.Total)*100}`} strokeDashoffset="0" transform="rotate(-90 18 18)"/>
+                      <circle cx="18" cy="18" r="15.9" fill="none" stroke="#10b981" strokeWidth="3" strokeDasharray={`${(distribusi.Lulus / distribusi.Total) * 100} ${100 - (distribusi.Lulus / distribusi.Total) * 100}`} strokeDashoffset="0" transform="rotate(-90 18 18)" />
                       {/* Proses - amber */}
-                      <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f59e0b" strokeWidth="3" strokeDasharray={`${(distribusi.Proses/distribusi.Total)*100} ${100-(distribusi.Proses/distribusi.Total)*100}`} strokeDashoffset={`-${(distribusi.Lulus/distribusi.Total)*100}`} transform="rotate(-90 18 18)"/>
+                      <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f59e0b" strokeWidth="3" strokeDasharray={`${(distribusi.Proses / distribusi.Total) * 100} ${100 - (distribusi.Proses / distribusi.Total) * 100}`} strokeDashoffset={`-${(distribusi.Lulus / distribusi.Total) * 100}`} transform="rotate(-90 18 18)" />
                       {/* Gagal - rose */}
-                      <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f43f5e" strokeWidth="3" strokeDasharray={`${(distribusi.Gagal/distribusi.Total)*100} ${100-(distribusi.Gagal/distribusi.Total)*100}`} strokeDashoffset={`-${(distribusi.Lulus/distribusi.Total + distribusi.Proses/distribusi.Total)*100}`} transform="rotate(-90 18 18)"/>
+                      <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f43f5e" strokeWidth="3" strokeDasharray={`${(distribusi.Gagal / distribusi.Total) * 100} ${100 - (distribusi.Gagal / distribusi.Total) * 100}`} strokeDashoffset={`-${(distribusi.Lulus / distribusi.Total + distribusi.Proses / distribusi.Total) * 100}`} transform="rotate(-90 18 18)" />
                     </>
                   ) : (
-                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e2e8f0" strokeWidth="3"/>
+                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e2e8f0" strokeWidth="3" />
                   )}
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
@@ -400,15 +400,15 @@ export default function FacultyPkkmb() {
               </div>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full bg-emerald-500"/>
+                  <span className="w-3 h-3 rounded-full bg-emerald-500" />
                   <span className="text-xs font-medium text-slate-600">Lulus: {distribusi.Lulus}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full bg-amber-500"/>
+                  <span className="w-3 h-3 rounded-full bg-amber-500" />
                   <span className="text-xs font-medium text-slate-600">Proses: {distribusi.Proses}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full bg-rose-500"/>
+                  <span className="w-3 h-3 rounded-full bg-rose-500" />
                   <span className="text-xs font-medium text-slate-600">Gagal: {distribusi.Gagal}</span>
                 </div>
               </div>
@@ -434,7 +434,7 @@ export default function FacultyPkkmb() {
                   <div key={i} className="flex items-center gap-2">
                     <span className="text-[10px] font-bold text-slate-500 w-12">{item.range}</span>
                     <div className="flex-1 h-5 bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-cyan-400 to-cyan-600 rounded-full transition-all" style={{width:`${(item.count/maxCount)*100}%`}}/>
+                      <div className="h-full bg-gradient-to-r from-cyan-400 to-cyan-600 rounded-full transition-all" style={{ width: `${(item.count / maxCount) * 100}%` }} />
                     </div>
                     <span className="text-xs font-black text-slate-700 w-8 text-right">{item.count}</span>
                   </div>
@@ -518,8 +518,8 @@ export default function FacultyPkkmb() {
                     <span className="text-[10px] font-bold text-indigo-600">{parseDay(k.tanggal)}</span>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-slate-800 truncate" title={k.nama || 'Tidak ada nama'}>{k.nama||'Tidak ada nama'}</p>
-                    <p className="text-[10px] text-slate-400 truncate" title={`${formatFullDate(k.tanggal)} · ${k.lokasi || '-'}`}>{formatFullDate(k.tanggal)} · {k.lokasi||'-'}</p>
+                    <p className="text-sm font-semibold text-slate-800 truncate" title={k.nama || 'Tidak ada nama'}>{k.nama || 'Tidak ada nama'}</p>
+                    <p className="text-[10px] text-slate-400 truncate" title={`${formatFullDate(k.tanggal)} · ${k.lokasi || '-'}`}>{formatFullDate(k.tanggal)} · {k.lokasi || '-'}</p>
                   </div>
                 </div>
               )) : (
@@ -542,8 +542,8 @@ export default function FacultyPkkmb() {
             <div className="flex flex-col items-center justify-center py-4">
               <div className="relative w-20 h-20">
                 <svg viewBox="0 0 36 36" className="w-full h-full">
-                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e2e8f0" strokeWidth="3"/>
-                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#14b8a6" strokeWidth="3" strokeDasharray="75 25" strokeDashoffset="0" transform="rotate(-90 18 18)"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e2e8f0" strokeWidth="3" />
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#14b8a6" strokeWidth="3" strokeDasharray="75 25" strokeDashoffset="0" transform="rotate(-90 18 18)" />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
                   <span className="text-xl font-extrabold text-teal-600">{batasNilai}</span>
@@ -557,11 +557,11 @@ export default function FacultyPkkmb() {
 
         {/* Tabs */}
         <div className="flex items-center gap-1 glass-card border border-slate-200/60 rounded-2xl p-1.5 w-fit shadow-none">
-          {TABS.map(t=>(
-            <button key={t.key} onClick={()=>{setTab(t.key);setSearch('');setFilter('all')}}
+          {TABS.map(t => (
+            <button key={t.key} onClick={() => { setTab(t.key); setSearch(''); setFilter('all') }}
               className={cn('flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all',
-                activeTab===t.key?'bg-primary text-white shadow-lg shadow-bku-primary/25':'text-slate-500 hover:bg-slate-50')}>
-              <t.icon size={14}/>{t.label}
+                activeTab === t.key ? 'bg-primary text-white shadow-lg shadow-bku-primary/25' : 'text-slate-500 hover:bg-slate-50')}>
+              <t.icon size={14} />{t.label}
             </button>
           ))}
         </div>
@@ -570,17 +570,17 @@ export default function FacultyPkkmb() {
         <div className="glass-card border border-slate-200/60 rounded-2xl shadow-none overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <div className="flex-1">
-              <h2 className="font-black text-sm uppercase tracking-tight font-headline" style={{ color: 'var(--theme-h2)' }}>{activeTab==='prodi'?'Breakdown per Program Studi':'Daftar Peserta PKKMB'}</h2>
-              <p className="text-xs text-slate-500 mt-0.5">Menampilkan <span className="font-bold text-slate-900">{activeTab==='prodi'?filteredProdi.length:filteredStudents.length}</span> data</p>
+              <h2 className="font-black text-sm uppercase tracking-tight font-headline" style={{ color: 'var(--theme-h2)' }}>{activeTab === 'prodi' ? 'Breakdown per Program Studi' : 'Daftar Peserta PKKMB'}</h2>
+              <p className="text-xs text-slate-500 mt-0.5">Menampilkan <span className="font-bold text-slate-900">{activeTab === 'prodi' ? filteredProdi.length : filteredStudents.length}</span> data</p>
             </div>
             <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '14px' }} >search</span>
-                <input type="text" placeholder={activeTab==='prodi'?'Cari prodi...':'Cari nama atau NIM...'} value={search} onChange={e=>setSearch(e.target.value)}
-                  className="pl-9 pr-4 h-9 w-48 rounded-xl border border-slate-200/60 focus:outline-none focus:border-primary text-sm bg-white"/>
+                <input type="text" placeholder={activeTab === 'prodi' ? 'Cari prodi...' : 'Cari nama atau NIM...'} value={search} onChange={e => setSearch(e.target.value)}
+                  className="pl-9 pr-4 h-9 w-48 rounded-xl border border-slate-200/60 focus:outline-none focus:border-primary text-sm bg-white" />
               </div>
-              {activeTab==='students' && (
-                <select value={filterStatus} onChange={e=>setFilter(e.target.value)}
+              {activeTab === 'students' && (
+                <select value={filterStatus} onChange={e => setFilter(e.target.value)}
                   className="h-9 pl-3 pr-8 rounded-xl border border-slate-200/60 text-xs font-medium bg-white text-slate-600 focus:outline-none focus:border-primary appearance-none cursor-pointer">
                   <option value="all">Semua Status</option>
                   <option value="Lulus">Lulus</option>
@@ -630,16 +630,16 @@ export default function FacultyPkkmb() {
                   </tr>
                 </thead>
                 <tbody>
-                  {loading?Array.from({length: pageSize}).map((_, i)=>(
-                    <tr key={i} className="border-b border-slate-100">{[...Array(5)].map((__,j)=><td key={j} className="px-5 py-4"><div className="h-4 bg-slate-50 rounded animate-pulse"/></td>)}</tr>
-                  )):paginatedProdi.length===0?(
+                  {loading ? Array.from({ length: pageSize }).map((_, i) => (
+                    <tr key={i} className="border-b border-slate-100">{[...Array(5)].map((__, j) => <td key={j} className="px-5 py-4"><div className="h-4 bg-slate-50 rounded animate-pulse" /></td>)}</tr>
+                  )) : paginatedProdi.length === 0 ? (
                     <tr><td colSpan={5} className="px-5 py-16 text-center">
                       <div className="flex flex-col items-center gap-3">
                         <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-primary"><span className="material-symbols-outlined" style={{ fontSize: '22px' }} >school</span></div>
                         <p className="font-bold text-sm text-slate-900">Tidak Ada Prodi</p>
                       </div>
                     </td></tr>
-                  ):paginatedProdi.map((row,i)=>(
+                  ) : paginatedProdi.map((row, i) => (
                     <tr key={i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors">
                       <td className="px-5 py-3.5 text-sm text-slate-400 font-medium">{(currentPage - 1) * pageSize + i + 1}</td>
                       <td className="px-5 py-3.5">
@@ -648,15 +648,15 @@ export default function FacultyPkkmb() {
                       </td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-2">
-                          <div className="w-20 h-1.5 bg-[#f0f0f0] rounded-full overflow-hidden"><div className="h-full bg-primary rounded-full" style={{width:`${row.partisipasi}%`}}/></div>
+                          <div className="w-20 h-1.5 bg-[#f0f0f0] rounded-full overflow-hidden"><div className="h-full bg-primary rounded-full" style={{ width: `${row.partisipasi}%` }} /></div>
                           <span className="text-xs font-black text-slate-900 tabular-nums">{Math.round(row.partisipasi)}%</span>
                         </div>
                       </td>
-                      <td className="px-5 py-3.5 font-black text-sm text-slate-900 tabular-nums">{row.nilai?.toFixed(1)||'0.0'}</td>
+                      <td className="px-5 py-3.5 font-black text-sm text-slate-900 tabular-nums">{row.nilai?.toFixed(1) || '0.0'}</td>
                       <td className="px-5 py-3.5">
                         <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider whitespace-nowrap',
-                          row.status==='Optimal'?'bg-emerald-50 text-emerald-700 border-emerald-200':'bg-amber-50 text-amber-700 border-amber-200')}>
-                          <span className={cn('w-1.5 h-1.5 rounded-full shrink-0',row.status==='Optimal'?'bg-emerald-500':'bg-amber-500')}/>{row.status}
+                          row.status === 'Optimal' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200')}>
+                          <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', row.status === 'Optimal' ? 'bg-emerald-500' : 'bg-amber-500')} />{row.status}
                         </span>
                       </td>
                     </tr>
@@ -703,36 +703,36 @@ export default function FacultyPkkmb() {
                   </tr>
                 </thead>
                 <tbody>
-                  {loading?Array.from({length: pageSize}).map((_, i)=>(
-                    <tr key={i} className="border-b border-slate-100">{[...Array(7)].map((__,j)=><td key={j} className="px-5 py-4"><div className="h-4 bg-slate-50 rounded animate-pulse"/></td>)}</tr>
-                  )):paginatedStudents.length===0?(
+                  {loading ? Array.from({ length: pageSize }).map((_, i) => (
+                    <tr key={i} className="border-b border-slate-100">{[...Array(7)].map((__, j) => <td key={j} className="px-5 py-4"><div className="h-4 bg-slate-50 rounded animate-pulse" /></td>)}</tr>
+                  )) : paginatedStudents.length === 0 ? (
                     <tr><td colSpan={7} className="px-5 py-16 text-center">
                       <div className="flex flex-col items-center gap-3">
                         <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-primary"><span className="material-symbols-outlined" style={{ fontSize: '22px' }} >group</span></div>
                         <p className="font-bold text-sm text-slate-900">Tidak Ada Peserta</p>
                       </div>
                     </td></tr>
-                  ):paginatedStudents.map((row,i)=>{
+                  ) : paginatedStudents.map((row, i) => {
                     const st = getLulus(row.StatusKelulusan)
                     return (
-                      <tr key={row.ID||i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors">
+                      <tr key={row.ID || i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors">
                         <td className="px-5 py-3.5 text-sm text-slate-400 font-medium">{(currentPage - 1) * pageSize + i + 1}</td>
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-3">
                             <StudentAvatar src={getFullUrl(row.Mahasiswa?.FotoURL || row.Mahasiswa?.foto_url || row.Mahasiswa?.Foto || row.Mahasiswa?.Pengguna?.Foto)} name={row.Mahasiswa?.Nama} className="w-9 h-9 rounded-xl" />
-                            <div><p className="font-bold text-sm text-slate-900">{row.Mahasiswa?.Nama||'—'}</p><p className="text-[10px] text-slate-400 font-medium">{row.Mahasiswa?.NIM||'—'}</p></div>
+                            <div><p className="font-bold text-sm text-slate-900">{row.Mahasiswa?.Nama || '—'}</p><p className="text-[10px] text-slate-400 font-medium">{row.Mahasiswa?.NIM || '—'}</p></div>
                           </div>
                         </td>
-                        <td className="px-5 py-3.5 text-sm text-slate-600 font-medium">{row.Mahasiswa?.ProgramStudi?.Nama||'—'}</td>
-                        <td className="px-5 py-3.5 font-black text-sm text-slate-900 tabular-nums">{row.attendanceRate||0}%</td>
-                        <td className="px-5 py-3.5 font-black text-sm text-primary tabular-nums">{row.Nilai||0}</td>
+                        <td className="px-5 py-3.5 text-sm text-slate-600 font-medium">{row.Mahasiswa?.ProgramStudi?.Nama || '—'}</td>
+                        <td className="px-5 py-3.5 font-black text-sm text-slate-900 tabular-nums">{row.attendanceRate || 0}%</td>
+                        <td className="px-5 py-3.5 font-black text-sm text-primary tabular-nums">{row.Nilai || 0}</td>
                         <td className="px-5 py-3.5">
-                          <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider whitespace-nowrap',st.cls)}>
-                            <span className={cn('w-1.5 h-1.5 rounded-full shrink-0',st.dot)}/>{row.StatusKelulusan||'Proses'}
+                          <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider whitespace-nowrap', st.cls)}>
+                            <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', st.dot)} />{row.StatusKelulusan || 'Proses'}
                           </span>
                         </td>
                         <td className="px-5 py-3.5">
-                          <button onClick={()=>setSelected(row)} className="p-1.5 text-slate-400 hover:text-primary hover:bg-[#eef4ff] rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >visibility</span></button>
+                          <button onClick={() => setSelected(row)} className="p-1.5 text-slate-400 hover:text-primary hover:bg-[#eef4ff] rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >visibility</span></button>
                         </td>
                       </tr>
                     )
@@ -748,7 +748,7 @@ export default function FacultyPkkmb() {
               <p className="text-xs text-slate-500 font-medium text-center sm:text-left">
                 Menampilkan <span className="font-semibold text-slate-800">{totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0}</span> sampai <span className="font-semibold text-slate-800">{Math.min(currentPage * pageSize, totalItems)}</span> dari <span className="font-semibold text-slate-800">{totalItems}</span> entri
               </p>
-              
+
               <div className="hidden sm:block h-5 w-px bg-slate-200" />
 
               <div className="flex items-center gap-2.5">
@@ -779,7 +779,7 @@ export default function FacultyPkkmb() {
                 <span className="material-symbols-outlined mr-1" style={{ fontSize: '15px' }}>chevron_left</span>
                 Sebelumnya
               </Button>
-              
+
               <div className="flex items-center gap-1">
                 {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
                   let pageNum = i + 1;
@@ -792,8 +792,8 @@ export default function FacultyPkkmb() {
                       onClick={() => setCurrentPage(pageNum)}
                       className={cn(
                         "w-8 h-8 rounded-lg font-semibold text-xs transition-all duration-200",
-                        currentPage === pageNum 
-                          ? "bg-primary text-white shadow-md shadow-primary/20 scale-105" 
+                        currentPage === pageNum
+                          ? "bg-primary text-white shadow-md shadow-primary/20 scale-105"
                           : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                       )}
                     >
@@ -820,28 +820,28 @@ export default function FacultyPkkmb() {
 
       {/* Detail Modal */}
       {selected && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4" onClick={()=>setSelected(null)}>
-          <div className="relative w-full max-w-md glass-card rounded-2xl shadow-none border border-slate-200/60 flex flex-col overflow-hidden max-h-[90vh]" onClick={e=>e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4" onClick={() => setSelected(null)}>
+          <div className="relative w-full max-w-md glass-card rounded-2xl shadow-none border border-slate-200/60 flex flex-col overflow-hidden max-h-[90vh]" onClick={e => e.stopPropagation()}>
             <div className="relative bg-gradient-to-br from-bku-primary to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
-              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none"/>
-              <button onClick={()=>setSelected(null)} className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span></button>
+              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
+              <button onClick={() => setSelected(null)} className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span></button>
               <div className="relative z-10 flex items-center gap-4">
                 <StudentAvatar src={getFullUrl(selected.Mahasiswa?.FotoURL || selected.Mahasiswa?.foto_url || selected.Mahasiswa?.Foto || selected.Mahasiswa?.Pengguna?.Foto)} name={selected.Mahasiswa?.Nama} className="w-14 h-14 rounded-2xl shadow-xl ring-2 ring-white/20" />
                 <div className="min-w-0">
                   <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Peserta PKKMB</p>
                   <h2 className="text-base font-extrabold font-headline leading-tight text-white">{selected.Mahasiswa?.Nama}</h2>
-                  <p className="text-xs text-blue-200 font-medium mt-0.5">{selected.Mahasiswa?.NIM} · {selected.Mahasiswa?.ProgramStudi?.Nama||'—'}</p>
+                  <p className="text-xs text-blue-200 font-medium mt-0.5">{selected.Mahasiswa?.NIM} · {selected.Mahasiswa?.ProgramStudi?.Nama || '—'}</p>
                 </div>
               </div>
             </div>
             <div className="flex-1 overflow-y-auto p-5 space-y-3">
               {[
-                {icon:Activity,      label:'Kehadiran',       value:`${selected.attendanceRate||0}%`},
-                {icon:GraduationCap, label:'Nilai Akhir',     value: selected.Nilai||0},
-                {icon:CheckCircle,   label:'Status Kelulusan',value: selected.StatusKelulusan||'Proses'},
-              ].map(r=>(
+                { icon: Activity, label: 'Kehadiran', value: `${selected.attendanceRate || 0}%` },
+                { icon: GraduationCap, label: 'Nilai Akhir', value: selected.Nilai || 0 },
+                { icon: CheckCircle, label: 'Status Kelulusan', value: selected.StatusKelulusan || 'Proses' },
+              ].map(r => (
                 <div key={r.label} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50/50 border border-slate-100 hover:bg-white transition-all">
-                  <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center text-primary shadow-sm border border-slate-100 flex-shrink-0"><r.icon size={13}/></div>
+                  <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center text-primary shadow-sm border border-slate-100 flex-shrink-0"><r.icon size={13} /></div>
                   <div className="flex-1">
                     <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em]">{r.label}</p>
                     <p className="text-sm font-semibold text-slate-900">{r.value}</p>
@@ -850,7 +850,7 @@ export default function FacultyPkkmb() {
               ))}
             </div>
             <div className="px-5 py-4 border-t border-slate-200/60 bg-transparent flex-shrink-0">
-              <button onClick={()=>setSelected(null)} className="w-full h-11 rounded-xl bg-primary hover:bg-bku-hover text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95">Tutup</button>
+              <button onClick={() => setSelected(null)} className="w-full h-11 rounded-xl bg-primary hover:bg-bku-hover text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95">Tutup</button>
             </div>
           </div>
         </div>
@@ -858,11 +858,11 @@ export default function FacultyPkkmb() {
 
       {/* Stats Detail Modal */}
       {statsDetail && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4" onClick={()=>setStatsDetail(null)}>
-          <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[85vh]" onClick={e=>e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4" onClick={() => setStatsDetail(null)}>
+          <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[85vh]" onClick={e => e.stopPropagation()}>
             <div className="relative bg-gradient-to-br from-[#00236F] to-[#003db5] pt-6 pb-6 px-6 overflow-hidden flex-shrink-0">
-              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none"/>
-              <button onClick={()=>setStatsDetail(null)} className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors"><span className="material-symbols-outlined text-white" style={{ fontSize: '15px' }} >close</span></button>
+              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
+              <button onClick={() => setStatsDetail(null)} className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors"><span className="material-symbols-outlined text-white" style={{ fontSize: '15px' }} >close</span></button>
               <div className="relative z-10">
                 <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Rincian Data</p>
                 <h2 className="text-lg font-extrabold text-white leading-tight">{statsDetail.label}</h2>
@@ -872,8 +872,8 @@ export default function FacultyPkkmb() {
             <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex-shrink-0">
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '15px' }} >search</span>
-                <input type="text" placeholder="Cari nama, NIM, atau prodi..." value={statsSearch} onChange={e=>setStatsSearch(e.target.value)}
-                  className="pl-9 pr-4 h-10 w-full rounded-xl border border-slate-200/60 focus:outline-none focus:border-primary text-sm bg-white placeholder-slate-400 font-semibold"/>
+                <input type="text" placeholder="Cari nama, NIM, atau prodi..." value={statsSearch} onChange={e => setStatsSearch(e.target.value)}
+                  className="pl-9 pr-4 h-10 w-full rounded-xl border border-slate-200/60 focus:outline-none focus:border-primary text-sm bg-white placeholder-slate-400 font-semibold" />
               </div>
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-2">
@@ -887,12 +887,12 @@ export default function FacultyPkkmb() {
                 </div>
               ) : (
                 filteredStatsDetailList.map((row, i) => (
-                  <div key={row.ID||i} className="p-3 bg-slate-50/50 border border-slate-100/70 rounded-2xl hover:bg-white hover:border-slate-200 transition-all flex items-center justify-between gap-3 shadow-sm">
+                  <div key={row.ID || i} className="p-3 bg-slate-50/50 border border-slate-100/70 rounded-2xl hover:bg-white hover:border-slate-200 transition-all flex items-center justify-between gap-3 shadow-sm">
                     <div className="flex items-center gap-3 min-w-0">
                       <StudentAvatar src={getFullUrl(row.Mahasiswa?.FotoURL || row.Mahasiswa?.foto_url || row.Mahasiswa?.Foto || row.Mahasiswa?.Pengguna?.Foto)} name={row.Mahasiswa?.Nama} className="w-9 h-9 rounded-xl" />
                       <div className="min-w-0">
-                        <p className="font-bold text-sm text-slate-900 leading-tight truncate">{row.Mahasiswa?.Nama||'—'}</p>
-                        <p className="text-[10px] text-slate-400 font-semibold mt-0.5">{row.Mahasiswa?.NIM||'—'} · {row.Mahasiswa?.ProgramStudi?.Nama||'—'}</p>
+                        <p className="font-bold text-sm text-slate-900 leading-tight truncate">{row.Mahasiswa?.Nama || '—'}</p>
+                        <p className="text-[10px] text-slate-400 font-semibold mt-0.5">{row.Mahasiswa?.NIM || '—'} · {row.Mahasiswa?.ProgramStudi?.Nama || '—'}</p>
                       </div>
                     </div>
                     <div className="text-right flex-shrink-0">
@@ -910,8 +910,8 @@ export default function FacultyPkkmb() {
                         </div>
                       ) : (
                         <div className="flex flex-col items-end">
-                          <span className="text-xs font-black text-slate-800 tabular-nums">Nilai: {row.Nilai||0}</span>
-                          <span className="text-[9px] font-bold text-slate-400 mt-0.5">Hadir: {row.attendanceRate||0}%</span>
+                          <span className="text-xs font-black text-slate-800 tabular-nums">Nilai: {row.Nilai || 0}</span>
+                          <span className="text-[9px] font-bold text-slate-400 mt-0.5">Hadir: {row.attendanceRate || 0}%</span>
                         </div>
                       )}
                     </div>
@@ -920,7 +920,7 @@ export default function FacultyPkkmb() {
               )}
             </div>
             <div className="px-5 py-4 border-t border-slate-100 bg-slate-50/50 flex-shrink-0">
-              <button onClick={()=>setStatsDetail(null)} className="w-full h-11 rounded-xl bg-primary hover:bg-[#001a52] text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-sm">Tutup</button>
+              <button onClick={() => setStatsDetail(null)} className="w-full h-11 rounded-xl bg-primary hover:bg-[#001a52] text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-sm">Tutup</button>
             </div>
           </div>
         </div>

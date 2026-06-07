@@ -680,13 +680,13 @@ func (OrmawaMutasiSaldo) TableName() string {
 
 type Proposal struct {
 	BaseModel
-	OrmawaID    uint `gorm:"index"`
-	MahasiswaID uint `gorm:"index"`
-	FakultasID  uint `gorm:"index"`
+	OrmawaID    uint  `gorm:"index"`
+	MahasiswaID uint  `gorm:"index"`
+	FakultasID  *uint `gorm:"index" json:"FakultasID"` // NULL = ORMAWA tingkat universitas (BEM-U, UKM, MPM)
 
-	Ormawa    Ormawa
-	Mahasiswa Mahasiswa
-	Fakultas  Fakultas
+	Ormawa    Ormawa     `gorm:"foreignKey:OrmawaID"`
+	Mahasiswa Mahasiswa  `gorm:"foreignKey:MahasiswaID"`
+	Fakultas  *Fakultas  `gorm:"foreignKey:FakultasID" json:"Fakultas,omitempty"`
 
 	Judul           string
 	TanggalKegiatan time.Time

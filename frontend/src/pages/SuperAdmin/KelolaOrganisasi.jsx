@@ -132,7 +132,17 @@ export default function KelolaOrganisasi() {
       ])
 
       if (res.status === 'success' && res.data && res.data.length > 0) {
-        setData(enrichOrmawaData(res.data))
+        let fetchedData = res.data
+
+        // Apply ormawa filter from topbar switcher (same pattern as KelolaFakultas)
+        const activeOrmawaId = localStorage.getItem('superadmin_ormawa_id')
+        if (activeOrmawaId && activeOrmawaId !== '' && activeOrmawaId !== 'all') {
+          fetchedData = fetchedData.filter(o =>
+            String(o.id || o.ID) === String(activeOrmawaId)
+          )
+        }
+
+        setData(enrichOrmawaData(fetchedData.length > 0 ? fetchedData : res.data))
       } else {
         setData(enrichOrmawaData(offlineOrmawaSeed))
       }
@@ -157,8 +167,17 @@ export default function KelolaOrganisasi() {
 
   const handleOpenEdit = (row) => {
     setIsEditMode(true)
+    const getAnyId = (obj) => {
+        if (!obj) return null;
+        if (obj.id) return obj.id;
+        if (obj.ID) return obj.ID;
+        if (obj.Ormawa && obj.Ormawa.ID) return obj.Ormawa.ID;
+        if (obj.Ormawa && obj.Ormawa.id) return obj.Ormawa.id;
+        const key = Object.keys(obj).find(k => k.toLowerCase() === 'id');
+        return key ? obj[key] : null;
+    };
     setForm({
-      ID: row.id || row.ID,
+      ID: getAnyId(row),
       Nama: row.Nama || '',
       Singkatan: row.Singkatan || '',
       Deskripsi: row.Deskripsi || '',
@@ -175,7 +194,16 @@ export default function KelolaOrganisasi() {
     if (e) e.preventDefault()
     setIsSubmitting(true)
     try {
-      const targetId = form.ID || form.id
+      const getAnyId = (obj) => {
+          if (!obj) return null;
+          if (obj.id) return obj.id;
+          if (obj.ID) return obj.ID;
+          if (obj.Ormawa && obj.Ormawa.ID) return obj.Ormawa.ID;
+          if (obj.Ormawa && obj.Ormawa.id) return obj.Ormawa.id;
+          const key = Object.keys(obj).find(k => k.toLowerCase() === 'id');
+          return key ? obj[key] : null;
+      };
+      const targetId = getAnyId(form);
       const res = targetId ? await adminService.updateOrmawa(targetId, form) : await adminService.createOrmawa(form)
       if (res.status === 'success') {
         toast.success(targetId ? 'Organisasi diperbarui' : 'Organisasi berhasil didaftarkan')
@@ -225,7 +253,17 @@ export default function KelolaOrganisasi() {
   const handleDelete = async () => {
     setIsSubmitting(true)
     try {
-      await adminService.deleteOrmawa(selected.id || selected.ID)
+      const getAnyId = (obj) => {
+          if (!obj) return null;
+          if (obj.id) return obj.id;
+          if (obj.ID) return obj.ID;
+          if (obj.Ormawa && obj.Ormawa.ID) return obj.Ormawa.ID;
+          if (obj.Ormawa && obj.Ormawa.id) return obj.Ormawa.id;
+          const key = Object.keys(obj).find(k => k.toLowerCase() === 'id');
+          return key ? obj[key] : null;
+      };
+      const targetId = getAnyId(selected);
+      await adminService.deleteOrmawa(targetId)
       toast.success('Organisasi berhasil dihapus')
       setIsDelOpen(false)
       fetchData()

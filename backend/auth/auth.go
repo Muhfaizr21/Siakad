@@ -1557,7 +1557,7 @@ func EnsureBootstrapData() error {
 			{
 				OrmawaID:              ormawa.ID,
 				MahasiswaID:           sampleMhs.ID,
-				FakultasID:            sampleMhs.FakultasID,
+				FakultasID:            &sampleMhs.FakultasID,
 				Judul:                 "Festival Mahasiswa UBK 2026",
 				TanggalKegiatan:       time.Now().AddDate(0, 1, 10),
 				Anggaran:              25000000,
@@ -1579,10 +1579,11 @@ func EnsureBootstrapData() error {
 			{
 				OrmawaID:              ormawa.ID,
 				MahasiswaID:           sampleMhs.ID,
-				FakultasID:            sampleMhs.FakultasID,
+				FakultasID:            &sampleMhs.FakultasID,
 				Judul:                 "Latihan Kepemimpinan Manajemen Mahasiswa (LKMM)",
 				TanggalKegiatan:       time.Now().AddDate(0, 1, 1),
 				Anggaran:              12500000,
+
 				Jenis:                 "Kaderisasi",
 				Status:                "disetujui_univ",
 				Catatan:               "Telah divalidasi oleh Warek Kemahasiswaan",
@@ -1601,10 +1602,11 @@ func EnsureBootstrapData() error {
 			{
 				OrmawaID:              ormawa.ID,
 				MahasiswaID:           sampleMhs.ID,
-				FakultasID:            sampleMhs.FakultasID,
+				FakultasID:            &sampleMhs.FakultasID,
 				Judul:                 "Bakti Sosial Kesehatan Masyarakat",
 				TanggalKegiatan:       time.Now().AddDate(0, 0, 21),
 				Anggaran:              8000000,
+
 				Jenis:                 "Pengabdian Masyarakat",
 				Status:                "disetujui_fakultas",
 				Catatan:               "Disetujui Fakultas, lanjut review Universitas",
@@ -1623,10 +1625,11 @@ func EnsureBootstrapData() error {
 			{
 				OrmawaID:              ormawa.ID,
 				MahasiswaID:           sampleMhs.ID,
-				FakultasID:            sampleMhs.FakultasID,
+				FakultasID:            &sampleMhs.FakultasID,
 				Judul:                 "Seminar Nasional Entrepreneurship Muda",
 				TanggalKegiatan:       time.Now().AddDate(0, 0, 15),
 				Anggaran:              15000000,
+
 				Jenis:                 "Akademik",
 				Status:                "disetujui_dosen",
 				Catatan:               "Disetujui Dosen Pembimbing, menunggu approval Fakultas",
@@ -1645,10 +1648,11 @@ func EnsureBootstrapData() error {
 			{
 				OrmawaID:              ormawa.ID,
 				MahasiswaID:           sampleMhs.ID,
-				FakultasID:            sampleMhs.FakultasID,
+				FakultasID:            &sampleMhs.FakultasID,
 				Judul:                 "Webinar Kebangsaan & Bela Negara",
 				TanggalKegiatan:       time.Now().AddDate(0, 0, 17),
 				Anggaran:              3000000,
+
 				Jenis:                 "Kebangsaan",
 				Status:                "revisi",
 				Catatan:               "Harap perbaiki rincian honor narasumber",

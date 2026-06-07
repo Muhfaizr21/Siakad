@@ -388,7 +388,7 @@ func AmbilDaftarOrganisasi(c *fiber.Ctx) error {
 	role := c.Locals("role").(string)
 
 	var daftar = []models.Ormawa{}
-	query := config.DB.Model(&models.Ormawa{})
+	query := config.DB.Model(&models.Ormawa{}).Preload("Fakultas").Preload("ProgramStudi")
 
 	if role == "faculty_admin" || role == "prodi_admin" {
 		query = query.Where("fakultas_id = ?", fid)
@@ -423,6 +423,11 @@ func TambahOrganisasi(c *fiber.Ctx) error {
 	}
 	if body.ProgramStudiID != nil {
 		org.ProgramStudiID = body.ProgramStudiID
+	}
+
+	// Hanya Himpunan yang bisa punya Program Studi parent
+	if org.Kategori != "Himpunan" {
+		org.ProgramStudiID = nil
 	}
 
 	if role != "super_admin" && role != "kencana_admin" {
@@ -537,12 +542,22 @@ func PerbaruiOrganisasi(c *fiber.Ctx) error {
 
 	// Simpan FakultasID asli agar tidak ter-overwrite oleh BodyParser untuk admin fakultas
 	originalFakultasID := org.FakultasID
+	originalProgramStudiID := org.ProgramStudiID
 	if err := c.BodyParser(&org); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload tidak valid: " + err.Error()})
 	}
 	
 	if role != "super_admin" && role != "kencana_admin" {
 		org.FakultasID = originalFakultasID // Pertahankan fakultas asli untuk faculty_admin
+	}
+
+	// For non-Himpunan categories, clear ProgramStudiID as it's not applicable
+	if org.Kategori != "Himpunan" {
+		org.ProgramStudiID = nil
+	}
+	// If Himpunan but no ProgramStudiID sent, keep original
+	if org.Kategori == "Himpunan" && org.ProgramStudiID == nil {
+		org.ProgramStudiID = originalProgramStudiID
 	}
 
 	if err := config.DB.Save(&org).Error; err != nil {
@@ -639,14 +654,16 @@ func AmbilDaftarProposalOrmawa(c *fiber.Ctx) error {
 	var daftar = []models.Proposal{}
 	query := config.DB.Preload("Ormawa").Preload("Mahasiswa.ProgramStudi").Preload("Mahasiswa.Pengguna").Preload("Riwayat").Order("created_at desc")
 
+	// ALWAYS exclude university-level ORMAWA proposals (FakultasID IS NULL)
+	// Those go directly to the Universitas/Super Admin queue
+	query = query.Where("fakultas_id IS NOT NULL")
+
 	// Filter berdasarkan role: proposal hanya untuk fakultas yang bersangkutan
-	if role == "prodi_admin" || role == "faculty_admin" || role == "dosen" {
+	if role == "faculty_admin" || role == "prodi_admin" || role == "dosen" {
 		// Filter langsung berdasarkan fakultas_id pada tabel proposal
-		// FakultasID sudah di-set saat CreateProposal dari Ormawa.FakultasID
-		query = query.Where("fakultas_id = ?", fid)
-	} else if role != "super_admin" && role != "kencana_admin" {
 		query = query.Where("fakultas_id = ?", fid)
 	}
+	// super_admin/kencana_admin can see all faculty proposals (but not univ-level ones — those are in super admin route)
 
 	query.Find(&daftar)
 	return c.JSON(fiber.Map{"status": "success", "data": daftar})
@@ -670,8 +687,13 @@ func ValidasiProposalOrmawa(c *fiber.Ctx) error {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Proposal tidak ditemukan"})
 	}
 
+	// Block faculty from validating university-level ORMAWA proposals
+	if proposal.FakultasID == nil {
+		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Proposal dari ORMAWA tingkat universitas (BEM-U, UKM, MPM) tidak memerlukan validasi fakultas. Ajukan langsung ke Universitas."})
+	}
+
 	// Faculty scoping: pastikan admin hanya bisa validasi proposal dari fakultasnya sendiri
-	if role != "super_admin" && role != "kencana_admin" && proposal.FakultasID != fid {
+	if role != "super_admin" && role != "kencana_admin" && *proposal.FakultasID != fid {
 		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Anda tidak berwenang memvalidasi proposal dari fakultas lain"})
 	}
 

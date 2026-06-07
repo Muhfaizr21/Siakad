@@ -171,10 +171,10 @@ export default function PatientMedicalRecord() {
             
             {/* Left Content: Medical History Timeline (Col 8) */}
             <div className="xl:col-span-8 space-y-6">
-               <div className="rounded-3xl border shadow-sm p-5" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
-                  <div className="flex items-center justify-between mb-10">
-                     <h3 className="text-sm font-black text-primary uppercase tracking-tight font-headline flex items-center gap-3">
-                        <span className="material-symbols-outlined text-xl shrink-0" >description</span> Riwayat Sesi Konseling
+               <div className="rounded-2xl border shadow-sm p-4" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
+                  <div className="flex items-center justify-between mb-8">
+                     <h3 className="text-[11px] font-black text-primary uppercase tracking-tight font-headline flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[18px] shrink-0" >description</span> Riwayat Sesi Konseling
                      </h3>
                      <div className="text-[9px] font-black text-slate-300 uppercase tracking-widest">Total: {patient.totalSessions} Sesi</div>
                   </div>
@@ -186,7 +186,7 @@ export default function PatientMedicalRecord() {
                              <span className="material-symbols-outlined text-base shrink-0" >calendar_month</span>
                           </div>
 
-                          <div className="rounded-3xl border p-5 space-y-4 hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-500" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
+                           <div className="rounded-2xl border p-4 space-y-3 hover:shadow-lg hover:shadow-slate-200/50 transition-all duration-300" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
                              <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">
                                    <span className="text-[10px] font-black text-primary uppercase tracking-widest">{record.date}</span>
@@ -327,20 +327,20 @@ export default function PatientMedicalRecord() {
             </div>
 
             {/* Right Sidebar... */}
-            <div className="xl:col-span-4 space-y-6">
-               <div className="rounded-3xl border shadow-sm overflow-hidden" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
-                  <div className="h-20 bg-primary relative">
+            <div className="xl:col-span-4 space-y-5">
+               <div className="rounded-2xl border shadow-sm overflow-hidden" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
+                  <div className="h-16 bg-primary relative">
                      <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/80 to-indigo-600"></div>
-                     <span className="material-symbols-outlined absolute -right-4 -bottom-4 size-24 text-white/10" >show_chart</span>
+                     <span className="material-symbols-outlined absolute -right-4 -bottom-4 size-20 text-white/10" >show_chart</span>
                   </div>
-                  <div className="px-6 pb-6 -mt-8 relative z-10">
-                     <div className={`size-16 rounded-2xl ${patient.color} border-4 border-white shadow-lg flex items-center justify-center text-white text-xl font-black mb-4 mx-auto md:mx-0`}>
+                  <div className="px-5 pb-5 -mt-6 relative z-10">
+                     <div className={`size-12 rounded-xl ${patient.color} border-4 border-white shadow-lg flex items-center justify-center text-white text-lg font-black mb-3 mx-auto md:mx-0`}>
                         {patient.initials}
                      </div>
-                     <h2 className="text-lg font-black font-headline uppercase tracking-tight" style={{ color: 'var(--theme-h2)' }}>{patient.name}</h2>
-                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{patient.nim} • {patient.faculty}</p>
+                     <h2 className="text-base font-black font-headline uppercase tracking-tight" style={{ color: 'var(--theme-h2)' }}>{patient.name}</h2>
+                     <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{patient.nim} • {patient.faculty}</p>
                      
-                     <div className="grid grid-cols-2 gap-3 mt-6">
+                     <div className="grid grid-cols-2 gap-2 mt-5">
                         <div className="p-3 rounded-xl border" style={{ backgroundColor: 'var(--theme-bg)', borderColor: 'var(--theme-border)' }}>
                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Status</p>
                            <p className="text-xs font-black text-emerald-600 uppercase mt-0.5">{patient.status}</p>
@@ -353,9 +353,9 @@ export default function PatientMedicalRecord() {
                   </div>
                </div>
 
-               <div className="rounded-3xl border shadow-sm p-5 space-y-6" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
+               <div className="rounded-2xl border shadow-sm p-4 space-y-4" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
                   <h3 className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2">
-                     <span className="material-symbols-outlined text-base shrink-0" >trending_up</span> Analitik Kesehatan
+                     <span className="material-symbols-outlined text-[16px] shrink-0" >trending_up</span> Analitik Kesehatan
                   </h3>
                   <div className="space-y-4">
                      <div>
@@ -413,13 +413,13 @@ export default function PatientMedicalRecord() {
                   </button>
                </div>
 
-               <form onSubmit={handleAddRecord} className="p-5 overflow-y-auto flex-1 space-y-6">
+               <form onSubmit={handleAddRecord} className="p-4 overflow-y-auto flex-1 space-y-5">
                   {/* Data Diri Mahasiswa Section */}
-                  <div className="bg-slate-50 border border-slate-200/60 rounded-3xl p-5">
-                     <h4 className="text-[10px] font-black text-[#00236F] uppercase tracking-widest mb-4 flex items-center gap-2">
-                        <span className="material-symbols-outlined text-sm shrink-0">badge</span> Data Diri Mahasiswa (Auto-Populated)
+                  <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4">
+                     <h4 className="text-[10px] font-black text-[#00236F] uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[14px] shrink-0">badge</span> Data Diri Mahasiswa (Auto-Populated)
                      </h4>
-                     <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-4 text-[11px] font-medium text-slate-600">
+                     <div className="grid grid-cols-2 md:grid-cols-4 gap-x-5 gap-y-3 text-[10px] font-medium text-slate-600">
                         <div>
                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-0.5">Nama Klien</p>
                            <p className="font-bold text-slate-900">{patient.name || '-'}</p>
@@ -475,7 +475,7 @@ export default function PatientMedicalRecord() {
                              required
                              value={newRecord.tujuan_pemeriksaan}
                              onChange={(e) => setNewRecord({...newRecord, tujuan_pemeriksaan: e.target.value})}
-                             className="w-full bg-slate-50 border border-slate-200/60 rounded-2xl px-5 py-3 text-xs font-bold focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                             className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-2.5 text-[11px] font-bold focus:ring-2 focus:ring-primary/20 transition-all outline-none"
                              placeholder="Misal: Evaluasi Layanan Konseling Akademik"
                            />
                         </div>
@@ -486,7 +486,7 @@ export default function PatientMedicalRecord() {
                              type="date"
                              value={newRecord.tanggal_asesmen}
                              onChange={(e) => setNewRecord({...newRecord, tanggal_asesmen: e.target.value})}
-                             className="w-full bg-slate-50 border border-slate-200/60 rounded-2xl px-5 py-3 text-xs font-bold focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                             className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-2.5 text-[11px] font-bold focus:ring-2 focus:ring-primary/20 transition-all outline-none"
                            />
                         </div>
                      </div>
@@ -497,7 +497,7 @@ export default function PatientMedicalRecord() {
                           required
                           value={newRecord.riwayat_keluhan}
                           onChange={(e) => setNewRecord({...newRecord, riwayat_keluhan: e.target.value})}
-                          className="w-full bg-slate-50 border border-slate-200/60 rounded-2xl px-5 py-3 text-xs font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none h-20 resize-none"
+                          className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-2.5 text-[11px] font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none h-16 resize-none"
                           placeholder="Deskripsikan riwayat keluhan pasien..."
                         />
                      </div>
@@ -509,7 +509,7 @@ export default function PatientMedicalRecord() {
                              required
                              value={newRecord.aspek_kognitif}
                              onChange={(e) => setNewRecord({...newRecord, aspek_kognitif: e.target.value})}
-                             className="w-full bg-slate-50 border border-slate-200/60 rounded-2xl px-5 py-3 text-xs font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none h-24 resize-none"
+                             className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-2.5 text-[11px] font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none h-20 resize-none"
                              placeholder="Observasi aspek kognitif..."
                            />
                         </div>
@@ -519,7 +519,7 @@ export default function PatientMedicalRecord() {
                              required
                              value={newRecord.aspek_emosional}
                              onChange={(e) => setNewRecord({...newRecord, aspek_emosional: e.target.value})}
-                             className="w-full bg-slate-50 border border-slate-200/60 rounded-2xl px-5 py-3 text-xs font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none h-24 resize-none"
+                             className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-2.5 text-[11px] font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none h-20 resize-none"
                              placeholder="Observasi aspek emosional..."
                            />
                         </div>
@@ -529,7 +529,7 @@ export default function PatientMedicalRecord() {
                              required
                              value={newRecord.aspek_perilaku}
                              onChange={(e) => setNewRecord({...newRecord, aspek_perilaku: e.target.value})}
-                             className="w-full bg-slate-50 border border-slate-200/60 rounded-2xl px-5 py-3 text-xs font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none h-24 resize-none"
+                             className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-2.5 text-[11px] font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none h-20 resize-none"
                              placeholder="Observasi aspek perilaku..."
                            />
                         </div>
@@ -546,7 +546,7 @@ export default function PatientMedicalRecord() {
                              required
                              value={newRecord.rekomendasi_mahasiswa}
                              onChange={(e) => setNewRecord({...newRecord, rekomendasi_mahasiswa: e.target.value})}
-                             className="w-full bg-slate-50 border border-slate-200/60 rounded-2xl px-5 py-3 text-xs font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none h-24 resize-none"
+                             className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-2.5 text-[11px] font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none h-20 resize-none"
                              placeholder="Rekomendasi bagi mahasiswa..."
                            />
                         </div>
@@ -556,7 +556,7 @@ export default function PatientMedicalRecord() {
                              required
                              value={newRecord.rekomendasi_prodi}
                              onChange={(e) => setNewRecord({...newRecord, rekomendasi_prodi: e.target.value})}
-                             className="w-full bg-slate-50 border border-slate-200/60 rounded-2xl px-5 py-3 text-xs font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none h-24 resize-none"
+                             className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-2.5 text-[11px] font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none h-20 resize-none"
                              placeholder="Rekomendasi bagi Prodi..."
                            />
                         </div>
@@ -566,7 +566,7 @@ export default function PatientMedicalRecord() {
                              required
                              value={newRecord.rekomendasi_orang_tua}
                              onChange={(e) => setNewRecord({...newRecord, rekomendasi_orang_tua: e.target.value})}
-                             className="w-full bg-slate-50 border border-slate-200/60 rounded-2xl px-5 py-3 text-xs font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none h-24 resize-none"
+                             className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-2.5 text-[11px] font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none h-20 resize-none"
                              placeholder="Rekomendasi bagi Orang tua..."
                            />
                         </div>
@@ -577,7 +577,7 @@ export default function PatientMedicalRecord() {
                   <div className="space-y-6">
                      <h4 className="text-[10px] font-black text-primary uppercase tracking-widest border-b border-slate-100 pb-2">III. Tindak Lanjut & Kesimpulan</h4>
                      
-                     <div className="grid grid-cols-1 md:grid-cols-3 gap-5 bg-slate-50 border border-slate-200/60 rounded-3xl p-5">
+                     <div className="grid grid-cols-1 md:grid-cols-3 gap-5 bg-slate-50 border border-slate-200/60 rounded-2xl p-4">
                         <div className="flex flex-col gap-2">
                            <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">1. Sesi Tuntas <span className="text-rose-500">*</span></label>
                            <div className="flex gap-2">

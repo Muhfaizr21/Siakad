@@ -115,73 +115,104 @@ export default function AnalyticsTrends() {
   return (
     <>
       <div className="w-full relative space-y-6 scroll-smooth">
-          <section className="overflow-hidden rounded-2xl border shadow-sm" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
-            <div className="grid gap-5 p-5 lg:grid-cols-[1fr_auto] lg:items-center lg:p-5">
-              <div className="space-y-4">
-                <div className="inline-flex items-center gap-2 rounded-full border border-primary/10 bg-primary/5 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-primary">
-                  <span className="material-symbols-outlined text-sm shrink-0">database</span>
-                  Schema psikolog
-                </div>
-                <div>
-                  <h1 className="font-headline text-2xl font-black uppercase tracking-tight text-primary sm:text-3xl">
-                    Analitik & Tren
-                  </h1>
-                  <p className="mt-1 max-w-2xl text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    Ringkasan real-time dari booking, catatan sesi, dan asesmen yang tersimpan di database.
-                  </p>
-                </div>
-              </div>
+          {/* ── Welcome Banner ─────────────────────────────────────────── */}
+          <section className="relative overflow-hidden rounded-2xl p-6 md:p-8 flex flex-col xl:flex-row xl:items-center gap-6 group shadow-sm border border-slate-200/60 bg-white">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-50/80 via-white to-slate-50/80" />
+            <div className="absolute inset-0 opacity-[0.02]"
+              style={{
+                backgroundImage: `radial-gradient(circle at 20% 50%, black 1px, transparent 1px), radial-gradient(circle at 80% 20%, black 1px, transparent 1px)`,
+                backgroundSize: '40px 40px'
+              }}
+            />
+            <div className="absolute -top-20 -right-20 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
+            <div className="absolute -bottom-10 left-20 w-48 h-48 bg-emerald-400/5 rounded-full blur-2xl" />
 
+            <div className="relative z-10 flex-1 flex flex-col justify-center gap-3">
+              <div className="flex items-center gap-4">
+                 <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/[0.02] border border-primary/10 flex items-center justify-center text-primary shrink-0 shadow-sm relative overflow-hidden">
+                    <span className="material-symbols-outlined text-primary relative z-10" style={{ fontSize: '26px' }}>analytics</span>
+                 </div>
+                 <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-primary/5 text-primary border border-primary/10">
+                        Schema psikolog
+                      </span>
+                    </div>
+                    <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight font-headline leading-none">
+                      Analitik & Tren
+                    </h1>
+                    <p className="mt-2 text-xs md:text-sm font-medium text-slate-500 leading-relaxed max-w-xl">
+                      Ringkasan real-time dari booking, catatan sesi, dan asesmen yang tersimpan di database.
+                    </p>
+                 </div>
+              </div>
+            </div>
+            
+            <div className="relative z-10 shrink-0 mt-2 xl:mt-0">
               <button
                 type="button"
                 onClick={fetchAnalytics}
                 disabled={loading}
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 text-[10px] font-black uppercase tracking-widest text-slate-600 shadow-sm transition hover:border-primary/30 hover:text-primary disabled:cursor-wait disabled:opacity-60"
+                className="flex items-center justify-center gap-2 w-full xl:w-auto px-5 py-3 rounded-xl border border-slate-200 bg-white text-[10px] font-black uppercase tracking-widest text-slate-600 shadow-sm hover:text-primary hover:border-primary/30 transition-all disabled:cursor-wait disabled:opacity-60"
               >
-                {loading ? <span className="material-symbols-outlined animate-spin text-base shrink-0">sync</span> : <span className="material-symbols-outlined text-base shrink-0">sync</span>}
+                <span className={`material-symbols-outlined text-[18px] shrink-0 ${loading ? 'animate-spin' : ''}`}>sync</span>
                 Muat Ulang
               </button>
             </div>
           </section>
 
-          {/* Filters Bar */}
-          <section className="rounded-2xl border shadow-sm p-5" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="material-symbols-outlined text-primary text-lg shrink-0">filter_alt</span>
-                <h3 className="text-xs font-black uppercase tracking-widest text-primary">Filter Data Analitik</h3>
+          {/* ── Filter Bar Card ──────────────────────────────────────────── */}
+          <section className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-5 space-y-5 relative overflow-hidden group">
+            <div className="absolute -top-32 -right-32 w-64 h-64 rounded-full blur-3xl pointer-events-none opacity-50 bg-primary/5 transition-opacity group-hover:opacity-100" />
+            
+            <div className="relative z-10 flex flex-col gap-5">
+              <div className="flex items-center gap-2 border-b border-slate-100 pb-4">
+                <span className="material-symbols-outlined text-[20px] text-primary">filter_list</span>
+                <h3 className="text-xs font-black uppercase tracking-widest text-slate-800 font-headline">Filter Data Analitik</h3>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div>
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Tanggal Mulai</label>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                {/* Tanggal Mulai */}
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                    <span className="material-symbols-outlined text-base">event</span>
+                    Tanggal Mulai
+                  </label>
                   <input
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full bg-slate-50 border rounded-2xl px-4 py-3 text-xs font-bold outline-none focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-primary/5 transition-all"
-                  style={{ borderColor: 'var(--theme-border)', backgroundColor: 'var(--theme-bg)', color: 'var(--theme-text)' }}
+                    className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
                   />
                 </div>
-                <div>
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Tanggal Selesai</label>
+
+                {/* Tanggal Selesai */}
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                    <span className="material-symbols-outlined text-base">event</span>
+                    Tanggal Selesai
+                  </label>
                   <input
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full bg-slate-50 border rounded-2xl px-4 py-3 text-xs font-bold outline-none focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-primary/5 transition-all"
-                  style={{ borderColor: 'var(--theme-border)', backgroundColor: 'var(--theme-bg)', color: 'var(--theme-text)' }}
+                    className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
                   />
                 </div>
-                <div>
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Fakultas</label>
+
+                {/* Fakultas */}
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                    <span className="material-symbols-outlined text-base">domain</span>
+                    Fakultas
+                  </label>
                   <select
                     value={selectedFakultas}
                     onChange={(e) => {
                       setSelectedFakultas(e.target.value);
                       setSelectedProdi('');
                     }}
-                    className="w-full bg-slate-50 border rounded-2xl px-4 py-3 text-xs font-bold outline-none focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-primary/5 transition-all cursor-pointer"
-                  style={{ borderColor: 'var(--theme-border)', backgroundColor: 'var(--theme-bg)', color: 'var(--theme-text)' }}
+                    className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 cursor-pointer"
                   >
                     <option value="">Semua Fakultas</option>
                     {fakultasList.map((f) => (
@@ -189,15 +220,20 @@ export default function AnalyticsTrends() {
                     ))}
                   </select>
                 </div>
-                <div>
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Program Studi</label>
+
+                {/* Program Studi */}
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                    <span className="material-symbols-outlined text-base">school</span>
+                    Program Studi
+                  </label>
                   <select
                     value={selectedProdi}
                     onChange={(e) => setSelectedProdi(e.target.value)}
-                    className="w-full bg-slate-50 border rounded-2xl px-4 py-3 text-xs font-bold outline-none focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-primary/5 transition-all cursor-pointer"
-                  style={{ borderColor: 'var(--theme-border)', backgroundColor: 'var(--theme-bg)', color: 'var(--theme-text)' }}
+                    disabled={!selectedFakultas}
+                    className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <option value="">Semua Program Studi</option>
+                    <option value="">Semua Prodi</option>
                     {prodiList
                       .filter((p) => !selectedFakultas || p.fakultas_id === Number(selectedFakultas))
                       .map((p) => (
@@ -206,7 +242,11 @@ export default function AnalyticsTrends() {
                   </select>
                 </div>
               </div>
-              <div className="flex justify-end gap-2 mt-2">
+
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between border-t border-slate-100 pt-5">
+                <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-1">
+                  <span className="text-[10px] font-bold text-slate-400">Pilih kriteria untuk menyaring data</span>
+                </div>
                 <button
                   type="button"
                   onClick={() => {
@@ -215,8 +255,10 @@ export default function AnalyticsTrends() {
                     setSelectedProdi('');
                     setSelectedFakultas('');
                   }}
-                  className="px-4 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-slate-100 text-slate-500 hover:bg-slate-200 transition-all"
+                  disabled={!(startDate || endDate || selectedProdi || selectedFakultas)}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-5 py-2.5 text-[10px] font-black uppercase tracking-widest text-slate-500 transition-all hover:bg-slate-50 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
                 >
+                  <span className="material-symbols-outlined text-[16px]">restart_alt</span>
                   Reset Filter
                 </button>
               </div>

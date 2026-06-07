@@ -162,36 +162,155 @@ export default function MedicalRecords() {
     <>
       <div className="w-full relative space-y-6 scroll-smooth">
         
-        {/* Welcome Banner Card */}
-        <section className="relative overflow-hidden rounded-2xl border p-5 shadow-sm flex flex-col gap-5 group"
-          style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
-          <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)' }} />
-          <div className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{ backgroundColor: 'color-mix(in srgb, var(--theme-secondary) 5%, transparent)' }} />
-          
-          <div className="relative z-10 flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between w-full">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest"
-                style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)', color: 'var(--theme-primary)' }}
-              >
-                <span className="material-symbols-outlined text-base shrink-0">medical_services</span>
-                Rekam Medis Klinis
-              </div>
-              <h1 className="mt-3 text-2xl font-black uppercase tracking-tight font-headline" style={{ color: 'var(--theme-primary)' }}>Rekam Medis</h1>
-              <p className="mt-1 max-w-2xl text-xs font-bold leading-5 text-slate-500">
-                Pantau riwayat sesi klinis mahasiswa, mood logger, observasi psikolog, dan rekomendasi tindak lanjut secara aman dan konfidensial.
-              </p>
+        {/* ── Welcome Banner ─────────────────────────────────────────── */}
+        <section className="relative overflow-hidden rounded-2xl p-6 md:p-8 flex flex-col xl:flex-row xl:items-center gap-6 group shadow-sm border border-slate-200/60 bg-white">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-50/80 via-white to-slate-50/80" />
+          <div className="absolute inset-0 opacity-[0.02]"
+            style={{
+              backgroundImage: `radial-gradient(circle at 20% 50%, black 1px, transparent 1px), radial-gradient(circle at 80% 20%, black 1px, transparent 1px)`,
+              backgroundSize: '40px 40px'
+            }}
+          />
+          <div className="absolute -top-20 -right-20 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
+          <div className="absolute -bottom-10 left-20 w-48 h-48 bg-emerald-400/5 rounded-full blur-2xl" />
+
+          <div className="relative z-10 flex-1 flex flex-col justify-center gap-3">
+            <div className="flex items-center gap-4">
+               <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/[0.02] border border-primary/10 flex items-center justify-center text-primary shrink-0 shadow-sm relative overflow-hidden">
+                  <span className="material-symbols-outlined text-primary relative z-10" style={{ fontSize: '26px' }}>medical_services</span>
+               </div>
+               <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-primary/5 text-primary border border-primary/10">
+                      Rekam Medis Klinis
+                    </span>
+                  </div>
+                  <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight font-headline leading-none">
+                    Rekam Medis
+                  </h1>
+                  <p className="mt-2 text-xs md:text-sm font-medium text-slate-500 leading-relaxed max-w-xl">
+                    Pantau riwayat sesi klinis mahasiswa, mood logger, observasi psikolog, dan rekomendasi tindak lanjut secara aman dan konfidensial.
+                  </p>
+               </div>
             </div>
           </div>
         </section>
 
-        {/* Filter Bar Card */}
-        <section className="rounded-2xl border p-5 shadow-sm space-y-4" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
-          <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: 'var(--theme-border)' }}>
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-base shrink-0" style={{ color: 'color-mix(in srgb, var(--theme-primary) 60%, transparent)' }}>filter_alt</span>
-              <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Filter Data</h3>
+        {/* ── Filter Bar Card ──────────────────────────────────────────── */}
+        <section className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-5 space-y-5 relative overflow-hidden group">
+          <div className="absolute -top-32 -right-32 w-64 h-64 rounded-full blur-3xl pointer-events-none opacity-50 bg-primary/5 transition-opacity group-hover:opacity-100" />
+          
+          <div className="relative z-10 flex flex-col gap-5">
+            <div className="flex items-center gap-2 border-b border-slate-100 pb-4">
+              <span className="material-symbols-outlined text-[20px] text-primary">filter_list</span>
+              <h3 className="text-xs font-black uppercase tracking-widest text-slate-800 font-headline">Filter Data</h3>
             </div>
-            {(selectedFakultas !== 'Semua Fakultas' || selectedProdi !== 'Semua Prodi' || filterStatus !== 'Semua Status' || startDate || endDate || searchQuery) && (
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-5">
+              {/* Search */}
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                  <span className="material-symbols-outlined text-base">search</span>
+                  Pencarian
+                </label>
+                <input 
+                  type="text" 
+                  placeholder="Nama, NIM, keluhan..."
+                  value={searchQuery}
+                  onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+                  className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
+                />
+              </div>
+
+              {/* Status */}
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                  <span className="material-symbols-outlined text-base">vital_signs</span>
+                  Status Klinis
+                </label>
+                <select
+                  value={filterStatus}
+                  onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}
+                  className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 cursor-pointer"
+                >
+                  <option value="Semua Status">Semua Status</option>
+                  <option value="Stabil">Stabil</option>
+                  <option value="Perlu Perhatian">Perlu Perhatian</option>
+                  <option value="Pemulihan">Pemulihan</option>
+                </select>
+              </div>
+
+              {/* Fakultas */}
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                  <span className="material-symbols-outlined text-base">domain</span>
+                  Fakultas
+                </label>
+                <select
+                  value={selectedFakultas}
+                  onChange={(e) => handleFakultasChange(e.target.value)}
+                  className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 cursor-pointer"
+                >
+                  <option value="Semua Fakultas">Semua Fakultas</option>
+                  {fakultasList.map((f) => (
+                    <option key={f.id} value={f.nama}>{f.nama}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Prodi */}
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                  <span className="material-symbols-outlined text-base">school</span>
+                  Program Studi
+                </label>
+                <select
+                  value={selectedProdi}
+                  onChange={(e) => { setSelectedProdi(e.target.value); setCurrentPage(1); }}
+                  disabled={selectedFakultas === 'Semua Fakultas'}
+                  className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <option value="Semua Prodi">Semua Prodi</option>
+                  {filteredProdis.map((p) => (
+                    <option key={p.id} value={p.nama}>{p.nama}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Dari Tanggal */}
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                  <span className="material-symbols-outlined text-base">event</span>
+                  Dari Tanggal
+                </label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => { setStartDate(e.target.value); setCurrentPage(1); }}
+                  className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
+                />
+              </div>
+
+              {/* Sampai Tanggal */}
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                  <span className="material-symbols-outlined text-base">event</span>
+                  Sampai Tanggal
+                </label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => { setEndDate(e.target.value); setCurrentPage(1); }}
+                  className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between border-t border-slate-100 pt-5">
+              <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-1">
+                {/* Empty space for tabs if needed in the future */}
+                <span className="text-[10px] font-bold text-slate-400">Pilih kriteria untuk menyaring data</span>
+              </div>
               <button
                 onClick={() => {
                   setSelectedFakultas('Semua Fakultas');
@@ -202,114 +321,34 @@ export default function MedicalRecords() {
                   setSearchQuery('');
                   setCurrentPage(1);
                 }}
-                className="text-[10px] font-black text-rose-500 hover:text-rose-600 uppercase tracking-wider flex items-center gap-1 transition-colors"
+                disabled={!(selectedFakultas !== 'Semua Fakultas' || selectedProdi !== 'Semua Prodi' || filterStatus !== 'Semua Status' || startDate || endDate || searchQuery)}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-5 py-2.5 text-[10px] font-black uppercase tracking-widest text-slate-500 transition-all hover:bg-slate-50 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <span className="material-symbols-outlined text-sm shrink-0">restart_alt</span> Reset Filter
+                <span className="material-symbols-outlined text-[16px]">restart_alt</span>
+                Reset Filter
               </button>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-            {/* Search */}
-            <div className="flex flex-col gap-1">
-              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Pencarian</label>
-              <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-base shrink-0">search</span>
-                <input 
-                  type="text" 
-                  placeholder="Nama, NIM, keluhan..."
-                  value={searchQuery}
-                  onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-                  className="w-full pl-9 pr-3 py-2 rounded-xl border text-xs font-semibold placeholder-slate-400 focus:outline-none focus:border-[var(--theme-primary)] transition-all"
-                  style={{ backgroundColor: 'var(--theme-bg)', borderColor: 'var(--theme-border)', color: 'var(--theme-text)' }}
-                />
-              </div>
-            </div>
-
-            {/* Status */}
-            <div className="flex flex-col gap-1">
-              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Status Klinis</label>
-              <select
-                value={filterStatus}
-                onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}
-                className="w-full px-3 py-2 rounded-xl border text-xs font-semibold outline-none focus:border-[var(--theme-primary)] transition-all cursor-pointer"
-                style={{ backgroundColor: 'var(--theme-bg)', borderColor: 'var(--theme-border)', color: 'var(--theme-text)' }}
-              >
-                <option value="Semua Status">Semua Status</option>
-                <option value="Stabil">Stabil</option>
-                <option value="Perlu Perhatian">Perlu Perhatian</option>
-                <option value="Pemulihan">Pemulihan</option>
-              </select>
-            </div>
-
-            {/* Fakultas */}
-            <div className="flex flex-col gap-1">
-              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Fakultas</label>
-              <select
-                value={selectedFakultas}
-                onChange={(e) => handleFakultasChange(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border text-xs font-semibold outline-none focus:border-[var(--theme-primary)] transition-all cursor-pointer"
-                style={{ backgroundColor: 'var(--theme-bg)', borderColor: 'var(--theme-border)', color: 'var(--theme-text)' }}
-              >
-                <option value="Semua Fakultas">Semua Fakultas</option>
-                {fakultasList.map((f) => (
-                  <option key={f.id} value={f.nama}>{f.nama}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Prodi */}
-            <div className="flex flex-col gap-1">
-              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Program Studi</label>
-              <select
-                value={selectedProdi}
-                onChange={(e) => { setSelectedProdi(e.target.value); setCurrentPage(1); }}
-                disabled={selectedFakultas === 'Semua Fakultas'}
-                className="w-full px-3 py-2 rounded-xl border text-xs font-semibold outline-none focus:border-[var(--theme-primary)] transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-                style={{ backgroundColor: 'var(--theme-bg)', borderColor: 'var(--theme-border)', color: 'var(--theme-text)' }}
-              >
-                <option value="Semua Prodi">Semua Prodi</option>
-                {filteredProdis.map((p) => (
-                  <option key={p.id} value={p.nama}>{p.nama}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Dari Tanggal */}
-            <div className="flex flex-col gap-1">
-              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Dari Tanggal</label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => { setStartDate(e.target.value); setCurrentPage(1); }}
-                className="w-full px-3 py-2 rounded-xl border text-xs font-semibold outline-none focus:border-[var(--theme-primary)] transition-all"
-                style={{ backgroundColor: 'var(--theme-bg)', borderColor: 'var(--theme-border)', color: 'var(--theme-text)' }}
-              />
-            </div>
-
-            {/* Sampai Tanggal */}
-            <div className="flex flex-col gap-1">
-              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Sampai Tanggal</label>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => { setEndDate(e.target.value); setCurrentPage(1); }}
-                className="w-full px-3 py-2 rounded-xl border text-xs font-semibold outline-none focus:border-[var(--theme-primary)] transition-all"
-                style={{ backgroundColor: 'var(--theme-bg)', borderColor: 'var(--theme-border)', color: 'var(--theme-text)' }}
-              />
             </div>
           </div>
         </section>
 
         {/* Medical Records List Card */}
         <section className="rounded-2xl border shadow-sm p-5" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
-          <div className="flex items-center justify-between mb-6 pb-2 border-b border-slate-50">
-            <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2" style={{ color: 'var(--theme-primary)' }}>
-              <span className="material-symbols-outlined text-base shrink-0">list</span> Daftar Sesi Rekam Medis
-            </h3>
-            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-              Total: {filteredAndSortedRecords.length}
-            </span>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 pb-4 border-b border-slate-100 gap-4">
+            <div>
+              <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-primary">
+                <span className="material-symbols-outlined text-base shrink-0">list</span> Daftar Sesi Rekam Medis
+              </h3>
+              <p className="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-widest">
+                Total {filteredAndSortedRecords.length} data
+              </p>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Urutkan:</span>
+              <button onClick={() => handleSort('date')} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-[9px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 transition-colors">
+                Tanggal {sortConfig.key === 'date' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}
+              </button>
+            </div>
           </div>
 
           {loading ? (
@@ -325,102 +364,115 @@ export default function MedicalRecords() {
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{error}</p>
             </div>
           ) : filteredAndSortedRecords.length === 0 ? (
-            <div className="py-20 text-center">
-              <span className="material-symbols-outlined text-slate-300 text-4xl mb-3 shrink-0">inbox</span>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tidak ada rekam medis ditemukan</p>
+            <div className="flex min-h-[300px] flex-col items-center justify-center gap-4 text-center">
+              <div className="flex w-20 h-20 items-center justify-center rounded-[1.5rem] bg-slate-50 border border-slate-100 text-slate-300">
+                <span className="material-symbols-outlined text-[40px]">inbox</span>
+              </div>
+              <div>
+                <h3 className="text-base font-black uppercase tracking-tight text-slate-800 font-headline">Tidak ada rekam medis</h3>
+                <p className="mt-1.5 text-sm font-medium text-slate-500">Coba ubah filter atau kata kunci pencarian.</p>
+              </div>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="border-b border-slate-100 text-left">
-                    <th className="pb-4 px-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Mahasiswa</th>
-                    <th onClick={() => handleSort('date')} className="cursor-pointer hover:text-[var(--theme-primary)] pb-4 px-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                      <div className="flex items-center gap-1">
-                        Tanggal Pemeriksaan <span className="text-[10px] opacity-50">{sortConfig.key === 'date' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}</span>
+            <div className="space-y-4">
+              {paginatedRecords.map((record) => {
+                const statusStyle = getStatusColor(record.status_pasien);
+                return (
+                  <div 
+                    key={record.id} 
+                    className="flex flex-col lg:flex-row lg:items-center gap-4 p-4 rounded-2xl border border-slate-200 hover:border-primary/40 bg-white transition-all duration-300 group hover:shadow-md hover:shadow-primary/5"
+                  >
+                    {/* Left: Patient Info */}
+                    <div className="flex items-center gap-3 lg:w-[280px] shrink-0">
+                      <div className="w-10 h-10 rounded-xl bg-indigo-50/80 text-indigo-600 border border-indigo-100 flex items-center justify-center font-black text-sm group-hover:scale-105 transition-transform duration-300 shrink-0">
+                        {getInitials(record._name)}
                       </div>
-                    </th>
-                    <th className="pb-4 px-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Jenis Sesi</th>
-                    <th className="pb-4 px-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Mood</th>
-                    <th className="pb-4 px-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Status Pasien</th>
-                    <th className="pb-4 px-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50">
-                  {paginatedRecords.map((record) => {
-                    const statusStyle = getStatusColor(record.status_pasien);
-                    return (
-                      <tr key={record.id} className="group hover:bg-slate-50/40 transition-colors">
-                        <td className="py-4 px-4">
-                          <div className="flex items-center gap-3.5">
-                            <div className="w-11 h-11 rounded-[1.25rem] bg-indigo-500 text-white flex items-center justify-center font-black text-xs shadow-sm group-hover:scale-105 transition-transform duration-300 shrink-0 overflow-hidden">
-                              {getInitials(record._name)}
-                            </div>
-                            <div>
-                              <p className="text-sm font-bold text-slate-900 leading-snug">{record._name}</p>
-                              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">{record._nim} • {record._fakultas}</p>
-                              <p className="text-[9px] text-slate-500 italic mt-0.5">{record._prodi}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-4 px-4">
-                          <div className="flex flex-col font-body">
-                            <span className="font-bold text-xs text-neutral-800">{record.date}</span>
-                            <span className="text-[9px] text-neutral-400 font-bold uppercase mt-0.5">{record.time} WIB</span>
-                          </div>
-                        </td>
-                        <td className="py-4 px-4">
-                          <span className="text-xs font-bold text-slate-700">{record.type || 'Sesi Umum'}</span>
-                        </td>
-                        <td className="py-4 px-4">
-                          <span className="text-xs font-bold text-slate-800">{record.mood || '—'}</span>
-                        </td>
-                        <td className="py-4 px-4">
-                          <span
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[9px] font-black uppercase tracking-widest"
-                            style={{ backgroundColor: statusStyle.bg, color: statusStyle.text, borderColor: statusStyle.border }}
-                          >
-                            <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dotAnim}`} style={{ backgroundColor: statusStyle.dot }}></span>
-                            {record.status_pasien || '—'}
-                          </span>
-                        </td>
-                        <td className="py-4 px-4 text-right">
-                          <button
-                            onClick={() => handleOpenDetail(record)}
-                            className="w-9 h-9 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200 transition-all shadow-sm"
-                            title="Lihat Detail Sesi"
-                          >
-                            <span className="material-symbols-outlined text-base shrink-0">visibility</span>
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                      <div className="min-w-0">
+                        <p className="truncate text-xs font-black text-slate-900 group-hover:text-primary transition-colors">{record._name}</p>
+                        <p className="mt-0.5 truncate text-[9px] font-bold uppercase tracking-widest text-slate-500">{record._nim} • {record._fakultas}</p>
+                      </div>
+                    </div>
+                    
+                    {/* Middle: Details */}
+                    <div className="flex-1 min-w-0 lg:px-4 lg:border-l border-slate-100 grid grid-cols-2 md:grid-cols-3 gap-4">
+                      <div>
+                        <div className="flex items-center gap-1.5 text-[11px] font-black text-slate-800">
+                          <span className="material-symbols-outlined text-[16px] text-primary shrink-0">calendar_month</span>
+                          {record.date || '-'}
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 mt-1">
+                          <span className="material-symbols-outlined text-[14px] shrink-0">schedule</span>
+                          {record.time || '-'} WIB
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Jenis Sesi</p>
+                        <p className="text-[11px] font-black text-slate-700 mt-0.5">{record.type || 'Sesi Umum'}</p>
+                      </div>
+                      <div className="hidden md:block">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Mood</p>
+                        <p className="text-[11px] font-black text-slate-700 mt-0.5">{record.mood || '—'}</p>
+                      </div>
+                    </div>
+                    
+                    {/* Right: Status & Action */}
+                    <div className="flex flex-row items-center justify-between lg:justify-end gap-5 lg:shrink-0">
+                      <span
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border"
+                        style={{ backgroundColor: statusStyle.bg, color: statusStyle.text, borderColor: statusStyle.border }}
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dotAnim}`} style={{ backgroundColor: statusStyle.dot }} />
+                        {record.status_pasien || '—'}
+                      </span>
+                      
+                      <button
+                        onClick={() => handleOpenDetail(record)}
+                        className="w-8 h-8 rounded-lg bg-slate-50 text-slate-400 hover:text-primary hover:bg-primary/5 transition-all flex items-center justify-center shrink-0 border border-slate-100/50"
+                        title="Lihat Detail Sesi"
+                      >
+                        <span className="material-symbols-outlined text-[18px] shrink-0">visibility</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
 
           {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between border-t border-slate-100 pt-4 mt-4">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                Halaman {currentPage} Dari {totalPages}
-              </span>
-              <div className="flex gap-2">
+          {filteredAndSortedRecords.length > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 mt-2 border-t border-slate-100">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Tampilkan:</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}
+                  className="h-8 rounded-lg border border-slate-200 bg-slate-50 px-2 text-xs font-bold text-slate-700 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                >
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+                <span className="text-[10px] font-bold text-slate-400">data per halaman</span>
+              </div>
+
+              <div className="flex items-center gap-2">
                 <button
-                  disabled={currentPage === 1}
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  className="px-4 py-2 border rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={currentPage === 1}
+                  className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
                 >
-                  Sebelumnya
+                  <span className="material-symbols-outlined text-[18px]">chevron_left</span>
                 </button>
+                <span className="text-xs font-bold text-slate-600 px-2">
+                  Hal {currentPage} dari {totalPages || 1}
+                </span>
                 <button
-                  disabled={currentPage === totalPages}
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  className="px-4 py-2 border rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={currentPage === totalPages || totalPages === 0}
+                  className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
                 >
-                  Selanjutnya
+                  <span className="material-symbols-outlined text-[18px]">chevron_right</span>
                 </button>
               </div>
             </div>

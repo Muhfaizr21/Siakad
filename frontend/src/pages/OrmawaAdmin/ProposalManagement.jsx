@@ -639,23 +639,44 @@ export default function ProposalManagement() {
                 {/* Alur Persetujuan */}
                 <div className="space-y-3">
                   <Label className="text-[10px] font-black text-slate-400 tracking-[0.15em] uppercase font-headline">Alur Persetujuan</Label>
-                  <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-5 flex items-center justify-between gap-2">
-                    {['disetujui_fakultas', 'disetujui_univ'].map((s, i) => {
-                      const statuses = ['disetujui_fakultas', 'disetujui_univ', 'selesai']
-                      const active = statuses.indexOf(selected.Status) >= i
+                  {(() => {
+                    const isUnivLevel = !selected?.Ormawa?.FakultasID && !selected?.FakultasID
+                    if (isUnivLevel) {
+                      const done = ['disetujui_univ', 'selesai'].includes(selected.Status)
                       return (
-                        <React.Fragment key={s}>
-                          <div className={cn('flex flex-col items-center gap-1.5', active ? '' : 'opacity-30')}>
-                            <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center border', active ? 'bg-emerald-50 text-emerald-600 border-emerald-100 shadow-sm' : 'bg-slate-100 text-slate-400 border-slate-200/40')}>
-                              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>check_circle</span>
-                            </div>
-                            <span className="text-[9px] font-black tracking-wider text-slate-500 font-headline uppercase">{['Fakultas', 'Universitas'][i]}</span>
+                        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-2">
+                          <div className="flex items-center gap-2">
+                            <span className="material-symbols-outlined text-amber-600" style={{ fontSize: '16px' }}>info</span>
+                            <span className="text-[10px] font-black text-amber-700 uppercase tracking-wider">ORMAWA Tingkat Universitas</span>
                           </div>
-                          {i < 1 && <div className={cn('flex-1 h-[2px] rounded-full', active ? 'bg-emerald-300' : 'bg-slate-200')} />}
-                        </React.Fragment>
+                          <p className="text-[11px] text-amber-700 font-medium">Proposal dari BEM-U, UKM, atau MPM <strong>langsung</strong> diverifikasi oleh Universitas — tidak melewati Fakultas.</p>
+                          <div className={cn('flex items-center gap-2 p-2.5 rounded-xl border mt-2', done ? 'bg-emerald-50 border-emerald-100' : 'bg-slate-50 border-slate-100')}>
+                            <span className={cn('material-symbols-outlined text-[16px]', done ? 'text-emerald-600' : 'text-slate-300')}>{done ? 'check_circle' : 'radio_button_unchecked'}</span>
+                            <span className={cn('text-[10px] font-bold uppercase tracking-widest', done ? 'text-emerald-700' : 'text-slate-400')}>Universitas</span>
+                          </div>
+                        </div>
                       )
-                    })}
-                  </div>
+                    }
+                    return (
+                      <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-5 flex items-center justify-between gap-2">
+                        {['disetujui_fakultas', 'disetujui_univ'].map((s, i) => {
+                          const statuses = ['disetujui_fakultas', 'disetujui_univ', 'selesai']
+                          const active = statuses.indexOf(selected.Status) >= i
+                          return (
+                            <React.Fragment key={s}>
+                              <div className={cn('flex flex-col items-center gap-1.5', active ? '' : 'opacity-30')}>
+                                <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center border', active ? 'bg-emerald-50 text-emerald-600 border-emerald-100 shadow-sm' : 'bg-slate-100 text-slate-400 border-slate-200/40')}>
+                                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>check_circle</span>
+                                </div>
+                                <span className="text-[9px] font-black tracking-wider text-slate-500 font-headline uppercase">{['Fakultas', 'Universitas'][i]}</span>
+                              </div>
+                              {i < 1 && <div className={cn('flex-1 h-[2px] rounded-full', active ? 'bg-emerald-300' : 'bg-slate-200')} />}
+                            </React.Fragment>
+                          )
+                        })}
+                      </div>
+                    )
+                  })()}
                 </div>
 
                 {/* Histori */}

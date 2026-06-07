@@ -220,7 +220,8 @@ export default function PortalTopbar({ config, onMenuClick }) {
   // Get user display info
   const displayName = user?.name || user?.nama || user?.Nama || mahasiswa?.nama || 'User';
   const displayRole = user?.role_display || user?.role || config.roleLabel || 'User';
-  const displayInitial = String(displayName).charAt(0).toUpperCase();
+  const cleanNameForInitial = String(displayName).replace(/Dr\.\s*|M\.Psi|S\.Psi|,/gi, '').trim();
+  const displayInitial = cleanNameForInitial.charAt(0).toUpperCase() || 'U';
 
   // Detect current portal and resolve valid routes
   const portalRoutes = useMemo(() => {

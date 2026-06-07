@@ -484,18 +484,44 @@ func UpdateUserRole(c *fiber.Ctx) error {
 			err := tx.Where("pengguna_id = ?", targetUser.ID).First(&mhs).Error
 			if err == gorm.ErrRecordNotFound {
 				nim := strings.Split(targetUser.Email, "@")[0]
-				mhs = models.Mahasiswa{
-					PenggunaID:       targetUser.ID,
-					Nama:             strings.Split(targetUser.Email, "@")[0],
-					NIM:              nim,
-					FakultasID:       req.FakultasID,
-					StatusAkun:       "Aktif",
-					StatusAkademik:   "Aktif",
-					SemesterSekarang: 1,
-					TahunMasuk:       time.Now().Year(),
-				}
-				if err := tx.Create(&mhs).Error; err != nil {
-					return err
+				
+				isOrmawaOnly := (strings.Contains(roleLower, ",ormawa,") || strings.Contains(roleLower, ",ormawa_admin,") || strings.Contains(roleLower, ",pengurus_ormawa,")) &&
+					!strings.Contains(roleLower, ",mahasiswa,")
+				noFakultas := req.FakultasID == 0
+
+				if isOrmawaOnly && noFakultas {
+					// Insert without fakultas_id and program_studi_id columns entirely
+					var result struct{ ID uint }
+					err := tx.Raw(`
+						INSERT INTO mahasiswa.mahasiswa 
+							(pengguna_id, nama, nim, status_akun, status_akademik, semester_sekarang, tahun_masuk, created_at, updated_at)
+						VALUES (?, ?, ?, 'Aktif', 'Aktif', 1, ?, NOW(), NOW())
+						RETURNING id`,
+						targetUser.ID, strings.Split(targetUser.Email, "@")[0], nim, time.Now().Year(),
+					).Scan(&result).Error
+					if err != nil {
+						return fmt.Errorf("failed to create mahasiswa profile: %w", err)
+					}
+					mhs.ID = result.ID
+				} else {
+					mhs = models.Mahasiswa{
+						PenggunaID:       targetUser.ID,
+						Nama:             strings.Split(targetUser.Email, "@")[0],
+						NIM:              nim,
+						StatusAkun:       "Aktif",
+						StatusAkademik:   "Aktif",
+						SemesterSekarang: 1,
+						TahunMasuk:       time.Now().Year(),
+					}
+					if req.FakultasID != 0 {
+						mhs.FakultasID = req.FakultasID
+					}
+					if req.ProgramStudiID != 0 {
+						mhs.ProgramStudiID = req.ProgramStudiID
+					}
+					if err := tx.Create(&mhs).Error; err != nil {
+						return err
+					}
 				}
 			} else if err != nil {
 				return err
@@ -669,7 +695,7 @@ func CreateUser(c *fiber.Ctx) error {
 
 	roleLower := "," + strings.ToLower(req.Role) + ","
 	requiresFakultas := false
-	if strings.Contains(roleLower, ",faculty_admin,") || strings.Contains(roleLower, ",prodi_admin,") || strings.Contains(roleLower, ",mahasiswa,") || strings.Contains(roleLower, ",ormawa_admin,") || strings.Contains(roleLower, ",ormawa,") || (strings.Contains(roleLower, ",kencana_mentor,") && req.KencanaScopeType == "faculty") {
+	if strings.Contains(roleLower, ",faculty_admin,") || strings.Contains(roleLower, ",prodi_admin,") || strings.Contains(roleLower, ",mahasiswa,") || strings.Contains(roleLower, ",ormawa_admin,") || (strings.Contains(roleLower, ",kencana_mentor,") && req.KencanaScopeType == "faculty") {
 		requiresFakultas = true
 	}
 
@@ -739,25 +765,51 @@ func CreateUser(c *fiber.Ctx) error {
 		// 2. Create Identity Link (Mahasiswa/Dosen/etc)
 		if strings.Contains(roleLower, ",mahasiswa,") || strings.Contains(roleLower, ",ormawa_admin,") || strings.Contains(roleLower, ",ormawa,") {
 			nim := strings.Split(req.Email, "@")[0] // Fallback NIM from email
-			mhs := models.Mahasiswa{
-				PenggunaID:       user.ID,
-				Nama:             req.Nama,
-				NIM:              nim,
-				FakultasID:       req.FakultasID,
-				ProgramStudiID:   req.ProgramStudiID,
-				StatusAkun:       "Aktif",
-				StatusAkademik:   "Aktif",
-				SemesterSekarang: 1,
-				TahunMasuk:       time.Now().Year(),
-			}
-			if err := tx.Create(&mhs).Error; err != nil {
-				return err
+
+			// For ormawa users without a faculty, we must use raw SQL to avoid inserting
+			// FakultasID=0 which would violate the FK constraint (zero is not a valid faculty ID)
+			isOrmawaOnly := (strings.Contains(roleLower, ",ormawa,") || strings.Contains(roleLower, ",ormawa_admin,")) &&
+				!strings.Contains(roleLower, ",mahasiswa,")
+			noFakultas := req.FakultasID == 0
+
+			var mhsID uint
+			if isOrmawaOnly && noFakultas {
+				// Insert without fakultas_id and program_studi_id columns entirely
+				var result struct{ ID uint }
+				err := tx.Raw(`
+					INSERT INTO mahasiswa.mahasiswa 
+						(pengguna_id, nama, nim, status_akun, status_akademik, semester_sekarang, tahun_masuk, created_at, updated_at)
+					VALUES (?, ?, ?, 'Aktif', 'Aktif', 1, ?, NOW(), NOW())
+					RETURNING id`,
+					user.ID, req.Nama, nim, time.Now().Year(),
+				).Scan(&result).Error
+				if err != nil {
+					return fmt.Errorf("gagal membuat profil mahasiswa: %w", err)
+				}
+				mhsID = result.ID
+			} else {
+				// Normal creation with FakultasID / ProgramStudiID
+				mhs := models.Mahasiswa{
+					PenggunaID:       user.ID,
+					Nama:             req.Nama,
+					NIM:              nim,
+					FakultasID:       req.FakultasID,
+					ProgramStudiID:   req.ProgramStudiID,
+					StatusAkun:       "Aktif",
+					StatusAkademik:   "Aktif",
+					SemesterSekarang: 1,
+					TahunMasuk:       time.Now().Year(),
+				}
+				if err := tx.Create(&mhs).Error; err != nil {
+					return err
+				}
+				mhsID = mhs.ID
 			}
 
 			// Assign to Ormawa if provided
 			if (strings.Contains(roleLower, ",ormawa_admin,") || strings.Contains(roleLower, ",ormawa,")) && req.OrmawaID != 0 {
 				tx.Exec("INSERT INTO ormawa.ormawa_anggota (mahasiswa_id, ormawa_id, role, status, joined_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-					mhs.ID, req.OrmawaID, "Ketua/Admin", "aktif", time.Now(), time.Now(), time.Now())
+					mhsID, req.OrmawaID, "Ketua/Admin", "aktif", time.Now(), time.Now(), time.Now())
 			}
 		}
 
@@ -1011,10 +1063,18 @@ func GetDashboardStats(c *fiber.Ctx) error {
 	})
 }
 
-// GetGlobalProposals returns proposals waiting for university approval
+// GetGlobalProposals returns proposals waiting for university approval.
+// This includes:
+// 1. Proposals from faculty-affiliated ORMAWA that have been approved by faculty (status = "disetujui_fakultas")
+// 2. Proposals from university-level ORMAWA (BEM-U, UKM, MPM) that have FakultasID = NULL — these skip the faculty step
 func GetGlobalProposals(c *fiber.Ctx) error {
 	var proposals []models.Proposal
-	result := config.DB.Preload("Ormawa").Preload("Fakultas").Where("status = ?", "disetujui_fakultas").Order("created_at desc").Find(&proposals)
+	// Show all proposals that are either:
+	// - Approved by faculty (ready for univ approval)
+	// - From univ-level ORMAWA (no faculty, goes straight to univ)
+	result := config.DB.Preload("Ormawa").Preload("Fakultas").
+		Where("status = ? OR (fakultas_id IS NULL AND status IN (?, ?))", "disetujui_fakultas", "diajukan", "revisi").
+		Order("created_at desc").Find(&proposals)
 	if result.Error != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": result.Error.Error()})
 	}
@@ -1031,9 +1091,12 @@ func ApproveProposalUniv(c *fiber.Ctx) error {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Proposal not found"})
 	}
 
-	// Double check to only approve if it's already approved by faculty
-	if proposal.Status != "disetujui_fakultas" {
-		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Proposal must be approved by Faculty first"})
+	// Double check to only approve if it's ready for university review:
+	// - "disetujui_fakultas" = approved by faculty, now waiting for university
+	// - "diajukan" with FakultasID = NULL = university-level ORMAWA (BEM-U/UKM/MPM), skip faculty step
+	isUnivLevelDirect := proposal.FakultasID == nil && (proposal.Status == "diajukan" || proposal.Status == "revisi")
+	if proposal.Status != "disetujui_fakultas" && !isUnivLevelDirect {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Proposal must be approved by Faculty first (or be from a university-level ORMAWA)"})
 	}
 
 	var body struct {
@@ -1224,23 +1287,20 @@ func DeleteFakultas(c *fiber.Ctx) error {
 }
 
 func GetAllOrmawa(c *fiber.Ctx) error {
-	var orgs []struct {
-		models.Ormawa
-		JumlahAnggota int64 `json:"jumlah_anggota"`
-	}
-
 	var baseOrgs []models.Ormawa
-	if err := config.DB.Order("nama asc").Find(&baseOrgs).Error; err != nil {
+	if err := config.DB.Preload("Fakultas").Preload("ProgramStudi").Order("nama asc").Find(&baseOrgs).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
 	}
 
+	type OrmawWithCount struct {
+		models.Ormawa
+		JumlahAnggota int64 `json:"jumlah_anggota"`
+	}
+	var orgs []OrmawWithCount
 	for _, o := range baseOrgs {
 		var count int64
 		config.DB.Model(&models.OrmawaAnggota{}).Where("ormawa_id = ?", o.ID).Count(&count)
-		orgs = append(orgs, struct {
-			models.Ormawa
-			JumlahAnggota int64 `json:"jumlah_anggota"`
-		}{o, count})
+		orgs = append(orgs, OrmawWithCount{o, count})
 	}
 
 	return c.JSON(fiber.Map{"status": "success", "data": orgs})

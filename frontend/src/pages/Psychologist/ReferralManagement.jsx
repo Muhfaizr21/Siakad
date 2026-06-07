@@ -180,26 +180,40 @@ export default function ReferralManagement() {
     <>
       <div className="w-full relative space-y-6 scroll-smooth">
           
-          {/* Welcome Banner */}
-          <section className="relative overflow-hidden rounded-2xl border p-5 shadow-sm flex flex-col gap-5 group"
-            style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
-            <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)' }} />
-            <div className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)' }} />
-            
-            <div className="relative z-10 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between w-full">
-              <div>
-                <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest"
-                  style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)', color: 'var(--theme-primary)' }}
-                >
-                  <span className="material-symbols-outlined text-base shrink-0">send</span>
-                  Tindak Lanjut
-                </div>
-                <h1 className="mt-3 text-2xl font-black uppercase tracking-tight font-headline" style={{ color: 'var(--theme-primary)' }}>Manajemen Surat Rujukan</h1>
-                <p className="mt-1 max-w-2xl text-xs font-bold leading-5 text-slate-500">
-                  Kelola surat rujukan medis dan akademik untuk pasien Anda dengan sistem tracking yang terintegrasi.
-                </p>
-              </div>
+          {/* ── Welcome Banner ─────────────────────────────────────────── */}
+          <section className="relative overflow-hidden rounded-2xl p-6 md:p-8 flex flex-col xl:flex-row xl:items-center gap-6 group shadow-sm border border-slate-200/60 bg-white">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-50/80 via-white to-slate-50/80" />
+            <div className="absolute inset-0 opacity-[0.02]"
+              style={{
+                backgroundImage: `radial-gradient(circle at 20% 50%, black 1px, transparent 1px), radial-gradient(circle at 80% 20%, black 1px, transparent 1px)`,
+                backgroundSize: '40px 40px'
+              }}
+            />
+            <div className="absolute -top-20 -right-20 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
+            <div className="absolute -bottom-10 left-20 w-48 h-48 bg-emerald-400/5 rounded-full blur-2xl" />
 
+            <div className="relative z-10 flex-1 flex flex-col justify-center gap-3">
+              <div className="flex items-center gap-4">
+                 <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/[0.02] border border-primary/10 flex items-center justify-center text-primary shrink-0 shadow-sm relative overflow-hidden">
+                    <span className="material-symbols-outlined text-primary relative z-10" style={{ fontSize: '26px' }}>send</span>
+                 </div>
+                 <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-primary/5 text-primary border border-primary/10">
+                        Tindak Lanjut
+                      </span>
+                    </div>
+                    <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight font-headline leading-none">
+                      Manajemen Surat Rujukan
+                    </h1>
+                    <p className="mt-2 text-xs md:text-sm font-medium text-slate-500 leading-relaxed max-w-xl">
+                      Kelola surat rujukan medis dan akademik untuk pasien Anda dengan sistem tracking yang terintegrasi.
+                    </p>
+                 </div>
+              </div>
+            </div>
+            
+            <div className="relative z-10 shrink-0 mt-2 xl:mt-0">
               <button 
                 onClick={() => {
                   setNewReferral({
@@ -213,10 +227,9 @@ export default function ReferralManagement() {
                   setSelectedPatientHistory([]);
                   setIsModalOpen(true);
                 }}
-                className="text-white px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg transition-all flex items-center gap-2 w-fit shrink-0 relative z-20"
-                style={{ backgroundColor: 'var(--theme-primary)' }}
+                className="bg-primary hover:bg-primary/90 text-white px-5 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20 transition-all flex items-center gap-2 hover:shadow-primary/30 active:scale-95 border border-primary/20"
               >
-                <span className="material-symbols-outlined text-base shrink-0">add</span> Buat Rujukan Baru
+                <span className="material-symbols-outlined text-[18px] shrink-0">add</span> Buat Rujukan Baru
               </button>
             </div>
           </section>
@@ -241,15 +254,17 @@ export default function ReferralManagement() {
             </div>
           </div>
 
-          {/* Referrals List */}
-          <div className="rounded-2xl border shadow-sm p-5" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
-            <div className="flex items-center justify-between mb-6 pb-2 border-b border-slate-50">
-              <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2" style={{ color: 'var(--theme-primary)' }}>
-                <span className="material-symbols-outlined text-base shrink-0">list</span> Daftar Surat Rujukan
-              </h3>
-              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-                Total: {filteredReferrals.length}
-              </span>
+          {/* Referrals List Card */}
+          <section className="rounded-2xl border shadow-sm p-5" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 pb-4 border-b border-slate-100 gap-4">
+              <div>
+                <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-primary">
+                  <span className="material-symbols-outlined text-base shrink-0">list</span> Daftar Surat Rujukan
+                </h3>
+                <p className="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-widest">
+                  Total: {filteredReferrals.length} data
+                </p>
+              </div>
             </div>
 
             {loading ? (
@@ -261,93 +276,111 @@ export default function ReferralManagement() {
               </div>
             ) : error ? (
               <div className="py-20 text-center">
-                <span className="material-symbols-outlined text-slate-300 text-4xl mb-3 shrink-0">error</span>
+                <span className="material-symbols-outlined text-rose-400 text-4xl mb-3 shrink-0">error</span>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{error}</p>
               </div>
             ) : filteredReferrals.length === 0 ? (
-              <div className="py-20 text-center">
-                <span className="material-symbols-outlined text-slate-300 text-4xl mb-3 shrink-0">inbox</span>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tidak ada data ditemukan</p>
+              <div className="flex min-h-[300px] flex-col items-center justify-center gap-4 text-center">
+                <div className="flex w-20 h-20 items-center justify-center rounded-[1.5rem] bg-slate-50 border border-slate-100 text-slate-300">
+                  <span className="material-symbols-outlined text-[40px]">inbox</span>
+                </div>
+                <div>
+                  <h3 className="text-base font-black uppercase tracking-tight text-slate-800 font-headline">Tidak ada rujukan</h3>
+                  <p className="mt-1.5 text-sm font-medium text-slate-500">Belum ada data surat rujukan yang dibuat.</p>
+                </div>
               </div>
             ) : (
-              <div className="space-y-3.5">
+              <div className="space-y-4">
                 {filteredReferrals.map((referral) => {
-                  const colors = statusColors[referral.status] || statusColors['Pending'];
+                  const statusStyle = statusColors[referral.status] || statusColors['Pending'];
                   return (
-                    <div
-                      key={referral.id}
-                      className="flex items-center gap-4 p-4 rounded-2xl border hover:shadow-md hover:border-slate-200/50 transition-all duration-300 group"
-                      style={{ backgroundColor: colors.bg, borderColor: colors.border }}
+                    <div 
+                      key={referral.id} 
+                      className="flex flex-col lg:flex-row lg:items-center gap-4 p-4 rounded-2xl border border-slate-200 hover:border-primary/40 bg-white transition-all duration-300 group hover:shadow-md hover:shadow-primary/5"
                     >
-                      <div
-                        className="w-11 h-11 rounded-[1.25rem] flex items-center justify-center font-black text-xs group-hover:scale-105 transition-transform duration-300 shrink-0 shadow-sm overflow-hidden relative"
-                        style={{ backgroundColor: colors.badgeBg, color: colors.text }}
-                      >
-                        {referral.foto_url || referral.foto ? (
-                          <img src={referral.foto_url || referral.foto} alt={referral.mahasiswa_name} className="w-full h-full object-cover" />
-                        ) : (
-                          <span className="material-symbols-outlined text-slate-400 text-2xl shrink-0">person</span>
-                        )}
+                      {/* Left: Patient Info */}
+                      <div className="flex items-center gap-3 lg:w-[280px] shrink-0">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs shadow-sm group-hover:scale-105 transition-transform duration-300 shrink-0 overflow-hidden relative`}
+                          style={{ backgroundColor: statusStyle.badgeBg, color: statusStyle.text }}
+                        >
+                          {referral.foto_url || referral.foto ? (
+                            <img src={referral.foto_url || referral.foto} alt={referral.mahasiswa_name} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="material-symbols-outlined text-slate-400 text-[20px] shrink-0">person</span>
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate text-xs font-black text-slate-900 group-hover:text-primary transition-colors">{referral.mahasiswa_name}</p>
+                          <p className="mt-0.5 truncate text-[9px] font-bold uppercase tracking-widest text-slate-500">{referral.tipe} • {referral.pihak_tujuan}</p>
+                        </div>
                       </div>
                       
-                      <div className="flex-1 min-w-0">
-                        <h5 className="text-xs font-bold text-slate-900 truncate leading-snug">{referral.mahasiswa_name}</h5>
-                        <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-1">
-                          {referral.tipe} • {referral.pihak_tujuan}
-                        </p>
-                        <p className="text-[9px] text-slate-500 mt-1 line-clamp-1">{referral.alasan}</p>
+                      {/* Middle: Details */}
+                      <div className="flex-1 min-w-0 lg:px-4 lg:border-l border-slate-100 flex items-center gap-6">
+                        <div className="flex items-center gap-2">
+                          <span className="w-6 h-6 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                            <span className="material-symbols-outlined text-[14px] shrink-0">description</span>
+                          </span>
+                          <div>
+                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Alasan Rujukan</p>
+                            <p className="text-[11px] font-black text-slate-700 mt-0.5 line-clamp-1">{referral.alasan}</p>
+                          </div>
+                        </div>
                       </div>
-
-                      <div className="text-right px-4 shrink-0">
-                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Status</p>
-                        <p className="text-[10px] font-black uppercase mt-1" style={{ color: colors.text }}>
+                      
+                      {/* Right: Status & Action */}
+                      <div className="flex flex-row items-center justify-between lg:justify-end gap-5 lg:shrink-0">
+                        <span
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border"
+                          style={{ backgroundColor: statusStyle.bg, color: statusStyle.text, borderColor: statusStyle.border }}
+                        >
                           {getStatusLabel(referral.status)}
-                        </p>
-                      </div>
-
-                      <div className="flex gap-2 shrink-0">
-                        {referral.status === 'Pending' && (
-                          <button
-                            onClick={() => handleSendReferral(referral.id)}
-                            className="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-300 shadow-sm hover:shadow-md"
-                            style={{ backgroundColor: 'var(--theme-primary)', color: 'white' }}
-                            title="Kirim Rujukan"
-                          >
-                            <Send size={18} />
-                          </button>
-                        )}
-                        {referral.status === 'Sent' && (
-                          <button
-                            onClick={() => handleConfirmReceived(referral.id)}
-                            className="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-300 shadow-sm hover:shadow-md"
-                            style={{ backgroundColor: 'var(--theme-success)', color: 'white' }}
-                            title="Konfirmasi Terima"
-                          >
-                            <CheckCircle size={18} />
-                          </button>
-                        )}
-                        {referral.surat_rujukan_url && (
-                          <button
-                            onClick={async () => {
-                              try {
-                                await psychologistService.downloadReferralPDF(referral.id);
-                              } catch (err) {
-                                toast.error('Gagal download PDF: ' + err.message);
-                              }
-                            }}
-                            className="w-9 h-9 rounded-lg bg-slate-200 text-slate-600 flex items-center justify-center hover:bg-slate-300 transition-all duration-300 shadow-sm hover:shadow-md"
-                            title="Download PDF"
-                          >
-                            <FileDownload size={18} />
-                          </button>
-                        )}
+                        </span>
+                        
+                        <div className="flex gap-2 shrink-0">
+                          {referral.status === 'Pending' && (
+                            <button
+                              onClick={() => handleSendReferral(referral.id)}
+                              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 shadow-sm hover:shadow-md"
+                              style={{ backgroundColor: 'var(--theme-primary)', color: 'white' }}
+                              title="Kirim Rujukan"
+                            >
+                              <span className="material-symbols-outlined text-[16px]">send</span>
+                            </button>
+                          )}
+                          {referral.status === 'Sent' && (
+                            <button
+                              onClick={() => handleConfirmReceived(referral.id)}
+                              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 shadow-sm hover:shadow-md"
+                              style={{ backgroundColor: 'var(--theme-success)', color: 'white' }}
+                              title="Konfirmasi Terima"
+                            >
+                              <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                            </button>
+                          )}
+                          {referral.surat_rujukan_url && (
+                            <button
+                              onClick={async () => {
+                                try {
+                                  await psychologistService.downloadReferralPDF(referral.id);
+                                } catch (err) {
+                                  toast.error('Gagal download PDF: ' + err.message);
+                                }
+                              }}
+                              className="w-8 h-8 rounded-lg bg-slate-50 text-slate-400 flex items-center justify-center hover:text-primary hover:bg-primary/5 transition-all duration-300 border border-slate-100/50"
+                              title="Download PDF"
+                            >
+                              <span className="material-symbols-outlined text-[16px]">download</span>
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );
                 })}
               </div>
             )}
-          </div>
+          </section>
         </div>
 
         {/* --- CREATE REFERRAL MODAL --- */}

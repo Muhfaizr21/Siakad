@@ -140,11 +140,17 @@ func CreateProposal(c *fiber.Ctx) error {
 	}
 
 	// Create Proposal
-	// FIX: Synchronize FakultasID with Ormawa's FakultasID to ensure faculty matching
+	// Synchronize FakultasID with Ormawa's FakultasID
+	// If Ormawa has FakultasID = NULL (university-level like BEM-U, UKM, MPM),
+	// the proposal also gets FakultasID = NULL and goes DIRECTLY to Universitas queue.
 	var ormawa models.Ormawa
+	isUnivLevel := false
 	if err := config.DB.First(&ormawa, payload.OrmawaID).Error; err == nil {
 		if ormawa.FakultasID != nil {
-			payload.FakultasID = *ormawa.FakultasID
+			payload.FakultasID = ormawa.FakultasID // Faculty-affiliated ORMAWA
+		} else {
+			payload.FakultasID = nil // University-level ORMAWA → skip faculty step
+			isUnivLevel = true
 		}
 	}
 
@@ -156,32 +162,14 @@ func CreateProposal(c *fiber.Ctx) error {
 		}
 	}
 
-	// If FakultasID is still 0 (e.g. Ormawa load failed), fallback to Mahasiswa's faculty or database first faculty
-	if payload.FakultasID == 0 {
-		var fak models.Fakultas
-		if payload.MahasiswaID != 0 {
-			var mhs models.Mahasiswa
-			if err := config.DB.First(&mhs, payload.MahasiswaID).Error; err == nil {
-				payload.FakultasID = mhs.FakultasID
-			}
-		}
-		if payload.FakultasID == 0 {
-			config.DB.Order("id asc").First(&fak)
-			payload.FakultasID = fak.ID
-		}
+	// For university-level ORMAWA: proposal status starts as "diajukan" but goes directly
+	// to super_admin queue (GetGlobalProposals will show these too)
+	// For faculty-affiliated ORMAWA: goes through faculty first → then univ
+	if isUnivLevel {
+		// Status stays "diajukan" → super admin sees it directly
+		// We also set a sentinel: approved_fakultas_id stays nil
 	}
 
-	// Final safeguard: if even after fix it's 0, use a generic valid ID from DB
-	if payload.FakultasID == 0 {
-		var anyFak models.Fakultas
-		config.DB.Raw("SELECT id FROM fakultas LIMIT 1").Scan(&anyFak.ID)
-		payload.FakultasID = anyFak.ID
-	}
-	if payload.MahasiswaID == 0 {
-		var anyMhs models.Mahasiswa
-		config.DB.Raw("SELECT id FROM mahasiswas LIMIT 1").Scan(&anyMhs.ID)
-		payload.MahasiswaID = anyMhs.ID
-	}
 
 	if err := config.DB.Create(&payload).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{

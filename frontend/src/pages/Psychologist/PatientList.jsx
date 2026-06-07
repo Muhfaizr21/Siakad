@@ -102,59 +102,177 @@ export default function PatientList() {
     <>
       <div className="w-full relative space-y-6 scroll-smooth">
           
-          {/* Welcome Banner Card */}
-          <section className="relative overflow-hidden rounded-2xl border p-5 shadow-sm flex flex-col gap-5 group"
-            style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
-            {/* Soft decorative blur nodes */}
-            <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)' }} />
-            <div className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{ backgroundColor: 'color-mix(in srgb, var(--theme-secondary) 5%, transparent)' }} />
-            
-            <div className="relative z-10 flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between w-full">
-              <div>
-                <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest"
-                  style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)', color: 'var(--theme-primary)' }}
-                >
-                  <span className="material-symbols-outlined text-base shrink-0">stars</span>
-                  Rekam Medis Klinis
-                </div>
-                <h1 className="mt-3 text-2xl font-black uppercase tracking-tight font-headline" style={{ color: 'var(--theme-primary)' }}>Daftar Pasien</h1>
-                <p className="mt-1 max-w-2xl text-xs font-bold leading-5 text-slate-500">
-                  Pantau riwayat sesi, rekam medis klinis, dan status psikologis mahasiswa secara terpusat dan aman.
-                </p>
-              </div>
+          {/* ── Welcome Banner ─────────────────────────────────────────── */}
+          <section className="relative overflow-hidden rounded-2xl p-6 md:p-8 flex flex-col xl:flex-row xl:items-center gap-6 group shadow-sm border border-slate-200/60 bg-white">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-50/80 via-white to-slate-50/80" />
+            <div className="absolute inset-0 opacity-[0.02]"
+              style={{
+                backgroundImage: `radial-gradient(circle at 20% 50%, black 1px, transparent 1px), radial-gradient(circle at 80% 20%, black 1px, transparent 1px)`,
+                backgroundSize: '40px 40px'
+              }}
+            />
+            <div className="absolute -top-20 -right-20 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
+            <div className="absolute -bottom-10 left-20 w-48 h-48 bg-emerald-400/5 rounded-full blur-2xl" />
 
-              <div className="flex items-center gap-3 shrink-0 relative z-20">
-                <button 
-                  onClick={async () => {
-                    try {
-                      await psychologistService.downloadRecapMedicalRecordPDF({
-                        fakultas: selectedFakultas,
-                        prodi: selectedProdi,
-                        status: filterStatus,
-                        start_date: startDate,
-                        end_date: endDate
-                      });
-                    } catch (err) {
-                      alert(err.message || 'Gagal mengunduh Rekap PDF');
-                    }
-                  }}
-                  className="flex items-center justify-center p-3 bg-white border border-slate-200/80 rounded-2xl text-slate-500 hover:text-[var(--theme-primary)] hover:border-[var(--theme-primary)] transition-all shadow-sm shrink-0 hover:scale-105 active:scale-95"
-                  title="Download Rekap Rekam Medis PDF"
-                >
-                  <span className="material-symbols-outlined text-base shrink-0">download</span>
-                </button>
+            <div className="relative z-10 flex-1 flex flex-col justify-center gap-3">
+              <div className="flex items-center gap-4">
+                 <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/[0.02] border border-primary/10 flex items-center justify-center text-primary shrink-0 shadow-sm relative overflow-hidden">
+                    <span className="material-symbols-outlined text-primary relative z-10" style={{ fontSize: '26px' }}>medical_information</span>
+                 </div>
+                 <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-primary/5 text-primary border border-primary/10">
+                        Rekam Medis Klinis
+                      </span>
+                    </div>
+                    <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight font-headline leading-none">
+                      Daftar Pasien
+                    </h1>
+                    <p className="mt-2 text-xs md:text-sm font-medium text-slate-500 leading-relaxed max-w-xl">
+                      Pantau riwayat sesi, rekam medis klinis, dan status psikologis mahasiswa secara terpusat dan aman.
+                    </p>
+                 </div>
               </div>
+            </div>
+            
+            <div className="relative z-10 shrink-0 mt-2 xl:mt-0">
+              <button 
+                onClick={async () => {
+                  try {
+                    await psychologistService.downloadRecapMedicalRecordPDF({
+                      fakultas: selectedFakultas,
+                      prodi: selectedProdi,
+                      status: filterStatus,
+                      start_date: startDate,
+                      end_date: endDate
+                    });
+                  } catch (err) {
+                    alert(err.message || 'Gagal mengunduh Rekap PDF');
+                  }
+                }}
+                className="flex items-center justify-center w-10 h-10 rounded-xl border border-slate-200 bg-white text-slate-500 hover:text-primary hover:border-primary/30 transition-all shadow-sm"
+                title="Download Rekap Rekam Medis PDF"
+              >
+                <span className="material-symbols-outlined text-[20px] shrink-0">download</span>
+              </button>
             </div>
           </section>
 
-          {/* Filter Bar Card */}
-          <section className="rounded-2xl border p-5 shadow-sm space-y-4" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
-            <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: 'var(--theme-border)' }}>
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-base shrink-0" style={{ color: 'color-mix(in srgb, var(--theme-primary) 60%, transparent)' }}>filter_alt</span>
-                <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Filter Data</h3>
+          {/* ── Filter Bar Card ──────────────────────────────────────────── */}
+          <section className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-5 space-y-5 relative overflow-hidden group">
+            <div className="absolute -top-32 -right-32 w-64 h-64 rounded-full blur-3xl pointer-events-none opacity-50 bg-primary/5 transition-opacity group-hover:opacity-100" />
+            
+            <div className="relative z-10 flex flex-col gap-5">
+              <div className="flex items-center gap-2 border-b border-slate-100 pb-4">
+                <span className="material-symbols-outlined text-[20px] text-primary">filter_list</span>
+                <h3 className="text-xs font-black uppercase tracking-widest text-slate-800 font-headline">Filter Data</h3>
               </div>
-              {(selectedFakultas !== 'Semua Fakultas' || selectedProdi !== 'Semua Prodi' || filterStatus !== 'Semua Status' || startDate || endDate || searchQuery) && (
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-5">
+                {/* Search */}
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                    <span className="material-symbols-outlined text-base">search</span>
+                    Pencarian
+                  </label>
+                  <input 
+                    type="text" 
+                    placeholder="Nama atau NIM..."
+                    value={searchQuery}
+                    onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+                    className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
+                  />
+                </div>
+
+                {/* Status */}
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                    <span className="material-symbols-outlined text-base">vital_signs</span>
+                    Status Klinis
+                  </label>
+                  <select
+                    value={filterStatus}
+                    onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}
+                    className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 cursor-pointer"
+                  >
+                    <option value="Semua Status">Semua Status</option>
+                    <option value="Stabil">Stabil</option>
+                    <option value="Perlu Perhatian">Perlu Perhatian</option>
+                    <option value="Pemulihan">Pemulihan</option>
+                  </select>
+                </div>
+
+                {/* Fakultas */}
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                    <span className="material-symbols-outlined text-base">domain</span>
+                    Fakultas
+                  </label>
+                  <select
+                    value={selectedFakultas}
+                    onChange={(e) => handleFakultasChange(e.target.value)}
+                    className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 cursor-pointer"
+                  >
+                    <option value="Semua Fakultas">Semua Fakultas</option>
+                    {fakultasList.map((f) => (
+                      <option key={f.id} value={f.nama}>{f.nama}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Prodi */}
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                    <span className="material-symbols-outlined text-base">school</span>
+                    Program Studi
+                  </label>
+                  <select
+                    value={selectedProdi}
+                    onChange={(e) => { setSelectedProdi(e.target.value); setCurrentPage(1); }}
+                    disabled={selectedFakultas === 'Semua Fakultas'}
+                    className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <option value="Semua Prodi">Semua Prodi</option>
+                    {filteredProdis.map((p) => (
+                      <option key={p.id} value={p.nama}>{p.nama}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Dari Tanggal */}
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                    <span className="material-symbols-outlined text-base">event</span>
+                    Dari Tanggal
+                  </label>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => { setStartDate(e.target.value); setCurrentPage(1); }}
+                    className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
+                  />
+                </div>
+
+                {/* Sampai Tanggal */}
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                    <span className="material-symbols-outlined text-base">event</span>
+                    Sampai Tanggal
+                  </label>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => { setEndDate(e.target.value); setCurrentPage(1); }}
+                    className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between border-t border-slate-100 pt-5">
+                <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-1">
+                  {/* Empty space for tabs if needed in the future */}
+                  <span className="text-[10px] font-bold text-slate-400">Pilih kriteria untuk menyaring data</span>
+                </div>
                 <button
                   onClick={() => {
                     setSelectedFakultas('Semua Fakultas');
@@ -165,101 +283,12 @@ export default function PatientList() {
                     setSearchQuery('');
                     setCurrentPage(1);
                   }}
-                  className="text-[10px] font-black text-rose-500 hover:text-rose-600 uppercase tracking-wider flex items-center gap-1 transition-colors"
+                  disabled={!(selectedFakultas !== 'Semua Fakultas' || selectedProdi !== 'Semua Prodi' || filterStatus !== 'Semua Status' || startDate || endDate || searchQuery)}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-5 py-2.5 text-[10px] font-black uppercase tracking-widest text-slate-500 transition-all hover:bg-slate-50 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <span className="material-symbols-outlined text-sm shrink-0">restart_alt</span> Reset Filter
+                  <span className="material-symbols-outlined text-[16px]">restart_alt</span>
+                  Reset Filter
                 </button>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-              {/* Search */}
-              <div className="flex flex-col gap-1">
-                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Pencarian</label>
-                <div className="relative">
-                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-base shrink-0">search</span>
-                  <input 
-                    type="text" 
-                    placeholder="Nama atau NIM..."
-                    value={searchQuery}
-                    onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-                    className="w-full pl-9 pr-3 py-2 rounded-xl border text-xs font-semibold placeholder-slate-400 focus:outline-none focus:border-[var(--theme-primary)] transition-all"
-                    style={{ backgroundColor: 'var(--theme-bg)', borderColor: 'var(--theme-border)', color: 'var(--theme-text)' }}
-                  />
-                </div>
-              </div>
-
-              {/* Status */}
-              <div className="flex flex-col gap-1">
-                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Status Klinis</label>
-                <select
-                  value={filterStatus}
-                  onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}
-                  className="w-full px-3 py-2 rounded-xl border text-xs font-semibold outline-none focus:border-[var(--theme-primary)] transition-all cursor-pointer"
-                  style={{ backgroundColor: 'var(--theme-bg)', borderColor: 'var(--theme-border)', color: 'var(--theme-text)' }}
-                >
-                  <option value="Semua Status">Semua Status</option>
-                  <option value="Stabil">Stabil</option>
-                  <option value="Perlu Perhatian">Perlu Perhatian</option>
-                  <option value="Pemulihan">Pemulihan</option>
-                </select>
-              </div>
-
-              {/* Fakultas */}
-              <div className="flex flex-col gap-1">
-                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Fakultas</label>
-                <select
-                  value={selectedFakultas}
-                  onChange={(e) => handleFakultasChange(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border text-xs font-semibold outline-none focus:border-[var(--theme-primary)] transition-all cursor-pointer"
-                  style={{ backgroundColor: 'var(--theme-bg)', borderColor: 'var(--theme-border)', color: 'var(--theme-text)' }}
-                >
-                  <option value="Semua Fakultas">Semua Fakultas</option>
-                  {fakultasList.map((f) => (
-                    <option key={f.id} value={f.nama}>{f.nama}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Prodi */}
-              <div className="flex flex-col gap-1">
-                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Program Studi</label>
-                <select
-                  value={selectedProdi}
-                  onChange={(e) => { setSelectedProdi(e.target.value); setCurrentPage(1); }}
-                  disabled={selectedFakultas === 'Semua Fakultas'}
-                  className="w-full px-3 py-2 rounded-xl border text-xs font-semibold outline-none focus:border-[var(--theme-primary)] transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-                  style={{ backgroundColor: 'var(--theme-bg)', borderColor: 'var(--theme-border)', color: 'var(--theme-text)' }}
-                >
-                  <option value="Semua Prodi">Semua Prodi</option>
-                  {filteredProdis.map((p) => (
-                    <option key={p.id} value={p.nama}>{p.nama}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Dari Tanggal */}
-              <div className="flex flex-col gap-1">
-                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Dari Tanggal</label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => { setStartDate(e.target.value); setCurrentPage(1); }}
-                  className="w-full px-3 py-2 rounded-xl border text-xs font-semibold outline-none focus:border-[var(--theme-primary)] transition-all"
-                  style={{ backgroundColor: 'var(--theme-bg)', borderColor: 'var(--theme-border)', color: 'var(--theme-text)' }}
-                />
-              </div>
-
-              {/* Sampai Tanggal */}
-              <div className="flex flex-col gap-1">
-                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Sampai Tanggal</label>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => { setEndDate(e.target.value); setCurrentPage(1); }}
-                  className="w-full px-3 py-2 rounded-xl border text-xs font-semibold outline-none focus:border-[var(--theme-primary)] transition-all"
-                  style={{ backgroundColor: 'var(--theme-bg)', borderColor: 'var(--theme-border)', color: 'var(--theme-text)' }}
-                />
               </div>
             </div>
           </section>
@@ -268,82 +297,99 @@ export default function PatientList() {
             
             {/* Main Patient List (Col 9) */}
             <div className="lg:col-span-9 space-y-4">
-              <div className="rounded-2xl border shadow-sm overflow-hidden p-5" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                    <thead>
-                      <tr className="border-b border-slate-100 text-left">
-                        <th onClick={() => handleSort('name')} className="cursor-pointer hover:text-[var(--theme-primary)] pb-4 px-4 text-[9px] font-black text-slate-400 uppercase tracking-widest"><div className="flex items-center gap-1">Mahasiswa <span className="text-[10px] opacity-50">{sortConfig.key === 'name' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}</span></div></th>
-                        <th onClick={() => handleSort('sessions')} className="cursor-pointer hover:text-[var(--theme-primary)] pb-4 px-4 text-[9px] font-black text-slate-400 uppercase tracking-widest"><div className="flex items-center gap-1">Sesi <span className="text-[10px] opacity-50">{sortConfig.key === 'sessions' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}</span></div></th>
-                        <th className="pb-4 px-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Kunjungan Terakhir</th>
-                        <th onClick={() => handleSort('status')} className="cursor-pointer hover:text-[var(--theme-primary)] pb-4 px-4 text-[9px] font-black text-slate-400 uppercase tracking-widest"><div className="flex items-center gap-1">Status <span className="text-[10px] opacity-50">{sortConfig.key === 'status' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}</span></div></th>
-                        <th className="pb-4 px-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Aksi</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-50">
-                      {paginatedPatients.map((patient) => (
-                        <tr 
-                          key={patient.id} 
-                          className={`group hover:bg-slate-50/40 transition-colors ${patient.status === 'Selesai' ? 'opacity-60 grayscale-[35%]' : ''}`}
-                        >
-                          <td className="py-4 px-4">
-                            <div className="flex items-center gap-3.5">
-                              <div className={`w-11 h-11 rounded-[1.25rem] ${patient.color || 'bg-primary'} text-white flex items-center justify-center font-black text-xs shadow-sm group-hover:scale-105 transition-transform duration-300 shrink-0 overflow-hidden relative`}>
-                                {patient.foto_url || patient.foto ? (
-                                  <img src={patient.foto_url || patient.foto} alt={patient.name} className="w-full h-full object-cover" />
-                                ) : (
-                                  <span className="material-symbols-outlined text-white/80 text-2xl shrink-0">person</span>
-                                )}
-                              </div>
-                              <div>
-                                <p className="text-sm font-bold text-slate-900 leading-snug">{patient.name}</p>
-                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">{patient.nim} • {patient.faculty}</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="py-4 px-4">
-                            <div className="flex items-center gap-2">
-                              <span className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)', color: 'var(--theme-primary)' }}>
-                                 <span className="material-symbols-outlined text-sm shrink-0" >show_chart</span>
-                              </span>
-                              <span className="text-xs font-black text-slate-700">{patient.sessions} Kali</span>
-                            </div>
-                          </td>
-                          <td className="py-4 px-4">
-                            <div className="flex items-center gap-2 text-slate-500">
-                              <span className="w-6 h-6 bg-slate-100 text-slate-400 rounded-lg flex items-center justify-center shrink-0">
-                                 <span className="material-symbols-outlined text-sm shrink-0" >calendar_month</span>
-                              </span>
-                              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">{patient.lastVisit}</span>
-                            </div>
-                          </td>
-                          <td className="py-4 px-4">
-                            {(() => {
-                              const statusStyle = getStatusColor(patient.status);
-                              return (
-                                <span
-                                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border"
-                                  style={{ backgroundColor: statusStyle.bg, color: statusStyle.text, borderColor: statusStyle.border }}
-                                >
-                                  <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dotAnim}`} style={{ backgroundColor: statusStyle.dot }} />
-                                  {patient.status}
-                                </span>
-                              );
-                            })()}
-                          </td>
-                          <td className="py-4 px-4 text-right">
-                            <button 
-                              onClick={() => navigate(`/psychologist/patients/${patient.id}/medical-record`)}
-                              className="w-9 h-9 rounded-xl bg-slate-50 text-slate-400 hover:text-[var(--theme-primary)] hover:bg-primary/5 transition-all flex items-center justify-center ml-auto group/btn border border-slate-100/50"
-                            >
-                              <span className="material-symbols-outlined group-hover/btn:translate-x-0.5 transition-transform text-base shrink-0" >chevron_right</span>
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+              <div className="rounded-2xl border shadow-sm p-5 space-y-5 relative overflow-hidden bg-white" style={{ borderColor: 'var(--theme-border)' }}>
+                <div className="flex flex-col gap-2 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h2 className="text-sm font-black uppercase tracking-widest text-slate-800 font-headline">Daftar Pasien Terdaftar</h2>
+                    <p className="text-[10px] font-bold text-slate-500 mt-1">Total {filteredAndSortedPatients.length} pasien ditemukan</p>
+                  </div>
+                  <div className="flex items-center gap-2 mt-3 sm:mt-0">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Urutkan:</span>
+                    <button onClick={() => handleSort('name')} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-[9px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50">
+                      Nama {sortConfig.key === 'name' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}
+                    </button>
+                    <button onClick={() => handleSort('sessions')} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-[9px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50">
+                      Sesi {sortConfig.key === 'sessions' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}
+                    </button>
+                  </div>
                 </div>
+
+                {paginatedPatients.length === 0 ? (
+                  <div className="flex min-h-[300px] flex-col items-center justify-center gap-4 text-center">
+                    <div className="flex w-20 h-20 items-center justify-center rounded-[1.5rem] bg-slate-50 border border-slate-100 text-slate-300">
+                      <span className="material-symbols-outlined text-[40px]">group_off</span>
+                    </div>
+                    <div>
+                      <h3 className="text-base font-black uppercase tracking-tight text-slate-800 font-headline">Tidak ada pasien</h3>
+                      <p className="mt-1.5 text-sm font-medium text-slate-500">Coba ubah filter atau kata kunci pencarian.</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {paginatedPatients.map((patient) => {
+                      const statusStyle = getStatusColor(patient.status);
+                      
+                      return (
+                        <div 
+                          key={patient.id} 
+                          onClick={() => navigate(`/psychologist/patients/${patient.id}/medical-record`)}
+                          className={`flex flex-col lg:flex-row lg:items-center gap-4 p-4 rounded-2xl border border-slate-200 hover:border-primary/40 bg-white transition-all duration-300 group cursor-pointer hover:shadow-md hover:shadow-primary/5 ${patient.status === 'Selesai' ? 'opacity-60 grayscale-[35%]' : ''}`}
+                        >
+                          {/* Left: Patient Info */}
+                          <div className="flex items-center gap-3 lg:w-[280px] shrink-0">
+                            <div className={`w-10 h-10 rounded-xl ${patient.color || 'bg-primary'} text-white flex items-center justify-center font-black text-xs shadow-sm group-hover:scale-105 transition-transform duration-300 shrink-0 overflow-hidden relative`}>
+                              {patient.foto_url || patient.foto ? (
+                                <img src={patient.foto_url || patient.foto} alt={patient.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <span className="material-symbols-outlined text-white/80 text-[20px] shrink-0">person</span>
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="truncate text-xs font-black text-slate-900 group-hover:text-primary transition-colors">{patient.name}</p>
+                              <p className="mt-0.5 truncate text-[9px] font-bold uppercase tracking-widest text-slate-500">{patient.nim} • {patient.faculty}</p>
+                            </div>
+                          </div>
+                          
+                          {/* Middle: Stats */}
+                          <div className="flex-1 min-w-0 lg:px-4 lg:border-l border-slate-100 flex items-center gap-6">
+                            <div className="flex items-center gap-2">
+                              <span className="w-6 h-6 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                                <span className="material-symbols-outlined text-[14px] shrink-0">show_chart</span>
+                              </span>
+                              <div>
+                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Total Sesi</p>
+                                <p className="text-[11px] font-black text-slate-700">{patient.sessions} Kali</p>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-2">
+                              <span className="w-6 h-6 bg-slate-100 text-slate-400 rounded-lg flex items-center justify-center shrink-0">
+                                <span className="material-symbols-outlined text-[14px] shrink-0">calendar_month</span>
+                              </span>
+                              <div>
+                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Kunjungan Terakhir</p>
+                                <p className="text-[11px] font-black text-slate-700">{patient.lastVisit}</p>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Right: Status & Action */}
+                          <div className="flex flex-row items-center justify-between lg:justify-end gap-5 lg:shrink-0">
+                            <span
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border"
+                              style={{ backgroundColor: statusStyle.bg, color: statusStyle.text, borderColor: statusStyle.border }}
+                            >
+                              <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dotAnim}`} style={{ backgroundColor: statusStyle.dot }} />
+                              {patient.status}
+                            </span>
+                            
+                            <span className="material-symbols-outlined text-[20px] text-slate-300 group-hover:text-primary transition-colors">chevron_right</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
                 <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-b-[2rem]">
                   <div className="flex items-center gap-4 text-xs font-bold text-slate-500">
                     <div className="flex items-center gap-2">
