@@ -342,28 +342,28 @@ export default function ProposalPipeline() {
 
       {/* ── Detail Dialog ─────────────────────────────────────────── */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-3xl p-0 overflow-hidden border-none shadow-2xl rounded-3xl glass-card bg-white/95">
+        <DialogContent className="max-w-4xl w-[95vw] md:w-full max-h-[90vh] p-0 overflow-hidden border-none shadow-2xl rounded-3xl glass-card bg-white/95 flex flex-col">
           {selected && (
-            <div className="flex flex-col">
-              <div className="p-10 bg-slate-900 relative overflow-hidden">
+            <>
+              <div className="p-6 md:p-10 bg-slate-900 relative overflow-hidden shrink-0">
                 <div className="absolute inset-0 bg-gradient-to-br from-bku-primary/30 to-transparent pointer-events-none" />
-                <div className="relative z-10 space-y-4">
-                  <div className="flex items-center gap-3">
-                    <Badge className="font-black font-headline text-[10px] px-3 py-1 bg-white/10 text-white border-none shadow-none uppercase tracking-widest">#PRP-{selected.id || selected.ID}</Badge>
-                    <div className="size-1 rounded-full bg-white/20" />
-                    <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">{selected.Fakultas?.Nama || 'Institusi'}</span>
+                <div className="relative z-10 space-y-3 md:space-y-4">
+                  <div className="flex items-center gap-2 md:gap-3 flex-wrap">
+                    <Badge className="font-black font-headline text-[9px] md:text-[10px] px-2 md:px-3 py-1 bg-white/10 text-white border-none shadow-none uppercase tracking-widest">#PRP-{selected.id || selected.ID}</Badge>
+                    <div className="hidden md:block size-1 rounded-full bg-white/20" />
+                    <span className="text-[9px] md:text-[10px] font-bold text-slate-300 uppercase tracking-widest">{selected.Fakultas?.Nama || 'Institusi'}</span>
                   </div>
-                  <h2 className="text-3xl font-black font-headline tracking-tight leading-tight uppercase max-w-2xl text-white">{selected.Judul}</h2>
-                  <div className="flex items-center gap-2 text-slate-300 font-bold text-[11px] uppercase tracking-widest">
-                    <Building2 size={14} className="text-bku-primary" />
-                    {selected.Ormawa?.Nama || 'Unit Mahasiswa Pengaju'}
+                  <h2 className="text-xl md:text-3xl font-black font-headline tracking-tight leading-tight uppercase max-w-2xl text-white">{selected.Judul}</h2>
+                  <div className="flex items-center gap-2 text-slate-300 font-bold text-[10px] md:text-[11px] uppercase tracking-widest">
+                    <Building2 size={14} className="text-bku-primary shrink-0" />
+                    <span className="truncate">{selected.Ormawa?.Nama || 'Unit Mahasiswa Pengaju'}</span>
                   </div>
                 </div>
-                <span className="material-symbols-outlined absolute -bottom-8 -right-8 text-white/5 rotate-12 pointer-events-none" style={{ fontSize: '120px' }} >security</span>
+                <span className="material-symbols-outlined absolute -bottom-8 -right-8 text-white/5 rotate-12 pointer-events-none" style={{ fontSize: '100px' }} >security</span>
               </div>
               
-              <div className="max-h-[60vh] overflow-y-auto no-scrollbar">
-                <div className="px-8 py-8 space-y-8">
+              <div className="flex-1 overflow-y-auto no-scrollbar">
+                <div className="px-6 py-6 md:px-8 md:py-8 space-y-6 md:space-y-8">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="glass-card bg-white/50 p-5 rounded-2xl border border-slate-200/60 shadow-none space-y-2">
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Proyeksi Anggaran</p>
@@ -377,22 +377,102 @@ export default function ProposalPipeline() {
                     </div>
                  </div>
 
+                 {/* Informasi Umum */}
                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                       <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '16px' }} >description</span>
-                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Ringkasan Kegiatan</span>
-                    </div>
-                    <div className="text-sm font-medium text-slate-600 leading-relaxed font-inter bg-slate-50/50 p-6 rounded-2xl border border-slate-200/40 italic">
-                        "{selected.Deskripsi || 'Tidak ada rincian deskripsi tambahan untuk proposal ini.'}"
-                    </div>
+                   <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest border-b border-slate-200 pb-2">Informasi Umum</h3>
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <div className="space-y-1">
+                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jenis Kegiatan</p>
+                       <p className="text-sm font-semibold text-slate-700">{selected.Jenis || '-'}</p>
+                     </div>
+                     <div className="space-y-1">
+                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tanggal Kegiatan</p>
+                       <p className="text-sm font-semibold text-slate-700">
+                         {selected.TanggalKegiatan ? new Date(selected.TanggalKegiatan).toLocaleDateString('id-ID', { dateStyle: 'long' }) : '-'}
+                       </p>
+                     </div>
+                     <div className="space-y-1">
+                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Bentuk Kegiatan</p>
+                       <p className="text-sm font-semibold text-slate-700">{selected.bentuk_kegiatan || selected.BentukKegiatan || '-'}</p>
+                     </div>
+                     <div className="space-y-1">
+                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mitra</p>
+                       <p className="text-sm font-semibold text-slate-700">{selected.mitra || selected.Mitra || '-'}</p>
+                     </div>
+                     <div className="space-y-1">
+                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Penanggung Jawab</p>
+                       <p className="text-sm font-semibold text-slate-700">{selected.pj_kegiatan || selected.PJKegiatan || '-'}</p>
+                     </div>
+                     <div className="space-y-1">
+                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sumber Dana</p>
+                       <p className="text-sm font-semibold text-slate-700">{selected.sumber_dana || selected.SumberDana || '-'}</p>
+                     </div>
+                   </div>
                  </div>
+
+                 {/* Rincian Konten Proposal */}
+                 <div className="space-y-4">
+                   <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest border-b border-slate-200 pb-2">Rincian Proposal</h3>
+                   
+                   <div className="space-y-2">
+                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Latar Belakang</p>
+                     <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap">
+                       {selected.latar_belakang || selected.LatarBelakang || '-'}
+                     </div>
+                   </div>
+
+                   <div className="space-y-2">
+                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tujuan Kegiatan</p>
+                     <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap">
+                       {selected.tujuan_kegiatan || selected.TujuanKegiatan || '-'}
+                     </div>
+                   </div>
+
+                   <div className="space-y-2">
+                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sasaran Kegiatan</p>
+                     <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap">
+                       {selected.sasaran_kegiatan || selected.SasaranKegiatan || '-'}
+                     </div>
+                   </div>
+
+                   <div className="space-y-2">
+                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Indikator Keberhasilan</p>
+                     <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap">
+                       {selected.indikator_keberhasilan || selected.IndikatorKeberhasilan || '-'}
+                     </div>
+                   </div>
+
+                   <div className="space-y-2">
+                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jadwal Pelaksanaan</p>
+                     <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap">
+                       {selected.jadwal_pelaksanaan || selected.JadwalPelaksanaan || '-'}
+                     </div>
+                   </div>
+
+                   <div className="space-y-2">
+                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Deskripsi / Ringkasan</p>
+                     <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap">
+                       {selected.Deskripsi || selected.deskripsi || '-'}
+                     </div>
+                   </div>
+                 </div>
+
+                 {/* Link Lampiran / Berkas */}
+                 {(selected.file_url || selected.FileURL) && (
+                    <div className="space-y-2">
+                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Lampiran Dokumen</p>
+                       <a href={selected.file_url || selected.FileURL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 bg-bku-primary/10 text-bku-primary px-4 py-3 rounded-xl font-bold text-sm hover:bg-bku-primary/20 transition-colors">
+                          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>download</span> Unduh/Lihat Dokumen Proposal
+                       </a>
+                    </div>
+                 )}
 
                  {selected.Catatan && (
                     <div className="bg-rose-50/50 border border-rose-100 p-6 rounded-2xl space-y-3">
                         <div className="text-[10px] font-black text-rose-500 uppercase tracking-widest font-headline flex items-center gap-2">
-                            <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >error</span> Sinkronisasi Ulang Diperlukan
+                            <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >error</span> Catatan / Revisi Sebelumnya
                         </div>
-                        <div className="text-sm font-medium text-rose-700 leading-relaxed font-inter">{selected.Catatan}</div>
+                        <div className="text-sm font-medium text-rose-700 leading-relaxed font-inter whitespace-pre-wrap">{selected.Catatan}</div>
                     </div>
                  )}
 
@@ -408,12 +488,12 @@ export default function ProposalPipeline() {
                          <span className="text-[10px] font-bold text-slate-500">hari setelah disahkan</span>
                        </div>
                      )}
-                     <div className="flex justify-end gap-3">
-                       <Button variant="outline" onClick={() => setIsDetailOpen(false)} className="h-11 px-8 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-500 font-headline shadow-none cursor-pointer border-slate-200 hover:bg-slate-100">Tutup</Button>
+                     <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2">
+                       <Button variant="outline" onClick={() => setIsDetailOpen(false)} className="w-full sm:w-auto h-11 px-8 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-500 font-headline shadow-none cursor-pointer border-slate-200 hover:bg-slate-100">Tutup</Button>
                        {selected.Status === 'disetujui_fakultas' && (
                          <>
-                           <Button onClick={() => setIsRejectOpen(true)} className="h-11 px-6 rounded-xl bg-white text-rose-500 border border-rose-200 font-black font-headline text-[10px] uppercase tracking-widest hover:bg-rose-50 transition-all shadow-none cursor-pointer">Kembalikan</Button>
-                           <Button onClick={() => handleApprove(selected.id || selected.ID)} disabled={isSubmitting} className="h-11 px-8 rounded-xl bg-slate-800 text-white font-black font-headline text-[10px] uppercase tracking-widest hover:bg-slate-900 shadow-none transition-all active:scale-95 group cursor-pointer border-none">
+                           <Button onClick={() => setIsRejectOpen(true)} className="w-full sm:w-auto h-11 px-6 rounded-xl bg-white text-rose-500 border border-rose-200 font-black font-headline text-[10px] uppercase tracking-widest hover:bg-rose-50 transition-all shadow-none cursor-pointer">Kembalikan</Button>
+                           <Button onClick={() => handleApprove(selected.id || selected.ID)} disabled={isSubmitting} className="w-full sm:w-auto h-11 px-8 rounded-xl bg-slate-800 text-white font-black font-headline text-[10px] uppercase tracking-widest hover:bg-slate-900 shadow-none transition-all active:scale-95 group cursor-pointer border-none">
                              {isSubmitting ? <span className="material-symbols-outlined animate-spin mr-2" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined mr-2" style={{ fontSize: '14px' }} >security</span>} Sahkan Proposal
                            </Button>
                          </>
@@ -422,7 +502,7 @@ export default function ProposalPipeline() {
                    </div>
                 </div>
               </div>
-            </div>
+            </>
           )}
         </DialogContent>
       </Dialog>
