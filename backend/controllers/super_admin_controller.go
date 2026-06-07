@@ -1036,6 +1036,11 @@ func ApproveProposalUniv(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Proposal must be approved by Faculty first"})
 	}
 
+	var body struct {
+		TenggatHari int `json:"tenggat_hari"`
+	}
+	c.BodyParser(&body)
+
 	err := config.DB.Transaction(func(tx *gorm.DB) error {
 		// 1. Update status to final
 		if err := tx.Model(&proposal).Update("status", "disetujui_univ").Error; err != nil {
@@ -1069,9 +1074,11 @@ func ApproveProposalUniv(c *fiber.Ctx) error {
 			Pesan:    fmt.Sprintf("Proposal '%s' telah disetujui Universitas. Anggaran %v telah dicairkan ke kas organisasi.", proposal.Judul, proposal.Anggaran),
 		})
 
-		// 4. Set LPJ deadline (from ormawa setting, default 14 days)
+		// 4. Set LPJ deadline (from SA input, fallback to ormawa setting, default 14)
 		tenggatHari := 14
-		if proposal.Ormawa.TenggatLPJHari > 0 {
+		if body.TenggatHari > 0 {
+			tenggatHari = body.TenggatHari
+		} else if proposal.Ormawa.TenggatLPJHari > 0 {
 			tenggatHari = proposal.Ormawa.TenggatLPJHari
 		}
 		tenggat := time.Now().Add(time.Duration(tenggatHari) * 24 * time.Hour)

@@ -47,22 +47,13 @@ export default function ProposalPipeline() {
   const [isRejectOpen, setIsRejectOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [rejectNote, setRejectNote] = useState('')
+  const [tenggatHari, setTenggatHari] = useState(14)
 
-  const fetchData = async () => {
-    setLoading(true)
-    try {
-      const res = await adminService.getGlobalProposals()
-      if (res.status === 'success') setData(res.data || [])
-      else toast.error('Gagal memuat proposal global')
-    } catch { toast.error('Gagal terhubung ke pusat data') } finally { setLoading(false) }
-  }
-  useEffect(() => { fetchData() }, [])
 
   const handleApprove = async (id) => {
-    if (!confirm('Sahkan proposal ini untuk pencairan dana?')) return
     setIsSubmitting(true)
     try {
-      const res = await adminService.approveProposal(id)
+      const res = await adminService.approveProposal(id, { tenggat_hari: Number(tenggatHari) || 14 })
       if (res.status === 'success') {
         toast.success('Proposal telah resmi disyahkan')
         fetchData()
@@ -70,6 +61,7 @@ export default function ProposalPipeline() {
       }
     } catch { toast.error('Gagal memproses pengesahan') } finally { setIsSubmitting(false) }
   }
+  useEffect(() => { fetchData() }, [])
 
   const handleReject = async () => {
     setIsSubmitting(true)
@@ -379,17 +371,30 @@ export default function ProposalPipeline() {
                     </div>
                  )}
 
-                 <div className="pt-8 border-t border-slate-200/40 flex justify-end gap-3">
-                    <Button variant="outline" onClick={() => setIsDetailOpen(false)} className="h-11 px-8 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-500 font-headline shadow-none cursor-pointer border-slate-200 hover:bg-slate-100">Tutup</Button>
-                    {selected.Status === 'disetujui_fakultas' && (
-                      <>
-                        <Button onClick={() => setIsRejectOpen(true)} className="h-11 px-6 rounded-xl bg-white text-rose-500 border border-rose-200 font-black font-headline text-[10px] uppercase tracking-widest hover:bg-rose-50 transition-all shadow-none cursor-pointer">Kembalikan</Button>
-                        <Button onClick={() => handleApprove(selected.id || selected.ID)} disabled={isSubmitting} className="h-11 px-8 rounded-xl bg-slate-800 text-white font-black font-headline text-[10px] uppercase tracking-widest hover:bg-slate-900 shadow-none transition-all active:scale-95 group cursor-pointer border-none">
-                          {isSubmitting ? <span className="material-symbols-outlined animate-spin mr-2" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined mr-2" style={{ fontSize: '14px' }} >security</span>} Sahkan Proposal
-                        </Button>
-                      </>
-                    )}
-                  </div>
+                  <div className="pt-8 border-t border-slate-200/40 space-y-4">
+                     {selected.Status === 'disetujui_fakultas' && (
+                       <div className="flex items-center gap-3 bg-slate-50 rounded-2xl p-4 border border-slate-200/60">
+                         <span className="material-symbols-outlined text-slate-400" style={{ fontSize: '18px' }}>timer</span>
+                         <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest shrink-0">Tenggat LPJ:</span>
+                         <input type="number" min={1} max={365}
+                           value={tenggatHari}
+                           onChange={e => setTenggatHari(parseInt(e.target.value) || 14)}
+                           className="w-20 h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-black text-center text-slate-800 focus:outline-none focus:border-primary" />
+                         <span className="text-[10px] font-bold text-slate-500">hari setelah disahkan</span>
+                       </div>
+                     )}
+                     <div className="flex justify-end gap-3">
+                       <Button variant="outline" onClick={() => setIsDetailOpen(false)} className="h-11 px-8 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-500 font-headline shadow-none cursor-pointer border-slate-200 hover:bg-slate-100">Tutup</Button>
+                       {selected.Status === 'disetujui_fakultas' && (
+                         <>
+                           <Button onClick={() => setIsRejectOpen(true)} className="h-11 px-6 rounded-xl bg-white text-rose-500 border border-rose-200 font-black font-headline text-[10px] uppercase tracking-widest hover:bg-rose-50 transition-all shadow-none cursor-pointer">Kembalikan</Button>
+                           <Button onClick={() => handleApprove(selected.id || selected.ID)} disabled={isSubmitting} className="h-11 px-8 rounded-xl bg-slate-800 text-white font-black font-headline text-[10px] uppercase tracking-widest hover:bg-slate-900 shadow-none transition-all active:scale-95 group cursor-pointer border-none">
+                             {isSubmitting ? <span className="material-symbols-outlined animate-spin mr-2" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined mr-2" style={{ fontSize: '14px' }} >security</span>} Sahkan Proposal
+                           </Button>
+                         </>
+                       )}
+                     </div>
+                   </div>
                 </div>
               </div>
             </div>

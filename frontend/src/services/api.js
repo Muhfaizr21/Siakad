@@ -605,8 +605,10 @@ export const adminService = {
     body: JSON.stringify(data)
   }),
   getGlobalProposals: () => fetchWithAuth(`${API_BASE_URL}/admin/proposals`),
-  approveProposal: (id) => fetchWithAuth(`${API_BASE_URL}/admin/proposals/${id}/approve`, {
-    method: 'PUT'
+  approveProposal: (id, data = {}) => fetchWithAuth(`${API_BASE_URL}/admin/proposals/${id}/approve`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
   }),
   rejectProposal: (id, nota) => fetchWithAuth(`${API_BASE_URL}/admin/proposals/${id}/reject`, {
     method: 'PUT',
