@@ -12,7 +12,9 @@ export function useSuperAdminOrmawa() {
 }
 
 export function SuperAdminOrmawaProvider({ children }) {
-  const [selectedOrmawaId, setSelectedOrmawaId] = useState(null)
+  const [selectedOrmawaId, setSelectedOrmawaId] = useState(() => {
+    return localStorage.getItem('superadmin_ormawa_id') || null
+  })
   const [organizations, setOrganizations] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedOrmawa, setSelectedOrmawa] = useState(null)
@@ -26,11 +28,23 @@ export function SuperAdminOrmawaProvider({ children }) {
         if (res.data.status === 'success') {
           const orgs = res.data.data || []
           setOrganizations(orgs)
-          // Auto-select ormawa pertama
+          
+          const savedId = localStorage.getItem('superadmin_ormawa_id')
+          if (savedId) {
+            const matched = orgs.find(o => String(o.ID || o.id) === String(savedId))
+            if (matched) {
+              setSelectedOrmawaId(matched.ID || matched.id)
+              setSelectedOrmawa(matched)
+              return
+            }
+          }
+
+          // Auto-select ormawa pertama jika tidak ada di localStorage atau tidak match
           if (orgs.length > 0) {
             const firstId = orgs[0].ID || orgs[0].id
             setSelectedOrmawaId(firstId)
             setSelectedOrmawa(orgs[0])
+            localStorage.setItem('superadmin_ormawa_id', String(firstId))
           }
         }
       } catch (err) {
@@ -42,16 +56,34 @@ export function SuperAdminOrmawaProvider({ children }) {
     fetchOrganizations()
   }, [])
 
-  // Update selectedOrmawa ketika selectedOrmawaId berubah
+  // Sync selectedOrmawa ketika selectedOrmawaId atau organizations berubah
   useEffect(() => {
     if (selectedOrmawaId && organizations.length > 0) {
-      const ormawa = organizations.find(o => (o.ID || o.id) === selectedOrmawaId)
+      const ormawa = organizations.find(o => String(o.ID || o.id) === String(selectedOrmawaId))
       setSelectedOrmawa(ormawa || null)
     }
   }, [selectedOrmawaId, organizations])
 
+  // Listener untuk sinkronisasi antartab/komponen saat storage berubah
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const savedId = localStorage.getItem('superadmin_ormawa_id')
+      if (savedId && String(savedId) !== String(selectedOrmawaId)) {
+        setSelectedOrmawaId(savedId)
+      }
+    }
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
+  }, [selectedOrmawaId])
+
   const handleOrmawaChange = (newOrmawaId) => {
     setSelectedOrmawaId(newOrmawaId)
+    if (newOrmawaId) {
+      localStorage.setItem('superadmin_ormawa_id', String(newOrmawaId))
+    } else {
+      localStorage.removeItem('superadmin_ormawa_id')
+    }
+    window.dispatchEvent(new Event('storage'))
   }
 
   return (
@@ -68,3 +100,4 @@ export function SuperAdminOrmawaProvider({ children }) {
     </SuperAdminOrmawaContext.Provider>
   )
 }
+

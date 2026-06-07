@@ -19,8 +19,16 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     const selectedFacultyId = localStorage.getItem('superadmin_fakultas_id');
-    if (selectedFacultyId) {
+    if (selectedFacultyId && selectedFacultyId !== 'all') {
       config.headers['X-Faculty-ID'] = selectedFacultyId;
+    }
+    const selectedProdiId = localStorage.getItem('superadmin_prodi_id');
+    if (selectedProdiId && selectedProdiId !== 'all') {
+      config.headers['X-Prodi-ID'] = selectedProdiId;
+    }
+    const selectedPeriodId = localStorage.getItem('superadmin_period_id');
+    if (selectedPeriodId && selectedPeriodId !== 'all') {
+      config.headers['X-Academic-Period-ID'] = selectedPeriodId;
     }
     const impersonatedStudentId = localStorage.getItem('superadmin_impersonate_student_id');
     if (impersonatedStudentId) {

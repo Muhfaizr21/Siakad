@@ -374,11 +374,21 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
 
-  // Filter States
-  const [semester, setSemester] = useState('2025/2026 Ganjil')
-  const [fakultas, setFakultas] = useState('Semua Fakultas')
-  const [prodi, setProdi] = useState('Semua Program Studi')
   const [hoveredIndex, setHoveredIndex] = useState(null)
+
+  // Global filters mapped from localStorage
+  const activeFacultyId = localStorage.getItem('superadmin_fakultas_id') || 'all'
+  const activeProdiId = localStorage.getItem('superadmin_prodi_id') || 'all'
+  const activePeriodId = localStorage.getItem('superadmin_period_id') || 'all'
+
+  const activeFaculty = facultiesList.find(f => String(f.id || f.ID) === String(activeFacultyId))
+  const fakultas = activeFaculty ? (activeFaculty.nama || activeFaculty.Nama) : 'Semua Fakultas'
+
+  const activePeriod = periodsList.find(p => String(p.id || p.ID) === String(activePeriodId))
+  const semester = activePeriod ? `${activePeriod.AcademicYear} - ${activePeriod.Semester}` : 'Semua Periode'
+
+  const activeProdi = prodiList.find(p => String(p.id || p.ID) === String(activeProdiId))
+  const prodi = activeProdi ? (activeProdi.nama || activeProdi.Nama) : 'Semua Program Studi'
 
   // Responsive Chart Dimensions Observer
   const containerRef = useRef(null)
@@ -404,23 +414,17 @@ export default function AdminDashboard() {
   const greeting = hour < 11 ? 'Selamat Pagi' : hour < 15 ? 'Selamat Siang' : hour < 18 ? 'Selamat Sore' : 'Selamat Malam'
   const dateStr = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 
-const fetchData = async (showRefresh = false, useFilters = true, signal) => {
+const fetchData = async (showRefresh = false) => {
     if (showRefresh) setRefreshing(true)
     else setLoading(true)
     try {
-      const params = useFilters ? {
-        period_id: selectedPeriodID,
-        start_date: startDate,
-        end_date: endDate,
-        fakultas_id: selectedFakultasID,
-        program_studi_id: selectedProdiID
-      } : {}
-
-      const [statsRes, logsRes] = await Promise.all([
-        adminService.getStats(params),
-        adminService.getAuditLogs()
+      const [statsRes, logsRes, facultiesRes, prodisRes] = await Promise.all([
+        adminService.getStats(),
+        adminService.getAuditLogs(),
+        adminService.getAllFaculties(),
+        adminService.getAllProdi()
       ])
-if (statsRes.status === 'success') {
+      if (statsRes.status === 'success') {
         setStats(statsRes.data)
         if (statsRes.data.periods) {
           setPeriodsList(statsRes.data.periods)
@@ -430,27 +434,15 @@ if (statsRes.status === 'success') {
         setDetailProp(statsRes.data.detail_proposal || [])
       }
       if (logsRes.status === 'success') setLogs(logsRes.data?.slice(0, 8) || [])
-    } catch (err) {
-      const status = err?.response?.status
-      const baseMetrics = statsDatabase['Semua Fakultas']['Semua Program Studi']
-      setStats(baseMetrics)
-      setLogs([
-        { CreatedAt: new Date().toISOString(), Aktivitas: 'LOGIN_SUCCESS', Deskripsi: 'Login berhasil - Superadmin Console', Pengguna: { Email: 'siakad.admin@bku.ac.id' } },
-        { CreatedAt: new Date(Date.now() - 30 * 60000).toISOString(), Aktivitas: 'UPDATE_USER', Deskripsi: 'Penyelarasan konfigurasi visual dashboard', Pengguna: { Email: 'siakad.admin@bku.ac.id' } }
-      ])
-      if (status === 401 || status === 403) {
-        toast.error('Sesi habis atau tidak diizinkan. Mohon login ulang.')
-      } else if (status === 404) {
-        toast.error('Endpoint tidak ditemukan. Pastikan backend terbaru.')
-      } else {
-        const baseMetrics = statsDatabase['Semua Fakultas']['Semua Program Studi']
-        setStats(baseMetrics)
-        setLogs([
-          { CreatedAt: new Date().toISOString(), Aktivitas: 'LOGIN_SUCCESS', Deskripsi: 'Login berhasil - Superadmin Console', Pengguna: { Email: 'siakad.admin@bku.ac.id' } },
-          { CreatedAt: new Date(Date.now() - 30 * 60000).toISOString(), Aktivitas: 'UPDATE_USER', Deskripsi: 'Penyelarasan konfigurasi visual dashboard', Pengguna: { Email: 'siakad.admin@bku.ac.id' } }
-        ])
-        toast.error('Gagal memuat data API, menampilkan data lokal')
+      if (facultiesRes.status === 'success' && facultiesRes.data) {
+        setFacultiesList(facultiesRes.data)
       }
+      if (prodisRes.status === 'success' && prodisRes.data) {
+        setProdiList(prodisRes.data)
+      }
+    } catch (err) {
+      console.error(err)
+      toast.error('Gagal memuat data dari server')
     } finally {
       setLoading(false)
       setRefreshing(false)
@@ -460,7 +452,7 @@ if (statsRes.status === 'success') {
   // Re-fetch stats when filters change
   useEffect(() => {
     fetchData()
-  }, [selectedPeriodID, startDate, endDate, selectedFakultasID, selectedProdiID])
+  }, [])
 
   // Filter Trigger Handler (Simulates Drill-down & Smooth Transitions)
   const handleFakultasChange = (val) => {
@@ -641,31 +633,37 @@ if (statsRes.status === 'success') {
             </div>
             {/* Active filter chips */}
             <div className="flex items-center gap-2 flex-wrap">
-              {semester && semester !== '2025/2026 Ganjil' && (
+              {activePeriodId !== 'all' && (
                 <span className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 text-[11px] font-medium rounded-full border border-blue-100">
-                  <span className="material-symbols-outlined" style={{ fontSize: '10px' }}>school</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: '10px' }}>calendar_month</span>
                   {semester}
                 </span>
               )}
-              {fakultas && fakultas !== 'Semua Fakultas' && (
+              {activeFacultyId !== 'all' && (
                 <span className="flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 text-indigo-700 text-[11px] font-medium rounded-full border border-indigo-100">
                   <span className="material-symbols-outlined" style={{ fontSize: '10px' }}>business</span>
                   {fakultas}
                 </span>
               )}
-              {prodi && prodi !== 'Semua Program Studi' && (
+              {activeProdiId !== 'all' && (
                 <span className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 text-[11px] font-medium rounded-full border border-emerald-100">
                   <span className="material-symbols-outlined" style={{ fontSize: '10px' }}>menu_book</span>
                   {prodi}
                 </span>
               )}
-              {(semester !== '2025/2026 Ganjil' || fakultas !== 'Semua Fakultas' || prodi !== 'Semua Program Studi') && (
+              {(activePeriodId !== 'all' || activeFacultyId !== 'all' || activeProdiId !== 'all') && (
                 <button
-                  onClick={() => { handleSemesterChange('2025/2026 Ganjil'); handleFakultasChange('Semua Fakultas'); setProdi('Semua Program Studi'); }}
+                  onClick={() => {
+                    localStorage.setItem('superadmin_fakultas_id', 'all');
+                    localStorage.setItem('superadmin_prodi_id', 'all');
+                    localStorage.setItem('superadmin_period_id', 'all');
+                    window.dispatchEvent(new Event('storage'));
+                    window.location.reload();
+                  }}
                   className="text-[11px] font-medium text-rose-600 hover:text-rose-700 flex items-center gap-1 transition-colors"
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>close</span>
-                  Reset
+                  Reset Filter
                 </button>
               )}
             </div>
@@ -679,14 +677,20 @@ if (statsRes.status === 'success') {
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-primary" style={{ fontSize: '14px' }}>calendar_month</span>
                 <select
-                  value={semester}
-                  onChange={(e) => handleSemesterChange(e.target.value)}
+                  value={activePeriodId}
+                  onChange={(e) => {
+                    localStorage.setItem('superadmin_period_id', e.target.value);
+                    window.dispatchEvent(new Event('storage'));
+                    window.location.reload();
+                  }}
                   className="w-full pl-9 pr-10 py-2.5 bg-white border border-border rounded-xl text-xs font-semibold text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer appearance-none"
                 >
-                  <option value="2025/2026 Ganjil">2025/2026 Ganjil</option>
-                  <option value="2025/2026 Genap">2025/2026 Genap</option>
-                  <option value="2024/2025 Ganjil">2024/2025 Ganjil</option>
-                  <option value="2024/2025 Genap">2024/2025 Genap</option>
+                  <option value="all">Semua Periode</option>
+                  {periodsList.map(p => (
+                    <option key={p.id || p.ID} value={p.id || p.ID}>
+                      {p.AcademicYear} - {p.Semester}
+                    </option>
+                  ))}
                 </select>
                 <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" style={{ fontSize: '16px' }}>expand_more</span>
               </div>
@@ -698,15 +702,21 @@ if (statsRes.status === 'success') {
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-primary" style={{ fontSize: '14px' }}>business</span>
                 <select
-                  value={fakultas}
-                  onChange={(e) => handleFakultasChange(e.target.value)}
+                  value={activeFacultyId}
+                  onChange={(e) => {
+                    localStorage.setItem('superadmin_fakultas_id', e.target.value);
+                    localStorage.setItem('superadmin_prodi_id', 'all');
+                    window.dispatchEvent(new Event('storage'));
+                    window.location.reload();
+                  }}
                   className="w-full pl-9 pr-10 py-2.5 bg-white border border-border rounded-xl text-xs font-semibold text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer appearance-none"
                 >
-                  <option value="Semua Fakultas">Semua Fakultas</option>
-                  <option value="Fakultas Farmasi">Fakultas Farmasi</option>
-                  <option value="Fakultas Keperawatan">Fakultas Keperawatan</option>
-                  <option value="Fakultas Ilmu Kesehatan">Fakultas Ilmu Kesehatan</option>
-                  <option value="Fakultas Sains & Teknologi">Fakultas Sains & Teknologi</option>
+                  <option value="all">Semua Fakultas</option>
+                  {facultiesList.map(f => (
+                    <option key={f.id || f.ID} value={f.id || f.ID}>
+                      {f.nama || f.Nama}
+                    </option>
+                  ))}
                 </select>
                 <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" style={{ fontSize: '16px' }}>expand_more</span>
               </div>
@@ -718,13 +728,23 @@ if (statsRes.status === 'success') {
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-primary" style={{ fontSize: '14px' }}>menu_book</span>
                 <select
-                  value={prodi}
-                  onChange={(e) => handleProdiChange(e.target.value)}
+                  value={activeProdiId}
+                  onChange={(e) => {
+                    localStorage.setItem('superadmin_prodi_id', e.target.value);
+                    window.dispatchEvent(new Event('storage'));
+                    window.location.reload();
+                  }}
+                  disabled={activeFacultyId === 'all'}
                   className="w-full pl-9 pr-10 py-2.5 bg-white border border-border rounded-xl text-xs font-semibold text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed appearance-none"
                 >
-                  {(prodiOptions[fakultas] || ['Semua Program Studi']).map((opt) => (
-                    <option key={opt} value={opt}>{opt}</option>
-                  ))}
+                  <option value="all">Semua Program Studi</option>
+                  {prodiList
+                    .filter(p => activeFacultyId === 'all' || String(p.fakultas_id || p.FakultasID) === String(activeFacultyId))
+                    .map(p => (
+                      <option key={p.id || p.ID} value={p.id || p.ID}>
+                        {p.nama || p.Nama}
+                      </option>
+                    ))}
                 </select>
                 <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" style={{ fontSize: '16px' }}>expand_more</span>
               </div>

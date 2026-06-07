@@ -62,6 +62,24 @@ const SPESIALISASI_STYLES = {
   'Perkembangan': { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500' },
 }
 
+const getSpesialisasiStyle = (sp) => {
+  const s = (sp || '').toLowerCase()
+  if (s.includes('klinis') && s.includes('pendidikan')) {
+    return { cls: 'bg-indigo-50 text-indigo-700 border-indigo-200', dot: 'bg-indigo-500' }
+  }
+  if (s.includes('klinis')) {
+    return { cls: 'bg-rose-50 text-rose-700 border-rose-200', dot: 'bg-rose-500' }
+  }
+  if (s.includes('pendidikan')) {
+    return { cls: 'bg-amber-50 text-amber-700 border-amber-200', dot: 'bg-amber-500' }
+  }
+  if (s.includes('karir') || s.includes('pengembangan')) {
+    return { cls: 'bg-violet-50 text-violet-700 border-violet-200', dot: 'bg-violet-500' }
+  }
+  return { cls: 'bg-blue-50 text-blue-700 border-blue-200', dot: 'bg-blue-500' }
+}
+
+
 const AVATAR_COLORS = [
   'from-blue-400 to-indigo-500',
   'from-emerald-400 to-teal-500',
@@ -342,7 +360,7 @@ export default function PsikologPage() {
                     { label: 'No', key: null, sortable: false, className: 'w-[50px]' },
                     { label: 'Identitas Psikolog', key: 'Nama', sortable: true },
                     { label: 'Lokasi & Bahasa', key: 'Lokasi', sortable: true },
-                    { label: 'Spesialisasi', key: 'Spesialisasi', sortable: true, className: 'w-[180px] text-center' },
+                    { label: 'Spesialisasi', key: 'Spesialisasi', sortable: true, className: 'w-[240px] text-center' },
 
                     { label: 'Aksi', key: null, sortable: false, className: 'text-right w-[100px]' },
                   ].map(h => (
@@ -377,7 +395,7 @@ export default function PsikologPage() {
                 {loading ? (
                   Array.from({ length: pageSize }).map((_, i) => (
                     <tr key={i} className="border-b border-slate-100">
-                      {[...Array(6)].map((__, j) => (
+                      {[...Array(5)].map((__, j) => (
                         <td key={j} className="px-5 py-4">
                           <div className="h-4 bg-slate-50 rounded animate-pulse" />
                         </td>
@@ -386,7 +404,7 @@ export default function PsikologPage() {
                   ))
                 ) : paginated.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-5 py-16 text-center">
+                    <td colSpan={5} className="px-5 py-16 text-center">
                       <div className="flex flex-col items-center gap-3">
                         <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-primary">
                           <span className="material-symbols-outlined" style={{ fontSize: '22px' }} >psychology</span>
@@ -399,7 +417,7 @@ export default function PsikologPage() {
                 ) : (
                   <>
                     {paginated.map((row, i) => {
-                      const spStyle = SPESIALISASI_STYLES[row.Spesialisasi] || SPESIALISASI_STYLES['Umum']
+                      const spStyle = getSpesialisasiStyle(row.Spesialisasi)
                       return (
                         <tr key={row.ID || i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors group">
                           <td className="px-5 py-3.5 text-sm text-slate-400 font-medium">{(currentPage - 1) * pageSize + i + 1}</td>
@@ -418,17 +436,17 @@ export default function PsikologPage() {
                           </td>
                           <td className="px-5 py-3.5 text-center">
                             <span className={cn(
-                              'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider',
+                              'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider whitespace-nowrap',
                               spStyle.cls
                             )}>
-                              <span className={cn('w-1.5 h-1.5 rounded-full', spStyle.dot)} />
+                              <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', spStyle.dot)} />
                               {row.Spesialisasi}
                             </span>
                           </td>
 
                           <td className="px-5 py-3.5 text-right">
                             <button
-                              onClick={() => handleSelectPsikolog(row)}
+                               onClick={() => handleSelectPsikolog(row)}
                               className="p-1.5 text-slate-400 hover:text-primary hover:bg-[#eef4ff] rounded-lg transition-colors"
                               title="Lihat Detail"
                             >
@@ -441,7 +459,6 @@ export default function PsikologPage() {
                     {paginated.length < pageSize && Array.from({ length: pageSize - paginated.length }).map((_, idx) => (
                       <tr key={`filler-${idx}`} className="border-b border-[#f5f5f5]/30 hover:bg-transparent pointer-events-none select-none">
                         <td className="px-5 py-3.5 opacity-0"><div className="h-10" /></td>
-                        <td className="px-5 py-3.5 opacity-0" />
                         <td className="px-5 py-3.5 opacity-0" />
                         <td className="px-5 py-3.5 opacity-0" />
                         <td className="px-5 py-3.5 opacity-0" />

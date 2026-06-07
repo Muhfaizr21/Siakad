@@ -12,6 +12,7 @@ import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import { fetchWithAuth, API_BASE_URL } from '../../services/api'
 import useAuthStore from '../../store/useAuthStore'
+import { getOrmawaId } from '../../utils/getOrmawaId'
 
 const API = `${API_BASE_URL}/ormawa`
 
@@ -45,7 +46,7 @@ export default function Settings() {
     recruitment_end: ''
   })
 
-  const ormawaId = useAuthStore.getState()?.user?.ormawa_id || useAuthStore.getState()?.user?.OrmawaID || useAuthStore.getState()?.mahasiswa?.ormawaId || useAuthStore.getState()?.mahasiswa?.ID || 1
+  const ormawaId = getOrmawaId()
 
   const fetchSettings = async () => {
     try {

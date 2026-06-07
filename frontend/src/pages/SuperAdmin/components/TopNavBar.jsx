@@ -201,7 +201,7 @@ const TopNavBar = ({ setIsOpen }) => {
           {/* Action Row */}
           <div className="flex items-center gap-2">
             {/* Search Trigger Button */}
-            <button 
+            <button
               onClick={() => setIsSearchOpen(true)}
               className="h-10 px-4 rounded-2xl bg-slate-50/70 border border-slate-200/60 hover:bg-slate-100 hover:border-slate-300 text-slate-500 hover:text-bku-primary transition-all active:scale-95 shadow-sm flex items-center gap-2"
             >
@@ -267,7 +267,7 @@ const TopNavBar = ({ setIsOpen }) => {
             </div>
 
             {/* Audit Log / Calendar Button */}
-            <button 
+            <button
               onClick={() => navigate('/admin/audit')}
               className="hidden sm:flex w-10 h-10 items-center justify-center shrink-0 rounded-2xl bg-slate-50/70 border border-slate-200/60 hover:bg-slate-100 hover:border-slate-300 text-slate-500 hover:text-bku-primary transition-all active:scale-95 shadow-sm"
             >
@@ -282,7 +282,7 @@ const TopNavBar = ({ setIsOpen }) => {
             <DropdownMenuTrigger asChild>
               <div className="flex items-center gap-2.5 cursor-pointer group hover:bg-slate-50 p-1 pr-3 rounded-full transition-all duration-300 outline-none border border-slate-200/60 bg-white shadow-sm hover:shadow-md hover:text-bku-primary font-inter">
                 <div className="w-9 h-9 rounded-full bg-gradient-to-br from-bku-primary to-indigo-500 text-white flex items-center justify-center font-bold text-sm ring-2 ring-white shadow-md shadow-bku-primary/20 group-hover:scale-105 transition-all duration-300 shrink-0">
-                   {user?.Email?.[0]?.toUpperCase() || 'A'}
+                  {user?.Email?.[0]?.toUpperCase() || 'A'}
                 </div>
                 <div className="flex flex-col leading-tight pr-1.5 shrink-0">
                   <span className="text-[11px] font-bold text-slate-800 group-hover:text-bku-primary transition-colors truncate max-w-[100px] font-headline">
@@ -298,24 +298,24 @@ const TopNavBar = ({ setIsOpen }) => {
                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-headline">Super Admin</p>
                 <p className="text-xs font-semibold text-slate-900 truncate mt-0.5 font-inter">{user?.Email}</p>
               </div>
-              
+
               <DropdownMenuItem onClick={() => navigate('/admin/profile')} className="rounded-xl p-2 focus:bg-slate-50 group cursor-pointer transition-all">
                 <UserCircle className="mr-2 size-4 text-slate-400 group-hover:text-bku-primary transition-colors" style={{ fontSize: '16px' }} />
                 <span className="text-xs font-semibold text-slate-600 group-hover:text-slate-900 transition-colors">Profil Admin</span>
               </DropdownMenuItem>
-              
+
               <DropdownMenuItem onClick={() => navigate('/admin/config')} className="rounded-xl p-2 focus:bg-slate-50 group cursor-pointer transition-all">
                 <span className="material-symbols-outlined mr-2 size-4 text-slate-400 group-hover:text-bku-primary transition-colors" style={{ fontSize: '16px' }}>settings</span>
                 <span className="text-xs font-semibold text-slate-600 group-hover:text-slate-900 transition-colors">Konfigurasi</span>
               </DropdownMenuItem>
 
               <DropdownMenuSeparator className="my-1 bg-slate-50" />
-              
-              <DropdownMenuItem 
+
+              <DropdownMenuItem
                 onClick={() => {
                   logout();
                   navigate('/login');
-                }} 
+                }}
                 className="rounded-xl p-2 focus:bg-rose-50 group cursor-pointer transition-all"
               >
                 <span className="material-symbols-outlined mr-2 size-4 text-rose-400 group-hover:text-rose-600 transition-colors" style={{ fontSize: '16px' }}>logout</span>
@@ -328,11 +328,11 @@ const TopNavBar = ({ setIsOpen }) => {
 
       {/* Spotlight Command Palette Search Overlay */}
       {isSearchOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[200] flex items-start justify-center pt-[12vh] px-4 animate-in fade-in duration-200"
           onClick={() => setIsSearchOpen(false)}
         >
-          <div 
+          <div
             ref={searchRef}
             className="bg-white rounded-3xl border border-slate-100 shadow-2xl w-full max-w-xl overflow-hidden flex flex-col max-h-[70vh] animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}

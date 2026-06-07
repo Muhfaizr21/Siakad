@@ -8,6 +8,7 @@ import (
 	"siakad-backend/models"
 	"siakad-backend/pkg/gamifikasi"
 	"siakad-backend/pkg/notifikasi"
+	"strconv"
 	"strings"
 	"time"
 
@@ -844,9 +845,33 @@ func DeleteUser(c *fiber.Ctx) error {
 // GetDashboardStats returns high-level metrics for University oversight with optional filters
 func GetDashboardStats(c *fiber.Ctx) error {
 	periodID := c.QueryInt("period_id", 0)
+	if periodID == 0 {
+		headerPeriodId := c.Get("X-Academic-Period-ID")
+		if headerPeriodId != "" && headerPeriodId != "undefined" && headerPeriodId != "null" && headerPeriodId != "all" {
+			if parsedPid, err := strconv.ParseUint(headerPeriodId, 10, 32); err == nil {
+				periodID = int(parsedPid)
+			}
+		}
+	}
 	tahunMasuk := c.QueryInt("tahun_masuk", 0)
 	fakultasID := c.QueryInt("fakultas_id", 0)
+	if fakultasID == 0 {
+		headerFid := c.Get("X-Faculty-ID")
+		if headerFid != "" && headerFid != "undefined" && headerFid != "null" && headerFid != "all" {
+			if parsedFid, err := strconv.ParseUint(headerFid, 10, 32); err == nil {
+				fakultasID = int(parsedFid)
+			}
+		}
+	}
 	prodiID := c.QueryInt("program_studi_id", 0)
+	if prodiID == 0 {
+		headerPid := c.Get("X-Prodi-ID")
+		if headerPid != "" && headerPid != "undefined" && headerPid != "null" && headerPid != "all" {
+			if parsedPid, err := strconv.ParseUint(headerPid, 10, 32); err == nil {
+				prodiID = int(parsedPid)
+			}
+		}
+	}
 	startDateStr := c.Query("start_date")
 	endDateStr := c.Query("end_date")
 
@@ -1102,7 +1127,9 @@ func RejectProposalUniv(c *fiber.Ctx) error {
 // GetAllFakultas master data
 func GetAllFakultas(c *fiber.Ctx) error {
 	var faks []models.Fakultas
-	if err := config.DB.Preload("ProgramStudi").Find(&faks).Error; err != nil {
+	query := config.DB.Preload("ProgramStudi")
+
+	if err := query.Find(&faks).Error; err != nil {
 		fmt.Printf("[ERROR] GetAllFakultas: %v\n", err)
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mengambil data Fakultas: " + err.Error()})
 	}
@@ -1190,7 +1217,43 @@ func GetAllOrmawa(c *fiber.Ctx) error {
 
 func GetAllStudents(c *fiber.Ctx) error {
 	var mhs []models.Mahasiswa
-	config.DB.Preload("Fakultas").Preload("ProgramStudi").Order("nama asc").Find(&mhs)
+	query := config.DB.Preload("Fakultas").Preload("ProgramStudi")
+
+	headerPeriodId := c.Get("X-Academic-Period-ID")
+	if headerPeriodId != "" && headerPeriodId != "undefined" && headerPeriodId != "null" && headerPeriodId != "all" {
+		if parsedPeriodId, err := strconv.ParseUint(headerPeriodId, 10, 32); err == nil {
+			var selectedPeriod models.AcademicPeriod
+			if err := config.DB.First(&selectedPeriod, parsedPeriodId).Error; err == nil {
+				var year int
+				fmt.Sscanf(selectedPeriod.AcademicYear, "%d", &year)
+				if year > 0 {
+					query = query.Where("tahun_masuk = ?", year)
+				}
+			}
+		}
+	}
+
+	headerFid := c.Get("X-Faculty-ID")
+	if headerFid == "" || headerFid == "undefined" || headerFid == "null" {
+		headerFid = c.Query("fakultasId")
+	}
+	if headerFid != "" && headerFid != "undefined" && headerFid != "null" && headerFid != "all" {
+		if parsedFid, err := strconv.ParseUint(headerFid, 10, 32); err == nil {
+			query = query.Where("fakultas_id = ?", parsedFid)
+		}
+	}
+
+	headerPid := c.Get("X-Prodi-ID")
+	if headerPid == "" || headerPid == "undefined" || headerPid == "null" {
+		headerPid = c.Query("prodiId")
+	}
+	if headerPid != "" && headerPid != "undefined" && headerPid != "null" && headerPid != "all" {
+		if parsedPid, err := strconv.ParseUint(headerPid, 10, 32); err == nil {
+			query = query.Where("program_studi_id = ?", parsedPid)
+		}
+	}
+
+	query.Order("nama asc").Find(&mhs)
 	return c.JSON(fiber.Map{"status": "success", "data": mhs})
 }
 
@@ -1676,9 +1739,30 @@ func DeleteStudent(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"status": "success", "message": "Mahasiswa deleted successfully"})
 }
 
+func GetAllAcademicPeriods(c *fiber.Ctx) error {
+	var periods []models.AcademicPeriod
+	if err := config.DB.Order("id desc").Find(&periods).Error; err != nil {
+		fmt.Printf("[ERROR] GetAllAcademicPeriods: %v\n", err)
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mengambil data Periode Akademik: " + err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "success", "data": periods})
+}
+
 func GetAllProgramStudi(c *fiber.Ctx) error {
 	var prodis []models.ProgramStudi
-	if err := config.DB.Preload("Fakultas").Find(&prodis).Error; err != nil {
+	query := config.DB.Preload("Fakultas")
+
+	headerFid := c.Get("X-Faculty-ID")
+	if headerFid == "" || headerFid == "undefined" || headerFid == "null" {
+		headerFid = c.Query("fakultasId")
+	}
+	if headerFid != "" && headerFid != "undefined" && headerFid != "null" && headerFid != "all" {
+		if parsedFid, err := strconv.ParseUint(headerFid, 10, 32); err == nil {
+			query = query.Where("fakultas_id = ?", parsedFid)
+		}
+	}
+
+	if err := query.Find(&prodis).Error; err != nil {
 		fmt.Printf("[ERROR] GetAllProgramStudi: %v\n", err)
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mengambil data Prodi: " + err.Error()})
 	}
@@ -2990,7 +3074,29 @@ func ReviewLPJ(c *fiber.Ctx) error {
 
 func GetAllLecturers(c *fiber.Ctx) error {
 	var lecturers []models.Dosen
-	if err := config.DB.Preload("Pengguna").Preload("Fakultas").Preload("ProgramStudi").Find(&lecturers).Error; err != nil {
+	query := config.DB.Preload("Pengguna").Preload("Fakultas").Preload("ProgramStudi")
+
+	headerFid := c.Get("X-Faculty-ID")
+	if headerFid == "" || headerFid == "undefined" || headerFid == "null" {
+		headerFid = c.Query("fakultasId")
+	}
+	if headerFid != "" && headerFid != "undefined" && headerFid != "null" && headerFid != "all" {
+		if parsedFid, err := strconv.ParseUint(headerFid, 10, 32); err == nil {
+			query = query.Where("fakultas_id = ?", parsedFid)
+		}
+	}
+
+	headerPid := c.Get("X-Prodi-ID")
+	if headerPid == "" || headerPid == "undefined" || headerPid == "null" {
+		headerPid = c.Query("prodiId")
+	}
+	if headerPid != "" && headerPid != "undefined" && headerPid != "null" && headerPid != "all" {
+		if parsedPid, err := strconv.ParseUint(headerPid, 10, 32); err == nil {
+			query = query.Where("program_studi_id = ?", parsedPid)
+		}
+	}
+
+	if err := query.Find(&lecturers).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal memuat data dosen: " + err.Error()})
 	}
 	return c.JSON(fiber.Map{"status": "success", "data": lecturers})

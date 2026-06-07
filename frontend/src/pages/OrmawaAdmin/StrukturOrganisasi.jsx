@@ -129,7 +129,7 @@ export default function StrukturOrganisasi() {
   useEffect(() => { 
     fetchData() 
     fetchStudents()
-  }, [])
+  }, [ormawaId])
 
   const handleSaveBph = async (e) => {
     e.preventDefault()

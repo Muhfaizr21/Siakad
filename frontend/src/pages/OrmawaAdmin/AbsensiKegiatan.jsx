@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils'
 
 import { fetchWithAuth, API_BASE_URL } from '../../services/api'
 import useAuthStore from '../../store/useAuthStore'
+import { getOrmawaId } from '../../utils/getOrmawaId'
 
 const API = `${API_BASE_URL}/ormawa`
 
@@ -25,8 +26,8 @@ export default function AbsensiKegiatan() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isQrOpen, setIsQrOpen] = useState(false)
   const [qrUrl, setQrUrl] = useState('')
-  
-  const ormawaId = useAuthStore.getState()?.user?.ormawa_id || useAuthStore.getState()?.user?.OrmawaID || useAuthStore.getState()?.mahasiswa?.ormawaId || useAuthStore.getState()?.mahasiswa?.ID || 1
+
+  const ormawaId = getOrmawaId()
 
   const fetchEvents = async () => {
     setLoading(true)
@@ -58,7 +59,7 @@ export default function AbsensiKegiatan() {
 
   useEffect(() => {
     fetchEvents()
-  }, [])
+  }, [ormawaId])
 
   const handleSelectEvent = (event) => {
     setSelectedEvent(event)
@@ -74,11 +75,11 @@ export default function AbsensiKegiatan() {
       const data = await fetchWithAuth(`${API}/attendance`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          KegiatanID: selectedEvent.id || selectedEvent.ID, 
-          MahasiswaID: studentId, 
-          Status: status, 
-          OrmawaID: ormawaId 
+        body: JSON.stringify({
+          KegiatanID: selectedEvent.id || selectedEvent.ID,
+          MahasiswaID: studentId,
+          Status: status,
+          OrmawaID: ormawaId
         })
       })
       if (data.status === 'success') {
@@ -96,8 +97,8 @@ export default function AbsensiKegiatan() {
 
   const eventColumns = [
     {
-      key: 'Judul', 
-      label: 'Nama Kegiatan', 
+      key: 'Judul',
+      label: 'Nama Kegiatan',
       className: 'min-w-[260px]',
       render: (v, row) => (
         <div className="flex flex-col leading-tight">
@@ -109,16 +110,16 @@ export default function AbsensiKegiatan() {
       )
     },
     {
-      key: 'Status', 
-      label: 'Status', 
-      className: 'w-[140px] text-center', 
+      key: 'Status',
+      label: 'Status',
+      className: 'w-[140px] text-center',
       cellClassName: 'text-center',
       render: (v) => {
-        const colors = { 
-          terjadwal: 'bg-blue-50 text-blue-700 border-blue-100', 
-          berlangsung: 'bg-emerald-50 text-emerald-700 border-emerald-100', 
-          selesai: 'bg-slate-50 text-slate-600 border-slate-100', 
-          dibatalkan: 'bg-rose-50 text-rose-700 border-rose-100' 
+        const colors = {
+          terjadwal: 'bg-blue-50 text-blue-700 border-blue-100',
+          berlangsung: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+          selesai: 'bg-slate-50 text-slate-600 border-slate-100',
+          dibatalkan: 'bg-rose-50 text-rose-700 border-rose-100'
         }
         return (
           <Badge className={cn('font-bold text-[10px] uppercase tracking-wider px-3 py-1 border rounded-full', colors[v] || 'bg-slate-50 text-slate-600 border-slate-100')}>
@@ -136,7 +137,7 @@ export default function AbsensiKegiatan() {
   return (
     <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-8 font-body">
       <Toaster position="top-right" />
-      
+
       {/* ── Keyframe Animations for QR Beam Scanner ───────────────── */}
       <style>{`
         @keyframes scan {
@@ -176,9 +177,9 @@ export default function AbsensiKegiatan() {
               </div>
             </div>
           </div>
-          
+
           <div className="flex flex-wrap items-center gap-3">
-            <button 
+            <button
               onClick={fetchEvents}
               className="h-11 px-5 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 font-bold text-xs tracking-wider transition-all flex items-center gap-2 active:scale-95 shadow-sm"
               style={{ color: 'var(--theme-primary)' }}
@@ -265,24 +266,24 @@ export default function AbsensiKegiatan() {
                 {events.length} Sesi
               </Badge>
             </div>
-            
+
             <div className="border border-slate-100 rounded-2xl overflow-hidden">
               <DataTable
-                columns={eventColumns} 
-                data={events} 
+                columns={eventColumns}
+                data={events}
                 loading={loading}
                 searchPlaceholder="Cari nama sesi..."
                 title=""
                 actions={(row) => {
                   const isSelected = selectedEvent?.ID === row.ID
                   return (
-                    <Button 
-                      onClick={() => handleSelectEvent(row)} 
-                      size="sm" 
+                    <Button
+                      onClick={() => handleSelectEvent(row)}
+                      size="sm"
                       className={cn(
-                        'h-8 px-4 rounded-xl text-[10px] font-bold border-none transition-all hover:scale-105 active:scale-95', 
-                        isSelected 
-                          ? 'bg-bku-primary text-white shadow-md shadow-blue-900/10' 
+                        'h-8 px-4 rounded-xl text-[10px] font-bold border-none transition-all hover:scale-105 active:scale-95',
+                        isSelected
+                          ? 'bg-bku-primary text-white shadow-md shadow-blue-900/10'
                           : 'bg-bku-primary/5 text-bku-primary hover:bg-bku-primary/10'
                       )}
                     >
@@ -326,10 +327,10 @@ export default function AbsensiKegiatan() {
                     {selectedEvent.TanggalMulai ? new Date(selectedEvent.TanggalMulai).toLocaleDateString('id-ID', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }) : '—'}
                   </p>
                 </div>
-                
+
                 <div className="flex items-center gap-3 w-full sm:w-auto shrink-0">
                   {/* Dynamic mini QR box inside dashboard */}
-                  <div 
+                  <div
                     onClick={() => setIsQrOpen(true)}
                     className="p-1.5 bg-white rounded-xl border border-slate-100 shadow-sm cursor-pointer hover:scale-105 active:scale-95 transition-all group relative shrink-0"
                     title="Perbesar QR Code"
@@ -339,9 +340,9 @@ export default function AbsensiKegiatan() {
                       <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '14px' }}>zoom_in</span>
                     </div>
                   </div>
-                  
-                  <Button 
-                    onClick={() => setIsQrOpen(true)} 
+
+                  <Button
+                    onClick={() => setIsQrOpen(true)}
                     className="flex-1 sm:flex-initial h-11 px-5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs tracking-wider gap-2 shadow-lg shadow-slate-900/10 active:scale-95 transition-all"
                   >
                     <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>qr_code_2</span>
@@ -357,7 +358,7 @@ export default function AbsensiKegiatan() {
                     <h3 className="font-black text-xs font-headline tracking-wider uppercase" style={{ color: 'var(--theme-h3)' }}>Konfirmasi Kehadiran Anggota</h3>
                     <p className="text-[11px] text-slate-400 font-bold">Cek lis secara manual untuk memperbarui status</p>
                   </div>
-                  
+
                   {/* Status Indicator */}
                   <div className="flex items-center gap-3 text-[10px] font-black tracking-wider uppercase">
                     <span className="flex items-center gap-1 text-emerald-600">
@@ -386,14 +387,14 @@ export default function AbsensiKegiatan() {
                     {attendance.map((att, idx) => {
                       const isAttended = att.Status === 'hadir'
                       const isAbsent = att.Status === 'tidak_hadir'
-                      
+
                       // HSL Tailored color arrays to give stunning dynamic avatars
                       const bgAvatars = ['bg-blue-50 text-blue-600', 'bg-indigo-50 text-indigo-600', 'bg-purple-50 text-purple-600', 'bg-teal-50 text-teal-600']
                       const avatarStyle = bgAvatars[idx % bgAvatars.length]
 
                       return (
-                        <div 
-                          key={att.ID} 
+                        <div
+                          key={att.ID}
                           className={cn(
                             "flex items-center justify-between p-3.5 rounded-2xl border border-slate-100 shadow-sm transition-all duration-300",
                             isAttended && "bg-emerald-50/20 border-emerald-100/50",
@@ -415,31 +416,31 @@ export default function AbsensiKegiatan() {
                               </p>
                             </div>
                           </div>
-                          
+
                           <div className="flex items-center gap-2 shrink-0">
                             {/* Attended Check Button */}
-                            <button 
+                            <button
                               onClick={() => handleRecordAttendance(att.StudentID || att.MahasiswaID || att.id || att.ID, 'hadir')}
                               disabled={isSubmitting}
                               className={cn(
-                                'h-9 w-9 rounded-xl flex items-center justify-center transition-all border border-transparent active:scale-90', 
-                                isAttended 
-                                  ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' 
+                                'h-9 w-9 rounded-xl flex items-center justify-center transition-all border border-transparent active:scale-90',
+                                isAttended
+                                  ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
                                   : 'bg-slate-50 text-slate-400 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200'
                               )}
                               title="Set Hadir"
                             >
                               <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>check_circle</span>
                             </button>
-                            
+
                             {/* Absent Alpa Button */}
-                            <button 
+                            <button
                               onClick={() => handleRecordAttendance(att.StudentID || att.MahasiswaID || att.id || att.ID, 'tidak_hadir')}
                               disabled={isSubmitting}
                               className={cn(
-                                'h-9 w-9 rounded-xl flex items-center justify-center transition-all border border-transparent active:scale-90', 
-                                isAbsent 
-                                  ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20' 
+                                'h-9 w-9 rounded-xl flex items-center justify-center transition-all border border-transparent active:scale-90',
+                                isAbsent
+                                  ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20'
                                   : 'bg-slate-50 text-slate-400 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200'
                               )}
                               title="Set Alpa"
@@ -469,14 +470,14 @@ export default function AbsensiKegiatan() {
               </h3>
               <p className="text-[10px] font-bold text-slate-400 tracking-wider">Arahkan kamera mahasiswa ke kode QR di bawah ini</p>
             </div>
-            
+
             {/* Elegant QR display with high-tech laser beam animation effect */}
             <div className="size-72 p-6 bg-slate-50 rounded-[2.5rem] border-4 border-slate-100 flex items-center justify-center relative overflow-hidden shadow-inner group">
               <img src={qrUrl} alt="QR Code Absensi" className="size-full object-contain relative z-10 transition-transform duration-500 group-hover:scale-105" />
-              
+
               {/* Animated laser scan beam line */}
               <div className="absolute left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-bku-primary to-transparent shadow-[0_0_12px_#00236F] animate-scan top-0 z-20 pointer-events-none" />
-              
+
               {/* Outer decorative scanner corners */}
               <div className="absolute top-4 left-4 w-6 h-6 border-t-4 border-l-4 border-bku-primary rounded-tl-xl" />
               <div className="absolute top-4 right-4 w-6 h-6 border-t-4 border-r-4 border-bku-primary rounded-tr-xl" />
@@ -492,9 +493,9 @@ export default function AbsensiKegiatan() {
                   <p className="text-[10px] font-bold text-slate-500 leading-none">Sistem memvalidasi NIM dan waktu secara real-time</p>
                 </div>
               </div>
-              
-              <Button 
-                onClick={() => setIsQrOpen(false)} 
+
+              <Button
+                onClick={() => setIsQrOpen(false)}
                 className="w-full h-12 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-[10px] tracking-[0.2em] uppercase active:scale-95 transition-all shadow-lg"
               >
                 TUTUP SCANNER

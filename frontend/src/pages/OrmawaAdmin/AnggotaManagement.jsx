@@ -131,11 +131,11 @@ export default function AnggotaManagement() {
     fetchStudents()
     fetchDivisions()
     fetchCustomRoles()
-  }, [])
+  }, [ormawaId])
 
   useEffect(() => {
     fetchMembers()
-  }, [selectedPeriod])
+  }, [selectedPeriod, ormawaId])
 
   useEffect(() => {
     const handleClickOutside = (event) => {

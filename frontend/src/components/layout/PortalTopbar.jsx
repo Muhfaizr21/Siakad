@@ -42,7 +42,17 @@ export default function PortalTopbar({ config, onMenuClick }) {
 
   const [facultiesList, setFacultiesList] = useState([]);
   const [activeFacultyId, setActiveFacultyId] = useState(
-    localStorage.getItem('superadmin_fakultas_id') || ''
+    localStorage.getItem('superadmin_fakultas_id') || 'all'
+  );
+
+  const [prodisList, setProdisList] = useState([]);
+  const [activeProdiId, setActiveProdiId] = useState(
+    localStorage.getItem('superadmin_prodi_id') || 'all'
+  );
+
+  const [periodsList, setPeriodsList] = useState([]);
+  const [activePeriodId, setActivePeriodId] = useState(
+    localStorage.getItem('superadmin_period_id') || 'all'
   );
 
   const [studentsList, setStudentsList] = useState([]);
@@ -61,15 +71,27 @@ export default function PortalTopbar({ config, onMenuClick }) {
         .then(data => {
           if (data.status === 'success' && data.data) {
             setFacultiesList(data.data);
-            if (!localStorage.getItem('superadmin_fakultas_id') && data.data.length > 0) {
-              const firstId = String(data.data[0].id || data.data[0].ID);
-              localStorage.setItem('superadmin_fakultas_id', firstId);
-              setActiveFacultyId(firstId);
+            if (!localStorage.getItem('superadmin_fakultas_id')) {
+              localStorage.setItem('superadmin_fakultas_id', 'all');
+              setActiveFacultyId('all');
               window.dispatchEvent(new Event('storage'));
             }
           }
         })
         .catch(err => console.error('Gagal mengambil daftar fakultas:', err));
+
+      fetchWithAuth('/api/admin/academic-periods')
+        .then(data => {
+          if (data.status === 'success' && data.data) {
+            setPeriodsList(data.data);
+            if (!localStorage.getItem('superadmin_period_id')) {
+              localStorage.setItem('superadmin_period_id', 'all');
+              setActivePeriodId('all');
+              window.dispatchEvent(new Event('storage'));
+            }
+          }
+        })
+        .catch(err => console.error('Gagal mengambil daftar periode akademik:', err));
 
       adminService.getAllStudents()
         .then(res => {
@@ -101,10 +123,51 @@ export default function PortalTopbar({ config, onMenuClick }) {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (user?.role === 'super_admin') {
+      fetchWithAuth('/api/admin/prodi')
+        .then(res => {
+          if (res.status === 'success' && res.data) {
+            setProdisList(res.data);
+          }
+        })
+        .catch(err => console.error('Gagal mengambil daftar prodi:', err));
+    }
+  }, [user, activeFacultyId]);
+
   const handleFacultyChange = (e) => {
     const newId = e.target.value;
     localStorage.setItem('superadmin_fakultas_id', newId);
+    localStorage.setItem('superadmin_prodi_id', 'all');
     setActiveFacultyId(newId);
+    setActiveProdiId('all');
+    window.dispatchEvent(new Event('storage'));
+    window.location.reload();
+  };
+
+  const handleProdiChange = (e) => {
+    const newId = e.target.value;
+    localStorage.setItem('superadmin_prodi_id', newId);
+    setActiveProdiId(newId);
+    window.dispatchEvent(new Event('storage'));
+    window.location.reload();
+  };
+
+  const handlePeriodChange = (e) => {
+    const newId = e.target.value;
+    localStorage.setItem('superadmin_period_id', newId);
+    setActivePeriodId(newId);
+    window.dispatchEvent(new Event('storage'));
+    window.location.reload();
+  };
+
+  const handleResetFilters = () => {
+    localStorage.setItem('superadmin_fakultas_id', 'all');
+    localStorage.setItem('superadmin_prodi_id', 'all');
+    localStorage.setItem('superadmin_period_id', 'all');
+    setActiveFacultyId('all');
+    setActiveProdiId('all');
+    setActivePeriodId('all');
     window.dispatchEvent(new Event('storage'));
     window.location.reload();
   };
@@ -316,7 +379,7 @@ export default function PortalTopbar({ config, onMenuClick }) {
           </nav>
 
           {/* Faculty Switcher for Super Admin */}
-          {user?.role === 'super_admin' && facultiesList.length > 0 && (
+          {user?.role === 'super_admin' && facultiesList.length > 0 && !location.pathname.includes('/admin/ormawa') && (
             <div className="flex items-center gap-2 ml-4 bg-slate-50 border border-slate-100 rounded-xl px-2.5 py-1">
               <span className="material-symbols-outlined text-slate-400 !text-[16px]">corporate_fare</span>
               <select
@@ -325,6 +388,7 @@ export default function PortalTopbar({ config, onMenuClick }) {
                 className="bg-transparent border-0 text-slate-600 text-xs font-bold outline-none cursor-pointer p-0 pr-6 focus:ring-0"
                 style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
               >
+                <option value="all">Semua Fakultas</option>
                 {facultiesList.map(f => (
                   <option key={f.id || f.ID} value={f.id || f.ID}>
                     {f.nama || f.Nama}
@@ -334,24 +398,57 @@ export default function PortalTopbar({ config, onMenuClick }) {
             </div>
           )}
 
-          {/* Student Switcher for Super Admin on Student-focused pages */}
-          {user?.role === 'super_admin' && studentsList.length > 0 && location.pathname.includes('/admin/student') && (
-            <div className="flex items-center gap-2 ml-2 bg-emerald-50 border border-emerald-100 rounded-xl px-2.5 py-1">
-              <span className="material-symbols-outlined text-emerald-500 !text-[16px]">school</span>
+          {/* Prodi Switcher for Super Admin */}
+          {user?.role === 'super_admin' && activeFacultyId !== 'all' && prodisList.length > 0 && !location.pathname.includes('/admin/ormawa') && (
+            <div className="flex items-center gap-2 ml-2 bg-slate-50 border border-slate-100 rounded-xl px-2.5 py-1">
+              <span className="material-symbols-outlined text-slate-400 !text-[16px]">school</span>
               <select
-                value={activeStudentId}
-                onChange={handleStudentChange}
-                className="bg-transparent border-0 text-emerald-700 text-xs font-bold outline-none cursor-pointer p-0 pr-6 focus:ring-0"
+                value={activeProdiId}
+                onChange={handleProdiChange}
+                className="bg-transparent border-0 text-slate-600 text-xs font-bold outline-none cursor-pointer p-0 pr-6 focus:ring-0"
                 style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
               >
-                {studentsList.map(s => (
-                  <option key={s.id || s.ID} value={s.id || s.ID}>
-                    {s.Nama} ({s.NIM})
+                <option value="all">Semua Prodi</option>
+                {prodisList.map(p => (
+                  <option key={p.id || p.ID} value={p.id || p.ID}>
+                    {p.nama || p.Nama}
                   </option>
                 ))}
               </select>
             </div>
           )}
+
+          {/* Period Switcher for Super Admin */}
+          {user?.role === 'super_admin' && periodsList.length > 0 && !location.pathname.includes('/admin/ormawa') && (
+            <div className="flex items-center gap-2 ml-2 bg-slate-50 border border-slate-100 rounded-xl px-2.5 py-1">
+              <span className="material-symbols-outlined text-slate-400 !text-[16px]">calendar_month</span>
+              <select
+                value={activePeriodId}
+                onChange={handlePeriodChange}
+                className="bg-transparent border-0 text-slate-600 text-xs font-bold outline-none cursor-pointer p-0 pr-6 focus:ring-0"
+                style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
+              >
+                <option value="all">Semua Periode</option>
+                {periodsList.map(p => (
+                  <option key={p.id || p.ID} value={p.id || p.ID}>
+                    {p.AcademicYear} - {p.Semester}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Reset Filters Button */}
+          {user?.role === 'super_admin' && (activeFacultyId !== 'all' || activeProdiId !== 'all' || activePeriodId !== 'all') && (
+            <button
+              onClick={handleResetFilters}
+              title="Reset Filter"
+              className="flex items-center justify-center ml-2 p-1.5 bg-rose-50 border border-rose-100 text-rose-500 hover:text-rose-600 hover:bg-rose-100 rounded-xl transition-all duration-200"
+            >
+              <span className="material-symbols-outlined !text-[16px]">close</span>
+            </button>
+          )}
+
 
           {/* Ormawa Switcher for Super Admin on Ormawa pages */}
           {user?.role === 'super_admin' && ormawasList.length > 0 && location.pathname.includes('/admin/ormawa') && (
@@ -588,8 +685,8 @@ export default function PortalTopbar({ config, onMenuClick }) {
                         onClick={() => { navigate(item.path); setIsSearchOpen(false); }}
                         onMouseEnter={() => setSelectedIndex(idx)}
                         className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl transition-all duration-200 text-left border ${isSelected
-                            ? 'bg-slate-50 border-slate-100 shadow-sm text-slate-900 font-semibold'
-                            : 'text-slate-600 border-transparent hover:bg-slate-50/50'
+                          ? 'bg-slate-50 border-slate-100 shadow-sm text-slate-900 font-semibold'
+                          : 'text-slate-600 border-transparent hover:bg-slate-50/50'
                           }`}
                       >
                         <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border transition-all ${isSelected ? 'bg-slate-900 text-white border-slate-900 shadow-sm' : 'bg-slate-50 text-slate-400 border-slate-100'

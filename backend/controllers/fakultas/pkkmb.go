@@ -3,6 +3,7 @@ package controllers
 import (
 	"siakad-backend/config"
 	"siakad-backend/models"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -12,6 +13,15 @@ import (
 func AmbilRingkasanPkkmb(c *fiber.Ctx) error {
 	role := c.Locals("role").(string)
 	fid := c.Locals("fakultas_id").(uint)
+
+	// Fallback to X-Faculty-ID header for SuperAdmin
+	headerFid := c.Get("X-Faculty-ID")
+	if headerFid != "" && headerFid != "undefined" && headerFid != "null" && headerFid != "all" {
+		if parsedFid, err := strconv.ParseUint(headerFid, 10, 32); err == nil {
+			fid = uint(parsedFid)
+			role = "faculty_admin"
+		}
+	}
 
 	var totalMaba int64
 	var totalLulus int64
@@ -192,6 +202,15 @@ func AmbilStatusKelulusanMahasiswa(c *fiber.Ctx) error {
 func AmbilDaftarKelulusanMaba(c *fiber.Ctx) error {
 	role := c.Locals("role").(string)
 	fid := c.Locals("fakultas_id").(uint)
+
+	// Fallback to X-Faculty-ID header for SuperAdmin
+	headerFid := c.Get("X-Faculty-ID")
+	if headerFid != "" && headerFid != "undefined" && headerFid != "null" && headerFid != "all" {
+		if parsedFid, err := strconv.ParseUint(headerFid, 10, 32); err == nil {
+			fid = uint(parsedFid)
+			role = "faculty_admin"
+		}
+	}
 
 	var list []models.PkkmbHasil
 	query := config.DB.Preload("Mahasiswa.ProgramStudi").Preload("Mahasiswa.Pengguna").Preload("Mahasiswa.PkkmbSertifikat")

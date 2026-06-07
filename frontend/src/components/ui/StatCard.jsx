@@ -20,6 +20,8 @@ export default function StatCard({
   trendValue,
   loading = false,
   className = '',
+  color,
+  bg,
 }) {
   if (loading) {
     return (
@@ -59,14 +61,19 @@ export default function StatCard({
       <div className="flex items-center gap-3 mb-3">
         {/* Icon box dengan accent secondary */}
         <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-          style={{
+          className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${bg || ''}`}
+          style={bg ? {} : {
             backgroundColor:
               'color-mix(in srgb, var(--theme-secondary) 12%, transparent)',
             color: 'var(--theme-secondary)',
           }}
         >
-          <span className="material-symbols-outlined text-xl">{icon}</span>
+          <span 
+            className={`material-symbols-outlined text-xl ${color || ''}`}
+            style={color ? {} : { color: 'var(--theme-secondary)' }}
+          >
+            {icon}
+          </span>
         </div>
 
         {/* Trend badge */}

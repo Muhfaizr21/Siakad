@@ -26,13 +26,13 @@ const Target = ({ size, className, ...props }) => <span className={`material-sym
 // Custom Gamification Icons
 const Trophy = ({ size, className, ...props }) => <span className={`material-symbols-outlined text-amber-500 ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>emoji_events</span>;
 const Star = ({ size, className, filled = true, ...props }) => (
-  <span 
-    className={cn("material-symbols-outlined", className)} 
-    style={{ 
-      fontSize: size || 14, 
+  <span
+    className={cn("material-symbols-outlined", className)}
+    style={{
+      fontSize: size || 14,
       fontVariationSettings: filled ? "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" : "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24",
-      ...props.style 
-    }} 
+      ...props.style
+    }}
     {...props}
   >
     star
@@ -95,7 +95,7 @@ export default function KelolaOrganisasi() {
       const idStr = String(item.id || item.ID || index);
       let charCodeSum = 0;
       for (let i = 0; i < idStr.length; i++) charCodeSum += idStr.charCodeAt(i);
-      
+
       const dbPoin = item.poin !== undefined ? item.poin : item.Poin;
       const xp = (typeof dbPoin === 'number') ? dbPoin : 300 + (charCodeSum % 650); // Use real database points if available, else fallback
       const lpjRate = 70 + (charCodeSum % 31); // LPJ rate between 70% and 100%
@@ -128,7 +128,7 @@ export default function KelolaOrganisasi() {
         adminService.getAllOrmawa(),
         adminService.getAdminLpjs()
       ])
-      
+
       if (res.status === 'success' && res.data && res.data.length > 0) {
         setData(enrichOrmawaData(res.data))
       } else {
@@ -147,26 +147,26 @@ export default function KelolaOrganisasi() {
 
   useEffect(() => { fetchData() }, [])
 
-  const handleOpenAdd = () => { 
-    setIsEditMode(false); 
-    setForm({ Nama: '', Singkatan: '', Deskripsi: '', Visi: '', Misi: '', Email: '', LogoURL: '', Phone: '' }); 
-    setIsCrudOpen(true) 
+  const handleOpenAdd = () => {
+    setIsEditMode(false);
+    setForm({ Nama: '', Singkatan: '', Deskripsi: '', Visi: '', Misi: '', Email: '', LogoURL: '', Phone: '' });
+    setIsCrudOpen(true)
   }
 
-  const handleOpenEdit = (row) => { 
+  const handleOpenEdit = (row) => {
     setIsEditMode(true)
-    setForm({ 
-      ID: row.id || row.ID, 
-      Nama: row.Nama || '', 
-      Singkatan: row.Singkatan || '', 
-      Deskripsi: row.Deskripsi || '', 
-      Visi: row.Visi || '', 
-      Misi: row.Misi || '', 
-      Email: row.Email || '', 
-      LogoURL: row.LogoURL || '', 
-      Phone: row.Phone || '' 
+    setForm({
+      ID: row.id || row.ID,
+      Nama: row.Nama || '',
+      Singkatan: row.Singkatan || '',
+      Deskripsi: row.Deskripsi || '',
+      Visi: row.Visi || '',
+      Misi: row.Misi || '',
+      Email: row.Email || '',
+      LogoURL: row.LogoURL || '',
+      Phone: row.Phone || ''
     })
-    setIsCrudOpen(true) 
+    setIsCrudOpen(true)
   }
 
   const handleSave = async (e) => {
@@ -175,48 +175,48 @@ export default function KelolaOrganisasi() {
     try {
       const targetId = form.ID || form.id
       const res = targetId ? await adminService.updateOrmawa(targetId, form) : await adminService.createOrmawa(form)
-      if (res.status === 'success') { 
+      if (res.status === 'success') {
         toast.success(targetId ? 'Organisasi diperbarui' : 'Organisasi berhasil didaftarkan')
         setIsCrudOpen(false)
-        fetchData() 
+        fetchData()
       } else {
-        const updatedList = targetId 
+        const updatedList = targetId
           ? data.map(item => (item.id === targetId || item.ID === targetId) ? { ...item, ...form } : item)
-          : [...data, { 
-              ...form, 
-              id: data.length + 1, 
-              xp: 350, 
-              lpjRate: 100, 
-              bintang: 4, 
-              totalLpj: 1, 
-              selesaiLpj: 1, 
-              status: 'Aktif', 
-              achievements: ['Rising Star'] 
-            }];
+          : [...data, {
+            ...form,
+            id: data.length + 1,
+            xp: 350,
+            lpjRate: 100,
+            bintang: 4,
+            totalLpj: 1,
+            selesaiLpj: 1,
+            status: 'Aktif',
+            achievements: ['Rising Star']
+          }];
         setData(updatedList);
         toast.success(targetId ? 'Organisasi diperbarui (offline mode)' : 'Organisasi berhasil didaftarkan (offline mode)')
         setIsCrudOpen(false)
       }
-    } catch { 
+    } catch {
       const targetId = form.ID || form.id
-      const updatedList = targetId 
+      const updatedList = targetId
         ? data.map(item => (item.id === targetId || item.ID === targetId) ? { ...item, ...form } : item)
-        : [...data, { 
-            ...form, 
-            id: data.length + 1, 
-            xp: 350, 
-            lpjRate: 100, 
-            bintang: 4, 
-            totalLpj: 1, 
-            selesaiLpj: 1, 
-            status: 'Aktif', 
-            achievements: ['Rising Star'] 
-          }];
+        : [...data, {
+          ...form,
+          id: data.length + 1,
+          xp: 350,
+          lpjRate: 100,
+          bintang: 4,
+          totalLpj: 1,
+          selesaiLpj: 1,
+          status: 'Aktif',
+          achievements: ['Rising Star']
+        }];
       setData(updatedList);
       toast.success(targetId ? 'Organisasi diperbarui (offline mode)' : 'Organisasi berhasil didaftarkan (offline mode)')
       setIsCrudOpen(false)
-    } finally { 
-      setIsSubmitting(false) 
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -227,13 +227,13 @@ export default function KelolaOrganisasi() {
       toast.success('Organisasi berhasil dihapus')
       setIsDelOpen(false)
       fetchData()
-    } catch { 
+    } catch {
       const targetId = selected.id || selected.ID
       setData(data.filter(item => item.id !== targetId && item.ID !== targetId))
       toast.success('Organisasi berhasil dihapus (offline mode)')
       setIsDelOpen(false)
-    } finally { 
-      setIsSubmitting(false) 
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -242,13 +242,13 @@ export default function KelolaOrganisasi() {
   const handleApproveLPJ = async (submissionId, ormawaSingkatan) => {
     try {
       if (typeof submissionId === 'string' && submissionId.startsWith('lpj-')) {
-        setLpjSubmissions(prev => 
+        setLpjSubmissions(prev =>
           prev.map(sub => sub.id === submissionId ? { ...sub, status: 'Approved' } : sub)
         );
-        setData(prevData => 
-          prevData.map(item => 
-            item.Singkatan === ormawaSingkatan 
-              ? { ...item, xp: (item.xp || 0) + 100, lpjRate: 100, achievements: [...new Set([...item.achievements, 'LPJ Champion'])] } 
+        setData(prevData =>
+          prevData.map(item =>
+            item.Singkatan === ormawaSingkatan
+              ? { ...item, xp: (item.xp || 0) + 100, lpjRate: 100, achievements: [...new Set([...item.achievements, 'LPJ Champion'])] }
               : item
           )
         );
@@ -271,13 +271,13 @@ export default function KelolaOrganisasi() {
   const handleWarnLPJ = async (submissionId, ormawaSingkatan) => {
     try {
       if (typeof submissionId === 'string' && submissionId.startsWith('lpj-')) {
-        setLpjSubmissions(prev => 
+        setLpjSubmissions(prev =>
           prev.map(sub => sub.id === submissionId ? { ...sub, status: 'Warning Sent' } : sub)
         );
-        setData(prevData => 
-          prevData.map(item => 
-            item.Singkatan === ormawaSingkatan 
-              ? { ...item, xp: Math.max(0, (item.xp || 0) - 50) } 
+        setData(prevData =>
+          prevData.map(item =>
+            item.Singkatan === ormawaSingkatan
+              ? { ...item, xp: Math.max(0, (item.xp || 0) - 50) }
               : item
           )
         );
@@ -311,20 +311,20 @@ export default function KelolaOrganisasi() {
   const top3 = sortedLeaderboard[2];
 
   const columns = [
-    { 
-      key: 'Singkatan', 
-      label: 'Kode Unit', 
-      className: 'w-[120px]', 
+    {
+      key: 'Singkatan',
+      label: 'Kode Unit',
+      className: 'w-[120px]',
       render: v => (
         <Badge className="bg-bku-primary/5 text-bku-primary border-bku-primary/10 px-2 py-0.5 rounded-md font-black text-[10px] tracking-widest uppercase shadow-none font-jakarta">
           {v || 'UNIT'}
         </Badge>
       )
     },
-    { 
-      key: 'Nama', 
-      label: 'Nama Organisasi Mahasiswa', 
-      className: 'w-[400px]', 
+    {
+      key: 'Nama',
+      label: 'Nama Organisasi Mahasiswa',
+      className: 'w-[400px]',
       render: (v, row) => (
         <div className="flex flex-col gap-1 py-3 group/item">
           <span className="font-bold text-slate-800 font-jakarta tracking-tight text-[14px] leading-tight uppercase group-hover/item:text-bku-primary transition-colors">{v || '—'}</span>
@@ -342,8 +342,8 @@ export default function KelolaOrganisasi() {
                 <span className={cn(
                   "text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-md leading-none border",
                   ach === 'LPJ Champion' ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
-                  ach === 'Event Master' ? "bg-amber-50 text-amber-600 border-amber-100" :
-                  "bg-sky-50 text-sky-600 border-sky-100"
+                    ach === 'Event Master' ? "bg-amber-50 text-amber-600 border-amber-100" :
+                      "bg-sky-50 text-sky-600 border-sky-100"
                 )}>
                   {ach}
                 </span>
@@ -353,10 +353,10 @@ export default function KelolaOrganisasi() {
         </div>
       )
     },
-    { 
-      key: 'Email', 
-      label: 'Kontak Resmi', 
-      className: 'w-[230px]', 
+    {
+      key: 'Email',
+      label: 'Kontak Resmi',
+      className: 'w-[230px]',
       render: v => (
         <div className="flex items-center gap-2 text-slate-500">
           <span className="material-symbols-outlined text-slate-300" style={{ fontSize: '14px' }} >mail</span>
@@ -364,10 +364,10 @@ export default function KelolaOrganisasi() {
         </div>
       )
     },
-    { 
-      key: 'poin', 
-      label: 'Poin Peringkat', 
-      className: 'w-[150px] text-center', 
+    {
+      key: 'poin',
+      label: 'Poin Peringkat',
+      className: 'w-[150px] text-center',
       cellClassName: 'text-center',
       render: (v, row) => (
         <Badge className="bg-amber-50 text-amber-700 border-amber-200 px-3 py-1 rounded-lg text-xs font-bold font-jakarta leading-none gap-1 flex items-center justify-center w-fit mx-auto shadow-none">
@@ -376,10 +376,10 @@ export default function KelolaOrganisasi() {
         </Badge>
       )
     },
-    { 
-      key: 'xp', 
-      label: 'Performance XP', 
-      className: 'w-[140px] text-center', 
+    {
+      key: 'xp',
+      label: 'Performance XP',
+      className: 'w-[140px] text-center',
       cellClassName: 'text-center',
       render: (v, row) => (
         <div className="flex flex-col items-center gap-1.5">
@@ -440,14 +440,14 @@ export default function KelolaOrganisasi() {
   return (
     <div className="min-h-screen bg-transparent font-inter">
       <Toaster position="top-right" />
-      
+
       <div className="max-w-[1600px] mx-auto space-y-8 animate-in fade-in duration-300">
-        
+
         {/* ── Welcome & Page Header (Glassmorphism card) ───────────── */}
         <section className="glass-card border border-slate-200/60 rounded-2xl p-6 md:p-8 relative overflow-hidden shadow-none group">
           <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-blue-50/20 to-transparent pointer-events-none" />
           <div className="absolute -bottom-12 -right-12 text-bku-primary/5 rotate-12 pointer-events-none group-hover:scale-105 transition-transform duration-500"><Building size={280} /></div>
-          
+
           <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div className="space-y-2">
               <div className="flex items-center gap-2.5">
@@ -461,8 +461,8 @@ export default function KelolaOrganisasi() {
                 Pusat pengawasan hukum, audit LPJ keuangan, pemantauan bintang keaktifan, dan registrasi digital Ormawa Universitas Bhakti Kencana.
               </p>
             </div>
-            
-            <button 
+
+            <button
               onClick={handleOpenAdd}
               className="h-11 px-6 bg-bku-primary hover:bg-bku-hover text-white text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md shadow-bku-primary/5 flex items-center gap-2 font-headline cursor-pointer border-none"
             >
@@ -575,10 +575,10 @@ export default function KelolaOrganisasi() {
 
         {/* ── Gamification Leaderboard & LPJ review Row (Glassmorphism layout) ── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
+
           {/* 1. Leaderboard Panel — Spans 2 Cols */}
           <div className="lg:col-span-2 glass-card rounded-2xl border border-slate-200/60 p-6 flex flex-col space-y-6 shadow-none">
-            
+
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/40 pb-5">
               <div className="flex items-center gap-3">
                 <div className="size-10 rounded-xl bg-amber-50/50 border border-amber-100 flex items-center justify-center">
@@ -602,8 +602,8 @@ export default function KelolaOrganisasi() {
                     onClick={() => setSortBy(tab.key)}
                     className={cn(
                       "px-3.5 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg leading-none transition-all font-headline cursor-pointer",
-                      sortBy === tab.key 
-                        ? "bg-white text-bku-primary shadow-sm font-extrabold" 
+                      sortBy === tab.key
+                        ? "bg-white text-bku-primary shadow-sm font-extrabold"
                         : "text-slate-400 hover:text-slate-600 font-medium"
                     )}
                   >
@@ -618,7 +618,7 @@ export default function KelolaOrganisasi() {
               <div className="grid grid-cols-3 gap-5 h-[160px] animate-pulse bg-slate-50/30 rounded-2xl border border-slate-200/40" />
             ) : sortedLeaderboard.length >= 3 ? (
               <div className="grid grid-cols-3 gap-5 items-end justify-center pt-2 select-none border-b border-slate-200/40 pb-6">
-                
+
                 {/* 🥈 Rank 2 (Left Side) */}
                 <div className="flex flex-col items-center">
                   <div className="relative mb-2">
@@ -684,7 +684,7 @@ export default function KelolaOrganisasi() {
                   <tr className="border-b border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-400">
                     <th className="py-3 px-3 w-[60px] text-center font-headline">Rank</th>
                     <th className="py-3 px-3 font-headline">Organisasi</th>
-                    <th 
+                    <th
                       onClick={() => setSortBy('lpj')}
                       className={cn(
                         "py-3 px-3 w-[150px] font-headline cursor-pointer select-none transition-all duration-150 rounded-t-lg hover:bg-bku-primary/5 hover:text-bku-primary",
@@ -696,7 +696,7 @@ export default function KelolaOrganisasi() {
                         {sortBy === 'lpj' && <span className="text-[10px] text-bku-primary font-black">▼</span>}
                       </div>
                     </th>
-                    <th 
+                    <th
                       onClick={() => setSortBy('bintang')}
                       className={cn(
                         "py-3 px-3 w-[100px] text-center font-headline cursor-pointer select-none transition-all duration-150 rounded-t-lg hover:bg-bku-primary/5 hover:text-bku-primary",
@@ -708,7 +708,7 @@ export default function KelolaOrganisasi() {
                         {sortBy === 'bintang' && <span className="text-[10px] text-bku-primary font-black">▼</span>}
                       </div>
                     </th>
-                    <th 
+                    <th
                       onClick={() => setSortBy('xp')}
                       className={cn(
                         "py-3 px-3 w-[120px] text-right font-headline cursor-pointer select-none transition-all duration-150 rounded-t-lg hover:bg-bku-primary/5 hover:text-bku-primary",
@@ -739,8 +739,8 @@ export default function KelolaOrganisasi() {
                       const rankEmblems = ['🥇', '🥈', '🥉'];
                       const isEven = index % 2 === 1;
                       return (
-                        <tr 
-                          key={item.id || item.ID} 
+                        <tr
+                          key={item.id || item.ID}
                           className={cn(
                             "hover:bg-bku-primary/5 transition-colors duration-150 border-b border-slate-100/60 font-inter",
                             isEven ? "bg-slate-50/20" : ""
@@ -772,7 +772,7 @@ export default function KelolaOrganisasi() {
                                 )}>{item.lpjRate || 100}%</span>
                               </div>
                               <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                                <div 
+                                <div
                                   style={{ width: `${item.lpjRate || 100}%` }}
                                   className={cn(
                                     "h-full rounded-full transition-all duration-500",
@@ -813,7 +813,7 @@ export default function KelolaOrganisasi() {
 
           {/* 2. LPJ Review Console — Spans 1 Col */}
           <div className="lg:col-span-1 glass-card rounded-2xl border border-slate-200/60 p-6 flex flex-col space-y-6 shadow-none">
-            
+
             <div className="flex items-center gap-3 border-b border-slate-200/40 pb-5">
               <div className="size-10 rounded-xl bg-indigo-50/50 border border-indigo-100 text-indigo-600 flex items-center justify-center">
                 <History size={20} />
@@ -827,8 +827,8 @@ export default function KelolaOrganisasi() {
             {/* Submissions List Container */}
             <div className="flex-1 space-y-4 max-h-[460px] overflow-y-auto pr-1 no-scrollbar select-none animate-in fade-in duration-300">
               {lpjSubmissions.map((sub) => (
-                <div 
-                  key={sub.id} 
+                <div
+                  key={sub.id}
                   onClick={() => {
                     setSelectedLpj(sub);
                     setIsLpjDetailOpen(true);
@@ -843,13 +843,13 @@ export default function KelolaOrganisasi() {
                     <Badge className={cn(
                       "font-black uppercase tracking-widest text-[8px] leading-none shrink-0 px-2 py-0.5 rounded-md",
                       sub.status === 'Pending' ? "bg-amber-50 text-amber-600 border-amber-100" :
-                      sub.status === 'Approved' ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
-                      sub.status === 'Overdue' ? "bg-rose-50 text-rose-600 border-rose-100" :
-                      "bg-slate-100 text-slate-500 border-slate-200"
+                        sub.status === 'Approved' ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
+                          sub.status === 'Overdue' ? "bg-rose-50 text-rose-600 border-rose-100" :
+                            "bg-slate-100 text-slate-500 border-slate-200"
                     )}>
                       {sub.status === 'Pending' ? 'REVIEW' :
-                       sub.status === 'Approved' ? 'DISETUJUI' :
-                       sub.status === 'Overdue' ? 'TELAT' : 'PERINGATAN'}
+                        sub.status === 'Approved' ? 'DISETUJUI' :
+                          sub.status === 'Overdue' ? 'TELAT' : 'PERINGATAN'}
                     </Badge>
                   </div>
 
@@ -863,7 +863,7 @@ export default function KelolaOrganisasi() {
                   {/* Contextual Action Buttons */}
                   {sub.status === 'Pending' && (
                     <div className="flex gap-2 pt-1">
-                      <button 
+                      <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleApproveLPJ(sub.id, sub.ormawaSingkatan);
@@ -873,7 +873,7 @@ export default function KelolaOrganisasi() {
                         <CheckCircle size={10} />
                         Setujui LPJ
                       </button>
-                      <button 
+                      <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleWarnLPJ(sub.id, sub.ormawaSingkatan);
@@ -886,7 +886,7 @@ export default function KelolaOrganisasi() {
                   )}
 
                   {sub.status === 'Overdue' && (
-                    <button 
+                    <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleWarnLPJ(sub.id, sub.ormawaSingkatan);
@@ -903,7 +903,7 @@ export default function KelolaOrganisasi() {
                       <CheckCircle size={10} /> Laporan LPJ Terintegrasi
                     </div>
                   )}
-                    {sub.status === 'Warning Sent' && (
+                  {sub.status === 'Warning Sent' && (
                     <div className="py-2 bg-slate-50 border border-slate-100 text-slate-400 rounded-lg text-[9px] font-black uppercase tracking-widest leading-none text-center flex items-center justify-center gap-1">
                       <AlertTriangle size={10} /> Peringatan Terkirim
                     </div>
@@ -925,8 +925,8 @@ export default function KelolaOrganisasi() {
           </div>
           <div className="glass-card rounded-2xl border border-slate-200/60 overflow-hidden shadow-none">
             <DataTable
-              columns={columns} 
-              data={data} 
+              columns={columns}
+              data={data}
               loading={loading}
               searchPlaceholder="Cari Nama atau Singkatan..."
               actions={(row) => (
@@ -965,78 +965,78 @@ export default function KelolaOrganisasi() {
                 </div>
                 <Building size={120} className="absolute -bottom-8 -right-8 text-white/5 rotate-12 pointer-events-none" />
               </div>
-              
+
               <div className="max-h-[60vh] overflow-y-auto no-scrollbar">
                 <div className="px-10 py-10 space-y-8">
                   <div className="grid grid-cols-2 gap-5 bg-slate-50/50 p-5 rounded-2xl border border-slate-200/60">
-                  <div className="flex flex-col gap-1 leading-none">
-                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest font-headline">Performance XP</span>
-                    <span className="text-lg font-black text-bku-primary font-jakarta leading-none mt-1">{selected.xp || 0} XP</span>
+                    <div className="flex flex-col gap-1 leading-none">
+                      <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest font-headline">Performance XP</span>
+                      <span className="text-lg font-black text-bku-primary font-jakarta leading-none mt-1">{selected.xp || 0} XP</span>
+                    </div>
+                    <div className="flex flex-col gap-1 leading-none">
+                      <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest font-headline">Kepatuhan LPJ</span>
+                      <span className="text-lg font-black text-emerald-600 font-jakarta leading-none mt-1">{selected.lpjRate || 100}%</span>
+                    </div>
                   </div>
-                  <div className="flex flex-col gap-1 leading-none">
-                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest font-headline">Kepatuhan LPJ</span>
-                    <span className="text-lg font-black text-emerald-600 font-jakarta leading-none mt-1">{selected.lpjRate || 100}%</span>
-                  </div>
-                </div>
 
-                <div className="space-y-4">
-                   <div className="flex items-center gap-2 leading-none">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 leading-none">
                       <Target size={16} className="text-bku-primary" />
                       <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest font-headline">Visi Organisasi</span>
-                   </div>
-                   <p className="text-xs font-medium text-slate-500 leading-relaxed font-inter bg-slate-50/30 p-5 rounded-xl border border-slate-100 italic">
+                    </div>
+                    <p className="text-xs font-medium text-slate-500 leading-relaxed font-inter bg-slate-50/30 p-5 rounded-xl border border-slate-100 italic">
                       "{selected.Visi || 'Visi belum dikonfigurasi.'}"
-                   </p>
-                </div>
+                    </p>
+                  </div>
 
-                <div className="space-y-4">
-                   <div className="flex items-center gap-2 leading-none">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 leading-none">
                       <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '16px' }} >show_chart</span>
                       <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest font-headline">Misi & Strategi</span>
-                   </div>
-                   <p className="text-xs font-medium text-slate-500 leading-relaxed font-inter pl-6 border-l-2 border-bku-primary/20">
+                    </div>
+                    <p className="text-xs font-medium text-slate-500 leading-relaxed font-inter pl-6 border-l-2 border-bku-primary/20">
                       {selected.Misi || 'Misi belum dikonfigurasi.'}
-                   </p>
-                </div>
+                    </p>
+                  </div>
 
-                <div className="space-y-4">
-                   <div className="flex items-center gap-2 leading-none">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 leading-none">
                       <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '16px' }} >emoji_events</span>
                       <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest font-headline">Penghargaan / Badges</span>
-                   </div>
-                   <div className="flex items-center flex-wrap gap-2.5">
-                     {selected.achievements?.map((ach, idx) => (
-                       <Badge key={idx} className={cn(
-                         "font-black uppercase tracking-widest text-[9px] px-3 py-1 rounded-xl leading-none border shadow-none",
-                         ach === 'LPJ Champion' ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
-                         ach === 'Event Master' ? "bg-amber-50 text-amber-600 border-amber-100" :
-                         "bg-sky-50 text-sky-600 border-sky-100"
-                       )}>
-                         {ach}
-                       </Badge>
-                     ))}
-                   </div>
-                </div>
+                    </div>
+                    <div className="flex items-center flex-wrap gap-2.5">
+                      {selected.achievements?.map((ach, idx) => (
+                        <Badge key={idx} className={cn(
+                          "font-black uppercase tracking-widest text-[9px] px-3 py-1 rounded-xl leading-none border shadow-none",
+                          ach === 'LPJ Champion' ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
+                            ach === 'Event Master' ? "bg-amber-50 text-amber-600 border-amber-100" :
+                              "bg-sky-50 text-sky-600 border-sky-100"
+                        )}>
+                          {ach}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
 
-                <div className="pt-6 flex justify-end gap-3 border-t border-slate-100">
-                  <button 
-                    type="button"
-                    onClick={() => setIsDetailOpen(false)}
-                    className="h-11 px-8 bg-white/50 hover:bg-slate-100 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-headline cursor-pointer"
-                  >
-                    Tutup
-                  </button>
-                  <button 
-                    type="button"
-                    onClick={() => { setIsDetailOpen(false); handleOpenEdit(selected) }}
-                    className="h-11 px-8 bg-bku-primary hover:bg-bku-hover text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md shadow-bku-primary/5 font-headline cursor-pointer border-none"
-                  >
-                    Edit Unit
-                  </button>
+                  <div className="pt-6 flex justify-end gap-3 border-t border-slate-100">
+                    <button
+                      type="button"
+                      onClick={() => setIsDetailOpen(false)}
+                      className="h-11 px-8 bg-white/50 hover:bg-slate-100 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-headline cursor-pointer"
+                    >
+                      Tutup
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setIsDetailOpen(false); handleOpenEdit(selected) }}
+                      className="h-11 px-8 bg-bku-primary hover:bg-bku-hover text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md shadow-bku-primary/5 font-headline cursor-pointer border-none"
+                    >
+                      Edit Unit
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
           )}
         </DialogContent>
       </Dialog>
@@ -1049,7 +1049,7 @@ export default function KelolaOrganisasi() {
             <div className="relative z-10 space-y-1">
               <div className="flex items-center gap-2 mb-2">
                 <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
-                  {isEditMode ? <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >edit</span> : <span className="material-symbols-outlined" style={{ fontSize: '12px' }}  strokeWidth={3}>add</span>}
+                  {isEditMode ? <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >edit</span> : <span className="material-symbols-outlined" style={{ fontSize: '12px' }} strokeWidth={3}>add</span>}
                 </div>
                 <span className="text-[10px] font-black uppercase tracking-widest text-bku-primary font-headline">Institutional Registry</span>
               </div>
@@ -1063,60 +1063,60 @@ export default function KelolaOrganisasi() {
           <form onSubmit={handleSave} className="p-8 pt-6 space-y-5 max-h-[70vh] overflow-y-auto no-scrollbar font-inter">
             <div className="space-y-5">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="md:col-span-2 space-y-2">
-                <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest font-headline ml-1">Nama Organisasi</Label>
-                <input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Nama lengkap..." className="w-full h-11 px-3 py-2 bg-slate-50/70 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-bku-primary/20 focus:border-bku-primary outline-none transition-all duration-200 uppercase font-medium" />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest font-headline ml-1">Kode Unit</Label>
-                <input required value={form.Singkatan} onChange={e => setForm({ ...form, Singkatan: e.target.value })} placeholder="BEM, HIMA..." className="w-full h-11 px-3 py-2 bg-slate-50/70 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-bku-primary/20 focus:border-bku-primary outline-none transition-all duration-200 uppercase font-medium" />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               <div className="space-y-2">
-                 <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest font-headline ml-1">Email Resmi</Label>
-                 <input type="email" value={form.Email} onChange={e => setForm({ ...form, Email: e.target.value })} placeholder="ormawa@bku.ac.id" className="w-full h-11 px-3 py-2 bg-slate-50/70 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-bku-primary/20 focus:border-bku-primary outline-none transition-all duration-200 font-medium" />
-               </div>
-               <div className="space-y-2">
-                 <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest font-headline ml-1">Kontak Person</Label>
-                 <input value={form.Phone} onChange={e => setForm({ ...form, Phone: e.target.value })} placeholder="08xxx..." className="w-full h-11 px-3 py-2 bg-slate-50/70 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-bku-primary/20 focus:border-bku-primary outline-none transition-all duration-200 font-medium" />
+                <div className="md:col-span-2 space-y-2">
+                  <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest font-headline ml-1">Nama Organisasi</Label>
+                  <input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Nama lengkap..." className="w-full h-11 px-3 py-2 bg-slate-50/70 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-bku-primary/20 focus:border-bku-primary outline-none transition-all duration-200 uppercase font-medium" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest font-headline ml-1">Kode Unit</Label>
+                  <input required value={form.Singkatan} onChange={e => setForm({ ...form, Singkatan: e.target.value })} placeholder="BEM, HIMA..." className="w-full h-11 px-3 py-2 bg-slate-50/70 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-bku-primary/20 focus:border-bku-primary outline-none transition-all duration-200 uppercase font-medium" />
                 </div>
               </div>
 
-            <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest font-headline ml-1">Deskripsi Singkat</Label>
-              <textarea value={form.Deskripsi} onChange={e => setForm({ ...form, Deskripsi: e.target.value })} placeholder="Ringkasan tentang organisasi..." className="w-full min-h-[60px] px-3 py-2 bg-slate-50/70 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-bku-primary/20 focus:border-bku-primary outline-none transition-all duration-200 font-medium" />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest font-headline ml-1">Visi</Label>
-                <textarea value={form.Visi} onChange={e => setForm({ ...form, Visi: e.target.value })} placeholder="Target masa depan..." className="w-full min-h-[100px] px-3 py-2 bg-slate-50/70 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-bku-primary/20 focus:border-bku-primary outline-none transition-all duration-200 font-medium" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest font-headline ml-1">Email Resmi</Label>
+                  <input type="email" value={form.Email} onChange={e => setForm({ ...form, Email: e.target.value })} placeholder="ormawa@bku.ac.id" className="w-full h-11 px-3 py-2 bg-slate-50/70 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-bku-primary/20 focus:border-bku-primary outline-none transition-all duration-200 font-medium" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest font-headline ml-1">Kontak Person</Label>
+                  <input value={form.Phone} onChange={e => setForm({ ...form, Phone: e.target.value })} placeholder="08xxx..." className="w-full h-11 px-3 py-2 bg-slate-50/70 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-bku-primary/20 focus:border-bku-primary outline-none transition-all duration-200 font-medium" />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest font-headline ml-1">Misi</Label>
-                <textarea value={form.Misi} onChange={e => setForm({ ...form, Misi: e.target.value })} placeholder="Langkah strategis..." className="w-full min-h-[100px] px-3 py-2 bg-slate-50/70 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-bku-primary/20 focus:border-bku-primary outline-none transition-all duration-200 font-medium" />
-              </div>
-            </div>
 
-            <div className="pt-6 flex flex-row gap-3 border-t border-slate-100">
-               <button 
-                 type="button" 
-                 onClick={() => setIsCrudOpen(false)} 
-                 className="flex-1 h-12 bg-white/50 hover:bg-slate-100 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-headline cursor-pointer"
-               >
-                 Batal
-               </button>
-               <button 
-                 type="submit" 
-                 disabled={isSubmitting} 
-                 className="flex-1 h-12 bg-bku-primary hover:bg-bku-hover text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md shadow-bku-primary/5 flex items-center justify-center gap-2 font-headline disabled:opacity-50 cursor-pointer border-none"
-               >
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest font-headline ml-1">Deskripsi Singkat</Label>
+                <textarea value={form.Deskripsi} onChange={e => setForm({ ...form, Deskripsi: e.target.value })} placeholder="Ringkasan tentang organisasi..." className="w-full min-h-[60px] px-3 py-2 bg-slate-50/70 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-bku-primary/20 focus:border-bku-primary outline-none transition-all duration-200 font-medium" />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest font-headline ml-1">Visi</Label>
+                  <textarea value={form.Visi} onChange={e => setForm({ ...form, Visi: e.target.value })} placeholder="Target masa depan..." className="w-full min-h-[100px] px-3 py-2 bg-slate-50/70 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-bku-primary/20 focus:border-bku-primary outline-none transition-all duration-200 font-medium" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest font-headline ml-1">Misi</Label>
+                  <textarea value={form.Misi} onChange={e => setForm({ ...form, Misi: e.target.value })} placeholder="Langkah strategis..." className="w-full min-h-[100px] px-3 py-2 bg-slate-50/70 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-bku-primary/20 focus:border-bku-primary outline-none transition-all duration-200 font-medium" />
+                </div>
+              </div>
+
+              <div className="pt-6 flex flex-row gap-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsCrudOpen(false)}
+                  className="flex-1 h-12 bg-white/50 hover:bg-slate-100 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-headline cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex-1 h-12 bg-bku-primary hover:bg-bku-hover text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md shadow-bku-primary/5 flex items-center justify-center gap-2 font-headline disabled:opacity-50 cursor-pointer border-none"
+                >
                   {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >save</span>}
                   <span>Simpan Unit</span>
-               </button>
-            </div>
+                </button>
+              </div>
             </div>
           </form>
         </DialogContent>
@@ -1138,13 +1138,13 @@ export default function KelolaOrganisasi() {
                     <Badge className={cn(
                       "font-black uppercase tracking-widest text-[8px] leading-none px-2 py-0.5 rounded-md",
                       selectedLpj.status === 'Pending' ? "bg-amber-500 text-white border-none" :
-                      selectedLpj.status === 'Approved' ? "bg-emerald-500 text-white border-none" :
-                      selectedLpj.status === 'Overdue' ? "bg-rose-500 text-white border-none" :
-                      "bg-slate-500 text-white border-none"
+                        selectedLpj.status === 'Approved' ? "bg-emerald-500 text-white border-none" :
+                          selectedLpj.status === 'Overdue' ? "bg-rose-500 text-white border-none" :
+                            "bg-slate-500 text-white border-none"
                     )}>
                       {selectedLpj.status === 'Pending' ? 'REVIEW' :
-                       selectedLpj.status === 'Approved' ? 'DISETUJUI' :
-                       selectedLpj.status === 'Overdue' ? 'TERLAMBAT' : 'PERINGATAN'}
+                        selectedLpj.status === 'Approved' ? 'DISETUJUI' :
+                          selectedLpj.status === 'Overdue' ? 'TERLAMBAT' : 'PERINGATAN'}
                     </Badge>
                   </div>
                   <h3 className="text-base font-bold text-white font-jakarta tracking-tight leading-tight uppercase">
@@ -1160,109 +1160,109 @@ export default function KelolaOrganisasi() {
               <div className="max-h-[60vh] overflow-y-auto no-scrollbar text-slate-600">
                 <div className="px-8 py-8 space-y-6">
                   {/* Stats grid */}
-                <div className="grid grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200/60">
-                  <div className="flex flex-col gap-1 leading-none text-center">
-                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest font-headline">Tanggal Masuk</span>
-                    <span className="text-xs font-bold text-slate-700 font-inter mt-1.5">{selectedLpj.date}</span>
+                  <div className="grid grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200/60">
+                    <div className="flex flex-col gap-1 leading-none text-center">
+                      <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest font-headline">Tanggal Masuk</span>
+                      <span className="text-xs font-bold text-slate-700 font-inter mt-1.5">{selectedLpj.date}</span>
+                    </div>
+                    <div className="flex flex-col gap-1 leading-none text-center border-x border-slate-200">
+                      <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest font-headline">XP Reward/Penalty</span>
+                      <span className={cn("text-xs font-black font-headline mt-1.5", selectedLpj.xpReward > 0 ? "text-bku-primary" : "text-rose-600")}>
+                        {selectedLpj.xpReward > 0 ? `+${selectedLpj.xpReward}` : selectedLpj.xpReward} XP
+                      </span>
+                    </div>
+                    <div className="flex flex-col gap-1 leading-none text-center">
+                      <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest font-headline">Estimasi Pagu</span>
+                      <span className="text-xs font-bold text-slate-700 font-inter mt-1.5">Rp 5.000.000</span>
+                    </div>
                   </div>
-                  <div className="flex flex-col gap-1 leading-none text-center border-x border-slate-200">
-                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest font-headline">XP Reward/Penalty</span>
-                    <span className={cn("text-xs font-black font-headline mt-1.5", selectedLpj.xpReward > 0 ? "text-bku-primary" : "text-rose-600")}>
-                      {selectedLpj.xpReward > 0 ? `+${selectedLpj.xpReward}` : selectedLpj.xpReward} XP
-                    </span>
-                  </div>
-                  <div className="flex flex-col gap-1 leading-none text-center">
-                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest font-headline">Estimasi Pagu</span>
-                    <span className="text-xs font-bold text-slate-700 font-inter mt-1.5">Rp 5.000.000</span>
-                  </div>
-                </div>
 
-                {/* Audit details */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 leading-none">
-                    <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '16px' }} >info</span>
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest font-headline">Informasi Penyelarasan LPJ</span>
-                  </div>
-                  <div className="text-xs font-medium leading-relaxed font-inter bg-slate-50/30 p-4 rounded-xl border border-slate-100 space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Total Pengeluaran:</span>
-                      <span className="font-bold text-slate-700">Rp 4.780.000</span>
+                  {/* Audit details */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 leading-none">
+                      <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '16px' }} >info</span>
+                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest font-headline">Informasi Penyelarasan LPJ</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Sisa Anggaran (Silpa):</span>
-                      <span className="font-bold text-emerald-600">Rp 220.000</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Tingkat Kepuasan Peserta:</span>
-                      <span className="font-bold text-slate-700">95% (120 Responden)</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Uploaded Files section */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 leading-none">
-                    <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '16px' }} >attach_file</span>
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest font-headline">Lampiran Berkas Digital</span>
-                  </div>
-                  <div className="space-y-2 select-none">
-                    {[
-                      { name: 'LPJ_Kegiatan_Signed.pdf', size: '2.4 MB', type: 'PDF Document' },
-                      { name: 'Laporan_Keuangan_Kuitansi.xlsx', size: '1.2 MB', type: 'Excel Sheet' },
-                      { name: 'Dokumentasi_Foto_Kegiatan.zip', size: '15.6 MB', type: 'Compressed Archive' }
-                    ].map((file, idx) => (
-                      <div key={idx} className="flex items-center justify-between p-3 bg-slate-50/50 hover:bg-slate-50 rounded-xl border border-slate-100 transition-all">
-                        <div className="flex items-center gap-3">
-                          <span className="material-symbols-outlined text-slate-300" style={{ fontSize: '20px' }}>
-                            {file.name.endsWith('.pdf') ? 'picture_as_pdf' : file.name.endsWith('.xlsx') ? 'table_view' : 'folder_zip'}
-                          </span>
-                          <div className="flex flex-col">
-                            <span className="text-xs font-bold text-slate-700 leading-tight">{file.name}</span>
-                            <span className="text-[9px] text-slate-400 font-medium font-inter mt-0.5">{file.type} • {file.size}</span>
-                          </div>
-                        </div>
-                        <button 
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toast.success(`Membuka lampiran ${file.name} (Simulasi)`);
-                          }}
-                          className="px-3 py-1 bg-white hover:bg-slate-100 text-slate-500 hover:text-slate-800 text-[9px] font-black uppercase tracking-widest rounded-lg border border-slate-200 cursor-pointer transition-all font-headline"
-                        >
-                          Unduh
-                        </button>
+                    <div className="text-xs font-medium leading-relaxed font-inter bg-slate-50/30 p-4 rounded-xl border border-slate-100 space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Total Pengeluaran:</span>
+                        <span className="font-bold text-slate-700">Rp 4.780.000</span>
                       </div>
-                    ))}
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Sisa Anggaran (Silpa):</span>
+                        <span className="font-bold text-emerald-600">Rp 220.000</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Tingkat Kepuasan Peserta:</span>
+                        <span className="font-bold text-slate-700">95% (120 Responden)</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Uploaded Files section */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 leading-none">
+                      <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '16px' }} >attach_file</span>
+                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest font-headline">Lampiran Berkas Digital</span>
+                    </div>
+                    <div className="space-y-2 select-none">
+                      {[
+                        { name: 'LPJ_Kegiatan_Signed.pdf', size: '2.4 MB', type: 'PDF Document' },
+                        { name: 'Laporan_Keuangan_Kuitansi.xlsx', size: '1.2 MB', type: 'Excel Sheet' },
+                        { name: 'Dokumentasi_Foto_Kegiatan.zip', size: '15.6 MB', type: 'Compressed Archive' }
+                      ].map((file, idx) => (
+                        <div key={idx} className="flex items-center justify-between p-3 bg-slate-50/50 hover:bg-slate-50 rounded-xl border border-slate-100 transition-all">
+                          <div className="flex items-center gap-3">
+                            <span className="material-symbols-outlined text-slate-300" style={{ fontSize: '20px' }}>
+                              {file.name.endsWith('.pdf') ? 'picture_as_pdf' : file.name.endsWith('.xlsx') ? 'table_view' : 'folder_zip'}
+                            </span>
+                            <div className="flex flex-col">
+                              <span className="text-xs font-bold text-slate-700 leading-tight">{file.name}</span>
+                              <span className="text-[9px] text-slate-400 font-medium font-inter mt-0.5">{file.type} • {file.size}</span>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toast.success(`Membuka lampiran ${file.name} (Simulasi)`);
+                            }}
+                            className="px-3 py-1 bg-white hover:bg-slate-100 text-slate-500 hover:text-slate-800 text-[9px] font-black uppercase tracking-widest rounded-lg border border-slate-200 cursor-pointer transition-all font-headline"
+                          >
+                            Unduh
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
 
                 {/* Footer Quick Actions */}
                 <div className="pt-6 border-t border-slate-100 flex justify-end gap-3 font-inter">
-                  <button 
+                  <button
                     type="button"
-                    onClick={() => setIsLpjDetailOpen(false)} 
+                    onClick={() => setIsLpjDetailOpen(false)}
                     className="h-11 px-6 bg-white/50 hover:bg-slate-100 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-headline cursor-pointer"
                   >
                     Tutup
                   </button>
-                  
+
                   {selectedLpj.status === 'Pending' && (
                     <div className="flex gap-2">
-                      <button 
+                      <button
                         onClick={() => {
                           handleApproveLPJ(selectedLpj.id, selectedLpj.ormawaSingkatan);
                           setIsLpjDetailOpen(false);
-                        }} 
+                        }}
                         className="h-11 px-5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-sm flex items-center gap-1.5 font-headline cursor-pointer border-none"
                       >
                         <CheckCircle size={12} /> Setujui LPJ
                       </button>
-                      <button 
+                      <button
                         onClick={() => {
                           handleWarnLPJ(selectedLpj.id, selectedLpj.ormawaSingkatan);
                           setIsLpjDetailOpen(false);
-                        }} 
+                        }}
                         className="h-11 px-5 bg-white/50 hover:bg-rose-50 border border-rose-200 text-rose-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] font-headline cursor-pointer"
                       >
                         Tolak
@@ -1271,11 +1271,11 @@ export default function KelolaOrganisasi() {
                   )}
 
                   {selectedLpj.status === 'Overdue' && (
-                    <button 
+                    <button
                       onClick={() => {
                         handleWarnLPJ(selectedLpj.id, selectedLpj.ormawaSingkatan);
                         setIsLpjDetailOpen(false);
-                      }} 
+                      }}
                       className="h-11 px-6 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-sm flex items-center gap-1.5 font-headline cursor-pointer border-none"
                     >
                       <AlertTriangle size={12} /> Kirim Peringatan
@@ -1289,13 +1289,13 @@ export default function KelolaOrganisasi() {
         </DialogContent>
       </Dialog>
 
-      <DeleteConfirmModal 
-        isOpen={isDelOpen} 
-        onClose={() => setIsDelOpen(false)} 
+      <DeleteConfirmModal
+        isOpen={isDelOpen}
+        onClose={() => setIsDelOpen(false)}
         onConfirm={handleDelete}
-        title="Hapus Unit Organisasi?" 
-        description="Data organisasi, riwayat anggota, dan visi misi akan dihapus permanen dari sistem." 
-        loading={isSubmitting} 
+        title="Hapus Unit Organisasi?"
+        description="Data organisasi, riwayat anggota, dan visi misi akan dihapus permanen dari sistem."
+        loading={isSubmitting}
       />
     </div>
   )

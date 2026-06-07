@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils'
 
 import { fetchWithAuth, API_BASE_URL } from '../../services/api'
 import useAuthStore from '../../store/useAuthStore'
+import { getOrmawaId } from '../../utils/getOrmawaId'
 
 const API = `${API_BASE_URL}/ormawa`
 
@@ -232,8 +233,7 @@ export default function RoleBasedAccess() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [selected, setSelected] = useState(null)
   
-  const authState = useAuthStore((s) => s)
-  const ormawaId = authState?.user?.ormawa_id || authState?.user?.OrmawaID || authState?.mahasiswa?.ormawaId || 1
+  const ormawaId = getOrmawaId()
   
   const [form, setForm] = useState({ Nama: '', Deskripsi: '', Hak: [], OrmawaID: ormawaId })
   const [expandedGroups, setExpandedGroups] = useState({})

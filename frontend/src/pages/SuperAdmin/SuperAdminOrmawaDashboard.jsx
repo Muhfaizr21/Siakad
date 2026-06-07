@@ -1,7 +1,6 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import { OrmawaSelector } from './components/OrmawaSelector'
 import { useSuperAdminOrmawa } from '../../contexts/SuperAdminOrmawaContext'
 import useAuthStore from '../../store/useAuthStore'
 import { Badge } from '@/components/ui/Badge'
@@ -109,13 +108,10 @@ export default function SuperAdminOrmawaDashboard() {
                   Dashboard Ormawa <span style={{ color: 'var(--theme-secondary)' }}>(Super Admin)</span>
                 </h1>
                 <p className="text-xs mt-0.5" style={{ color: 'var(--theme-text-muted)' }}>
-                  Pilih organisasi untuk melihat dashboard dan statistik lengkapnya
+                  Gunakan filter di bagian atas untuk memilih organisasi dan melihat data
                 </p>
               </div>
             </div>
-
-            {/* Dropdown Ormawa Selector */}
-            <OrmawaSelector />
           </div>
         </section>
 

@@ -88,6 +88,10 @@ import Notifikasi from './pages/OrmawaAdmin/Notifikasi'
 import Settings from './pages/OrmawaAdmin/Settings'
 import Recruitment from './pages/OrmawaAdmin/Recruitment'
 import AspirationManagement from './pages/OrmawaAdmin/AspirationManagement'
+
+const SuperAdminAspirasi = withSuperAdminOrmawaAccess(AspirationManagement, 'Aspirasi Masuk')
+const SuperAdminRbac = withSuperAdminOrmawaAccess(RoleBasedAccess, 'Manajemen Hak Akses')
+
 import FacultyAspirationManagement from './pages/FacultyAdmin/Aspirasi'
 import FacultyProdi from './pages/FacultyAdmin/Prodi'
 import FacultyDosen from './pages/FacultyAdmin/Psikolog'
@@ -128,8 +132,15 @@ import AdminPerformance from './pages/SuperAdmin/AdminPerformance'
 import AdminProfile from './pages/SuperAdmin/Profile'
 import SecuritySettings from './pages/SuperAdmin/SecuritySettings'
 import { ThemeCustomizer } from './pages/SuperAdmin/theme'
-import PsychologistDirectory from './pages/SuperAdmin/PsychologistDirectory'
-import TenagaKesehatanDirectory from './pages/SuperAdmin/TenagaKesehatanDirectory'
+import AdminPsychologistDashboard from './pages/SuperAdmin/psychologist/PsychologistDashboard'
+import AdminPsychologistList from './pages/SuperAdmin/psychologist/PsychologistList'
+import AdminPsychologistBookings from './pages/SuperAdmin/psychologist/PsychologistBookings'
+import AdminPsychologistMedicalRecords from './pages/SuperAdmin/psychologist/PsychologistMedicalRecords'
+import AdminPsychologistReferrals from './pages/SuperAdmin/psychologist/PsychologistReferrals'
+import AdminTenagaKesehatanDashboard from './pages/SuperAdmin/tenagakes/TenagaKesehatanDashboardPage'
+import AdminTenagaKesehatanList from './pages/SuperAdmin/tenagakes/TenagaKesehatanList'
+import AdminTenagaKesehatanBookings from './pages/SuperAdmin/tenagakes/TenagaKesehatanBookings'
+import AdminTenagaKesehatanMedicalRecords from './pages/SuperAdmin/tenagakes/TenagaKesehatanMedicalRecords'
 import KelolaFakultas from './pages/SuperAdmin/KelolaFakultas'
 import KelolaProdi from './pages/SuperAdmin/KelolaProdi'
 import LecturerDirectory from './pages/SuperAdmin/LecturerDirectory'
@@ -277,8 +288,15 @@ function App() {
                   <Route path="theme/branding" element={<ThemeCustomizer />} />
                   <Route path="theme/components" element={<ThemeCustomizer />} />
                   <Route path="theme/status" element={<ThemeCustomizer />} />
-                  <Route path="psychologists" element={<PsychologistDirectory />} />
-                  <Route path="tenagakes" element={<TenagaKesehatanDirectory />} />
+                   <Route path="psychologists/dashboard" element={<AdminPsychologistDashboard />} />
+                  <Route path="psychologists/list" element={<AdminPsychologistList />} />
+                  <Route path="psychologists/bookings" element={<AdminPsychologistBookings />} />
+                  <Route path="psychologists/medical-records" element={<AdminPsychologistMedicalRecords />} />
+                  <Route path="psychologists/referrals" element={<AdminPsychologistReferrals />} />
+                  <Route path="tenagakes/dashboard" element={<AdminTenagaKesehatanDashboard />} />
+                  <Route path="tenagakes/list" element={<AdminTenagaKesehatanList />} />
+                  <Route path="tenagakes/bookings" element={<AdminTenagaKesehatanBookings />} />
+                  <Route path="tenagakes/medical-records" element={<AdminTenagaKesehatanMedicalRecords />} />
                   <Route path="insurance" element={<InsuranceManagement />} />
                   <Route path="config" element={<AcademicPortal />} />
                   <Route path="faculties" element={<KelolaFakultas />} />
@@ -322,9 +340,8 @@ function App() {
                   <Route path="ormawa-keuangan" element={<SuperAdminKeuangan />} />
                   <Route path="ormawa-lpj" element={<SuperAdminLpj />} />
                   <Route path="ormawa-pengumuman" element={<SuperAdminPengumuman />} />
-                  <Route path="ormawa-aspirasi" element={<AspirationManagement />} />
-                  <Route path="ormawa-pengumuman" element={<Pengumuman />} />
-                  <Route path="ormawa-notifikasi" element={<Notifikasi />} />
+                  <Route path="ormawa-aspirasi" element={<SuperAdminAspirasi />} />
+                  <Route path="ormawa-rbac" element={<SuperAdminRbac />} />
                   <Route path="ormawa" element={<ProposalPipeline />} />
                   <Route path="treasury" element={<ReportsGenerator />} />
                   <Route path="infrastructure" element={<AcademicPortal />} />

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import api from '../../lib/axios'
 import { API_BASE_URL } from '../../services/api'
 import { toast, Toaster } from 'react-hot-toast'
+import useAuthStore from '../../store/useAuthStore'
 
 import { cn } from '@/lib/utils'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/Select"
@@ -55,7 +56,7 @@ const getFullUrl = (path) => {
 function StudentAvatar({ src, name, className = "w-9 h-9 rounded-xl" }) {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
-  
+
   const hasNoImage = !src || src.trim() === "" || src.endsWith("/profiles/") || src.endsWith("/students/") || src.endsWith("localhost:8000") || src.endsWith("localhost:8000/");
 
   return (
@@ -88,6 +89,7 @@ export default function FacultyKesehatan() {
   const [filterProdi, setFilterProdi] = useState('all')
   const [filterBlood, setFilterBlood] = useState('all')
   const [filterJenis, setFilterJenis] = useState('all')
+  const [facultyInfo, setFacultyInfo] = useState(null)
 
   const [statsDetail, setStatsDetail] = useState(null)
   const [statsSearch, setStatsSearch] = useState('')
@@ -126,7 +128,7 @@ export default function FacultyKesehatan() {
   const filteredStatsDetailList = useMemo(() => {
     if (!statsDetail) return []
     const q = statsSearch.toLowerCase()
-    return statsDetail.list.filter(r => 
+    return statsDetail.list.filter(r =>
       !q || r.Mahasiswa?.Nama?.toLowerCase().includes(q) || r.Mahasiswa?.NIM?.includes(q) || r.Mahasiswa?.ProgramStudi?.Nama?.toLowerCase().includes(q)
     )
   }, [statsDetail, statsSearch])
@@ -135,9 +137,27 @@ export default function FacultyKesehatan() {
   const [pageSize, setPageSize] = useState(10)
   const [sortConfig, setSortConfig] = useState({ key: 'Tanggal', direction: 'desc' })
 
+  const getKopImage = (facName) => {
+    const name = (facName || "").toLowerCase();
+    if (name.includes("farmasi")) return "kop_farmasi.jpg";
+    if (name.includes("kesehatan") || name.includes("fikes")) return "kop_ilmu_kesehatan.jpg";
+    if (name.includes("keperawatan") || name.includes("fkep")) return "kop_keperawatan.jpg";
+    if (name.includes("sosial") || name.includes("social") || name.includes("sosiologi") || name.includes("fis")) return "kop_ilmu_sosial.jpg";
+    return "kop_farmasi.jpg";
+  };
+
   const fetchData = async () => {
     setLoading(true)
     try {
+      try {
+        const profileRes = await api.get('/faculty/profile')
+        if (profileRes.data?.success && profileRes.data?.data?.fakultas) {
+          setFacultyInfo(profileRes.data.data.fakultas)
+        }
+      } catch (err) {
+        console.error("Failed to fetch faculty profile", err)
+      }
+
       const [progRes, summaryRes] = await Promise.all([
         api.get('/faculty/health-screening'),
         api.get('/faculty/health-screening/summary')
@@ -173,16 +193,38 @@ export default function FacultyKesehatan() {
   const downloadPDF = (title, subtitle, contentHtml) => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) { toast.error('Gagal membuka jendela cetak. Pastikan pop-up tidak diblokir.'); return; }
+
+    const user = useAuthStore.getState().user;
+    const isSuperAdmin = user?.role === 'super_admin';
+
+    const facName = facultyInfo?.Nama || facultyInfo?.nama || "Fakultas Farmasi";
+    const facDekan = facultyInfo?.Dekan || facultyInfo?.dekan || "Dekan Bidang Akademik";
+
+    const printSize = isSuperAdmin ? 'A4 landscape' : 'A4 portrait';
+    const bgSize = isSuperAdmin ? '297mm 210mm' : '210mm 297mm';
+    const kopImage = isSuperAdmin ? 'format_kop_rektorat_landscape.jpg' : getKopImage(facName);
+    const kopImageUrl = `${window.location.origin}/images/${kopImage}`;
+    const facNameResolved = isSuperAdmin ? 'Universitas Bhakti Kencana' : facName;
+    const titleResolved = isSuperAdmin ? 'Rektor Universitas Bhakti Kencana' : `Dekan ${facNameResolved}`;
+    const nameResolved = isSuperAdmin ? 'Dr. apt. Entris Sutrisno, MH. Kes.' : facDekan;
+    const footerText = isSuperAdmin ? 'Portal SIAKAD Rektorat BKU' : `Portal Akademik ${facNameResolved}`;
+
     const htmlContent = `<html><head><meta charset="utf-8"><title>${title}</title><style>
-      @page { size: A4 landscape; margin: 15mm; }
-      body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.5; color: #334155; background:#fff; margin:0; padding:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-      .letterhead-table { width:100%; border-collapse:collapse; border:none; margin-bottom:20px; }
-      .letterhead-table td { border:none; padding:0; }
-      .univ-title { font-size:12px; font-weight:700; color:#00236F; font-family:'Times New Roman',serif; }
-      .univ-main  { font-size:17px; font-weight:800; color:#00236F; font-family:'Times New Roman',serif; margin-top:2px; }
-      .univ-address { font-size:8px; color:#475569; margin-top:4px; }
-      .univ-contact { font-size:8px; color:#00236F; font-weight:600; margin-top:2px; }
-      .double-line { border:0; border-top:3px double #00236F; margin:10px 0 18px; }
+      @page { size: ${printSize}; margin: 0; }
+      body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        line-height: 1.5;
+        color: #334155;
+        background-image: url('${kopImageUrl}');
+        background-size: ${bgSize};
+        background-repeat: no-repeat;
+        background-position: top center;
+        margin: 0;
+        padding: 38mm 18mm 20mm 18mm;
+        box-sizing: border-box;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
       h1 { color:#1e293b; text-align:center; font-size:14px; font-weight:800; margin:0 0 3px; text-transform:uppercase; }
       h2 { color:#64748b; text-align:center; font-size:8px; font-weight:700; margin:0 0 20px; text-transform:uppercase; letter-spacing:1px; }
       table.data-table { width:100%; border-collapse:collapse; margin-top:8px; }
@@ -195,30 +237,17 @@ export default function FacultyKesehatan() {
       .badge-pantauan { background:#fef9c3; color:#a16207; border:1px solid #fef08a; }
       .badge-kritis   { background:#fee2e2; color:#b91c1c; border:1px solid #fecaca; }
       .footer { margin-top:30px; text-align:right; font-size:8px; color:#64748b; }
-      .sig-line { width:150px; border-top:1px solid #94a3b8; margin-top:40px; display:inline-block; }
       @media print { .no-print { display:none; } }
     </style></head><body>
-      <table class="letterhead-table"><tr>
-        <td style="width:12%;text-align:left;">
-          <img src="https://bku.ac.id/wp-content/uploads/2021/01/logo-bku-nav.png" alt="Logo" style="height:50px;width:auto;object-fit:contain;" onerror="this.src='https://bku.ac.id/wp-content/uploads/2021/01/logo-bku.png';this.onerror=null;"/>
-        </td>
-        <td style="width:88%;text-align:center;">
-          <div class="univ-title">YAYASAN ADHI GUNA KENCANA</div>
-          <div class="univ-main">UNIVERSITAS BHAKTI KENCANA</div>
-          <div class="univ-address">Jl. Soekarno Hatta No. 754, Cipadung Kidul, Panyileukan, Kota Bandung, Jawa Barat 40614</div>
-          <div class="univ-contact">Telp: (022) 7800570 | Email: info@bku.ac.id | Website: www.bku.ac.id</div>
-        </td>
-      </tr></table>
-      <hr class="double-line" />
       <h1>${title}</h1>
       <h2>${subtitle}</h2>
       ${contentHtml}
       <div class="footer">
-        <p>Dicetak secara otomatis oleh Portal Akademik Fakultas</p>
-        <p>Tanggal Cetak: ${new Date().toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' })} WIB</p>
+        <p>Dicetak secara otomatis oleh ${footerText}</p>
+        <p>Tanggal Cetak: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })} WIB</p>
         <br/><p>Mengetahui,</p>
-        <p style="font-weight:700;margin-top:4px;">Koordinator Kesehatan Mahasiswa</p>
-        <div class="sig-line"></div>
+        <p style="font-weight:700;margin-top:4px;">${titleResolved}</p>
+        <div style="margin-top:45px; font-weight:700; text-decoration:underline;">${nameResolved}</div>
       </div>
       <script>window.onload=function(){setTimeout(function(){window.print();setTimeout(function(){window.close();},100);},300);};<\/script>
     </body></html>`;
@@ -234,25 +263,25 @@ export default function FacultyKesehatan() {
       if (!r.TinggiBadan || r.TinggiBadan <= 0) return '—';
       return (r.BeratBadan / Math.pow(r.TinggiBadan / 100, 2)).toFixed(1);
     };
-    const healthBadge = (s) => `<span class="badge badge-${(s||'stabil').toLowerCase()}">${s||'Stabil'}</span>`;
+    const healthBadge = (s) => `<span class="badge badge-${(s || 'stabil').toLowerCase()}">${s || 'Stabil'}</span>`;
     let rows = '';
     dataToExport.forEach((r, i) => {
       const bmiVal = calcBMI(r);
       rows += `<tr>
-        <td>${i+1}</td>
-        <td style="font-weight:700;">${r.Mahasiswa?.Nama||'—'}<br/><span style="font-size:7px;color:#64748b;">NIM: ${r.Mahasiswa?.NIM||'—'}</span></td>
-        <td>${r.Mahasiswa?.ProgramStudi?.Nama||'—'}</td>
-        <td style="text-align:center;font-weight:700;color:#dc2626;">${r.GolonganDarah||'?'}</td>
-        <td style="text-align:center;">${r.TinggiBadan ? parseFloat(r.TinggiBadan).toFixed(1)+' cm' : '—'}</td>
-        <td style="text-align:center;">${r.BeratBadan ? parseFloat(r.BeratBadan).toFixed(1)+' kg' : '—'}</td>
+        <td>${i + 1}</td>
+        <td style="font-weight:700;">${r.Mahasiswa?.Nama || '—'}<br/><span style="font-size:7px;color:#64748b;">NIM: ${r.Mahasiswa?.NIM || '—'}</span></td>
+        <td>${r.Mahasiswa?.ProgramStudi?.Nama || '—'}</td>
+        <td style="text-align:center;font-weight:700;color:#dc2626;">${r.GolonganDarah || '?'}</td>
+        <td style="text-align:center;">${r.TinggiBadan ? parseFloat(r.TinggiBadan).toFixed(1) + ' cm' : '—'}</td>
+        <td style="text-align:center;">${r.BeratBadan ? parseFloat(r.BeratBadan).toFixed(1) + ' kg' : '—'}</td>
         <td style="text-align:center;${bmiVal !== '—' && parseFloat(bmiVal) >= 25 ? 'color:#dc2626;font-weight:700;' : ''}">${bmiVal}</td>
-        <td style="text-align:center;">${(r.Sistole||r.Diastole) ? r.Sistole+'/'+r.Diastole+' mmHg' : '—'}</td>
+        <td style="text-align:center;">${(r.Sistole || r.Diastole) ? r.Sistole + '/' + r.Diastole + ' mmHg' : '—'}</td>
         <td>${healthBadge(r.StatusKesehatan)}</td>
-        <td>${r.Tanggal ? new Date(r.Tanggal).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) : '—'}</td>
+        <td>${r.Tanggal ? new Date(r.Tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}</td>
       </tr>`;
     });
-    const prima    = dataToExport.filter(r => (r.StatusKesehatan||'').toLowerCase() === 'prima').length;
-    const pantauan = dataToExport.filter(r => (r.StatusKesehatan||'').toLowerCase() === 'pantauan').length;
+    const prima = dataToExport.filter(r => (r.StatusKesehatan || '').toLowerCase() === 'prima').length;
+    const pantauan = dataToExport.filter(r => (r.StatusKesehatan || '').toLowerCase() === 'pantauan').length;
     const content = `<table style="width:100%;border-collapse:collapse;border:none;margin-bottom:16px;"><tr>
       <td style="padding:0 5px 0 0;width:33%;"><div style="background:#f8fafc;border:1px solid #e2e8f0;padding:10px 12px;border-radius:5px;">
         <div style="font-size:7px;font-weight:700;color:#64748b;text-transform:uppercase;">Total Rekam Medis</div>
@@ -281,7 +310,7 @@ export default function FacultyKesehatan() {
     </tr></thead><tbody>${rows}</tbody></table>`;
     downloadPDF(
       'Rekap Skrining Kesehatan Mahasiswa Fakultas',
-      `Laporan Monitoring Rekam Medis — ${new Date().toLocaleDateString('id-ID', { month:'long', year:'numeric' })}`,
+      `Laporan Monitoring Rekam Medis — ${new Date().toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}`,
       content
     );
     toast.success(`Berhasil mencetak ${dataToExport.length} data rekam medis!`);
@@ -420,11 +449,11 @@ export default function FacultyKesehatan() {
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           {[
-            { key: 'total',    label: 'Total Skrining',  value: statsData.total,              icon: Activity,    bg: 'bg-[#eef4ff]', color: 'text-primary',     desc: 'Semua rekam medis' },
-            { key: 'prima',    label: 'Kondisi Prima',   value: statsData.condition?.prima || 0, icon: HeartPulse,  bg: 'bg-emerald-50', color: 'text-emerald-600', desc: 'Status sangat sehat' },
-            { key: 'stabil',   label: 'Status Stabil',   value: statsData.condition?.stabil || 0, icon: ShieldCheck, bg: 'bg-blue-50',    color: 'text-blue-600',    desc: 'Kondisi normal' },
-            { key: 'pantauan', label: 'Dalam Pantauan',  value: statsData.condition?.pantauan || 0, icon: AlertCircle,  bg: 'bg-amber-50',   color: 'text-amber-600',   desc: 'Butuh pemantauan' },
-            { key: 'kritis',   label: 'Kondisi Kritis',  value: statsData.condition?.kritis || 0, icon: AlertCircle,  bg: 'bg-rose-50',    color: 'text-rose-600',    desc: 'Penanganan segera' },
+            { key: 'total', label: 'Total Skrining', value: statsData.total, icon: Activity, bg: 'bg-[#eef4ff]', color: 'text-primary', desc: 'Semua rekam medis' },
+            { key: 'prima', label: 'Kondisi Prima', value: statsData.condition?.prima || 0, icon: HeartPulse, bg: 'bg-emerald-50', color: 'text-emerald-600', desc: 'Status sangat sehat' },
+            { key: 'stabil', label: 'Status Stabil', value: statsData.condition?.stabil || 0, icon: ShieldCheck, bg: 'bg-blue-50', color: 'text-blue-600', desc: 'Kondisi normal' },
+            { key: 'pantauan', label: 'Dalam Pantauan', value: statsData.condition?.pantauan || 0, icon: AlertCircle, bg: 'bg-amber-50', color: 'text-amber-600', desc: 'Butuh pemantauan' },
+            { key: 'kritis', label: 'Kondisi Kritis', value: statsData.condition?.kritis || 0, icon: AlertCircle, bg: 'bg-rose-50', color: 'text-rose-600', desc: 'Penanganan segera' },
           ].map(s => (
             <div
               key={s.label}
@@ -576,8 +605,8 @@ export default function FacultyKesehatan() {
                         </span>
                       </td>
                       <td className="px-5 py-3.5">
-                        <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider', hs.cls)}>
-                          <span className={cn('w-1.5 h-1.5 rounded-full', hs.dot)} />{row.StatusKesehatan || '—'}
+                        <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider whitespace-nowrap', hs.cls)}>
+                          <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', hs.dot)} />{row.StatusKesehatan || '—'}
                         </span>
                       </td>
                       <td className="px-5 py-3.5 text-xs text-slate-500 font-medium whitespace-nowrap">{formatDate(row.Tanggal)}</td>
@@ -676,7 +705,7 @@ export default function FacultyKesehatan() {
           onClick={() => setStatsDetail(null)}>
           <div className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[85vh]"
             onClick={e => e.stopPropagation()}>
-            
+
             {/* Header */}
             <div className="bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] pt-6 pb-5 px-6 relative flex-shrink-0">
               <button onClick={() => setStatsDetail(null)}
@@ -726,8 +755,8 @@ export default function FacultyKesehatan() {
                             <span className="inline-flex items-center justify-center px-1.5 py-0.5 rounded-md bg-rose-50 border border-rose-100 text-rose-600 text-[9px] font-black font-mono">
                               Gol. {row.GolonganDarah || '?'}
                             </span>
-                            <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold border uppercase tracking-wider', hs.cls)}>
-                              <span className={cn('w-1 h-1 rounded-full', hs.dot)} />{row.StatusKesehatan || '—'}
+                            <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold border uppercase tracking-wider whitespace-nowrap', hs.cls)}>
+                              <span className={cn('w-1 h-1 rounded-full shrink-0', hs.dot)} />{row.StatusKesehatan || '—'}
                             </span>
                           </div>
                         </div>
@@ -785,8 +814,8 @@ export default function FacultyKesehatan() {
                 <span className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider',
                   selected.StatusKesehatan === 'prima' ? 'bg-emerald-400/20 border border-emerald-300/30 text-emerald-200'
                     : selected.StatusKesehatan === 'stabil' ? 'bg-blue-400/20 border border-blue-300/30 text-blue-200'
-                    : selected.StatusKesehatan === 'pantauan' ? 'bg-amber-400/20 border border-amber-300/30 text-amber-200'
-                    : 'bg-rose-400/20 border border-rose-300/30 text-rose-200')}>
+                      : selected.StatusKesehatan === 'pantauan' ? 'bg-amber-400/20 border border-amber-300/30 text-amber-200'
+                        : 'bg-rose-400/20 border border-rose-300/30 text-rose-200')}>
                   <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
                   {selected.StatusKesehatan || 'Stabil'}
                 </span>

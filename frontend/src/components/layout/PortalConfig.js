@@ -191,30 +191,31 @@ export const PORTAL_CONFIG = {
               { name: 'Direktori Mahasiswa', icon: 'groups', path: '/admin/students' },
               { name: 'Kencana (PKKMB)', icon: 'school', path: '/admin/student-kencana' },
               { name: 'Beasiswa', icon: 'payments', path: '/admin/student-beasiswa' },
-              { name: 'Notifikasi', icon: 'notifications', path: '/admin/student-notifikasi' },
             ]
           },
           {
             name: 'Data Psikolog',
             icon: 'psychology',
-            path: '/admin/psychologists',
+            path: '/admin/psychologists/dashboard',
             hasSubmenu: true,
             submenu: [
-              { name: 'Direktori Psikolog', icon: 'groups', path: '/admin/psychologists' },
-              { name: 'Booking Konseling', icon: 'calendar_month', path: '/admin/psychologists?tab=bookings' },
-              { name: 'Rekam Medis', icon: 'medical_services', path: '/admin/psychologists?tab=medical_records' },
-              { name: 'Tindak Lanjut', icon: 'forward_to_inbox', path: '/admin/psychologists?tab=referrals' },
+              { name: 'Dashboard Psikolog', icon: 'dashboard', path: '/admin/psychologists/dashboard' },
+              { name: 'Direktori Psikolog', icon: 'groups', path: '/admin/psychologists/list' },
+              { name: 'Booking Konseling', icon: 'calendar_month', path: '/admin/psychologists/bookings' },
+              { name: 'Rekam Medis', icon: 'medical_services', path: '/admin/psychologists/medical-records' },
+              { name: 'Tindak Lanjut', icon: 'forward_to_inbox', path: '/admin/psychologists/referrals' },
             ]
           },
           {
-            name: 'Data Tenaga Kes',
+            name: 'Data Medis',
             icon: 'medical_services',
-            path: '/admin/tenagakes',
+            path: '/admin/tenagakes/dashboard',
             hasSubmenu: true,
             submenu: [
-              { name: 'Direktori Tenaga Medis', icon: 'groups', path: '/admin/tenagakes' },
-              { name: 'Booking Janji Temu', icon: 'calendar_month', path: '/admin/tenagakes?tab=bookings' },
-              { name: 'Rekam Medis & Screening', icon: 'medical_services', path: '/admin/tenagakes?tab=medical_records' },
+              { name: 'Dashboard Medis', icon: 'dashboard', path: '/admin/tenagakes/dashboard' },
+              { name: 'Direktori Tenaga Medis', icon: 'groups', path: '/admin/tenagakes/list' },
+              { name: 'Booking Janji Temu', icon: 'calendar_month', path: '/admin/tenagakes/bookings' },
+              { name: 'Rekam Medis & Screening', icon: 'medical_services', path: '/admin/tenagakes/medical-records' },
             ]
           },
           {
@@ -234,7 +235,7 @@ export const PORTAL_CONFIG = {
               { name: 'Laporan & LPJ', icon: 'assignment', path: '/admin/ormawa-lpj' },
               { name: 'Aspirasi Masuk', icon: 'campaign', path: '/admin/ormawa-aspirasi' },
               { name: 'Pengumuman', icon: 'campaign', path: '/admin/ormawa-pengumuman' },
-              { name: 'Notifikasi', icon: 'notifications', path: '/admin/ormawa-notifikasi' },
+              { name: 'Role & Akses (RBAC)', icon: 'security', path: '/admin/ormawa-rbac' },
               { name: 'Setting Gamifikasi', icon: 'emoji_events', path: '/admin/gamifikasi' },
             ]
           },

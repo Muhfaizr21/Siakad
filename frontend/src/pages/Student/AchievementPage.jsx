@@ -20,6 +20,7 @@ import { toast } from 'react-hot-toast';
 import { TableSkeleton } from '@/components/ui/SkeletonGroups';
 import EmptyState from '@/components/ui/EmptyState';
 import { API_BASE_URL } from '../../services/api';
+import useAuthStore from '../../store/useAuthStore';
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Trophy = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>emoji_events</span>;
@@ -82,6 +83,7 @@ const achievementSchema = z.object({
 });
 
 export default function AchievementPage() {
+  const user = useAuthStore(state => state.user);
   const [globalFilter, setGlobalFilter] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDetail, setSelectedDetail] = useState(null); // Data For Detail Modal
@@ -295,7 +297,7 @@ export default function AchievementPage() {
               >
                 <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >visibility</span>
               </button>
-              {status === 'Menunggu' && (
+              {status === 'Menunggu' && user?.role !== 'super_admin' && (
                 <button
                   onClick={() => handleDelete(id)}
                   className="p-1.5 text-[#dc2626] bg-[#fef2f2] rounded hover:bg-[#fee2e2] transition-colors"
@@ -336,13 +338,15 @@ export default function AchievementPage() {
           </h1>
           <p className="text-[#525252] mt-1 font-medium text-sm md:text-base">Lapor, pantau status verifikasi, dan kelola seluruh prestasi akademik/non-akademikmu.</p>
         </div>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-[#00236F] text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-[#0B4FAE] transition-colors shadow-sm shadow-[#00236F]/20"
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >add</span>
-          Lapor Prestasi Baru
-        </button>
+        {user?.role !== 'super_admin' && (
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-[#00236F] text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-[#0B4FAE] transition-colors shadow-sm shadow-[#00236F]/20"
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >add</span>
+            Lapor Prestasi Baru
+          </button>
+        )}
       </div>
 
       {/* Stats Cards */}

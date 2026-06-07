@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils'
 
 import { fetchWithAuth, API_BASE_URL } from '../../services/api'
 import useAuthStore from '../../store/useAuthStore'
+import { getOrmawaId } from '../../utils/getOrmawaId'
 
 const API = `${API_BASE_URL}/ormawa`
 
@@ -25,8 +26,7 @@ export default function AspirationManagement() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [tanggapan, setTanggapan] = useState('')
   
-  const authState = useAuthStore((s) => s)
-  const ormawaId = authState?.user?.ormawa_id || authState?.user?.OrmawaID || authState?.mahasiswa?.ormawaId || authState?.mahasiswa?.OrmawaID || 1
+  const ormawaId = getOrmawaId()
 
   const fetchData = async () => {
     setLoading(true)

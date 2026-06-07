@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/axios';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import useAuthStore from '../../store/useAuthStore';
 
 import { format, isToday, isYesterday, isThisWeek, parseISO } from 'date-fns';
 import { id } from 'date-fns/locale';
@@ -37,6 +38,15 @@ const CATEGORIES = [
 ];
 
 export default function NotificationPage() {
+  const user = useAuthStore(state => state.user);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user?.role === 'super_admin') {
+      navigate('/admin/students');
+    }
+  }, [user, navigate]);
+
   const queryClient = useQueryClient();
   const [filterType, setFilterType] = useState('Semua');
   const [filterTime, setFilterTime] = useState('semua'); // hari_ini, minggu_ini, bulan_ini, semua

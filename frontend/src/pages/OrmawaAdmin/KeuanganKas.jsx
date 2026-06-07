@@ -15,15 +15,16 @@ import { cn } from '@/lib/utils'
 
 import { fetchWithAuth, API_BASE_URL } from '../../services/api'
 import useAuthStore from '../../store/useAuthStore'
+import { getOrmawaId } from '../../utils/getOrmawaId'
 
 const API = `${API_BASE_URL}/ormawa`
 
 // Premium Rupiah Formatter
 const formatRp = (n) => {
-  return new Intl.NumberFormat('id-ID', { 
-    style: 'currency', 
-    currency: 'IDR', 
-    minimumFractionDigits: 0 
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0
   }).format(n || 0)
 }
 
@@ -34,17 +35,15 @@ export default function KeuanganKas() {
   const [isDelOpen, setIsDelOpen] = useState(false)
   const [selected, setSelected] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  
-  const userObj = useAuthStore.getState()?.user
-  const mhsObj = useAuthStore.getState()?.mahasiswa
-  const ormawaId = userObj?.ormawa_id || userObj?.OrmawaID || userObj?.ormawaId || mhsObj?.ormawaId || mhsObj?.OrmawaID || 1
-  const [form, setForm] = useState({ 
-    Deskripsi: '', 
-    Nominal: '', 
-    Tipe: 'pemasukan', 
-    Tanggal: '', 
+
+  const ormawaId = getOrmawaId()
+  const [form, setForm] = useState({
+    Deskripsi: '',
+    Nominal: '',
+    Tipe: 'pemasukan',
+    Tanggal: '',
     OrmawaID: ormawaId,
-    Sumber: 'organisasi' 
+    Sumber: 'organisasi'
   })
 
   // Calculate totals
@@ -79,25 +78,25 @@ export default function KeuanganKas() {
 
   useEffect(() => {
     fetchData()
-  }, [])
+  }, [ormawaId])
 
   const handleSave = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
-    
-    const payload = { 
-      ...form, 
-      Nominal: Number(form.Nominal), 
-      OrmawaID: Number(form.OrmawaID), 
+
+    const payload = {
+      ...form,
+      Nominal: Number(form.Nominal),
+      OrmawaID: Number(form.OrmawaID),
       Sumber: form.Sumber || 'organisasi',
-      Tanggal: form.Tanggal ? new Date(form.Tanggal).toISOString() : new Date().toISOString() 
+      Tanggal: form.Tanggal ? new Date(form.Tanggal).toISOString() : new Date().toISOString()
     }
 
     try {
-      const data = await fetchWithAuth(`${API}/kas`, { 
-        method: 'POST', 
-        body: JSON.stringify(payload), 
-        headers: { 'Content-Type': 'application/json' } 
+      const data = await fetchWithAuth(`${API}/kas`, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+        headers: { 'Content-Type': 'application/json' }
       })
       if (data.status === 'success') {
         toast.success('Transaksi keuangan berhasil dicatat!')
@@ -116,8 +115,8 @@ export default function KeuanganKas() {
   const handleDelete = async () => {
     setIsSubmitting(true)
     try {
-      const data = await fetchWithAuth(`${API}/kas/${selected?.id || selected?.ID}`, { 
-        method: 'DELETE' 
+      const data = await fetchWithAuth(`${API}/kas/${selected?.id || selected?.ID}`, {
+        method: 'DELETE'
       })
       if (data.status === 'success') {
         toast.success('Transaksi berhasil dihapus dari sistem')
@@ -135,8 +134,8 @@ export default function KeuanganKas() {
 
   const columns = [
     {
-      key: 'Tanggal', 
-      label: 'Tanggal', 
+      key: 'Tanggal',
+      label: 'Tanggal',
       className: 'w-[150px]',
       render: v => (
         <span className="font-bold text-slate-500 text-[11px] font-headline">
@@ -145,8 +144,8 @@ export default function KeuanganKas() {
       )
     },
     {
-      key: 'Deskripsi', 
-      label: 'Keterangan Transaksi', 
+      key: 'Deskripsi',
+      label: 'Keterangan Transaksi',
       className: 'min-w-[280px]',
       render: (v, row) => {
         const isCampus = row.Sumber === 'kampus' || row.sumber === 'kampus'
@@ -158,8 +157,8 @@ export default function KeuanganKas() {
             <div className="flex items-center">
               <span className={cn(
                 "text-[8.5px] font-black tracking-widest px-2.5 py-0.5 rounded-md border",
-                isCampus 
-                  ? "bg-blue-50 text-blue-600 border-blue-100/50" 
+                isCampus
+                  ? "bg-blue-50 text-blue-600 border-blue-100/50"
                   : "bg-slate-50 text-slate-500 border-slate-200/60"
               )}>
                 {isCampus ? "🏛️ PAGU KAMPUS" : "💼 KAS MANDIRI"}
@@ -170,17 +169,17 @@ export default function KeuanganKas() {
       }
     },
     {
-      key: 'Tipe', 
-      label: 'Jenis Mutasi', 
-      className: 'w-[140px] text-center', 
+      key: 'Tipe',
+      label: 'Jenis Mutasi',
+      className: 'w-[140px] text-center',
       cellClassName: 'text-center',
       render: v => {
         const isIncome = v === 'pemasukan'
         return (
           <Badge className={cn(
             'font-bold text-[10px] uppercase tracking-wider px-3.5 py-1 border rounded-full',
-            isIncome 
-              ? 'bg-emerald-50 text-emerald-700 border-emerald-100' 
+            isIncome
+              ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
               : 'bg-rose-50 text-rose-700 border-rose-100'
           )}>
             {isIncome ? '▲ Masuk' : '▼ Keluar'}
@@ -189,15 +188,15 @@ export default function KeuanganKas() {
       }
     },
     {
-      key: 'Nominal', 
-      label: 'Jumlah Nominal', 
-      className: 'w-[200px] text-right', 
+      key: 'Nominal',
+      label: 'Jumlah Nominal',
+      className: 'w-[200px] text-right',
       cellClassName: 'text-right',
       render: (v, row) => {
         const isIncome = row.Tipe === 'pemasukan'
         return (
           <span className={cn(
-            'font-black text-[13px] font-headline tracking-tight', 
+            'font-black text-[13px] font-headline tracking-tight',
             isIncome ? 'text-emerald-600' : 'text-rose-600'
           )}>
             {isIncome ? '+ ' : '- '}{formatRp(v)}
@@ -210,7 +209,7 @@ export default function KeuanganKas() {
   return (
     <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-8 font-body">
       <Toaster position="top-right" />
-      
+
       {/* ── Welcome Banner ─────────────────────────────────────────── */}
       <section className="relative overflow-hidden rounded-[2rem] bg-white p-8 md:p-10 shadow-sm border border-slate-200">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(0,0,0,0.02)_0%,transparent_60%)]" />
@@ -239,12 +238,12 @@ export default function KeuanganKas() {
               </div>
             </div>
           </div>
-          
-          <Button 
-            onClick={() => { 
+
+          <Button
+            onClick={() => {
               setForm({ Deskripsi: '', Nominal: '', Tipe: 'pemasukan', Tanggal: '', OrmawaID: ormawaId, Sumber: 'organisasi' })
-              setIsCrudOpen(true) 
-            }} 
+              setIsCrudOpen(true)
+            }}
             className="h-12 px-6 rounded-2xl text-white font-bold text-xs tracking-wider shadow-lg shadow-blue-900/10 transition-all active:scale-95 shrink-0 w-full md:w-auto flex items-center justify-center gap-2"
             style={{ backgroundColor: 'var(--theme-primary)' }}
           >
@@ -315,34 +314,34 @@ export default function KeuanganKas() {
       <Card className="border border-slate-200/50 shadow-sm rounded-[2rem] overflow-hidden bg-white/70 backdrop-blur-md">
         <CardContent className="p-6">
           <DataTable
-            columns={columns} 
-            data={transactions} 
+            columns={columns}
+            data={transactions}
             loading={loading}
             searchPlaceholder="Cari berdasarkan keterangan transaksi..."
-            onAdd={() => { 
+            onAdd={() => {
               setForm({ Deskripsi: '', Nominal: '', Tipe: 'pemasukan', Tanggal: '', OrmawaID: ormawaId, Sumber: 'organisasi' })
-              setIsCrudOpen(true) 
+              setIsCrudOpen(true)
             }}
             addLabel="Catat Transaksi"
             filters={[
-              { 
-                key: 'Tipe', 
-                placeholder: 'Filter Mutasi', 
+              {
+                key: 'Tipe',
+                placeholder: 'Filter Mutasi',
                 options: [
-                  { label: 'Pemasukan', value: 'pemasukan' }, 
+                  { label: 'Pemasukan', value: 'pemasukan' },
                   { label: 'Pengeluaran', value: 'pengeluaran' }
-                ] 
+                ]
               }
             ]}
             actions={(row) => (
               <div className="flex items-center gap-2">
-                <Button 
-                  onClick={() => { 
+                <Button
+                  onClick={() => {
                     setSelected(row)
-                    setIsDelOpen(true) 
-                  }} 
-                  variant="ghost" 
-                  size="icon" 
+                    setIsDelOpen(true)
+                  }}
+                  variant="ghost"
+                  size="icon"
                   className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl active:scale-95 transition-all"
                   title="Hapus Transaksi"
                 >
@@ -377,12 +376,12 @@ export default function KeuanganKas() {
             {/* Keterangan */}
             <div className="space-y-2">
               <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Keterangan Transaksi</Label>
-              <Input 
-                required 
-                value={form.Deskripsi} 
+              <Input
+                required
+                value={form.Deskripsi}
                 onChange={e => setForm({ ...form, Deskripsi: e.target.value })}
                 placeholder="Misal: Pembelian ATK / Sponsor Kegiatan"
-                className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm" 
+                className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm"
               />
             </div>
 
@@ -390,8 +389,8 @@ export default function KeuanganKas() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Jenis Mutasi</Label>
-                <select 
-                  value={form.Tipe} 
+                <select
+                  value={form.Tipe}
                   onChange={e => setForm({ ...form, Tipe: e.target.value })}
                   className="w-full h-12 rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold text-slate-700 focus:outline-none focus:bg-white focus:border-primary transition-all shadow-sm"
                 >
@@ -399,11 +398,11 @@ export default function KeuanganKas() {
                   <option value="pengeluaran">▼ Pengeluaran (Keluar)</option>
                 </select>
               </div>
-              
+
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Sumber Dana</Label>
-                <select 
-                  value={form.Sumber} 
+                <select
+                  value={form.Sumber}
                   onChange={e => setForm({ ...form, Sumber: e.target.value })}
                   className="w-full h-12 rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold text-slate-700 focus:outline-none focus:bg-white focus:border-primary transition-all shadow-sm"
                 >
@@ -419,16 +418,16 @@ export default function KeuanganKas() {
                 <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Jumlah Nominal</Label>
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">Rp</span>
-                  <Input 
-                    required 
-                    type="number" 
-                    value={form.Nominal} 
-                    onChange={e => setForm({ ...form, Nominal: e.target.value })} 
+                  <Input
+                    required
+                    type="number"
+                    value={form.Nominal}
+                    onChange={e => setForm({ ...form, Nominal: e.target.value })}
                     placeholder="0"
-                    className="h-12 pl-10 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm" 
+                    className="h-12 pl-10 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm"
                   />
                 </div>
-                
+
                 {form.Nominal && (
                   <p className="text-[11px] font-bold text-emerald-600 mt-1.5 flex items-center gap-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
                     <span className="material-symbols-outlined text-emerald-500" style={{ fontSize: '14px' }}>payments</span>
@@ -439,29 +438,29 @@ export default function KeuanganKas() {
 
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Tanggal Transaksi</Label>
-                <Input 
-                  required 
-                  type="date" 
-                  value={form.Tanggal} 
+                <Input
+                  required
+                  type="date"
+                  value={form.Tanggal}
                   onChange={e => setForm({ ...form, Tanggal: e.target.value })}
-                  className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm" 
+                  className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm"
                 />
               </div>
             </div>
 
             {/* Dialog Footer Actions */}
             <DialogFooter className="mt-6 pt-6 flex flex-col md:flex-row items-center justify-end gap-3 border-t border-slate-100 -mx-8 px-8 bg-slate-50/30 pb-0">
-              <Button 
-                type="button" 
-                variant="ghost" 
-                onClick={() => setIsCrudOpen(false)} 
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setIsCrudOpen(false)}
                 className="w-full md:w-auto text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl active:scale-95 transition-all"
               >
                 BATAL
               </Button>
-              <Button 
-                type="submit" 
-                disabled={isSubmitting} 
+              <Button
+                type="submit"
+                disabled={isSubmitting}
                 className="w-full md:w-auto h-12 px-8 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 border-none"
               >
                 {isSubmitting ? (
@@ -477,13 +476,13 @@ export default function KeuanganKas() {
       </Dialog>
 
       {/* Delete Confirmation Modal */}
-      <DeleteConfirmModal 
-        isOpen={isDelOpen} 
-        onClose={() => setIsDelOpen(false)} 
+      <DeleteConfirmModal
+        isOpen={isDelOpen}
+        onClose={() => setIsDelOpen(false)}
         onConfirm={handleDelete}
-        title="Hapus Transaksi?" 
-        description="Apakah Anda yakin ingin menghapus data transaksi ini dari sistem? Tindakan ini bersifat permanen." 
-        loading={isSubmitting} 
+        title="Hapus Transaksi?"
+        description="Apakah Anda yakin ingin menghapus data transaksi ini dari sistem? Tindakan ini bersifat permanen."
+        loading={isSubmitting}
       />
     </div>
   )

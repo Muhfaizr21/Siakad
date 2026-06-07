@@ -304,8 +304,8 @@ export default function FacultyProposalApproval() {
                       <td className="px-5 py-3.5"><span className="text-[10px] font-bold text-slate-600 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg">{org?.Nama||org?.nama||org?.NamaOrg||'—'}</span></td>
                       <td className="px-5 py-3.5 font-black text-sm text-emerald-600 tabular-nums">{formatIDR(row.Anggaran)}</td>
                       <td className="px-5 py-3.5">
-                        <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider',st.cls)}>
-                          <span className={cn('w-1.5 h-1.5 rounded-full',st.dot)}/>{st.label}
+                        <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider whitespace-nowrap',st.cls)}>
+                          <span className={cn('w-1.5 h-1.5 rounded-full shrink-0',st.dot)}/>{st.label}
                         </span>
                       </td>
                       <td className="px-5 py-3.5">

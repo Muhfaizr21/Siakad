@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils'
 
 import { fetchWithAuth, API_BASE_URL } from '../../services/api'
 import useAuthStore from '../../store/useAuthStore'
+import { getOrmawaId } from '../../utils/getOrmawaId'
 
 const API = `${API_BASE_URL}/ormawa`
 
@@ -52,7 +53,7 @@ export default function StaffManagement() {
   const [isSearching, setIsSearching] = useState(false)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownRef = useRef(null)
-  const ormawaId = useAuthStore.getState()?.user?.ormawa_id || useAuthStore.getState()?.user?.OrmawaID || useAuthStore.getState()?.mahasiswa?.ormawaId || useAuthStore.getState()?.mahasiswa?.OrmawaID || 1
+  const ormawaId = getOrmawaId()
   const [form, setForm] = useState({ Nama: '', MahasiswaID: '', Jabatan: 'Pembina', Divisi: 'Umum', Email: '', NoHP: '', OrmawaID: ormawaId })
 
   const fetchData = async () => {
@@ -75,7 +76,7 @@ export default function StaffManagement() {
 
   useEffect(() => {
     fetchData()
-  }, [])
+  }, [ormawaId])
 
   useEffect(() => {
     const handleClickOutside = (event) => {

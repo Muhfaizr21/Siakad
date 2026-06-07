@@ -1,10 +1,9 @@
 import React from 'react'
-import { OrmawaSelector } from './OrmawaSelector'
 import { useSuperAdminOrmawa } from '../../../contexts/SuperAdminOrmawaContext'
 
 /**
  * Header component untuk halaman ormawa di Super Admin
- * Menampilkan dropdown selector ormawa
+ * Menampilkan status ormawa yang sedang dikelola
  */
 export function SuperAdminOrmawaHeader({ title = "Manajemen Ormawa" }) {
   let selectedOrmawa, selectedOrmawaId
@@ -49,9 +48,6 @@ export function SuperAdminOrmawaHeader({ title = "Manajemen Ormawa" }) {
             </p>
           </div>
         </div>
-
-        {/* Dropdown Ormawa Selector */}
-        <OrmawaSelector />
       </div>
     </section>
   )

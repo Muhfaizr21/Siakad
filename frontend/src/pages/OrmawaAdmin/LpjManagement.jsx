@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils'
 
 import { fetchWithAuth, API_BASE_URL } from '../../services/api'
 import useAuthStore from '../../store/useAuthStore'
+import { getOrmawaId } from '../../utils/getOrmawaId'
 
 const API = `${API_BASE_URL}/ormawa`
 
@@ -49,9 +50,7 @@ export default function LpjManagement() {
   const [proposals, setProposals] = useState([])
 
   const authState = useAuthStore((s) => s)
-  const userObj = authState?.user
-  const mhsObj = authState?.mahasiswa
-  const ormawaId = userObj?.ormawa_id || userObj?.OrmawaID || userObj?.ormawaId || mhsObj?.ormawaId || mhsObj?.OrmawaID || 1
+  const ormawaId = getOrmawaId()
 
   const [form, setForm] = useState({
     Judul: '',
@@ -72,7 +71,7 @@ export default function LpjManagement() {
         const mapped = (res.data || []).map(item => {
           const total = item.TotalAnggaran || 0
           const real = item.RealisasiAnggaran || 0
-          
+
           let katAnggaran = 'besar'
           if (total < 1000000) katAnggaran = 'mikro'
           else if (total <= 5000000) katAnggaran = 'kecil'
@@ -539,7 +538,7 @@ export default function LpjManagement() {
                       <span>{selected.TotalAnggaran ? Math.round((selected.RealisasiAnggaran / selected.TotalAnggaran) * 100) : 0}%</span>
                     </div>
                     <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
-                      <div 
+                      <div
                         className={cn(
                           "h-full rounded-full transition-all duration-500",
                           selected.RealisasiAnggaran > selected.TotalAnggaran ? "bg-rose-500" : "bg-emerald-500"

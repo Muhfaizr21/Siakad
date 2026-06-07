@@ -10,7 +10,7 @@ import useAuthStore from '../../store/useAuthStore'
 export function withSuperAdminOrmawaAccess(Component, title) {
   return function SuperAdminOrmawaWrapper(props) {
     let selectedOrmawaId, selectedOrmawa
-    
+
     // Safe context usage with error handling
     try {
       const context = useSuperAdminOrmawa()
@@ -54,7 +54,7 @@ export function withSuperAdminOrmawaAccess(Component, title) {
             </div>
           </div>
         )}
-        
+
         {/* Render original component dengan override ormawaId via global state */}
         <SuperAdminOrmawaOverrideProvider ormawaId={selectedOrmawaId}>
           <Component {...props} />
@@ -71,11 +71,11 @@ function SuperAdminOrmawaOverrideProvider({ ormawaId, children }) {
       // Set override di global window object untuk diakses oleh halaman
       window.__SUPER_ADMIN_ORMAWA_ID_OVERRIDE__ = ormawaId
     }
-    
+
     return () => {
       window.__SUPER_ADMIN_ORMAWA_ID_OVERRIDE__ = null
     }
   }, [ormawaId])
-  
+
   return <>{children}</>
 }

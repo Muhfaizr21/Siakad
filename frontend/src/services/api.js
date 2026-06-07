@@ -42,12 +42,16 @@ export const fetchWithAuth = (url, options = {}) => {
   }
 
   const selectedFacultyId = localStorage.getItem('superadmin_fakultas_id');
+  const selectedProdiId = localStorage.getItem('superadmin_prodi_id');
+  const selectedPeriodId = localStorage.getItem('superadmin_period_id');
   const impersonatedStudentId = localStorage.getItem('superadmin_impersonate_student_id');
   const selectedOrmawaId = localStorage.getItem('superadmin_ormawa_id');
   const headers = {
     ...options.headers,
     ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-    ...(selectedFacultyId ? { 'X-Faculty-ID': selectedFacultyId } : {}),
+    ...(selectedFacultyId && selectedFacultyId !== 'all' ? { 'X-Faculty-ID': selectedFacultyId } : {}),
+    ...(selectedProdiId && selectedProdiId !== 'all' ? { 'X-Prodi-ID': selectedProdiId } : {}),
+    ...(selectedPeriodId && selectedPeriodId !== 'all' ? { 'X-Academic-Period-ID': selectedPeriodId } : {}),
     ...(impersonatedStudentId ? { 'X-Student-ID': impersonatedStudentId } : {}),
     ...(selectedOrmawaId ? { 'X-Ormawa-ID': selectedOrmawaId } : {})
   };
@@ -485,6 +489,7 @@ export const adminService = {
     fetchWithAuth(`${API_BASE_URL}/pddikti/proxy?keyword=${encodeURIComponent(keyword)}&type=${type}&sync=true`),
   getAuditLogs: () => fetchWithAuth(`${API_BASE_URL}/admin/audit-logs`),
   getAllFaculties: () => fetchWithAuth(`${API_BASE_URL}/admin/fakultas`),
+  getAllAcademicPeriods: () => fetchWithAuth(`${API_BASE_URL}/admin/academic-periods`),
   getAllStudents: () => fetchWithAuth(`${API_BASE_URL}/admin/students`),
   createStudent: (data) => fetchWithAuth(`${API_BASE_URL}/admin/students`, {
     method: 'POST',

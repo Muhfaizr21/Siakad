@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from "react"
 import api from "../../lib/axios"
 import { pddiktiService, API_BASE_URL } from "../../services/api"
+import useAuthStore from "../../store/useAuthStore"
 
 import { toast, Toaster } from "react-hot-toast"
 import { cn } from "@/lib/utils"
@@ -100,7 +101,7 @@ const mapStudent = (m, i) => {
 function StudentAvatar({ src, name, className = "w-9 h-9 rounded-xl" }) {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
-  
+
   const hasNoImage = !src || src.trim() === "" || src.endsWith("/profiles/") || src.endsWith("/students/") || src.endsWith("localhost:8000") || src.endsWith("localhost:8000/");
 
   return (
@@ -137,10 +138,29 @@ export default function MahasiswaPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [sortConfig, setSortConfig] = useState({ key: 'Nama', direction: 'asc' })
+  const [facultyInfo, setFacultyInfo] = useState(null)
+
+  const getKopImage = (facName) => {
+    const name = (facName || "").toLowerCase();
+    if (name.includes("farmasi")) return "kop_farmasi.jpg";
+    if (name.includes("kesehatan") || name.includes("fikes")) return "kop_ilmu_kesehatan.jpg";
+    if (name.includes("keperawatan") || name.includes("fkep")) return "kop_keperawatan.jpg";
+    if (name.includes("sosial") || name.includes("social") || name.includes("sosiologi") || name.includes("fis")) return "kop_ilmu_sosial.jpg";
+    return "kop_farmasi.jpg";
+  };
 
   const fetchStudents = React.useCallback(async () => {
     Promise.resolve().then(() => setLoading(true))
     try {
+      try {
+        const profileRes = await api.get('/faculty/profile')
+        if (profileRes.data?.success && profileRes.data?.data?.fakultas) {
+          setFacultyInfo(profileRes.data.data.fakultas)
+        }
+      } catch (err) {
+        console.error("Failed to fetch faculty profile", err)
+      }
+
       const res = await api.get('/faculty/students')
       setStudentData((res?.data?.data || []).map(mapStudent))
     } catch { toast.error("Gagal memuat data mahasiswa") }
@@ -162,16 +182,38 @@ export default function MahasiswaPage() {
   const downloadPDF = (title, subtitle, contentHtml) => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) { toast.error('Gagal membuka jendela cetak. Pastikan pop-up tidak diblokir.'); return; }
+
+    const user = useAuthStore.getState().user;
+    const isSuperAdmin = user?.role === 'super_admin';
+
+    const facName = facultyInfo?.Nama || facultyInfo?.nama || "Fakultas Farmasi";
+    const facDekan = facultyInfo?.Dekan || facultyInfo?.dekan || "Dekan Bidang Akademik";
+
+    const printSize = isSuperAdmin ? 'A4 landscape' : 'A4 portrait';
+    const bgSize = isSuperAdmin ? '297mm 210mm' : '210mm 297mm';
+    const kopImage = isSuperAdmin ? 'format_kop_rektorat_landscape.jpg' : getKopImage(facName);
+    const kopImageUrl = `${window.location.origin}/images/${kopImage}`;
+    const facNameResolved = isSuperAdmin ? 'Universitas Bhakti Kencana' : facName;
+    const titleResolved = isSuperAdmin ? 'Rektor Universitas Bhakti Kencana' : `Dekan ${facNameResolved}`;
+    const nameResolved = isSuperAdmin ? 'Dr. apt. Entris Sutrisno, MH. Kes.' : facDekan;
+    const footerText = isSuperAdmin ? 'Portal SIAKAD Rektorat BKU' : `Portal Akademik ${facNameResolved}`;
+
     const htmlContent = `<html><head><meta charset="utf-8"><title>${title}</title><style>
-      @page { size: A4 landscape; margin: 15mm; }
-      body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.5; color: #334155; background:#fff; margin:0; padding:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-      .letterhead-table { width:100%; border-collapse:collapse; border:none; margin-bottom:20px; }
-      .letterhead-table td { border:none; padding:0; }
-      .univ-title { font-size:12px; font-weight:700; color:#00236F; font-family:'Times New Roman',serif; }
-      .univ-main  { font-size:17px; font-weight:800; color:#00236F; font-family:'Times New Roman',serif; margin-top:2px; }
-      .univ-address { font-size:8px; color:#475569; margin-top:4px; }
-      .univ-contact { font-size:8px; color:#00236F; font-weight:600; margin-top:2px; }
-      .double-line { border:0; border-top:3px double #00236F; margin:10px 0 18px; }
+      @page { size: ${printSize}; margin: 0; }
+      body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        line-height: 1.5;
+        color: #334155;
+        background-image: url('${kopImageUrl}');
+        background-size: ${bgSize};
+        background-repeat: no-repeat;
+        background-position: top center;
+        margin: 0;
+        padding: 38mm 18mm 20mm 18mm;
+        box-sizing: border-box;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
       h1 { color:#1e293b; text-align:center; font-size:14px; font-weight:800; margin:0 0 3px; text-transform:uppercase; }
       h2 { color:#64748b; text-align:center; font-size:8px; font-weight:700; margin:0 0 20px; text-transform:uppercase; letter-spacing:1px; }
       table.data-table { width:100%; border-collapse:collapse; margin-top:8px; }
@@ -184,32 +226,19 @@ export default function MahasiswaPage() {
       .badge-cuti    { background:#fef9c3; color:#a16207; border:1px solid #fef08a; }
       .badge-nonaktif{ background:#fee2e2; color:#b91c1c; border:1px solid #fecaca; }
       .footer { margin-top:30px; text-align:right; font-size:8px; color:#64748b; }
-      .sig-line { width:150px; border-top:1px solid #94a3b8; margin-top:40px; display:inline-block; }
       @media print { .no-print { display:none; } }
     </style></head><body>
-      <table class="letterhead-table"><tr>
-        <td style="width:12%;text-align:left;">
-          <img src="https://bku.ac.id/wp-content/uploads/2021/01/logo-bku-nav.png" alt="Logo" style="height:50px;width:auto;object-fit:contain;" onerror="this.src='https://bku.ac.id/wp-content/uploads/2021/01/logo-bku.png';this.onerror=null;"/>
-        </td>
-        <td style="width:88%;text-align:center;">
-          <div class="univ-title">YAYASAN ADHI GUNA KENCANA</div>
-          <div class="univ-main">UNIVERSITAS BHAKTI KENCANA</div>
-          <div class="univ-address">Jl. Soekarno Hatta No. 754, Cipadung Kidul, Panyileukan, Kota Bandung, Jawa Barat 40614</div>
-          <div class="univ-contact">Telp: (022) 7800570 | Email: info@bku.ac.id | Website: www.bku.ac.id</div>
-        </td>
-      </tr></table>
-      <hr class="double-line" />
       <h1>${title}</h1>
       <h2>${subtitle}</h2>
       ${contentHtml}
       <div class="footer">
-        <p>Dicetak secara otomatis oleh Portal Akademik Fakultas</p>
-        <p>Tanggal Cetak: ${new Date().toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' })} WIB</p>
+        <p>Dicetak secara otomatis oleh ${footerText}</p>
+        <p>Tanggal Cetak: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })} WIB</p>
         <br/><p>Mengetahui,</p>
-        <p style="font-weight:700;margin-top:4px;">Dekan Bidang Akademik</p>
-        <div class="sig-line"></div>
+        <p style="font-weight:700;margin-top:4px;">${titleResolved}</p>
+        <div style="margin-top:45px; font-weight:700; text-decoration:underline;">${nameResolved}</div>
       </div>
-      <script>window.onload=function(){setTimeout(function(){window.print();setTimeout(function(){window.close();},100);},300);};</script>
+      <script>window.onload=function(){setTimeout(function(){window.print();setTimeout(function(){window.close();},100);},300);};<\/script>
     </body></html>`;
     printWindow.document.open();
     printWindow.document.write(htmlContent);
@@ -220,7 +249,7 @@ export default function MahasiswaPage() {
     if (studentData.length === 0) { toast.error('Tidak ada data mahasiswa untuk diekspor'); return; }
     const dataToExport = filtered.length > 0 && filtered.length < studentData.length ? filtered : studentData;
     const statusBadge = (s) => {
-      const key = (s||'').toLowerCase();
+      const key = (s || '').toLowerCase();
       if (key === 'aktif' || key === 'active') return '<span class="badge badge-aktif">Aktif</span>';
       if (key === 'lulus') return '<span class="badge badge-lulus">Lulus</span>';
       if (key === 'cuti' || key === 'leave') return '<span class="badge badge-cuti">Cuti</span>';
@@ -230,18 +259,18 @@ export default function MahasiswaPage() {
     dataToExport.forEach((item, idx) => {
       tableRows += `<tr>
         <td>${idx + 1}</td>
-        <td style="font-family:monospace;font-weight:700;color:#00236F;font-size:7.5px;">${item.NIM||'—'}</td>
-        <td style="font-weight:700;">${item.Nama||'—'}</td>
-        <td>${item.ProgramStudi||'—'}</td>
-        <td style="text-align:center;font-weight:700;">${item.SemesterSekarang||'—'}</td>
-        <td>${item.TahunMasuk||'—'}</td>
-        <td>${item.JalurMasuk||'—'}</td>
+        <td style="font-family:monospace;font-weight:700;color:#00236F;font-size:7.5px;">${item.NIM || '—'}</td>
+        <td style="font-weight:700;">${item.Nama || '—'}</td>
+        <td>${item.ProgramStudi || '—'}</td>
+        <td style="text-align:center;font-weight:700;">${item.SemesterSekarang || '—'}</td>
+        <td>${item.TahunMasuk || '—'}</td>
+        <td>${item.JalurMasuk || '—'}</td>
         <td>${statusBadge(item.StatusAkun)}</td>
       </tr>`;
     });
-    const aktif  = dataToExport.filter(d => d.StatusAkun === 'Aktif' || d.StatusAkun === 'active').length;
-    const lulus  = dataToExport.filter(d => d.StatusAkun === 'Lulus').length;
-    const cuti   = dataToExport.filter(d => d.StatusAkun === 'Cuti'  || d.StatusAkun === 'leave').length;
+    const aktif = dataToExport.filter(d => d.StatusAkun === 'Aktif' || d.StatusAkun === 'active').length;
+    const lulus = dataToExport.filter(d => d.StatusAkun === 'Lulus').length;
+    const cuti = dataToExport.filter(d => d.StatusAkun === 'Cuti' || d.StatusAkun === 'leave').length;
     const contentHtml = `
       <table style="width:100%;border-collapse:collapse;border:none;margin-bottom:16px;">
         <tr>
@@ -286,7 +315,7 @@ export default function MahasiswaPage() {
       </table>`;
     downloadPDF(
       'Daftar Database Mahasiswa Fakultas',
-      `Rekap Data Akademik Mahasiswa — ${new Date().toLocaleDateString('id-ID', { month:'long', year:'numeric' })}`,
+      `Rekap Data Akademik Mahasiswa — ${new Date().toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}`,
       contentHtml
     );
     toast.success(`Berhasil mencetak ${dataToExport.length} data mahasiswa!`);
@@ -561,7 +590,7 @@ export default function MahasiswaPage() {
               <thead>
                 <tr className="border-b border-slate-200/60">
                   {[
-                    {label: 'No', key: null, sortable: false},
+                    { label: 'No', key: null, sortable: false },
                     { label: 'NIM', key: 'NIM', sortable: true },
                     { label: 'Identitas Mahasiswa', key: 'Nama', sortable: true },
                     { label: 'Program Studi', key: 'ProgramStudi', sortable: true },
@@ -645,8 +674,8 @@ export default function MahasiswaPage() {
                         </span>
                       </td>
                       <td className="px-5 py-3.5">
-                        <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider', st.cls)}>
-                          <span className={cn('w-1.5 h-1.5 rounded-full', st.dot)} />
+                        <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider whitespace-nowrap', st.cls)}>
+                          <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', st.dot)} />
                           {row.StatusAkun}
                         </span>
                       </td>

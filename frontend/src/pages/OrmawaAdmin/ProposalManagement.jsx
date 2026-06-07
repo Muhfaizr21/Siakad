@@ -16,6 +16,7 @@ import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import useAuthStore from '../../store/useAuthStore'
 import { fetchWithAuth, API_BASE_URL } from '../../services/api'
+import { getOrmawaId } from '../../utils/getOrmawaId'
 
 const API = `${API_BASE_URL}/ormawa`
 
@@ -79,7 +80,7 @@ export default function ProposalManagement() {
   const [existingFileList, setExistingFileList] = useState([])
   const userObj = useAuthStore.getState()?.user
   const mhsObj = useAuthStore.getState()?.mahasiswa
-  const ormawaId = userObj?.ormawa_id || userObj?.OrmawaID || userObj?.ormawaId || mhsObj?.ormawaId || mhsObj?.OrmawaID || 1
+  const ormawaId = getOrmawaId()
   const mahasiswaId = mhsObj?.id || mhsObj?.ID || 0
   const [formData, setFormData] = useState({
     Judul: '',
@@ -128,7 +129,7 @@ export default function ProposalManagement() {
 
   useEffect(() => {
     fetchProposals()
-  }, [])
+  }, [ormawaId])
 
   const handleOpenAdd = () => {
     setIsEditMode(false)

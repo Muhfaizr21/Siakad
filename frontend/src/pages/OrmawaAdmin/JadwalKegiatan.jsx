@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils'
 
 import { fetchWithAuth, API_BASE_URL } from '../../services/api'
 import useAuthStore from '../../store/useAuthStore'
+import { getOrmawaId } from '../../utils/getOrmawaId'
 
 const API = `${API_BASE_URL}/ormawa`
 
@@ -66,9 +67,7 @@ export default function JadwalKegiatan() {
   const [isDelOpen, setIsDelOpen] = useState(false)
   const [isEditMode, setIsEditMode] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const userObj = useAuthStore.getState()?.user
-  const mhsObj = useAuthStore.getState()?.mahasiswa
-  const ormawaId = userObj?.ormawa_id || userObj?.OrmawaID || userObj?.ormawaId || mhsObj?.ormawaId || mhsObj?.OrmawaID || 1
+  const ormawaId = getOrmawaId()
   const [form, setForm] = useState({
     Judul: '',
     Deskripsi: '',
@@ -105,7 +104,7 @@ export default function JadwalKegiatan() {
 
   useEffect(() => {
     fetchEvents()
-  }, [])
+  }, [ormawaId])
 
   const handleOpenAdd = () => {
     setIsEditMode(false)
@@ -307,8 +306,8 @@ export default function JadwalKegiatan() {
             </p>
           </div>
 
-          <Button 
-            onClick={handleOpenAdd} 
+          <Button
+            onClick={handleOpenAdd}
             className="h-12 px-6 rounded-2xl text-white hover:bg-opacity-90 font-black text-[10px] tracking-widest shadow-lg shadow-black/10 gap-2 w-full md:w-auto shrink-0 border border-transparent uppercase transition-all duration-150 active:scale-95"
             style={{ backgroundColor: 'var(--theme-primary)' }}
           >
@@ -388,7 +387,7 @@ export default function JadwalKegiatan() {
           {selected && (
             <div className="flex flex-col">
               {/* Header */}
-              <div 
+              <div
                 className="p-8 text-white relative overflow-hidden"
                 style={{ background: 'linear-gradient(160deg, var(--theme-primary) 0%, color-mix(in srgb, var(--theme-primary) 70%, var(--theme-secondary) 30%) 100%)' }}
               >

@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { toast, Toaster } from 'react-hot-toast'
 
 import { cn } from '@/lib/utils'
-import { API_BASE_URL } from '../../services/api'
+import { API_BASE_URL, fetchWithAuth } from '../../services/api'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/Select"
 import { Button } from "@/components/ui/Button"
 
@@ -126,8 +126,7 @@ export default function FacultyPkkmb() {
 
   const fetchSummary = async () => {
     try {
-      const res = await fetch(`${API}/ringkasan`)
-      const json = await res.json()
+      const json = await fetchWithAuth(`${API}/ringkasan`)
       if (json.status === 'success') { setData(json.prodiBreakdown||[]); setSummary(json.stats||{totalMaba:0,totalLulus:0,totalProses:0,totalSertifikat:0}) }
     } catch {}
   }
@@ -135,8 +134,7 @@ export default function FacultyPkkmb() {
   const fetchStudents = async () => {
     setLoading(true)
     try {
-      const res = await fetch(`${API}/peserta`)
-      const json = await res.json()
+      const json = await fetchWithAuth(`${API}/peserta`)
       if (json.status === 'success') setStudents((json.data||[]).map((s,i)=>({...s, colorIdx: i % AVATAR_COLORS.length})))
     } catch { toast.error('Gagal memuat data peserta') }
     finally { setLoading(false) }
@@ -420,9 +418,9 @@ export default function FacultyPkkmb() {
                       </td>
                       <td className="px-5 py-3.5 font-black text-sm text-slate-900 tabular-nums">{row.nilai?.toFixed(1)||'0.0'}</td>
                       <td className="px-5 py-3.5">
-                        <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider',
+                        <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider whitespace-nowrap',
                           row.status==='Optimal'?'bg-emerald-50 text-emerald-700 border-emerald-200':'bg-amber-50 text-amber-700 border-amber-200')}>
-                          <span className={cn('w-1.5 h-1.5 rounded-full',row.status==='Optimal'?'bg-emerald-500':'bg-amber-500')}/>{row.status}
+                          <span className={cn('w-1.5 h-1.5 rounded-full shrink-0',row.status==='Optimal'?'bg-emerald-500':'bg-amber-500')}/>{row.status}
                         </span>
                       </td>
                     </tr>
@@ -493,8 +491,8 @@ export default function FacultyPkkmb() {
                         <td className="px-5 py-3.5 font-black text-sm text-slate-900 tabular-nums">{row.attendanceRate||0}%</td>
                         <td className="px-5 py-3.5 font-black text-sm text-primary tabular-nums">{row.Nilai||0}</td>
                         <td className="px-5 py-3.5">
-                          <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider',st.cls)}>
-                            <span className={cn('w-1.5 h-1.5 rounded-full',st.dot)}/>{row.StatusKelulusan||'Proses'}
+                          <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider whitespace-nowrap',st.cls)}>
+                            <span className={cn('w-1.5 h-1.5 rounded-full shrink-0',st.dot)}/>{row.StatusKelulusan||'Proses'}
                           </span>
                         </td>
                         <td className="px-5 py-3.5">

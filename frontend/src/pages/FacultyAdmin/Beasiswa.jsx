@@ -3,10 +3,12 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import api from '../../lib/axios'
 import { toast, Toaster } from 'react-hot-toast'
+import useAuthStore from '../../store/useAuthStore'
 import { cn } from '@/lib/utils'
 import { API_BASE_URL } from '../../services/api'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/Select"
 import { Button } from "@/components/ui/Button"
+import { StatCard } from '@/components/ui/StatCard'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Download = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>download</span>;
@@ -30,6 +32,30 @@ const AVATAR_COLORS = [
   'from-violet-400 to-purple-500', 'from-cyan-400 to-sky-500',
 ]
 const getInitials = (n = '') => n.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase() || '?'
+
+const getShortFacultyName = (name) => {
+  if (!name) return '—'
+  return name
+    .replace(/Fakultas\s+/i, '')
+    .replace(/Program\s+Studi\s+/i, '')
+    .replace(/Teknologi\s+Informasi/i, 'TI')
+    .replace(/Sains\s+dan\s+Teknologi/i, 'Sains & Tek')
+    .replace(/Keguruan\s+dan\s+Ilmu\s+Pendidikan/i, 'FKIP')
+    .replace(/Ekonomi\s+dan\s+Bisnis/i, 'FEB')
+    .replace(/Ilmu\s+Sosial\s+dan\s+Ilmu\s+Politik/i, 'FISIP')
+    .trim()
+}
+
+const formatCurrency = (val) => {
+  if (val === undefined || val === null) return 'Rp 0'
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(val)
+}
+
 
 const APP_STATUS = {
   diterima: { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500', label: 'Diterima (Final)' },
@@ -83,14 +109,14 @@ const renderAttachment = (url, label) => {
   if (!url) return null;
   const fullUrl = getFullUrl(url);
   if (!fullUrl) return null;
-  
+
   const isImage = fullUrl.match(/\.(jpeg|jpg|gif|png)$/i) != null;
   return (
     <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex flex-col gap-2 shadow-sm mb-2">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <span className="material-symbols-outlined text-rose-500" style={{ fontSize: 20 }}>
-             {isImage ? 'image' : 'description'}
+            {isImage ? 'image' : 'description'}
           </span>
           <div className="text-left">
             <p className="text-xs font-bold text-slate-700 truncate max-w-[200px]">
@@ -121,6 +147,7 @@ export default function FacultyScholarship() {
   const [previewApp, setPreviewApp] = useState(null)
   const [search, setSearch] = useState('')
   const [selectedScholarshipFilter, setSelectedScholarshipFilter] = useState('Semua')
+  const [facultyInfo, setFacultyInfo] = useState(null)
 
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
@@ -141,19 +168,50 @@ export default function FacultyScholarship() {
     setSortConfig(activeTab === 'programs' ? { key: 'Nama', direction: 'asc' } : { key: 'Mahasiswa.Nama', direction: 'asc' })
   }, [activeTab])
 
+  const getKopImage = (facName) => {
+    const name = (facName || "").toLowerCase();
+    if (name.includes("farmasi")) return "kop_farmasi.jpg";
+    if (name.includes("kesehatan") || name.includes("fikes")) return "kop_ilmu_kesehatan.jpg";
+    if (name.includes("keperawatan") || name.includes("fkep")) return "kop_keperawatan.jpg";
+    if (name.includes("sosial") || name.includes("social") || name.includes("sosiologi") || name.includes("fis")) return "kop_ilmu_sosial.jpg";
+    return "kop_farmasi.jpg";
+  };
+
   const downloadPDF = (title, subtitle, contentHtml) => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) { toast.error('Gagal membuka jendela cetak. Pastikan pop-up tidak diblokir.'); return; }
+
+    const user = useAuthStore.getState().user;
+    const isSuperAdmin = user?.role === 'super_admin';
+
+    const facName = facultyInfo?.Nama || facultyInfo?.nama || "Fakultas Farmasi";
+    const facDekan = facultyInfo?.Dekan || facultyInfo?.dekan || "Dekan Bidang Akademik";
+
+    const printSize = isSuperAdmin ? 'A4 landscape' : 'A4 portrait';
+    const bgSize = isSuperAdmin ? '297mm 210mm' : '210mm 297mm';
+    const kopImage = isSuperAdmin ? 'format_kop_rektorat_landscape.jpg' : getKopImage(facName);
+    const kopImageUrl = `${window.location.origin}/images/${kopImage}`;
+    const facNameResolved = isSuperAdmin ? 'Universitas Bhakti Kencana' : facName;
+    const titleResolved = isSuperAdmin ? 'Rektor Universitas Bhakti Kencana' : `Dekan ${facNameResolved}`;
+    const nameResolved = isSuperAdmin ? 'Dr. apt. Entris Sutrisno, MH. Kes.' : facDekan;
+    const footerText = isSuperAdmin ? 'Portal SIAKAD Rektorat BKU' : `Portal Akademik ${facNameResolved}`;
+
     const htmlContent = `<html><head><meta charset="utf-8"><title>${title}</title><style>
-      @page { size: A4 landscape; margin: 15mm; }
-      body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.5; color: #334155; background:#fff; margin:0; padding:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-      .letterhead-table { width:100%; border-collapse:collapse; border:none; margin-bottom:20px; }
-      .letterhead-table td { border:none; padding:0; }
-      .univ-title { font-size:12px; font-weight:700; color:#00236F; font-family:'Times New Roman',serif; }
-      .univ-main  { font-size:17px; font-weight:800; color:#00236F; font-family:'Times New Roman',serif; margin-top:2px; }
-      .univ-address { font-size:8px; color:#475569; margin-top:4px; }
-      .univ-contact { font-size:8px; color:#00236F; font-weight:600; margin-top:2px; }
-      .double-line { border:0; border-top:3px double #00236F; margin:10px 0 18px; }
+      @page { size: ${printSize}; margin: 0; }
+      body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        line-height: 1.5;
+        color: #334155;
+        background-image: url('${kopImageUrl}');
+        background-size: ${bgSize};
+        background-repeat: no-repeat;
+        background-position: top center;
+        margin: 0;
+        padding: 38mm 18mm 20mm 18mm;
+        box-sizing: border-box;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
       h1 { color:#1e293b; text-align:center; font-size:14px; font-weight:800; margin:0 0 3px; text-transform:uppercase; }
       h2 { color:#64748b; text-align:center; font-size:8px; font-weight:700; margin:0 0 20px; text-transform:uppercase; letter-spacing:1px; }
       table.data-table { width:100%; border-collapse:collapse; margin-top:8px; }
@@ -166,30 +224,17 @@ export default function FacultyScholarship() {
       .badge-red    { background:#fee2e2; color:#b91c1c; border:1px solid #fecaca; }
       .badge-slate  { background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; }
       .footer { margin-top:30px; text-align:right; font-size:8px; color:#64748b; }
-      .sig-line { width:150px; border-top:1px solid #94a3b8; margin-top:40px; display:inline-block; }
       @media print { .no-print { display:none; } }
     </style></head><body>
-      <table class="letterhead-table"><tr>
-        <td style="width:12%;text-align:left;">
-          <img src="https://bku.ac.id/wp-content/uploads/2021/01/logo-bku-nav.png" alt="Logo" style="height:50px;width:auto;object-fit:contain;" onerror="this.src='https://bku.ac.id/wp-content/uploads/2021/01/logo-bku.png';this.onerror=null;"/>
-        </td>
-        <td style="width:88%;text-align:center;">
-          <div class="univ-title">YAYASAN ADHI GUNA KENCANA</div>
-          <div class="univ-main">UNIVERSITAS BHAKTI KENCANA</div>
-          <div class="univ-address">Jl. Soekarno Hatta No. 754, Cipadung Kidul, Panyileukan, Kota Bandung, Jawa Barat 40614</div>
-          <div class="univ-contact">Telp: (022) 7800570 | Email: info@bku.ac.id | Website: www.bku.ac.id</div>
-        </td>
-      </tr></table>
-      <hr class="double-line" />
       <h1>${title}</h1>
       <h2>${subtitle}</h2>
       ${contentHtml}
       <div class="footer">
-        <p>Dicetak secara otomatis oleh Portal Akademik Fakultas</p>
+        <p>Dicetak secara otomatis oleh ${footerText}</p>
         <p>Tanggal Cetak: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })} WIB</p>
         <br/><p>Mengetahui,</p>
-        <p style="font-weight:700;margin-top:4px;">Koordinator Kemahasiswaan Fakultas</p>
-        <div class="sig-line"></div>
+        <p style="font-weight:700;margin-top:4px;">${titleResolved}</p>
+        <div style="margin-top:45px; font-weight:700; text-decoration:underline;">${nameResolved}</div>
       </div>
       <script>window.onload=function(){setTimeout(function(){window.print();setTimeout(function(){window.close();},100);},300);};<\/script>
     </body></html>`;
@@ -298,6 +343,7 @@ export default function FacultyScholarship() {
         Nama: m.nama || m.Nama || '—',
         NIM: m.nim || m.NIM || '—',
         Foto: getFullUrl(m.foto_url || m.FotoURL || m.foto || m.Foto || null),
+        FakultasNama: m.Fakultas?.Nama || m.Fakultas?.nama || m.fakultas?.nama || m.fakultas?.Nama || m.ProgramStudi?.Fakultas?.Nama || m.ProgramStudi?.Fakultas?.nama || '—',
       },
       Beasiswa: {
         Nama: b.nama || b.Nama || '—',
@@ -310,6 +356,15 @@ export default function FacultyScholarship() {
   const fetchData = async () => {
     setLoading(true)
     try {
+      try {
+        const profileRes = await api.get('/faculty/profile')
+        if (profileRes.data?.success && profileRes.data?.data?.fakultas) {
+          setFacultyInfo(profileRes.data.data.fakultas)
+        }
+      } catch (err) {
+        console.error("Failed to fetch faculty profile", err)
+      }
+
       const [schRes, appRes] = await Promise.all([
         api.get('/faculty/scholarships'),
         api.get('/faculty/scholarships/applications')
@@ -393,12 +448,47 @@ export default function FacultyScholarship() {
     setCurrentPage(1)
   }
 
-  const stats = {
-    totalPrograms: scholarships.length,
-    aktif: scholarships.filter(s => new Date(s.Deadline) > new Date()).length,
-    pendaftar: applications.filter(a => (a.Status || 'proses').toLowerCase() === 'proses').length,
-    lolos: applications.filter(a => (a.Status || '').toLowerCase() === 'diterima').length,
-  }
+  const stats = useMemo(() => {
+    const totalPrograms = scholarships.length
+    const aktif = scholarships.filter(s => new Date(s.Deadline) > new Date()).length
+    const pendingApps = applications.filter(a => (a.Status || 'proses').toLowerCase() === 'proses').length
+    const activeAwardees = applications.filter(a => (a.Status || '').toLowerCase() === 'diterima').length
+    const totalBudget = scholarships.reduce((acc, curr) => acc + (curr.Anggaran || curr.anggaran || 0), 0)
+    return { totalPrograms, aktif, pendingApps, activeAwardees, totalBudget }
+  }, [scholarships, applications])
+
+  const absorbedBudget = useMemo(() => {
+    return applications
+      .filter(a => (a.Status || '').toLowerCase() === 'diterima')
+      .reduce((acc, curr) => {
+        const program = scholarships.find(p => (p.ID || p.id) === curr.BeasiswaID)
+        const val = program ? (program.NilaiBantuan || program.nilai_bantuan || 0) : 0
+        return acc + val
+      }, 0)
+  }, [scholarships, applications])
+
+  const remainingBudget = stats.totalBudget - absorbedBudget
+  const absorptionRate = stats.totalBudget > 0 ? Math.round((absorbedBudget / stats.totalBudget) * 100) : 0
+
+  const facultyApplicants = useMemo(() => {
+    const counts = {}
+    applications.forEach(a => {
+      const facName = a.Mahasiswa?.FakultasNama || 'Tidak ada data'
+      counts[facName] = (counts[facName] || 0) + 1
+    })
+    return Object.entries(counts).map(([name, count]) => ({ name, count }))
+  }, [applications])
+
+  const highestApplicantFaculty = useMemo(() => {
+    if (facultyApplicants.length === 0) return { name: '—', count: 0 }
+    return facultyApplicants.reduce((max, curr) => curr.count > max.count ? curr : max, { name: '—', count: 0 })
+  }, [facultyApplicants])
+
+  const lowestApplicantFaculty = useMemo(() => {
+    const validFacs = facultyApplicants.filter(f => f.name !== 'Tidak ada data' && f.name !== '—')
+    if (validFacs.length === 0) return { name: '—', count: 0 }
+    return validFacs.reduce((min, curr) => curr.count < min.count ? curr : min, { name: '—', count: Infinity })
+  }, [facultyApplicants])
 
   const TABS = [
     { key: 'programs', label: 'Program Beasiswa', icon: GraduationCap },
@@ -476,33 +566,93 @@ export default function FacultyScholarship() {
         </section>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            { label: 'Total Beasiswa', value: stats.totalPrograms, icon: GraduationCap, bg: 'bg-[#eef4ff]', color: 'text-primary', desc: 'Program terdaftar' },
-            { label: 'Program Aktif', value: stats.aktif, icon: Clock, bg: 'bg-emerald-50', color: 'text-emerald-600', desc: 'Deadline belum lewat' },
-            { label: 'Pendaftar Baru', value: stats.pendaftar, icon: Users, bg: 'bg-amber-50', color: 'text-amber-600', desc: 'Sedang diproses' },
-            { label: 'Lolos Seleksi', value: stats.lolos, icon: UserCheck, bg: 'bg-indigo-50', color: 'text-indigo-600', desc: 'Diterima beasiswa' },
-          ].map(s => (
-            <div key={s.label} className="glass-card border border-slate-200/60 rounded-2xl p-5 shadow-none">
-              <div className="flex items-center gap-3 mb-3">
-                <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', s.bg, s.color)}>
-                  <s.icon size={18} />
-                </div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</span>
-              </div>
-              <p className="text-2xl font-extrabold text-slate-900 leading-none tabular-nums">
-                {loading ? <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span> : s.value}
-              </p>
-              <p className="text-xs text-slate-400 font-medium mt-1">{s.desc}</p>
-            </div>
-          ))}
+        <div className="space-y-4 md:space-y-5">
+          {/* Row 1: Utama (4 Cards) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+            <StatCard
+              label="Total Beasiswa"
+              value={stats.totalPrograms}
+              description="Program terdaftar"
+              icon="school"
+              color="text-primary"
+              bg="bg-primary/10"
+              loading={loading}
+            />
+            <StatCard
+              label="Program Aktif"
+              value={stats.aktif}
+              description="Deadline belum lewat"
+              icon="schedule"
+              color="text-emerald-600"
+              bg="bg-emerald-50"
+              loading={loading}
+            />
+            <StatCard
+              label="Pendaftar Baru"
+              value={stats.pendingApps}
+              description="Sedang diproses"
+              icon="group"
+              color="text-amber-600"
+              bg="bg-amber-50"
+              loading={loading}
+            />
+            <StatCard
+              label="Lolos Seleksi"
+              value={stats.activeAwardees}
+              description="Diterima beasiswa"
+              icon="check_circle"
+              color="text-indigo-600"
+              bg="bg-indigo-50"
+              loading={loading}
+            />
+          </div>
+
+          {/* Row 2: Analytics & Budget (4 Cards) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+            <StatCard
+              label="Pendaftar Terbanyak"
+              value={getShortFacultyName(highestApplicantFaculty.name)}
+              description={`${highestApplicantFaculty.count} Pendaftar`}
+              icon="trending_up"
+              color="text-primary"
+              bg="bg-primary/10"
+              loading={loading}
+            />
+            <StatCard
+              label="Pendaftar Terendah"
+              value={getShortFacultyName(lowestApplicantFaculty.name)}
+              description={`${lowestApplicantFaculty.count} Pendaftar`}
+              icon="trending_down"
+              color="text-rose-600"
+              bg="bg-rose-50"
+              loading={loading}
+            />
+            <StatCard
+              label="Total Anggaran"
+              value={formatCurrency(stats.totalBudget)}
+              description="Proyeksi dana fakultas"
+              icon="payments"
+              color="text-info"
+              bg="bg-info/10"
+              loading={loading}
+            />
+            <StatCard
+              label="Realisasi Anggaran"
+              value={formatCurrency(absorbedBudget)}
+              description={`${absorptionRate}% Anggaran terserap`}
+              icon="account_balance_wallet"
+              color="text-emerald-600"
+              bg="bg-emerald-50"
+              loading={loading}
+            />
+          </div>
         </div>
 
         {/* Tabs */}
         <div className="flex items-center gap-1 glass-card border border-slate-200/60 rounded-2xl p-1.5 w-fit shadow-none">
           {TABS.map(t => (
-            <button key={t.key} onClick={() => { 
-              setActiveTab(t.key); 
+            <button key={t.key} onClick={() => {
+              setActiveTab(t.key);
               setSearch('');
               setSelectedScholarshipFilter('Semua');
             }}
@@ -769,8 +919,8 @@ export default function FacultyScholarship() {
                           ) : <span className="text-xs text-[#c4c4c4] italic">Tidak ada</span>}
                         </td>
                         <td className="px-5 py-3.5">
-                          <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider', st.cls)}>
-                            <span className={cn('w-1.5 h-1.5 rounded-full', st.dot)} />{st.label}
+                          <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider whitespace-nowrap', st.cls)}>
+                            <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', st.dot)} />{st.label}
                           </span>
                         </td>
                         <td className="px-5 py-3.5">
@@ -915,16 +1065,16 @@ export default function FacultyScholarship() {
 
                 {/* Status Seleksi - Full Width */}
                 <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 flex items-center gap-3">
-                  <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0", 
-                    previewApp.Status === 'diterima' ? 'bg-emerald-50 text-emerald-600' : 
-                    previewApp.Status === 'ditolak' ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600')}>
+                  <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0",
+                    previewApp.Status === 'diterima' ? 'bg-emerald-50 text-emerald-600' :
+                      previewApp.Status === 'ditolak' ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600')}>
                     <span className="material-symbols-outlined" style={{ fontSize: 16 }}>verified</span>
                   </div>
                   <div>
                     <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">STATUS SELEKSI</span>
-                    <span className={cn('inline-flex items-center text-[10px] font-black uppercase tracking-wider', 
-                      previewApp.Status === 'diterima' ? 'text-emerald-600' : 
-                      previewApp.Status === 'ditolak' ? 'text-rose-600' : 'text-amber-600')}>
+                    <span className={cn('inline-flex items-center text-[10px] font-black uppercase tracking-wider',
+                      previewApp.Status === 'diterima' ? 'text-emerald-600' :
+                        previewApp.Status === 'ditolak' ? 'text-rose-600' : 'text-amber-600')}>
                       {st.label}
                     </span>
                   </div>
@@ -990,7 +1140,7 @@ export default function FacultyScholarship() {
                   <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">MOTIVASI / MOTIVATION LETTER</span>
                   <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100/50">
                     {previewApp.Motivasi ? (
-                      <div 
+                      <div
                         className="text-xs text-slate-700 leading-relaxed prose prose-sm max-w-none"
                         dangerouslySetInnerHTML={{ __html: previewApp.Motivasi }}
                       />
@@ -1149,8 +1299,8 @@ export default function FacultyScholarship() {
                     <div
                       className={cn(
                         "h-full rounded-full transition-all duration-500",
-                        pct > 90 
-                          ? "bg-rose-500" 
+                        pct > 90
+                          ? "bg-rose-500"
                           : "bg-gradient-to-r from-primary to-blue-400"
                       )}
                       style={{ width: `${pct}%` }}

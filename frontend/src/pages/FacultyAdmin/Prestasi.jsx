@@ -5,6 +5,8 @@ import React, { useState, useEffect, useMemo } from "react"
 import { toast, Toaster } from "react-hot-toast"
 import { cn } from "@/lib/utils"
 import { API_BASE_URL } from "../../services/api"
+import api from "../../lib/axios"
+import useAuthStore from "../../store/useAuthStore"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/Select"
 import { Button } from "@/components/ui/Button"
 
@@ -33,30 +35,30 @@ const Calendar = ({ size, className, ...props }) => <span className={`material-s
 const API = `${API_BASE_URL}/faculty`
 
 const AVATAR_COLORS = [
-  'from-blue-400 to-indigo-500','from-emerald-400 to-teal-500',
-  'from-amber-400 to-orange-500','from-rose-400 to-pink-500',
-  'from-violet-400 to-purple-500','from-cyan-400 to-sky-500',
+  'from-blue-400 to-indigo-500', 'from-emerald-400 to-teal-500',
+  'from-amber-400 to-orange-500', 'from-rose-400 to-pink-500',
+  'from-violet-400 to-purple-500', 'from-cyan-400 to-sky-500',
 ]
-const getInitials = (n='') => n.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase()||'?'
+const getInitials = (n = '') => n.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase() || '?'
 
 const STATUS_STYLES = {
-  verified:     { cls:'bg-emerald-50 text-emerald-700 border-emerald-200', dot:'bg-emerald-500', label:'Terverifikasi' },
-  terverifikasi:{ cls:'bg-emerald-50 text-emerald-700 border-emerald-200', dot:'bg-emerald-500', label:'Terverifikasi' },
-  diverifikasi: { cls:'bg-emerald-50 text-emerald-700 border-emerald-200', dot:'bg-emerald-500', label:'Terverifikasi' },
-  disetujui:    { cls:'bg-emerald-50 text-emerald-700 border-emerald-200', dot:'bg-emerald-500', label:'Disetujui' },
-  rejected:     { cls:'bg-rose-50 text-rose-700 border-rose-200',         dot:'bg-rose-500',    label:'Ditolak' },
-  ditolak:      { cls:'bg-rose-50 text-rose-700 border-rose-200',         dot:'bg-rose-500',    label:'Ditolak' },
-  pending:      { cls:'bg-amber-50 text-amber-700 border-amber-200',      dot:'bg-amber-500',   label:'Menunggu' },
+  verified: { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500', label: 'Terverifikasi' },
+  terverifikasi: { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500', label: 'Terverifikasi' },
+  diverifikasi: { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500', label: 'Terverifikasi' },
+  disetujui: { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500', label: 'Disetujui' },
+  rejected: { cls: 'bg-rose-50 text-rose-700 border-rose-200', dot: 'bg-rose-500', label: 'Ditolak' },
+  ditolak: { cls: 'bg-rose-50 text-rose-700 border-rose-200', dot: 'bg-rose-500', label: 'Ditolak' },
+  pending: { cls: 'bg-amber-50 text-amber-700 border-amber-200', dot: 'bg-amber-500', label: 'Menunggu' },
 }
-const getStatus = (val='') => STATUS_STYLES[val.toLowerCase()] || STATUS_STYLES.pending
+const getStatus = (val = '') => STATUS_STYLES[val.toLowerCase()] || STATUS_STYLES.pending
 
 const TINGKAT_STYLES = {
   internasional: 'bg-violet-50 text-violet-700 border-violet-200',
-  nasional:      'bg-blue-50 text-blue-700 border-blue-200',
-  regional:      'bg-cyan-50 text-cyan-700 border-cyan-200',
+  nasional: 'bg-blue-50 text-blue-700 border-blue-200',
+  regional: 'bg-cyan-50 text-cyan-700 border-cyan-200',
 }
 
-const formatDate = (d) => { try { return new Date(d).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}) } catch{return d} }
+const formatDate = (d) => { try { return new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) } catch { return d } }
 
 const getFullUrl = (path) => {
   if (!path || path.trim() === "" || path === "/" || path.endsWith("/profiles/") || path.endsWith("/students/")) return null;
@@ -68,7 +70,7 @@ const getFullUrl = (path) => {
 function StudentAvatar({ src, name, className = "w-9 h-9 rounded-xl" }) {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
-  
+
   const hasNoImage = !src || src.trim() === "" || src.endsWith("/profiles/") || src.endsWith("/students/") || src.endsWith("localhost:8000") || src.endsWith("localhost:8000/");
 
   return (
@@ -93,16 +95,17 @@ function StudentAvatar({ src, name, className = "w-9 h-9 rounded-xl" }) {
 
 export default function FacultyPrestasi() {
   const [achievements, setAchievements] = useState([])
-  const [loading, setLoading]           = useState(true)
-  const [selected, setSelected]         = useState(null)
-  const [search, setSearch]             = useState('')
+  const [loading, setLoading] = useState(true)
+  const [selected, setSelected] = useState(null)
+  const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
-  const [currentPage, setCurrentPage]   = useState(1)
+  const [currentPage, setCurrentPage] = useState(1)
   const [filterSemester, setFilterSemester] = useState('all')
   const [filterPeriode, setFilterPeriode] = useState('all')
   const [filterProdi, setFilterProdi] = useState('all')
-  const [pageSize, setPageSize]         = useState(10)
-  const [sortConfig, setSortConfig]     = useState({ key: 'CreatedAt', direction: 'desc' })
+  const [pageSize, setPageSize] = useState(10)
+  const [sortConfig, setSortConfig] = useState({ key: 'CreatedAt', direction: 'desc' })
+  const [facultyInfo, setFacultyInfo] = useState(null)
 
   // Verification dialog states
   const [isVerifyOpen, setIsVerifyOpen] = useState(false)
@@ -112,19 +115,50 @@ export default function FacultyPrestasi() {
   const [verifyDanaDisetujui, setVerifyDanaDisetujui] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  const getKopImage = (facName) => {
+    const name = (facName || "").toLowerCase();
+    if (name.includes("farmasi")) return "kop_farmasi.jpg";
+    if (name.includes("kesehatan") || name.includes("fikes")) return "kop_ilmu_kesehatan.jpg";
+    if (name.includes("keperawatan") || name.includes("fkep")) return "kop_keperawatan.jpg";
+    if (name.includes("sosial") || name.includes("social") || name.includes("sosiologi") || name.includes("fis")) return "kop_ilmu_sosial.jpg";
+    return "kop_farmasi.jpg";
+  };
+
   const downloadPDF = (title, subtitle, contentHtml) => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) { toast.error('Gagal membuka jendela cetak. Pastikan pop-up tidak diblokir.'); return; }
+
+    const user = useAuthStore.getState().user;
+    const isSuperAdmin = user?.role === 'super_admin';
+
+    const facName = facultyInfo?.Nama || facultyInfo?.nama || "Fakultas Farmasi";
+    const facDekan = facultyInfo?.Dekan || facultyInfo?.dekan || "Dekan Bidang Akademik";
+
+    const printSize = isSuperAdmin ? 'A4 landscape' : 'A4 portrait';
+    const bgSize = isSuperAdmin ? '297mm 210mm' : '210mm 297mm';
+    const kopImage = isSuperAdmin ? 'format_kop_rektorat_landscape.jpg' : getKopImage(facName);
+    const kopImageUrl = `${window.location.origin}/images/${kopImage}`;
+    const facNameResolved = isSuperAdmin ? 'Universitas Bhakti Kencana' : facName;
+    const titleResolved = isSuperAdmin ? 'Rektor Universitas Bhakti Kencana' : `Dekan ${facNameResolved}`;
+    const nameResolved = isSuperAdmin ? 'Dr. apt. Entris Sutrisno, MH. Kes.' : facDekan;
+    const footerText = isSuperAdmin ? 'Portal SIAKAD Rektorat BKU' : `Portal Akademik ${facNameResolved}`;
+
     const htmlContent = `<html><head><meta charset="utf-8"><title>${title}</title><style>
-      @page { size: A4 landscape; margin: 15mm; }
-      body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.5; color: #334155; background:#fff; margin:0; padding:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-      .letterhead-table { width:100%; border-collapse:collapse; border:none; margin-bottom:20px; }
-      .letterhead-table td { border:none; padding:0; }
-      .univ-title { font-size:12px; font-weight:700; color:#00236F; font-family:'Times New Roman',serif; }
-      .univ-main  { font-size:17px; font-weight:800; color:#00236F; font-family:'Times New Roman',serif; margin-top:2px; }
-      .univ-address { font-size:8px; color:#475569; margin-top:4px; }
-      .univ-contact { font-size:8px; color:#00236F; font-weight:600; margin-top:2px; }
-      .double-line { border:0; border-top:3px double #00236F; margin:10px 0 18px; }
+      @page { size: ${printSize}; margin: 0; }
+      body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        line-height: 1.5;
+        color: #334155;
+        background-image: url('${kopImageUrl}');
+        background-size: ${bgSize};
+        background-repeat: no-repeat;
+        background-position: top center;
+        margin: 0;
+        padding: 38mm 18mm 20mm 18mm;
+        box-sizing: border-box;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
       h1 { color:#1e293b; text-align:center; font-size:14px; font-weight:800; margin:0 0 3px; text-transform:uppercase; }
       h2 { color:#64748b; text-align:center; font-size:8px; font-weight:700; margin:0 0 20px; text-transform:uppercase; letter-spacing:1px; }
       table.data-table { width:100%; border-collapse:collapse; margin-top:8px; }
@@ -136,30 +170,17 @@ export default function FacultyPrestasi() {
       .badge-warning { background:#fef9c3; color:#a16207; border:1px solid #fef08a; }
       .badge-info    { background:#dbeafe; color:#1d4ed8; border:1px solid #bfdbfe; }
       .footer { margin-top:30px; text-align:right; font-size:8px; color:#64748b; }
-      .sig-line { width:150px; border-top:1px solid #94a3b8; margin-top:40px; display:inline-block; }
       @media print { .no-print { display:none; } }
     </style></head><body>
-      <table class="letterhead-table"><tr>
-        <td style="width:12%;text-align:left;">
-          <img src="https://bku.ac.id/wp-content/uploads/2021/01/logo-bku-nav.png" alt="Logo" style="height:50px;width:auto;object-fit:contain;" onerror="this.src='https://bku.ac.id/wp-content/uploads/2021/01/logo-bku.png';this.onerror=null;"/>
-        </td>
-        <td style="width:88%;text-align:center;">
-          <div class="univ-title">YAYASAN ADHI GUNA KENCANA</div>
-          <div class="univ-main">UNIVERSITAS BHAKTI KENCANA</div>
-          <div class="univ-address">Jl. Soekarno Hatta No. 754, Cipadung Kidul, Panyileukan, Kota Bandung, Jawa Barat 40614</div>
-          <div class="univ-contact">Telp: (022) 7800570 | Email: info@bku.ac.id | Website: www.bku.ac.id</div>
-        </td>
-      </tr></table>
-      <hr class="double-line" />
       <h1>${title}</h1>
       <h2>${subtitle}</h2>
       ${contentHtml}
       <div class="footer">
-        <p>Dicetak secara otomatis oleh Portal Akademik Fakultas</p>
-        <p>Tanggal Cetak: ${new Date().toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' })} WIB</p>
+        <p>Dicetak secara otomatis oleh ${footerText}</p>
+        <p>Tanggal Cetak: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })} WIB</p>
         <br/><p>Mengetahui,</p>
-        <p style="font-weight:700;margin-top:4px;">Dekan Bidang Akademik</p>
-        <div class="sig-line"></div>
+        <p style="font-weight:700;margin-top:4px;">${titleResolved}</p>
+        <div style="margin-top:45px; font-weight:700; text-decoration:underline;">${nameResolved}</div>
       </div>
       <script>window.onload=function(){setTimeout(function(){window.print();setTimeout(function(){window.close();},100);},300);};<\/script>
     </body></html>`;
@@ -173,25 +194,25 @@ export default function FacultyPrestasi() {
     const dataToExport = filtered.length > 0 && filtered.length < achievements.length ? filtered : achievements;
     let tableRows = '';
     dataToExport.forEach((item, idx) => {
-      const stLabel = ['verified','terverifikasi','disetujui','diverifikasi'].includes((item.Status||'').toLowerCase())
+      const stLabel = ['verified', 'terverifikasi', 'disetujui', 'diverifikasi'].includes((item.Status || '').toLowerCase())
         ? '<span class="badge badge-success">Terverifikasi</span>'
-        : (item.Status||'').toLowerCase().includes('tolak') || (item.Status||'').toLowerCase() === 'rejected'
-        ? '<span class="badge badge-warning">Ditolak</span>'
-        : '<span class="badge badge-info">Menunggu</span>';
-      const tingkatCls = (item.Tingkat||'').toLowerCase() === 'internasional' ? 'color:#7c3aed;font-weight:700;'
-        : (item.Tingkat||'').toLowerCase() === 'nasional' ? 'color:#1d4ed8;font-weight:700;' : 'color:#0e7490;font-weight:700;';
+        : (item.Status || '').toLowerCase().includes('tolak') || (item.Status || '').toLowerCase() === 'rejected'
+          ? '<span class="badge badge-warning">Ditolak</span>'
+          : '<span class="badge badge-info">Menunggu</span>';
+      const tingkatCls = (item.Tingkat || '').toLowerCase() === 'internasional' ? 'color:#7c3aed;font-weight:700;'
+        : (item.Tingkat || '').toLowerCase() === 'nasional' ? 'color:#1d4ed8;font-weight:700;' : 'color:#0e7490;font-weight:700;';
       tableRows += `<tr>
         <td>${idx + 1}</td>
-        <td style="font-weight:700;">${item.Mahasiswa?.Nama||'—'}<br/><span style="font-size:7px;color:#64748b;">NIM: ${item.Mahasiswa?.NIM||'—'}</span></td>
-        <td>${item.NamaKegiatan||'—'}<br/><span style="font-size:7px;color:#1d4ed8;font-weight:700;">${item.Kategori||'Umum'}</span></td>
-        <td style="${tingkatCls}">${item.Tingkat||'Lokal'}</td>
-        <td>${item.Peringkat||'—'}</td>
-        <td style="font-weight:700;text-align:center;">${item.Poin||0}</td>
+        <td style="font-weight:700;">${item.Mahasiswa?.Nama || '—'}<br/><span style="font-size:7px;color:#64748b;">NIM: ${item.Mahasiswa?.NIM || '—'}</span></td>
+        <td>${item.NamaKegiatan || '—'}<br/><span style="font-size:7px;color:#1d4ed8;font-weight:700;">${item.Kategori || 'Umum'}</span></td>
+        <td style="${tingkatCls}">${item.Tingkat || 'Lokal'}</td>
+        <td>${item.Peringkat || '—'}</td>
+        <td style="font-weight:700;text-align:center;">${item.Poin || 0}</td>
         <td>${item.CreatedAt ? new Date(item.CreatedAt).getFullYear() : '—'}</td>
         <td>${stLabel}</td>
       </tr>`;
     });
-    const totalVerified = dataToExport.filter(a => ['verified','terverifikasi','disetujui','diverifikasi'].includes((a.Status||'').toLowerCase())).length;
+    const totalVerified = dataToExport.filter(a => ['verified', 'terverifikasi', 'disetujui', 'diverifikasi'].includes((a.Status || '').toLowerCase())).length;
     const contentHtml = `
       <table style="width:100%;border-collapse:collapse;border:none;margin-bottom:16px;">
         <tr>
@@ -230,7 +251,7 @@ export default function FacultyPrestasi() {
       </table>`;
     downloadPDF(
       'Laporan Prestasi & Capaian Mahasiswa',
-      `Dataset Rekapitulasi Kompetisi Dan Penghargaan — ${new Date().toLocaleDateString('id-ID', { month:'long', year:'numeric' })}`,
+      `Dataset Rekapitulasi Kompetisi Dan Penghargaan — ${new Date().toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}`,
       contentHtml
     );
     toast.success(`Berhasil mencetak ${dataToExport.length} data prestasi!`);
@@ -239,10 +260,18 @@ export default function FacultyPrestasi() {
   const fetchData = async () => {
     setLoading(true)
     try {
-      const res  = await fetch(`${API}/prestasi`)
-      const json = await res.json()
-      if (json.status === 'success')
-        setAchievements((json.data||[]).map((a,i)=>({
+      try {
+        const profileRes = await api.get('/faculty/profile')
+        if (profileRes.data?.success && profileRes.data?.data?.fakultas) {
+          setFacultyInfo(profileRes.data.data.fakultas)
+        }
+      } catch (err) {
+        console.error("Failed to fetch faculty profile", err)
+      }
+
+      const res = await api.get('/faculty/prestasi')
+      if (res.data.status === 'success')
+        setAchievements((res.data.data || []).map((a, i) => ({
           ...a,
           Mahasiswa: a.mahasiswa || a.Mahasiswa,
           NamaKegiatan: a.nama_kegiatan || a.NamaKegiatan,
@@ -285,7 +314,7 @@ export default function FacultyPrestasi() {
     try {
       const res = await fetch(`${API}/prestasi/${selected.ID || selected.id}/verify`, {
         method: 'PUT',
-        headers: {'Content-Type':'application/json'},
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           Status: verifyStatus === 'verified' ? 'Diverifikasi' : 'Ditolak',
           Poin: Number(verifyPoin) || 0,
@@ -338,9 +367,9 @@ export default function FacultyPrestasi() {
   const filtered = useMemo(() => achievements.filter(a => {
     const q = search.toLowerCase()
     const matchQ = !q || a.Mahasiswa?.Nama?.toLowerCase().includes(q) || a.NamaKegiatan?.toLowerCase().includes(q)
-    const st = (a.Status||'').toLowerCase()
-    const matchS = filterStatus==='all' || st===filterStatus || (filterStatus==='verified' && ['verified','terverifikasi','disetujui','diverifikasi'].includes(st))
-    
+    const st = (a.Status || '').toLowerCase()
+    const matchS = filterStatus === 'all' || st === filterStatus || (filterStatus === 'verified' && ['verified', 'terverifikasi', 'disetujui', 'diverifikasi'].includes(st))
+
     const matchSem = filterSemester === 'all' || a.semester_filter === filterSemester
     const matchPer = filterPeriode === 'all' || a.periode_filter === filterPeriode
     const matchPr = filterProdi === 'all' || a.prodi_filter === filterProdi
@@ -390,9 +419,9 @@ export default function FacultyPrestasi() {
   }
 
   const stats = {
-    total:     achievements.length,
-    verified:  achievements.filter(a=>['verified','terverifikasi','disetujui','diverifikasi'].includes((a.Status||'').toLowerCase())).length,
-    pending:   achievements.filter(a=>!['verified','terverifikasi','disetujui','diverifikasi','rejected','ditolak'].includes((a.Status||'').toLowerCase())).length,
+    total: achievements.length,
+    verified: achievements.filter(a => ['verified', 'terverifikasi', 'disetujui', 'diverifikasi'].includes((a.Status || '').toLowerCase())).length,
+    pending: achievements.filter(a => !['verified', 'terverifikasi', 'disetujui', 'diverifikasi', 'rejected', 'ditolak'].includes((a.Status || '').toLowerCase())).length,
   }
 
   return (
@@ -464,9 +493,9 @@ export default function FacultyPrestasi() {
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
-            { label:'Total Pengajuan', value:stats.total,    icon:Trophy,       bg:'bg-[#eef4ff]',  color:'text-primary',   desc:'Prestasi masuk' },
-            { label:'Tervalidasi',     value:stats.verified, icon:CheckCircle2, bg:'bg-emerald-50', color:'text-emerald-600', desc:'Sudah diverifikasi' },
-            { label:'Menunggu Review', value:stats.pending,  icon:Clock,        bg:'bg-amber-50',   color:'text-amber-600',   desc:'Perlu tindak lanjut' },
+            { label: 'Total Pengajuan', value: stats.total, icon: Trophy, bg: 'bg-[#eef4ff]', color: 'text-primary', desc: 'Prestasi masuk' },
+            { label: 'Tervalidasi', value: stats.verified, icon: CheckCircle2, bg: 'bg-emerald-50', color: 'text-emerald-600', desc: 'Sudah diverifikasi' },
+            { label: 'Menunggu Review', value: stats.pending, icon: Clock, bg: 'bg-amber-50', color: 'text-amber-600', desc: 'Perlu tindak lanjut' },
           ].map(s => (
             <div key={s.label} className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
               <div className="flex items-center gap-3 mb-3">
@@ -588,48 +617,48 @@ export default function FacultyPrestasi() {
                 </tr>
               </thead>
               <tbody>
-                {loading ? Array.from({length: pageSize}).map((_,i) => (
+                {loading ? Array.from({ length: pageSize }).map((_, i) => (
                   <tr key={i} className="border-b border-slate-100">
-                    {[...Array(7)].map((__,j) => <td key={j} className="px-5 py-4"><div className="h-4 bg-slate-50 rounded animate-pulse"/></td>)}
+                    {[...Array(7)].map((__, j) => <td key={j} className="px-5 py-4"><div className="h-4 bg-slate-50 rounded animate-pulse" /></td>)}
                   </tr>
                 )) : paginated.length === 0 ? (
                   <tr><td colSpan={7} className="px-5 py-16 text-center">
                     <div className="flex flex-col items-center gap-3">
-                      <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-primary"><Trophy size={22}/></div>
+                      <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-primary"><Trophy size={22} /></div>
                       <p className="font-bold text-sm text-slate-900">Tidak Ada Pengajuan</p>
                       <p className="text-xs text-slate-400">Belum ada mahasiswa yang mengajukan prestasi.</p>
                     </div>
                   </td></tr>
                 ) : paginated.map((row, i) => {
                   const st = getStatus(row.Status)
-                  const tingkatCls = TINGKAT_STYLES[(row.Tingkat||'').toLowerCase()] || 'bg-slate-50 text-slate-600 border-slate-200'
+                  const tingkatCls = TINGKAT_STYLES[(row.Tingkat || '').toLowerCase()] || 'bg-slate-50 text-slate-600 border-slate-200'
                   return (
-                    <tr key={row.ID||i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors">
+                    <tr key={row.ID || i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors">
                       <td className="px-5 py-3.5 text-sm text-slate-400 font-medium">{(currentPage - 1) * pageSize + i + 1}</td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
                           <StudentAvatar src={getFullUrl(row.Mahasiswa?.FotoURL || row.Mahasiswa?.foto_url || row.Mahasiswa?.Foto || row.Mahasiswa?.Pengguna?.Foto)} name={row.Mahasiswa?.Nama} className="w-9 h-9 rounded-xl" />
                           <div>
-                            <p className="font-bold text-sm text-slate-900 leading-snug">{row.Mahasiswa?.Nama||'—'}</p>
-                            <p className="text-[10px] text-slate-400 font-medium">{row.Mahasiswa?.NIM||'—'}</p>
+                            <p className="font-bold text-sm text-slate-900 leading-snug">{row.Mahasiswa?.Nama || '—'}</p>
+                            <p className="text-[10px] text-slate-400 font-medium">{row.Mahasiswa?.NIM || '—'}</p>
                           </div>
                         </div>
                       </td>
                       <td className="px-5 py-3.5">
-                        <p className="font-bold text-sm text-slate-900 leading-snug max-w-[200px] truncate">{row.NamaKegiatan||'—'}</p>
+                        <p className="font-bold text-sm text-slate-900 leading-snug max-w-[200px] truncate">{row.NamaKegiatan || '—'}</p>
                         <div className="flex flex-wrap gap-1 mt-1">
-                          <span className="inline-block text-[10px] font-bold text-[#00236F] bg-[#eef4ff] px-2 py-0.5 rounded-md">{row.Kategori||'Umum'}</span>
+                          <span className="inline-block text-[10px] font-bold text-[#00236F] bg-[#eef4ff] px-2 py-0.5 rounded-md">{row.Kategori || 'Umum'}</span>
                           <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-md border ${row.Tipe === 'Pengajuan Dana' ? 'text-amber-700 bg-amber-50 border-amber-200' : 'text-emerald-700 bg-emerald-50 border-emerald-200'}`}>{row.Tipe || 'Laporan Prestasi'}</span>
                         </div>
                       </td>
                       <td className="px-5 py-3.5">
                         <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider', tingkatCls)}>
-                          {row.Tingkat||'Lokal'}
+                          {row.Tingkat || 'Lokal'}
                         </span>
                       </td>
                       <td className="px-5 py-3.5">
-                        <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider', st.cls)}>
-                          <span className={cn('w-1.5 h-1.5 rounded-full', st.dot)}/>{st.label}
+                        <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider whitespace-nowrap', st.cls)}>
+                          <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', st.dot)} />{st.label}
                         </span>
                       </td>
                       <td className="px-5 py-3.5 text-xs text-slate-500 font-medium whitespace-nowrap">
@@ -668,7 +697,7 @@ export default function FacultyPrestasi() {
               <p className="text-xs text-slate-500 font-medium text-center sm:text-left">
                 Menampilkan <span className="font-semibold text-slate-800">{totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0}</span> sampai <span className="font-semibold text-slate-800">{Math.min(currentPage * pageSize, totalItems)}</span> dari <span className="font-semibold text-slate-800">{totalItems}</span> entri
               </p>
-              
+
               <div className="hidden sm:block h-5 w-px bg-slate-200" />
 
               <div className="flex items-center gap-2.5">
@@ -699,7 +728,7 @@ export default function FacultyPrestasi() {
                 <span className="material-symbols-outlined mr-1" style={{ fontSize: '15px' }}>chevron_left</span>
                 Sebelumnya
               </Button>
-              
+
               <div className="flex items-center gap-1">
                 {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
                   let pageNum = i + 1;
@@ -712,8 +741,8 @@ export default function FacultyPrestasi() {
                       onClick={() => setCurrentPage(pageNum)}
                       className={cn(
                         "w-8 h-8 rounded-lg font-semibold text-xs transition-all duration-200",
-                        currentPage === pageNum 
-                          ? "bg-primary text-white shadow-md shadow-primary/20 scale-105" 
+                        currentPage === pageNum
+                          ? "bg-primary text-white shadow-md shadow-primary/20 scale-105"
                           : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                       )}
                     >
@@ -746,7 +775,7 @@ export default function FacultyPrestasi() {
             onClick={e => e.stopPropagation()}>
             {/* Header */}
             <div className="relative bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
-              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none"/>
+              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
               <button onClick={() => setSelected(null)}
                 className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
                 <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span>
@@ -762,16 +791,16 @@ export default function FacultyPrestasi() {
                 </div>
               </div>
               <div className="relative z-10 flex flex-wrap gap-2">
-                {selected.Kategori && <span className="flex items-center gap-1.5 bg-white/10 border border-white/20 px-3 py-1.5 rounded-xl text-[10px] font-bold text-white uppercase tracking-wider"><Award size={10}/>{selected.Kategori}</span>}
-                {selected.Tingkat  && <span className="flex items-center gap-1.5 bg-white/10 border border-white/20 px-3 py-1.5 rounded-xl text-[10px] font-bold text-white uppercase tracking-wider"><Star size={10}/>{selected.Tingkat}</span>}
+                {selected.Kategori && <span className="flex items-center gap-1.5 bg-white/10 border border-white/20 px-3 py-1.5 rounded-xl text-[10px] font-bold text-white uppercase tracking-wider"><Award size={10} />{selected.Kategori}</span>}
+                {selected.Tingkat && <span className="flex items-center gap-1.5 bg-white/10 border border-white/20 px-3 py-1.5 rounded-xl text-[10px] font-bold text-white uppercase tracking-wider"><Star size={10} />{selected.Tingkat}</span>}
                 <span className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider',
-                  ['verified','terverifikasi','disetujui','diverifikasi'].includes((selected.Status||'').toLowerCase())
+                  ['verified', 'terverifikasi', 'disetujui', 'diverifikasi'].includes((selected.Status || '').toLowerCase())
                     ? 'bg-emerald-400/20 border border-emerald-300/30 text-emerald-200'
-                    : (selected.Status||'').toLowerCase().includes('tolak') || (selected.Status||'').toLowerCase()==='rejected'
-                    ? 'bg-rose-400/20 border border-rose-300/30 text-rose-200'
-                    : 'bg-amber-400/20 border border-amber-300/30 text-amber-200'
+                    : (selected.Status || '').toLowerCase().includes('tolak') || (selected.Status || '').toLowerCase() === 'rejected'
+                      ? 'bg-rose-400/20 border border-rose-300/30 text-rose-200'
+                      : 'bg-amber-400/20 border border-amber-300/30 text-amber-200'
                 )}>
-                  <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse"/>
+                  <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
                   {getStatus(selected.Status).label}
                 </span>
               </div>
@@ -780,7 +809,7 @@ export default function FacultyPrestasi() {
             {/* Body */}
             <div className="flex-1 overflow-y-auto p-5 space-y-4">
               {/* Ditolak alert */}
-              {(selected.Status||'').toLowerCase().includes('tolak') || (selected.Status||'').toLowerCase()==='rejected' ? (
+              {(selected.Status || '').toLowerCase().includes('tolak') || (selected.Status || '').toLowerCase() === 'rejected' ? (
                 <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 flex items-start gap-3">
                   <span className="material-symbols-outlined text-rose-600 flex-shrink-0 mt-0.5" style={{ fontSize: '16px' }} >close</span>
                   <div>
@@ -793,21 +822,21 @@ export default function FacultyPrestasi() {
               {/* Info Grid */}
               <div className="space-y-1">
                 {[
-                  { icon:GraduationCap, label:'Program Studi', value: selected.Mahasiswa?.ProgramStudi?.Nama },
-                  { icon:Award,        label:'Kategori',       value: selected.Kategori },
-                  { icon:Star,         label:'Tingkat',        value: selected.Tingkat },
-                  selected.Tipe === 'Pengajuan Dana' ? null : { icon:Trophy,       label:'Peringkat',      value: selected.Peringkat },
-                  { icon:Calendar,     label:'Tanggal',        value: formatDate(selected.CreatedAt) },
-                  selected.Tipe === 'Pengajuan Dana' ? { icon:CheckCircle2, label:'Dana Diajukan',   value: `Rp ${(selected.DanaDiajukan || 0).toLocaleString('id-ID')}` } : { icon:CheckCircle2, label:'Poin Didapat',   value: selected.Poin != null ? `${selected.Poin} Poin` : '—' },
-                  selected.Tipe === 'Pengajuan Dana' && selected.DanaDisetujui > 0 ? { icon:CheckCircle2, label:'Dana Disetujui', value: `Rp ${selected.DanaDisetujui.toLocaleString('id-ID')}` } : null,
+                  { icon: GraduationCap, label: 'Program Studi', value: selected.Mahasiswa?.ProgramStudi?.Nama },
+                  { icon: Award, label: 'Kategori', value: selected.Kategori },
+                  { icon: Star, label: 'Tingkat', value: selected.Tingkat },
+                  selected.Tipe === 'Pengajuan Dana' ? null : { icon: Trophy, label: 'Peringkat', value: selected.Peringkat },
+                  { icon: Calendar, label: 'Tanggal', value: formatDate(selected.CreatedAt) },
+                  selected.Tipe === 'Pengajuan Dana' ? { icon: CheckCircle2, label: 'Dana Diajukan', value: `Rp ${(selected.DanaDiajukan || 0).toLocaleString('id-ID')}` } : { icon: CheckCircle2, label: 'Poin Didapat', value: selected.Poin != null ? `${selected.Poin} Poin` : '—' },
+                  selected.Tipe === 'Pengajuan Dana' && selected.DanaDisetujui > 0 ? { icon: CheckCircle2, label: 'Dana Disetujui', value: `Rp ${selected.DanaDisetujui.toLocaleString('id-ID')}` } : null,
                 ].filter(Boolean).map(r => (
                   <div key={r.label} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50/50 border border-slate-100 hover:bg-white transition-all">
                     <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center text-primary shadow-sm border border-slate-100 flex-shrink-0">
-                      <r.icon size={13}/>
+                      <r.icon size={13} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em]">{r.label}</p>
-                      <p className="text-sm font-semibold text-slate-900 truncate">{r.value||'—'}</p>
+                      <p className="text-sm font-semibold text-slate-900 truncate">{r.value || '—'}</p>
                     </div>
                   </div>
                 ))}
@@ -819,7 +848,7 @@ export default function FacultyPrestasi() {
                   {selected.Tipe === 'Pengajuan Dana' ? 'Proposal / Dokumen Pendukung' : 'Bukti / Sertifikat'}
                 </p>
                 {selected.BuktiURL ? (
-                  <a href={`${API_BASE_URL.replace('/api','')}${selected.BuktiURL}`} target="_blank" rel="noreferrer"
+                  <a href={`${API_BASE_URL.replace('/api', '')}${selected.BuktiURL}`} target="_blank" rel="noreferrer"
                     className="flex items-center gap-3 p-3 rounded-xl border border-slate-200/60 hover:bg-[#eef4ff] hover:border-primary transition-all">
                     <div className="w-9 h-9 bg-[#eef4ff] rounded-xl flex items-center justify-center text-primary flex-shrink-0"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >description</span></div>
                     <div className="flex-1 min-w-0">
@@ -828,7 +857,7 @@ export default function FacultyPrestasi() {
                       </p>
                       <p className="text-xs text-slate-400 truncate">{selected.BuktiURL}</p>
                     </div>
-                    <ExternalLink size={14} className="text-primary/40 flex-shrink-0"/>
+                    <ExternalLink size={14} className="text-primary/40 flex-shrink-0" />
                   </a>
                 ) : (
                   <div className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 bg-slate-50/50">

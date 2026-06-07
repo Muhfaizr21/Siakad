@@ -10,6 +10,7 @@ import { toast, Toaster } from 'react-hot-toast'
 
 import { fetchWithAuth, API_BASE_URL } from '../../services/api'
 import useAuthStore from '../../store/useAuthStore'
+import { getOrmawaId } from '../../utils/getOrmawaId'
 
 // Auto-injected Material Symbol fallbacks for Lucide icons
 const FileText = ({ size, className, style, ...props }) => (
@@ -64,8 +65,7 @@ export default function Notifikasi() {
   const [notifications, setNotifications] = useState([])
   const [loading, setLoading] = useState(true)
   
-  const authState = useAuthStore((s) => s)
-  const ormawaId = authState?.user?.ormawa_id || authState?.user?.OrmawaID || authState?.user?.ormawaId || authState?.mahasiswa?.ormawaId || authState?.mahasiswa?.OrmawaID || 1
+  const ormawaId = getOrmawaId()
 
   const fetchData = async () => {
     setLoading(true)

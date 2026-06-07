@@ -6,6 +6,7 @@ import {
   useDaftarBeasiswaMutation 
 } from '../../queries/useScholarshipQuery';
 import api from '../../lib/axios';
+import useAuthStore from '../../store/useAuthStore';
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { CardGridSkeleton, TableSkeleton } from '@/components/ui/SkeletonGroups';
@@ -478,6 +479,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
 // ======================== MAIN PAGE ========================
 export default function ScholarshipPage() {
   const navigate = useNavigate();
+  const user = useAuthStore(state => state.user);
   const [activeTab, setActiveTab] = useState('katalog'); // 'katalog' | 'riwayat'
   const [filters, setFilters] = useState({ kategori: 'Semua', sort: 'deadline_asc' });
   const [selectedSch, setSelectedSch] = useState(null);
@@ -672,22 +674,28 @@ export default function ScholarshipPage() {
                     </div>
                     
                     <div className="p-4 md:p-5 pt-0">
-                      {isRegistered ? (
-                        <button 
-                          onClick={() => navigate(`/student/scholarship/pengajuan/${riwayatItem.id || riwayatItem.ID}`)}
-                          className="w-full bg-[#f0fdf4] hover:bg-[#dcfce7] text-[#16a34a] border border-[#bbf7d0] py-2.5 rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all hover:scale-[1.02] shadow-sm animate-fade-in"
-                        >
-                          Lihat Progress <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >chevron_right</span>
-                        </button>
-                      ) : (
-                        <button 
-                          onClick={() => setSelectedSch(beasiswa)}
-                          className="w-full bg-[#00236F] text-white py-2.5 rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-colors hover:bg-[#0B4FAE]"
-                        >
-                          Detail & Daftar <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >arrow_forward</span>
-                        </button>
-                      )}
-                    </div>
+                       {isRegistered ? (
+                         <button 
+                           onClick={() => {
+                             if (user?.role === 'super_admin') {
+                               navigate(`/admin/student-beasiswa/pengajuan/${riwayatItem.id || riwayatItem.ID}`);
+                             } else {
+                               navigate(`/student/scholarship/pengajuan/${riwayatItem.id || riwayatItem.ID}`);
+                             }
+                           }}
+                           className="w-full bg-[#f0fdf4] hover:bg-[#dcfce7] text-[#16a34a] border border-[#bbf7d0] py-2.5 rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all hover:scale-[1.02] shadow-sm animate-fade-in"
+                         >
+                           Lihat Progress <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >chevron_right</span>
+                         </button>
+                       ) : (
+                         <button 
+                           onClick={() => setSelectedSch(beasiswa)}
+                           className="w-full bg-[#00236F] text-white py-2.5 rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-colors hover:bg-[#0B4FAE]"
+                         >
+                           {user?.role === 'super_admin' ? 'Detail Beasiswa' : 'Detail & Daftar'} <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >arrow_forward</span>
+                         </button>
+                       )}
+                     </div>
                   </motion.div>
                 );
               })
@@ -770,19 +778,23 @@ export default function ScholarshipPage() {
                              </span>
                           </td>
                           <td className="px-4 md:px-6 py-3.5 text-center">
-                             <button 
-                              onClick={() => {
-                                if (itemId) {
-                                  navigate(`/student/scholarship/pengajuan/${itemId}`);
-                                } else {
-                                  toast.error('ID Pengajuan tidak ditemukan');
-                                }
-                              }}
-                              className="px-4 py-2 rounded-xl bg-white border border-[#e5e5e5] text-xs font-black hover:border-[#00236F] hover:text-[#00236F] transition-all flex items-center justify-center gap-2 mx-auto"
-                             >
-                               Lihat Progress <span className="material-symbols-outlined" style={{ fontSize: 14 }}>chevron_right</span>
-                             </button>
-                          </td>
+                              <button 
+                               onClick={() => {
+                                 if (itemId) {
+                                   if (user?.role === 'super_admin') {
+                                     navigate(`/admin/student-beasiswa/pengajuan/${itemId}`);
+                                   } else {
+                                     navigate(`/student/scholarship/pengajuan/${itemId}`);
+                                   }
+                                 } else {
+                                   toast.error('ID Pengajuan tidak ditemukan');
+                                 }
+                               }}
+                               className="px-4 py-2 rounded-xl bg-white border border-[#e5e5e5] text-xs font-black hover:border-[#00236F] hover:text-[#00236F] transition-all flex items-center justify-center gap-2 mx-auto"
+                              >
+                                Lihat Progress <span className="material-symbols-outlined" style={{ fontSize: 14 }}>chevron_right</span>
+                              </button>
+                           </td>
                         </tr>
                       );
                     })
@@ -932,18 +944,20 @@ export default function ScholarshipPage() {
               </div>
 
               <div className="p-8 border-t border-[#f5f5f5] flex gap-4 bg-[#fafafa]">
-                <button 
-                  onClick={() => setSelectedSch(null)}
-                  className="flex-1 py-4 rounded-2xl font-black text-sm border border-[#e5e5e5] text-[#a3a3a3] hover:text-[#171717] transition-all"
-                >
-                  Tutup
-                </button>
-                <button 
-                  onClick={() => setShowApplyModal(true)}
-                  className="flex-1 py-4 rounded-2xl font-black text-sm bg-[#00236F] text-white hover:bg-[#0B4FAE] shadow-xl shadow-[#00236F]/20 transition-all hover:scale-[1.02]"
-                >
-                  Daftar Sekarang
-                </button>
+                 <button 
+                   onClick={() => setSelectedSch(null)}
+                   className="flex-1 py-4 rounded-2xl font-black text-sm border border-[#e5e5e5] text-[#a3a3a3] hover:text-[#171717] transition-all"
+                 >
+                   Tutup
+                 </button>
+                 {user?.role !== 'super_admin' && (
+                   <button 
+                     onClick={() => setShowApplyModal(true)}
+                     className="flex-1 py-4 rounded-2xl font-black text-sm bg-[#00236F] text-white hover:bg-[#0B4FAE] shadow-xl shadow-[#00236F]/20 transition-all hover:scale-[1.02]"
+                   >
+                     Daftar Sekarang
+                   </button>
+                 )}
               </div>
             </motion.div>
           </div>

@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils'
 
 import { fetchWithAuth, API_BASE_URL } from '../../services/api'
 import useAuthStore from '../../store/useAuthStore'
+import { getOrmawaId } from '../../utils/getOrmawaId'
 
 const API = `${API_BASE_URL}/ormawa`
 
@@ -23,7 +24,7 @@ const KATEGORI_CFG = {
   umum: { label: 'Umum', cls: 'bg-slate-50 text-slate-600 border-slate-200' },
   kegiatan: { label: 'Kegiatan', cls: 'bg-blue-50 text-blue-700 border-blue-200' },
   penting: { label: 'Penting', cls: 'bg-rose-50 text-rose-700 border-rose-200' },
-  info: { label: 'Informasi', cls: 'bg-violet-50 text-violet-700 border-violet-200' },
+  prestasi: { label: 'Prestasi', cls: 'bg-amber-50 text-amber-700 border-amber-200' }
 }
 
 export default function Pengumuman() {
@@ -35,10 +36,9 @@ export default function Pengumuman() {
   const [isDelOpen, setIsDelOpen] = useState(false)
   const [isEditMode, setIsEditMode] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  
-  const authState = useAuthStore((s) => s)
-  const ormawaId = authState?.user?.ormawa_id || authState?.user?.OrmawaID || authState?.mahasiswa?.ormawaId || authState?.mahasiswa?.OrmawaID || 1
-  
+
+  const ormawaId = getOrmawaId()
+
   const [form, setForm] = useState({ Judul: '', Isi: '', Kategori: 'umum', OrmawaID: ormawaId })
 
   const fetchData = async () => {
@@ -69,26 +69,26 @@ export default function Pengumuman() {
 
   const handleOpenEdit = (row) => {
     setIsEditMode(true)
-    setForm({ 
-      ID: row.id || row.ID, 
-      Judul: row.Judul || row.judul || '', 
-      Isi: row.Isi || row.isi || '', 
-      Kategori: row.Kategori || row.kategori || row.Target || 'umum', 
-      OrmawaID: ormawaId 
+    setForm({
+      ID: row.id || row.ID,
+      Judul: row.Judul || row.judul || '',
+      Isi: row.Isi || row.isi || '',
+      Kategori: row.Kategori || row.kategori || row.Target || 'umum',
+      OrmawaID: ormawaId
     })
     setIsCrudOpen(true)
   }
-  
+
   const handleSave = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
     const url = isEditMode ? `${API}/announcements/${form.ID || form.id}` : `${API}/announcements`
     const method = isEditMode ? 'PUT' : 'POST'
     try {
-      const res = await fetchWithAuth(url, { 
-        method, 
-        body: JSON.stringify({ ...form, Target: form.Kategori, OrmawaID: Number(form.OrmawaID) }), 
-        headers: { 'Content-Type': 'application/json' } 
+      const res = await fetchWithAuth(url, {
+        method,
+        body: JSON.stringify({ ...form, Target: form.Kategori, OrmawaID: Number(form.OrmawaID) }),
+        headers: { 'Content-Type': 'application/json' }
       })
       if (res.status === 'success') {
         toast.success(isEditMode ? 'Pengumuman diperbarui!' : 'Pengumuman baru berhasil diterbitkan!')
@@ -107,8 +107,8 @@ export default function Pengumuman() {
   const handleDelete = async () => {
     setIsSubmitting(true)
     try {
-      const res = await fetchWithAuth(`${API}/announcements/${selected?.id || selected?.ID}`, { 
-        method: 'DELETE' 
+      const res = await fetchWithAuth(`${API}/announcements/${selected?.id || selected?.ID}`, {
+        method: 'DELETE'
       })
       if (res.status === 'success') {
         toast.success('Pengumuman berhasil dihapus')
@@ -125,16 +125,16 @@ export default function Pengumuman() {
   }
 
   const columns = [
-    { 
-      key: 'Judul', 
-      label: 'Judul Pengumuman', 
-      className: 'min-w-[300px]', 
-      render: (v, row) => <span className="font-bold text-slate-900 text-[13px] font-headline tracking-tighter">{row.Judul || row.judul || v || '—'}</span> 
+    {
+      key: 'Judul',
+      label: 'Judul Pengumuman',
+      className: 'min-w-[300px]',
+      render: (v, row) => <span className="font-bold text-slate-900 text-[13px] font-headline tracking-tighter">{row.Judul || row.judul || v || '—'}</span>
     },
-    { 
-      key: 'Kategori', 
-      label: 'Kategori', 
-      className: 'w-[140px] text-center', 
+    {
+      key: 'Kategori',
+      label: 'Kategori',
+      className: 'w-[140px] text-center',
       cellClassName: 'text-center',
       render: (v, row) => {
         const cat = row.Kategori || row.kategori || row.Target || 'umum'
@@ -146,9 +146,9 @@ export default function Pengumuman() {
         )
       }
     },
-    { 
-      key: 'CreatedAt', 
-      label: 'Diterbitkan', 
+    {
+      key: 'CreatedAt',
+      label: 'Diterbitkan',
       className: 'w-[180px]',
       render: (v, row) => {
         const dateVal = row.created_at || row.CreatedAt || row.TanggalMulai || v
@@ -157,14 +157,14 @@ export default function Pengumuman() {
             {dateVal ? new Date(dateVal).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
           </span>
         )
-      } 
+      }
     }
   ]
 
   return (
     <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-8 font-body">
       <Toaster position="top-right" />
-      
+
       {/* ── Welcome Banner ─────────────────────────────────────────── */}
       <section className="relative overflow-hidden rounded-[2rem] bg-white p-8 md:p-10 shadow-sm border border-slate-200">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(0,0,0,0.02)_0%,transparent_60%)]" />
@@ -193,9 +193,9 @@ export default function Pengumuman() {
               </div>
             </div>
           </div>
-          
-          <Button 
-            onClick={handleOpenAdd} 
+
+          <Button
+            onClick={handleOpenAdd}
             className="h-12 px-6 rounded-2xl text-white font-bold text-xs tracking-wider shadow-lg shadow-blue-900/10 transition-all active:scale-95 shrink-0 w-full md:w-auto flex items-center justify-center gap-2"
             style={{ backgroundColor: 'var(--theme-primary)' }}
           >
@@ -209,49 +209,49 @@ export default function Pengumuman() {
       <Card className="border border-slate-200/50 shadow-sm rounded-[2rem] overflow-hidden bg-white/70 backdrop-blur-md">
         <CardContent className="p-6">
           <DataTable
-            columns={columns} 
-            data={data} 
+            columns={columns}
+            data={data}
             loading={loading}
             searchPlaceholder="Cari judul pengumuman..."
-            onAdd={handleOpenAdd} 
+            onAdd={handleOpenAdd}
             addLabel="Buat Pengumuman"
             filters={[
-              { 
-                key: 'Kategori', 
-                placeholder: 'Filter Kategori', 
-                options: Object.entries(KATEGORI_CFG).map(([v, { label }]) => ({ label, value: v })) 
+              {
+                key: 'Kategori',
+                placeholder: 'Filter Kategori',
+                options: Object.entries(KATEGORI_CFG).map(([v, { label }]) => ({ label, value: v }))
               }
             ]}
             actions={(row) => (
               <div className="flex items-center justify-end gap-1.5">
-                <Button 
-                  onClick={() => { 
+                <Button
+                  onClick={() => {
                     setSelected(row)
-                    setIsDetailOpen(true) 
-                  }} 
-                  variant="ghost" 
-                  size="icon" 
+                    setIsDetailOpen(true)
+                  }}
+                  variant="ghost"
+                  size="icon"
                   className="h-8 w-8 text-slate-400 hover:text-bku-primary hover:bg-blue-50 rounded-xl active:scale-95 transition-all"
                   title="Lihat Detail Pengumuman"
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>visibility</span>
                 </Button>
-                <Button 
-                  onClick={() => handleOpenEdit(row)} 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  onClick={() => handleOpenEdit(row)}
+                  variant="ghost"
+                  size="icon"
                   className="h-8 w-8 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-xl active:scale-95 transition-all"
                   title="Edit Pengumuman"
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>edit_note</span>
                 </Button>
-                <Button 
-                  onClick={() => { 
+                <Button
+                  onClick={() => {
                     setSelected(row)
-                    setIsDelOpen(true) 
-                  }} 
-                  variant="ghost" 
-                  size="icon" 
+                    setIsDelOpen(true)
+                  }}
+                  variant="ghost"
+                  size="icon"
                   className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl active:scale-95 transition-all"
                   title="Hapus Pengumuman"
                 >
@@ -288,7 +288,7 @@ export default function Pengumuman() {
                   </div>
                 </div>
               </div>
-              
+
               {/* Premium Dual-Column Detail Grid */}
               <div className="p-8 space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -312,21 +312,21 @@ export default function Pengumuman() {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Actions Footer */}
                 <div className="flex justify-end gap-3 pt-5 border-t border-slate-100">
-                  <Button 
-                    variant="ghost" 
-                    onClick={() => setIsDetailOpen(false)} 
+                  <Button
+                    variant="ghost"
+                    onClick={() => setIsDetailOpen(false)}
                     className="text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl active:scale-95 transition-all"
                   >
                     TUTUP
                   </Button>
-                  <Button 
-                    onClick={() => { 
+                  <Button
+                    onClick={() => {
                       setIsDetailOpen(false)
-                      handleOpenEdit(selected) 
-                    }} 
+                      handleOpenEdit(selected)
+                    }}
                     className="text-[10px] font-black h-12 px-8 rounded-2xl bg-primary text-white hover:bg-primary/95 shadow-xl shadow-primary/20 active:scale-95 transition-all border-none"
                   >
                     EDIT PENGUMUMAN
@@ -365,12 +365,12 @@ export default function Pengumuman() {
             {/* Judul Pengumuman */}
             <div className="space-y-2">
               <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Judul Pengumuman</Label>
-              <Input 
-                required 
-                value={form.Judul} 
-                onChange={e => setForm({ ...form, Judul: e.target.value })} 
+              <Input
+                required
+                value={form.Judul}
+                onChange={e => setForm({ ...form, Judul: e.target.value })}
                 placeholder="Masukkan judul atau tajuk utama pengumuman..."
-                className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm" 
+                className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm"
               />
             </div>
 
@@ -405,28 +405,28 @@ export default function Pengumuman() {
             {/* Isi Pengumuman */}
             <div className="space-y-2">
               <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Isi Pengumuman</Label>
-              <Textarea 
-                required 
-                value={form.Isi} 
-                onChange={e => setForm({ ...form, Isi: e.target.value })} 
+              <Textarea
+                required
+                value={form.Isi}
+                onChange={e => setForm({ ...form, Isi: e.target.value })}
                 placeholder="Tuliskan isi pengumuman secara lengkap, jelas, dan lugas di sini..."
-                className="min-h-[140px] rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-semibold text-xs leading-relaxed p-4" 
+                className="min-h-[140px] rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-semibold text-xs leading-relaxed p-4"
               />
             </div>
 
             {/* Dialog Footer Actions */}
             <DialogFooter className="mt-6 pt-6 flex flex-col md:flex-row items-center justify-end gap-3 border-t border-slate-100 -mx-8 px-8 bg-slate-50/30 pb-0">
-              <Button 
-                type="button" 
-                variant="ghost" 
-                onClick={() => setIsCrudOpen(false)} 
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setIsCrudOpen(false)}
                 className="w-full md:w-auto text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl active:scale-95 transition-all"
               >
                 BATAL
               </Button>
-              <Button 
-                type="submit" 
-                disabled={isSubmitting} 
+              <Button
+                type="submit"
+                disabled={isSubmitting}
                 className="w-full md:w-auto h-12 px-8 rounded-2xl bg-bku-primary hover:bg-bku-primary/90 text-white shadow-xl shadow-blue-900/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 border-none"
               >
                 {isSubmitting ? (
@@ -444,13 +444,13 @@ export default function Pengumuman() {
       </Dialog>
 
       {/* Delete Confirmation Modal */}
-      <DeleteConfirmModal 
-        isOpen={isDelOpen} 
-        onClose={() => setIsDelOpen(false)} 
+      <DeleteConfirmModal
+        isOpen={isDelOpen}
+        onClose={() => setIsDelOpen(false)}
         onConfirm={handleDelete}
-        title="Hapus Pengumuman?" 
-        description="Apakah Anda yakin ingin menghapus siaran pengumuman ini? Tindakan ini bersifat permanen." 
-        loading={isSubmitting} 
+        title="Hapus Pengumuman?"
+        description="Apakah Anda yakin ingin menghapus siaran pengumuman ini? Tindakan ini bersifat permanen."
+        loading={isSubmitting}
       />
     </div>
   )

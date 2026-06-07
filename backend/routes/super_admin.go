@@ -28,6 +28,7 @@ func SetupSuperAdminRoutes(r fiber.Router) {
 	r.Put("/proposals/:id/reject", controllers.RejectProposalUniv)
 
 	// Master Data
+	r.Get("/academic-periods", controllers.GetAllAcademicPeriods)
 	r.Get("/fakultas", controllers.GetAllFakultas)
 	r.Post("/fakultas", controllers.CreateFakultas)
 	r.Put("/fakultas/:id", controllers.UpdateFakultas)

@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { fetchWithAuth, API_BASE_URL, ormawaService } from '../../services/api'
 import useAuthStore from '../../store/useAuthStore'
+import { getOrmawaId } from '../../utils/getOrmawaId'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const FileText = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>description</span>;
@@ -57,7 +58,7 @@ export default function OrmawaDashboard() {
   
   const navigate = useNavigate()
   const user = useAuthStore(state => state.user)
-  const ormawaId = useAuthStore.getState()?.user?.ormawa_id || useAuthStore.getState()?.user?.OrmawaID || useAuthStore.getState()?.mahasiswa?.ormawaId || useAuthStore.getState()?.mahasiswa?.ID || 1;
+  const ormawaId = getOrmawaId()
 
   useEffect(() => {
     const load = async () => {
@@ -80,7 +81,7 @@ export default function OrmawaDashboard() {
       } catch {} finally { setIsLoading(false) }
     }
     load()
-  }, [])
+  }, [ormawaId])
 
   const statCards = [
     { label: 'Total Proposal', value: stats.totalProposals || proposals.length, icon: FileText, color: 'text-primary', bg: 'bg-primary/10 border-primary/20 border', accent: 'from-primary/10', route: '/ormawa/proposal' },

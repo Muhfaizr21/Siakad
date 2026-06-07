@@ -2,8 +2,10 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useKencanaDashboardQuery, useKencanaTimelineQuery } from '../../queries/useKencanaQuery';
 import { ErrorPanel, KencanaShell, LoadingPanel, MetricCard, PrimaryButton, ProgressBar, StatusBadge, fmtDate } from './Kencana/components';
+import useAuthStore from '../../store/useAuthStore';
 
 export default function KencanaPage() {
+  const user = useAuthStore(state => state.user);
   const { data: dashboardData, isLoading: isLoadingDashboard, isError: isErrorDashboard } = useKencanaDashboardQuery();
   const { data: timelineData, isLoading: isLoadingTimeline, isError: isErrorTimeline } = useKencanaTimelineQuery();
 
@@ -67,46 +69,54 @@ export default function KencanaPage() {
             </div>
             
             <div className="space-y-4">
-              {sortedStages.map((stage, index) => (
-                <Link key={stage.id} to={stage.phase_type === 'pasca_kencana' ? '/student/kencana/score' : `/student/kencana/stage/${stage.id}`} className={`group relative grid gap-4 rounded-2xl border ${stage.status === 'active' ? 'border-blue-500 bg-blue-50 shadow-md' : 'border-slate-200 bg-white'} p-5 transition-all hover:-translate-y-1 hover:shadow-lg md:grid-cols-[auto_1fr_auto]`}>
-                  {stage.status === 'active' && (
-                    <div className="absolute -top-2 -right-2">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-white shadow-lg animate-pulse">
-                        <span className="material-symbols-outlined text-[12px]">bolt</span>
-                      </span>
-                    </div>
-                  )}
-                  <div className={`grid size-12 place-items-center rounded-xl ${stage.status === 'active' ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-500'} text-lg font-black`}>
-                    {index + 1}
-                  </div>
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h4 className={`text-base font-black ${stage.status === 'active' ? 'text-blue-700' : 'text-slate-800'}`}>{stage.name}</h4>
-                      <StatusBadge status={stage.status} />
-                    </div>
-                    <p className="mt-1 text-sm font-medium text-slate-500 line-clamp-2">{stage.description}</p>
-                    {stage.phase_type !== 'pasca_kencana' && (
-                      <p className="mt-2 text-[10px] md:text-xs font-bold uppercase tracking-widest text-slate-400 flex items-center gap-1">
-                        <span className="material-symbols-outlined text-[14px]">calendar_today</span> 
-                        {fmtDate(stage.start_date)} - {fmtDate(stage.end_date)}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex gap-2 self-center border-t border-slate-100 pt-4 md:border-t-0 md:pt-0">
-                    {stage.phase_type === 'pasca_kencana' ? (
-                      <div className="rounded-xl bg-blue-50 px-4 py-2 flex items-center gap-2 border border-blue-100">
-                        <span className="material-symbols-outlined text-blue-600">workspace_premium</span>
-                        <span className="text-xs font-black text-blue-800 uppercase tracking-widest">Lihat Nilai</span>
+              {sortedStages.map((stage, index) => {
+                const CardComponent = user?.role === 'super_admin' ? 'div' : Link;
+                const linkProps = user?.role === 'super_admin' ? {} : { to: stage.phase_type === 'pasca_kencana' ? '/student/kencana/score' : `/student/kencana/stage/${stage.id}` };
+                return (
+                  <CardComponent 
+                    key={stage.id} 
+                    {...linkProps} 
+                    className={`group relative grid gap-4 rounded-2xl border ${stage.status === 'active' ? 'border-blue-500 bg-blue-50 shadow-md' : 'border-slate-200 bg-white'} p-5 transition-all ${user?.role === 'super_admin' ? '' : 'hover:-translate-y-1 hover:shadow-lg'} md:grid-cols-[auto_1fr_auto]`}
+                  >
+                    {stage.status === 'active' && (
+                      <div className="absolute -top-2 -right-2">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-white shadow-lg animate-pulse">
+                          <span className="material-symbols-outlined text-[12px]">bolt</span>
+                        </span>
                       </div>
-                    ) : (
-                      <>
-                        <Mini label="Sesi" value={stage.session_count} active={stage.status === 'active'} />
-                        <Mini label="Materi/Tugas" value={(stage.quiz_count || 0) + (stage.assignment_count || 0)} active={stage.status === 'active'} />
-                      </>
                     )}
-                  </div>
-                </Link>
-              ))}
+                    <div className={`grid size-12 place-items-center rounded-xl ${stage.status === 'active' ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-500'} text-lg font-black`}>
+                      {index + 1}
+                    </div>
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h4 className={`text-base font-black ${stage.status === 'active' ? 'text-blue-700' : 'text-slate-800'}`}>{stage.name}</h4>
+                        <StatusBadge status={stage.status} />
+                      </div>
+                      <p className="mt-1 text-sm font-medium text-slate-500 line-clamp-2">{stage.description}</p>
+                      {stage.phase_type !== 'pasca_kencana' && (
+                        <p className="mt-2 text-[10px] md:text-xs font-bold uppercase tracking-widest text-slate-400 flex items-center gap-1">
+                          <span className="material-symbols-outlined text-[14px]">calendar_today</span> 
+                          {fmtDate(stage.start_date)} - {fmtDate(stage.end_date)}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex gap-2 self-center border-t border-slate-100 pt-4 md:border-t-0 md:pt-0">
+                      {stage.phase_type === 'pasca_kencana' ? (
+                        <div className="rounded-xl bg-blue-50 px-4 py-2 flex items-center gap-2 border border-blue-100">
+                          <span className="material-symbols-outlined text-blue-600">workspace_premium</span>
+                          <span className="text-xs font-black text-blue-800 uppercase tracking-widest">Lihat Nilai</span>
+                        </div>
+                      ) : (
+                        <>
+                          <Mini label="Sesi" value={stage.session_count} active={stage.status === 'active'} />
+                          <Mini label="Materi/Tugas" value={(stage.quiz_count || 0) + (stage.assignment_count || 0)} active={stage.status === 'active'} />
+                        </>
+                      )}
+                    </div>
+                  </CardComponent>
+                );
+              })}
               {sortedStages.length === 0 && (
                 <div className="text-center py-10 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50">
                   <span className="material-symbols-outlined text-4xl text-slate-300 mb-2">calendar_month</span>
@@ -117,36 +127,38 @@ export default function KencanaPage() {
           </div>
 
           {/* Quick Actions Menus */}
-          <div className="grid gap-4 md:grid-cols-3">
-            <Link to="/student/kencana/score" className="group rounded-2xl border border-slate-200 bg-white p-5 transition hover:bg-slate-50 hover:-translate-y-1 hover:shadow-sm">
-              <div className="grid size-12 place-items-center rounded-xl bg-amber-500 text-white mb-4">
-                <span className="material-symbols-outlined">workspace_premium</span>
-              </div>
-              <h4 className="font-black text-slate-800 group-hover:text-amber-600 transition-colors">Pasca-Kencana</h4>
-              <p className="text-[11px] font-semibold text-slate-500 mt-1">Rekap Nilai & Sertifikat</p>
-            </Link>
-            
-            <Link to="/student/kencana/invitations" className="group rounded-2xl border border-slate-200 bg-white p-5 transition hover:bg-blue-50 hover:-translate-y-1 hover:shadow-sm">
-              <div className="grid size-12 place-items-center rounded-xl bg-blue-600 text-white mb-4">
-                <span className="material-symbols-outlined">group</span>
-              </div>
-              <h4 className="font-black text-slate-800 group-hover:text-blue-700 transition-colors">Undangan DP</h4>
-              <p className="text-[11px] font-semibold text-slate-500 mt-1">Pembimbing Kencana</p>
-            </Link>
+          {user?.role !== 'super_admin' && (
+            <div className="grid gap-4 md:grid-cols-3">
+              <Link to="/student/kencana/score" className="group rounded-2xl border border-slate-200 bg-white p-5 transition hover:bg-slate-50 hover:-translate-y-1 hover:shadow-sm">
+                <div className="grid size-12 place-items-center rounded-xl bg-amber-500 text-white mb-4">
+                  <span className="material-symbols-outlined">workspace_premium</span>
+                </div>
+                <h4 className="font-black text-slate-800 group-hover:text-amber-600 transition-colors">Pasca-Kencana</h4>
+                <p className="text-[11px] font-semibold text-slate-500 mt-1">Rekap Nilai & Sertifikat</p>
+              </Link>
+              
+              <Link to="/student/kencana/invitations" className="group rounded-2xl border border-slate-200 bg-white p-5 transition hover:bg-blue-50 hover:-translate-y-1 hover:shadow-sm">
+                <div className="grid size-12 place-items-center rounded-xl bg-blue-600 text-white mb-4">
+                  <span className="material-symbols-outlined">group</span>
+                </div>
+                <h4 className="font-black text-slate-800 group-hover:text-blue-700 transition-colors">Undangan DP</h4>
+                <p className="text-[11px] font-semibold text-slate-500 mt-1">Pembimbing Kencana</p>
+              </Link>
 
-            <Link to="/student/kencana/attendance" className="group rounded-2xl border border-slate-200 bg-white p-5 transition hover:bg-blue-50 hover:-translate-y-1 hover:shadow-sm">
-              <div className="grid size-12 place-items-center rounded-xl bg-indigo-600 text-white mb-4">
-                <span className="material-symbols-outlined">fact_check</span>
-              </div>
-              <h4 className="font-black text-slate-800 group-hover:text-indigo-700 transition-colors">Log Presensi</h4>
-              <p className="text-[11px] font-semibold text-slate-500 mt-1">Kehadiran tiap sesi</p>
-            </Link>
-          </div>
+              <Link to="/student/kencana/attendance" className="group rounded-2xl border border-slate-200 bg-white p-5 transition hover:bg-blue-50 hover:-translate-y-1 hover:shadow-sm">
+                <div className="grid size-12 place-items-center rounded-xl bg-indigo-600 text-white mb-4">
+                  <span className="material-symbols-outlined">fact_check</span>
+                </div>
+                <h4 className="font-black text-slate-800 group-hover:text-indigo-700 transition-colors">Log Presensi</h4>
+                <p className="text-[11px] font-semibold text-slate-500 mt-1">Kehadiran tiap sesi</p>
+              </Link>
+            </div>
+          )}
         </div>
 
         <div className="space-y-6">
           {/* Last Activity */}
-          {dashboardData?.last_activity?.id && (
+          {user?.role !== 'super_admin' && dashboardData?.last_activity?.id && (
             <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm relative overflow-hidden">
               <div className="absolute top-0 left-0 w-1 h-full bg-blue-600"></div>
               <p className="text-xs font-black uppercase tracking-widest text-slate-400">Aktivitas Terakhir</p>

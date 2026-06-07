@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import axios from "axios"
+import api from "../../lib/axios"
 import { toast, Toaster } from "react-hot-toast"
 import useAuthStore from "../../store/useAuthStore"
 
@@ -29,26 +29,21 @@ const Globe = ({ size, className, ...props }) => <span className={`material-symb
 
 
 const API = "/faculty"
-const CHART_COLORS = ["#3b82f6","#10b981","#f59e0b","#6366f1","#ec4899"]
+const CHART_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#6366f1", "#ec4899"]
 
 export default function LaporanFakultasPage() {
-  const [data, setData] = useState({ summary:{ total:0, active:0, graduated:0, avgIPK:0, totalPrestasi:0, totalBeasiswa:0, totalKonseling:0 }, perAngkatan:[], perProdi:[], ipkDist:[] })
-  const [loading, setLoading]   = useState(true)
+  const [data, setData] = useState({ summary: { total: 0, active: 0, graduated: 0, avgIPK: 0, totalPrestasi: 0, totalBeasiswa: 0, totalKonseling: 0 }, perAngkatan: [], perProdi: [], ipkDist: [] })
+  const [loading, setLoading] = useState(true)
   const [isMounted, setMounted] = useState(false)
   const [facultyInfo, setFacultyInfo] = useState(null)
 
   const fetchData = async () => {
     setLoading(true)
     try {
-      const token = useAuthStore.getState().accessToken;
-      const res = await axios.get(`${API}/reports/summary`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      const res = await api.get(`${API}/reports/summary`)
       if (res.data.status === "success") setData(res.data.data || data)
 
-      const profileRes = await axios.get(`${API}/profile`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      const profileRes = await api.get(`${API}/profile`)
       if (profileRes.data.success && profileRes.data.data?.fakultas) {
         setFacultyInfo(profileRes.data.data.fakultas)
       }
@@ -72,10 +67,20 @@ export default function LaporanFakultasPage() {
       return;
     }
 
+    const user = useAuthStore.getState().user;
+    const isSuperAdmin = user?.role === 'super_admin';
+
     const facName = facultyInfo?.Nama || facultyInfo?.nama || "Fakultas Farmasi";
     const facDekan = facultyInfo?.Dekan || facultyInfo?.dekan || "Dekan Bidang Akademik";
-    const kopImage = getKopImage(facName);
+
+    const printSize = isSuperAdmin ? 'A4 landscape' : 'A4 portrait';
+    const bgSize = isSuperAdmin ? '297mm 210mm' : '210mm 297mm';
+    const kopImage = isSuperAdmin ? 'format_kop_rektorat_landscape.jpg' : getKopImage(facName);
     const kopImageUrl = `${window.location.origin}/images/${kopImage}`;
+    const facNameResolved = isSuperAdmin ? 'Universitas Bhakti Kencana' : facName;
+    const titleResolved = isSuperAdmin ? 'Rektor Universitas Bhakti Kencana' : `Dekan ${facNameResolved}`;
+    const nameResolved = isSuperAdmin ? 'Dr. apt. Entris Sutrisno, MH. Kes.' : facDekan;
+    const footerText = isSuperAdmin ? 'Portal SIAKAD Rektorat BKU' : `Portal Akademik ${facNameResolved}`;
 
     const htmlContent = `<html>
 <head>
@@ -83,7 +88,7 @@ export default function LaporanFakultasPage() {
 <title>${title}</title>
 <style>
   @page {
-    size: A4 portrait;
+    size: ${printSize};
     margin: 0;
   }
   body {
@@ -91,7 +96,7 @@ export default function LaporanFakultasPage() {
     line-height: 1.5;
     color: #334155;
     background-image: url('${kopImageUrl}');
-    background-size: 210mm 297mm;
+    background-size: ${bgSize};
     background-repeat: no-repeat;
     background-position: top center;
     margin: 0;
@@ -220,7 +225,7 @@ export default function LaporanFakultasPage() {
   @media print {
     body {
       background-image: url('${kopImageUrl}') !important;
-      background-size: 210mm 297mm !important;
+      background-size: ${bgSize} !important;
       background-repeat: no-repeat !important;
       background-position: top center !important;
       -webkit-print-color-adjust: exact !important;
@@ -242,15 +247,14 @@ export default function LaporanFakultasPage() {
   <!-- Footer Signature Section -->
   <div style="width: 100%; display: inline-block; margin-top: 15px;">
     <div class="signature-section">
-      <p>Dicetak secara otomatis oleh Portal Akademik ${facName}</p>
+      <p>Dicetak secara otomatis oleh ${footerText}</p>
       <p style="margin-top: 2px;">Tanggal Cetak: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })} WIB</p>
       <br/>
       <p>Mengetahui,</p>
-      <p style="font-weight: 700; margin-top: 5px;">Dekan ${facName}</p>
-      <div style="margin-top: 45px; font-weight: 700; text-decoration: underline;">${facDekan}</div>
+      <p style="font-weight: 700; margin-top: 5px;">${titleResolved}</p>
+      <div style="margin-top: 45px; font-weight: 700; text-decoration: underline;">${nameResolved}</div>
     </div>
   </div>
-
   <script>
     window.onload = function() {
       setTimeout(function() {
@@ -274,7 +278,7 @@ export default function LaporanFakultasPage() {
       toast.error("Tidak ada data prodi untuk diekspor");
       return;
     }
-    
+
     let tableRows = "";
     data.perProdi.forEach(p => {
       tableRows += `
@@ -339,10 +343,7 @@ export default function LaporanFakultasPage() {
 
     try {
       toast.loading("Menyiapkan dokumen Laporan Prestasi...", { id: "prestasi-dl" });
-      const token = useAuthStore.getState().accessToken;
-      const res = await axios.get(`${API}/prestasi`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get(`${API}/prestasi`);
       if (res.data.status === "success") {
         const list = (res.data.data || []).map(a => {
           const m = a.mahasiswa || a.Mahasiswa || {};
@@ -366,11 +367,11 @@ export default function LaporanFakultasPage() {
 
         let tableRows = "";
         list.forEach((item, idx) => {
-          const statusLabel = item.Status === "verified" || item.Status === "terverifikasi" || item.Status === "disetujui" 
-            ? '<span class="badge badge-success">Terverifikasi</span>' 
+          const statusLabel = item.Status === "verified" || item.Status === "terverifikasi" || item.Status === "disetujui"
+            ? '<span class="badge badge-success">Terverifikasi</span>'
             : (item.Status || "").toLowerCase().includes("tolak") || item.Status === "rejected"
-            ? '<span class="badge badge-warning">Ditolak</span>'
-            : '<span class="badge badge-info">Menunggu</span>';
+              ? '<span class="badge badge-warning">Ditolak</span>'
+              : '<span class="badge badge-info">Menunggu</span>';
 
           tableRows += `
             <tr>
@@ -397,7 +398,7 @@ export default function LaporanFakultasPage() {
               <td style="padding-right: 0;">
                 <div class="meta-box">
                   <div class="meta-title">Tervalidasi Fakultas</div>
-                  <div class="meta-value">${list.filter(a => ["verified","terverifikasi","disetujui"].includes((a.Status||"").toLowerCase())).length} Pengajuan</div>
+                  <div class="meta-value">${list.filter(a => ["verified", "terverifikasi", "disetujui"].includes((a.Status || "").toLowerCase())).length} Pengajuan</div>
                 </div>
               </td>
             </tr>
@@ -452,10 +453,7 @@ export default function LaporanFakultasPage() {
 
     try {
       toast.loading("Menyiapkan dokumen Laporan Beasiswa...", { id: "beasiswa-dl" });
-      const token = useAuthStore.getState().accessToken;
-      const res = await axios.get(`${API}/scholarships`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get(`${API}/scholarships`);
       if (res.data.status === "success") {
         const list = (res.data.data || []).map(b => ({
           ...b,
@@ -534,21 +532,18 @@ export default function LaporanFakultasPage() {
 
     try {
       toast.loading("Menyiapkan dokumen Laporan Konseling...", { id: "konseling-dl" });
-      const token = useAuthStore.getState().accessToken;
-      const res = await axios.get(`${API}/counseling`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get(`${API}/counseling`);
       if (res.data.status === "success") {
         const list = (res.data.data || []).map(item => {
           const m = item.mahasiswa || item.Mahasiswa || {};
-          const p = item.psikolog  || item.Psikolog  || {};
+          const p = item.psikolog || item.Psikolog || {};
           return {
             ...item,
             Mahasiswa: { ...m, Nama: m.nama || m.Nama, NIM: m.nim || m.NIM },
-            Psikolog:  { ...p, Nama: p.nama || p.Nama },
+            Psikolog: { ...p, Nama: p.nama || p.Nama },
             Tanggal: item.tanggal || item.Tanggal,
             Keluhan: item.keluhan || item.Keluhan,
-            Status:  item.status  || item.Status,
+            Status: item.status || item.Status,
           };
         });
         if (list.length === 0) {
@@ -612,11 +607,11 @@ export default function LaporanFakultasPage() {
 
   useEffect(() => { setMounted(true); fetchData() }, [])
 
-  const prodiWithColors = (data.perProdi||[]).map((item,i)=>({...item, nama_prodi:item.nama_prodi||"Unknown", value:item.value||0, color:CHART_COLORS[i%CHART_COLORS.length]}))
+  const prodiWithColors = (data.perProdi || []).map((item, i) => ({ ...item, nama_prodi: item.nama_prodi || "Unknown", value: item.value || 0, color: CHART_COLORS[i % CHART_COLORS.length] }))
 
   return (
     <div className="min-h-screen bg-transparent font-inter">
-      <Toaster position="top-right"/>
+      <Toaster position="top-right" />
       <div className="w-full space-y-6">
 
         {/* ── Page Header ────────────────────────────────────────── */}
@@ -668,10 +663,10 @@ export default function LaporanFakultasPage() {
             <div className="flex flex-row lg:flex-col items-end gap-3 shrink-0 self-stretch lg:self-auto justify-between lg:justify-center border-t lg:border-t-0 pt-4 lg:pt-0 border-slate-100">
               <div className="flex items-center gap-2">
                 <button onClick={exportProdiPDF} className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 flex items-center gap-2">
-                  <Download size={13} className="text-primary"/> Ekspor PDF
+                  <Download size={13} className="text-primary" /> Ekspor PDF
                 </button>
                 <button onClick={fetchData} disabled={loading} className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-60 flex items-center gap-2">
-                  {loading?<span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '13px' }} >sync</span>:<RefreshCw size={13} className="text-primary"/>} Refresh Data
+                  {loading ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '13px' }} >sync</span> : <RefreshCw size={13} className="text-primary" />} Refresh Data
                 </button>
               </div>
             </div>
@@ -681,18 +676,18 @@ export default function LaporanFakultasPage() {
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           {[
-            {label:'Total Mahasiswa',    value:data.summary.total,                      icon:Users,      bg:'bg-[#eef4ff]',  color:'text-primary',    desc:'Terdaftar aktif'},
-            {label:'Capaian Prestasi',   value:data.summary.totalPrestasi,              icon:Award,      bg:'bg-emerald-50', color:'text-emerald-600', desc:'Kompetisi & penghargaan'},
-            {label:'Penerima Beasiswa',  value:data.summary.totalBeasiswa,              icon:Globe,      bg:'bg-indigo-50',  color:'text-indigo-600',  desc:'Bantuan finansial'},
-            {label:'Layanan Konseling',  value:data.summary.totalKonseling || 0,        icon:Psychology, bg:'bg-amber-50',   color:'text-amber-600',   desc:'Sesi konseling terdaftar'},
-            {label:'Rata-rata IPK',      value:data.summary.avgIPK ? data.summary.avgIPK.toFixed(2) : "0.00", icon:HeartPulse, bg:'bg-rose-50', color:'text-rose-600', desc:'IPK Rata-rata Fakultas'},
-          ].map(s=>(
+            { label: 'Total Mahasiswa', value: data.summary.total, icon: Users, bg: 'bg-[#eef4ff]', color: 'text-primary', desc: 'Terdaftar aktif' },
+            { label: 'Capaian Prestasi', value: data.summary.totalPrestasi, icon: Award, bg: 'bg-emerald-50', color: 'text-emerald-600', desc: 'Kompetisi & penghargaan' },
+            { label: 'Penerima Beasiswa', value: data.summary.totalBeasiswa, icon: Globe, bg: 'bg-indigo-50', color: 'text-indigo-600', desc: 'Bantuan finansial' },
+            { label: 'Layanan Konseling', value: data.summary.totalKonseling || 0, icon: Psychology, bg: 'bg-amber-50', color: 'text-amber-600', desc: 'Sesi konseling terdaftar' },
+            { label: 'Rata-rata IPK', value: data.summary.avgIPK ? data.summary.avgIPK.toFixed(2) : "0.00", icon: HeartPulse, bg: 'bg-rose-50', color: 'text-rose-600', desc: 'IPK Rata-rata Fakultas' },
+          ].map(s => (
             <div key={s.label} className="glass-card border border-slate-200/60 rounded-2xl p-5 shadow-none">
               <div className="flex items-center gap-3 mb-3">
-                <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center',s.bg,s.color)}><s.icon size={18}/></div>
+                <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', s.bg, s.color)}><s.icon size={18} /></div>
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</span>
               </div>
-              <p className="text-2xl font-extrabold text-slate-900 leading-none tabular-nums">{loading?<span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span>:s.value}</p>
+              <p className="text-2xl font-extrabold text-slate-900 leading-none tabular-nums">{loading ? <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span> : s.value}</p>
               <p className="text-xs text-slate-400 font-medium mt-1">{s.desc}</p>
             </div>
           ))}
@@ -707,12 +702,12 @@ export default function LaporanFakultasPage() {
               {isMounted && (
                 <ResponsiveContainer width="99%" height="100%" debounce={50}>
                   <BarChart data={data.perAngkatan} barGap={4}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--theme-border)"/>
-                    <XAxis dataKey="angkatan" axisLine={false} tickLine={false} tick={{fontSize:10,fontWeight:700}}/>
-                    <YAxis axisLine={false} tickLine={false} tick={{fontSize:10,fontWeight:700}}/>
-                    <Tooltip contentStyle={{borderRadius:'12px',border:'none',boxShadow:'0 10px 25px -5px rgba(0,0,0,.1)',fontSize:'11px',fontWeight:'bold'}} cursor={{fill:'#f8fafc'}}/>
-                    <Bar dataKey="aktif" name="Aktif" fill="var(--theme-primary)" radius={[4,4,0,0]} barSize={20}/>
-                    <Bar dataKey="lulus" name="Lulus" fill="#10b981" radius={[4,4,0,0]} barSize={20}/>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--theme-border)" />
+                    <XAxis dataKey="angkatan" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700 }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700 }} />
+                    <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,.1)', fontSize: '11px', fontWeight: 'bold' }} cursor={{ fill: '#f8fafc' }} />
+                    <Bar dataKey="aktif" name="Aktif" fill="var(--theme-primary)" radius={[4, 4, 0, 0]} barSize={20} />
+                    <Bar dataKey="lulus" name="Lulus" fill="#10b981" radius={[4, 4, 0, 0]} barSize={20} />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -728,17 +723,17 @@ export default function LaporanFakultasPage() {
                   <ResponsiveContainer width="99%" height="100%" debounce={50}>
                     <PieChart>
                       <Pie data={prodiWithColors} cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={2} dataKey="value">
-                        {prodiWithColors.map((entry,i)=><Cell key={i} fill={entry.color} stroke="none"/>)}
+                        {prodiWithColors.map((entry, i) => <Cell key={i} fill={entry.color} stroke="none" />)}
                       </Pie>
-                      <Tooltip contentStyle={{borderRadius:'12px',border:'none',boxShadow:'0 10px 25px -5px rgba(0,0,0,.1)',fontSize:'11px',fontWeight:'bold'}}/>
+                      <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,.1)', fontSize: '11px', fontWeight: 'bold' }} />
                     </PieChart>
                   </ResponsiveContainer>
                 )}
               </div>
               <div className="flex flex-col gap-2.5 min-w-[130px]">
-                {prodiWithColors.map((p,i)=>(
+                {prodiWithColors.map((p, i) => (
                   <div key={i} className="flex items-center gap-2.5">
-                    <div className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{backgroundColor:p.color}}/>
+                    <div className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: p.color }} />
                     <div>
                       <p className="text-[10px] font-black text-slate-900 uppercase tracking-tight truncate max-w-[110px]">{p.nama_prodi}</p>
                       <p className="text-[9px] text-slate-400 font-bold">{p.value} Mahasiswa</p>
@@ -752,13 +747,13 @@ export default function LaporanFakultasPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
-            {label:'Laporan Prestasi',  icon:Award,      bg:'bg-emerald-600', light:'bg-emerald-50', stat:`${data.summary.totalPrestasi} Capaian`,        desc:'Dataset kompetisi & penghargaan mahasiswa.',        handler: downloadPrestasiPDF},
-            {label:'Laporan Beasiswa',  icon:Globe,      bg:'bg-indigo-600',  light:'bg-indigo-50',  stat:`${data.summary.totalBeasiswa} Penerima`,         desc:'Transkrip penerima bantuan finansial.',             handler: downloadBeasiswaPDF},
-            {label:'Laporan Konseling', icon:Psychology, bg:'bg-rose-600',    light:'bg-rose-50',    stat:`${data.summary.totalKonseling || 0} Sesi`,        desc:'Monitoring layanan bimbingan & kesehatan psikologis.', handler: downloadKonselingPDF},
-          ].map((item,i)=>(
+            { label: 'Laporan Prestasi', icon: Award, bg: 'bg-emerald-600', light: 'bg-emerald-50', stat: `${data.summary.totalPrestasi} Capaian`, desc: 'Dataset kompetisi & penghargaan mahasiswa.', handler: downloadPrestasiPDF },
+            { label: 'Laporan Beasiswa', icon: Globe, bg: 'bg-indigo-600', light: 'bg-indigo-50', stat: `${data.summary.totalBeasiswa} Penerima`, desc: 'Transkrip penerima bantuan finansial.', handler: downloadBeasiswaPDF },
+            { label: 'Laporan Konseling', icon: Psychology, bg: 'bg-rose-600', light: 'bg-rose-50', stat: `${data.summary.totalKonseling || 0} Sesi`, desc: 'Monitoring layanan bimbingan & kesehatan psikologis.', handler: downloadKonselingPDF },
+          ].map((item, i) => (
             <div key={i} className="glass-card border border-slate-200/60 rounded-2xl p-5 shadow-none hover:shadow-lg transition-shadow">
               <div className="flex items-start justify-between mb-5">
-                <div className={cn('w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg',item.bg)}><item.icon size={20}/></div>
+                <div className={cn('w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg', item.bg)}><item.icon size={20} /></div>
                 <span className="text-[9px] font-black text-slate-400 bg-slate-50 px-2.5 py-1 rounded-lg uppercase tracking-wider">SEM-II 2024</span>
               </div>
               <h4 className="text-base font-extrabold font-headline mb-1" style={{ color: 'var(--theme-h4)' }}>{item.label}</h4>
@@ -768,7 +763,7 @@ export default function LaporanFakultasPage() {
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Master Data</p>
                   <p className="text-sm font-black text-slate-900 tabular-nums">{item.stat}</p>
                 </div>
-                <button onClick={item.handler} className="w-10 h-10 rounded-xl bg-[#171717] text-white flex items-center justify-center hover:bg-primary transition-colors active:scale-95"><Download size={15}/></button>
+                <button onClick={item.handler} className="w-10 h-10 rounded-xl bg-[#171717] text-white flex items-center justify-center hover:bg-primary transition-colors active:scale-95"><Download size={15} /></button>
               </div>
             </div>
           ))}
@@ -783,19 +778,19 @@ export default function LaporanFakultasPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead><tr className="border-b border-slate-200/60">
-                {['Program Studi','Mahasiswa Aktif','Lulusan','Rata-rata IPK'].map(h=>(
+                {['Program Studi', 'Mahasiswa Aktif', 'Lulusan', 'Rata-rata IPK'].map(h => (
                   <th key={h} className="px-5 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap">{h}</th>
                 ))}
               </tr></thead>
               <tbody>
-                {loading?Array.from({length:4}).map((_,i)=>(
-                  <tr key={i} className="border-b border-slate-100">{[...Array(4)].map((__,j)=><td key={j} className="px-5 py-4"><div className="h-4 bg-slate-50 rounded animate-pulse"/></td>)}</tr>
-                )):(data.perProdi||[]).map((row,i)=>(
+                {loading ? Array.from({ length: 4 }).map((_, i) => (
+                  <tr key={i} className="border-b border-slate-100">{[...Array(4)].map((__, j) => <td key={j} className="px-5 py-4"><div className="h-4 bg-slate-50 rounded animate-pulse" /></td>)}</tr>
+                )) : (data.perProdi || []).map((row, i) => (
                   <tr key={i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors">
                     <td className="px-5 py-3.5 font-bold text-sm text-slate-900">{row.nama_prodi}</td>
-                    <td className="px-5 py-3.5"><span className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1 rounded-lg text-xs font-black">{row.active||0}</span></td>
-                    <td className="px-5 py-3.5"><span className="bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 rounded-lg text-xs font-black">{row.graduated||0}</span></td>
-                    <td className="px-5 py-3.5 font-black text-sm text-slate-900 tabular-nums">{row.avgIPK?.toFixed(2)||'0.00'}</td>
+                    <td className="px-5 py-3.5"><span className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1 rounded-lg text-xs font-black">{row.active || 0}</span></td>
+                    <td className="px-5 py-3.5"><span className="bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 rounded-lg text-xs font-black">{row.graduated || 0}</span></td>
+                    <td className="px-5 py-3.5 font-black text-sm text-slate-900 tabular-nums">{row.avgIPK?.toFixed(2) || '0.00'}</td>
                   </tr>
                 ))}
               </tbody>

@@ -13,6 +13,7 @@ import { Modal, ModalBody, ModalFooter, ModalBtn } from '@/components/ui/Modal'
 import { toast, Toaster } from 'react-hot-toast'
 import { fetchWithAuth, API_BASE_URL } from '../../services/api'
 import useAuthStore from '../../store/useAuthStore'
+import { getOrmawaId } from '../../utils/getOrmawaId'
 
 const API = `${API_BASE_URL}/ormawa`
 
@@ -45,7 +46,7 @@ export default function Recruitment() {
   const [selectedApplicant, setSelectedApplicant] = useState(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
 
-  const ormawaId = useAuthStore.getState()?.user?.ormawa_id || useAuthStore.getState()?.user?.OrmawaID || useAuthStore.getState()?.mahasiswa?.ormawaId || 1
+  const ormawaId = getOrmawaId()
 
   const fetchSettings = async () => {
     try {

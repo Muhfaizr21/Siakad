@@ -1,6 +1,7 @@
 import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { usePengajuanDetailQuery } from '../../queries/useScholarshipQuery';
+import useAuthStore from '../../store/useAuthStore';
 
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -28,6 +29,7 @@ const STAGES = [
 export default function ScholarshipDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const user = useAuthStore(state => state.user);
   const { data, isLoading } = usePengajuanDetailQuery(id);
 
   if (isLoading) {
@@ -112,7 +114,13 @@ export default function ScholarshipDetailPage() {
       
       {/* Header */}
       <button 
-        onClick={() => navigate('/student/scholarship')}
+        onClick={() => {
+          if (user?.role === 'super_admin') {
+            navigate('/admin/student-beasiswa');
+          } else {
+            navigate('/student/scholarship');
+          }
+        }}
         className="group flex items-center gap-2 mb-8 text-text-muted hover:text-bku-text font-black uppercase tracking-widest text-[10px] transition-all"
       >
         <div className="w-8 h-8 rounded-xl border border-border group-hover:border-primary flex items-center justify-center transition-all">

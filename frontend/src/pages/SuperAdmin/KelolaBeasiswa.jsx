@@ -55,6 +55,13 @@ const StudentAvatar = ({ src, name, className = "w-9 h-9 rounded-xl" }) => {
 
 const formatDate = (d) => { try { return new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) } catch { return d } }
 const formatDateTime = (d) => { try { return new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB' } catch { return d } }
+const getShortFacultyName = (name) => {
+  if (!name || name === 'Tidak ada data') return '—'
+  return name
+    .replace(/Fakultas\s+/i, '')
+    .replace(/Sains\s+dan\s+Teknologi/i, 'Sains & Tek')
+    .replace(/Sains\s+&\s+Teknologi/i, 'Sains & Tek')
+}
 
 const APP_STATUS = {
   diterima: { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500', label: 'Diterima' },
@@ -934,6 +941,29 @@ export default function KelolaBeasiswa() {
       .sort((a, b) => b.value - a.value)
   }, [appsData])
 
+  const facultyApplicants = React.useMemo(() => {
+    const counts = {}
+    appsData.forEach(a => {
+      const fac = a._fakultas || 'Lainnya'
+      counts[fac] = (counts[fac] || 0) + 1
+    })
+    return Object.entries(counts)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+  }, [appsData])
+
+  const highestApplicantFaculty = React.useMemo(() => {
+    if (facultyApplicants.length === 0) return { name: 'Tidak ada data', count: 0 }
+    const top = facultyApplicants[0]
+    return { name: top.name, count: top.value }
+  }, [facultyApplicants])
+
+  const lowestApplicantFaculty = React.useMemo(() => {
+    if (facultyApplicants.length === 0) return { name: 'Tidak ada data', count: 0 }
+    const bot = facultyApplicants[facultyApplicants.length - 1]
+    return { name: bot.name, count: bot.value }
+  }, [facultyApplicants])
+
   const highestAbsorbingFaculty = React.useMemo(() => {
     if (facultyAbsorption.length === 0) return '—'
     return facultyAbsorption[0].name
@@ -1144,52 +1174,77 @@ export default function KelolaBeasiswa() {
         </section>
 
         {/* ── Stats Grid ──────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 md:gap-6">
-           <StatCard 
-            label="Total Program"
-            value={stats.totalPrograms}
-            description="Program beasiswa aktif"
-            icon="emoji_events"
-            color="text-primary"
-            bg="bg-primary/10"
-            loading={loading}
-           />
-           <StatCard 
-            label="Antrian Verifikasi"
-            value={stats.pendingApps}
-            description="Pendaftar butuh review"
-            icon="show_chart"
-            color="text-warning"
-            bg="bg-warning/10"
-            loading={appsLoading}
-           />
-           <StatCard 
-            label="Penerima Beasiswa"
-            value={stats.activeAwardees}
-            description="Mahasiswa tersalurkan"
-            icon="group"
-            color="text-success"
-            bg="bg-success/10"
-            loading={appsLoading}
-           />
-           <StatCard 
-            label="Total Anggaran"
-            value={formatCurrency(stats.totalBudget)}
-            description="Proyeksi dana global"
-            icon="payments"
-            color="text-info"
-            bg="bg-info/10"
-            loading={loading}
-           />
-           <StatCard 
-            label="Realisasi Anggaran"
-            value={formatCurrency(absorbedBudget)}
-            description={`${absorptionRate}% Anggaran terserap`}
-            icon="account_balance_wallet"
-            color="text-emerald-600"
-            bg="bg-emerald-50"
-            loading={appsLoading}
-           />
+        <div className="space-y-4 md:space-y-5">
+          {/* Row 1: Utama (5 Cards) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 md:gap-5">
+             <StatCard 
+              label="Total Program"
+              value={stats.totalPrograms}
+              description="Program beasiswa aktif"
+              icon="emoji_events"
+              color="text-primary"
+              bg="bg-primary/10"
+              loading={loading}
+             />
+             <StatCard 
+              label="Antrian Verifikasi"
+              value={stats.pendingApps}
+              description="Pendaftar butuh review"
+              icon="show_chart"
+              color="text-warning"
+              bg="bg-warning/10"
+              loading={appsLoading}
+             />
+             <StatCard 
+              label="Penerima Beasiswa"
+              value={stats.activeAwardees}
+              description="Mahasiswa tersalurkan"
+              icon="group"
+              color="text-success"
+              bg="bg-success/10"
+              loading={appsLoading}
+             />
+             <StatCard 
+              label="Total Anggaran"
+              value={formatCurrency(stats.totalBudget)}
+              description="Proyeksi dana global"
+              icon="payments"
+              color="text-info"
+              bg="bg-info/10"
+              loading={loading}
+             />
+             <StatCard 
+              label="Realisasi Anggaran"
+              value={formatCurrency(absorbedBudget)}
+              description={`${absorptionRate}% Anggaran terserap`}
+              icon="account_balance_wallet"
+              color="text-emerald-600"
+              bg="bg-emerald-50"
+              loading={appsLoading}
+             />
+          </div>
+
+          {/* Row 2: Faculty Insights (2 Cards) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+             <StatCard 
+              label="Pendaftar Terbanyak"
+              value={getShortFacultyName(highestApplicantFaculty.name)}
+              description={`${highestApplicantFaculty.count} Pendaftar`}
+              icon="trending_up"
+              color="text-primary"
+              bg="bg-primary/10"
+              loading={appsLoading}
+             />
+             <StatCard 
+              label="Pendaftar Terendah"
+              value={getShortFacultyName(lowestApplicantFaculty.name)}
+              description={`${lowestApplicantFaculty.count} Pendaftar`}
+              icon="trending_down"
+              color="text-rose-600"
+              bg="bg-rose-50"
+              loading={appsLoading}
+             />
+          </div>
         </div>
 
         {/* ── Charts Section ──────────────────────────────────────── */}

@@ -264,17 +264,57 @@ func HapusBeasiswa(c *fiber.Ctx) error {
 func AmbilPendaftarBeasiswa(c *fiber.Ctx) error {
 	role := c.Locals("role").(string)
 	fid := c.Locals("fakultas_id").(uint)
+	var pid uint
+	var tahunMasuk int
+
+	// Fallback to headers for SuperAdmin or dynamic scope filtering
+	headerFid := c.Get("X-Faculty-ID")
+	if headerFid != "" && headerFid != "undefined" && headerFid != "null" && headerFid != "all" {
+		if parsedFid, err := strconv.ParseUint(headerFid, 10, 32); err == nil {
+			fid = uint(parsedFid)
+			if role == "super_admin" {
+				role = "faculty_admin"
+			}
+		}
+	}
+
+	headerPid := c.Get("X-Prodi-ID")
+	if headerPid != "" && headerPid != "undefined" && headerPid != "null" && headerPid != "all" {
+		if parsedPid, err := strconv.ParseUint(headerPid, 10, 32); err == nil {
+			pid = uint(parsedPid)
+			role = "prodi_admin"
+		}
+	}
+
+	headerPeriodId := c.Get("X-Academic-Period-ID")
+	if headerPeriodId != "" && headerPeriodId != "undefined" && headerPeriodId != "null" && headerPeriodId != "all" {
+		if parsedPeriodId, err := strconv.ParseUint(headerPeriodId, 10, 32); err == nil {
+			var selectedPeriod models.AcademicPeriod
+			if err := config.DB.First(&selectedPeriod, parsedPeriodId).Error; err == nil {
+				var year int
+				fmt.Sscanf(selectedPeriod.AcademicYear, "%d", &year)
+				if year > 0 {
+					tahunMasuk = year
+				}
+			}
+		}
+	}
 
 	var pendaftar = []models.BeasiswaPendaftaran{}
-	query := config.DB.Preload("Beasiswa").Preload("Mahasiswa.ProgramStudi")
+	query := config.DB.Preload("Beasiswa").Preload("Mahasiswa.ProgramStudi").Preload("Mahasiswa.Fakultas")
 
 	if role == "faculty_admin" {
 		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.beasiswa_pendaftaran.mahasiswa_id").
 			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid)
 	} else if role == "prodi_admin" {
-		pid, _ := c.Locals("program_studi_id").(uint)
 		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.beasiswa_pendaftaran.mahasiswa_id").
 			Where("mahasiswa.mahasiswa.fakultas_id = ? AND mahasiswa.mahasiswa.program_studi_id = ?", fid, pid)
+	} else if role == "super_admin" {
+		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.beasiswa_pendaftaran.mahasiswa_id")
+	}
+
+	if tahunMasuk > 0 {
+		query = query.Where("mahasiswa.mahasiswa.tahun_masuk = ?", tahunMasuk)
 	}
 
 	query.Find(&pendaftar)

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { cn } from '@/lib/utils';
 
 /**
  * DataTable — Table standar dengan search, pagination, dan action menu
@@ -92,7 +93,7 @@ export default function DataTable({
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider"
+                  className={cn("px-4 py-3 text-left text-xs font-bold uppercase tracking-wider", col.className)}
                   style={{ color: 'var(--theme-h4)' }}
                 >
                   {col.label}
@@ -111,7 +112,7 @@ export default function DataTable({
               Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i} className="border-t" style={{ borderColor: 'var(--theme-border-muted)' }}>
                   {columns.map((col) => (
-                    <td key={col.key} className="px-4 py-3">
+                    <td key={col.key} className={cn("px-4 py-3", col.className, col.cellClassName)}>
                       <div
                         className="h-4 rounded animate-pulse"
                         style={{ backgroundColor: 'var(--theme-border-muted)', width: `${60 + Math.random() * 40}%` }}
@@ -148,7 +149,7 @@ export default function DataTable({
                   {columns.map((col) => (
                     <td
                       key={col.key}
-                      className="px-4 py-3 text-sm"
+                      className={cn("px-4 py-3 text-sm", col.className, col.cellClassName)}
                       style={{ color: 'var(--theme-text)' }}
                     >
                       {col.render ? col.render(row[col.key], row) : row[col.key]}
