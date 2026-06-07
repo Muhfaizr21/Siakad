@@ -9,6 +9,8 @@ import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
+import { PageContent } from '@/components/ui/page'
+import { DashboardHero } from '@/components/ui/dashboard'
 
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
@@ -243,28 +245,22 @@ export default function ProdiUsers() {
 
   // ── render ──
   return (
-    <div className="space-y-6 pb-10">
+    <PageContent>
       <Toaster position="top-right" />
-
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-extrabold text-neutral-900 tracking-tight flex items-center gap-2.5">
-            <span className="material-symbols-outlined text-blue-600" style={{ fontSize: 28 }}>manage_accounts</span>
-            Kelola Akun Prodi
-          </h1>
-          <p className="text-sm text-neutral-500 mt-1">
-            Buat, ubah, dan kelola akun administrator program studi di bawah fakultas Anda.
-          </p>
-        </div>
-        <Button
-          onClick={() => { setForm(emptyForm); setIsCreateOpen(true) }}
-          className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg shadow-blue-200/50 text-sm px-5 py-2.5 rounded-xl font-semibold flex items-center gap-2 transition-all hover:scale-[1.02]"
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>person_add</span>
-          Tambah Akun
-        </Button>
-      </div>
+        <DashboardHero
+          title="Kelola Akun Prodi"
+          subtitle="Buat, ubah, dan kelola akun administrator program studi di bawah fakultas Anda."
+          icon="manage_accounts"
+          actions={
+            <Button
+              onClick={() => { setForm(emptyForm); setIsCreateOpen(true) }}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg shadow-blue-200/50 text-sm px-5 py-2.5 rounded-xl font-semibold flex items-center gap-2 transition-all hover:scale-[1.02]"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>person_add</span>
+              Tambah Akun
+            </Button>
+          }
+        />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -506,6 +502,6 @@ export default function ProdiUsers() {
         description={`Apakah Anda yakin ingin menghapus akun "${selected?.email}"? Akun yang dihapus tidak dapat dikembalikan.`}
         loading={submitting}
       />
-    </div>
+    </PageContent>
   )
 }

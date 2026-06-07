@@ -7,6 +7,7 @@ import {
   useCreateVoiceMutation,
   useCancelVoiceMutation
 } from '../../queries/useStudentVoiceQuery';
+import { PageContent, PageHeader } from '@/components/ui/page';
 import { Skeleton } from '@/components/ui/Skeleton';
 import toast from 'react-hot-toast';
 import { Link, NavLink } from 'react-router-dom';
@@ -49,39 +50,27 @@ export default function StudentVoicePage() {
   };
 
   return (
-    <div className="min-h-screen bg-transparent text-bku-text font-body px-4 py-5 md:px-6 md:py-6 lg:px-8 lg:py-8 transition-all duration-300">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm font-medium text-text-muted mb-6">
-        <NavLink to="/student/dashboard" className="hover:text-bku-primary cursor-pointer transition-colors">Dashboard</NavLink>
-        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>chevron_right</span>
-        <span className="text-bku-text">Suara Mahasiswa</span>
-      </div>
+    <PageContent className="font-body">
+      <PageHeader 
+        title="Suara Mahasiswa"
+        subtitle="Sampaikan aspirasi, saran, dan pengaduanmu kepada kampus untuk BKU yang lebih baik."
+        icon="chat"
+        breadcrumbs={[
+          { label: 'Dashboard', path: '/student/dashboard' },
+          { label: 'Suara Mahasiswa', path: '/student/voice' }
+        ]}
+        action={
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center justify-center gap-2 px-5 py-3 bg-[var(--theme-primary)] text-white font-bold rounded-xl hover:opacity-90 transition-all shadow-md shadow-[var(--theme-primary)]/20 text-sm group"
+          >
+            <span className="material-symbols-outlined group-hover:rotate-90 transition-transform duration-300" style={{ fontSize: '18px' }}>add</span>
+            Sampaikan Aspirasi Baru
+          </button>
+        }
+      />
 
       <div className="max-w-7xl mx-auto">
-        {/* Header Section */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 mb-8">
-          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-            <h1 className="text-2xl md:text-3xl font-black font-headline tracking-tight mb-2 flex items-center gap-3">
-              <div className="bg-bku-primary p-2 rounded-xl text-white shadow-md shadow-bku-primary/20">
-                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}  strokeWidth={2.5}>chat</span>
-              </div>
-              Suara Mahasiswa
-            </h1>
-            <p className="text-text-muted font-medium text-sm md:text-base max-w-xl">
-              Sampaikan aspirasi, saran, dan pengaduanmu kepada kampus untuk BKU yang lebih baik.
-            </p>
-          </motion.div>
-
-          <motion.button 
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center justify-center gap-2 px-5 py-3 bg-bku-primary text-white font-bold rounded-xl hover:opacity-90 transition-all shadow-md shadow-bku-primary/20 text-sm group"
-          >
-            <span className="material-symbols-outlined group-hover:rotate-90 transition-transform duration-300" style={{ fontSize: '18px' }}  strokeWidth={2.8}>add</span>
-            Sampaikan Aspirasi Baru
-          </motion.button>
-        </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -89,8 +78,8 @@ export default function StudentVoicePage() {
             [...Array(4)].map((_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)
           ) : (
             <>
-              <StatCard label="Total Diajukan" value={stats?.total || 0} color="border-border" icon={<span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '18px' }} >chat</span>} bg="bg-surface" />
-              <StatCard label="Di Fakultas" value={stats?.di_fakultas || 0} color="border-primary/20" icon={<span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '18px' }} >schedule</span>} bg="bg-primary/5" />
+              <StatCard label="Total Diajukan" value={stats?.total || 0} color="border-border" icon={<span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '18px' }} >chat</span>} bg="bg-surface" />
+              <StatCard label="Di Fakultas" value={stats?.di_fakultas || 0} color="border-primary/20" icon={<span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '18px' }} >schedule</span>} bg="bg-primary/5" />
               <StatCard label="Di Universitas" value={stats?.di_universitas || 0} color="border-secondary/20" icon={<span className="material-symbols-outlined text-secondary" style={{ fontSize: '18px' }}>security</span>} bg="bg-secondary/5" />
               <StatCard label="Selesai" value={stats?.selesai || 0} color="border-success/20" icon={<span className="material-symbols-outlined text-success" style={{ fontSize: '20px' }} >check_circle</span>} bg="bg-success/5" />
             </>
@@ -98,19 +87,19 @@ export default function StudentVoicePage() {
         </div>
 
         {/* List Section */}
-        <div className="bg-surface rounded-3xl border border-border shadow-sm overflow-hidden mb-8">
+        <div className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden mb-8">
           <div className="px-5 md:px-6 py-5 border-b border-border-muted flex flex-col md:flex-row md:items-center justify-between gap-4">
             <h2 className="text-xl md:text-2xl font-black font-headline tracking-tight">Riwayat Aspirasi Kamu</h2>
             <div className="flex items-center gap-4">
               <div className="relative group">
-                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-bku-primary transition-colors" style={{ fontSize: '18px' }} >search</span>
+                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-[var(--theme-primary)] transition-colors" style={{ fontSize: '18px' }} >search</span>
                 <input 
                   type="text" 
                   placeholder="Cari nomor tiket / judul..." 
-                  className="pl-12 pr-4 py-2.5 bg-background border border-border text-bku-text rounded-xl text-sm font-semibold focus:outline-none focus:border-bku-primary focus:ring-4 focus:ring-bku-primary/10 transition-all w-full md:w-64"
+                  className="pl-12 pr-4 py-2.5 bg-background border border-border text-bku-text rounded-xl text-sm font-semibold focus:outline-none focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-[var(--theme-primary)]/10 transition-all w-full md:w-64"
                 />
               </div>
-              <button className="p-2.5 bg-background border border-border text-text-muted hover:text-bku-primary transition-all">
+              <button className="p-2.5 bg-background border border-border text-text-muted hover:text-[var(--theme-primary)] transition-all">
                 <Filter size={20} />
               </button>
             </div>
@@ -173,7 +162,7 @@ export default function StudentVoicePage() {
                           )}
                           <Link 
                             to={`/student/voice/tiket/${ticket.id}`}
-                            className="w-9 h-9 rounded-xl bg-surface border border-border flex items-center justify-center text-bku-primary hover:bg-bku-primary hover:text-white transition-all shadow-sm"
+                            className="w-9 h-9 rounded-xl bg-surface border border-border flex items-center justify-center text-[var(--theme-primary)] hover:bg-[var(--theme-primary)] hover:text-white transition-all shadow-sm"
                           >
                             <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >arrow_forward</span>
                           </Link>
@@ -207,7 +196,7 @@ export default function StudentVoicePage() {
                     key={i} 
                     onClick={() => setPage(i + 1)}
                     className={`w-9 h-9 rounded-xl text-xs font-black transition-all ${
-                      page === (i + 1) ? 'bg-bku-primary text-white' : 'bg-background text-text-muted border border-border hover:text-bku-primary'
+                      page === (i + 1) ? 'bg-[var(--theme-primary)] text-white' : 'bg-background text-text-muted border border-border hover:text-[var(--theme-primary)]'
                     }`}
                   >
                     {i + 1}
@@ -224,7 +213,7 @@ export default function StudentVoicePage() {
           <CreateAspirasiModal onClose={() => setIsModalOpen(false)} />
         )}
       </AnimatePresence>
-    </div>
+    </PageContent>
   );
 }
 
@@ -322,20 +311,20 @@ function CreateAspirasiModal({ onClose }) {
       <motion.div 
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         onClick={onClose}
-        className="absolute inset-0 bg-bku-primary/45 backdrop-blur-sm"
+        className="absolute inset-0 bg-[var(--theme-primary)]/45 backdrop-blur-sm"
       />
       <motion.div 
         initial={{ opacity: 0, scale: 0.9, y: 30 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.9, y: 30 }}
-        className="relative bg-surface border border-border w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+        className="relative bg-surface border border-border w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
       >
         <div className="p-5 md:p-6 border-b border-border flex items-center justify-between">
           <div>
             <h3 className="text-xl md:text-2xl font-black font-headline tracking-tight text-bku-text">Sampaikan Aspirasimu</h3>
             <p className="text-sm font-bold text-text-muted uppercase mt-1">Gunakan kata-kata yang bijak & membangun</p>
           </div>
-          <button onClick={onClose} className="p-2.5 bg-background border border-border rounded-xl text-text-muted hover:text-bku-primary"><span className="material-symbols-outlined" style={{ fontSize: '20px' }} >close</span></button>
+          <button onClick={onClose} className="p-2.5 bg-background border border-border rounded-xl text-text-muted hover:text-[var(--theme-primary)]"><span className="material-symbols-outlined" style={{ fontSize: '20px' }} >close</span></button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 md:p-6 overflow-y-auto custom-scrollbar space-y-6">
@@ -350,8 +339,8 @@ function CreateAspirasiModal({ onClose }) {
                   onClick={() => setFormData({ ...formData, kategori: cat.id })}
                   className={`px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-wide transition-all border ${
                     formData.kategori === cat.id 
-                    ? 'border-bku-primary bg-primary/10 text-primary shadow-sm' 
-                    : 'border-border text-text-muted hover:border-bku-primary hover:text-bku-primary'
+                    ? 'border-[var(--theme-primary)] bg-primary/10 text-primary shadow-sm' 
+                    : 'border-border text-text-muted hover:border-[var(--theme-primary)] hover:text-[var(--theme-primary)]'
                   }`}
                 >
                   {cat.label}
@@ -366,7 +355,7 @@ function CreateAspirasiModal({ onClose }) {
             <select
               value={formData.tujuan}
               onChange={(e) => setFormData({ ...formData, tujuan: e.target.value })}
-              className="w-full px-4 py-3 bg-background border border-border text-bku-text rounded-xl font-bold text-sm focus:outline-none focus:border-bku-primary focus:ring-4 focus:ring-bku-primary/10 transition-all outline-none"
+              className="w-full px-4 py-3 bg-background border border-border text-bku-text rounded-xl font-bold text-sm focus:outline-none focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-[var(--theme-primary)]/10 transition-all outline-none"
             >
               <option value="Fakultas">Fakultas</option>
               <option value="Universitas">Universitas</option>
@@ -387,7 +376,7 @@ function CreateAspirasiModal({ onClose }) {
               <input 
                 type="text" 
                 placeholder="Tuliskan inti dari aspirasimu..."
-                className="w-full px-4 py-3 bg-background border border-border text-bku-text rounded-xl font-bold text-base focus:outline-none focus:border-bku-primary focus:ring-4 focus:ring-bku-primary/10 transition-all"
+                className="w-full px-4 py-3 bg-background border border-border text-bku-text rounded-xl font-bold text-base focus:outline-none focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-[var(--theme-primary)]/10 transition-all"
                 value={formData.judul}
                 onChange={(e) => setFormData({ ...formData, judul: e.target.value })}
                 required
@@ -405,7 +394,7 @@ function CreateAspirasiModal({ onClose }) {
               <textarea 
                 rows={6}
                 placeholder="Ceritakan secara detail aspirasi, saran, atau keluhan kamu..."
-                className="w-full px-4 py-3 bg-background border border-border text-bku-text rounded-xl font-medium text-sm md:text-base focus:outline-none focus:border-bku-primary focus:ring-4 focus:ring-bku-primary/10 transition-all resize-none"
+                className="w-full px-4 py-3 bg-background border border-border text-bku-text rounded-xl font-medium text-sm md:text-base focus:outline-none focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-[var(--theme-primary)]/10 transition-all resize-none"
                 value={formData.isi}
                 onChange={(e) => setFormData({ ...formData, isi: e.target.value })}
                 required
@@ -423,11 +412,11 @@ function CreateAspirasiModal({ onClose }) {
                     className="absolute inset-0 opacity-0 cursor-pointer z-10"
                     accept=".pdf,.jpg,.jpeg,.png"
                   />
-                  <div className="flex items-center justify-between px-4 py-3 bg-background border border-dashed border-border rounded-xl group-hover/upload:border-bku-primary transition-all">
+                  <div className="flex items-center justify-between px-4 py-3 bg-background border border-dashed border-border rounded-xl group-hover/upload:border-[var(--theme-primary)] transition-all">
                     <span className="text-sm font-bold text-text-muted truncate">
                       {formData.lampiran ? formData.lampiran.name : 'Pilih File (Max 5MB)'}
                     </span>
-                    <span className="material-symbols-outlined text-text-muted group-hover/upload:text-bku-primary" style={{ fontSize: '18px' }} >upload</span>
+                    <span className="material-symbols-outlined text-text-muted group-hover/upload:text-[var(--theme-primary)]" style={{ fontSize: '18px' }} >upload</span>
                   </div>
                 </div>
               </div>
@@ -438,17 +427,17 @@ function CreateAspirasiModal({ onClose }) {
                   type="button"
                   onClick={() => setFormData({ ...formData, is_anonim: !formData.is_anonim })}
                   className={`flex items-center justify-between w-full px-4 py-3 rounded-xl border transition-all ${
-                    formData.is_anonim ? 'bg-bku-primary border-bku-primary text-white' : 'bg-background border-border text-bku-text'
+                    formData.is_anonim ? 'bg-[var(--theme-primary)] border-[var(--theme-primary)] text-white' : 'bg-background border-border text-bku-text'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-xl ${formData.is_anonim ? 'bg-white/20' : 'bg-white shadow-sm'}`}>
+                    <div className={`p-2 rounded-xl ${formData.is_anonim ? 'bg-white/20' : 'bg-surface shadow-sm'}`}>
                       <User size={18} className={formData.is_anonim ? 'text-white' : 'text-text-muted'} />
                     </div>
                     <span className="text-sm font-black uppercase tracking-wide">Kirim Anonim?</span>
                   </div>
                   <div className={`w-10 h-5 rounded-full relative transition-all ${formData.is_anonim ? 'bg-primary/50' : 'bg-border'}`}>
-                    <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${formData.is_anonim ? 'left-6' : 'left-1'}`} />
+                    <div className={`absolute top-1 w-3 h-3 bg-surface rounded-full transition-all ${formData.is_anonim ? 'left-6' : 'left-1'}`} />
                   </div>
                 </button>
               </div>
@@ -471,14 +460,14 @@ function CreateAspirasiModal({ onClose }) {
             <button 
               type="button" 
               onClick={onClose}
-              className="flex-1 py-3 bg-surface border border-border text-text-muted font-black rounded-xl hover:bg-background hover:text-bku-primary hover:border-bku-primary transition-all uppercase tracking-wide text-xs"
+              className="flex-1 py-3 bg-surface border border-border text-text-muted font-black rounded-xl hover:bg-background hover:text-[var(--theme-primary)] hover:border-[var(--theme-primary)] transition-all uppercase tracking-wide text-xs"
             >
               Batal
             </button>
             <button 
               type="submit"
               disabled={createMutation.isPending || formData.judul === '' || formData.isi.length < 50}
-              className="flex-[2] py-3 bg-bku-primary text-white font-black rounded-xl hover:opacity-90 transition-all shadow-md shadow-bku-primary/20 text-sm uppercase tracking-wide flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
+              className="flex-[2] py-3 bg-[var(--theme-primary)] text-white font-black rounded-xl hover:opacity-90 transition-all shadow-md shadow-[var(--theme-primary)]/20 text-sm uppercase tracking-wide flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
             >
               {createMutation.isPending ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

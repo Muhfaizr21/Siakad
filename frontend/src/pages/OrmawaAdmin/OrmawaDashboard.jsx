@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo } from 'react';
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent } from '@/components/ui/Card'
@@ -52,7 +52,7 @@ export default function OrmawaDashboard() {
   const [identity, setIdentity] = useState({ Nama: 'Portal Ormawa' })
   const [gamifikasi, setGamifikasi] = useState({ poin: 0, peringkat: 0, total_ormawa: 0, riwayat: [] })
   const [gamifikasiTab, setGamifikasiTab] = useState('history') // 'history' or 'rules'
-  
+
   const navigate = useNavigate()
   const user = useAuthStore(state => state.user)
   const ormawaId = getOrmawaId()
@@ -129,14 +129,14 @@ export default function OrmawaDashboard() {
       .map(p => ({ name: p.Judul?.substring(0, 15) || 'Proposal', value: p.Anggaran || 0 }))
   }, [proposals])
 
-  const PIE_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
+  const PIE_COLORS = ['var(--theme-primary)', 'var(--theme-secondary)', 'var(--theme-warning)', 'var(--theme-error)', 'var(--theme-info)', 'var(--theme-success)']
 
   const statCards = [
-    { label: 'Total Proposal', value: stats.totalProposals || proposals.length, icon: 'description', colorClass: 'text-primary', bgClass: 'bg-primary/10 border-primary/20 border', accentGradient: 'from-primary/10', route: '/ormawa/proposal', badge: { text: 'Live', icon: 'show_chart' } },
-    { label: 'Total Anggota', value: stats.totalMembers || members.length, icon: 'group', colorClass: 'text-secondary', bgClass: 'bg-secondary/10 border-secondary/20 border', accentGradient: 'from-secondary/10', route: '/ormawa/anggota', badge: { text: 'Live', icon: 'show_chart' } },
-    { label: 'PAGU', value: formatRp(stats.totalKas), icon: 'attach_money', colorClass: 'text-success', bgClass: 'bg-success/10 border-success/20 border', accentGradient: 'from-success/10', route: '/ormawa/keuangan', badge: { text: 'Live', icon: 'show_chart' } },
-    { label: 'Kegiatan Aktif', value: stats.totalEvents || events.length, icon: 'calendar_today', colorClass: 'text-warning', bgClass: 'bg-warning/10 border-warning/20 border', accentGradient: 'from-warning/10', route: '/ormawa/jadwal', badge: { text: 'Live', icon: 'show_chart' } },
-    { label: 'Approval Rate', value: `${approvalRate}%`, icon: 'checklist', colorClass: 'text-indigo-600', bgClass: 'bg-indigo-50 border-indigo-200 border', accentGradient: 'from-indigo-500/10', route: '/ormawa/proposal', badge: { text: proposals.length > 0 ? `${proposals.filter(p => ['disetujui_fakultas','disetujui_univ','selesai'].includes(p.Status)).length}/${proposals.length}` : '0/0', icon: 'trending_up' } },
+    { label: 'Total Proposal', value: stats.totalProposals || proposals.length, icon: 'description', colorClass: 'text-[var(--theme-primary)]', bgClass: 'bg-[var(--theme-primary-light)] border-[var(--theme-primary)]/20 border', accentGradient: 'from-[var(--theme-primary-light)]', route: '/ormawa/proposal', badge: { text: 'Live', icon: 'show_chart' } },
+    { label: 'Total Anggota', value: stats.totalMembers || members.length, icon: 'group', colorClass: 'text-[var(--theme-secondary)]', bgClass: 'bg-[var(--theme-secondary-light)] border-[var(--theme-secondary)]/20 border', accentGradient: 'from-[var(--theme-secondary-light)]', route: '/ormawa/anggota', badge: { text: 'Live', icon: 'show_chart' } },
+    { label: 'PAGU', value: formatRp(stats.totalKas), icon: 'attach_money', colorClass: 'text-[var(--theme-success)]', bgClass: 'bg-[var(--theme-success-light)] border-[var(--theme-success)]/20 border', accentGradient: 'from-[var(--theme-success-light)]', route: '/ormawa/keuangan', badge: { text: 'Live', icon: 'show_chart' } },
+    { label: 'Kegiatan Aktif', value: stats.totalEvents || events.length, icon: 'calendar_today', colorClass: 'text-[var(--theme-warning)]', bgClass: 'bg-[var(--theme-warning-light)] border-[var(--theme-warning)]/20 border', accentGradient: 'from-[var(--theme-warning-light)]', route: '/ormawa/jadwal', badge: { text: 'Live', icon: 'show_chart' } },
+    { label: 'Approval Rate', value: `${approvalRate}%`, icon: 'checklist', colorClass: 'text-[var(--theme-info)]', bgClass: 'bg-[var(--theme-info-light)] border-[var(--theme-info)]/20 border', accentGradient: 'from-[var(--theme-info-light)]', route: '/ormawa/proposal', badge: { text: proposals.length > 0 ? `${proposals.filter(p => ['disetujui_fakultas','disetujui_univ','selesai'].includes(p.Status)).length}/${proposals.length}` : '0/0', icon: 'trending_up' } },
   ]
 
   const firstName = user?.Email?.split('@')[0] || 'Admin';
@@ -189,9 +189,9 @@ export default function OrmawaDashboard() {
         <>
           {/* WHEN → Line: Aktivitas Bulanan (full width) */}
           {monthlyActivityData.length > 0 && (
-            <div className="bg-white border border-[var(--theme-border)] rounded-2xl p-5 shadow-sm">
+            <div className="bg-[var(--theme-surface)] border border-border rounded-2xl p-5 shadow-sm">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 shrink-0">
+                <div className="w-10 h-10 bg-[var(--theme-primary-light)] rounded-xl flex items-center justify-center text-[var(--theme-primary)] shrink-0">
                   <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>trending_up</span>
                 </div>
                 <span className="text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest font-headline">Aktivitas Bulanan</span>
@@ -199,12 +199,12 @@ export default function OrmawaDashboard() {
               <div className="h-[200px] w-full">
                 <ResponsiveContainer width="100%" height={200}>
                   <LineChart data={monthlyActivityData} margin={{ top: 10, right: 20, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="month" tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                    <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                    <Tooltip contentStyle={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '11px', fontWeight: 'bold' }} />
-                    <Line type="monotone" dataKey="proposal" name="Proposal" stroke="#3b82f6" strokeWidth={2.5} dot={{ r: 3 }} />
-                    <Line type="monotone" dataKey="kegiatan" name="Kegiatan" stroke="#10b981" strokeWidth={2.5} dot={{ r: 3 }} />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--theme-border)" />
+                    <XAxis dataKey="month" tick={{ fontSize: 9, fontWeight: 700, fill: 'var(--theme-text-subtle)' }} axisLine={false} tickLine={false} />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: 'var(--theme-text-subtle)' }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={{ background: 'var(--theme-surface)', border: '1px solid var(--theme-border)', borderRadius: '16px', fontSize: '11px', fontWeight: 'bold', color: 'var(--theme-text)' }} />
+                    <Line type="monotone" dataKey="proposal" name="Proposal" stroke="var(--theme-primary)" strokeWidth={2.5} dot={{ r: 3 }} />
+                    <Line type="monotone" dataKey="kegiatan" name="Kegiatan" stroke="var(--theme-secondary)" strokeWidth={2.5} dot={{ r: 3 }} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -214,9 +214,9 @@ export default function OrmawaDashboard() {
           {/* WHAT + WHO: 3 charts grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* WHAT → Pie: Status Proposal */}
-            <div className="bg-white border border-[var(--theme-border)] rounded-2xl p-5 shadow-sm">
+            <div className="bg-[var(--theme-surface)] border border-border rounded-2xl p-5 shadow-sm">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 shrink-0">
+                <div className="w-10 h-10 bg-[var(--theme-info-light)] rounded-xl flex items-center justify-center text-[var(--theme-info)] shrink-0">
                   <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>pie_chart</span>
                 </div>
                 <span className="text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest font-headline">Status Proposal</span>
@@ -231,15 +231,15 @@ export default function OrmawaDashboard() {
                       <Tooltip />
                     </PieChart>
                   </ResponsiveContainer>
-                ) : <span className="text-xs text-slate-400 italic">Belum ada proposal</span>}
+                ) : <span className="text-xs text-[var(--theme-text-subtle)] italic">Belum ada proposal</span>}
               </div>
               <div className="grid grid-cols-2 gap-1.5 mt-2">
                 {proposalStatusData.slice(0, 6).map((item, i) => (
-                  <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50 border border-slate-100">
+                  <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-xl bg-[var(--theme-bg)] border border-[var(--theme-border-muted)]">
                     <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
                     <div className="min-w-0">
-                      <p className="text-[9px] font-bold text-slate-400 truncate leading-none">{item.name.replace(/_/g, ' ')}</p>
-                      <p className="text-xs font-extrabold text-slate-800 leading-none mt-1">{item.value}</p>
+                      <p className="text-[9px] font-bold text-[var(--theme-text-subtle)] truncate leading-none">{item.name.replace(/_/g, ' ')}</p>
+                      <p className="text-xs font-extrabold text-[var(--theme-text)] leading-none mt-1">{item.value}</p>
                     </div>
                   </div>
                 ))}
@@ -247,9 +247,9 @@ export default function OrmawaDashboard() {
             </div>
 
             {/* WHAT → Bar: Anggaran per Proposal */}
-            <div className="bg-white border border-[var(--theme-border)] rounded-2xl p-5 shadow-sm">
+            <div className="bg-[var(--theme-surface)] border border-border rounded-2xl p-5 shadow-sm">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 shrink-0">
+                <div className="w-10 h-10 bg-[var(--theme-success-light)] rounded-xl flex items-center justify-center text-[var(--theme-success)] shrink-0">
                   <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>bar_chart</span>
                 </div>
                 <span className="text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest font-headline">Anggaran per Proposal (Top 5)</span>
@@ -258,21 +258,21 @@ export default function OrmawaDashboard() {
                 {topAnggaranData.length > 0 ? (
                   <ResponsiveContainer width="100%" height={170}>
                     <BarChart data={topAnggaranData} layout="vertical" margin={{ top: 5, right: 20, left: 5, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
-                      <XAxis type="number" tick={{ fontSize: 8, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                      <YAxis type="category" dataKey="name" tick={{ fontSize: 8, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} width={80} />
+                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--theme-border)" />
+                      <XAxis type="number" tick={{ fontSize: 8, fontWeight: 700, fill: 'var(--theme-text-subtle)' }} axisLine={false} tickLine={false} />
+                      <YAxis type="category" dataKey="name" tick={{ fontSize: 8, fontWeight: 700, fill: 'var(--theme-text-subtle)' }} axisLine={false} tickLine={false} width={80} />
                       <Tooltip formatter={(v) => formatRp(v)} />
-                      <Bar dataKey="value" name="Anggaran" fill="#10b981" radius={[0, 4, 4, 0]} barSize={14} />
+                      <Bar dataKey="value" name="Anggaran" fill="var(--theme-secondary)" radius={[0, 4, 4, 0]} barSize={14} />
                     </BarChart>
                   </ResponsiveContainer>
-                ) : <div className="h-full flex items-center justify-center"><span className="text-xs text-slate-400 italic">Belum ada data</span></div>}
+                ) : <div className="h-full flex items-center justify-center"><span className="text-xs text-[var(--theme-text-subtle)] italic">Belum ada data</span></div>}
               </div>
             </div>
 
             {/* WHO → Pie: Sebaran Role Anggota */}
-            <div className="bg-white border border-[var(--theme-border)] rounded-2xl p-5 shadow-sm">
+            <div className="bg-[var(--theme-surface)] border border-border rounded-2xl p-5 shadow-sm">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 shrink-0">
+                <div className="w-10 h-10 bg-[var(--theme-warning-light)] rounded-xl flex items-center justify-center text-[var(--theme-warning)] shrink-0">
                   <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>group</span>
                 </div>
                 <span className="text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest font-headline">Sebaran Role Anggota</span>
@@ -282,20 +282,20 @@ export default function OrmawaDashboard() {
                   <ResponsiveContainer width="100%" height={170}>
                     <PieChart>
                       <Pie data={roleDistData} cx="50%" cy="50%" innerRadius={42} outerRadius={68} paddingAngle={3} dataKey="value" stroke="none">
-                        {roleDistData.map((_, i) => <Cell key={i} fill={['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'][i % 5]} />)}
+                        {roleDistData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
                       </Pie>
                       <Tooltip />
                     </PieChart>
                   </ResponsiveContainer>
-                ) : <span className="text-xs text-slate-400 italic">Belum ada anggota</span>}
+                ) : <span className="text-xs text-[var(--theme-text-subtle)] italic">Belum ada anggota</span>}
               </div>
               <div className="grid grid-cols-2 gap-1.5 mt-2">
                 {roleDistData.slice(0, 5).map((item, i) => (
-                  <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50 border border-slate-100">
-                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'][i % 5] }} />
+                  <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-xl bg-[var(--theme-bg)] border border-[var(--theme-border-muted)]">
+                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
                     <div className="min-w-0">
-                      <p className="text-[9px] font-bold text-slate-400 truncate leading-none">{item.name}</p>
-                      <p className="text-xs font-extrabold text-slate-800 leading-none mt-1">{item.value}</p>
+                      <p className="text-[9px] font-bold text-[var(--theme-text-subtle)] truncate leading-none">{item.name}</p>
+                      <p className="text-xs font-extrabold text-[var(--theme-text)] leading-none mt-1">{item.value}</p>
                     </div>
                   </div>
                 ))}
@@ -326,7 +326,7 @@ export default function OrmawaDashboard() {
           <div className="divide-y divide-[var(--theme-border-muted)]">
             {isLoading ? Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="p-5 flex items-center gap-4 animate-pulse">
-                <div className="h-4 bg-slate-100 rounded w-3/4" /><div className="h-4 bg-slate-100 rounded w-16 ml-auto" />
+                <div className="h-4 bg-[var(--theme-bg)] rounded w-3/4" /><div className="h-4 bg-[var(--theme-bg)] rounded w-16 ml-auto" />
               </div>
             )) : proposals.length === 0 ? (
               <div className="p-8 text-center"><p className="text-xs font-medium text-[var(--theme-text-muted)]">Belum ada proposal</p></div>
@@ -336,7 +336,7 @@ export default function OrmawaDashboard() {
                   <p className="font-bold text-[var(--theme-text)] text-sm truncate">{p.Judul}</p>
                   <p className="text-[10px] text-[var(--theme-text-muted)] mt-0.5">PROP-{p.id || p.ID}</p>
                 </div>
-                <Badge className={cn('font-black text-[9px] px-2.5 py-0.5 border shrink-0 tracking-widest', getProposalStatusStyle(p.Status))}>
+                <Badge className={cn('font-semibold text-[9px] px-2.5 py-1 rounded-full shrink-0 tracking-widest shadow-none border-none', getProposalStatusStyle(p.Status))}>
                   {(p.Status || 'draft').replace(/_/g, ' ')}
                 </Badge>
               </div>
@@ -363,8 +363,8 @@ export default function OrmawaDashboard() {
           <div className="divide-y divide-[var(--theme-border-muted)]">
             {isLoading ? Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="p-5 animate-pulse flex gap-3">
-                <div className="size-10 bg-slate-100 rounded-2xl shrink-0" />
-                <div className="flex-1 space-y-2"><div className="h-3 bg-slate-100 rounded w-3/4" /><div className="h-2 bg-slate-100 rounded w-1/2" /></div>
+                <div className="size-10 bg-[var(--theme-bg)] rounded-xl shrink-0" />
+                <div className="flex-1 space-y-2"><div className="h-3 bg-[var(--theme-bg)] rounded w-3/4" /><div className="h-2 bg-[var(--theme-bg)] rounded w-1/2" /></div>
               </div>
             )) : events.length === 0 ? (
               <div className="p-8 text-center"><p className="text-xs font-medium text-[var(--theme-text-muted)]">Belum ada kegiatan</p></div>
@@ -373,16 +373,16 @@ export default function OrmawaDashboard() {
               return (
                 <div key={ev.id || ev.ID} className="p-4 flex items-center gap-4 hover:bg-[var(--theme-bg)] transition-colors cursor-pointer" onClick={() => navigate('/ormawa/jadwal')}>
                   {d ? (
-                    <div className="size-10 shrink-0 rounded-lg flex flex-col items-center justify-center border" style={{ backgroundColor: 'color-mix(in srgb, var(--theme-secondary) 10%, transparent)', borderColor: 'color-mix(in srgb, var(--theme-secondary) 20%, transparent)' }}>
+                    <div className="size-10 shrink-0 rounded-xl flex flex-col items-center justify-center border" style={{ backgroundColor: 'color-mix(in srgb, var(--theme-secondary) 10%, transparent)', borderColor: 'color-mix(in srgb, var(--theme-secondary) 20%, transparent)' }}>
                       <span className="text-[11px] font-black text-[var(--theme-secondary)] leading-none">{d.toLocaleDateString('id-ID', { day: '2-digit' })}</span>
                       <span className="text-[8px] font-bold text-[var(--theme-secondary)]/75 mt-0.5">{d.toLocaleDateString('id-ID', { month: 'short' })}</span>
                     </div>
-                  ) : <div className="size-10 shrink-0 rounded-lg bg-[var(--theme-bg)] border border-[var(--theme-border-muted)]" />}
+                  ) : <div className="size-10 shrink-0 rounded-xl bg-[var(--theme-bg)] border border-[var(--theme-border-muted)]" />}
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-[var(--theme-text)] text-sm truncate">{ev.Judul}</p>
                     <p className="text-[10px] text-[var(--theme-text-muted)] mt-0.5 truncate">{ev.Lokasi || 'Lokasi belum ditentukan'}</p>
                   </div>
-                  <Badge className={cn('font-black text-[9px] px-2.5 py-0.5 border shrink-0 tracking-widest', getEventStatusStyle(ev.Status))}>
+                  <Badge className={cn('font-semibold text-[9px] px-2.5 py-1 rounded-full shrink-0 tracking-widest shadow-none border-none', getEventStatusStyle(ev.Status))}>
                     {ev.Status || 'terjadwal'}
                   </Badge>
                 </div>
@@ -400,16 +400,16 @@ export default function OrmawaDashboard() {
           />
           <div className="flex flex-col h-full">
             {/* Points & Rank display */}
-            <div className="p-5 border-b border-[var(--theme-border)] space-y-3 bg-slate-50/50">
+            <div className="p-5 border-b border-border space-y-3 bg-[var(--theme-bg)]/50">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <p className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider font-headline">Akumulasi Poin</p>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-2xl font-bold font-headline leading-none text-warning">{gamifikasi.poin}</span>
+                    <span className="text-2xl font-bold font-headline leading-none text-[var(--theme-warning)]">{gamifikasi.poin}</span>
                     <span className="text-[10px] font-medium text-[var(--theme-text-muted)]">Pts</span>
                   </div>
                 </div>
-                <div className="space-y-1 border-l border-[var(--theme-border)] pl-4">
+                <div className="space-y-1 border-l border-border pl-4">
                   <p className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider font-headline">Peringkat</p>
                   <div className="flex items-baseline gap-1">
                     <span className="text-2xl font-bold font-headline leading-none text-[var(--theme-primary)]">#{gamifikasi.peringkat}</span>
@@ -428,13 +428,13 @@ export default function OrmawaDashboard() {
                       {Math.round(((gamifikasi.total_ormawa - gamifikasi.peringkat + 1) / gamifikasi.total_ormawa) * 100)}%
                     </span>
                   </div>
-                  <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 bg-[var(--theme-border)] rounded-full overflow-hidden">
                     <div
-                      className="h-full rounded-full transition-all duration-500"
-                      style={{
-                        width: `${Math.max(4, ((gamifikasi.total_ormawa - gamifikasi.peringkat + 1) / gamifikasi.total_ormawa) * 100)}%`,
-                        backgroundColor: gamifikasi.peringkat === 1 ? '#f59e0b' : 'var(--theme-primary)'
-                      }}
+                       className="h-full rounded-full transition-all duration-500"
+                       style={{
+                         width: `${Math.max(4, ((gamifikasi.total_ormawa - gamifikasi.peringkat + 1) / gamifikasi.total_ormawa) * 100)}%`,
+                         backgroundColor: gamifikasi.peringkat === 1 ? 'var(--theme-warning)' : 'var(--theme-primary)'
+                       }}
                     />
                   </div>
                 </div>
@@ -442,13 +442,13 @@ export default function OrmawaDashboard() {
             </div>
 
             {/* Tab Switcher */}
-            <div className="flex border-b border-[var(--theme-border)] bg-slate-50/20 p-1">
+            <div className="flex border-b border-border bg-[var(--theme-bg)]/30 p-1">
               <button
                 type="button"
                 onClick={() => setGamifikasiTab('history')}
                 className={cn(
-                  "flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all",
-                  gamifikasiTab === 'history' ? "bg-white shadow-sm border border-[var(--theme-border)]" : "text-muted hover:text-on-surface"
+                  "flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-xl transition-all",
+                  gamifikasiTab === 'history' ? "bg-[var(--theme-surface)] shadow-sm border border-border" : "text-[var(--theme-text-subtle)] hover:text-[var(--theme-text)]"
                 )}
                 style={{ color: gamifikasiTab === 'history' ? 'var(--theme-primary)' : 'inherit' }}
               >
@@ -458,8 +458,8 @@ export default function OrmawaDashboard() {
                 type="button"
                 onClick={() => setGamifikasiTab('rules')}
                 className={cn(
-                  "flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all",
-                  gamifikasiTab === 'rules' ? "bg-white shadow-sm border border-[var(--theme-border)]" : "text-muted hover:text-on-surface"
+                  "flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-xl transition-all",
+                  gamifikasiTab === 'rules' ? "bg-[var(--theme-surface)] shadow-sm border border-border" : "text-[var(--theme-text-subtle)] hover:text-[var(--theme-text)]"
                 )}
                 style={{ color: gamifikasiTab === 'rules' ? 'var(--theme-primary)' : 'inherit' }}
               >
@@ -473,15 +473,15 @@ export default function OrmawaDashboard() {
                 {isLoading ? (
                   Array.from({ length: 3 }).map((_, i) => (
                     <div key={i} className="p-4 flex items-center gap-4 animate-pulse">
-                      <div className="h-3 bg-slate-100 rounded w-2/3" />
-                      <div className="h-3 bg-slate-100 rounded w-10 ml-auto" />
+                      <div className="h-3 bg-[var(--theme-bg)] rounded w-2/3" />
+                      <div className="h-3 bg-[var(--theme-bg)] rounded w-10 ml-auto" />
                     </div>
                   ))
                 ) : !gamifikasi.riwayat || gamifikasi.riwayat.length === 0 ? (
                   <div className="p-6 text-center text-xs text-[var(--theme-text-muted)] italic">Belum ada riwayat poin.</div>
                 ) : (
                   gamifikasi.riwayat.slice(0, 5).map((hist) => (
-                    <div key={hist.id || hist.ID} className="p-4 px-5 flex items-center justify-between hover:bg-black/[0.01] transition-colors">
+                    <div key={hist.id || hist.ID} className="p-4 px-5 flex items-center justify-between hover:bg-[var(--theme-bg)] transition-colors">
                       <div className="min-w-0 pr-3">
                         <p className="font-bold text-sm leading-tight truncate max-w-[170px]" style={{ color: 'var(--theme-text)' }}>{hist.deskripsi}</p>
                         <p className="text-[9px] text-[var(--theme-text-muted)] mt-1">
@@ -489,10 +489,10 @@ export default function OrmawaDashboard() {
                         </p>
                       </div>
                       <span className={cn(
-                        "font-bold text-xs px-2 py-0.5 rounded-lg border shrink-0",
+                        "font-bold text-xs px-2 py-1 rounded-full border shrink-0",
                         hist.tipe === 'tambah' 
-                          ? "bg-emerald-50 text-emerald-700 border-emerald-100" 
-                          : "bg-rose-50 text-rose-700 border-rose-100"
+                          ? "bg-[var(--theme-success-light)] text-[var(--theme-success)] border-[var(--theme-success)]/20" 
+                          : "bg-[var(--theme-error-light)] text-[var(--theme-error)] border-[var(--theme-error)]/20"
                       )}>
                         {hist.tipe === 'tambah' ? '+' : '-'}{hist.poin}
                       </span>
@@ -503,28 +503,28 @@ export default function OrmawaDashboard() {
             ) : (
               <div className="p-4 space-y-2.5 max-h-[220px] overflow-y-auto custom-scrollbar text-xs">
                 <div className="flex items-center justify-between border-b border-[var(--theme-border-muted)] pb-1.5">
-                  <span className="font-medium text-neutral-600">🏆 LPJ Disetujui Univ</span>
-                  <span className="font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-md text-[10px]">+100 Pts</span>
+                  <span className="font-medium text-[var(--theme-text-muted)]">🏆 LPJ Disetujui Univ</span>
+                  <span className="font-black text-[var(--theme-success)] bg-[var(--theme-success-light)] border border-[var(--theme-success)]/20 px-2 py-0.5 rounded-full text-[10px]">+100 Pts</span>
                 </div>
                 <div className="flex items-center justify-between border-b border-[var(--theme-border-muted)] pb-1.5">
-                  <span className="font-medium text-neutral-600">🏅 Prestasi Terverifikasi</span>
-                  <span className="font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-md text-[10px]">+100 Pts</span>
+                  <span className="font-medium text-[var(--theme-text-muted)]">🏅 Prestasi Terverifikasi</span>
+                  <span className="font-black text-[var(--theme-success)] bg-[var(--theme-success-light)] border border-[var(--theme-success)]/20 px-2 py-0.5 rounded-full text-[10px]">+100 Pts</span>
                 </div>
                 <div className="flex items-center justify-between border-b border-[var(--theme-border-muted)] pb-1.5">
-                  <span className="font-medium text-neutral-600">📅 Kegiatan Selesai</span>
-                  <span className="font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-md text-[10px]">+50 Pts</span>
+                  <span className="font-medium text-[var(--theme-text-muted)]">📅 Kegiatan Selesai</span>
+                  <span className="font-black text-[var(--theme-success)] bg-[var(--theme-success-light)] border border-[var(--theme-success)]/20 px-2 py-0.5 rounded-full text-[10px]">+50 Pts</span>
                 </div>
                 <div className="flex items-center justify-between border-b border-[var(--theme-border-muted)] pb-1.5">
-                  <span className="font-medium text-neutral-600">📝 Proposal Disetujui</span>
-                  <span className="font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-md text-[10px]">+20 Pts</span>
+                  <span className="font-medium text-[var(--theme-text-muted)]">📝 Proposal Disetujui</span>
+                  <span className="font-black text-[var(--theme-success)] bg-[var(--theme-success-light)] border border-[var(--theme-success)]/20 px-2 py-0.5 rounded-full text-[10px]">+20 Pts</span>
                 </div>
                 <div className="flex items-center justify-between border-b border-[var(--theme-border-muted)] pb-1.5">
-                  <span className="font-medium text-neutral-600">💬 Aspirasi Diselesaikan</span>
-                  <span className="font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-md text-[10px]">+10 Pts</span>
+                  <span className="font-medium text-[var(--theme-text-muted)]">💬 Aspirasi Diselesaikan</span>
+                  <span className="font-black text-[var(--theme-success)] bg-[var(--theme-success-light)] border border-[var(--theme-success)]/20 px-2 py-0.5 rounded-full text-[10px]">+10 Pts</span>
                 </div>
                 <div className="flex items-center justify-between pb-1">
-                  <span className="font-medium text-neutral-600">⚠️ Peringatan LPJ Terlambat</span>
-                  <span className="font-black text-rose-600 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded-md text-[10px]">-50 Pts</span>
+                  <span className="font-medium text-[var(--theme-text-muted)]">⚠️ Peringatan LPJ Terlambat</span>
+                  <span className="font-black text-[var(--theme-error)] bg-[var(--theme-error-light)] border border-[var(--theme-error)]/20 px-2 py-0.5 rounded-full text-[10px]">-50 Pts</span>
                 </div>
               </div>
             )}

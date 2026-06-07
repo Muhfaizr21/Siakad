@@ -1,6 +1,9 @@
 "use client"
+import React, { useState, useEffect } from 'react';
+import { PageContent, PageHeader } from '@/components/ui/page';
 
-import React, { useState, useEffect } from 'react'
+
+
 import { DataTable } from '@/components/ui/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -21,7 +24,7 @@ import { getOrmawaId } from '../../utils/getOrmawaId'
 const API = `${API_BASE_URL}/ormawa`
 
 const KATEGORI_CFG = {
-  umum: { label: 'Umum', cls: 'bg-slate-50 text-slate-600 border-slate-200' },
+  umum: { label: 'Umum', cls: 'bg-slate-50 text-slate-600 border-border' },
   kegiatan: { label: 'Kegiatan', cls: 'bg-blue-50 text-blue-700 border-blue-200' },
   penting: { label: 'Penting', cls: 'bg-rose-50 text-rose-700 border-rose-200' },
   prestasi: { label: 'Prestasi', cls: 'bg-amber-50 text-amber-700 border-amber-200' }
@@ -138,7 +141,7 @@ export default function Pengumuman() {
       cellClassName: 'text-center',
       render: (v, row) => {
         const cat = row.Kategori || row.kategori || row.Target || 'umum'
-        const cfg = KATEGORI_CFG[cat] || { label: cat || 'Umum', cls: 'bg-slate-50 text-slate-600 border-slate-200' }
+        const cfg = KATEGORI_CFG[cat] || { label: cat || 'Umum', cls: 'bg-slate-50 text-slate-600 border-border' }
         return (
           <Badge className={cn('font-bold text-[10px] uppercase tracking-wider px-3.5 py-1 border rounded-full', cfg.cls)}>
             {cfg.label}
@@ -162,51 +165,30 @@ export default function Pengumuman() {
   ]
 
   return (
-    <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-8 font-body">
+    <PageContent className="font-body">
       <Toaster position="top-right" />
 
       {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <section className="relative overflow-hidden rounded-[2rem] bg-white p-8 md:p-10 shadow-sm border border-slate-200">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(0,0,0,0.02)_0%,transparent_60%)]" />
-        <div className="absolute inset-0 opacity-[0.02]"
-          style={{
-            backgroundImage: `radial-gradient(circle at 20% 50%, var(--theme-primary) 1px, transparent 1px), radial-gradient(circle at 80% 20%, var(--theme-primary) 1px, transparent 1px)`,
-            backgroundSize: '40px 40px'
-          }}
-        />
-        <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full blur-3xl opacity-10" style={{ backgroundColor: 'var(--theme-secondary)' }} />
-        <div className="absolute -bottom-10 right-40 w-60 h-60 rounded-full blur-2xl opacity-10" style={{ backgroundColor: 'var(--theme-surface)' }} />
-
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-50 border border-slate-200 text-slate-500">
-              <span className="h-1.5 w-1.5 rounded-full animate-ping" style={{ backgroundColor: 'var(--theme-primary)' }} />
-              <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-600">Siaran & Informasi</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 shadow-inner" style={{ color: 'var(--theme-primary)' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>campaign</span>
-              </div>
-              <div>
-                <h1 className="text-3xl md:text-4xl font-black tracking-tight font-headline text-slate-900">Siaran & Pengumuman</h1>
-                <p className="text-slate-500 text-sm font-medium mt-1">Publikasi pengumuman penting, agenda rapat, dan regulasi resmi bagi seluruh anggota.</p>
-              </div>
-            </div>
-          </div>
-
+      <PageHeader 
+        title="Siaran & Pengumuman"
+        subtitle="Publikasi pengumuman penting, agenda rapat, dan regulasi resmi bagi seluruh anggota."
+        icon="campaign"
+        action={
           <Button
             onClick={handleOpenAdd}
-            className="h-12 px-6 rounded-2xl text-white font-bold text-xs tracking-wider shadow-lg shadow-blue-900/10 transition-all active:scale-95 shrink-0 w-full md:w-auto flex items-center justify-center gap-2"
+            className="h-10 px-6 rounded-xl text-white font-bold text-xs tracking-wider shadow-lg shadow-[var(--theme-primary)]/10 transition-all active:scale-95 shrink-0 w-full md:w-auto flex items-center justify-center gap-2 border-none"
             style={{ backgroundColor: 'var(--theme-primary)' }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add</span>
             <span>BUAT PENGUMUMAN</span>
           </Button>
-        </div>
-      </section>
+        }
+       
+        breadcrumbs={[ { label: 'Dashboard', path: '/ormawa' }, { label: 'Siaran & Pengumuman', path: '#' } ]} 
+      />
 
       {/* ── Pengumuman DataTable Container ────────────────────────────── */}
-      <Card className="border border-slate-200/50 shadow-sm rounded-[2rem] overflow-hidden bg-white/70 backdrop-blur-md">
+      <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface">
         <CardContent className="p-6">
           <DataTable
             columns={columns}
@@ -231,7 +213,7 @@ export default function Pengumuman() {
                   }}
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-slate-400 hover:text-bku-primary hover:bg-blue-50 rounded-xl active:scale-95 transition-all"
+                  className="h-8 w-8 text-[var(--theme-text-subtle)] hover:text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)] rounded-xl active:scale-95 transition-all"
                   title="Lihat Detail Pengumuman"
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>visibility</span>
@@ -240,7 +222,7 @@ export default function Pengumuman() {
                   onClick={() => handleOpenEdit(row)}
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-xl active:scale-95 transition-all"
+                  className="h-8 w-8 text-[var(--theme-text-subtle)] hover:text-amber-600 hover:bg-amber-50 rounded-xl active:scale-95 transition-all"
                   title="Edit Pengumuman"
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>edit_note</span>
@@ -252,7 +234,7 @@ export default function Pengumuman() {
                   }}
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl active:scale-95 transition-all"
+                  className="h-8 w-8 text-[var(--theme-text-subtle)] hover:text-rose-600 hover:bg-rose-50 rounded-xl active:scale-95 transition-all"
                   title="Hapus Pengumuman"
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>delete</span>
@@ -265,18 +247,18 @@ export default function Pengumuman() {
 
       {/* ── Detail View Dialog (Premium Double Column Academic Style) ── */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-2xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white animate-in zoom-in-95 duration-200">
+        <DialogContent className="max-w-2xl p-0 overflow-hidden border border-border shadow-2xl rounded-2xl bg-surface animate-in zoom-in-95 duration-200">
           {selected && (
             <div>
               {/* Header block with Navy Academic Banner */}
-              <div className="p-8 bg-gradient-to-r from-bku-primary to-[#1e3a8a] text-white relative overflow-hidden">
+              <div className="p-8 bg-[var(--theme-primary)] text-white relative overflow-hidden">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.06)_0%,transparent_50%)]" />
                 <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
                   <span className="material-symbols-outlined size-24 text-white">campaign</span>
                 </div>
                 <div className="relative z-10 space-y-3">
                   <div className="flex items-center gap-2">
-                    <Badge className={cn('font-bold text-[10px] uppercase tracking-wider px-3.5 py-1 border shrink-0 rounded-full', KATEGORI_CFG[selected.Kategori || selected.kategori || selected.Target || 'umum']?.cls || 'bg-slate-50 text-slate-600 border-slate-200')}>
+                    <Badge className={cn('font-bold text-[10px] uppercase tracking-wider px-3.5 py-1 border shrink-0 rounded-full', KATEGORI_CFG[selected.Kategori || selected.kategori || selected.Target || 'umum']?.cls || 'bg-slate-50 text-slate-600 border-border')}>
                       {KATEGORI_CFG[selected.Kategori || selected.kategori || selected.Target || 'umum']?.label || selected.Kategori || selected.kategori || selected.Target || 'Umum'}
                     </Badge>
                     <span className="text-[10px] text-blue-200 font-bold tracking-[0.2em] uppercase font-headline">SIARAN ANN-{selected.id || selected.ID}</span>
@@ -318,7 +300,7 @@ export default function Pengumuman() {
                   <Button
                     variant="ghost"
                     onClick={() => setIsDetailOpen(false)}
-                    className="text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl active:scale-95 transition-all"
+                    className="text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-10 rounded-xl active:scale-95 transition-all"
                   >
                     TUTUP
                   </Button>
@@ -327,7 +309,7 @@ export default function Pengumuman() {
                       setIsDetailOpen(false)
                       handleOpenEdit(selected)
                     }}
-                    className="text-[10px] font-black h-12 px-8 rounded-2xl bg-primary text-white hover:bg-primary/95 shadow-xl shadow-primary/20 active:scale-95 transition-all border-none"
+                    className="text-[10px] font-black h-10 px-8 rounded-xl bg-[var(--theme-primary)] text-white hover:bg-[var(--theme-primary-hover)] shadow-xl shadow-primary/20 active:scale-95 transition-all border-none"
                   >
                     EDIT PENGUMUMAN
                   </Button>
@@ -338,24 +320,23 @@ export default function Pengumuman() {
         </DialogContent>
       </Dialog>
 
-      {/* ── CRUD Dialog Form (Beautiful Selector Buttons Grid) ────────── */}
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white animate-in zoom-in-95 duration-200">
-          <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden">
+        <DialogContent className="max-w-xl p-0 overflow-hidden border border-border shadow-2xl rounded-2xl bg-surface animate-in zoom-in-95 duration-200">
+          <DialogHeader className="p-8 pb-6 bg-[var(--theme-bg)] border-b border-border relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-              <span className="material-symbols-outlined size-24 rotate-12 text-bku-primary">campaign</span>
+              <span className="material-symbols-outlined size-24 rotate-12 text-[var(--theme-primary)]">campaign</span>
             </div>
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-2">
-                <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                <div className="size-8 rounded-xl bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)]">
                   <span className="material-symbols-outlined stroke-[3px]" style={{ fontSize: '16px' }}>campaign</span>
                 </div>
-                <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-bku-primary/5 text-bku-primary border-none rounded-md">ANNOUNCEMENT PORTAL</Badge>
+                <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-[var(--theme-primary-light)] text-[var(--theme-primary)] border-none rounded-md">ANNOUNCEMENT PORTAL</Badge>
               </div>
-              <DialogTitle className="text-xl font-black font-headline tracking-tighter text-slate-900">
+              <DialogTitle className="text-xl font-black font-headline tracking-tighter text-[var(--theme-text)]">
                 {isEditMode ? 'Edit Pengumuman' : 'Buat Pengumuman Baru'}
               </DialogTitle>
-              <DialogDescription className="text-xs font-semibold text-slate-400 mt-1">
+              <DialogDescription className="text-xs font-semibold text-[var(--theme-text-muted)] mt-1">
                 Tulis tajuk siaran, tentukan kategori, dan publikasikan informasi resmi ormawa.
               </DialogDescription>
             </div>
@@ -370,7 +351,7 @@ export default function Pengumuman() {
                 value={form.Judul}
                 onChange={e => setForm({ ...form, Judul: e.target.value })}
                 placeholder="Masukkan judul atau tajuk utama pengumuman..."
-                className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm"
+                className="h-10 rounded-xl border border-border bg-[var(--theme-bg)] focus:bg-white focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] focus:outline-none shadow-none transition-all font-bold text-sm"
               />
             </div>
 
@@ -380,19 +361,19 @@ export default function Pengumuman() {
               <div className="grid grid-cols-2 gap-2.5">
                 {[
                   { id: 'umum', label: 'UMUM', icon: 'feed', cls: 'hover:bg-slate-50 text-slate-600', activeCls: 'bg-slate-900 text-white border-transparent shadow-md' },
-                  { id: 'kegiatan', label: 'KEGIATAN', icon: 'event', cls: 'hover:bg-blue-50/50 text-blue-600', activeCls: 'bg-blue-600 text-white border-transparent shadow-md shadow-blue-500/20' },
+                  { id: 'kegiatan', label: 'KEGIATAN', icon: 'event', cls: 'hover:bg-[var(--theme-primary-light)] text-[var(--theme-primary)]', activeCls: 'bg-[var(--theme-primary)] text-white border-transparent shadow-md shadow-[var(--theme-primary)]/20' },
                   { id: 'penting', label: 'PENTING', icon: 'warning', cls: 'hover:bg-rose-50/50 text-rose-600', activeCls: 'bg-rose-600 text-white border-transparent shadow-md shadow-rose-500/20' },
-                  { id: 'info', label: 'INFORMASI', icon: 'info', cls: 'hover:bg-violet-50/50 text-violet-600', activeCls: 'bg-violet-600 text-white border-transparent shadow-md shadow-violet-500/20' }
+                  { id: 'info', label: 'INFORMASI', icon: 'info', cls: 'hover:bg-[var(--theme-secondary-light)] text-[var(--theme-secondary)]', activeCls: 'bg-[var(--theme-secondary)] text-white border-transparent shadow-md shadow-[var(--theme-secondary)]/20' }
                 ].map(cat => (
                   <button
                     key={cat.id}
                     type="button"
                     onClick={() => setForm({ ...form, Kategori: cat.id })}
                     className={cn(
-                      "h-12 rounded-2xl border text-xs font-bold tracking-wider transition-all active:scale-95 flex items-center justify-center gap-2",
+                      "h-10 rounded-xl border text-xs font-bold tracking-wider transition-all active:scale-95 flex items-center justify-center gap-2",
                       form.Kategori === cat.id
                         ? cat.activeCls
-                        : cn("bg-slate-50 border-slate-200", cat.cls)
+                        : cn("bg-[var(--theme-bg)] border-border", cat.cls)
                     )}
                   >
                     <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>{cat.icon}</span>
@@ -410,29 +391,29 @@ export default function Pengumuman() {
                 value={form.Isi}
                 onChange={e => setForm({ ...form, Isi: e.target.value })}
                 placeholder="Tuliskan isi pengumuman secara lengkap, jelas, dan lugas di sini..."
-                className="min-h-[140px] rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-semibold text-xs leading-relaxed p-4"
+                className="min-h-[140px] rounded-xl border border-border bg-[var(--theme-bg)] focus:bg-white focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] focus:outline-none shadow-none transition-all font-semibold text-xs leading-relaxed p-4"
               />
             </div>
 
             {/* Dialog Footer Actions */}
-            <DialogFooter className="mt-6 pt-6 flex flex-col md:flex-row items-center justify-end gap-3 border-t border-slate-100 -mx-8 px-8 bg-slate-50/30 pb-0">
+            <DialogFooter className="mt-6 pt-6 flex flex-col md:flex-row items-center justify-end gap-3 border-t border-[var(--theme-border-muted)] -mx-8 px-8 bg-[var(--theme-bg)] pb-0">
               <Button
                 type="button"
                 variant="ghost"
                 onClick={() => setIsCrudOpen(false)}
-                className="w-full md:w-auto text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl active:scale-95 transition-all"
+                className="w-full md:w-auto text-[10px] font-black tracking-widest text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] px-8 h-10 rounded-xl active:scale-95 transition-all"
               >
                 BATAL
               </Button>
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full md:w-auto h-12 px-8 rounded-2xl bg-bku-primary hover:bg-bku-primary/90 text-white shadow-xl shadow-blue-900/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 border-none"
+                className="w-full md:w-auto h-10 px-8 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white shadow-xl shadow-[var(--theme-primary)]/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 border-none"
               >
                 {isSubmitting ? (
                   <span className="material-symbols-outlined animate-spin size-4" style={{ fontSize: '16px' }}>sync</span>
                 ) : (
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>campaign</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>campaign</span>
                 )}
                 <span className="text-[10px] font-black tracking-widest uppercase">
                   {isEditMode ? 'SIMPAN PERUBAHAN' : 'PUBLIKASIKAN'}
@@ -452,6 +433,6 @@ export default function Pengumuman() {
         description="Apakah Anda yakin ingin menghapus siaran pengumuman ini? Tindakan ini bersifat permanen."
         loading={isSubmitting}
       />
-    </div>
+    </PageContent>
   )
 }

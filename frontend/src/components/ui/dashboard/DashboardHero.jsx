@@ -52,12 +52,12 @@ export function DashboardHero({
                 <div className="flex flex-wrap items-center gap-2 mb-1.5">
                   {badges.map((badge, idx) => (
                     <span key={idx} className={cn(
-                      "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider border",
+                      "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-wider border",
                       badge.active 
-                        ? "bg-emerald-50 text-emerald-700 border-emerald-100" 
-                        : "bg-primary/5 text-primary border-primary/10"
+                        ? "bg-[var(--theme-success-light)] text-[var(--theme-success)] border-[var(--theme-success-light)]" 
+                        : "bg-[var(--theme-primary-light)] text-[var(--theme-primary)] border-[var(--theme-primary-light)]"
                     )}>
-                      {badge.active && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />}
+                      {badge.active && <span className="w-1.5 h-1.5 rounded-full bg-[var(--theme-success)] animate-pulse" />}
                       {badge.label}
                     </span>
                   ))}
@@ -65,9 +65,9 @@ export function DashboardHero({
               )}
 
               {/* Title */}
-              <h1 className="text-2xl md:text-3xl font-extrabold text-on-surface tracking-tight font-headline leading-none">
+              <h1 className="text-2xl md:text-3xl font-bold text-on-surface tracking-tight font-headline leading-none">
                 {title} {highlightedTitle && (
-                  <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  <span className="text-primary">
                     {highlightedTitle}
                   </span>
                 )}

@@ -695,7 +695,7 @@ const fetchData = async (showRefresh = false) => {
           label: ql.label,
           icon: ql.icon,
           path: ql.href,
-          iconBg: ql.bgClass
+          iconBg: `${ql.bgClass} ${ql.colorClass}`
         }))}
       />
 

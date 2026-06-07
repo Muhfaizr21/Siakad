@@ -64,8 +64,8 @@ const generateColors = (t) => {
 
   // Sidebar
   const sidebarBg = t.sidebar_bg_color || primary;
-  const sidebarText = t.sidebar_text_color || '#FFFFFF';
-  const sidebarTextMuted = t.sidebar_text_muted_color || '#E2E8F0';
+  const sidebarText = t.sidebar_text_color || getAutoTextColor(sidebarBg, 0.6);
+  const sidebarTextMuted = t.sidebar_text_muted_color || getMutedColor(sidebarText);
 
   return {
     primary,
@@ -159,10 +159,12 @@ const useThemeStore = create((set, get) => ({
     try {
       // Check SSR pre-loaded config
       if (window.__THEME_CONFIG__) {
-        set({ theme: window.__THEME_CONFIG__, isLoaded: true });
-        get().applyTheme(window.__THEME_CONFIG__);
+        const config = window.__THEME_CONFIG__;
+        window.__THEME_CONFIG__ = null;
+        set({ theme: config, isLoaded: true });
+        get().applyTheme(config);
         initObserver();
-        return window.__THEME_CONFIG__;
+        return config;
       }
 
       const res = await fetch('/api/public/theme');

@@ -12,32 +12,33 @@ export function PageHeader({
   ...props 
 }) {
   return (
-    <div className={cn("flex flex-col gap-4 md:flex-row md:items-start md:justify-between mb-2", className)} {...props}>
-      <div className="flex items-start gap-4">
+    <div 
+      className={cn(
+        "rounded-2xl border border-[var(--theme-border)] bg-surface p-5 md:p-6 shadow-sm mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between",
+        className
+      )} 
+      {...props}
+    >
+      <div className="flex items-center gap-4">
         {/* Icon Anchor */}
         {icon && (
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-sm border" 
-            style={{ 
-              backgroundColor: 'color-mix(in srgb, var(--theme-primary) 10%, transparent)', 
-              color: 'var(--theme-primary)',
-              borderColor: 'color-mix(in srgb, var(--theme-primary) 20%, transparent)' 
-            }}>
-            <span className="material-symbols-outlined text-[24px]">{icon}</span>
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-[var(--theme-bg)] border border-[var(--theme-border)]">
+            <span className="material-symbols-outlined text-[24px] text-[var(--theme-text-muted)]">{icon}</span>
           </div>
         )}
         
-        <div className="space-y-1">
+        <div className="space-y-0.5">
           {/* Breadcrumbs */}
           {breadcrumbs.length > 0 && (
-            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted mb-1 font-headline">
+            <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-[var(--theme-text-muted)] mb-1 font-headline">
               {breadcrumbs.map((crumb, idx) => (
                 <React.Fragment key={idx}>
                   {crumb.path ? (
-                    <Link to={crumb.path} className="hover:text-primary transition-colors">
+                    <Link to={crumb.path} className="hover:text-[var(--theme-primary)] transition-colors">
                       {crumb.label}
                     </Link>
                   ) : (
-                    <span className="text-primary">{crumb.label}</span>
+                    <span className="text-[var(--theme-primary)]">{crumb.label}</span>
                   )}
                   {idx < breadcrumbs.length - 1 && (
                     <span className="material-symbols-outlined" style={{ fontSize: '10px' }}>chevron_right</span>
@@ -48,13 +49,13 @@ export function PageHeader({
           )}
           
           {/* Title */}
-          <h1 className="text-2xl font-bold tracking-tight text-on-surface font-headline leading-tight">
+          <h1 className="text-xl font-bold tracking-tight text-[var(--theme-text)] font-headline leading-tight">
             {title}
           </h1>
           
           {/* Subtitle */}
           {subtitle && (
-            <p className="text-sm font-medium text-muted max-w-2xl">
+            <p className="text-xs font-medium text-[var(--theme-text-muted)] max-w-2xl">
               {subtitle}
             </p>
           )}
@@ -63,10 +64,11 @@ export function PageHeader({
 
       {/* Action Button/Area */}
       {action && (
-        <div className="flex shrink-0">
+        <div className="flex shrink-0 items-center gap-2">
           {action}
         </div>
       )}
     </div>
   );
 }
+

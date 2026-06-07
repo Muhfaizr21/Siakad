@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAdminQuizQuery, useCreateQuestionMutation, useUpdateQuestionMutation } from '../../../queries/useKencanaAdminQuery';
+import { PageHeader } from '../../../components/ui/page/PageHeader';
+import { SelectField, SelectOption } from '../../../components/ui/SelectField';
 
 const QuizBuilder = () => {
   const { id: quizId } = useParams();
@@ -25,11 +27,15 @@ const QuizBuilder = () => {
   });
 
   if (isLoading) {
-    return <div className="p-8 flex justify-center items-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-600"></div></div>;
+    return (
+      <div className="flex justify-center items-center py-20 bg-transparent">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--theme-primary)]"></div>
+      </div>
+    );
   }
 
   if (!quiz) {
-    return <div className="p-8 text-center text-slate-500">Kuis tidak ditemukan.</div>;
+    return <div className="p-8 text-center text-[var(--theme-text-subtle)] font-bold">Kuis tidak ditemukan.</div>;
   }
 
   const handleAddOption = () => {
@@ -49,7 +55,6 @@ const QuizBuilder = () => {
   const handleOptionChange = (index, field, value) => {
     const newOptions = [...questionForm.options];
     if (field === 'is_correct') {
-      // If setting one as correct, make others incorrect
       newOptions.forEach(opt => opt.is_correct = false);
       newOptions[index].is_correct = true;
     } else {
@@ -60,8 +65,6 @@ const QuizBuilder = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    // Validations
     if (!questionForm.question_text.trim()) return alert("Teks soal tidak boleh kosong");
     
     let payload = {
@@ -143,34 +146,38 @@ const QuizBuilder = () => {
   };
 
   return (
-    <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6">
+    <div className="px-4 py-6 md:px-6 lg:px-8 min-h-screen bg-transparent font-body max-w-5xl mx-auto space-y-6">
       
-      {/* Header */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-violet-50 rounded-full -mr-20 -mt-20 blur-3xl opacity-60 pointer-events-none"></div>
-        <button onClick={() => navigate(-1)} className="text-sm font-bold text-slate-500 hover:text-violet-600 mb-4 inline-flex items-center gap-1 transition-colors">
-          &larr; Kembali ke Sesi
+      {/* Back button */}
+      <div>
+        <button onClick={() => navigate(-1)} className="text-xs font-bold text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] transition-colors">
+          ← Kembali ke Detail Sesi
         </button>
-        <div className="flex justify-between items-start">
+      </div>
+
+      {/* Header */}
+      <div className="bg-white rounded-2xl border border-[var(--theme-border)] shadow-sm p-6 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--theme-primary-light)] rounded-full -mr-20 -mt-20 blur-3xl opacity-60 pointer-events-none"></div>
+        <div className="flex justify-between items-start gap-4">
           <div>
-            <h1 className="text-3xl font-black text-slate-800">{quiz.title}</h1>
-            <p className="text-sm font-medium text-slate-500 mt-2 max-w-2xl">{quiz.description || 'Kuis ini belum memiliki deskripsi.'}</p>
+            <h1 className="text-xl md:text-2xl font-bold text-[var(--theme-text)]">{quiz.title}</h1>
+            <p className="text-xs font-semibold text-[var(--theme-text-muted)] mt-2 max-w-2xl leading-relaxed">{quiz.description || 'Kuis ini belum memiliki deskripsi.'}</p>
           </div>
-          <div className="text-right">
-            <span className={`inline-block px-3 py-1 rounded-xl text-xs font-black uppercase tracking-wider border ${quiz.status === 'published' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
-              {quiz.status === 'published' ? 'Dipublikasikan' : 'Draft'}
+          <div className="text-right flex flex-col items-end gap-1.5">
+            <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${quiz.status === 'published' ? 'bg-[var(--theme-success-light)] text-[var(--theme-success)] border-[var(--theme-success-light)]' : 'bg-[var(--theme-warning-light)] text-[var(--theme-warning)] border-[var(--theme-warning-light)]'}`}>
+              {quiz.status === 'published' ? 'Aktif' : 'Draft'}
             </span>
-            <p className="text-xs font-bold text-slate-400 mt-2">Durasi: {quiz.duration_minutes} Menit</p>
+            <p className="text-[10px] font-bold text-[var(--theme-text-subtle)]">Durasi: {quiz.duration_minutes} Menit</p>
           </div>
         </div>
       </div>
 
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-black text-slate-800">Daftar Soal ({quiz.questions?.length || 0})</h2>
+        <h2 className="text-base font-bold text-[var(--theme-text)]">Daftar Pertanyaan ({quiz.questions?.length || 0})</h2>
         {!showForm && (
           <button 
             onClick={() => { setEditingQuestion(null); setShowForm(true); }}
-            className="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md transition-colors flex items-center gap-2"
+            className="h-10 px-5 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-xs font-bold shadow-md transition-colors"
           >
             + Tambah Soal
           </button>
@@ -178,68 +185,68 @@ const QuizBuilder = () => {
       </div>
 
       {showForm && (
-        <div className="bg-white rounded-3xl border-2 border-violet-100 shadow-lg p-6 lg:p-8 animate-fade-in relative">
-          <button onClick={resetForm} className="absolute top-6 right-6 text-slate-400 hover:text-slate-600">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        <div className="bg-white rounded-2xl border border-[var(--theme-primary)] shadow-lg p-6 lg:p-8 relative">
+          <button onClick={resetForm} className="absolute top-6 right-6 text-[var(--theme-text-subtle)] hover:text-[var(--theme-text)]">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
           </button>
-          <h3 className="text-xl font-black text-slate-800 mb-6">{editingQuestion ? 'Edit Soal' : 'Buat Soal Baru'}</h3>
+          <h3 className="text-lg font-bold text-[var(--theme-text)] mb-6">{editingQuestion ? 'Edit Soal' : 'Buat Soal Baru'}</h3>
           
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="md:col-span-2">
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">Teks Pertanyaan</label>
+              <div className="md:col-span-2 space-y-1">
+                <label className="block text-xs font-bold text-[var(--theme-text-muted)]">Teks Pertanyaan</label>
                 <textarea 
                   required
-                  rows="3"
+                  rows="4"
                   value={questionForm.question_text}
                   onChange={e => setQuestionForm({...questionForm, question_text: e.target.value})}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 outline-none transition-all font-medium"
+                  className="w-full p-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] transition-all leading-relaxed"
                   placeholder="Masukkan pertanyaan di sini..."
                 />
               </div>
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">Tipe Soal</label>
-                  <select 
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-[var(--theme-text-muted)]">Tipe Soal</label>
+                  <SelectField
                     value={questionForm.question_type}
-                    onChange={e => setQuestionForm({...questionForm, question_type: e.target.value})}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 outline-none font-bold text-slate-700"
+                    onValueChange={(val) => setQuestionForm({...questionForm, question_type: val})}
+                    className="w-full"
                   >
-                    <option value="multiple_choice">Pilihan Ganda</option>
-                    <option value="essay">Esai / Teks Pendek</option>
-                  </select>
+                    <SelectOption value="multiple_choice">Pilihan Ganda</SelectOption>
+                    <SelectOption value="essay">Esai / Teks Pendek</SelectOption>
+                  </SelectField>
                 </div>
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">Skor / Bobot Nilai</label>
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-[var(--theme-text-muted)]">Skor / Bobot Nilai</label>
                   <input 
                     type="number"
                     required min="1"
                     value={questionForm.score}
                     onChange={e => setQuestionForm({...questionForm, score: e.target.value})}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 outline-none font-bold"
+                    className="w-full h-10 px-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-semibold focus:outline-none focus:border-[var(--theme-primary)]"
                   />
                 </div>
               </div>
             </div>
 
             {questionForm.question_type === 'multiple_choice' && (
-              <div className="mt-6 border border-slate-200 rounded-2xl overflow-hidden">
-                <div className="bg-slate-50 px-5 py-3 border-b border-slate-200 flex justify-between items-center">
-                  <h4 className="font-bold text-slate-700">Opsi Jawaban</h4>
-                  <button type="button" onClick={handleAddOption} className="text-xs font-bold text-violet-600 hover:text-violet-700 bg-violet-100 px-3 py-1.5 rounded-lg transition-colors">
+              <div className="mt-6 border border-[var(--theme-border)] rounded-2xl overflow-hidden bg-white">
+                <div className="bg-[var(--theme-bg)] px-5 py-3 border-b border-[var(--theme-border-muted)] flex justify-between items-center">
+                  <h4 className="font-bold text-xs text-[var(--theme-text-muted)] uppercase tracking-wider">Opsi Jawaban</h4>
+                  <button type="button" onClick={handleAddOption} className="text-[10px] font-bold text-[var(--theme-primary)] bg-[var(--theme-primary-light)] hover:opacity-80 px-3 py-1.5 rounded-lg transition-colors">
                     + Tambah Opsi
                   </button>
                 </div>
                 <div className="p-5 space-y-3">
                   {questionForm.options.map((opt, idx) => (
-                    <div key={idx} className={`flex items-start gap-3 p-3 rounded-xl border-2 transition-all ${opt.is_correct ? 'border-emerald-200 bg-emerald-50/30' : 'border-transparent bg-slate-50'}`}>
+                    <div key={idx} className={`flex items-start gap-3 p-3 rounded-xl border-2 transition-all ${opt.is_correct ? 'border-[var(--theme-success-light)] bg-[var(--theme-success-light)]/40' : 'border-transparent bg-[var(--theme-bg)]'}`}>
                       <div className="pt-2">
                         <input 
                           type="radio" 
                           name="correct_option"
                           checked={opt.is_correct}
                           onChange={() => handleOptionChange(idx, 'is_correct', true)}
-                          className="w-5 h-5 text-emerald-500 focus:ring-emerald-500"
+                          className="w-5 h-5 text-[var(--theme-success)] focus:ring-[var(--theme-success)]"
                           title="Tandai sebagai jawaban benar"
                         />
                       </div>
@@ -249,11 +256,11 @@ const QuizBuilder = () => {
                           value={opt.option_text}
                           onChange={e => handleOptionChange(idx, 'option_text', e.target.value)}
                           placeholder={`Opsi ${String.fromCharCode(65 + idx)}`}
-                          className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 outline-none"
+                          className="w-full h-10 px-4 bg-white border border-[var(--theme-border)] rounded-lg text-sm font-semibold focus:outline-none focus:border-[var(--theme-primary)]"
                         />
                       </div>
                       {questionForm.options.length > 2 && (
-                        <button type="button" onClick={() => handleRemoveOption(idx)} className="text-slate-400 hover:text-rose-500 p-2">
+                        <button type="button" onClick={() => handleRemoveOption(idx)} className="text-[var(--theme-text-subtle)] hover:text-[var(--theme-error)] p-2">
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                         </button>
                       )}
@@ -263,11 +270,11 @@ const QuizBuilder = () => {
               </div>
             )}
 
-            <div className="flex justify-end pt-4 border-t border-slate-100">
+            <div className="flex justify-end pt-4 border-t border-[var(--theme-border-muted)]">
               <button 
                 type="submit" 
                 disabled={createQuestionMutation.isPending || updateQuestionMutation.isPending}
-                className="bg-violet-600 hover:bg-violet-700 text-white px-6 py-3 rounded-xl font-bold shadow-md disabled:opacity-50 transition-colors"
+                className="h-10 px-6 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-xs font-bold shadow-md disabled:opacity-50 transition-colors"
               >
                 {(createQuestionMutation.isPending || updateQuestionMutation.isPending) ? 'Menyimpan...' : (editingQuestion ? 'Update Soal' : 'Simpan Soal')}
               </button>
@@ -279,40 +286,40 @@ const QuizBuilder = () => {
       {/* Questions List */}
       <div className="space-y-4">
         {!quiz.questions?.length ? (
-          <div className="text-center py-16 bg-slate-50 border border-slate-200 border-dashed rounded-3xl">
-            <svg className="w-16 h-16 text-slate-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-            <p className="text-slate-500 font-bold">Belum ada soal untuk kuis ini.</p>
-            <p className="text-sm text-slate-400 mt-1">Klik tombol Tambah Soal untuk memulai membuat kuis.</p>
+          <div className="text-center py-16 bg-[var(--theme-bg)] border border-[var(--theme-border)] border-dashed rounded-2xl">
+            <svg className="w-12 h-12 text-[var(--theme-text-subtle)] mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+            <p className="text-[var(--theme-text-muted)] font-bold text-sm">Belum ada soal untuk kuis ini.</p>
+            <p className="text-xs text-[var(--theme-text-subtle)] mt-1">Klik tombol Tambah Soal untuk memulai membuat kuis.</p>
           </div>
         ) : (
           quiz.questions.map((q, idx) => (
-            <div key={q.id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex gap-4">
-              <div className="flex-shrink-0 w-10 h-10 bg-violet-100 text-violet-700 rounded-xl flex items-center justify-center font-black text-lg">
+            <div key={q.id} className="bg-white p-6 rounded-2xl border border-[var(--theme-border)] shadow-sm flex gap-4">
+              <div className="flex-shrink-0 w-10 h-10 bg-[var(--theme-primary-light)] text-[var(--theme-primary)] rounded-xl flex items-center justify-center font-bold text-base">
                 {idx + 1}
               </div>
               <div className="flex-1">
-                <div className="flex justify-between items-start mb-3">
-                  <h4 className="text-base font-bold text-slate-800 pr-8">{q.question_text}</h4>
+                <div className="flex justify-between items-start mb-3 gap-2">
+                  <h4 className="text-sm font-bold text-[var(--theme-text)] pr-8 leading-relaxed">{q.question_text}</h4>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-black bg-slate-100 text-slate-500 px-2 py-1 rounded-md whitespace-nowrap">Bobot: {q.score}</span>
-                    <button onClick={() => startEditQuestion(q)} className="text-xs font-black bg-violet-50 text-violet-700 px-3 py-1 rounded-lg hover:bg-violet-100">Edit</button>
+                    <span className="text-[10px] font-bold bg-[var(--theme-bg)] border border-[var(--theme-border)] text-[var(--theme-text-muted)] px-2 py-0.5 rounded whitespace-nowrap">Bobot: {q.score}</span>
+                    <button onClick={() => startEditQuestion(q)} className="text-[10px] font-bold bg-[var(--theme-primary-light)] text-[var(--theme-primary)] px-2.5 py-1 rounded hover:opacity-85 transition-colors">Edit</button>
                   </div>
                 </div>
                 
-                <div className="inline-flex mb-3 px-2 py-1 bg-slate-50 text-slate-500 rounded text-[10px] font-bold uppercase tracking-wider border border-slate-100">
+                <div className="inline-flex mb-3 px-2 py-0.5 bg-[var(--theme-bg)] text-[var(--theme-text-muted)] rounded text-[9px] font-bold uppercase tracking-wider border border-[var(--theme-border)]">
                   {q.question_type === 'multiple_choice' ? 'Pilihan Ganda' : 'Esai / Teks'}
                 </div>
 
                 {q.question_type === 'multiple_choice' && q.options && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
                     {q.options.map((opt, oIdx) => (
-                      <div key={opt.id} className={`flex items-start gap-3 p-3 rounded-xl border ${opt.is_correct ? 'bg-emerald-50/50 border-emerald-200 text-emerald-800 font-bold' : 'bg-slate-50 border-slate-100 text-slate-600'}`}>
-                        <div className={`w-6 h-6 rounded flex items-center justify-center text-xs font-black flex-shrink-0 ${opt.is_correct ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-500'}`}>
+                      <div key={opt.id} className={`flex items-start gap-3 p-3 rounded-xl border ${opt.is_correct ? 'bg-[var(--theme-success-light)] border-[var(--theme-success-light)] text-[var(--theme-success)] font-bold' : 'bg-[var(--theme-bg)] border-[var(--theme-border-muted)] text-[var(--theme-text-muted)] font-semibold'}`}>
+                        <div className={`w-6 h-6 rounded flex items-center justify-center text-xs font-bold flex-shrink-0 ${opt.is_correct ? 'bg-[var(--theme-success)] text-white' : 'bg-[var(--theme-border)] text-[var(--theme-text-muted)]'}`}>
                           {String.fromCharCode(65 + oIdx)}
                         </div>
-                        <span className="text-sm pt-0.5 leading-relaxed">{opt.option_text}</span>
+                        <span className="text-xs pt-0.5 leading-relaxed">{opt.option_text}</span>
                         {opt.is_correct && (
-                          <svg className="w-5 h-5 text-emerald-500 ml-auto flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
+                          <svg className="w-4 h-4 text-[var(--theme-success)] ml-auto flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
                         )}
                       </div>
                     ))}

@@ -9,6 +9,8 @@ import { Card, CardContent } from '@/components/ui/Card'
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import { adminService, API_BASE_URL } from '../../../services/api'
+import { PageContent } from '@/components/ui/page'
+import { DashboardHero } from '@/components/ui/dashboard'
 
 const getCleanImageUrl = (url) => {
   if (!url) return ''
@@ -149,40 +151,25 @@ export default function PsychologistBookings() {
   }
 
   return (
-    <div className="min-h-screen bg-[#fafafa] font-body p-6">
+    <PageContent>
       <Toaster position="top-right" />
       
-      <div className="max-w-[1600px] mx-auto space-y-8 animate-in fade-in duration-300">
-        
-        {/* ── Page Header ─────────────────────────────────────────── */}
-        <section className="bg-white border border-neutral-200 rounded-xl p-5 md:p-8 relative overflow-hidden shadow-sm">
-          <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-bku-primary/10 to-transparent pointer-events-none" />
-          
-          <div className="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-            <div className="space-y-1 w-full lg:w-auto">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="h-4 w-1.5 bg-bku-primary rounded-full" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400 font-jakarta">Layanan Konseling Kampus</span>
-              </div>
-              <h1 className="text-2xl md:text-3xl font-bold text-neutral-900 font-jakarta tracking-tight leading-tight">
-                Booking <span className="text-bku-primary italic font-semibold">Konseling</span>
-              </h1>
-              <p className="text-neutral-500 font-medium text-xs md:text-sm max-w-2xl leading-relaxed">
-                Log janji temu konseling mahasiswa dengan psikolog, termasuk verifikasi status, mode layanan, dan detail keluhan.
-              </p>
-            </div>
-            
-            <div className="flex items-center gap-3 w-full lg:w-auto">
-              <div className="px-4 py-2 bg-bku-primary/5 border border-bku-primary/20 rounded-xl flex items-center gap-3 w-full lg:w-auto justify-center">
-                 <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '16px' }}>calendar_month</span>
-                 <div className="flex flex-col leading-tight">
-                    <span className="text-[10px] font-bold text-bku-primary/70 uppercase tracking-widest">Akses Validasi</span>
-                    <span className="text-[12px] font-bold text-bku-primary font-jakarta">Super Admin Portal</span>
-                 </div>
-              </div>
-            </div>
+      <DashboardHero
+        title="Booking"
+        highlightedTitle="Konseling"
+        subtitle="Log janji temu konseling mahasiswa dengan psikolog, termasuk verifikasi status, mode layanan, dan detail keluhan."
+        icon="psychology"
+        badges={[{ label: 'Layanan Konseling Kampus', active: false }]}
+        actions={
+          <div className="px-4 py-2 bg-bku-primary/5 border border-bku-primary/20 rounded-xl flex items-center gap-3 w-full lg:w-auto justify-center">
+             <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '16px' }}>calendar_month</span>
+             <div className="flex flex-col leading-tight">
+                <span className="text-[10px] font-bold text-bku-primary/70 uppercase tracking-widest">Akses Validasi</span>
+                <span className="text-[12px] font-bold text-bku-primary font-jakarta">Super Admin Portal</span>
+             </div>
           </div>
-        </section>
+        }
+      />
 
         {/* ── Table Section ────────────────────────────────────────── */}
         <Card className="border-neutral-200 shadow-sm rounded-xl bg-white overflow-hidden">
@@ -206,7 +193,6 @@ export default function PsychologistBookings() {
             />
           </CardContent>
         </Card>
-      </div>
 
       {/* ── Detail Modal ─────────────────────────────────────────── */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
@@ -333,6 +319,6 @@ export default function PsychologistBookings() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </PageContent>
   )
 }

@@ -2,7 +2,9 @@ package config
 
 import (
 	"log"
+	"math"
 	"siakad-backend/models"
+	"strings"
 
 	"gorm.io/gorm"
 )
@@ -82,6 +84,94 @@ func SeedThemeSettings(db *gorm.DB) {
 			log.Println("[Theme Seeder] Error:", err)
 		} else {
 			log.Println("[Theme Seeder] Selesai menyemai tema default.")
+		}
+	} else {
+		// Jika database sudah ada tema, mari kita pastikan warna teks dasar dan heading dihitung dengan benar.
+		// Hal ini memperbaiki bug sebelumnya di mana warna teks terdeteksi sebagai putih (#FFFFFF) di latar belakang terang.
+		var theme models.ThemeSettings
+		if err := db.First(&theme).Error; err == nil {
+			parseHexLocal := func(s string) int {
+				n := 0
+				for _, c := range s {
+					n *= 16
+					if c >= '0' && c <= '9' {
+						n += int(c - '0')
+					} else if c >= 'a' && c <= 'f' {
+						n += 10 + int(c-'a')
+					} else if c >= 'A' && c <= 'F' {
+						n += 10 + int(c-'A')
+					}
+				}
+				return n
+			}
+
+			getLuminanceLocal := func(hex string) float64 {
+				hex = strings.ReplaceAll(hex, "#", "")
+				if len(hex) == 3 {
+					hex = string([]byte{hex[0], hex[0], hex[1], hex[1], hex[2], hex[2]})
+				}
+				if len(hex) != 6 {
+					return 0.5
+				}
+				r := float64(parseHexLocal(hex[0:2])) / 255.0
+				g := float64(parseHexLocal(hex[2:4])) / 255.0
+				b := float64(parseHexLocal(hex[4:6])) / 255.0
+
+				if r <= 0.03928 {
+					r = r / 12.92
+				} else {
+					r = math.Pow((r+0.055)/1.055, 2.4)
+				}
+				if g <= 0.03928 {
+					g = g / 12.92
+				} else {
+					g = math.Pow((g+0.055)/1.055, 2.4)
+				}
+				if b <= 0.03928 {
+					b = b / 12.92
+				} else {
+					b = math.Pow((b+0.055)/1.055, 2.4)
+				}
+				return 0.2126*r + 0.7152*g + 0.0722*b
+			}
+
+			autoTextColorLocal := func(bgColor string) string {
+				if getLuminanceLocal(bgColor) < 0.179 {
+					return "#FFFFFF"
+				}
+				return "#1B1C1C"
+			}
+
+			autoMutedColorLocal := func(textColor string) string {
+				if textColor == "#FFFFFF" {
+					return "#E2E8F0"
+				}
+				return "#64748B"
+			}
+
+			correctText := autoTextColorLocal(theme.ColorBackground)
+			correctMuted := autoMutedColorLocal(correctText)
+
+			if theme.ColorTextPrimary != correctText || theme.ColorH1 != correctText {
+				log.Println("[Theme Seeder] Memperbaiki kontras warna teks yang tidak sinkron di database...")
+				theme.ColorTextPrimary = correctText
+				theme.ColorTextMuted = correctMuted
+				theme.ColorH1 = correctText
+				theme.ColorH2 = correctText
+				theme.ColorH3 = correctText
+				theme.ColorH4 = correctText
+
+				// Sync portal colors
+				theme.PortalColorTextPrimary = correctText
+				theme.PortalColorTextMuted = correctMuted
+				theme.PortalColorH1 = correctText
+				theme.PortalColorH2 = correctText
+				theme.PortalColorH3 = correctText
+				theme.PortalColorH4 = correctText
+
+				db.Save(&theme)
+				log.Println("[Theme Seeder] Sukses memperbaiki kontras warna teks.")
+			}
 		}
 	}
 }

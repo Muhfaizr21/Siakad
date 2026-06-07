@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCreateQuizMutation, useSessionsQuery, useUpdateQuizMutation } from '../../../queries/useKencanaAdminQuery';
 import toast from 'react-hot-toast';
+import { SelectField, SelectOption } from '../../../components/ui/SelectField';
 
 const QuizForm = () => {
   const { sessionId, quizId } = useParams();
@@ -79,115 +80,123 @@ const QuizForm = () => {
   const isSaving = createQuizMutation.isPending || updateQuizMutation.isPending;
 
   if (isLoadingSessions) {
-    return <div className="flex justify-center items-center py-20"><div className="animate-spin rounded-full h-10 w-10 border-b-4 border-amber-600"></div></div>;
+    return (
+      <div className="flex justify-center items-center py-20 bg-transparent">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--theme-primary)]"></div>
+      </div>
+    );
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
-      <button onClick={() => navigate(`${basePath}/sessions/${sessionId}/content`)} className="text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors">
-        ← Kembali ke Konten Sesi
-      </button>
+    <div className="px-4 py-6 md:px-6 lg:px-8 min-h-screen bg-transparent font-body max-w-6xl mx-auto space-y-6">
+      
+      {/* Back button */}
+      <div>
+        <button onClick={() => navigate(`${basePath}/sessions/${sessionId}/content`)} className="text-xs font-bold text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] transition-colors">
+          ← Kembali ke Konten Sesi
+        </button>
+      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6">
-        <aside className="bg-amber-950 text-white rounded-3xl p-6 shadow-xl h-fit sticky top-6">
-          <p className="text-[10px] font-black text-amber-200 uppercase tracking-[0.28em]">Kuis</p>
-          <h1 className="text-2xl font-black mt-3">{isEditing ? 'Edit Kuis' : 'Tambah Kuis Baru'}</h1>
-          <p className="text-sm text-amber-100/90 mt-3 leading-relaxed">Atur identitas, jadwal, durasi, dan status kuis. Setelah dibuat, lanjutkan ke builder untuk menyusun soal.</p>
-          <div className="mt-6 rounded-2xl bg-white/10 border border-white/10 p-4">
-            <p className="text-[10px] font-black text-amber-200 uppercase tracking-widest">Sesi</p>
-            <p className="text-sm font-bold mt-1">{session?.title || '-'}</p>
+      <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6">
+        <aside className="bg-[var(--theme-primary)] text-white rounded-2xl p-6 shadow-md h-fit sticky top-6">
+          <p className="text-[10px] font-black text-[var(--theme-secondary)] uppercase tracking-[0.28em]">Kuis Orientasi</p>
+          <h1 className="text-xl font-bold mt-3">{isEditing ? 'Edit Kuis' : 'Tambah Kuis Baru'}</h1>
+          <p className="text-xs text-white/80 mt-3 leading-relaxed">Atur identitas, jadwal, durasi, dan status kuis. Setelah dibuat, lanjutkan ke builder untuk menyusun soal kuis.</p>
+          <div className="mt-6 rounded-xl bg-white/10 border border-white/10 p-4">
+            <p className="text-[9px] font-bold text-[var(--theme-secondary)] uppercase tracking-wider">Sesi Aktif</p>
+            <p className="text-xs font-bold mt-1 truncate">{session?.title || '-'}</p>
           </div>
         </aside>
 
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
-          <div className="p-6 md:p-8 border-b border-slate-100 bg-gradient-to-br from-amber-50 to-white">
-            <h2 className="text-xl font-black text-slate-800">Pengaturan Kuis</h2>
-            <p className="text-sm text-slate-500 mt-2">Field yang jelas membantu peserta melihat kuis sesuai jadwal dan status.</p>
-        </div>
-
-        <form onSubmit={e => handleSaveQuiz(e, true)} className="p-6 md:p-8 space-y-6">
-          <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Judul Kuis *</label>
-            <input 
-              type="text" 
-              required 
-              value={form.title} 
-              onChange={e => setForm({ ...form, title: e.target.value })} 
-              placeholder="Contoh: Kuis Evaluasi Visi Misi" 
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-amber-500 outline-none transition-all" 
-            />
+        <div className="bg-white rounded-2xl border border-[var(--theme-border)] shadow-sm overflow-hidden">
+          <div className="p-6 md:p-8 border-b border-[var(--theme-border-muted)] bg-[var(--theme-bg)]">
+            <h2 className="text-base font-bold text-[var(--theme-text)]">Pengaturan Parameter Kuis</h2>
+            <p className="text-xs font-semibold text-[var(--theme-text-muted)] mt-1">Lengkapi form di bawah untuk mengatur jadwal dan batas pengerjaan kuis.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <form onSubmit={e => handleSaveQuiz(e, true)} className="p-6 md:p-8 space-y-5">
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Durasi Pengerjaan (Menit)</label>
+              <label className="block text-xs font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-2">Judul Kuis *</label>
               <input 
-                type="number" 
+                type="text" 
                 required 
-                min="1"
-                value={form.duration_minutes} 
-                onChange={e => setForm({ ...form, duration_minutes: Number(e.target.value) })} 
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-amber-500 outline-none transition-all" 
+                value={form.title} 
+                onChange={e => setForm({ ...form, title: e.target.value })} 
+                placeholder="Contoh: Kuis Evaluasi Visi Misi" 
+                className="w-full h-10 px-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] transition-all" 
               />
             </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Maksimal Percobaan</label>
-              <input 
-                type="number" 
-                required 
-                min="1"
-                value={form.max_attempts} 
-                onChange={e => setForm({ ...form, max_attempts: Number(e.target.value) })} 
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-amber-500 outline-none transition-all" 
-              />
-            </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Waktu Mulai (Open At)</label>
-              <input 
-                type="datetime-local" 
-                value={form.open_at} 
-                onChange={e => setForm({ ...form, open_at: e.target.value })} 
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-amber-500 outline-none transition-all" 
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-xs font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-2">Durasi Pengerjaan (Menit)</label>
+                <input 
+                  type="number" 
+                  required 
+                  min="1"
+                  value={form.duration_minutes} 
+                  onChange={e => setForm({ ...form, duration_minutes: Number(e.target.value) })} 
+                  className="w-full h-10 px-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] transition-all" 
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-2">Maksimal Percobaan</label>
+                <input 
+                  type="number" 
+                  required 
+                  min="1"
+                  value={form.max_attempts} 
+                  onChange={e => setForm({ ...form, max_attempts: Number(e.target.value) })} 
+                  className="w-full h-10 px-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] transition-all" 
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Tenggat Waktu (Close At)</label>
-              <input 
-                type="datetime-local" 
-                value={form.close_at} 
-                onChange={e => setForm({ ...form, close_at: e.target.value })} 
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-amber-500 outline-none transition-all" 
-              />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-xs font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-2">Waktu Mulai (Open At)</label>
+                <input 
+                  type="datetime-local" 
+                  value={form.open_at} 
+                  onChange={e => setForm({ ...form, open_at: e.target.value })} 
+                  className="w-full h-10 px-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] transition-all" 
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-2">Tenggat Waktu (Close At)</label>
+                <input 
+                  type="datetime-local" 
+                  value={form.close_at} 
+                  onChange={e => setForm({ ...form, close_at: e.target.value })} 
+                  className="w-full h-10 px-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] transition-all" 
+                />
+              </div>
             </div>
-          </div>
 
-          <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Status Awal</label>
-            <select 
-              value={form.status} 
-              onChange={e => setForm({ ...form, status: e.target.value })} 
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-amber-500 outline-none transition-all"
-            >
-              <option value="draft">Draft (Disembunyikan, sedang dibuat)</option>
-              <option value="published">Diterbitkan (Peserta bisa mengakses)</option>
-              <option value="closed">Ditutup (Akses dihentikan)</option>
-            </select>
-            <p className="text-xs text-slate-400 mt-2">Anda bisa mengubah status kuis kapan saja setelah menyusun soal.</p>
-          </div>
+            <div>
+              <label className="block text-xs font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-2">Status Akses Kuis</label>
+              <SelectField 
+                value={form.status} 
+                onValueChange={val => setForm({ ...form, status: val })} 
+                className="w-full"
+              >
+                <SelectOption value="draft">Draft (Disembunyikan, sedang dibuat)</SelectOption>
+                <SelectOption value="published">Diterbitkan (Peserta bisa mengakses)</SelectOption>
+                <SelectOption value="closed">Ditutup (Akses dihentikan)</SelectOption>
+              </SelectField>
+              <p className="text-xs text-[var(--theme-text-subtle)] mt-2 font-semibold">Anda bisa mengubah status kuis kapan saja setelah menyusun soal.</p>
+            </div>
 
-          <div className="flex justify-end gap-3 pt-6 border-t border-slate-100 mt-8">
-            <button type="button" onClick={() => navigate(`${basePath}/sessions/${sessionId}/content`)} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors">Batal</button>
-            <button type="button" onClick={() => handleSaveQuiz(null, false)} disabled={isSaving} className="px-6 py-3 border-2 border-amber-500 text-amber-600 hover:bg-amber-50 rounded-xl font-black transition-colors">
-              Simpan Draft
-            </button>
-            <button type="submit" disabled={isSaving} className="bg-amber-500 hover:bg-amber-600 text-white px-8 py-3 rounded-xl font-black shadow-lg shadow-amber-200 disabled:opacity-50 transition-all flex items-center gap-2">
-              {isSaving ? 'Menyimpan...' : isEditing ? 'Simpan Kuis' : 'Lanjut Susun Soal →'}
-            </button>
-          </div>
-        </form>
+            <div className="flex justify-end gap-3 pt-6 border-t border-[var(--theme-border-muted)] mt-8">
+              <button type="button" onClick={() => navigate(`${basePath}/sessions/${sessionId}/content`)} className="px-5 py-2.5 rounded-xl font-bold text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg)] transition-colors text-xs">Batal</button>
+              <button type="button" onClick={() => handleSaveQuiz(null, false)} disabled={isSaving} className="px-5 py-2.5 border border-[var(--theme-primary)] text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)] rounded-xl font-bold transition-colors text-xs">
+                Simpan Draft
+              </button>
+              <button type="submit" disabled={isSaving} className="bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white px-6 py-2.5 rounded-xl font-bold shadow-md disabled:opacity-50 transition-all flex items-center gap-2 text-xs">
+                {isSaving ? 'Menyimpan...' : isEditing ? 'Simpan Kuis' : 'Lanjut Susun Soal →'}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>

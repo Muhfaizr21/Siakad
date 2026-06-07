@@ -5,6 +5,7 @@ import {
   useCounselingRiwayatQuery, 
   useBookingMutation, 
 } from '../../queries/useCounselingQuery';
+import { PageContent, PageHeader } from '@/components/ui/page';
 import { CardGridSkeleton } from '@/components/ui/SkeletonGroups';
 import EmptyState from '@/components/ui/EmptyState';
 import { toast, Toaster } from 'react-hot-toast';
@@ -116,53 +117,43 @@ export default function CounselingPage() {
   }) ?? [];
 
   return (
-    <div className="px-4 py-5 md:px-6 md:py-6 lg:px-8 lg:py-8 font-body text-[#171717] min-h-screen bg-[#fafafa]">
+    <PageContent className="font-body">
       <Toaster position="top-right" />
       <div className="w-full">
 
-        {/* Breadcrumb */}
-        <nav className="flex items-center gap-1.5 text-sm text-neutral-400 mb-7">
-          <NavLink to="/student/dashboard" className="hover:text-bku-primary transition-colors font-medium">Dashboard</NavLink>
-          <ChevronRight size={14} className="text-neutral-300" />
-          <span className="text-[#171717] font-semibold">Konseling & Wellness</span>
-        </nav>
-
-        {/* ── HERO ── */}
-        <div className="relative bg-bku-primary rounded-3xl overflow-hidden mb-8 p-7 md:p-10">
-          {/* Decorative rings */}
-          <div className="absolute -right-16 -top-16 w-72 h-72 rounded-full border border-white/10" />
-          <div className="absolute -right-8 -top-8 w-48 h-48 rounded-full border border-white/10" />
-          <div className="absolute right-6 bottom-6 opacity-10">
-            <HeartHandshake size={140} className="text-white" />
-          </div>
-
-          <div className="relative z-10 max-w-2xl">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-white/80 text-xs font-semibold mb-5">
-              <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >security</span> Privasi Terjamin 100%
+        <PageHeader 
+          title="Layanan Konseling Mahasiswa"
+          subtitle="Sesi privat bersama psikolog profesional — rahasia, sukarela, dan aman untuk semua mahasiswa."
+          icon="volunteer_activism"
+          breadcrumbs={[
+            { label: 'Dashboard', path: '/student/dashboard' },
+            { label: 'Konseling & Wellness', path: '/student/counseling' }
+          ]}
+          action={
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-success/10 border border-success/20 text-success text-xs font-bold">
+              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>security</span> Privasi Terjamin 100%
             </span>
-            <h1 className="text-2xl md:text-[2rem] font-extrabold text-white leading-tight mb-3 font-headline">
-              Layanan Konseling<br />Mahasiswa BKU
-            </h1>
-            <p className="text-white/60 text-sm md:text-[15px] leading-relaxed mb-7 max-w-lg">
-              Sesi privat bersama psikolog profesional — rahasia, sukarela, dan aman untuk semua mahasiswa.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              {[
-                { label: 'Slot Tersedia', value: totalSlot },
-                { label: 'Total Sesi',    value: totalRiwayat },
-                { label: 'Menunggu',      value: totalMenunggu },
-                { label: 'Rekam Medis',   value: totalMedicalRecords },
-              ].map(({ label, value }) => (
-                <div key={label} className="bg-white/10 border border-white/15 rounded-2xl px-4 py-2.5 text-center min-w-[90px]">
-                  <p className="text-white font-extrabold text-xl leading-none">{value}</p>
-                  <p className="text-white/50 text-[11px] font-medium mt-0.5">{label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+          }
+        />
 
-        {/* ── LAYANAN CARDS ── */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {[
+            { label: 'Slot Tersedia', value: totalSlot, icon: 'calendar_month', color: 'border-border', bg: 'bg-surface', text: 'text-[var(--theme-primary)]' },
+            { label: 'Total Sesi',    value: totalRiwayat, icon: 'description', color: 'border-primary/20', bg: 'bg-primary/5', text: 'text-[var(--theme-primary)]' },
+            { label: 'Menunggu',      value: totalMenunggu, icon: 'schedule', color: 'border-warning/20', bg: 'bg-warning/5', text: 'text-warning' },
+            { label: 'Rekam Medis',   value: totalMedicalRecords, icon: 'medical_information', color: 'border-success/20', bg: 'bg-success/5', text: 'text-success' },
+          ].map((stat, idx) => (
+            <div key={idx} className={`${stat.bg} rounded-2xl border ${stat.color} p-4 flex items-center gap-3 shadow-sm`}>
+              <div className="w-10 h-10 bg-surface/70 backdrop-blur-md rounded-xl flex items-center justify-center border border-inherit shadow-inner">
+                <span className={`material-symbols-outlined ${stat.text}`} style={{ fontSize: '18px' }}>{stat.icon}</span>
+              </div>
+              <div>
+                <h4 className="text-2xl font-black text-bku-text leading-none mb-0.5">{stat.value}</h4>
+                <p className="text-[10px] font-black text-text-muted uppercase tracking-wide">{stat.label}</p>
+              </div>
+            </div>
+          ))}
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           {[
             { title: 'Konseling Akademik', icon: BookOpen,  color: TIPE_CONFIG.Akademik, desc: 'Motivasi belajar, strategi studi, dan perencanaan akademik.' },
@@ -170,7 +161,7 @@ export default function CounselingPage() {
             { title: 'Konseling Personal', icon: Heart,     color: TIPE_CONFIG.Personal, desc: 'Kesehatan mental, masalah pribadi, dan pengembangan diri.' },
           ].map(({ title, icon: Icon, color, desc }) => (
             // eslint-disable-next-line
-            <div key={title} className="bg-white rounded-2xl border border-neutral-100 p-5 hover:shadow-md transition-all group cursor-default">
+            <div key={title} className="bg-surface rounded-2xl border border-border p-5 hover:shadow-md transition-all group cursor-default">
               <div className={`w-10 h-10 ${color.bg} ${color.border} border rounded-xl flex items-center justify-center mb-4`}>
                 <Icon size={18} className={color.text} />
               </div>
@@ -186,7 +177,7 @@ export default function CounselingPage() {
           {/* LEFT — Jadwal */}
           <div className="lg:col-span-2 space-y-4">
             {/* Header + Filter dalam satu baris */}
-            <div className="bg-white rounded-2xl border border-neutral-100 px-5 py-4">
+            <div className="bg-surface rounded-2xl border border-border px-5 py-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 {/* Title */}
                 <div className="shrink-0">
@@ -208,8 +199,8 @@ export default function CounselingPage() {
                       onClick={() => setFilterTipe(tipe)}
                       className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold border transition-all whitespace-nowrap ${
                         filterTipe === tipe
-                          ? 'bg-bku-primary text-white border-bku-primary'
-                          : 'bg-neutral-50 text-neutral-500 border-neutral-200 hover:border-bku-primary hover:text-bku-primary'
+                          ? 'bg-[var(--theme-primary)] text-white border-[var(--theme-primary)]'
+                          : 'bg-neutral-50 text-neutral-500 border-border hover:border-[var(--theme-primary)] hover:text-[var(--theme-primary)]'
                       }`}
                     >
                       {tipe}
@@ -231,7 +222,7 @@ export default function CounselingPage() {
                   return (
                     <div
                       key={slot.ID}
-                      className="bg-white rounded-2xl border border-neutral-100 p-5 hover:border-blue-200 hover:shadow-sm transition-all group flex flex-col sm:flex-row sm:items-center justify-between gap-5"
+                      className="bg-surface rounded-2xl border border-border p-5 hover:border-blue-200 hover:shadow-sm transition-all group flex flex-col sm:flex-row sm:items-center justify-between gap-5"
                     >
                       <div className="min-w-0 flex-1">
                         {/* Badges */}
@@ -240,7 +231,7 @@ export default function CounselingPage() {
                             <span className={`w-1.5 h-1.5 rounded-full ${tc.dot}`} />
                             {tc.label}
                           </span>
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${isFull ? 'bg-red-50 text-red-500 border-red-100' : 'bg-neutral-50 text-neutral-400 border-neutral-200'}`}>
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${isFull ? 'bg-red-50 text-red-500 border-red-100' : 'bg-neutral-50 text-neutral-400 border-border'}`}>
                             Kuota {slot.SisaKuota}/{slot.Kuota}
                           </span>
                         </div>
@@ -264,7 +255,7 @@ export default function CounselingPage() {
                         <button
                           onClick={() => !isFull && setSelectedSlot(slot)}
                           disabled={isFull}
-                          className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all border-2 border-bku-primary text-bku-primary hover:bg-bku-primary hover:text-white disabled:opacity-40 disabled:cursor-not-allowed disabled:border-neutral-200 disabled:text-neutral-400"
+                          className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all border-2 border-[var(--theme-primary)] text-[var(--theme-primary)] hover:bg-[var(--theme-primary)] hover:text-white disabled:opacity-40 disabled:cursor-not-allowed disabled:border-border disabled:text-neutral-400"
                         >
                           Ambil Antrean <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >arrow_forward</span>
                         </button>
@@ -275,9 +266,9 @@ export default function CounselingPage() {
               ) : (
                 <EmptyState
                   icon="HeartHandshake"
-                  iconColor="text-bku-primary"
-                  iconBgClass="bg-[#eef4ff]"
-                  iconBorderClass="border-[#c9d8ff]"
+                  iconColor="text-[var(--theme-primary)]"
+                  iconBgClass="bg-[var(--theme-primary-light)]"
+                  iconBorderClass="border-[var(--theme-primary-light)]"
                   title="Tidak Ada Jadwal"
                   description={filterTipe === 'Semua' ? 'Belum ada jadwal tersedia. Cek kembali beberapa saat lagi.' : `Jadwal untuk kategori ${filterTipe} sedang kosong.`}
                 />
@@ -287,21 +278,21 @@ export default function CounselingPage() {
 
           {/* RIGHT — Riwayat Summary */}
           <div className="space-y-4 lg:sticky lg:top-6 h-fit">
-            <div className="overflow-hidden rounded-2xl border border-neutral-100 bg-white shadow-sm">
-              <div className="bg-bku-primary p-5 text-white">
-                <div className="flex items-center gap-2 text-white/70">
+            <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
+              <div className="bg-[var(--theme-primary)] p-5 text-[var(--theme-text-on-primary)]">
+                <div className="flex items-center gap-2 opacity-80">
                   <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >description</span>
                   <span className="text-[10px] font-bold uppercase tracking-widest">Riwayat Konseling</span>
                 </div>
-                <h2 className="mt-2 text-xl font-extrabold font-headline">Pantau Sesi & Rekam Medis</h2>
-                <p className="mt-1 text-sm font-medium leading-relaxed text-white/60">
+                <h2 className="mt-2 text-xl font-extrabold font-headline text-inherit">Pantau Sesi & Rekam Medis</h2>
+                <p className="mt-1 text-sm font-medium leading-relaxed opacity-90">
                   Riwayat booking dan catatan psikolog sekarang tersedia di halaman khusus agar lebih mudah dibaca.
                 </p>
               </div>
 
               <div className="p-5">
                 <div className="grid grid-cols-3 gap-3">
-                  <div className="rounded-2xl border border-neutral-100 bg-neutral-50 p-3 text-center">
+                  <div className="rounded-2xl border border-border bg-neutral-50 p-3 text-center">
                     <p className="text-xl font-extrabold text-neutral-900">{totalRiwayat}</p>
                     <p className="mt-1 text-[9px] font-bold uppercase tracking-wide text-neutral-400">Total</p>
                   </div>
@@ -317,7 +308,7 @@ export default function CounselingPage() {
 
                 <NavLink
                   to="/student/counseling/history"
-                  className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-bku-primary px-4 py-3 text-sm font-bold text-white transition-all hover:bg-[#0B4FAE]"
+                  className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--theme-primary)] px-4 py-3 text-sm font-bold text-white transition-all hover:bg-[var(--theme-primary-hover)]"
                 >
                   Buka Riwayat Konseling
                   <ChevronRight size={16} />
@@ -339,10 +330,10 @@ export default function CounselingPage() {
         {/* ── BOOKING MODAL ── */}
         {selectedSlot && (
           <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="bg-surface w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
 
               {/* Modal Header */}
-              <div className="bg-bku-primary px-7 py-6 relative flex-shrink-0">
+              <div className="bg-[var(--theme-primary)] px-7 py-6 relative flex-shrink-0">
                 <button onClick={() => setSelectedSlot(null)} className="absolute top-5 right-5 text-white/40 hover:text-white transition-colors">
                   <span className="material-symbols-outlined" style={{ fontSize: '22px' }} >close</span>
                 </button>
@@ -360,7 +351,7 @@ export default function CounselingPage() {
               <div className="overflow-y-auto flex-1">
                 {/* Slot Summary */}
                 <div className="px-7 pt-5">
-                  <div className="bg-neutral-50 border border-neutral-100 rounded-2xl p-4 flex items-center justify-between gap-4">
+                  <div className="bg-neutral-50 border border-border rounded-2xl p-4 flex items-center justify-between gap-4">
                     <div>
                       <span className={`text-[10px] font-bold uppercase tracking-wide ${(TIPE_CONFIG[selectedSlot.Tipe === 'Personal' || selectedSlot.Tipe === 'Karir' ? 'Psikologi' : selectedSlot.Tipe] ?? TIPE_CONFIG.Akademik).text}`}>
                         {selectedSlot.Tipe === 'Personal' || selectedSlot.Tipe === 'Karir' ? 'Psikologi' : selectedSlot.Tipe}
@@ -393,15 +384,15 @@ export default function CounselingPage() {
                           onClick={() => setMode(opt.value)}
                           className={`flex items-start gap-2.5 p-3 rounded-2xl border text-left transition-all ${
                             mode === opt.value
-                              ? 'border-[#00236F] bg-blue-50/20 ring-2 ring-[#00236F]/5'
-                              : 'border-neutral-200 hover:border-neutral-300 bg-white'
+                              ? 'border-[var(--theme-primary)] bg-blue-50/20 ring-2 ring-[#00236F]/5'
+                              : 'border-border hover:border-border bg-white'
                           }`}
                         >
-                          <span className={`material-symbols-outlined text-[18px] mt-0.5 shrink-0 ${mode === opt.value ? 'text-[#00236F]' : 'text-neutral-400'}`}>
+                          <span className={`material-symbols-outlined text-[18px] mt-0.5 shrink-0 ${mode === opt.value ? 'text-[var(--theme-primary)]' : 'text-neutral-400'}`}>
                             {opt.icon}
                           </span>
                           <div>
-                            <p className={`text-xs font-bold ${mode === opt.value ? 'text-[#00236F]' : 'text-neutral-700'}`}>
+                            <p className={`text-xs font-bold ${mode === opt.value ? 'text-[var(--theme-primary)]' : 'text-neutral-700'}`}>
                               {opt.label}
                             </p>
                             <p className="text-[9px] text-neutral-400 mt-0.5 leading-snug">
@@ -425,8 +416,8 @@ export default function CounselingPage() {
                           onClick={() => setTopik(cat)}
                           className={`px-3 py-2 rounded-xl border text-xs font-bold transition-all ${
                             topik === cat
-                              ? 'border-[#00236F] bg-blue-50/20 text-[#00236F] ring-2 ring-[#00236F]/5'
-                              : 'border-neutral-200 hover:border-neutral-300 bg-white text-neutral-600'
+                              ? 'border-[var(--theme-primary)] bg-blue-50/20 text-[var(--theme-primary)] ring-2 ring-[#00236F]/5'
+                              : 'border-border hover:border-border bg-white text-neutral-600'
                           }`}
                         >
                           {cat}
@@ -443,7 +434,7 @@ export default function CounselingPage() {
                       value={keluhan}
                       onChange={(e) => setKeluhan(e.target.value)}
                       rows={4}
-                      className="w-full bg-neutral-50 border border-neutral-200 rounded-2xl px-4 py-3 text-sm text-neutral-700 focus:outline-none focus:border-[#00236F] focus:bg-white transition-all resize-none placeholder:text-neutral-300"
+                      className="w-full bg-neutral-50 border border-border rounded-2xl px-4 py-3 text-sm text-neutral-700 focus:outline-none focus:border-[var(--theme-primary)] focus:bg-white transition-all resize-none placeholder:text-neutral-300"
                       placeholder="Contoh: Saya merasa kesulitan mengatur waktu belajar dan merasa cemas menjelang ujian..."
                     />
                     <p className="text-[10px] text-neutral-400 font-medium mt-1">
@@ -456,7 +447,7 @@ export default function CounselingPage() {
                       type="checkbox"
                       checked={privacyAgreed}
                       onChange={(e) => setPrivacyAgreed(e.target.checked)}
-                      className="w-4 h-4 mt-0.5 rounded border-blue-200 text-[#00236F] focus:ring-[#00236F] shrink-0 cursor-pointer"
+                      className="w-4 h-4 mt-0.5 rounded border-blue-200 text-[var(--theme-primary)] focus:ring-[#00236F] shrink-0 cursor-pointer"
                     />
                     <span className="text-xs font-semibold text-blue-800 leading-relaxed">
                       Saya memahami bahwa sesi ini bersifat rahasia, sukarela, dan data saya hanya dapat diakses oleh konselor terkait.
@@ -466,14 +457,14 @@ export default function CounselingPage() {
                   <div className="flex gap-3 pt-1">
                     <button
                       onClick={() => setSelectedSlot(null)}
-                      className="flex-1 py-3 rounded-2xl border border-neutral-200 text-neutral-500 text-sm font-bold hover:bg-neutral-50 transition-colors"
+                      className="flex-1 py-3 rounded-2xl border border-border text-neutral-500 text-sm font-bold hover:bg-neutral-50 transition-colors"
                     >
                       Batal
                     </button>
                     <button
                       onClick={handleBooking}
                       disabled={bookingMutation.isPending}
-                      className="flex-1 py-3 rounded-2xl bg-[#00236F] text-white text-sm font-bold hover:bg-[#0B4FAE] disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20"
+                      className="flex-1 py-3 rounded-xl bg-[var(--theme-primary)] text-white text-sm font-bold hover:bg-[var(--theme-primary-hover)] disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20"
                     >
                       {bookingMutation.isPending ? 'Memproses...' : <><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >check_circle</span> Konfirmasi</>}
                     </button>
@@ -485,6 +476,6 @@ export default function CounselingPage() {
         )}
 
       </div>
-    </div>
+    </PageContent>
   );
 }

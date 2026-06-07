@@ -30,7 +30,7 @@ export default function KencanaAssignmentPage() {
   return (
     <KencanaShell title={assignment.title || 'Tugas Kencana'} subtitle={assignment.description} breadcrumbs={[{ label: 'Dashboard', to: '/student/kencana' }, { label: assignment.title || 'Tugas' }]}>
       <section className="grid gap-5 lg:grid-cols-[1fr_0.6fr]">
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
           <h2 className="text-xl font-black text-slate-800">Form Pengumpulan</h2>
           
           {isTooEarly && (
@@ -56,21 +56,21 @@ export default function KencanaAssignmentPage() {
               rows={7} 
               disabled={!isAssignmentActive}
               placeholder={isAssignmentActive ? "Tulis jawaban/refleksi tugas..." : "Form terkunci..."} 
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-medium outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all disabled:opacity-60" 
+              className="w-full rounded-2xl border border-border bg-slate-50 p-4 text-sm font-medium outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all disabled:opacity-60" 
             />
             <input 
               value={linkUrl} 
               onChange={(e) => setLinkUrl(e.target.value)} 
               placeholder={isAssignmentActive ? "Link pengumpulan (opsional)" : "Form terkunci..."} 
               disabled={!isAssignmentActive}
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-bold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all disabled:opacity-60" 
+              className="w-full rounded-2xl border border-border bg-slate-50 p-4 text-sm font-bold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all disabled:opacity-60" 
             />
             <input 
               value={fileUrl} 
               onChange={(e) => setFileUrl(e.target.value)} 
               placeholder={isAssignmentActive ? "URL file upload (opsional)" : "Form terkunci..."} 
               disabled={!isAssignmentActive}
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-bold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all disabled:opacity-60" 
+              className="w-full rounded-2xl border border-border bg-slate-50 p-4 text-sm font-bold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all disabled:opacity-60" 
             />
             <div className="pt-2">
               <PrimaryButton onClick={handleSubmit} disabled={submit.isPending || !isAssignmentActive} className={!isAssignmentActive ? "opacity-50 cursor-not-allowed" : ""}>
@@ -80,7 +80,7 @@ export default function KencanaAssignmentPage() {
           </div>
         </div>
         <aside className="space-y-5">
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
             <h2 className="text-xl font-black text-slate-800">Timeline & Status</h2>
             <div className="mt-5 grid grid-cols-2 gap-4">
               <div className="p-4 rounded-2xl bg-blue-50 border border-blue-100">
@@ -114,7 +114,7 @@ export default function KencanaAssignmentPage() {
           </div>
           
           {(submission.score !== undefined && submission.score !== null) && (
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm flex items-center justify-between">
+            <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm flex items-center justify-between">
               <div>
                 <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Nilai Akhir</p>
                 <p className="text-4xl font-black text-slate-800 mt-1">{submission.score}</p>
@@ -123,7 +123,7 @@ export default function KencanaAssignmentPage() {
             </div>
           )}
           {submission.feedback && (
-            <div className="rounded-3xl border border-amber-200 bg-amber-50 p-6 shadow-sm">
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 shadow-sm">
               <div className="flex items-center gap-2 mb-2"><span className="material-symbols-outlined text-amber-600">forum</span><h3 className="text-sm font-black text-amber-800">Feedback Mentor</h3></div>
               <p className="text-sm font-semibold text-amber-700">{submission.feedback}</p>
             </div>

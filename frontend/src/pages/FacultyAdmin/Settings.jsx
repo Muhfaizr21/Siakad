@@ -12,6 +12,8 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { Label } from "@/components/ui/Label"
+import { PageContent } from "@/components/ui/page/PageContent"
+import { DashboardHero } from "@/components/ui/dashboard/DashboardHero"
 
 export default function Settings() {
   const [loading, setLoading]       = useState(true)
@@ -82,22 +84,18 @@ export default function Settings() {
   }
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-8 pb-12 font-inter animate-in fade-in duration-500">
+    <PageContent>
       <Toaster position="top-right" />
 
-      {/* ── Minimalist Page Header ────────────────────────────── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200/60 pb-6 pt-2">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Pengaturan Akun</h1>
-          <p className="text-sm text-slate-500 font-medium">Kelola identitas dan keamanan portal fakultas Anda.</p>
-        </div>
-        <div className="flex items-center gap-3">
-           <div className="hidden lg:flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-full text-[10px] font-bold tracking-wider uppercase border border-emerald-100 shadow-sm">
-              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-              Sistem Aktif
-            </div>
-        </div>
-      </div>
+      <DashboardHero
+        title="Pengaturan"
+        highlightedTitle="Akun"
+        subtitle="Kelola identitas dan keamanan portal fakultas Anda."
+        icon="manage_accounts"
+        badges={[
+          { label: 'Sistem Aktif', active: true },
+        ]}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
         
@@ -246,6 +244,6 @@ export default function Settings() {
 
         </main>
       </div>
-    </div>
+    </PageContent>
   )
 }

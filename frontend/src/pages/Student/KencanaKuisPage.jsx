@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useKencanaQuizQuery, useStartQuizMutation, useSubmitQuizMutation } from '../../queries/useKencanaQuery';
@@ -53,7 +53,7 @@ export default function KencanaKuisPage() {
   if (result) {
     return (
       <KencanaShell title="Hasil Quiz" subtitle="Nilai quiz otomatis masuk ke komponen kognitif." breadcrumbs={[{ label: 'Timeline', to: '/student/kencana/timeline' }, { label: 'Hasil Quiz' }]}>
-        <section className="mx-auto max-w-xl rounded-[2rem] border border-[#e8dfcf] bg-white p-8 text-center shadow-sm">
+        <section className="mx-auto max-w-xl rounded-[2rem] border border-border bg-surface p-8 text-center shadow-sm">
           <div className="mx-auto grid size-20 place-items-center rounded-full bg-emerald-100 text-emerald-700"><span className="material-symbols-outlined" style={{ fontSize: 42 }}>check_circle</span></div>
           <h2 className="mt-5 text-3xl font-black">Nilai Quiz: {Number(result.score || result.nilai || 0).toFixed(1)}</h2>
           <p className="mt-2 text-sm font-semibold text-[#756b5a]">Benar {result.correct_count || result.jumlah_benar || 0} dari {result.total_questions || result.total_soal || 0} soal.</p>
@@ -67,7 +67,7 @@ export default function KencanaKuisPage() {
   if (!attempt) {
     return (
       <KencanaShell title={data?.title || 'Quiz Kencana'} subtitle={data?.description} breadcrumbs={[{ label: 'Timeline', to: '/student/kencana/timeline' }, { label: data?.title || 'Quiz' }]}>
-        <section className="rounded-[2rem] border border-[#e8dfcf] bg-white/85 p-6 shadow-sm">
+        <section className="rounded-[2rem] border border-border bg-white/85 p-6 shadow-sm">
           <StatusBadge status={data?.can_start ? 'active' : 'locked'} />
           <h2 className="mt-4 text-2xl font-black">Instruksi Quiz</h2>
           <p className="mt-2 text-sm font-medium leading-relaxed text-[#756b5a]">{data?.instruction}</p>
@@ -78,16 +78,16 @@ export default function KencanaKuisPage() {
             <Mini label="Nilai" value={data?.show_score ? 'Tampil' : 'Ditahan'} />
           </div>
 
-          <div className="mt-6 grid grid-cols-2 gap-4 border-t border-[#e8dfcf] pt-6">
+          <div className="mt-6 grid grid-cols-2 gap-4 border-t border-border pt-6">
             <div>
               <p className="text-[10px] font-black uppercase tracking-widest text-[#9b8f7a]">Waktu Dibuka</p>
-              <p className="text-sm font-black text-[#3d3529]">
+              <p className="text-sm font-black text-muted">
                 {data?.open_at ? new Date(data.open_at).toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' }) : 'Tidak dibatasi'}
               </p>
             </div>
             <div>
               <p className="text-[10px] font-black uppercase tracking-widest text-[#9b8f7a]">Waktu Ditutup (Tenggat)</p>
-              <p className="text-sm font-black text-[#3d3529]">
+              <p className="text-sm font-black text-muted">
                 {data?.close_at ? new Date(data.close_at).toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' }) : 'Tidak dibatasi'}
               </p>
             </div>
@@ -104,19 +104,19 @@ export default function KencanaKuisPage() {
     <KencanaShell title={data?.title || 'Quiz Kencana'} subtitle={`Sisa waktu ${fmt(timeLeft)} · ${Object.keys(answers).length}/${questions.length} soal terjawab`} breadcrumbs={[{ label: 'Timeline', to: '/student/kencana/timeline' }, { label: data?.title || 'Quiz' }]}>
       <section className="space-y-4">
         {questions.map((q, idx) => (
-          <article key={q.id} className="rounded-3xl border border-[#e8dfcf] bg-white/85 p-6 shadow-sm">
+          <article key={q.id} className="rounded-2xl border border-border bg-white/85 p-6 shadow-sm">
             <h3 className="text-lg font-black">{idx + 1}. {q.question_text}</h3>
             <div className="mt-5 grid gap-3">
               {(q.options || []).map((opt) => (
-                <label key={opt.id} className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition ${Number(answers[q.id]) === Number(opt.id) ? 'border-[#0f4c5c] bg-[#e8f0ef]' : 'border-[#e8dfcf] bg-[#fffaf0]'}`}>
+                <label key={opt.id} className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition ${Number(answers[q.id]) === Number(opt.id) ? 'border-[#0f4c5c] bg-[#e8f0ef]' : 'border-border bg-[#fffaf0]'}`}>
                   <input className="mt-1" type="radio" name={`q-${q.id}`} checked={Number(answers[q.id]) === Number(opt.id)} onChange={() => setAnswers((prev) => ({ ...prev, [q.id]: opt.id }))} />
-                  <span className="text-sm font-bold text-[#3d3529]">{opt.option_text}</span>
+                  <span className="text-sm font-bold text-muted">{opt.option_text}</span>
                 </label>
               ))}
             </div>
           </article>
         ))}
-        <div className="sticky bottom-4 rounded-3xl border border-[#e8dfcf] bg-white/90 p-4 shadow-xl backdrop-blur flex items-center justify-between gap-4">
+        <div className="sticky bottom-4 rounded-2xl border border-border bg-white/90 p-4 shadow-xl backdrop-blur flex items-center justify-between gap-4">
           <p className="text-sm font-black text-[#756b5a]">Timer: {fmt(timeLeft)}</p>
           <PrimaryButton onClick={handleSubmit} disabled={submitQuiz.isPending}>Submit Jawaban</PrimaryButton>
         </div>

@@ -1,7 +1,10 @@
 "use client"
-
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react';
+import { PageContent, PageHeader } from '@/components/ui/page';
 import { Button } from '@/components/ui/Button'
+
+
+
 import { Card, CardContent } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
@@ -151,39 +154,17 @@ export default function Settings() {
   const completeness = calculateCompleteness()
 
   return (
-    <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-8 font-body">
+    <PageContent className="font-body">
       <Toaster position="top-right" />
 
-      {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <section className="relative overflow-hidden rounded-[2rem] bg-white p-8 md:p-10 shadow-sm border border-slate-200">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(0,0,0,0.02)_0%,transparent_60%)]" />
-        <div className="absolute inset-0 opacity-[0.02]"
-          style={{
-            backgroundImage: `radial-gradient(circle at 20% 50%, var(--theme-primary) 1px, transparent 1px), radial-gradient(circle at 80% 20%, var(--theme-primary) 1px, transparent 1px)`,
-            backgroundSize: '40px 40px'
-          }}
-        />
-        <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full blur-3xl opacity-10" style={{ backgroundColor: 'var(--theme-secondary)' }} />
-        <div className="absolute -bottom-10 right-40 w-60 h-60 rounded-full blur-2xl opacity-10" style={{ backgroundColor: 'var(--theme-surface)' }} />
-
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-50 border border-slate-200 text-slate-500">
-              <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ backgroundColor: 'var(--theme-primary)' }} />
-              <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-600">Konfigurasi Identitas</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 shadow-inner" style={{ color: 'var(--theme-primary)' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>settings</span>
-              </div>
-              <div>
-                <h1 className="text-3xl md:text-4xl font-black tracking-tight font-headline text-slate-900">Pengaturan Sistem</h1>
-                <p className="text-slate-500 text-sm font-medium mt-1">Kelola data resmi, profil kelembagaan, visi misi, serta informasi saluran komunikasi organisasi.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+            {/* ── Welcome Banner ─────────────────────────────────────────── */}
+      <PageHeader 
+        title="Pengaturan Sistem"
+        subtitle="Kelola data resmi, profil kelembagaan, visi misi, serta informasi saluran komunikasi organisasi."
+        icon="settings"
+       
+        breadcrumbs={[ { label: 'Dashboard', path: '/ormawa' }, { label: 'Pengaturan Sistem', path: '#' } ]} 
+      />
 
       {/* ── Content Area ───────────────────────────────────────────── */}
       <form onSubmit={handleSave} className="space-y-6">
@@ -191,15 +172,15 @@ export default function Settings() {
 
           {/* LEFT SIDEBAR: Brand & Brand Identity */}
           <div className="space-y-6 lg:col-span-1">
-            <Card className="border border-slate-200/50 shadow-sm overflow-hidden bg-white/70 backdrop-blur-md rounded-[2rem] transition-all hover:shadow-md">
+            <Card className="border border-border shadow-sm overflow-hidden bg-surface rounded-2xl transition-all hover:shadow-md">
               <CardContent className="p-8 flex flex-col items-center gap-6">
 
                 <div className="relative group">
                   {/* Outer breathing accent */}
-                  <div className="absolute inset-0 bg-bku-primary/5 rounded-[2.5rem] blur-xl scale-95 transition-all group-hover:scale-105 duration-300" />
+                  <div className="absolute inset-0 bg-[var(--theme-primary-light)] rounded-2xl blur-xl scale-95 transition-all group-hover:scale-105 duration-300" />
 
                   {/* Logo Container */}
-                  <div className="relative w-36 h-36 rounded-[2.5rem] border-4 border-white shadow-xl overflow-hidden bg-slate-50 flex items-center justify-center transition-all duration-300 group-hover:rotate-1 group-hover:scale-[1.03]">
+                  <div className="relative w-36 h-36 rounded-2xl border-4 border-white shadow-xl overflow-hidden bg-[var(--theme-bg)] flex items-center justify-center transition-all duration-300 group-hover:rotate-1 group-hover:scale-[1.03]">
                     {logoUrl ? (
                       <img src={logoUrl} alt="Logo Organisasi" className="w-full h-full object-contain p-2" />
                     ) : (
@@ -213,14 +194,14 @@ export default function Settings() {
 
                 <div className="w-full text-center space-y-1">
                   <h3 className="font-bold text-sm font-headline tracking-tight" style={{ color: 'var(--theme-h3)' }}>{config.Nama || 'Nama Ormawa Belum Diisi'}</h3>
-                  <Badge className="bg-slate-100 text-slate-500 font-bold text-[9px] border border-slate-200 px-3 py-0.5 rounded-full uppercase tracking-wider">
+                  <Badge className="bg-[var(--theme-bg)] text-[var(--theme-text-muted)] font-bold text-[9px] border border-border px-3 py-0.5 rounded-full uppercase tracking-wider">
                     ID ORMAWA: {ormawaId}
                   </Badge>
                 </div>
 
                 {/* Upload Action */}
                 <label className="cursor-pointer w-full">
-                  <div className="w-full h-12 rounded-2xl border border-dashed border-slate-300 bg-slate-50/50 hover:bg-slate-100/50 hover:border-bku-primary flex items-center justify-center gap-2 text-[10px] font-black tracking-widest text-slate-500 hover:text-bku-primary transition-all active:scale-95">
+                  <div className="w-full h-10 rounded-xl border border-dashed border-border bg-[var(--theme-bg)] hover:bg-[var(--theme-border-muted)] hover:border-[var(--theme-primary)] flex items-center justify-center gap-2 text-[10px] font-semibold tracking-wider text-[var(--theme-text-muted)] hover:text-[var(--theme-primary)] transition-all active:scale-95">
                     {uploading ? (
                       <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }}>sync</span>
                     ) : (
@@ -238,20 +219,20 @@ export default function Settings() {
             </Card>
 
             {/* Profile Completeness Card */}
-            <Card className="border border-slate-200/50 shadow-sm overflow-hidden bg-white/70 backdrop-blur-md rounded-[2rem]">
+            <Card className="border border-border shadow-sm overflow-hidden bg-surface rounded-2xl">
               <CardContent className="p-6 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '20px' }}>info</span>
-                    <span className="text-[10px] font-black text-slate-400 tracking-wider font-headline uppercase">Kelengkapan Profil</span>
+                    <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '20px' }}>info</span>
+                    <span className="text-[10px] font-black text-[var(--theme-text-muted)] tracking-wider font-headline uppercase">Kelengkapan Profil</span>
                   </div>
-                  <span className="text-xs font-black text-bku-primary font-headline">{completeness}%</span>
+                  <span className="text-xs font-black text-[var(--theme-primary)] font-headline">{completeness}%</span>
                 </div>
 
                 {/* Progress bar */}
                 <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-bku-primary to-[#1e3a8a] rounded-full transition-all duration-500"
+                    className="h-full bg-[var(--theme-primary)] rounded-full transition-all duration-500"
                     style={{ width: `${completeness}%` }}
                   />
                 </div>
@@ -265,16 +246,16 @@ export default function Settings() {
 
           {/* RIGHT CONTENT FORM: Organization Details */}
           <div className="lg:col-span-2 space-y-6">
-            <Card className="border border-slate-200/50 shadow-sm overflow-hidden bg-white/70 backdrop-blur-md rounded-[2rem]">
+            <Card className="border border-border shadow-sm overflow-hidden bg-surface rounded-2xl">
               <CardContent className="p-6 md:p-8 space-y-8">
 
                 {/* Section: Identitas Utama */}
                 <div className="space-y-5">
-                  <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-                    <div className="size-6 rounded-lg bg-bku-primary/10 flex items-center justify-center text-bku-primary">
+                  <div className="flex items-center gap-2 pb-3 border-b border-[var(--theme-border-muted)]">
+                    <div className="size-6 rounded-lg bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)]">
                       <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>id_card</span>
                     </div>
-                    <h2 className="text-[11px] font-black tracking-widest text-bku-primary uppercase font-headline">IDENTITAS LEMBAGA MAHASISWA</h2>
+                    <h2 className="text-[11px] font-black tracking-widest text-[var(--theme-primary)] uppercase font-headline">IDENTITAS LEMBAGA MAHASISWA</h2>
                   </div>
 
                   <div className="space-y-4">
@@ -284,7 +265,7 @@ export default function Settings() {
                         value={config.Nama}
                         onChange={e => setConfig({ ...config, Nama: e.target.value })}
                         placeholder="Masukkan nama resmi lembaga/organisasi..."
-                        className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-xs"
+                        className="h-10 rounded-xl border border-border bg-[var(--theme-bg)] focus:bg-white focus:ring-[var(--theme-primary-light)] focus:outline-none focus:border-[var(--theme-primary)] shadow-none transition-all font-bold text-xs"
                       />
                     </FieldGroup>
 
@@ -293,7 +274,7 @@ export default function Settings() {
                         value={config.Deskripsi}
                         onChange={e => setConfig({ ...config, Deskripsi: e.target.value })}
                         placeholder="Tuliskan narasi singkat yang merepresentasikan organisasi Anda..."
-                        className="min-h-[100px] rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none p-4 font-medium text-xs leading-relaxed"
+                        className="min-h-[100px] rounded-xl border border-border bg-[var(--theme-bg)] focus:bg-white focus:ring-[var(--theme-primary-light)] focus:outline-none focus:border-[var(--theme-primary)] shadow-none p-4 font-medium text-xs leading-relaxed"
                       />
                     </FieldGroup>
                   </div>
@@ -301,11 +282,11 @@ export default function Settings() {
 
                 {/* Section: Filosofi Visi Misi */}
                 <div className="space-y-5">
-                  <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-                    <div className="size-6 rounded-lg bg-bku-primary/10 flex items-center justify-center text-bku-primary">
+                  <div className="flex items-center gap-2 pb-3 border-b border-[var(--theme-border-muted)]">
+                    <div className="size-6 rounded-lg bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)]">
                       <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>explore</span>
                     </div>
-                    <h2 className="text-[11px] font-black tracking-widest text-bku-primary uppercase font-headline">FILOSOFI GERAKAN & ARAH JUANG</h2>
+                    <h2 className="text-[11px] font-black tracking-widest text-[var(--theme-primary)] uppercase font-headline">FILOSOFI GERAKAN & ARAH JUANG</h2>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -314,7 +295,7 @@ export default function Settings() {
                         value={config.Visi}
                         onChange={e => setConfig({ ...config, Visi: e.target.value })}
                         placeholder="Visi organisasi jangka panjang..."
-                        className="min-h-[120px] rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none p-4 font-medium text-xs leading-relaxed"
+                        className="min-h-[120px] rounded-xl border border-border bg-[var(--theme-bg)] focus:bg-white focus:ring-[var(--theme-primary-light)] focus:outline-none focus:border-[var(--theme-primary)] shadow-none p-4 font-medium text-xs leading-relaxed"
                       />
                     </FieldGroup>
 
@@ -323,7 +304,7 @@ export default function Settings() {
                         value={config.Misi}
                         onChange={e => setConfig({ ...config, Misi: e.target.value })}
                         placeholder="Poin-poin misi utama organisasi (pisahkan dengan baris baru)..."
-                        className="min-h-[120px] rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none p-4 font-medium text-xs leading-relaxed"
+                        className="min-h-[120px] rounded-xl border border-border bg-[var(--theme-bg)] focus:bg-white focus:ring-[var(--theme-primary-light)] focus:outline-none focus:border-[var(--theme-primary)] shadow-none p-4 font-medium text-xs leading-relaxed"
                       />
                     </FieldGroup>
                   </div>
@@ -331,11 +312,11 @@ export default function Settings() {
 
                 {/* Section: Kontak & Media Sosial */}
                 <div className="space-y-5">
-                  <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-                    <div className="size-6 rounded-lg bg-bku-primary/10 flex items-center justify-center text-bku-primary">
+                  <div className="flex items-center gap-2 pb-3 border-b border-[var(--theme-border-muted)]">
+                    <div className="size-6 rounded-lg bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)]">
                       <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>contact_mail</span>
                     </div>
-                    <h2 className="text-[11px] font-black tracking-widest text-bku-primary uppercase font-headline">KONTAK & MEDIA INFORMASI PUBLIK</h2>
+                    <h2 className="text-[11px] font-black tracking-widest text-[var(--theme-primary)] uppercase font-headline">KONTAK & MEDIA INFORMASI PUBLIK</h2>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -345,7 +326,7 @@ export default function Settings() {
                         value={config.Email}
                         onChange={e => setConfig({ ...config, Email: e.target.value })}
                         placeholder="misal: bem@student.bku.ac.id"
-                        className="h-11 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-xs"
+                        className="h-10 rounded-xl border border-border bg-[var(--theme-bg)] focus:bg-white focus:ring-[var(--theme-primary-light)] focus:outline-none focus:border-[var(--theme-primary)] shadow-none transition-all font-bold text-xs"
                       />
                     </FieldGroup>
 
@@ -354,7 +335,7 @@ export default function Settings() {
                         value={config.Phone}
                         onChange={e => setConfig({ ...config, Phone: e.target.value })}
                         placeholder="misal: 0812-3456-7890"
-                        className="h-11 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-xs"
+                        className="h-10 rounded-xl border border-border bg-[var(--theme-bg)] focus:bg-white focus:ring-[var(--theme-primary-light)] focus:outline-none focus:border-[var(--theme-primary)] shadow-none transition-all font-bold text-xs"
                       />
                     </FieldGroup>
 
@@ -363,7 +344,7 @@ export default function Settings() {
                         value={config.Instagram}
                         onChange={e => setConfig({ ...config, Instagram: e.target.value })}
                         placeholder="misal: @bem_bku"
-                        className="h-11 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-xs"
+                        className="h-10 rounded-xl border border-border bg-[var(--theme-bg)] focus:bg-white focus:ring-[var(--theme-primary-light)] focus:outline-none focus:border-[var(--theme-primary)] shadow-none transition-all font-bold text-xs"
                       />
                     </FieldGroup>
 
@@ -373,7 +354,7 @@ export default function Settings() {
                         value={config.Website}
                         onChange={e => setConfig({ ...config, Website: e.target.value })}
                         placeholder="misal: https://bem.bku.ac.id"
-                        className="h-11 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-xs"
+                        className="h-10 rounded-xl border border-border bg-[var(--theme-bg)] focus:bg-white focus:ring-[var(--theme-primary-light)] focus:outline-none focus:border-[var(--theme-primary)] shadow-none transition-all font-bold text-xs"
                       />
                     </FieldGroup>
                   </div>
@@ -381,11 +362,11 @@ export default function Settings() {
 
                 {/* Section: Rekening Penerimaan Dana */}
                 <div className="space-y-5">
-                  <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-                    <div className="size-6 rounded-lg bg-[#00236F]/10 flex items-center justify-center text-[#00236F]">
+                  <div className="flex items-center gap-2 pb-3 border-b border-[var(--theme-border-muted)]">
+                    <div className="size-6 rounded-lg bg-[var(--theme-primary-light)]/40 flex items-center justify-center text-[var(--theme-primary)]">
                       <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>account_balance</span>
                     </div>
-                    <h2 className="text-[11px] font-black tracking-widest text-[#00236F] uppercase font-headline">REKENING PENERIMAAN DANA KEGIATAN</h2>
+                    <h2 className="text-[11px] font-black tracking-widest text-[var(--theme-primary)] uppercase font-headline">REKENING PENERIMAAN DANA KEGIATAN</h2>
                   </div>
 
                   <div className="space-y-4">
@@ -394,7 +375,7 @@ export default function Settings() {
                         value={config.Rekening}
                         onChange={e => setConfig({ ...config, Rekening: e.target.value })}
                         placeholder="misal: Bank Mandiri - 1234567890 a.n. BEM BKU"
-                        className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-xs"
+                        className="h-10 rounded-xl border border-border bg-[var(--theme-bg)] focus:bg-white focus:ring-[var(--theme-primary-light)] focus:outline-none focus:border-[var(--theme-primary)] shadow-none transition-all font-bold text-xs"
                       />
                     </FieldGroup>
                   </div>
@@ -408,7 +389,7 @@ export default function Settings() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full md:w-auto h-13 md:h-14 px-10 rounded-2xl bg-gradient-to-r from-bku-primary to-[#1e3a8a] text-white shadow-xl shadow-blue-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 border-none"
+                className="w-full md:w-auto h-10 px-8 rounded-xl bg-[var(--theme-primary)] text-white hover:bg-[var(--theme-primary-hover)] shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 border-none"
               >
                 {loading ? (
                   <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span>
@@ -423,6 +404,6 @@ export default function Settings() {
 
         </div>
       </form>
-    </div>
+    </PageContent>
   )
 }

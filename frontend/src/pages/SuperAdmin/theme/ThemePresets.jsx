@@ -153,8 +153,19 @@ export default function ThemePresets() {
       }
     });
 
-    setPreviewData({ ...activeTheme, ...preset.colors });
-    previewTheme(preset.colors);
+    setPreviewData({ 
+      ...activeTheme, 
+      ...preset.colors,
+      sidebar_bg_color: preset.colors.color_primary,
+      sidebar_text_color: '',
+      sidebar_text_muted_color: ''
+    });
+    previewTheme({ 
+      ...preset.colors, 
+      sidebar_bg_color: preset.colors.color_primary,
+      sidebar_text_color: '',
+      sidebar_text_muted_color: ''
+    });
     setShowPreview(true);
   };
 
@@ -167,12 +178,14 @@ export default function ThemePresets() {
     try {
       const payload = {
         ...activeTheme,
-        ...preset.colors
+        ...preset.colors,
+        sidebar_bg_color: preset.colors.color_primary,
+        sidebar_text_color: '',
+        sidebar_text_muted_color: ''
       };
       const res = await adminService.updateTheme(payload);
       if (res.success) {
         showToast('success', `Preset "${preset.name}" berhasil diterapkan`);
-        await fetchTheme();
         const updated = await fetchTheme();
         if (updated) setActiveTheme(updated);
       } else {

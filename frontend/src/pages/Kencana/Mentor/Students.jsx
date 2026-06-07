@@ -1,6 +1,7 @@
 import React from 'react';
 import { useMentorStudentsQuery, useMentorRemoveAssignmentMutation } from '../../../queries/useKencanaMentorQuery';
 import { Link } from 'react-router-dom';
+import { PageHeader } from '../../../components/ui/page/PageHeader';
 
 const Students = () => {
   const { data: students, isLoading } = useMentorStudentsQuery();
@@ -14,68 +15,90 @@ const Students = () => {
   };
 
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-slate-800">Daftar Mahasiswa Bimbingan</h1>
-        <Link to="/kencana-mentor/available" className="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-md shadow-violet-500/20">
-          + Tambah Bimbingan
-        </Link>
-      </div>
+    <div className="px-4 py-6 md:px-6 lg:px-8 min-h-screen bg-transparent font-body max-w-7xl mx-auto space-y-6">
+      <PageHeader
+        icon="users"
+        title={
+          <>
+            <span className="text-[var(--theme-text)]">Mahasiswa </span>
+            <span className="text-[var(--theme-primary)]">Bimbingan</span>
+          </>
+        }
+        subtitle="Daftar mahasiswa yang Anda bimbing beserta rincian status bimbingannya."
+        breadcrumbs={[
+          { label: 'Kencana Mentor', path: '#' },
+          { label: 'Daftar Bimbingan' }
+        ]}
+        action={
+          <Link to="/kencana-mentor/available" className="h-10 px-5 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-xs font-bold transition-all flex items-center justify-center shadow-sm">
+            + Tambah Bimbingan
+          </Link>
+        }
+      />
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-        {isLoading ? (
-          <p>Loading...</p>
-        ) : (
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-slate-200 text-sm font-semibold text-slate-500 uppercase tracking-wider">
-                <th className="pb-3 font-medium">NIM</th>
-                <th className="pb-3 font-medium">Nama Mahasiswa</th>
-                <th className="pb-3 font-medium">Program Studi</th>
-                <th className="pb-3 font-medium">Status</th>
-                <th className="pb-3 font-medium">Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((assignment) => (
-                <tr key={assignment.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
-                  <td className="py-4 font-medium text-slate-900">{assignment.student?.nim || '-'}</td>
-                  <td className="py-4 text-slate-800 font-semibold">{assignment.student?.nama || '-'}</td>
-                  <td className="py-4 text-slate-600">{assignment.student?.program_studi || '-'}</td>
-                  <td className="py-4">
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-                      assignment.status === 'active' ? 'bg-emerald-100 text-emerald-700' :
-                      assignment.status === 'pending' ? 'bg-amber-100 text-amber-700' :
-                      'bg-rose-100 text-rose-700'
-                    }`}>
-                      {assignment.status === 'active' ? 'Disetujui' : 
-                       assignment.status === 'pending' ? 'Pending' : 'Ditolak'}
-                    </span>
-                  </td>
-                  <td className="py-4">
-                    <div className="flex gap-2">
+      <div className="bg-white rounded-2xl border border-[var(--theme-border)] shadow-sm overflow-hidden">
+        <div className="p-6 md:p-8 border-b border-[var(--theme-border-muted)] bg-[var(--theme-bg)]">
+          <h2 className="text-base font-bold text-[var(--theme-text)]">Mahasiswa Aktif</h2>
+          <p className="text-xs font-semibold text-[var(--theme-text-muted)] mt-1">Daftar lengkap bimbingan beserta NIM, Prodi, dan status verifikasi.</p>
+        </div>
+
+        <div className="overflow-x-auto">
+          {isLoading ? (
+            <div className="p-12 text-center text-[var(--theme-text-muted)] font-bold">Memuat data mahasiswa...</div>
+          ) : (
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-[var(--theme-border)] text-xs font-bold text-[var(--theme-text-muted)] uppercase tracking-wider bg-[var(--theme-bg)]/50">
+                  <th className="px-6 py-3 font-semibold">NIM</th>
+                  <th className="px-6 py-3 font-semibold">Nama Mahasiswa</th>
+                  <th className="px-6 py-3 font-semibold">Program Studi</th>
+                  <th className="px-6 py-3 font-semibold">Status</th>
+                  <th className="px-6 py-3 text-right font-semibold">Aksi</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--theme-border-muted)]">
+                {rows.map((assignment) => (
+                  <tr key={assignment.id} className="hover:bg-[var(--theme-bg)]/40 transition-colors text-sm font-semibold text-[var(--theme-text)]">
+                    <td className="px-6 py-4 font-bold text-[var(--theme-primary)]">{assignment.student?.nim || '-'}</td>
+                    <td className="px-6 py-4 text-[var(--theme-text)]">{assignment.student?.nama || '-'}</td>
+                    <td className="px-6 py-4 text-[var(--theme-text-muted)]">{assignment.student?.program_studi || '-'}</td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                        assignment.status === 'active' ? 'bg-[var(--theme-success-light)] text-[var(--theme-success)] border-[var(--theme-success-light)]' :
+                        assignment.status === 'pending' ? 'bg-[var(--theme-warning-light)] text-[var(--theme-warning)] border-[var(--theme-warning-light)]' :
+                        'bg-[var(--theme-danger-light)] text-[var(--theme-danger)] border-[var(--theme-danger-light)]'
+                      }`}>
+                        {assignment.status === 'active' ? 'Disetujui' : 
+                         assignment.status === 'pending' ? 'Pending' : 'Ditolak'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right flex items-center justify-end gap-2">
                       {assignment.status === 'active' && (
-                        <Link to={`/kencana-mentor/students/${assignment.student_id}`} className="text-violet-600 hover:text-violet-800 text-sm font-bold px-3 py-1 bg-violet-50 rounded-lg">
+                        <Link to={`/kencana-mentor/students/${assignment.student_id}`} className="h-8 px-3 rounded-lg bg-[var(--theme-primary-light)] text-[var(--theme-primary)] text-xs font-bold hover:bg-[var(--theme-primary-light)]/85 transition-colors border border-[var(--theme-primary-light)] flex items-center">
                           Detail
                         </Link>
                       )}
                       <button 
                         onClick={() => handleRemove(assignment.id)}
                         disabled={removeMutation.isPending}
-                        className="text-rose-600 hover:text-rose-800 text-sm font-bold px-3 py-1 bg-rose-50 rounded-lg disabled:opacity-50"
+                        className="h-8 px-3 rounded-lg bg-[var(--theme-danger-light)] text-[var(--theme-danger)] text-xs font-bold hover:bg-[var(--theme-danger-light)]/85 transition-colors border border-[var(--theme-danger-light)] disabled:opacity-50"
                       >
                         Hapus
                       </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {!rows.length && (
-                <tr><td colSpan="5" className="py-4 text-center text-slate-500">Anda belum memiliki mahasiswa bimbingan.</td></tr>
-              )}
-            </tbody>
-          </table>
-        )}
+                    </td>
+                  </tr>
+                ))}
+                {!rows.length && (
+                  <tr>
+                    <td colSpan="5" className="px-6 py-8 text-center text-[var(--theme-text-muted)] font-semibold">
+                      Anda belum memiliki mahasiswa bimbingan.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
+        </div>
       </div>
     </div>
   );

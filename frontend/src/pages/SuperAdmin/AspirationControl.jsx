@@ -15,6 +15,8 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
+import { PageContent } from '@/components/ui/page'
+import { DashboardHero } from '@/components/ui/dashboard'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Filter = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>filter_alt</span>;
@@ -399,41 +401,26 @@ const AspirationControl = () => {
   }
 
   return (
-    <div className="min-h-screen bg-transparent font-inter">
+    <PageContent>
       <Toaster position="top-right" />
       
-      <div className="max-w-[1600px] mx-auto space-y-8 select-none">
-        
-        {/* ── Page Header ─────────────────────────────────────────── */}
-        <section className="glass-card rounded-2xl border border-slate-200/60 p-6 md:p-8 relative overflow-hidden shadow-none">
-            <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-bku-primary/5 to-transparent pointer-events-none" />
-            
-            <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                <div className="space-y-2">
-                    <div className="flex items-center gap-2 mb-2">
-                        <div className="h-4 w-1.5 bg-bku-primary rounded-full animate-pulse" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 font-headline leading-none">Incident Management</span>
-                    </div>
-                    <h1 className="text-2xl font-black font-headline tracking-tight leading-none" style={{ color: 'var(--theme-h1)' }}>
-                        Global <span className="text-bku-primary">Aspiration Hub</span>
-                    </h1>
-                    <p className="text-slate-400 font-medium text-[11px] max-w-2xl leading-relaxed">
-                        Pusat monitoring dan resolusi aspirasi mahasiswa lintas fakultas. Pastikan setiap suara mahasiswa mendapatkan penanganan sesuai SLA.
-                    </p>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                    <Button 
-                        variant="outline"
-                        onClick={loadData}
-                        className="h-11 px-6 rounded-xl border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-100 hover:text-bku-primary gap-2.5 transition-all active:scale-95 shadow-none cursor-pointer font-headline"
-                    >
-                        <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '16px' }}>show_chart</span>
-                        Live Refresh
-                    </Button>
-                </div>
-            </div>
-        </section>
+      <DashboardHero
+        title="Global"
+        highlightedTitle="Aspiration Hub"
+        subtitle="Pusat monitoring dan resolusi aspirasi mahasiswa lintas fakultas. Pastikan setiap suara mahasiswa mendapatkan penanganan sesuai SLA."
+        icon="forum"
+        badges={[{ label: 'Incident Management', active: false }]}
+        actions={
+          <Button 
+            variant="outline"
+            onClick={loadData}
+            className="h-11 px-6 rounded-xl border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-100 hover:text-bku-primary gap-2.5 transition-all active:scale-95 shadow-none cursor-pointer font-headline"
+          >
+            <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '16px' }}>show_chart</span>
+            Live Refresh
+          </Button>
+        }
+      />
 
         {/* ── Stats Grid ──────────────────────────────────────────── */}
         <div className="space-y-4">
@@ -790,7 +777,6 @@ const AspirationControl = () => {
             </table>
           </div>
         </Card>
-      </div>
 
       {/* ── Global Aspiration Audit Dialog Popup Modal ───────────────── */}
       {selected && (
@@ -1017,7 +1003,7 @@ const AspirationControl = () => {
         </div>
       )}
 
-    </div>
+    </PageContent>
   )
 }
 

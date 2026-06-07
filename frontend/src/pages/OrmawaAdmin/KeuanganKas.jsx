@@ -1,12 +1,16 @@
 "use client"
-
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo } from 'react';
+import { PageContent, PageHeader } from '@/components/ui/page';
 import { DataTable } from '@/components/ui/DataTable'
+
+
+
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
 import { Card, CardContent } from '@/components/ui/Card'
+import { SelectField, SelectOption } from '@/components/ui/SelectField'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 
@@ -261,7 +265,7 @@ export default function KeuanganKas() {
                 "text-[8.5px] font-black tracking-widest px-2.5 py-0.5 rounded-md border",
                 isCampus
                   ? "bg-blue-50 text-blue-600 border-blue-100/50"
-                  : "bg-slate-50 text-slate-500 border-slate-200/60"
+                  : "bg-slate-50 text-slate-500 border-border"
               )}>
                 {isCampus ? "🏛️ PAGU KAMPUS" : "💼 KAS MANDIRI"}
               </span>
@@ -311,66 +315,45 @@ export default function KeuanganKas() {
   ]
 
   return (
-    <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-8 font-body">
+    <PageContent className="font-body">
       <Toaster position="top-right" />
 
-      {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <section className="relative overflow-hidden rounded-[2rem] bg-white p-8 md:p-10 shadow-sm border border-slate-200">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(0,0,0,0.02)_0%,transparent_60%)]" />
-        <div className="absolute inset-0 opacity-[0.02]"
-          style={{
-            backgroundImage: `radial-gradient(circle at 20% 50%, var(--theme-primary) 1px, transparent 1px), radial-gradient(circle at 80% 20%, var(--theme-primary) 1px, transparent 1px)`,
-            backgroundSize: '40px 40px'
-          }}
-        />
-        <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full blur-3xl opacity-10" style={{ backgroundColor: 'var(--theme-secondary)' }} />
-        <div className="absolute -bottom-10 right-40 w-60 h-60 rounded-full blur-2xl opacity-10" style={{ backgroundColor: 'var(--theme-surface)' }} />
-
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-50 border border-slate-200 text-slate-500">
-              <span className="h-1.5 w-1.5 rounded-full animate-ping" style={{ backgroundColor: 'var(--theme-primary)' }} />
-              <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-600">Modul Keuangan</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 shadow-inner" style={{ color: 'var(--theme-primary)' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>account_balance_wallet</span>
-              </div>
-              <div>
-                <h1 className="text-3xl md:text-4xl font-black tracking-tight font-headline text-slate-900">Buku Kas & Keuangan</h1>
-                <p className="text-slate-500 text-sm font-medium mt-1">Pantau dan kelola seluruh pemasukan serta pengeluaran kas ormawa secara akuntabel.</p>
-              </div>
-            </div>
-          </div>
-
+            {/* ── Welcome Banner ─────────────────────────────────────────── */}
+      <PageHeader 
+        title="Buku Kas & Keuangan"
+        subtitle="Pantau dan kelola seluruh pemasukan serta pengeluaran kas ormawa secara akuntabel."
+        icon="account_balance_wallet"
+        action={
           <Button
             onClick={() => {
               setForm({ Deskripsi: '', Nominal: '', Tipe: 'pemasukan', Tanggal: '', OrmawaID: ormawaId, Sumber: 'organisasi' })
               setIsCrudOpen(true)
             }}
-            className="h-12 px-6 rounded-2xl text-white font-bold text-xs tracking-wider shadow-lg shadow-blue-900/10 transition-all active:scale-95 shrink-0 w-full md:w-auto flex items-center justify-center gap-2"
+            className="h-10 px-5 rounded-xl text-white font-bold text-xs tracking-wider shadow-lg transition-all active:scale-95 shrink-0 w-full md:w-auto flex items-center justify-center gap-2"
             style={{ backgroundColor: 'var(--theme-primary)' }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add_box</span>
             <span>CATAT TRANSAKSI</span>
           </Button>
-        </div>
-      </section>
+        }
+       
+        breadcrumbs={[ { label: 'Dashboard', path: '/ormawa' }, { label: 'Buku Kas & Keuangan', path: '#' } ]} 
+      />
 
       {/* ── Financial Summary Cards ─────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
         {/* Saldo Kas Gabungan */}
-        <Card className="border border-slate-100 shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-md transition-all duration-300">
+        <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface hover:shadow-md transition-all duration-300">
           <CardContent className="p-6 flex flex-col items-start gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-[#00236F] shrink-0 shadow-sm">
+            <div className="w-12 h-12 rounded-2xl bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)] shrink-0 shadow-sm">
               <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>account_balance</span>
             </div>
             <div className="space-y-1 w-full min-w-0">
-              <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Saldo Kas Gabungan</p>
-              <p className="text-2xl lg:text-3xl font-black text-[#00236F] tracking-tight font-headline truncate">
+              <p className="text-[10px] font-black text-[var(--theme-text-muted)] tracking-wider uppercase font-headline">Saldo Kas Gabungan</p>
+              <p className="text-2xl lg:text-3xl font-black text-[var(--theme-primary)] tracking-tight font-headline truncate">
                 {formatRp(saldo)}
               </p>
-              <p className="text-[9px] font-bold text-slate-400 truncate">
+              <p className="text-[9px] font-bold text-[var(--theme-text-muted)] truncate">
                 Pemasukan: {formatRp(totalIn)} | Pengeluaran: {formatRp(totalOut)}
               </p>
             </div>
@@ -378,13 +361,13 @@ export default function KeuanganKas() {
         </Card>
 
         {/* Saldo Pagu Kampus (🏛️ Duit Kampus) */}
-        <Card className="border border-slate-100 shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-md transition-all duration-300">
+        <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface hover:shadow-md transition-all duration-300">
           <CardContent className="p-6 flex flex-col items-start gap-4">
             <div className="w-12 h-12 rounded-2xl bg-sky-50 flex items-center justify-center text-sky-600 shrink-0 shadow-sm">
               <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>assured_workload</span>
             </div>
             <div className="space-y-1 w-full min-w-0">
-              <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Sisa Pagu (Duit Kampus)</p>
+              <p className="text-[10px] font-black text-[var(--theme-text-muted)] tracking-wider uppercase font-headline">Sisa Pagu (Duit Kampus)</p>
               <p className="text-2xl lg:text-3xl font-black text-sky-600 tracking-tight font-headline truncate">
                 {formatRp(campusSaldo)}
               </p>
@@ -396,13 +379,13 @@ export default function KeuanganKas() {
         </Card>
 
         {/* Saldo Kas Organisasi (💼 Kas Mandiri) */}
-        <Card className="border border-slate-100 shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-md transition-all duration-300">
+        <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface hover:shadow-md transition-all duration-300">
           <CardContent className="p-6 flex flex-col items-start gap-4">
             <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0 shadow-sm">
               <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>payments</span>
             </div>
             <div className="space-y-1 w-full min-w-0">
-              <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Kas Mandiri Organisasi</p>
+              <p className="text-[10px] font-black text-[var(--theme-text-muted)] tracking-wider uppercase font-headline">Kas Mandiri Organisasi</p>
               <p className="text-2xl lg:text-3xl font-black text-emerald-600 tracking-tight font-headline truncate">
                 {formatRp(orgSaldo)}
               </p>
@@ -415,27 +398,25 @@ export default function KeuanganKas() {
       </div>
 
       {/* ── Filter Bar ─────────────────────────────────────────────── */}
-      <div className="bg-white rounded-2xl border border-slate-200/60 p-4 flex flex-wrap items-center gap-3 shadow-sm">
-        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mr-1">Filter</span>
-        <select value={filterTipe} onChange={e => setFilterTipe(e.target.value)}
-          className="h-9 px-3 rounded-xl border border-slate-200 text-xs font-bold bg-white focus:outline-none focus:border-primary">
-          <option value="all">Semua Mutasi</option>
-          <option value="pemasukan">▲ Pemasukan</option>
-          <option value="pengeluaran">▼ Pengeluaran</option>
-        </select>
-        <select value={filterSumber} onChange={e => setFilterSumber(e.target.value)}
-          className="h-9 px-3 rounded-xl border border-slate-200 text-xs font-bold bg-white focus:outline-none focus:border-primary">
-          <option value="all">Semua Sumber</option>
-          <option value="kampus">🏛️ Pagu Kampus</option>
-          <option value="organisasi">💼 Kas Mandiri</option>
-        </select>
+      <div className="bg-white rounded-2xl border border-border p-4 flex flex-wrap items-center gap-3 shadow-sm">
+        <span className="text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mr-1">Filter</span>
+        <SelectField value={filterTipe} onValueChange={setFilterTipe}>
+          <SelectOption value="all">Semua Mutasi</SelectOption>
+          <SelectOption value="pemasukan">▲ Pemasukan</SelectOption>
+          <SelectOption value="pengeluaran">▼ Pengeluaran</SelectOption>
+        </SelectField>
+        <SelectField value={filterSumber} onValueChange={setFilterSumber}>
+          <SelectOption value="all">Semua Sumber</SelectOption>
+          <SelectOption value="kampus">🏛️ Pagu Kampus</SelectOption>
+          <SelectOption value="organisasi">💼 Kas Mandiri</SelectOption>
+        </SelectField>
         <div className="h-6 w-px bg-slate-200" />
         <span className="text-[10px] font-bold text-slate-400">Dari</span>
         <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
-          className="h-9 px-3 rounded-xl border border-slate-200 text-xs font-bold bg-white focus:outline-none focus:border-primary" />
+          className="h-9 px-3 rounded-xl border border-border text-xs font-bold bg-white focus:outline-none focus:border-primary" />
         <span className="text-[10px] font-bold text-slate-400">Sampai</span>
         <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
-          className="h-9 px-3 rounded-xl border border-slate-200 text-xs font-bold bg-white focus:outline-none focus:border-primary" />
+          className="h-9 px-3 rounded-xl border border-border text-xs font-bold bg-white focus:outline-none focus:border-primary" />
         {(filterTipe !== 'all' || filterSumber !== 'all' || startDate || endDate) && (
           <button onClick={() => { setFilterTipe('all'); setFilterSumber('all'); setStartDate(''); setEndDate('') }}
             className="h-9 px-4 text-xs font-bold text-rose-600 bg-rose-50 rounded-xl border border-rose-200 hover:bg-rose-100">
@@ -452,7 +433,7 @@ export default function KeuanganKas() {
         <>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* WHAT → Distribusi Tipe */}
-          <div className="bg-white rounded-2xl border border-slate-200/60 p-5 shadow-sm">
+          <div className="bg-white rounded-2xl border border-border p-5 shadow-sm">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 shrink-0">
                 <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>pie_chart</span>
@@ -485,7 +466,7 @@ export default function KeuanganKas() {
           </div>
 
           {/* WHERE → Sumber Dana */}
-          <div className="bg-white rounded-2xl border border-slate-200/60 p-5 shadow-sm">
+          <div className="bg-white rounded-2xl border border-border p-5 shadow-sm">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 shrink-0">
                 <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>account_balance</span>
@@ -518,7 +499,7 @@ export default function KeuanganKas() {
           </div>
 
           {/* WHEN → Trend Bulanan */}
-          <div className="bg-white rounded-2xl border border-slate-200/60 p-5 shadow-sm">
+          <div className="bg-white rounded-2xl border border-border p-5 shadow-sm">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 shrink-0">
                 <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>trending_up</span>
@@ -546,7 +527,7 @@ export default function KeuanganKas() {
         </div>
         {/* HOW → Pengeluaran per Proker (full width) */}
         {!loading && prokerSpendData.length > 0 && (
-          <div className="bg-white rounded-2xl border border-slate-200/60 p-5 shadow-sm">
+          <div className="bg-white rounded-2xl border border-border p-5 shadow-sm">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center text-rose-600 shrink-0">
                 <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>receipt_long</span>
@@ -573,7 +554,7 @@ export default function KeuanganKas() {
       )}
 
       {/* ── Transaction Table Card ──────────────────────────────────── */}
-      <Card className="border border-slate-200/50 shadow-sm rounded-[2rem] overflow-hidden bg-white/70 backdrop-blur-md">
+      <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-[var(--theme-surface)]/70 backdrop-blur-md">
         <CardContent className="p-6">
           <DataTable
             columns={columns}
@@ -619,20 +600,20 @@ export default function KeuanganKas() {
 
       {/* ── CRUD Dialog Form ────────────────────────────────────────── */}
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
-        <DialogContent className="max-w-lg p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white/95 backdrop-blur-xl animate-in zoom-in-95 duration-200">
-          <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden">
+        <DialogContent className="max-w-lg p-0 overflow-hidden border border-border shadow-2xl rounded-2xl bg-surface animate-in zoom-in-95 duration-200">
+          <DialogHeader className="p-8 pb-6 bg-[var(--theme-bg)] border-b border-border relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-              <span className="material-symbols-outlined size-24 rotate-12 text-bku-primary">account_balance_wallet</span>
+              <span className="material-symbols-outlined size-24 rotate-12 text-[var(--theme-primary)]">account_balance_wallet</span>
             </div>
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-2">
-                <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                <div className="size-8 rounded-xl bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)]">
                   <span className="material-symbols-outlined stroke-[3px]" style={{ fontSize: '16px' }}>payments</span>
                 </div>
-                <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-bku-primary/5 text-bku-primary border-none rounded-md">MUTASI KAS</Badge>
+                <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-[var(--theme-primary-light)] text-[var(--theme-primary)] border-none rounded-md">MUTASI KAS</Badge>
               </div>
-              <DialogTitle className="text-xl font-black font-headline tracking-tighter text-slate-900">Catat Transaksi Baru</DialogTitle>
-              <DialogDescription className="text-xs font-semibold text-slate-400 mt-1">Dokumentasikan arus masuk atau keluar kas dengan akurat.</DialogDescription>
+              <DialogTitle className="text-xl font-black font-headline tracking-tighter text-[var(--theme-text)]">Catat Transaksi Baru</DialogTitle>
+              <DialogDescription className="text-xs font-semibold text-[var(--theme-text-muted)] mt-1">Dokumentasikan arus masuk atau keluar kas dengan akurat.</DialogDescription>
             </div>
           </DialogHeader>
 
@@ -645,7 +626,7 @@ export default function KeuanganKas() {
                 value={form.Deskripsi}
                 onChange={e => setForm({ ...form, Deskripsi: e.target.value })}
                 placeholder="Misal: Pembelian ATK / Sponsor Kegiatan"
-                className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm"
+                className="h-12 rounded-2xl border-border bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm"
               />
             </div>
 
@@ -656,7 +637,7 @@ export default function KeuanganKas() {
                 value={form.Kategori}
                 onChange={e => setForm({ ...form, Kategori: e.target.value })}
                 placeholder="Misal: PKKMB, Seminar, Lapangan, dll"
-                className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm"
+                className="h-12 rounded-2xl border-border bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm"
               />
             </div>
 
@@ -664,26 +645,24 @@ export default function KeuanganKas() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Jenis Mutasi</Label>
-                <select
+                <SelectField
                   value={form.Tipe}
-                  onChange={e => setForm({ ...form, Tipe: e.target.value })}
-                  className="w-full h-12 rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold text-slate-700 focus:outline-none focus:bg-white focus:border-primary transition-all shadow-sm"
+                  onValueChange={val => setForm({ ...form, Tipe: val })}
                 >
-                  <option value="pemasukan">▲ Pemasukan (Masuk)</option>
-                  <option value="pengeluaran">▼ Pengeluaran (Keluar)</option>
-                </select>
+                  <SelectOption value="pemasukan">▲ Pemasukan (Masuk)</SelectOption>
+                  <SelectOption value="pengeluaran">▼ Pengeluaran (Keluar)</SelectOption>
+                </SelectField>
               </div>
 
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Sumber Dana</Label>
-                <select
+                <SelectField
                   value={form.Sumber}
-                  onChange={e => setForm({ ...form, Sumber: e.target.value })}
-                  className="w-full h-12 rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold text-slate-700 focus:outline-none focus:bg-white focus:border-primary transition-all shadow-sm"
+                  onValueChange={val => setForm({ ...form, Sumber: val })}
                 >
-                  <option value="organisasi">💼 Kas Mandiri Organisasi</option>
-                  <option value="kampus">🏛️ Pagu Kampus (Duit Kampus)</option>
-                </select>
+                  <SelectOption value="organisasi">💼 Kas Mandiri Organisasi</SelectOption>
+                  <SelectOption value="kampus">🏛️ Pagu Kampus (Duit Kampus)</SelectOption>
+                </SelectField>
               </div>
             </div>
 
@@ -699,7 +678,7 @@ export default function KeuanganKas() {
                     value={form.Nominal}
                     onChange={e => setForm({ ...form, Nominal: e.target.value })}
                     placeholder="0"
-                    className="h-12 pl-10 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm"
+                    className="h-12 pl-10 rounded-2xl border-border bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm"
                   />
                 </div>
 
@@ -718,7 +697,7 @@ export default function KeuanganKas() {
                   type="date"
                   value={form.Tanggal}
                   onChange={e => setForm({ ...form, Tanggal: e.target.value })}
-                  className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm"
+                  className="h-12 rounded-2xl border-border bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm"
                 />
               </div>
             </div>
@@ -759,6 +738,6 @@ export default function KeuanganKas() {
         description="Apakah Anda yakin ingin menghapus data transaksi ini dari sistem? Tindakan ini bersifat permanen."
         loading={isSubmitting}
       />
-    </div>
+    </PageContent>
   )
 }

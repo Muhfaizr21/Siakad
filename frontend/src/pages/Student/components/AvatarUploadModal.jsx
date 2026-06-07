@@ -84,24 +84,24 @@ export default function AvatarUploadModal({ isOpen, onClose, currentPhoto }) {
 
         <div className="p-6">
           {!image ? (
-            <div className="border-2 border-dashed border-[#e5e5e5] rounded-[2rem] p-10 flex flex-col items-center justify-center gap-4 bg-[#fafafa] hover:bg-[#EAF1FF] hover:border-[#C9D8FF] transition-all group cursor-pointer relative">
+            <div className="border-2 border-dashed border-border rounded-[2rem] p-10 flex flex-col items-center justify-center gap-4 bg-background hover:bg-[var(--theme-primary-light)] hover:border-[var(--theme-primary-light)] transition-all group cursor-pointer relative">
                <input 
                 type="file" 
                 accept="image/*" 
                 onChange={onSelectFile} 
                 className="absolute inset-0 opacity-0 cursor-pointer"
                />
-               <div className="w-14 h-14 bg-white rounded-2xl shadow-sm flex items-center justify-center text-bku-primary group-hover:scale-110 transition-transform">
+               <div className="w-14 h-14 bg-surface rounded-2xl shadow-sm flex items-center justify-center text-[var(--theme-primary)] group-hover:scale-110 transition-transform">
                   <span className="material-symbols-outlined" style={{ fontSize: '32px' }} >upload</span>
                </div>
                <div className="text-center">
-                  <p className="font-bold text-[#171717]">Pilih File Foto</p>
+                  <p className="font-bold text-on-surface">Pilih File Foto</p>
                   <p className="text-xs font-medium text-[#a3a3a3]">JPG atau PNG, Maksimal 2MB</p>
                </div>
             </div>
           ) : (
             <div className="space-y-6">
-               <div className="relative h-64 w-full bg-bku-primary rounded-[1.5rem] overflow-hidden shadow-inner">
+               <div className="relative h-64 w-full bg-[var(--theme-primary)] rounded-[1.5rem] overflow-hidden shadow-inner">
                   <Cropper
                     image={image}
                     crop={crop}
@@ -132,14 +132,14 @@ export default function AvatarUploadModal({ isOpen, onClose, currentPhoto }) {
                <div className="flex gap-3">
                   <button 
                     onClick={() => setImage(null)}
-                    className="flex-1 py-3 px-4 rounded-2xl border border-[#e5e5e5] font-bold text-sm hover:bg-[#fafafa] transition-all"
+                    className="flex-1 py-3 px-4 rounded-2xl border border-border font-bold text-sm hover:bg-background transition-all"
                   >
                     Ganti File
                   </button>
                    <button 
                      onClick={handleUpload}
                      disabled={mutation.isPending}
-                     className="flex-[2] py-3 px-4 rounded-2xl bg-bku-primary text-white font-bold text-sm hover:bg-[#0B4FAE] transition-all shadow-md shadow-bku-primary/20 flex items-center justify-center gap-2 disabled:opacity-50"
+                     className="flex-[2] py-3 px-4 rounded-xl bg-[var(--theme-primary)] text-white font-bold text-sm hover:bg-[var(--theme-primary-hover)] transition-all shadow-md shadow-bku-primary/20 flex items-center justify-center gap-2 disabled:opacity-50"
                    >
                     {mutation.isPending ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: 18 }}>check</span>}
                     Simpan Foto
@@ -149,8 +149,8 @@ export default function AvatarUploadModal({ isOpen, onClose, currentPhoto }) {
           )}
         </div>
         
-         <div className="p-4 bg-[#fafafa] border-t border-[#f5f5f5] text-center">
-             <button onClick={handleClose} className="text-xs font-bold text-[#a3a3a3] hover:text-bku-primary transition-colors uppercase tracking-widest">Batalkan</button>
+         <div className="p-4 bg-background border-t border-[var(--theme-border-muted)] text-center">
+             <button onClick={handleClose} className="text-xs font-bold text-[#a3a3a3] hover:text-[var(--theme-primary)] transition-colors uppercase tracking-widest">Batalkan</button>
          </div>
       </DialogContent>
     </Dialog>

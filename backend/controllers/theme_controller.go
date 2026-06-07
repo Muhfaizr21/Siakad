@@ -178,9 +178,23 @@ func getLuminance(hex string) float64 {
 	g := float64(parseHex(rgb[2])) / 255
 	b := float64(parseHex(rgb[3])) / 255
 
-	r = math.Max(0, math.Min(r/12.92, math.Pow((r+0.055)/1.055, 2.4)))
-	g = math.Max(0, math.Min(g/12.92, math.Pow((g+0.055)/1.055, 2.4)))
-	b = math.Max(0, math.Min(b/12.92, math.Pow((b+0.055)/1.055, 2.4)))
+	if r <= 0.03928 {
+		r = r / 12.92
+	} else {
+		r = math.Pow((r+0.055)/1.055, 2.4)
+	}
+
+	if g <= 0.03928 {
+		g = g / 12.92
+	} else {
+		g = math.Pow((g+0.055)/1.055, 2.4)
+	}
+
+	if b <= 0.03928 {
+		b = b / 12.92
+	} else {
+		b = math.Pow((b+0.055)/1.055, 2.4)
+	}
 
 	return 0.2126*r + 0.7152*g + 0.0722*b
 }

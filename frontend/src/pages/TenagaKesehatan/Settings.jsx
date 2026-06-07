@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { tenagaKesehatanService } from '../../services/api';
+import { PageContent } from '@/components/ui/page';
+import { DashboardHero } from '@/components/ui/dashboard';
 
 const UserIcon = () => <span className="material-symbols-outlined text-sm">person</span>;
 const MailIcon = () => <span className="material-symbols-outlined text-sm">mail</span>;
@@ -105,16 +107,16 @@ export default function Settings() {
   ];
 
   return (
-    <div className="px-4 py-6 md:px-6 lg:px-8 min-h-screen bg-transparent font-inter">
-      <div className="max-w-7xl mx-auto space-y-6">
-
-        {/* Title Banner */}
-        <section className="rounded-2xl border border-slate-200/60 bg-white/70 p-5 shadow-sm lg:p-5 glass-card">
-          <h1 className="font-headline text-2xl font-black uppercase tracking-tight text-slate-800">Pengaturan Portal</h1>
-          <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-slate-400">
-            Perbarui data diri profesional Anda atau ubah kata sandi akses Klinik Kampus.
-          </p>
-        </section>
+    <PageContent>
+      <DashboardHero
+        title="Pengaturan"
+        highlightedTitle="Portal"
+        subtitle="Perbarui data diri profesional Anda atau ubah kata sandi akses Klinik Kampus."
+        icon="settings"
+        badges={[
+          { label: 'Settings', active: true },
+        ]}
+      />
 
         {/* Success Alert */}
         {message && (
@@ -322,10 +324,9 @@ export default function Settings() {
               )}
             </div>
           </section>
-
         </div>
-      </div>
-    </div>
+
+    </PageContent>
   );
 }
 

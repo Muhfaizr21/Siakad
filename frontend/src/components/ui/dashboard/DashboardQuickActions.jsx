@@ -6,7 +6,7 @@ export function DashboardQuickActions({ title = "Aksi Cepat", description = "Pin
   if (!actions || actions.length === 0) return null;
   
   return (
-    <div className={cn("bg-surface border border-border rounded-xl shadow-sm p-5 mb-6", className)}>
+    <div className={cn("bg-surface border border-border rounded-2xl shadow-sm p-5 mb-6", className)}>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xs font-bold uppercase tracking-widest text-primary font-headline">{title}</h2>
         {description && <span className="text-xs font-medium text-muted ml-auto">{description}</span>}
@@ -20,9 +20,9 @@ export function DashboardQuickActions({ title = "Aksi Cepat", description = "Pin
             <Wrapper
               key={i}
               {...props}
-              className="group flex flex-col items-center justify-center p-4 md:p-5 rounded-xl bg-surface border border-border transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30 active:scale-95 text-left w-full"
+              className="group flex flex-col items-center justify-center p-4 md:p-5 rounded-xl bg-surface border border-border transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-[var(--theme-primary)]/30 active:scale-95 text-left w-full"
             >
-              <div className={cn("w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center mb-3 md:mb-4 transition-all duration-300 group-hover:scale-110 shadow-sm", item.iconBg || "bg-primary/10 text-primary border border-primary/20")}>
+              <div className={cn("w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center mb-3 md:mb-4 transition-all duration-300 group-hover:scale-110 shadow-sm", item.iconBg || "bg-[var(--theme-primary-light)] text-[var(--theme-primary)] border border-[var(--theme-primary)]/20")}>
                 <span className="material-symbols-outlined text-[20px] md:text-[24px] transition-transform duration-300 group-hover:rotate-6">{item.icon}</span>
               </div>
               <span className="text-[11px] md:text-xs font-medium text-center leading-snug text-muted group-hover:text-primary transition-colors line-clamp-2">{item.label}</span>

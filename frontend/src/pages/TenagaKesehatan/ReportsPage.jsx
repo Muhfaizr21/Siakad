@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { healthReportsService } from '../../services/api';
 import toast from 'react-hot-toast';
+import { PageContent } from '@/components/ui/page';
+import { DashboardHero } from '@/components/ui/dashboard';
 
 // Auto-injected Material Symbol fallbacks
 const ReportIcon = ({ size, className, ...props }) => (
@@ -153,37 +155,36 @@ export default function ReportsPage() {
   const { startDate: displayStart, endDate: displayEnd } = reportData?.filters || {};
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-indigo-500 flex items-center justify-center">
-            <ReportIcon size={24} className="text-white" />
+    <PageContent>
+      <DashboardHero
+        title="Laporan"
+        highlightedTitle="Klinis"
+        subtitle="Rekap data pemeriksaan kesehatan"
+        icon="analytics"
+        badges={[
+          { label: 'Laporan', active: true },
+        ]}
+        actions={
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleExportExcel}
+              disabled={exporting}
+              className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white text-sm font-bold rounded-xl hover:bg-emerald-600 transition-colors disabled:opacity-50"
+            >
+              <DownloadIcon size={18} />
+              Export Excel
+            </button>
+            <button
+              onClick={handleExportPDF}
+              disabled={exporting}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white text-sm font-bold rounded-xl hover:bg-blue-600 transition-colors disabled:opacity-50"
+            >
+              <DownloadIcon size={18} />
+              Export PDF
+            </button>
           </div>
-          <div>
-            <h1 className="text-xl font-bold text-slate-800">Laporan Klinis</h1>
-            <p className="text-sm text-slate-500">Rekap data pemeriksaan kesehatan</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleExportExcel}
-            disabled={exporting}
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white text-sm font-bold rounded-xl hover:bg-emerald-600 transition-colors disabled:opacity-50"
-          >
-            <DownloadIcon size={18} />
-            Export Excel
-          </button>
-          <button
-            onClick={handleExportPDF}
-            disabled={exporting}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white text-sm font-bold rounded-xl hover:bg-blue-600 transition-colors disabled:opacity-50"
-          >
-            <DownloadIcon size={18} />
-            Export PDF
-          </button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Date Range Filters */}
       <div className="bg-white rounded-xl p-4 border border-slate-200">
@@ -436,6 +437,6 @@ export default function ReportsPage() {
           </div>
         )}
       </div>
-    </div>
+    </PageContent>
   );
 }

@@ -18,7 +18,7 @@ export default function KencanaStagePage() {
       </section>
       
       {(data?.group || data?.mentor) && (
-        <section className="mt-6 rounded-3xl border border-emerald-200 bg-emerald-50 p-6 shadow-sm">
+        <section className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-6 shadow-sm">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-600">Kelompok</p>
@@ -34,11 +34,11 @@ export default function KencanaStagePage() {
         </section>
       )}
 
-      <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm mt-6">
+      <section className="rounded-2xl border border-border bg-surface p-6 shadow-sm mt-6">
         <h2 className="text-xl font-black text-slate-800">Daftar Sesi</h2>
         <div className="mt-5 grid gap-4">
           {(data?.sessions || []).map((session) => (
-            <Link key={session.id} to={`/student/kencana/session/${session.id}`} className="rounded-2xl border border-slate-200 bg-slate-50 p-5 transition hover:bg-blue-50 hover:border-blue-200">
+            <Link key={session.id} to={`/student/kencana/session/${session.id}`} className="rounded-2xl border border-border bg-slate-50 p-5 transition hover:bg-blue-50 hover:border-blue-200">
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div>
                   <div className="flex flex-wrap items-center gap-2"><h3 className="text-lg font-black text-slate-800">{session.title}</h3><StatusBadge status={session.status} /></div>
@@ -55,7 +55,7 @@ export default function KencanaStagePage() {
             </Link>
           ))}
           {(!data?.sessions || data.sessions.length === 0) && (
-            <div className="text-center py-10 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50">
+            <div className="text-center py-10 rounded-2xl border-2 border-dashed border-border bg-slate-50">
               <span className="material-symbols-outlined text-4xl text-slate-300 mb-2">inbox</span>
               <p className="text-slate-400 font-bold">Belum ada sesi pada tahap ini.</p>
             </div>
@@ -66,5 +66,5 @@ export default function KencanaStagePage() {
   );
 }
 
-function Info({ label, value }) { return <div className="rounded-3xl border border-slate-200 bg-white p-5"><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">{label}</p><div className="mt-2 text-lg font-black text-slate-800">{value}</div></div>; }
-function Mini({ label, value }) { return <div className="rounded-2xl bg-white border border-slate-100 p-3 text-center"><p className="font-black text-slate-800">{value || 0}</p><p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">{label}</p></div>; }
+function Info({ label, value }) { return <div className="rounded-2xl border border-border bg-surface p-5"><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">{label}</p><div className="mt-2 text-lg font-black text-slate-800">{value}</div></div>; }
+function Mini({ label, value }) { return <div className="rounded-2xl bg-surface border border-slate-100 p-3 text-center"><p className="font-black text-slate-800">{value || 0}</p><p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">{label}</p></div>; }

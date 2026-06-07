@@ -4,10 +4,11 @@ import React, { useState, useEffect } from "react"
 import api from "../../lib/axios"
 import { toast, Toaster } from "react-hot-toast"
 import useAuthStore from "../../store/useAuthStore"
-
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
 import { cn } from "@/lib/utils"
 import { API_BASE_URL } from "../../services/api"
+import { PageContent } from "@/components/ui/page/PageContent"
+import { DashboardHero } from "@/components/ui/dashboard/DashboardHero"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Download = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>download</span>;
@@ -610,68 +611,29 @@ export default function LaporanFakultasPage() {
   const prodiWithColors = (data.perProdi || []).map((item, i) => ({ ...item, nama_prodi: item.nama_prodi || "Unknown", value: item.value || 0, color: CHART_COLORS[i % CHART_COLORS.length] }))
 
   return (
-    <div className="min-h-screen bg-transparent font-inter">
+    <PageContent>
       <Toaster position="top-right" />
-      <div className="w-full space-y-6">
 
-        {/* ── Page Header ────────────────────────────────────────── */}
-        <section className="relative overflow-hidden rounded-2xl p-6 md:p-8 border border-slate-200/50 bg-white/70 backdrop-blur-md shadow-sm">
-          {/* Subtle geometric grid background overlay */}
-          <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/40 to-slate-100/30" />
-          <div className="absolute inset-0 opacity-[0.02]"
-            style={{
-              backgroundImage: `radial-gradient(circle at 20% 50%, var(--theme-primary) 1px, transparent 1px), radial-gradient(circle at 80% 20%, var(--theme-primary) 1px, transparent 1px)`,
-              backgroundSize: '40px 40px'
-            }}
-          />
-          {/* Accent glow blobs */}
-          <div className="absolute -top-20 -right-20 w-72 h-72 bg-primary/5 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute -bottom-10 right-40 w-48 h-48 bg-blue-400/5 rounded-full blur-2xl" />
-
-          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div className="flex-1 space-y-3">
-              <div className="flex items-center gap-4">
-                {/* Clean visual anchor icon */}
-                <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/[0.02] border border-primary/10 flex items-center justify-center text-primary shrink-0 shadow-sm relative overflow-hidden group/icon">
-                  <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover/icon:opacity-100 transition-opacity duration-300" />
-                  <span className="material-symbols-outlined text-primary relative z-10 transition-transform duration-300 group-hover/icon:scale-110" style={{ fontSize: '26px' }}>analytics</span>
-                </div>
-
-                <div className="space-y-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-primary/5 text-primary border border-primary/10">
-                      Monitoring Strategis
-                    </span>
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-100">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      {data.summary.total} Mahasiswa Terdaftar
-                    </span>
-                  </div>
-                  <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight font-headline leading-none">
-                    Laporan <span className="bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">Fakultas</span>
-                  </h1>
-                </div>
-              </div>
-
-              {/* Perfectly aligned description block */}
-              <p className="text-slate-500 font-medium text-xs md:text-sm max-w-3xl leading-relaxed mt-3 pl-0 md:pl-[72px]">
-                Dashboard analitik performa akademik dan layanan kemahasiswaan.
-              </p>
-            </div>
-
-            {/* Action and quick count balance box */}
-            <div className="flex flex-row lg:flex-col items-end gap-3 shrink-0 self-stretch lg:self-auto justify-between lg:justify-center border-t lg:border-t-0 pt-4 lg:pt-0 border-slate-100">
-              <div className="flex items-center gap-2">
-                <button onClick={exportProdiPDF} className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 flex items-center gap-2">
-                  <Download size={13} className="text-primary" /> Ekspor PDF
-                </button>
-                <button onClick={fetchData} disabled={loading} className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-60 flex items-center gap-2">
-                  {loading ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '13px' }} >sync</span> : <RefreshCw size={13} className="text-primary" />} Refresh Data
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
+      <DashboardHero
+        title="Laporan"
+        highlightedTitle="Fakultas"
+        subtitle="Dashboard analitik performa akademik dan layanan kemahasiswaan."
+        icon="analytics"
+        badges={[
+          { label: 'Monitoring Strategis', active: false },
+          { label: `${data.summary.total} Mahasiswa Terdaftar`, active: true },
+        ]}
+        actions={
+          <>
+            <button onClick={exportProdiPDF} className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 flex items-center gap-2">
+              <Download size={13} className="text-primary" /> Ekspor PDF
+            </button>
+            <button onClick={fetchData} disabled={loading} className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-60 flex items-center gap-2">
+              {loading ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '13px' }} >sync</span> : <RefreshCw size={13} className="text-primary" />} Refresh Data
+            </button>
+          </>
+        }
+      />
 
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
@@ -797,7 +759,6 @@ export default function LaporanFakultasPage() {
             </table>
           </div>
         </div>
-      </div>
-    </div>
+    </PageContent>
   )
 }

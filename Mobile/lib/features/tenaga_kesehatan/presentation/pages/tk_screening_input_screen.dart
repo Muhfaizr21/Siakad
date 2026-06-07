@@ -8,10 +8,7 @@ import 'package:bkuhub_mobile/features/tenaga_kesehatan/presentation/providers/t
 class TkScreeningInputScreen extends StatefulWidget {
   final int? patientId;
 
-  const TkScreeningInputScreen({
-    super.key,
-    this.patientId,
-  });
+  const TkScreeningInputScreen({super.key, this.patientId});
 
   @override
   State<TkScreeningInputScreen> createState() => _TkScreeningInputScreenState();
@@ -42,10 +39,13 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.patientId != null) {
         final provider = context.read<TkPatientProvider>();
-        if (provider.selectedPatient != null && provider.selectedPatient!.id == widget.patientId) {
+        if (provider.selectedPatient != null &&
+            provider.selectedPatient!.id == widget.patientId) {
           // Patient already selected, do nothing
         } else {
-          final idx = provider.patients.indexWhere((p) => p.id == widget.patientId);
+          final idx = provider.patients.indexWhere(
+            (p) => p.id == widget.patientId,
+          );
           if (idx != -1) {
             provider.selectPatient(provider.patients[idx]);
           } else {
@@ -126,35 +126,38 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
               ),
             ),
           ),
-          body: provider.isLoadingRecord && widget.patientId != null && provider.selectedPatient == null
-              ? const Center(child: CircularProgressIndicator())
-              : Column(
-                  children: [
-                    // Progress Indicator
-                    _buildProgressIndicator(),
+          body:
+              provider.isLoadingRecord &&
+                      widget.patientId != null &&
+                      provider.selectedPatient == null
+                  ? const Center(child: CircularProgressIndicator())
+                  : Column(
+                    children: [
+                      // Progress Indicator
+                      _buildProgressIndicator(),
 
-                    // Page Content
-                    Expanded(
-                      child: PageView(
-                        controller: _pageController,
-                        physics: const NeverScrollableScrollPhysics(),
-                        onPageChanged: (index) {
-                          setState(() => _currentStep = index);
-                        },
-                        children: [
-                          _buildPatientSelectionStep(),
-                          _buildVitalSignsStep(),
-                          _buildSubjectiveStep(),
-                          _buildActionsStep(),
-                          _buildStatusStep(),
-                        ],
+                      // Page Content
+                      Expanded(
+                        child: PageView(
+                          controller: _pageController,
+                          physics: const NeverScrollableScrollPhysics(),
+                          onPageChanged: (index) {
+                            setState(() => _currentStep = index);
+                          },
+                          children: [
+                            _buildPatientSelectionStep(),
+                            _buildVitalSignsStep(),
+                            _buildSubjectiveStep(),
+                            _buildActionsStep(),
+                            _buildStatusStep(),
+                          ],
+                        ),
                       ),
-                    ),
 
-                    // Navigation Buttons
-                    _buildNavigationButtons(provider),
-                  ],
-                ),
+                      // Navigation Buttons
+                      _buildNavigationButtons(provider),
+                    ],
+                  ),
         );
       },
     );
@@ -179,23 +182,34 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
                     shape: BoxShape.circle,
                   ),
                   child: Center(
-                    child: isCompleted
-                        ? const Icon(Icons.check_rounded, color: Colors.white, size: 16)
-                        : Text(
-                            '${index + 1}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: isActive ? Colors.white : AppColors.neutral500,
+                    child:
+                        isCompleted
+                            ? const Icon(
+                              Icons.check_rounded,
+                              color: Colors.white,
+                              size: 16,
+                            )
+                            : Text(
+                              '${index + 1}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color:
+                                    isActive
+                                        ? Colors.white
+                                        : AppColors.neutral500,
+                              ),
                             ),
-                          ),
                   ),
                 ),
                 if (index < 4)
                   Expanded(
                     child: Container(
                       height: 2,
-                      color: isCompleted ? AppColors.primary : AppColors.neutral200,
+                      color:
+                          isCompleted
+                              ? AppColors.primary
+                              : AppColors.neutral200,
                     ),
                   ),
               ],
@@ -226,7 +240,7 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 colors: [Color(0xFF001A4D), Color(0xFF003A6E)],
- ),
+              ),
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
@@ -244,7 +258,11 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
                     color: Colors.white.withAlpha(40),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.qr_code_scanner_rounded, color: Colors.white, size: 28),
+                  child: const Icon(
+                    Icons.qr_code_scanner_rounded,
+                    color: Colors.white,
+                    size: 28,
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -274,7 +292,11 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
                     color: Colors.white.withAlpha(40),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 20),
+                  child: const Icon(
+                    Icons.arrow_forward_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
                 ),
               ],
             ),
@@ -291,7 +313,9 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
                 'atau cari manual',
-                style: AppTextStyles.labelSm.copyWith(color: AppColors.neutral400),
+                style: AppTextStyles.labelSm.copyWith(
+                  color: AppColors.neutral400,
+                ),
               ),
             ),
             Expanded(child: Divider(color: AppColors.neutral200)),
@@ -311,7 +335,10 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: AppColors.neutral200),
             ),
-            prefixIcon: const Icon(Icons.search_rounded, color: AppColors.neutral500),
+            prefixIcon: const Icon(
+              Icons.search_rounded,
+              color: AppColors.neutral500,
+            ),
           ),
           onChanged: (value) async {
             if (value.length >= 3) {
@@ -330,7 +357,9 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
               children: [
                 Text(
                   'Hasil Pencarian',
-                  style: AppTextStyles.labelSm.copyWith(color: AppColors.neutral500),
+                  style: AppTextStyles.labelSm.copyWith(
+                    color: AppColors.neutral500,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 ...provider.patients.take(5).map((patient) {
@@ -394,7 +423,12 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('BMI', style: AppTextStyles.labelSm.copyWith(color: AppColors.primary)),
+                    Text(
+                      'BMI',
+                      style: AppTextStyles.labelSm.copyWith(
+                        color: AppColors.primary,
+                      ),
+                    ),
                     Text(
                       _bmi.toStringAsFixed(1),
                       style: const TextStyle(
@@ -407,7 +441,10 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.primary,
                   borderRadius: BorderRadius.circular(20),
@@ -426,13 +463,25 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
         const SizedBox(height: 24),
 
         // Body Measurements
-        _buildMeasurementRow('Tinggi Badan (cm)', _tinggiBadan, (v) {
-          setState(() => _tinggiBadan = v);
-        }, 100, 220),
+        _buildMeasurementRow(
+          'Tinggi Badan (cm)',
+          _tinggiBadan,
+          (v) {
+            setState(() => _tinggiBadan = v);
+          },
+          100,
+          220,
+        ),
         const SizedBox(height: 16),
-        _buildMeasurementRow('Berat Badan (kg)', _beratBadan, (v) {
-          setState(() => _beratBadan = v);
-        }, 30, 200),
+        _buildMeasurementRow(
+          'Berat Badan (kg)',
+          _beratBadan,
+          (v) {
+            setState(() => _beratBadan = v);
+          },
+          30,
+          200,
+        ),
         const SizedBox(height: 24),
 
         // Blood Pressure
@@ -466,17 +515,39 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
         const SizedBox(height: 24),
 
         // Other Vitals
-        _buildSliderInput('Suhu Tubuh', _suhuTubuh, (v) {
-          setState(() => _suhuTubuh = v);
-        }, 35, 42, '°C', divisions: 140),
+        _buildSliderInput(
+          'Suhu Tubuh',
+          _suhuTubuh,
+          (v) {
+            setState(() => _suhuTubuh = v);
+          },
+          35,
+          42,
+          '°C',
+          divisions: 140,
+        ),
         const SizedBox(height: 16),
-        _buildSliderInput('Denyut Nadi', _denyutNadi.toDouble(), (v) {
-          setState(() => _denyutNadi = v.round());
-        }, 40, 150, 'bpm'),
+        _buildSliderInput(
+          'Denyut Nadi',
+          _denyutNadi.toDouble(),
+          (v) {
+            setState(() => _denyutNadi = v.round());
+          },
+          40,
+          150,
+          'bpm',
+        ),
         const SizedBox(height: 16),
-        _buildSliderInput('SpO2', _spO2.toDouble(), (v) {
-          setState(() => _spO2 = v.round());
-        }, 80, 100, '%'),
+        _buildSliderInput(
+          'SpO2',
+          _spO2.toDouble(),
+          (v) {
+            setState(() => _spO2 = v.round());
+          },
+          80,
+          100,
+          '%',
+        ),
       ],
     );
   }
@@ -494,7 +565,12 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
         const SizedBox(height: 24),
 
         // Keluhan
-        _buildTextArea('Keluhan Utama', _keluhan, (v) => _keluhan = v, hint: 'Ceritakan keluhan yang dirasakan...'),
+        _buildTextArea(
+          'Keluhan Utama',
+          _keluhan,
+          (v) => _keluhan = v,
+          hint: 'Ceritakan keluhan yang dirasakan...',
+        ),
         const SizedBox(height: 16),
 
         // Skala Nyeri
@@ -534,12 +610,21 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
         const SizedBox(height: 16),
 
         // Riwayat Penyakit
-        _buildTextArea('Riwayat Penyakit', _riwayatPenyakit, (v) => _riwayatPenyakit = v,
-            hint: 'Asma, Diabetes, Jantung, dll'),
+        _buildTextArea(
+          'Riwayat Penyakit',
+          _riwayatPenyakit,
+          (v) => _riwayatPenyakit = v,
+          hint: 'Asma, Diabetes, Jantung, dll',
+        ),
         const SizedBox(height: 16),
 
         // Alergi Obat
-        _buildTextArea('Alergi Obat', _alergiObat, (v) => _alergiObat = v, hint: 'Daftar alergi obat jika ada'),
+        _buildTextArea(
+          'Alergi Obat',
+          _alergiObat,
+          (v) => _alergiObat = v,
+          hint: 'Daftar alergi obat jika ada',
+        ),
         const SizedBox(height: 16),
 
         // Kondisi Psikologis
@@ -547,26 +632,29 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
-          children: ['Normal', 'Cemas', 'Stres', 'Perlu Rujukan Psikolog'].map((option) {
-            final isSelected = _kondisiPsikologis == option;
-            return ChoiceChip(
-              label: Text(option),
-              selected: isSelected,
-              onSelected: (selected) {
-                if (selected) {
-                  setState(() => _kondisiPsikologis = option);
-                  if (option == 'Perlu Rujukan Psikolog') {
-                    setState(() => _eskalasiPsikolog = true);
-                  }
-                }
-              },
-              selectedColor: AppColors.primary,
-              labelStyle: TextStyle(
-                color: isSelected ? Colors.white : AppColors.neutral600,
-                fontWeight: FontWeight.w500,
-              ),
-            );
-          }).toList(),
+          children:
+              ['Normal', 'Cemas', 'Stres', 'Perlu Rujukan Psikolog'].map((
+                option,
+              ) {
+                final isSelected = _kondisiPsikologis == option;
+                return ChoiceChip(
+                  label: Text(option),
+                  selected: isSelected,
+                  onSelected: (selected) {
+                    if (selected) {
+                      setState(() => _kondisiPsikologis = option);
+                      if (option == 'Perlu Rujukan Psikolog') {
+                        setState(() => _eskalasiPsikolog = true);
+                      }
+                    }
+                  },
+                  selectedColor: AppColors.primary,
+                  labelStyle: TextStyle(
+                    color: isSelected ? Colors.white : AppColors.neutral600,
+                    fontWeight: FontWeight.w500,
+                  ),
+                );
+              }).toList(),
         ),
       ],
     );
@@ -590,39 +678,58 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
         Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: ['Istirahat', 'Obat P3K', 'Rujukan Klinik', 'Rujukan RS', 'Tidak Ada'].map((option) {
-            final isSelected = _tindakanDiberikan.contains(option);
-            return FilterChip(
-              label: Text(option),
-              selected: isSelected,
-              onSelected: (selected) {
-                setState(() {
-                  if (selected) {
-                    _tindakanDiberikan = option;
-                  } else {
-                    _tindakanDiberikan = '';
-                  }
-                });
-              },
-              selectedColor: AppColors.primary.withAlpha(30),
-            );
-          }).toList(),
+          children:
+              [
+                'Istirahat',
+                'Obat P3K',
+                'Rujukan Klinik',
+                'Rujukan RS',
+                'Tidak Ada',
+              ].map((option) {
+                final isSelected = _tindakanDiberikan.contains(option);
+                return FilterChip(
+                  label: Text(option),
+                  selected: isSelected,
+                  onSelected: (selected) {
+                    setState(() {
+                      if (selected) {
+                        _tindakanDiberikan = option;
+                      } else {
+                        _tindakanDiberikan = '';
+                      }
+                    });
+                  },
+                  selectedColor: AppColors.primary.withAlpha(30),
+                );
+              }).toList(),
         ),
         const SizedBox(height: 16),
 
         // Obat
-        _buildTextArea('Obat Diberikan', _obatDiberikan, (v) => _obatDiberikan = v,
-            hint: 'Nama obat dan dosis'),
+        _buildTextArea(
+          'Obat Diberikan',
+          _obatDiberikan,
+          (v) => _obatDiberikan = v,
+          hint: 'Nama obat dan dosis',
+        ),
         const SizedBox(height: 16),
 
         // Catatan
-        _buildTextArea('Catatan Tenaga Kesehatan', _catatan, (v) => _catatan = v,
-            hint: 'Observasi objektif...'),
+        _buildTextArea(
+          'Catatan Tenaga Kesehatan',
+          _catatan,
+          (v) => _catatan = v,
+          hint: 'Observasi objektif...',
+        ),
         const SizedBox(height: 16),
 
         // Rekomendasi
-        _buildTextArea('Rekomendasi', _rekomendasi, (v) => _rekomendasi = v,
-            hint: 'Saran tindak lanjut...'),
+        _buildTextArea(
+          'Rekomendasi',
+          _rekomendasi,
+          (v) => _rekomendasi = v,
+          hint: 'Saran tindak lanjut...',
+        ),
         const SizedBox(height: 24),
 
         // Eskalasi
@@ -633,14 +740,14 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
           subtitle: const Text('Kirim notifikasi ke psikolog'),
           value: _eskalasiPsikolog,
           onChanged: (v) => setState(() => _eskalasiPsikolog = v),
-          activeColor: AppColors.primary,
+          activeThumbColor: AppColors.primary,
         ),
         SwitchListTile(
           title: const Text('Lapor ke Admin Fakultas'),
           subtitle: const Text('Untuk kasus kritis'),
           value: _eskalasiFakultas,
           onChanged: (v) => setState(() => _eskalasiFakultas = v),
-          activeColor: AppColors.danger,
+          activeThumbColor: AppColors.danger,
         ),
       ],
     );
@@ -659,11 +766,23 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
         const SizedBox(height: 24),
 
         // Status Options
-        _buildStatusOption('Layak Kegiatan', '✅ Pasien dapat mengikuti kegiatan', AppColors.success),
+        _buildStatusOption(
+          'Layak Kegiatan',
+          '✅ Pasien dapat mengikuti kegiatan',
+          AppColors.success,
+        ),
         const SizedBox(height: 12),
-        _buildStatusOption('Perlu Perhatian', '⚠️ Perlu pantauan dan tindak lanjut', AppColors.warning),
+        _buildStatusOption(
+          'Perlu Perhatian',
+          '⚠️ Perlu pantauan dan tindak lanjut',
+          AppColors.warning,
+        ),
         const SizedBox(height: 12),
-        _buildStatusOption('Tidak Layak', '🚫 Tidak dapat mengikuti kegiatan', AppColors.danger),
+        _buildStatusOption(
+          'Tidak Layak',
+          '🚫 Tidak dapat mengikuti kegiatan',
+          AppColors.danger,
+        ),
 
         const SizedBox(height: 32),
 
@@ -686,12 +805,19 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              _buildSummaryRow('BMI', '${_bmi.toStringAsFixed(1)} ($_bmiCategory)'),
+              _buildSummaryRow(
+                'BMI',
+                '${_bmi.toStringAsFixed(1)} ($_bmiCategory)',
+              ),
               _buildSummaryRow('Tekanan Darah', '$_sistole/$_diastole mmHg'),
-              _buildSummaryRow('Suhu Tubuh', '${_suhuTubuh.toStringAsFixed(1)}°C'),
+              _buildSummaryRow(
+                'Suhu Tubuh',
+                '${_suhuTubuh.toStringAsFixed(1)}°C',
+              ),
               _buildSummaryRow('Denyut Nadi', '$_denyutNadi bpm'),
               _buildSummaryRow('SpO2', '$_spO2%'),
-              if (_alergiObat.isNotEmpty) _buildSummaryRow('Alergi', _alergiObat),
+              if (_alergiObat.isNotEmpty)
+                _buildSummaryRow('Alergi', _alergiObat),
               if (_tindakanDiberikan.isNotEmpty)
                 _buildSummaryRow('Tindakan', _tindakanDiberikan),
               _buildSummaryRow('Status', _hasil),
@@ -703,7 +829,8 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
   }
 
   Widget _buildNavigationButtons(TkPatientProvider provider) {
-    final isNextDisabled = _currentStep == 0 && provider.selectedPatient == null;
+    final isNextDisabled =
+        _currentStep == 0 && provider.selectedPatient == null;
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -737,30 +864,35 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
             Expanded(
               flex: 2,
               child: ElevatedButton(
-                onPressed: _currentStep == 4 
-                    ? _handleSubmit 
-                    : (isNextDisabled ? null : _goToNextStep),
+                onPressed:
+                    _currentStep == 4
+                        ? _handleSubmit
+                        : (isNextDisabled ? null : _goToNextStep),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: isNextDisabled ? AppColors.neutral300 : AppColors.primary,
+                  backgroundColor:
+                      isNextDisabled ? AppColors.neutral300 : AppColors.primary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: _isSaving
-                    ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                child:
+                    _isSaving
+                        ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          ),
+                        )
+                        : Text(
+                          _currentStep == 4 ? 'Simpan Screening' : 'Lanjut',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
-                      )
-                    : Text(
-                        _currentStep == 4 ? 'Simpan Screening' : 'Lanjut',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
               ),
             ),
           ],
@@ -779,11 +911,19 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
     );
   }
 
-  Widget _buildTextArea(String label, String value, Function(String) onChanged, {String? hint}) {
+  Widget _buildTextArea(
+    String label,
+    String value,
+    Function(String) onChanged, {
+    String? hint,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppTextStyles.labelSm.copyWith(color: AppColors.neutral600)),
+        Text(
+          label,
+          style: AppTextStyles.labelSm.copyWith(color: AppColors.neutral600),
+        ),
         const SizedBox(height: 8),
         TextFormField(
           initialValue: value,
@@ -803,13 +943,24 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
     );
   }
 
-  Widget _buildMeasurementRow(String label, double value, Function(double) onChanged, double min, double max) {
+  Widget _buildMeasurementRow(
+    String label,
+    double value,
+    Function(double) onChanged,
+    double min,
+    double max,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Text(label, style: AppTextStyles.labelSm.copyWith(color: AppColors.neutral600)),
+            Text(
+              label,
+              style: AppTextStyles.labelSm.copyWith(
+                color: AppColors.neutral600,
+              ),
+            ),
             const Spacer(),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -819,7 +970,10 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
               ),
               child: Text(
                 value.toStringAsFixed(0),
-                style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
+                ),
               ),
             ),
           ],
@@ -835,18 +989,33 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
     );
   }
 
-  Widget _buildSliderInput(String label, double value, Function(double) onChanged, double min, double max, String unit,
-      {int? divisions}) {
+  Widget _buildSliderInput(
+    String label,
+    double value,
+    Function(double) onChanged,
+    double min,
+    double max,
+    String unit, {
+    int? divisions,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Text(label, style: AppTextStyles.labelSm.copyWith(color: AppColors.neutral600)),
+            Text(
+              label,
+              style: AppTextStyles.labelSm.copyWith(
+                color: AppColors.neutral600,
+              ),
+            ),
             const Spacer(),
             Text(
               '${value.toStringAsFixed(1)} $unit',
-              style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: AppColors.primary,
+              ),
             ),
           ],
         ),
@@ -886,9 +1055,14 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
                 shape: BoxShape.circle,
                 border: Border.all(color: color, width: 2),
               ),
-              child: isSelected
-                  ? const Icon(Icons.check_rounded, color: Colors.white, size: 16)
-                  : null,
+              child:
+                  isSelected
+                      ? const Icon(
+                        Icons.check_rounded,
+                        color: Colors.white,
+                        size: 16,
+                      )
+                      : null,
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -904,7 +1078,9 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
                   ),
                   Text(
                     description,
-                    style: AppTextStyles.labelSm.copyWith(color: AppColors.neutral500),
+                    style: AppTextStyles.labelSm.copyWith(
+                      color: AppColors.neutral500,
+                    ),
                   ),
                 ],
               ),
@@ -924,7 +1100,9 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
             width: 120,
             child: Text(
               label,
-              style: AppTextStyles.labelSm.copyWith(color: AppColors.neutral500),
+              style: AppTextStyles.labelSm.copyWith(
+                color: AppColors.neutral500,
+              ),
             ),
           ),
           Expanded(
@@ -993,7 +1171,8 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
       riwayatPenyakit: _riwayatPenyakit.isNotEmpty ? _riwayatPenyakit : null,
       alergiObat: _alergiObat.isNotEmpty ? _alergiObat : null,
       kondisiPsikologis: _kondisiPsikologis,
-      tindakanDiberikan: _tindakanDiberikan.isNotEmpty ? _tindakanDiberikan : null,
+      tindakanDiberikan:
+          _tindakanDiberikan.isNotEmpty ? _tindakanDiberikan : null,
       obatDiberikan: _obatDiberikan.isNotEmpty ? _obatDiberikan : null,
       catatan: _catatan.isNotEmpty ? _catatan : null,
       rekomendasi: _rekomendasi.isNotEmpty ? _rekomendasi : null,
@@ -1024,24 +1203,27 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
   void _showExitConfirmation() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Batal Screening?'),
-        content: const Text('Data yang sudah diinput akan hilang.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Lanjut'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Batal Screening?'),
+            content: const Text('Data yang sudah diinput akan hilang.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Lanjut'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  context.pop();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.danger,
+                ),
+                child: const Text('Batal'),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              context.pop();
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger),
-            child: const Text('Batal'),
-          ),
-        ],
-      ),
     );
   }
 }

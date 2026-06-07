@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { tenagaKesehatanService } from '../../services/api';
+import { PageContent } from '@/components/ui/page';
+import { DashboardHero } from '@/components/ui/dashboard';
 
 const BackIcon = () => <span className="material-symbols-outlined text-sm">arrow_back</span>;
 const HistoryIcon = () => <span className="material-symbols-outlined text-sm">history</span>;
@@ -242,19 +244,23 @@ export default function PatientMedicalRecord() {
   };
 
   return (
-    <div className="px-4 py-6 md:px-6 lg:px-8 min-h-screen bg-transparent font-inter">
-      <div className="max-w-7xl mx-auto space-y-6">
-
-        {/* Back Button and Navigation */}
-        <div className="flex justify-between items-center">
-          <button
-            onClick={() => navigate('/tenagakes/patients')}
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-bku-primary transition-colors bg-white/80 border border-slate-200 px-3.5 py-2 rounded-xl shadow-sm glass-card"
-          >
-            <BackIcon /> Kembali ke Daftar Pasien
-          </button>
-          
+    <PageContent>
+      <DashboardHero
+        title="Rekam Medis"
+        highlightedTitle="Mahasiswa"
+        subtitle="Riwayat pemeriksaan, screening fisik, dan konsultasi kesehatan mahasiswa"
+        icon="medical_services"
+        badges={[
+          { label: 'Daftar Pasien', active: false },
+        ]}
+        actions={
           <div className="flex gap-2">
+            <button
+              onClick={() => navigate('/tenagakes/patients')}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white/70 px-4 py-2.5 text-xs font-bold text-slate-600 transition-all hover:bg-slate-50"
+            >
+              <BackIcon /> Kembali
+            </button>
             <button
               onClick={() => setActiveTab('history')}
               className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
@@ -263,7 +269,7 @@ export default function PatientMedicalRecord() {
                   : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
               }`}
             >
-              <HistoryIcon /> Riwayat Rekam Medis
+              <HistoryIcon /> Riwayat
             </button>
             <button
               onClick={() => setActiveTab('new')}
@@ -276,7 +282,8 @@ export default function PatientMedicalRecord() {
               <AddIcon /> Screening Baru
             </button>
           </div>
-        </div>
+        }
+      />
 
         {/* Patient Profile Header Card */}
         {patient && (
@@ -875,7 +882,6 @@ export default function PatientMedicalRecord() {
           </form>
         )}
 
-      </div>
-    </div>
+    </PageContent>
   );
 }

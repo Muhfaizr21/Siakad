@@ -11,7 +11,7 @@ export function DashboardFilter({
   className
 }) {
   return (
-    <div className={cn("bg-surface rounded-xl border border-border shadow-sm overflow-hidden mb-6", className)}>
+    <div className={cn("bg-surface rounded-2xl border border-border shadow-sm overflow-hidden mb-6", className)}>
       <div className="px-5 py-4 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-background/50">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl flex items-center justify-center border" 
@@ -32,7 +32,7 @@ export function DashboardFilter({
         {activeFiltersCount > 0 && onResetFilters && (
           <button
             onClick={onResetFilters}
-            className="text-[11px] font-medium text-rose-600 hover:text-rose-700 flex items-center gap-1 transition-colors bg-rose-50 px-2.5 py-1 rounded-md border border-rose-100"
+            className="text-[11px] font-medium text-[var(--theme-error)] hover:opacity-80 flex items-center gap-1 transition-colors bg-[var(--theme-error-light)] px-2.5 py-1 rounded-md border border-[var(--theme-error-light)]"
           >
             <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>close</span>
             Reset Filter

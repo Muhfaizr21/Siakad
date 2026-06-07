@@ -1,6 +1,9 @@
 "use client"
+import React, { useState, useEffect } from 'react';
+import { PageContent, PageHeader } from '@/components/ui/page';
 
-import React, { useState, useEffect } from 'react'
+
+
 import { DataTable } from '@/components/ui/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -8,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Card, CardContent } from '@/components/ui/Card'
 import { Label } from '@/components/ui/Label'
 import { Textarea } from '@/components/ui/Textarea'
+
 
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
@@ -25,7 +29,7 @@ export default function AspirationManagement() {
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [tanggapan, setTanggapan] = useState('')
-  
+
   const ormawaId = getOrmawaId()
 
   const fetchData = async () => {
@@ -125,97 +129,75 @@ export default function AspirationManagement() {
   const responseRatio = totalAspirasi > 0 ? Math.round((answeredAspirasi / totalAspirasi) * 100) : 0
 
   return (
-    <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-8 font-body">
+    <PageContent className="font-body">
       <Toaster position="top-right" />
-      
-      {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <section className="relative overflow-hidden rounded-[2rem] bg-white p-8 md:p-10 shadow-sm border border-slate-200">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(0,0,0,0.02)_0%,transparent_60%)]" />
-        <div className="absolute inset-0 opacity-[0.02]"
-          style={{
-            backgroundImage: `radial-gradient(circle at 20% 50%, var(--theme-primary) 1px, transparent 1px), radial-gradient(circle at 80% 20%, var(--theme-primary) 1px, transparent 1px)`,
-            backgroundSize: '40px 40px'
-          }}
-        />
-        <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full blur-3xl opacity-10" style={{ backgroundColor: 'var(--theme-secondary)' }} />
-        <div className="absolute -bottom-10 right-40 w-60 h-60 rounded-full blur-2xl opacity-10" style={{ backgroundColor: 'var(--theme-surface)' }} />
 
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-50 border border-slate-200 text-slate-500">
-              <span className="h-1.5 w-1.5 rounded-full animate-ping" style={{ backgroundColor: 'var(--theme-primary)' }} />
-              <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-600">Layanan Aspirasi</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 shadow-inner" style={{ color: 'var(--theme-primary)' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>forum</span>
-              </div>
-              <div>
-                <h1 className="text-3xl md:text-4xl font-black tracking-tight font-headline text-slate-900">Aspirasi Organisasi</h1>
-                <p className="text-slate-500 text-sm font-medium mt-1">Tampung gagasan, kritik, dan berikan tanggapan resmi atas aspirasi dari mahasiswa.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* ── Welcome Banner ─────────────────────────────────────────── */}
+      <PageHeader 
+        title="Aspirasi Organisasi"
+        subtitle="Tampung gagasan, kritik, dan berikan tanggapan resmi atas aspirasi dari mahasiswa."
+        icon="forum"
+       
+        breadcrumbs={[ { label: 'Dashboard', path: '/ormawa' }, { label: 'Aspirasi Organisasi', path: '#' } ]} 
+      />
 
       {/* ── Statistics Summary Cards ────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {/* Total Aspirasi */}
-        <Card className="border border-slate-100 shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-md transition-all duration-300">
+        <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface hover:shadow-md transition-all duration-300">
           <CardContent className="p-6 flex items-center gap-4.5">
-            <div className="w-12 h-12 rounded-2xl bg-bku-primary/5 flex items-center justify-center text-bku-primary">
+            <div className="w-12 h-12 rounded-2xl bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)]">
               <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>question_answer</span>
             </div>
             <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Total Aspirasi Masuk</p>
-              <p className="text-2xl font-black text-slate-900 tracking-tight font-headline">{totalAspirasi}</p>
+              <p className="text-[10px] font-black text-[var(--theme-text-muted)] tracking-wider uppercase font-headline">Total Aspirasi Masuk</p>
+              <p className="text-2xl font-black text-[var(--theme-text)] tracking-tight font-headline">{totalAspirasi}</p>
             </div>
           </CardContent>
         </Card>
 
         {/* Ditanggapi */}
-        <Card className="border border-slate-100 shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-md transition-all duration-300">
+        <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface hover:shadow-md transition-all duration-300">
           <CardContent className="p-6 flex items-center gap-4.5">
             <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600">
               <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>mark_chat_read</span>
             </div>
             <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Sudah Ditanggapi</p>
-              <p className="text-2xl font-black text-slate-900 tracking-tight font-headline">{answeredAspirasi}</p>
+              <p className="text-[10px] font-black text-[var(--theme-text-muted)] tracking-wider uppercase font-headline">Sudah Ditanggapi</p>
+              <p className="text-2xl font-black text-[var(--theme-text)] tracking-tight font-headline">{answeredAspirasi}</p>
             </div>
           </CardContent>
         </Card>
 
         {/* Menunggu */}
-        <Card className="border border-slate-100 shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-md transition-all duration-300">
+        <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface hover:shadow-md transition-all duration-300">
           <CardContent className="p-6 flex items-center gap-4.5">
             <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600">
               <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>quickreply</span>
             </div>
             <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Menunggu Tanggapan</p>
-              <p className="text-2xl font-black text-slate-900 tracking-tight font-headline">{pendingAspirasi}</p>
+              <p className="text-[10px] font-black text-[var(--theme-text-muted)] tracking-wider uppercase font-headline">Menunggu Tanggapan</p>
+              <p className="text-2xl font-black text-[var(--theme-text)] tracking-tight font-headline">{pendingAspirasi}</p>
             </div>
           </CardContent>
         </Card>
 
         {/* Rasio Respon */}
-        <Card className="border border-slate-100 shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-md transition-all duration-300">
+        <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface hover:shadow-md transition-all duration-300">
           <CardContent className="p-6 flex items-center gap-4.5">
             <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
               <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>trending_up</span>
             </div>
             <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Rasio Respon</p>
-              <p className="text-2xl font-black text-slate-900 tracking-tight font-headline">{responseRatio}%</p>
+              <p className="text-[10px] font-black text-[var(--theme-text-muted)] tracking-wider uppercase font-headline">Rasio Respon</p>
+              <p className="text-2xl font-black text-[var(--theme-text)] tracking-tight font-headline">{responseRatio}%</p>
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* ── DataTable Container ──────────────────────────────────────── */}
-      <Card className="border border-slate-200/50 shadow-sm rounded-[2rem] overflow-hidden bg-white/70 backdrop-blur-md">
+      <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface">
         <CardContent className="p-6">
           <DataTable
             columns={columns} 
@@ -237,7 +219,7 @@ export default function AspirationManagement() {
                 onClick={() => { setSelected(row); setTanggapan(''); setIsDetailOpen(true) }} 
                 variant="ghost" 
                 size="icon" 
-                className="h-8 w-8 text-slate-400 hover:text-bku-primary hover:bg-blue-50 rounded-xl active:scale-95 transition-all"
+                className="h-8 w-8 text-[var(--theme-text-subtle)] hover:text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)] rounded-xl active:scale-95 transition-all"
                 title="Lihat Detail & Tanggapi"
               >
                 <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>visibility</span>
@@ -247,13 +229,12 @@ export default function AspirationManagement() {
         </CardContent>
       </Card>
 
-      {/* ── Detail View Dialog (Clean & Consistent Layout) ────────────── */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-2xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white animate-in zoom-in-95 duration-200">
+        <DialogContent className="max-w-2xl p-0 overflow-hidden border border-border shadow-2xl rounded-2xl bg-surface animate-in zoom-in-95 duration-200">
           {selected && (
             <div>
               {/* Header Gradient */}
-              <div className="p-8 bg-gradient-to-r from-bku-primary to-[#1e3a8a] text-white relative overflow-hidden">
+              <div className="p-8 bg-[var(--theme-primary)] text-white relative overflow-hidden">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.06)_0%,transparent_50%)]" />
                 <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
                   <span className="material-symbols-outlined size-24 text-white">chat</span>
@@ -275,7 +256,7 @@ export default function AspirationManagement() {
                   </div>
                 </div>
               </div>
-              
+
               {/* Dialog Content Grid */}
               <div className="p-8 space-y-5">
                 {/* Content Box */}
@@ -305,9 +286,9 @@ export default function AspirationManagement() {
                       value={tanggapan} 
                       onChange={e => setTanggapan(e.target.value)}
                       placeholder="Ketik tanggapan atau resolusi resmi dari pengurus organisasi..."
-                      className="min-h-[100px] rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-semibold text-xs leading-relaxed p-4" 
+                      className="min-h-[100px] rounded-xl border border-border bg-[var(--theme-bg)] focus:bg-white focus:ring-[var(--theme-primary-light)] focus:outline-none focus:border-[var(--theme-primary)] shadow-none transition-all font-semibold text-xs leading-relaxed p-4" 
                     />
-                    
+
                     <Button 
                       disabled={isSubmitting} 
                       onClick={handleTanggapi} 
@@ -338,6 +319,6 @@ export default function AspirationManagement() {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+    </PageContent>
   )
 }

@@ -396,7 +396,7 @@ function App() {
                 </Route>
 
                 {/* Kencana Admin */}
-                <Route path="/kencana-admin" element={<ProtectedRoute allowedRoles={['kencana_admin', 'super_admin']} requiredPermissions={['kencana.period.view', 'kencana.stage.view']}><KencanaLayout portalType="admin" /></ProtectedRoute>}>
+                <Route path="/kencana-admin" element={<ProtectedRoute allowedRoles={['kencana_admin', 'super_admin']} requiredPermissions={['kencana.period.create', 'kencana.stage.create']}><KencanaLayout portalType="admin" /></ProtectedRoute>}>
                   <Route index element={<KencanaAdminDashboard />} />
                   <Route path="periods" element={<KencanaAdminPeriods />} />
                   <Route path="timeline" element={<KencanaAdminPeriods />} />

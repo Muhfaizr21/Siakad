@@ -17,7 +17,7 @@ export default function KencanaSessionPage() {
   return (
     <KencanaShell title={data?.title || 'Detail Sesi'} subtitle={data?.description} breadcrumbs={[{ label: 'Dashboard', to: '/student/kencana' }, { label: data?.title || 'Detail Sesi' }]}>
       <div className="grid gap-5 lg:grid-cols-[1fr_0.8fr]">
-        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <section className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
           <h2 className="text-xl font-black text-slate-800">Materi</h2>
           <div className="mt-5 space-y-4">
             {(data?.materials || []).map((m) => (
@@ -45,7 +45,7 @@ export default function KencanaSessionPage() {
         </section>
 
         <aside className="space-y-5">
-          <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
             <h2 className="text-xl font-black text-slate-800">Quiz</h2>
             <div className="mt-5 space-y-3">
               {(data?.quizzes || []).map((q) => {
@@ -62,7 +62,7 @@ export default function KencanaSessionPage() {
                     <div className="p-4">
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <p className="font-black text-slate-800">{q.title}</p>
-                        <span className="px-2 py-1 bg-white rounded-lg text-[10px] font-bold text-slate-500 border border-slate-200">
+                        <span className="px-2 py-1 bg-surface rounded-lg text-[10px] font-bold text-slate-500 border border-border">
                           {q.duration_minutes}m · {q.attempts_used}/{q.max_attempts}
                         </span>
                       </div>
@@ -96,7 +96,7 @@ export default function KencanaSessionPage() {
               {!(data?.quizzes || []).length && <Empty label="Belum ada quiz" desc="Quiz belum tersedia untuk sesi ini." />}
             </div>
           </section>
-          <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
             <h2 className="text-xl font-black text-slate-800">Tugas</h2>
             <div className="mt-5 space-y-4">
               {(data?.assignments || []).map((a) => {
@@ -148,5 +148,5 @@ export default function KencanaSessionPage() {
 }
 
 function Empty({ label, desc }) {
-  return <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-5 text-sm font-bold text-slate-500"><p className="text-slate-800">{label}</p><p className="mt-1 font-medium">{desc}</p></div>;
+  return <div className="rounded-2xl border border-dashed border-border bg-slate-50 p-5 text-sm font-bold text-slate-500"><p className="text-slate-800">{label}</p><p className="mt-1 font-medium">{desc}</p></div>;
 }

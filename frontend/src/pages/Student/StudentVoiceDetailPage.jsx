@@ -1,4 +1,5 @@
 import React from 'react';
+import { PageContent, PageHeader } from '@/components/ui/page';
 
 import { motion } from 'framer-motion';
 import { useParams, Link, NavLink } from 'react-router-dom';
@@ -26,54 +27,35 @@ export default function StudentVoiceDetailPage() {
   if (isError || !ticket) return <ErrorView error={error} />;
 
   return (
-    <div className="min-h-screen bg-transparent text-bku-text font-body">
-      <div className="max-w-7xl mx-auto px-4 py-6 md:px-6 md:py-8 lg:px-8 lg:py-10">
-        {/* Breadcrumb & Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-2 text-sm font-medium text-text-muted mb-6">
-            <NavLink to="/student/dashboard" className="hover:text-bku-primary cursor-pointer transition-colors">Dashboard</NavLink>
-            <span className="material-symbols-outlined opacity-50" style={{ fontSize: 14 }}>chevron_left</span>
-            <NavLink to="/student/voice" className="hover:text-bku-primary cursor-pointer transition-colors">Suara Mahasiswa</NavLink>
-            <span className="material-symbols-outlined opacity-50" style={{ fontSize: 14 }}>chevron_left</span>
-            <span className="text-bku-text font-semibold">Detail Tiket</span>
+    <PageContent className="font-body">
+      <PageHeader 
+        title={ticket.nomor_tiket} 
+        subtitle={
+          <div className="flex flex-wrap items-center gap-3 mt-1.5">
+            <span className="px-2 py-0.5 bg-[var(--theme-primary)] text-white text-[10px] font-black rounded-md shadow-sm uppercase">
+              TICKET ID
+            </span>
+            <span className="text-xs font-bold text-[var(--theme-text-muted)]">
+              Dikirim pada {new Date(ticket.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </span>
           </div>
-
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div className="flex items-center gap-4">
-              <Link 
-                to="/student/voice"
-                className="w-10 h-10 bg-surface border border-border rounded-xl flex items-center justify-center text-text-muted hover:text-bku-primary hover:border-bku-primary transition-all shadow-sm shrink-0 hover:-translate-x-0.5"
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>chevron_left</span>
-              </Link>
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="px-2 py-0.5 bg-bku-primary text-white text-xs font-semibold rounded-md shadow-sm">
-                    TICKET ID
-                  </span>
-                  <span className="text-xs font-medium text-text-muted">
-                    {new Date(ticket.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-                  </span>
-                </div>
-                <h1 className="text-xl md:text-2xl font-bold font-headline text-bku-text">
-                  {ticket.nomor_tiket}
-                </h1>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-               <div className="flex flex-col items-end hidden md:block mr-2 text-right">
-                  <span className="text-xs font-medium text-text-muted block mb-0.5">Status Aspirasi</span>
-                  <span className="text-sm font-semibold text-bku-text">Real-time Tracking</span>
-               </div>
-               <span className={`px-3 py-1.5 rounded-lg text-xs font-bold border shadow-sm ${getCategoryStyle(ticket.kategori)}`}>
-                 {ticket.kategori}
-               </span>
-               <LevelBadge level={ticket.level_saat_ini} />
-               <StatusBadge status={ticket.status} />
-            </div>
+        } 
+        icon="chat" 
+        breadcrumbs={[
+          { label: 'Student Hub', path: '/student/dashboard' },
+          { label: 'Suara Mahasiswa', path: '/student/voice' },
+          { label: 'Detail Tiket' }
+        ]} 
+        action={
+          <div className="flex flex-wrap items-center gap-2">
+             <span className={`px-3 py-1.5 rounded-xl text-xs font-black border shadow-sm ${getCategoryStyle(ticket.kategori)}`}>
+               {ticket.kategori}
+             </span>
+             <LevelBadge level={ticket.level_saat_ini} />
+             <StatusBadge status={ticket.status} />
           </div>
-        </div>
+        } 
+      />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:items-start">
           {/* Left Column: Ticket Content */}
@@ -118,13 +100,13 @@ export default function StudentVoiceDetailPage() {
                   <div className="p-5 bg-background rounded-2xl border border-border group/file space-y-4">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-surface rounded-xl border border-border flex items-center justify-center text-text-muted group-hover/file:text-bku-primary transition-colors shadow-sm">
+                        <div className="w-12 h-12 bg-surface rounded-xl border border-border flex items-center justify-center text-text-muted group-hover/file:text-[var(--theme-primary)] transition-colors shadow-sm">
                           <span className="material-symbols-outlined" style={{ fontSize: '24px' }} >description</span>
                         </div>
                         <div>
                           <p className="text-sm font-bold text-bku-text">Lampiran Pendukung</p>
                           <p className="text-xs font-semibold text-text-muted flex items-center gap-1.5 mt-0.5">
-                             <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: 14 }}>download</span> File Attachment
+                             <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: 14 }}>download</span> File Attachment
                           </p>
                         </div>
                       </div>
@@ -132,7 +114,7 @@ export default function StudentVoiceDetailPage() {
                         href={`${API_BASE_URL.replace('/api', '')}${ticket.lampiran_url}`} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-2 px-6 py-2.5 bg-bku-primary text-white font-bold rounded-xl hover:opacity-90 transition-colors text-xs uppercase tracking-wider"
+                        className="flex items-center justify-center gap-2 px-6 py-2.5 bg-[var(--theme-primary)] text-white font-bold rounded-xl hover:opacity-90 transition-colors text-xs uppercase tracking-wider"
                       >
                         Download <span className="material-symbols-outlined" style={{ fontSize: 16 }}>download</span>
                       </a>
@@ -164,7 +146,7 @@ export default function StudentVoiceDetailPage() {
                   Aspirasi ini sedang dikelola oleh Unit Kerja terkait. Mohon menunggu respons resmi sistem.
                 </p>
               </div>
-              <div className="p-6 bg-bku-primary rounded-2xl flex flex-col gap-3">
+              <div className="p-6 bg-[var(--theme-primary)] rounded-2xl flex flex-col gap-3">
                 <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-white border border-white/20">
                   <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>security</span>
                 </div>
@@ -181,7 +163,7 @@ export default function StudentVoiceDetailPage() {
             <div className="bg-surface rounded-2xl border border-border p-6 shadow-sm relative overflow-hidden">
               <div className="flex items-center justify-between mb-8 relative z-10">
                 <h3 className="text-base font-bold font-headline text-bku-text flex items-center gap-2">
-                  <div className="w-2 h-2 bg-bku-primary rounded-full" />
+                  <div className="w-2 h-2 bg-[var(--theme-primary)] rounded-full" />
                   Journey Tracker
                 </h3>
                 <Layers size={18} className="text-text-muted opacity-50" />
@@ -194,7 +176,7 @@ export default function StudentVoiceDetailPage() {
                      initial={{ height: 0 }} 
                      animate={{ height: '100%' }}
                      transition={{ duration: 1, ease: "easeOut" }}
-                     className="w-full bg-bku-primary"
+                     className="w-full bg-[var(--theme-primary)]"
                    />
                 </div>
 
@@ -232,8 +214,7 @@ export default function StudentVoiceDetailPage() {
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </PageContent>
   );
 }
 
@@ -261,7 +242,7 @@ function TimelineEvent({ event, isLatest, idx }) {
               {config.label}
             </span>
             <span className="text-[10px] font-medium text-text-muted flex items-center gap-1">
-              <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '12px' }} >schedule</span> 
+              <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '12px' }} >schedule</span> 
               {new Date(event.created_at).toLocaleTimeString('id-id', { hour: '2-digit', minute: '2-digit' })}
             </span>
           </div>
@@ -286,7 +267,7 @@ function TimelineEvent({ event, isLatest, idx }) {
                 Oleh {event.level === 'sistem' ? 'Sistem' : `Admin ${event.level.charAt(0).toUpperCase() + event.level.slice(1)}`}
               </span>
            </div>
-           {isLatest && <div className="w-1.5 h-1.5 bg-bku-primary rounded-full animate-pulse" />}
+           {isLatest && <div className="w-1.5 h-1.5 bg-[var(--theme-primary)] rounded-full animate-pulse" />}
         </div>
       </div>
     </motion.div>
@@ -299,7 +280,7 @@ function getEventConfig(type) {
       return { 
         label: 'Terkirim', 
         icon: <span className="material-symbols-outlined" >call_made</span>, 
-        circleColor: 'bg-bku-primary', 
+        circleColor: 'bg-[var(--theme-primary)]', 
         badgeStyle: 'bg-primary/10 text-primary border-primary/20',
         msgStyle: 'bg-background text-text-muted border-border'
       };

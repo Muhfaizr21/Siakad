@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { PageContent, PageHeader } from '@/components/ui/page';
 import { 
   useOrganisasiListQuery,
   useOrmawaListQuery,
@@ -276,28 +277,18 @@ export default function OrganisasiPage() {
   };
 
   return (
-    <div className="min-h-screen bg-transparent text-bku-text font-body px-4 py-5 md:px-6 md:py-6 lg:px-8 lg:py-8">
+    <PageContent className="font-body">
 
       <div className="max-w-7xl mx-auto">
-         {/* Breadcrumb */}
-         <div className="flex items-center gap-2 text-sm font-medium text-text-muted mb-6 print:hidden">
-           <NavLink to="/student/dashboard" className="hover:text-primary cursor-pointer transition-colors">Dashboard</NavLink>
-           <span className="material-symbols-outlined" style={{ fontSize: 16 }}>chevron_right</span>
-           <span className="text-bku-text">Organisasi</span>
-         </div>
-
-        {/* Header */}
-        <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4 print:hidden">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-extrabold font-headline mb-1.5 flex items-center gap-3">
-              <div className="bg-primary p-2 rounded-xl text-white shadow-md shadow-primary/20">
-                <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >group</span>
-              </div>
-              Portfolio Keorganisasian
-            </h1>
-            <p className="text-text-muted font-medium text-sm md:text-base">Portofolio keaktifan organisasi kemahasiswaan dan pendaftaran Ormawa.</p>
-          </div>
-        </div>
+        <PageHeader 
+          title="Portfolio Keorganisasian"
+          subtitle="Portofolio keaktifan organisasi kemahasiswaan dan pendaftaran Ormawa."
+          icon="group"
+          breadcrumbs={[
+            { label: 'Dashboard', path: '/student/dashboard' },
+            { label: 'Organisasi', path: '/student/organisasi' }
+          ]}
+        />
 
         {/* Navigation Tabs */}
         <div className="flex flex-col sm:flex-row border-b border-border mb-8 sm:items-center sm:justify-between gap-4 print:hidden">
@@ -510,7 +501,7 @@ export default function OrganisasiPage() {
               {ormawaList.map((org) => (
                 <div
                   key={org.id || org.ID}
-                  className="bg-white rounded-2xl border border-border p-5 flex flex-col gap-4 hover:border-primary/20 hover:shadow-lg transition-all"
+                  className="bg-surface rounded-2xl border border-border p-5 flex flex-col gap-4 hover:border-primary/20 hover:shadow-lg transition-all"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-lg shrink-0">
@@ -609,7 +600,7 @@ export default function OrganisasiPage() {
 
         {mainTab === 'pendaftaran' && (
           pendaftaranList?.length > 0 ? (
-            <div className="bg-surface rounded-3xl border border-border shadow-sm overflow-hidden print:hidden">
+            <div className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden print:hidden">
               <div className="overflow-x-auto custom-scrollbar">
                 <table className="w-full text-left text-sm">
                   <thead>
@@ -684,8 +675,8 @@ export default function OrganisasiPage() {
       </div>
 
       {selectedOrg && (
-        <div className="fixed inset-0 z-50 bg-bku-primary/45 backdrop-blur-sm flex items-center justify-center p-4 print:hidden">
-          <div className="w-full max-w-4xl max-h-[90vh] bg-surface rounded-3xl overflow-hidden border border-border shadow-2xl flex flex-col">
+        <div className="fixed inset-0 z-50 bg-[var(--theme-primary)]/45 backdrop-blur-sm flex items-center justify-center p-4 print:hidden">
+          <div className="w-full max-w-4xl max-h-[90vh] bg-surface rounded-2xl overflow-hidden border border-border shadow-2xl flex flex-col">
             <div className="bg-primary text-white p-6 md:p-7 flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">Detail Organisasi</p>
@@ -713,7 +704,7 @@ export default function OrganisasiPage() {
                     key={tab.key}
                     onClick={() => setActiveTab(tab.key)}
                     className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-t-xl text-xs font-bold whitespace-nowrap border-b-2 transition-colors ${
-                      isActive ? 'text-primary border-[#00236F] bg-[#EEF4FF]' : 'text-text-muted border-transparent hover:text-bku-text'
+                      isActive ? 'text-primary border-[var(--theme-primary)] bg-[var(--theme-primary-light)]' : 'text-text-muted border-transparent hover:text-bku-text'
                     }`}
                   >
                     <Icon size={14} /> {tab.label}
@@ -782,8 +773,8 @@ export default function OrganisasiPage() {
           : fallbackDivisions;
 
         return (
-          <div className="fixed inset-0 z-50 bg-bku-primary/45 backdrop-blur-sm flex items-center justify-center p-4 print:hidden">
-            <div className="w-full max-w-xl bg-surface rounded-3xl overflow-hidden border border-border shadow-2xl flex flex-col animate-in fade-in-50 zoom-in-95 duration-200">
+          <div className="fixed inset-0 z-50 bg-[var(--theme-primary)]/45 backdrop-blur-sm flex items-center justify-center p-4 print:hidden">
+            <div className="w-full max-w-xl bg-surface rounded-2xl overflow-hidden border border-border shadow-2xl flex flex-col animate-in fade-in-50 zoom-in-95 duration-200">
               <div className="bg-primary text-white p-5 flex items-start justify-between gap-4">
                 <div>
                   <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">Formulir Rekrutmen Anggota</p>
@@ -1113,10 +1104,10 @@ export default function OrganisasiPage() {
 
       {/* Certificate Print Preview Modal */}
       {printCertData && (
-        <div className="fixed inset-0 z-50 bg-bku-primary/45 backdrop-blur-sm flex items-center justify-center p-4 print:p-0 print:bg-white overflow-hidden">
-          <div className="w-full max-w-4xl max-h-[90vh] bg-surface rounded-3xl overflow-hidden border border-border shadow-2xl flex flex-col print:shadow-none print:border-none print:w-full print:max-w-none print:h-full print:rounded-none">
+        <div className="fixed inset-0 z-50 bg-[var(--theme-primary)]/45 backdrop-blur-sm flex items-center justify-center p-4 print:p-0 print:bg-white overflow-hidden">
+          <div className="w-full max-w-4xl max-h-[90vh] bg-surface rounded-2xl overflow-hidden border border-border shadow-2xl flex flex-col print:shadow-none print:border-none print:w-full print:max-w-none print:h-full print:rounded-none">
             {/* Modal Header (Hidden on Print) */}
-            <div className="bg-[#00236F] text-white p-5 flex items-center justify-between print:hidden shrink-0">
+            <div className="bg-[var(--theme-primary)] text-white p-5 flex items-center justify-between print:hidden shrink-0">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined">badge</span>
                 <span className="font-black text-sm uppercase tracking-wider">Cetak Sertifikat Keaktifan Organisasi</span>
@@ -1141,7 +1132,7 @@ export default function OrganisasiPage() {
             <div className="p-6 md:p-10 flex-1 flex justify-start lg:justify-center bg-gray-50 print:bg-white print:p-0 overflow-auto">
               <div
                 id="certificate-print-area"
-                className="w-[842px] h-[595px] bg-white border-[16px] border-double border-warning/30 p-8 relative flex flex-col justify-between shadow-lg print:shadow-none print:border-double print:m-0 shrink-0"
+                className="w-[842px] h-[595px] bg-surface border-[16px] border-double border-warning/30 p-8 relative flex flex-col justify-between shadow-lg print:shadow-none print:border-double print:m-0 shrink-0"
                 style={{
                   backgroundImage: 'radial-gradient(circle, #fff 60%, #fffbeb 100%)',
                 }}
@@ -1245,8 +1236,8 @@ export default function OrganisasiPage() {
 
       {/* Portfolio Add/Edit Modal */}
       {isPortModalOpen && (
-        <div className="fixed inset-0 z-50 bg-bku-primary/45 backdrop-blur-sm flex items-center justify-center p-4 print:hidden animate-in fade-in duration-200">
-          <div className="w-full max-w-lg bg-surface rounded-3xl overflow-hidden border border-border shadow-2xl flex flex-col animate-in fade-in-50 zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 bg-[var(--theme-primary)]/45 backdrop-blur-sm flex items-center justify-center p-4 print:hidden animate-in fade-in duration-200">
+          <div className="w-full max-w-lg bg-surface rounded-2xl overflow-hidden border border-border shadow-2xl flex flex-col animate-in fade-in-50 zoom-in-95 duration-200">
             <div className="bg-primary text-white p-5 flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">
@@ -1272,7 +1263,7 @@ export default function OrganisasiPage() {
                   placeholder="Contoh: Himpunan Mahasiswa Informatika"
                   value={portForm.nama_organisasi}
                   onChange={(e) => setPortForm({ ...portForm, nama_organisasi: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-background border border-border rounded-xl font-semibold text-sm focus:outline-none focus:border-[#00236F] transition-all outline-none"
+                  className="w-full px-4 py-2.5 bg-background border border-border rounded-xl font-semibold text-sm focus:outline-none focus:border-[var(--theme-primary)] transition-all outline-none"
                   required
                 />
               </div>
@@ -1283,7 +1274,7 @@ export default function OrganisasiPage() {
                   <select
                     value={portForm.tipe}
                     onChange={(e) => setPortForm({ ...portForm, tipe: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl font-semibold text-sm focus:outline-none focus:border-[#00236F] transition-all outline-none text-bku-text"
+                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl font-semibold text-sm focus:outline-none focus:border-[var(--theme-primary)] transition-all outline-none text-bku-text"
                     required
                   >
                     <option value="UKM">UKM</option>
@@ -1302,7 +1293,7 @@ export default function OrganisasiPage() {
                     placeholder="Contoh: Ketua, Anggota"
                     value={portForm.jabatan}
                     onChange={(e) => setPortForm({ ...portForm, jabatan: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl font-semibold text-sm focus:outline-none focus:border-[#00236F] transition-all outline-none"
+                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl font-semibold text-sm focus:outline-none focus:border-[var(--theme-primary)] transition-all outline-none"
                     required
                   />
                 </div>
@@ -1316,7 +1307,7 @@ export default function OrganisasiPage() {
                     placeholder="Contoh: 2025"
                     value={portForm.periode_mulai}
                     onChange={(e) => setPortForm({ ...portForm, periode_mulai: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl font-semibold text-sm focus:outline-none focus:border-[#00236F] transition-all outline-none"
+                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl font-semibold text-sm focus:outline-none focus:border-[var(--theme-primary)] transition-all outline-none"
                     required
                   />
                 </div>
@@ -1328,7 +1319,7 @@ export default function OrganisasiPage() {
                     placeholder="Contoh: 2026"
                     value={portForm.periode_selesai}
                     onChange={(e) => setPortForm({ ...portForm, periode_selesai: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl font-semibold text-sm focus:outline-none focus:border-[#00236F] transition-all outline-none"
+                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl font-semibold text-sm focus:outline-none focus:border-[var(--theme-primary)] transition-all outline-none"
                   />
                 </div>
               </div>
@@ -1339,7 +1330,7 @@ export default function OrganisasiPage() {
                   placeholder="Deskripsikan kontribusi atau peran Anda..."
                   value={portForm.deskripsi_kegiatan}
                   onChange={(e) => setPortForm({ ...portForm, deskripsi_kegiatan: e.target.value })}
-                  className="w-full px-4 py-2 bg-background border border-border rounded-xl font-semibold text-sm focus:outline-none focus:border-[#00236F] transition-all outline-none h-20 resize-none"
+                  className="w-full px-4 py-2 bg-background border border-border rounded-xl font-semibold text-sm focus:outline-none focus:border-[var(--theme-primary)] transition-all outline-none h-20 resize-none"
                 />
               </div>
 
@@ -1350,7 +1341,7 @@ export default function OrganisasiPage() {
                   placeholder="Contoh: Anggota Terbaik Periode 2025"
                   value={portForm.apresiasi}
                   onChange={(e) => setPortForm({ ...portForm, apresiasi: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-background border border-border rounded-xl font-semibold text-sm focus:outline-none focus:border-[#00236F] transition-all outline-none"
+                  className="w-full px-4 py-2.5 bg-background border border-border rounded-xl font-semibold text-sm focus:outline-none focus:border-[var(--theme-primary)] transition-all outline-none"
                 />
               </div>
 
@@ -1358,14 +1349,14 @@ export default function OrganisasiPage() {
                 <button
                   type="button"
                   onClick={() => { setIsPortModalOpen(false); setEditingPort(null); }}
-                  className="flex-1 py-2.5 bg-white border border-border text-text-muted font-black rounded-xl hover:bg-background transition-all uppercase tracking-wide text-xs"
+                  className="flex-1 py-2.5 bg-surface border border-border text-text-muted font-black rounded-xl hover:bg-background transition-all uppercase tracking-wide text-xs"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={createMutation.isPending || updateMutation.isPending}
-                  className="flex-1 py-2.5 bg-[#00236F] text-white font-black rounded-xl hover:bg-[#0B4FAE] transition-all text-xs uppercase tracking-wide flex items-center justify-center gap-1.5"
+                  className="flex-1 py-2.5 bg-[var(--theme-primary)] text-white font-black rounded-xl hover:bg-[var(--theme-primary-hover)] transition-all text-xs uppercase tracking-wide flex items-center justify-center gap-1.5"
                 >
                   {createMutation.isPending || updateMutation.isPending ? 'Menyimpan...' : 'Simpan Riwayat'}
                 </button>
@@ -1374,7 +1365,7 @@ export default function OrganisasiPage() {
           </div>
         </div>
       )}
-    </div>
+    </PageContent>
   );
 }
 

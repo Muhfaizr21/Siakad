@@ -57,7 +57,7 @@ const TopNavBar = () => {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <div className="flex items-center gap-2 cursor-pointer group hover:bg-white/50 p-1 rounded-full transition-all outline-none">
-              <div className="h-9 w-9 rounded-full overflow-hidden border border-slate-200 bg-white flex items-center justify-center">
+              <div className="h-9 w-9 rounded-full overflow-hidden border border-border bg-surface flex items-center justify-center">
                 {profile?.FotoURL ? (
                   <img 
                     alt="Student profile picture" 

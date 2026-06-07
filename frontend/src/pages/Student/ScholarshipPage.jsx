@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { PageContent, PageHeader } from '@/components/ui/page';
 import { useNavigate, NavLink } from 'react-router-dom';
 import { 
   useScholarshipKatalogQuery, 
@@ -186,7 +187,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
       <motion.div 
         initial={{ y: 50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="bg-white w-full max-w-4xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+        className="bg-surface w-full max-w-4xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
       >
         {/* Header */}
         <div className="p-8 border-b border-[var(--theme-border-muted)] flex justify-between items-center bg-[var(--theme-bg)]">
@@ -197,7 +198,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
             </div>
             <p className="text-sm font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">{scholarshipNama}</p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-white rounded-full transition-colors border border-transparent hover:border-[var(--theme-border)]">
+          <button onClick={onClose} className="p-2 hover:bg-surface rounded-full transition-colors border border-transparent hover:border-border">
             <span className="material-symbols-outlined text-[var(--theme-text-muted)]" style={{ fontSize: '24px' }} >close</span>
           </button>
         </div>
@@ -219,7 +220,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
                   value={motivasi}
                   onChange={(e) => setMotivasi(e.target.value)}
                   placeholder="Jelaskan kenapa kamu layak menerima beasiswa ini... (min. 150 karakter)"
-                  className="w-full h-48 p-5 rounded-xl border border-[var(--theme-border)] focus:border-[var(--theme-primary)] outline-none text-sm leading-relaxed resize-none shadow-inner bg-[var(--theme-bg)] transition-all"
+                  className="w-full h-48 p-5 rounded-xl border border-border focus:border-[var(--theme-primary)] outline-none text-sm leading-relaxed resize-none shadow-inner bg-[var(--theme-bg)] transition-all"
                 />
                 <div className="flex justify-between mt-2">
                   <p className={`text-[10px] font-bold ${motivasi.length < 150 ? 'text-red-500' : 'text-green-600'}`}>
@@ -245,7 +246,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
                   <div 
                     onClick={() => fileInputRefs.current[item.key].click()}
                     className={`p-4 rounded-xl border-2 border-dashed cursor-pointer transition-all flex items-center gap-4 ${
-                      files[item.key] ? 'border-[#16a34a] bg-green-50' : 'border-[var(--theme-border)] hover:border-[var(--theme-primary)] bg-[var(--theme-bg)]'
+                      files[item.key] ? 'border-[#16a34a] bg-green-50' : 'border-border hover:border-[var(--theme-primary)] bg-[var(--theme-bg)]'
                     }`}
                   >
                     <div className={`p-2 rounded-xl ${files[item.key] ? 'bg-green-600 text-white' : 'bg-white text-[var(--theme-text-muted)]'}`}>
@@ -271,7 +272,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
           {/* STEP 3: PERSYARATAN KUSTOM (Google Form style) */}
           {hasCustomFields && step === 3 && (
             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
-              <div className="bg-[var(--theme-bg)] p-6 rounded-3xl border border-[var(--theme-border)] space-y-5 text-left">
+              <div className="bg-[var(--theme-bg)] p-6 rounded-2xl border border-border space-y-5 text-left">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="material-symbols-outlined text-[var(--theme-primary)]">description</span>
                   <h4 className="font-black text-[var(--theme-primary)] uppercase tracking-wider text-xs">Form Persyaratan Tambahan</h4>
@@ -296,7 +297,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
                           value={customAnswers[label] || ''}
                           onChange={(e) => setCustomAnswers(prev => ({ ...prev, [label]: e.target.value }))}
                           placeholder="Masukkan jawaban..."
-                          className="w-full h-10 px-4 rounded-xl border border-[var(--theme-border)] focus:border-[var(--theme-primary)] outline-none text-sm bg-white"
+                          className="w-full h-10 px-4 rounded-xl border border-border focus:border-[var(--theme-primary)] outline-none text-sm bg-white"
                         />
                       )}
                       
@@ -306,7 +307,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
                           value={customAnswers[label] || ''}
                           onChange={(e) => setCustomAnswers(prev => ({ ...prev, [label]: e.target.value }))}
                           placeholder="Masukkan jawaban panjang..."
-                          className="w-full h-28 p-4 rounded-xl border border-[var(--theme-border)] focus:border-[var(--theme-primary)] outline-none text-sm bg-white resize-none"
+                          className="w-full h-28 p-4 rounded-xl border border-border focus:border-[var(--theme-primary)] outline-none text-sm bg-white resize-none"
                         />
                       )}
                       
@@ -315,7 +316,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
                           required={required}
                           value={customAnswers[label] || ''}
                           onChange={(e) => setCustomAnswers(prev => ({ ...prev, [label]: e.target.value }))}
-                          className="w-full h-10 px-3 rounded-xl border border-[var(--theme-border)] focus:border-[var(--theme-primary)] outline-none text-sm bg-white"
+                          className="w-full h-10 px-3 rounded-xl border border-border focus:border-[var(--theme-primary)] outline-none text-sm bg-white"
                         >
                           <option value="">-- Pilih opsi --</option>
                           {options.map((opt, i) => (
@@ -325,7 +326,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
                       )}
                       
                       {type === 'checkbox' && (
-                        <div className="space-y-2 bg-white p-4 rounded-xl border border-[var(--theme-border)]">
+                        <div className="space-y-2 bg-surface p-4 rounded-xl border border-border">
                           {options.map((opt, i) => {
                             const currentList = Array.isArray(customAnswers[label]) ? customAnswers[label] : [];
                             const checked = currentList.includes(opt);
@@ -354,7 +355,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
                           <div
                             onClick={() => fileInputRefs.current[`custom-${idx}`].click()}
                             className={`p-4 rounded-xl border-2 border-dashed cursor-pointer transition-all flex items-center gap-4 ${
-                              customAnswers[label] ? 'border-[#16a34a] bg-green-50' : 'border-[var(--theme-border)] hover:border-[var(--theme-primary)] bg-white'
+                              customAnswers[label] ? 'border-[#16a34a] bg-green-50' : 'border-border hover:border-[var(--theme-primary)] bg-white'
                             }`}
                           >
                             <div className={`p-2 rounded-xl ${customAnswers[label] ? 'bg-green-600 text-white' : 'bg-slate-100 text-[var(--theme-text-muted)]'}`}>
@@ -425,7 +426,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
                 </div>
               </div>
 
-              <label className="flex items-start gap-4 p-5 bg-[var(--theme-bg)] rounded-xl border border-[var(--theme-border)] cursor-pointer group text-left">
+              <label className="flex items-start gap-4 p-5 bg-[var(--theme-bg)] rounded-xl border border-border cursor-pointer group text-left">
                 <input 
                   type="checkbox" 
                   checked={agreed} 
@@ -508,45 +509,37 @@ export default function ScholarshipPage() {
   }, [riwayatList]);
 
   return (
-    <div className="px-4 py-5 md:px-6 md:py-6 lg:px-8 lg:py-8 font-body text-[var(--theme-text)] min-h-screen bg-[var(--theme-bg)]">
-      
-      {/* Header Section */}
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6"
-      >
-        <div>
-          <h1 className="text-2xl md:text-3xl font-black font-headline tracking-tight flex items-center gap-2.5">
-            <div className="w-10 h-10 bg-[var(--theme-primary)] rounded-xl flex items-center justify-center shadow-md shadow-[var(--theme-primary)]/20">
-              <span className="material-symbols-outlined text-white" style={{ fontSize: '20px' }} >school</span>
-            </div>
-            Scholarship hub
-          </h1>
-          <p className="text-[var(--theme-text-muted)] mt-1.5 font-bold uppercase tracking-[0.16em] text-[10px]">Akses Beasiswa Internal & Eksternal BKU</p>
-        </div>
-
-        {/* Tab Switcher */}
-        <div className="flex p-1 bg-white rounded-xl shadow-sm border border-[var(--theme-border)] w-fit">
-          {[
-            { id: 'katalog', label: 'Katalog Aktif', icon: LayoutGrid },
-            { id: 'riwayat', label: 'Riwayat Saya', icon: History }
-          ].map(tab => (
-            <button 
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-black text-xs md:text-sm transition-all ${
-                activeTab === tab.id 
-                  ? 'bg-[var(--theme-primary)] text-white shadow-md shadow-[var(--theme-primary)]/20' 
-                  : 'text-[var(--theme-text-muted)] hover:text-[var(--theme-text-muted)]'
-              }`}
-            >
-              <tab.icon size={16} />
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      </motion.div>
+    <PageContent className="font-body">
+      <PageHeader 
+        title="Scholarship Hub" 
+        subtitle="Akses Beasiswa Internal & Eksternal BKU" 
+        icon="workspace_premium"
+        breadcrumbs={[
+          { label: 'Student Hub', path: '/student/dashboard' },
+          { label: 'Scholarship', path: '/student/scholarship' }
+        ]}
+        action={
+          <div className="flex p-1 bg-[var(--theme-bg)] rounded-xl shadow-inner border border-border w-fit">
+            {[
+              { id: 'katalog', label: 'Katalog Aktif', icon: LayoutGrid },
+              { id: 'riwayat', label: 'Riwayat Saya', icon: History }
+            ].map(tab => (
+              <button 
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-xs md:text-sm transition-all ${
+                  activeTab === tab.id 
+                    ? 'bg-white text-[var(--theme-text)] shadow-sm border border-border' 
+                    : 'text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] bg-transparent border border-transparent'
+                }`}
+              >
+                <tab.icon size={16} />
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        }
+      />
 
       {activeTab === 'katalog' ? (
         <>
@@ -554,7 +547,7 @@ export default function ScholarshipPage() {
           <motion.div 
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }}
-            className="flex flex-wrap items-center gap-3 mb-6 bg-white p-3.5 rounded-xl border border-[var(--theme-border)] shadow-sm"
+            className="flex flex-wrap items-center gap-3 mb-6 bg-surface p-3.5 rounded-xl border border-border shadow-sm"
           >
             <div className="flex items-center gap-2 px-4 border-r border-[var(--theme-border-muted)] mr-2">
               <Filter size={16} className="text-[var(--theme-primary)]" />
@@ -580,7 +573,7 @@ export default function ScholarshipPage() {
                 <select 
                  value={filters.sort}
                  onChange={(e) => setFilters(f => ({ ...f, sort: e.target.value }))}
-                 className="bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-[var(--theme-primary)]"
+                 className="bg-[var(--theme-bg)] border border-border rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-[var(--theme-primary)]"
                 >
                   <option value="deadline_asc">Deadline Terdekat</option>
                   <option value="nilai_desc">Bantuan Terbesar</option>
@@ -620,7 +613,7 @@ export default function ScholarshipPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.05 }}
-                    className="group bg-white rounded-xl border border-[var(--theme-border)] overflow-hidden hover:border-[var(--theme-primary-light)] hover:shadow-md transition-all flex flex-col relative"
+                    className="group bg-surface rounded-xl border border-border overflow-hidden hover:border-[var(--theme-primary-light)] hover:shadow-md transition-all flex flex-col relative"
                   >
                     <div className="p-4 md:p-5 pb-3 flex-1">
                       <div className="flex justify-between items-start mb-4">
@@ -723,7 +716,7 @@ export default function ScholarshipPage() {
               { label: 'Lulus Seleksi', val: stats.diterima, color: 'text-[#16a34a]', bg: 'bg-[#f0fdf4]', icon: 'emoji_events' },
               { label: 'Ditolak', val: stats.ditolak, color: 'text-[#dc2626]', bg: 'bg-[#fef2f2]', icon: 'close' }
             ].map(s => (
-              <div key={s.label} className={`${s.bg} p-4 rounded-xl border border-[var(--theme-border)] shadow-sm`}>
+              <div key={s.label} className={`${s.bg} p-4 rounded-xl border border-border shadow-sm`}>
                 <div className="flex items-center gap-3 mb-2">
                   <div className={`p-2 rounded-lg ${s.bg === 'bg-white' ? 'bg-[var(--theme-bg)]' : 'bg-white'} ${s.color} flex items-center justify-center`}>
                     <span className="material-symbols-outlined" style={{ fontSize: 18 }}>{s.icon}</span>
@@ -736,11 +729,11 @@ export default function ScholarshipPage() {
           </div>
 
           {/* History Table */}
-          <div className="bg-white rounded-xl border border-[var(--theme-border)] shadow-sm overflow-hidden">
+          <div className="bg-surface rounded-xl border border-border shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="bg-[#f4f8ff] border-b border-[#dbe7ff]">
+                  <tr className="bg-[var(--theme-bg)] border-b border-[var(--theme-border-muted)]">
                     <th className="px-4 md:px-6 py-3.5 text-[10px] font-black text-[var(--theme-primary)] uppercase tracking-[0.18em]">Nama Beasiswa</th>
                     <th className="px-4 md:px-6 py-3.5 text-[10px] font-black text-[var(--theme-primary)] uppercase tracking-[0.18em]">Ref. Number</th>
                     <th className="px-4 md:px-6 py-3.5 text-[10px] font-black text-[var(--theme-primary)] uppercase tracking-[0.18em] text-center">Tgl Daftar</th>
@@ -757,7 +750,7 @@ export default function ScholarshipPage() {
                       const itemId = item.id || item.ID;
                       const createdAt = item.created_at || item.CreatedAt;
                       return (
-                        <tr key={`riwayat-${itemId || idx}`} className="hover:bg-[#f7faff] transition-colors group">
+                        <tr key={`riwayat-${itemId || idx}`} className="hover:bg-[var(--theme-primary-light)] transition-colors group">
                           <td className="px-4 md:px-6 py-3.5">
                             <div className="flex flex-col">
                                <p className="font-black text-[var(--theme-text)]">{item.Beasiswa?.nama || item.Beasiswa?.Nama}</p>
@@ -790,7 +783,7 @@ export default function ScholarshipPage() {
                                    toast.error('ID Pengajuan tidak ditemukan');
                                  }
                                }}
-                               className="px-4 py-2 rounded-xl bg-white border border-[var(--theme-border)] text-xs font-black hover:border-[var(--theme-primary)] hover:text-[var(--theme-primary)] transition-all flex items-center justify-center gap-2 mx-auto"
+                               className="px-4 py-2 rounded-xl bg-surface border border-border text-xs font-black hover:border-[var(--theme-primary)] hover:text-[var(--theme-primary)] transition-all flex items-center justify-center gap-2 mx-auto"
                               >
                                 Lihat Progress <span className="material-symbols-outlined" style={{ fontSize: 14 }}>chevron_right</span>
                               </button>
@@ -839,7 +832,7 @@ export default function ScholarshipPage() {
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
-                className="bg-white w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+                className="bg-surface w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
               >
                 <div className="relative h-24 bg-gradient-to-r from-[var(--theme-primary)] to-[var(--theme-primary-hover)] p-5 flex items-center">
                    <button onClick={() => setSelectedSch(null)} className="absolute top-6 right-6 text-white/50 hover:text-white transition-colors">
@@ -853,19 +846,19 @@ export default function ScholarshipPage() {
                 
                 <div className="p-8 overflow-y-auto flex-1 custom-scrollbar">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                    <div className="p-3.5 bg-[var(--theme-bg)] rounded-xl border border-[var(--theme-border)]">
+                    <div className="p-3.5 bg-[var(--theme-bg)] rounded-xl border border-border">
                       <p className="text-[9px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-1">Nilai Bantuan</p>
                       <p className="text-sm font-black text-[var(--theme-primary)]">{formatRupiah(schVal)}</p>
                     </div>
-                    <div className="p-3.5 bg-[var(--theme-bg)] rounded-xl border border-[var(--theme-border)]">
+                    <div className="p-3.5 bg-[var(--theme-bg)] rounded-xl border border-border">
                       <p className="text-[9px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-1">Kuota Sisa</p>
                       <p className="text-sm font-black text-[var(--theme-text)]">{schQuota} <span className="text-[10px] text-[var(--theme-text-muted)]">Org</span></p>
                     </div>
-                    <div className="p-3.5 bg-[var(--theme-bg)] rounded-xl border border-[var(--theme-border)]">
+                    <div className="p-3.5 bg-[var(--theme-bg)] rounded-xl border border-border">
                       <p className="text-[9px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-1">Min. IPK</p>
                       <p className="text-sm font-black text-[var(--theme-text)]">{schIpk.toFixed(2)}</p>
                     </div>
-                    <div className={`p-3.5 rounded-xl border ${getDaysLeft(schDeadline) < 7 ? 'bg-red-50 border-red-200' : 'bg-[var(--theme-bg)] border-[var(--theme-border)]'}`}>
+                    <div className={`p-3.5 rounded-xl border ${getDaysLeft(schDeadline) < 7 ? 'bg-red-50 border-red-200' : 'bg-[var(--theme-bg)] border-border'}`}>
                       <p className={`text-[9px] font-black uppercase tracking-widest mb-1 ${getDaysLeft(schDeadline) < 7 ? 'text-red-500' : 'text-[var(--theme-text-muted)]'}`}>Deadline</p>
                       <p className={`text-sm font-black ${getDaysLeft(schDeadline) < 7 ? 'text-red-600' : 'text-[var(--theme-text)]'}`}>{new Date(schDeadline).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</p>
                     </div>
@@ -879,7 +872,7 @@ export default function ScholarshipPage() {
 
                     <div>
                       <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest mb-3"><span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '16px' }} >description</span> Persyaratan</h4>
-                      <div className="bg-[var(--theme-bg)] p-6 rounded-xl border border-[var(--theme-border)]">
+                      <div className="bg-[var(--theme-bg)] p-6 rounded-xl border border-border">
                          <pre className="text-sm text-[var(--theme-text-muted)] font-medium whitespace-pre-line font-body leading-relaxed">
                            {selectedSch.persyaratan || selectedSch.Persyaratan || 'Tidak ada persyaratan khusus.'}
                          </pre>
@@ -903,9 +896,9 @@ export default function ScholarshipPage() {
                             <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '16px' }}>assignment</span> 
                             Persyaratan Tambahan
                           </h4>
-                          <div className="bg-[var(--theme-bg)] p-5 rounded-xl border border-[var(--theme-border)] space-y-3">
+                          <div className="bg-[var(--theme-bg)] p-5 rounded-xl border border-border space-y-3">
                             {fields.map((f, i) => (
-                              <div key={i} className="flex justify-between items-start text-xs border-b border-[var(--theme-border)]/50 last:border-0 pb-2.5 last:pb-0">
+                              <div key={i} className="flex justify-between items-start text-xs border-b border-border/50 last:border-0 pb-2.5 last:pb-0">
                                 <div className="min-w-0 pr-2 text-left">
                                   <span className="font-bold text-slate-700 block">{f.label}</span>
                                   {f.options && (
@@ -946,7 +939,7 @@ export default function ScholarshipPage() {
               <div className="p-8 border-t border-[var(--theme-border-muted)] flex gap-4 bg-[var(--theme-bg)]">
                  <button 
                    onClick={() => setSelectedSch(null)}
-                   className="flex-1 py-4 rounded-xl font-black text-sm border border-[var(--theme-border)] text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] transition-all"
+                   className="flex-1 py-4 rounded-xl font-black text-sm border border-border text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] transition-all"
                  >
                    Tutup
                  </button>
@@ -980,6 +973,6 @@ export default function ScholarshipPage() {
           />
         )}
       </AnimatePresence>
-    </div>
+    </PageContent>
   );
 }

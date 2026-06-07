@@ -3,8 +3,15 @@ import * as Select from '@radix-ui/react-select';
 import { ChevronDown, Check } from 'lucide-react';
 
 export function SelectField({ value, onValueChange, placeholder, children, className, disabled }) {
+  const val = value === "" ? "__empty__" : value;
+  const handleValueChange = (newVal) => {
+    if (onValueChange) {
+      onValueChange(newVal === "__empty__" ? "" : newVal);
+    }
+  };
+
   return (
-    <Select.Root value={value} onValueChange={onValueChange} disabled={disabled}>
+    <Select.Root value={val} onValueChange={handleValueChange} disabled={disabled}>
       <Select.Trigger className={`
         h-10 flex items-center justify-between gap-2
         rounded-xl border border-[var(--theme-border)] bg-white
@@ -31,8 +38,9 @@ export function SelectField({ value, onValueChange, placeholder, children, class
 }
 
 export function SelectOption({ value, children }) {
+  const val = value === "" ? "__empty__" : value;
   return (
-    <Select.Item value={value} className="
+    <Select.Item value={val} className="
       flex items-center gap-2 rounded-lg px-3 py-2 text-sm
       text-[var(--theme-text)] cursor-pointer outline-none
       data-[highlighted]:bg-[var(--theme-primary-light)]

@@ -38,18 +38,18 @@ const DownloadIcon = ({ size, className, ...props }) => (
 
 // Provider options
 const PROVIDER_OPTIONS = [
-  { value: 'BKU_Assurance', label: 'BKU Assurance (Kampus)', color: 'bg-bku-primary', textColor: 'text-bku-primary', border: 'border-bku-primary', bg: 'bg-[#eef4ff]' },
-  { value: 'BPJS', label: 'BPJS Kesehatan', color: 'bg-emerald-600', textColor: 'text-emerald-600', border: 'border-emerald-200', bg: 'bg-emerald-50' },
-  { value: 'Asuransi_Lain', label: 'Asuransi Swasta Lain', color: 'bg-purple-600', textColor: 'text-purple-600', border: 'border-purple-200', bg: 'bg-purple-50' },
+  { value: 'BKU_Assurance', label: 'BKU Assurance (Kampus)', color: 'bg-[var(--theme-primary)]', textColor: 'text-[var(--theme-primary)]', border: 'border-[var(--theme-primary)]/20', bg: 'bg-[var(--theme-primary)]/10' },
+  { value: 'BPJS', label: 'BPJS Kesehatan', color: 'bg-[var(--theme-success)]', textColor: 'text-[var(--theme-success)]', border: 'border-[var(--theme-success)]/20', bg: 'bg-[var(--theme-success)]/10' },
+  { value: 'Asuransi_Lain', label: 'Asuransi Swasta Lain', color: 'bg-[var(--theme-warning)]', textColor: 'text-[var(--theme-warning)]', border: 'border-[var(--theme-warning)]/20', bg: 'bg-[var(--theme-warning)]/10' },
 ];
 
 // Status badge component
 const StatusBadge = ({ status }) => {
   const statusConfig = {
-    'PENDING_VERIFICATION': { label: 'Menunggu Verifikasi', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', icon: Clock },
-    'APPROVED_TK': { label: 'Disetujui Nakes', bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', icon: CheckCircle },
-    'APPROVED_FINAL': { label: 'Disetujui Final', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', icon: CheckCircle },
-    'REJECTED': { label: 'Ditolak', bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', icon: XCircle },
+    'PENDING_VERIFICATION': { label: 'Menunggu Verifikasi', bg: 'bg-[var(--theme-warning)]/10', text: 'text-[var(--theme-warning)]', border: 'border-[var(--theme-warning)]/20', icon: Clock },
+    'APPROVED_TK': { label: 'Disetujui Nakes', bg: 'bg-[var(--theme-primary)]/10', text: 'text-[var(--theme-primary)]', border: 'border-[var(--theme-primary)]/20', icon: CheckCircle },
+    'APPROVED_FINAL': { label: 'Disetujui Final', bg: 'bg-[var(--theme-success)]/10', text: 'text-[var(--theme-success)]', border: 'border-[var(--theme-success)]/20', icon: CheckCircle },
+    'REJECTED': { label: 'Ditolak', bg: 'bg-[var(--theme-error)]/10', text: 'text-[var(--theme-error)]', border: 'border-[var(--theme-error)]/20', icon: XCircle },
   };
 
   const config = statusConfig[status] || statusConfig['PENDING_VERIFICATION'];
@@ -284,25 +284,25 @@ export default function InsurancePage() {
             {/* Left side: Guide & Stats */}
             <div className="space-y-6">
               {/* Info Card */}
-              <div className="bg-[#eef4ff] border border-[#c9d8ff] rounded-[24px] p-6 shadow-sm">
+              <div className="bg-[var(--theme-primary)]/10 border border-[var(--theme-primary)]/20 rounded-2xl p-6 shadow-sm">
                 <div className="flex gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-white text-bku-primary flex items-center justify-center shrink-0 border border-[#c9d8ff]">
+                  <div className="w-10 h-10 rounded-xl bg-surface text-[var(--theme-primary)] flex items-center justify-center shrink-0 border border-[var(--theme-primary)]/20">
                     <span className="material-symbols-outlined">info</span>
                   </div>
                   <div>
-                    <h3 className="font-black text-bku-primary text-sm uppercase tracking-wider mb-2">Panduan Klaim</h3>
-                    <ul className="text-xs text-slate-700 space-y-2 leading-relaxed font-semibold">
+                    <h3 className="font-black text-[var(--theme-primary)] text-sm uppercase tracking-wider mb-2">Panduan Klaim</h3>
+                    <ul className="text-xs text-[var(--theme-text)] space-y-2 leading-relaxed font-semibold">
                       <li className="flex items-start gap-1">
-                        <span className="text-bku-primary font-bold">1.</span> Pilih provider asuransi kesehatan yang Anda gunakan.
+                        <span className="text-[var(--theme-primary)] font-bold">1.</span> Pilih provider asuransi kesehatan yang Anda gunakan.
                       </li>
                       <li className="flex items-start gap-1">
-                        <span className="text-bku-primary font-bold">2.</span> Isi tanggal kejadian, lokasi faskes, dan kronologis secara jelas.
+                        <span className="text-[var(--theme-primary)] font-bold">2.</span> Isi tanggal kejadian, lokasi faskes, dan kronologis secara jelas.
                       </li>
                       <li className="flex items-start gap-1">
-                        <span className="text-bku-primary font-bold">3.</span> Unggah file pendukung seperti kuitansi biaya medis atau surat diagnosis (Max. 5MB).
+                        <span className="text-[var(--theme-primary)] font-bold">3.</span> Unggah file pendukung seperti kuitansi biaya medis atau surat diagnosis (Max. 5MB).
                       </li>
                       <li className="flex items-start gap-1">
-                        <span className="text-bku-primary font-bold">4.</span> Surat pengantar PDF dapat diunduh pada tab riwayat jika klaim disetujui Nakes.
+                        <span className="text-[var(--theme-primary)] font-bold">4.</span> Surat pengantar PDF dapat diunduh pada tab riwayat jika klaim disetujui Nakes.
                       </li>
                     </ul>
                   </div>
@@ -310,24 +310,24 @@ export default function InsurancePage() {
               </div>
 
               {/* Stats Card */}
-              <div className="bg-white rounded-[24px] border border-[#e5e5e5] p-6 shadow-sm space-y-4">
-                <h4 className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest border-b border-[#f5f5f5] pb-2">Status Ringkasan</h4>
+              <div className="bg-surface rounded-2xl border border-border p-6 shadow-sm space-y-4">
+                <h4 className="text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest border-b border-[var(--theme-border-muted)] pb-2">Status Ringkasan</h4>
                 <div className="grid grid-cols-3 gap-2">
-                  <div className="bg-[#fafafa] border border-[#e5e5e5] rounded-xl p-3 text-center">
-                    <p className="text-xl font-black text-bku-primary">{claims.length}</p>
-                    <p className="text-[9px] font-bold text-[#a3a3a3] uppercase mt-1">Total</p>
+                  <div className="bg-background border border-border rounded-xl p-3 text-center">
+                    <p className="text-xl font-black text-[var(--theme-primary)]">{claims.length}</p>
+                    <p className="text-[9px] font-bold text-[var(--theme-text-muted)] uppercase mt-1">Total</p>
                   </div>
-                  <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 text-center">
-                    <p className="text-xl font-black text-amber-700">
+                  <div className="bg-[var(--theme-warning)]/10 border border-[var(--theme-warning)]/20 rounded-xl p-3 text-center">
+                    <p className="text-xl font-black text-[var(--theme-warning)]">
                       {claims.filter(c => c.status === 'PENDING_VERIFICATION').length}
                     </p>
-                    <p className="text-[9px] font-bold text-amber-600 uppercase mt-1">Proses</p>
+                    <p className="text-[9px] font-bold text-[var(--theme-warning)] uppercase mt-1">Proses</p>
                   </div>
-                  <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 text-center">
-                    <p className="text-xl font-black text-emerald-700">
+                  <div className="bg-[var(--theme-success)]/10 border border-[var(--theme-success)]/20 rounded-xl p-3 text-center">
+                    <p className="text-xl font-black text-[var(--theme-success)]">
                       {claims.filter(c => c.status === 'APPROVED_TK' || c.status === 'APPROVED_FINAL').length}
                     </p>
-                    <p className="text-[9px] font-bold text-emerald-600 uppercase mt-1">Setuju</p>
+                    <p className="text-[9px] font-bold text-[var(--theme-success)] uppercase mt-1">Setuju</p>
                   </div>
                 </div>
               </div>
@@ -336,21 +336,21 @@ export default function InsurancePage() {
             {/* Right side: Form */}
             <div className="lg:col-span-2 space-y-6">
               {/* Form Card */}
-              <div className="bg-white rounded-[24px] border border-[#e5e5e5] p-6 md:p-8 shadow-sm space-y-6">
+              <div className="bg-surface rounded-2xl border border-border p-6 md:p-8 shadow-sm space-y-6">
                 
                 {/* Provider Selection */}
                 <div>
-                  <label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest mb-3">Pilih Provider Asuransi *</label>
+                  <label className="block text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-3">Pilih Provider Asuransi *</label>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     {PROVIDER_OPTIONS.map((provider) => {
                       const isSelected = form.jenis_provider === provider.value;
                       return (
                         <label
                           key={provider.value}
-                          className={`flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${
+                          className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all ${
                             isSelected
-                              ? 'border-bku-primary bg-[#eef4ff] text-bku-primary shadow-sm shadow-bku-primary/5'
-                              : 'border-[#e5e5e5] hover:border-bku-primary hover:bg-[#fafafa]'
+                              ? 'border-[var(--theme-primary)] bg-[var(--theme-primary)]/10 text-[var(--theme-primary)] shadow-sm shadow-[var(--theme-primary)]/5'
+                              : 'border-border hover:border-[var(--theme-primary)] hover:bg-background'
                           }`}
                         >
                           <input
@@ -359,11 +359,11 @@ export default function InsurancePage() {
                             value={provider.value}
                             checked={isSelected}
                             onChange={handleInputChange}
-                            className="w-4 h-4 text-bku-primary focus:ring-bku-primary"
+                            className="w-4 h-4 text-[var(--theme-primary)] focus:ring-[var(--theme-primary)]/20"
                           />
                           <div className="flex flex-col">
                             <span className="font-black text-sm">{provider.label.split(' (')[0]}</span>
-                            <span className="text-[10px] text-[#a3a3a3] font-bold uppercase tracking-wider mt-0.5">
+                            <span className="text-[10px] text-[var(--theme-text-muted)] font-bold uppercase tracking-wider mt-0.5">
                               {provider.value === 'BKU_Assurance' ? 'Kampus BKU' : provider.value === 'BPJS' ? 'Nasional' : 'Swasta'}
                             </span>
                           </div>
@@ -376,61 +376,61 @@ export default function InsurancePage() {
                 {/* Form Fields Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest mb-2">Tanggal Kejadian *</label>
+                    <label className="block text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-2">Tanggal Kejadian *</label>
                     <div className="relative">
                       <input
                         type="date"
                         name="tanggal_kejadian"
                         value={form.tanggal_kejadian}
                         onChange={handleInputChange}
-                        className="w-full p-3.5 pl-4 bg-[#fafafa] border border-[#e5e5e5] rounded-2xl text-sm focus:border-bku-primary focus:bg-white outline-none transition-all font-bold"
+                        className="w-full p-3.5 pl-4 bg-background border border-border rounded-xl text-sm focus:border-[var(--theme-primary)] focus:bg-surface outline-none transition-all font-bold"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest mb-2">Estimasi Biaya Medis (Rp)</label>
+                    <label className="block text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-2">Estimasi Biaya Medis (Rp)</label>
                     <input
                       type="number"
                       name="estimasi_biaya"
                       value={form.estimasi_biaya}
                       onChange={handleInputChange}
                       placeholder="0"
-                      className="w-full p-3.5 pl-4 bg-[#fafafa] border border-[#e5e5e5] rounded-2xl text-sm focus:border-bku-primary focus:bg-white outline-none transition-all font-bold"
+                      className="w-full p-3.5 pl-4 bg-background border border-border rounded-xl text-sm focus:border-[var(--theme-primary)] focus:bg-surface outline-none transition-all font-bold"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest mb-2">Lokasi Fasilitas Kesehatan</label>
+                  <label className="block text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-2">Lokasi Fasilitas Kesehatan</label>
                   <input
                     type="text"
                     name="lokasi_faskes"
                     value={form.lokasi_faskes}
                     onChange={handleInputChange}
                     placeholder="Contoh: RS Hermina Bandung, Klinik UBK"
-                    className="w-full p-3.5 pl-4 bg-[#fafafa] border border-[#e5e5e5] rounded-2xl text-sm focus:border-bku-primary focus:bg-white outline-none transition-all font-bold"
+                    className="w-full p-3.5 pl-4 bg-background border border-border rounded-xl text-sm focus:border-[var(--theme-primary)] focus:bg-surface outline-none transition-all font-bold"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest mb-2">Kronologis Kejadian *</label>
+                  <label className="block text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-2">Kronologis Kejadian *</label>
                   <textarea
                     name="deskripsi"
                     value={form.deskripsi}
                     onChange={handleInputChange}
                     rows={4}
                     placeholder="Jelaskan kronologis kejadian medis secara lengkap (kapan, di mana, keluhan yang dialami)..."
-                    className="w-full p-4 bg-[#fafafa] border border-[#e5e5e5] rounded-2xl text-sm focus:border-bku-primary focus:bg-white outline-none transition-all font-medium resize-none leading-relaxed"
+                    className="w-full p-4 bg-background border border-border rounded-xl text-sm focus:border-[var(--theme-primary)] focus:bg-surface outline-none transition-all font-medium resize-none leading-relaxed"
                   />
                 </div>
 
                 {/* Upload Dokumen */}
                 <div>
-                  <label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest mb-2">Unggah Dokumen Pendukung (Opsional)</label>
-                  <div className={`border-2 border-dashed rounded-2xl p-6 text-center transition-all cursor-pointer ${
+                  <label className="block text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-2">Unggah Dokumen Pendukung (Opsional)</label>
+                  <div className={`border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer ${
                     file 
-                      ? 'border-green-500 bg-green-50/50' 
-                      : 'border-[#e5e5e5] hover:border-bku-primary bg-[#fafafa] hover:bg-white'
+                      ? 'border-[var(--theme-success)] bg-[var(--theme-success)]/10 text-[var(--theme-success)]' 
+                      : 'border-border hover:border-[var(--theme-primary)] bg-background hover:bg-surface'
                   }`}>
                     <input
                       type="file"
@@ -441,20 +441,20 @@ export default function InsurancePage() {
                     />
                     <label htmlFor="file-upload" className="cursor-pointer block">
                       {file ? (
-                        <div className="flex items-center justify-center gap-3 text-green-700">
-                          <div className="w-10 h-10 rounded-xl bg-green-600 text-white flex items-center justify-center shadow-md">
+                        <div className="flex items-center justify-center gap-3 text-[var(--theme-success)]">
+                          <div className="w-10 h-10 rounded-xl bg-[var(--theme-success)] text-white flex items-center justify-center shadow-md">
                             <span className="material-symbols-outlined text-lg">check_circle</span>
                           </div>
                           <div className="text-left">
                             <p className="font-black text-sm max-w-[200px] md:max-w-xs truncate">{file.name}</p>
-                            <p className="text-[10px] text-[#a3a3a3] font-bold">{(file.size / 1024).toFixed(1)} KB • Klik untuk mengganti</p>
+                            <p className="text-[10px] text-[var(--theme-text-muted)] font-bold">{(file.size / 1024).toFixed(1)} KB • Klik untuk mengganti</p>
                           </div>
                         </div>
                       ) : (
                         <div className="space-y-2">
-                          <UploadIcon size={32} className="mx-auto text-[#a3a3a3]" />
-                          <p className="text-sm font-black text-[#525252]">Pilih berkas untuk diunggah</p>
-                          <p className="text-[10px] text-[#a3a3a3] font-bold uppercase tracking-wider">PDF, JPG, PNG (Maks. 5MB)</p>
+                          <UploadIcon size={32} className="mx-auto text-[var(--theme-text-muted)]" />
+                          <p className="text-sm font-black text-[var(--theme-text)]">Pilih berkas untuk diunggah</p>
+                          <p className="text-[10px] text-[var(--theme-text-muted)] font-bold uppercase tracking-wider">PDF, JPG, PNG (Maks. 5MB)</p>
                         </div>
                       )}
                     </label>
@@ -464,7 +464,7 @@ export default function InsurancePage() {
                 <button
                   onClick={handleSubmit}
                   disabled={submitting}
-                  className="w-full py-4 bg-bku-primary text-white font-black rounded-2xl shadow-xl shadow-bku-primary/20 hover:bg-[#0B4FAE] transition-all hover:scale-[1.01] disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-[var(--theme-primary)] text-white font-black rounded-xl shadow-xl shadow-[var(--theme-primary)]/20 hover:bg-[var(--theme-primary-hover)] transition-all hover:scale-[1.01] disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {submitting ? (
                     <>
@@ -496,23 +496,23 @@ export default function InsurancePage() {
             {loading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="bg-white rounded-2xl p-5 border border-[#e5e5e5] animate-pulse space-y-3">
-                    <div className="h-4 bg-slate-200 rounded w-1/4"></div>
-                    <div className="h-4 bg-slate-100 rounded w-3/4"></div>
-                    <div className="h-3 bg-slate-100 rounded w-1/2"></div>
+                  <div key={i} className="bg-surface rounded-2xl p-5 border border-border animate-pulse space-y-3">
+                    <div className="h-4 bg-[var(--theme-border)] rounded w-1/4"></div>
+                    <div className="h-4 bg-[var(--theme-border-muted)] rounded w-3/4"></div>
+                    <div className="h-3 bg-[var(--theme-border-muted)] rounded w-1/2"></div>
                   </div>
                 ))}
               </div>
             ) : claims.length === 0 ? (
-              <div className="bg-white rounded-[24px] p-12 border border-[#e5e5e5] text-center max-w-lg mx-auto shadow-sm">
-                <div className="w-16 h-16 rounded-full bg-[#f5f5f5] flex items-center justify-center mx-auto mb-4 border border-[#e5e5e5]">
-                  <span className="material-symbols-outlined text-3xl text-[#a3a3a3]">receipt_long</span>
+              <div className="bg-surface rounded-2xl p-12 border border-border text-center max-w-lg mx-auto shadow-sm">
+                <div className="w-16 h-16 rounded-full bg-background flex items-center justify-center mx-auto mb-4 border border-border">
+                  <span className="material-symbols-outlined text-3xl text-[var(--theme-text-muted)]">receipt_long</span>
                 </div>
-                <h3 className="font-black text-[#171717] text-lg mb-1">Belum Ada Riwayat Klaim</h3>
-                <p className="text-[#a3a3a3] text-xs font-semibold leading-relaxed mb-6">Seluruh daftar pengajuan klaim asuransi kesehatan mandiri Anda akan ditampilkan di sini.</p>
+                <h3 className="font-black text-[var(--theme-text)] text-lg mb-1">Belum Ada Riwayat Klaim</h3>
+                <p className="text-[var(--theme-text-muted)] text-xs font-semibold leading-relaxed mb-6">Seluruh daftar pengajuan klaim asuransi kesehatan mandiri Anda akan ditampilkan di sini.</p>
                 <button
                   onClick={() => setActiveTab('ajuan')}
-                  className="px-6 py-3 bg-bku-primary text-white text-xs font-black rounded-xl hover:bg-[#0B4FAE] transition-all"
+                  className="px-6 py-3 bg-[var(--theme-primary)] text-white text-xs font-black rounded-xl hover:bg-[var(--theme-primary-hover)] transition-all"
                 >
                   Ajukan Klaim Pertama Anda
                 </button>
@@ -521,17 +521,17 @@ export default function InsurancePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {claims.map((claim) => {
                   const borderColors = {
-                    'PENDING_VERIFICATION': 'border-l-amber-500',
-                    'APPROVED_TK': 'border-l-blue-500',
-                    'APPROVED_FINAL': 'border-l-emerald-500',
-                    'REJECTED': 'border-l-red-500',
+                    'PENDING_VERIFICATION': 'border-l-[var(--theme-warning)]',
+                    'APPROVED_TK': 'border-l-[var(--theme-primary)]',
+                    'APPROVED_FINAL': 'border-l-[var(--theme-success)]',
+                    'REJECTED': 'border-l-[var(--theme-error)]',
                   };
                   const statusBorder = borderColors[claim.status] || 'border-l-slate-300';
                   
                   return (
                     <div 
                       key={claim.id} 
-                      className={`bg-white rounded-2xl p-5 border border-[#e5e5e5] border-l-4 ${statusBorder} hover:shadow-md transition-all flex flex-col justify-between`}
+                      className={`bg-surface rounded-2xl p-5 border border-border border-l-4 ${statusBorder} hover:shadow-md transition-all flex flex-col justify-between`}
                     >
                       <div className="space-y-3">
                         <div className="flex justify-between items-start">
@@ -540,29 +540,29 @@ export default function InsurancePage() {
                         </div>
                         
                         <div>
-                          <p className="text-[10px] text-[#a3a3a3] font-black uppercase tracking-wider mb-0.5">ID Pengajuan</p>
-                          <code className="text-xs font-bold bg-[#fafafa] px-2 py-0.5 rounded border border-[#e5e5e5] text-slate-600">#{claim.id}</code>
+                          <p className="text-[10px] text-[var(--theme-text-muted)] font-black uppercase tracking-wider mb-0.5">ID Pengajuan</p>
+                          <code className="text-xs font-bold bg-background px-2 py-0.5 rounded border border-border text-[var(--theme-text-muted)]">#{claim.id}</code>
                         </div>
-
+ 
                         <div className="pt-2">
-                          <p className="text-xs font-bold text-slate-700 line-clamp-2 italic">"{claim.deskripsi}"</p>
+                          <p className="text-xs font-bold text-[var(--theme-text)] line-clamp-2 italic">"{claim.deskripsi}"</p>
                         </div>
-
-                        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#f5f5f5]">
-                          <div className="flex items-center gap-1.5 text-xs text-[#a3a3a3] font-semibold">
+ 
+                        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[var(--theme-border-muted)]">
+                          <div className="flex items-center gap-1.5 text-xs text-[var(--theme-text-muted)] font-semibold">
                             <Calendar size={14} />
                             <span>{formatDate(claim.tanggal_kejadian)}</span>
                           </div>
-                          <div className="text-right text-xs font-black text-bku-primary">
+                          <div className="text-right text-xs font-black text-[var(--theme-primary)]">
                             <span>Estimasi: {formatCurrency(claim.estimasi_biaya)}</span>
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-end gap-2 pt-4 mt-3 border-t border-[#f5f5f5]">
+                      <div className="flex items-center justify-end gap-2 pt-4 mt-3 border-t border-[var(--theme-border-muted)]">
                         <button
                           onClick={() => setSelectedClaim(claim)}
-                          className="px-4 py-2 rounded-xl bg-white border border-[#e5e5e5] text-xs font-black hover:border-bku-primary hover:text-bku-primary transition-all"
+                          className="px-4 py-2 rounded-xl bg-surface border border-border text-xs font-black hover:border-[var(--theme-primary)] hover:text-[var(--theme-primary)] transition-all"
                         >
                           Lihat Detail
                         </button>
@@ -571,7 +571,7 @@ export default function InsurancePage() {
                             href={claim.surat_pengantar_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="px-4 py-2 rounded-xl bg-[#eef4ff] border border-[#c9d8ff] text-xs font-black text-bku-primary hover:bg-bku-primary hover:text-white transition-all flex items-center gap-1 shadow-sm shadow-bku-primary/5"
+                            className="px-4 py-2 rounded-xl bg-[var(--theme-primary)]/10 border border-[var(--theme-primary)]/20 text-xs font-black text-[var(--theme-primary)] hover:bg-[var(--theme-primary)] hover:text-white transition-all flex items-center gap-1 shadow-sm shadow-[var(--theme-primary)]/5"
                           >
                             <DownloadIcon size={14} />
                             Surat Pengantar
@@ -595,10 +595,10 @@ export default function InsurancePage() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white w-full max-w-2xl rounded-[28px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+              className="bg-surface w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
             >
               {/* Modal Header */}
-              <div className="relative h-24 bg-gradient-to-r from-bku-primary to-[#0B4FAE] p-6 flex items-center text-white">
+              <div className="relative h-24 bg-gradient-to-r from-[var(--theme-primary)] to-[var(--theme-primary-hover)] p-6 flex items-center text-white">
                 <button 
                   onClick={() => setSelectedClaim(null)} 
                   className="absolute top-6 right-6 text-white/50 hover:text-white transition-colors"
@@ -616,34 +616,34 @@ export default function InsurancePage() {
                 
                 {/* Stats Summary Block */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="p-3 bg-[#fafafa] rounded-2xl border border-[#e5e5e5]">
-                    <p className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest mb-1">Provider</p>
-                    <span className="font-black text-xs text-bku-primary">
+                  <div className="p-3 bg-background rounded-xl border border-border">
+                    <p className="text-[9px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-1">Provider</p>
+                    <span className="font-black text-xs text-[var(--theme-primary)]">
                       {PROVIDER_OPTIONS.find(p => p.value === selectedClaim.jenis_provider)?.label.split(' (')[0] || selectedClaim.jenis_provider}
                     </span>
                   </div>
-                  <div className="p-3 bg-[#fafafa] rounded-2xl border border-[#e5e5e5]">
-                    <p className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest mb-1">Tgl Kejadian</p>
-                    <p className="text-xs font-black text-[#171717]">{formatDate(selectedClaim.tanggal_kejadian)}</p>
+                  <div className="p-3 bg-background rounded-xl border border-border">
+                    <p className="text-[9px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-1">Tgl Kejadian</p>
+                    <p className="text-xs font-black text-[var(--theme-text)]">{formatDate(selectedClaim.tanggal_kejadian)}</p>
                   </div>
-                  <div className="p-3 bg-[#fafafa] rounded-2xl border border-[#e5e5e5]">
-                    <p className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest mb-1">Estimasi Biaya</p>
-                    <p className="text-xs font-black text-[#171717]">{formatCurrency(selectedClaim.estimasi_biaya)}</p>
+                  <div className="p-3 bg-background rounded-xl border border-border">
+                    <p className="text-[9px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-1">Estimasi Biaya</p>
+                    <p className="text-xs font-black text-[var(--theme-text)]">{formatCurrency(selectedClaim.estimasi_biaya)}</p>
                   </div>
-                  <div className="p-3 bg-[#fafafa] rounded-2xl border border-[#e5e5e5]">
-                    <p className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest mb-1">Fasilitas Kesehatan</p>
-                    <p className="text-xs font-black text-[#171717] truncate">{selectedClaim.lokasi_faskes || '—'}</p>
+                  <div className="p-3 bg-background rounded-xl border border-border">
+                    <p className="text-[9px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-1">Fasilitas Kesehatan</p>
+                    <p className="text-xs font-black text-[var(--theme-text)] truncate">{selectedClaim.lokasi_faskes || '—'}</p>
                   </div>
                 </div>
 
                 {/* Progress/Status Info */}
-                <div className="p-4 bg-[#fafafa] rounded-2xl border border-[#e5e5e5] space-y-3">
-                  <h4 className="flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-[#525252]">
-                    <Clock size={16} className="text-bku-primary" /> Status Pengajuan
+                <div className="p-4 bg-background rounded-xl border border-border space-y-3">
+                  <h4 className="flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-[var(--theme-text-muted)]">
+                    <Clock size={16} className="text-[var(--theme-primary)]" /> Status Pengajuan
                   </h4>
                   <div className="flex items-center gap-3">
                     <StatusBadge status={selectedClaim.status} />
-                    <span className="text-xs text-[#a3a3a3] font-bold">
+                    <span className="text-xs text-[var(--theme-text-muted)] font-bold">
                       {selectedClaim.status === 'PENDING_VERIFICATION' && 'Menunggu proses verifikasi awal oleh Tenaga Kesehatan.'}
                       {selectedClaim.status === 'APPROVED_TK' && 'Telah disetujui Tenaga Kesehatan. Pengajuan sedang diteruskan untuk persetujuan final.'}
                       {selectedClaim.status === 'APPROVED_FINAL' && 'Persetujuan akhir selesai. Seluruh proses klaim asuransi telah disetujui.'}
@@ -654,10 +654,10 @@ export default function InsurancePage() {
 
                 {/* Catatan Review (Jika ada) */}
                 {selectedClaim.catatan_review && (
-                  <div className={`p-5 rounded-[20px] border ${
+                  <div className={`p-5 rounded-xl border ${
                     selectedClaim.status === 'REJECTED' 
-                      ? 'bg-red-50 border-red-200 text-red-700' 
-                      : 'bg-blue-50 border-blue-200 text-blue-700'
+                      ? 'bg-[var(--theme-error)]/10 border-[var(--theme-error)]/20 text-[var(--theme-error)]' 
+                      : 'bg-[var(--theme-primary)]/10 border-[var(--theme-primary)]/20 text-[var(--theme-primary)]'
                   }`}>
                     <h4 className="font-black text-xs uppercase tracking-wider mb-2">Catatan Reviewer Kesehatan:</h4>
                     <p className="font-semibold text-xs leading-relaxed">"{selectedClaim.catatan_review}"</p>
@@ -666,46 +666,46 @@ export default function InsurancePage() {
 
                 {/* Deskripsi Kronologi */}
                 <div>
-                  <h4 className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest mb-2">Kronologis Kejadian Medis</h4>
-                  <div className="bg-[#fafafa] p-5 rounded-[20px] border border-[#e5e5e5] leading-relaxed font-medium text-slate-700">
+                  <h4 className="text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-2">Kronologis Kejadian Medis</h4>
+                  <div className="bg-background p-5 rounded-xl border border-border leading-relaxed font-medium text-[var(--theme-text)]">
                     {selectedClaim.deskripsi || '—'}
                   </div>
                 </div>
 
                 {/* Berkas Pendukung */}
                 <div>
-                  <h4 className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest mb-2">Berkas Dokumen Terlampir</h4>
+                  <h4 className="text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-2">Berkas Dokumen Terlampir</h4>
                   {selectedClaim.file_url ? (
-                    <div className="flex justify-between items-center bg-[#fafafa] p-4 rounded-xl border border-[#e5e5e5] group hover:border-bku-primary transition-all">
+                    <div className="flex justify-between items-center bg-background p-4 rounded-xl border border-border group hover:border-[var(--theme-primary)] transition-all">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-lg bg-bku-primary/10 text-bku-primary flex items-center justify-center shrink-0">
+                        <div className="w-9 h-9 rounded-lg bg-[var(--theme-primary)]/10 text-[var(--theme-primary)] flex items-center justify-center shrink-0">
                           <DocumentIcon size={18} />
                         </div>
                         <div>
                           <p className="font-black text-xs text-slate-800 truncate max-w-xs">{selectedClaim.nama_file || 'Dokumen_Pendukung.pdf'}</p>
-                          <p className="text-[9px] text-[#a3a3a3] font-bold uppercase tracking-wider">Berkas Tambahan Mahasiswa</p>
+                          <p className="text-[9px] text-[var(--theme-text-muted)] font-bold uppercase tracking-wider">Berkas Tambahan Mahasiswa</p>
                         </div>
                       </div>
                       <a
                         href={selectedClaim.file_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="px-3 py-1.5 bg-white border border-[#e5e5e5] rounded-lg text-xs font-black text-[#525252] hover:text-bku-primary hover:border-bku-primary transition-all flex items-center gap-1 shadow-sm"
+                        className="px-3 py-1.5 bg-surface border border-border rounded-lg text-xs font-black text-[var(--theme-text)] hover:text-[var(--theme-primary)] hover:border-[var(--theme-primary)] transition-all flex items-center gap-1 shadow-sm"
                       >
                         <span className="material-symbols-outlined text-sm">visibility</span> Lihat
                       </a>
                     </div>
                   ) : (
-                    <p className="text-xs text-[#a3a3a3] font-semibold italic">Tidak ada berkas dokumen pendukung yang dilampirkan.</p>
+                    <p className="text-xs text-[var(--theme-text-muted)] font-semibold italic">Tidak ada berkas dokumen pendukung yang dilampirkan.</p>
                   )}
                 </div>
               </div>
 
               {/* Modal Footer */}
-              <div className="p-6 border-t border-[#f5f5f5] flex gap-3 bg-[#fafafa]">
+              <div className="p-6 border-t border-[var(--theme-border-muted)] flex gap-3 bg-background">
                 <button 
                   onClick={() => setSelectedClaim(null)}
-                  className="flex-1 py-3.5 rounded-2xl font-black text-xs md:text-sm border border-[#e5e5e5] text-[#a3a3a3] hover:text-[#171717] transition-all bg-white"
+                  className="flex-1 py-3.5 rounded-xl font-black text-xs md:text-sm border border-border text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] transition-all bg-surface"
                 >
                   Tutup
                 </button>
@@ -714,7 +714,7 @@ export default function InsurancePage() {
                     href={selectedClaim.surat_pengantar_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 py-3.5 rounded-2xl font-black text-xs md:text-sm bg-bku-primary text-white hover:bg-[#0B4FAE] text-center flex items-center justify-center gap-1.5 shadow-xl shadow-bku-primary/10 transition-all hover:scale-[1.01]"
+                    className="flex-1 py-3.5 rounded-xl font-black text-xs md:text-sm bg-[var(--theme-primary)] text-white hover:bg-[var(--theme-primary-hover)] text-center flex items-center justify-center gap-1.5 shadow-xl shadow-[var(--theme-primary)]/10 transition-all hover:scale-[1.01]"
                   >
                     <DownloadIcon size={16} /> Unduh Surat Pengantar
                   </a>

@@ -23,6 +23,8 @@ import { Modal, ModalBody, ModalFooter, ModalBtn } from "@/components/ui/Modal"
 
 
 import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "@/components/ui/ResponsiveLayout"
+import { PageContent } from "@/components/ui/page/PageContent"
+import { DashboardHero } from "@/components/ui/dashboard/DashboardHero"
 import { API_BASE_URL } from "../../services/api"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
@@ -177,13 +179,17 @@ export default function KontenPage() {
   ]
 
   return (
-    <PageContainer className="min-h-screen bg-transparent font-inter">
+    <PageContent>
       <Toaster position="top-right" />
       
-      <PageHeader
-        icon={Megaphone}
-        title="Manajemen Konten"
-        description="Portal Publikasi & Informasi Internal"
+      <DashboardHero
+        title="Manajemen"
+        highlightedTitle="Konten"
+        subtitle="Portal Publikasi & Informasi Internal Fakultas."
+        icon="campaign"
+        badges={[
+          { label: 'Portal Konten', active: false },
+        ]}
       />
 
       <ResponsiveGrid cols={3}>
@@ -402,6 +408,6 @@ export default function KontenPage() {
         description="Konten yang dihapus akan segera hilang dari portal informasi fakultas dan aplikasi mobile mahasiswa."
         loading={isSubmitting}
       />
-    </PageContainer>
+    </PageContent>
   )
 }

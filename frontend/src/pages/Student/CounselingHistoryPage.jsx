@@ -25,6 +25,7 @@ const REFERRAL_STATUS_CONFIG = {
   default: { bg: 'bg-neutral-50', text: 'text-neutral-600', border: 'border-neutral-200' },
 };
 
+import { PageContent, PageHeader } from '@/components/ui/page';
 import { NotifListSkeleton } from '@/components/ui/SkeletonGroups';
 import EmptyState from '@/components/ui/EmptyState';
 
@@ -157,41 +158,40 @@ export default function CounselingHistoryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fafafa] px-4 py-5 font-body text-[#171717] md:px-6 md:py-6 lg:px-8 lg:py-8">
-      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
-          <NavLink to="/student/counseling" className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-neutral-400 transition-colors hover:text-[bku-primary]">
-            <ArrowLeft size={16} />
-            Kembali ke jadwal
-          </NavLink>
-          <h1 className="text-2xl font-extrabold tracking-tight text-[bku-primary] font-headline">Riwayat Konseling</h1>
-          <p className="mt-1 max-w-2xl text-sm font-medium text-neutral-500">
-            Pantau booking konseling dan lihat rekam medis yang sudah dicatat psikolog setelah sesi.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:min-w-[520px]">
-          {[
-            { label: 'Total Booking', value: history.length },
-            { label: 'Menunggu', value: waitingCount },
-            { label: 'Dikonfirmasi', value: confirmedCount },
-            { label: 'Selesai', value: completedCount },
-          ].map((item) => (
-            <div key={item.label} className="rounded-2xl border border-neutral-100 bg-white p-4 shadow-sm">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">{item.label}</p>
-              <p className="mt-1 text-2xl font-extrabold text-neutral-900">{item.value}</p>
-            </div>
-          ))}
-        </div>
-      </div>
+    <PageContent className="font-body">
+      <PageHeader 
+        title="Riwayat Konseling" 
+        subtitle="Pantau booking konseling dan lihat rekam medis yang sudah dicatat psikolog setelah sesi." 
+        icon="history" 
+        breadcrumbs={[
+          { label: 'Student Hub', path: '/student/dashboard' },
+          { label: 'Konseling', path: '/student/counseling' },
+          { label: 'Riwayat' }
+        ]} 
+        action={
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:min-w-[520px]">
+            {[
+              { label: 'Total Booking', value: history.length },
+              { label: 'Menunggu', value: waitingCount },
+              { label: 'Dikonfirmasi', value: confirmedCount },
+              { label: 'Selesai', value: completedCount },
+            ].map((item) => (
+              <div key={item.label} className="rounded-2xl border border-border bg-surface p-4 shadow-sm text-center">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--theme-text-muted)]">{item.label}</p>
+                <p className="mt-1 text-2xl font-extrabold text-[var(--theme-text)]">{item.value}</p>
+              </div>
+            ))}
+          </div>
+        } 
+      />
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
         <section className="xl:col-span-7">
           <div className="overflow-hidden rounded-3xl border border-neutral-100 bg-white shadow-sm">
             <div className="border-b border-neutral-100 px-5 py-4">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[bku-primary]" style={{ fontSize: '18px' }} >calendar_month</span>
-                <h2 className="text-sm font-extrabold uppercase tracking-tight text-[bku-primary]">Daftar Booking</h2>
+                <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '18px' }} >calendar_month</span>
+                <h2 className="text-sm font-extrabold uppercase tracking-tight text-[var(--theme-primary)]">Daftar Booking</h2>
               </div>
               <p className="mt-1 text-xs font-semibold text-neutral-400">Status booking konseling kamu dari yang terbaru.</p>
             </div>
@@ -311,12 +311,12 @@ export default function CounselingHistoryPage() {
                   })}
                 </div>
               ) : (
-                <EmptyState
+                 <EmptyState
                   size="sm"
                   icon="Clock"
-                  iconColor="text-[bku-primary]"
-                  iconBgClass="bg-[#eef4ff]"
-                  iconBorderClass="border-[#c9d8ff]"
+                  iconColor="text-[var(--theme-primary)]"
+                  iconBgClass="bg-[var(--theme-primary-light)]"
+                  iconBorderClass="border-[var(--theme-primary-light)]"
                   title="Belum Ada Riwayat"
                   description="Booking konseling kamu akan muncul di sini setelah membuat jadwal."
                 />
@@ -333,14 +333,14 @@ export default function CounselingHistoryPage() {
                   onClick={() => handleTabChange('medical_record')}
                   className={`pb-2 text-xs font-black uppercase tracking-wider transition-all border-b-2 flex items-center gap-1.5 -mb-3.5 whitespace-nowrap ${
                     activeTab === 'medical_record'
-                      ? 'border-[bku-primary] text-[bku-primary]'
+                      ? 'border-[var(--theme-primary)] text-[var(--theme-primary)]'
                       : 'border-transparent text-neutral-400 hover:text-neutral-600'
                   }`}
                 >
                   <span className="material-symbols-outlined text-[16px]">description</span>
                   Rekam Medis
                   <span className={`px-1.5 py-0.5 text-[9px] font-extrabold rounded-full ${
-                    activeTab === 'medical_record' ? 'bg-[bku-primary]/10 text-[bku-primary]' : 'bg-neutral-100 text-neutral-500'
+                    activeTab === 'medical_record' ? 'bg-[var(--theme-primary-light)] text-[var(--theme-primary)]' : 'bg-neutral-100 text-neutral-500'
                   }`}>
                     {records.length}
                   </span>
@@ -365,14 +365,14 @@ export default function CounselingHistoryPage() {
                   onClick={() => handleTabChange('referrals')}
                   className={`pb-2 text-xs font-black uppercase tracking-wider transition-all border-b-2 flex items-center gap-1.5 -mb-3.5 whitespace-nowrap ${
                     activeTab === 'referrals'
-                      ? 'border-[bku-primary] text-[bku-primary]'
+                      ? 'border-[var(--theme-primary)] text-[var(--theme-primary)]'
                       : 'border-transparent text-neutral-400 hover:text-neutral-600'
                   }`}
                 >
                   <span className="material-symbols-outlined text-[16px]">assignment_turned_in</span>
                   Tindak Lanjut
                   <span className={`px-1.5 py-0.5 text-[9px] font-extrabold rounded-full ${
-                    activeTab === 'referrals' ? 'bg-[bku-primary]/10 text-[bku-primary]' : 'bg-neutral-100 text-neutral-500'
+                    activeTab === 'referrals' ? 'bg-[var(--theme-primary-light)] text-[var(--theme-primary)]' : 'bg-neutral-100 text-neutral-500'
                   }`}>
                     {referrals.length}
                   </span>
@@ -754,7 +754,7 @@ export default function CounselingHistoryPage() {
                                       rel="noopener noreferrer"
                                       className="inline-flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-[11px] font-bold text-neutral-700 shadow-sm transition-all hover:bg-neutral-50"
                                     >
-                                      <span className="material-symbols-outlined text-[bku-primary]" style={{ fontSize: '16px' }} >attachment</span>
+                                      <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '16px' }} >attachment</span>
                                       Berkas Pendukung
                                     </a>
                                   )}
@@ -769,9 +769,9 @@ export default function CounselingHistoryPage() {
                     <EmptyState
                       size="sm"
                       icon="ForwardToInbox"
-                      iconColor="text-[bku-primary]"
-                      iconBgClass="bg-[#eef4ff]"
-                      iconBorderClass="border-[#c9d8ff]"
+                      iconColor="text-[var(--theme-primary)]"
+                      iconBgClass="bg-[var(--theme-primary-light)]"
+                      iconBorderClass="border-[var(--theme-primary-light)]"
                       title="Belum Ada Tindak Lanjut"
                       description="Rujukan atau tindak lanjut khusus dari psikolog akan muncul di sini."
                     />
@@ -902,6 +902,6 @@ export default function CounselingHistoryPage() {
           </div>
         </div>
       )}
-    </div>
+    </PageContent>
   );
 }

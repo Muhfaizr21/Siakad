@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { tenagaKesehatanService } from '../../services/api';
+import { PageContent } from '@/components/ui/page';
+import { DashboardHero } from '@/components/ui/dashboard';
 
 const SearchIcon = () => <span className="material-symbols-outlined text-base">search</span>;
 const HistoryIcon = () => <span className="material-symbols-outlined text-sm">history</span>;
@@ -111,55 +113,46 @@ export default function PatientList() {
   }, [combinedList, searchQuery, selectedFakultas, selectedProdi, selectedGender]);
 
   return (
-    <div className="px-4 py-6 md:px-6 lg:px-8 min-h-screen bg-transparent font-inter">
-      <div className="max-w-7xl mx-auto space-y-6">
-        
-        {/* Header Banner */}
-        <section className="relative overflow-hidden rounded-2xl bg-[radial-gradient(at_0%_0%,rgba(0,35,111,0.05)_0px,transparent_50%)] border border-slate-200/60 p-6 shadow-sm flex flex-col gap-4 group glass-card">
-          <div className="absolute -top-24 -right-24 w-72 h-72 bg-bku-primary/5 rounded-full blur-3xl pointer-events-none" />
-          
-          <div className="relative z-10 w-full flex flex-col xl:flex-row xl:items-center justify-between gap-6">
-            <div className="space-y-2 max-w-xl">
-              <div className="inline-flex items-center gap-2 rounded-full bg-bku-primary/5 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-bku-primary">
-                <span className="material-symbols-outlined text-[12px]">people</span>
-                Rekam Medis Mahasiswa
-              </div>
-              <h1 className="mt-3 text-2xl font-black text-slate-800 uppercase tracking-tight font-headline">Daftar Mahasiswa</h1>
-              <p className="text-xs font-bold leading-5 text-slate-500">
-                Pencarian cepat rekam medis, input screening fisik baru secara langsung, atau rujuk kondisi medis mahasiswa ke unit eskalasi.
-              </p>
-            </div>
-
-            <div className="flex gap-2 shrink-0">
-              <button
-                type="button"
-                onClick={async () => {
-                  try {
-                    await tenagaKesehatanService.exportExcel();
-                  } catch (err) {
-                    alert(err.message || 'Gagal export Excel.');
-                  }
-                }}
-                className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white/70 px-4 py-2.5 text-xs font-bold text-slate-600 transition-all hover:bg-slate-50"
-              >
-                <span className="material-symbols-outlined text-sm">download</span> Export Excel
-              </button>
-              <button
-                type="button"
-                onClick={async () => {
-                  try {
-                    await tenagaKesehatanService.exportPDF();
-                  } catch (err) {
-                    alert(err.message || 'Gagal export PDF.');
-                  }
-                }}
-                className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-bku-primary px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-bku-primary/10 transition-all hover:bg-bku-hover hover:scale-[1.02] active:scale-[0.98]"
-              >
-                <span className="material-symbols-outlined text-sm">download</span> Export PDF
-              </button>
-            </div>
+    <PageContent>
+      <DashboardHero
+        title="Daftar"
+        highlightedTitle="Mahasiswa"
+        subtitle="Pencarian cepat rekam medis, input screening fisik baru secara langsung, atau rujuk kondisi medis mahasiswa ke unit eskalasi."
+        icon="people"
+        badges={[
+          { label: 'Rekam Medis Mahasiswa', active: true },
+        ]}
+        actions={
+          <div className="flex gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  await tenagaKesehatanService.exportExcel();
+                } catch (err) {
+                  alert(err.message || 'Gagal export Excel.');
+                }
+              }}
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white/70 px-4 py-2.5 text-xs font-bold text-slate-600 transition-all hover:bg-slate-50"
+            >
+              <span className="material-symbols-outlined text-sm">download</span> Export Excel
+            </button>
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  await tenagaKesehatanService.exportPDF();
+                } catch (err) {
+                  alert(err.message || 'Gagal export PDF.');
+                }
+              }}
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-bku-primary px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-bku-primary/10 transition-all hover:bg-bku-hover hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <span className="material-symbols-outlined text-sm">download</span> Export PDF
+            </button>
           </div>
-        </section>
+        }
+      />
 
         {/* Filter Bar Card */}
         <section className="bg-white/70 border border-slate-200/60 p-5 rounded-2xl shadow-sm glass-card space-y-4">
@@ -342,7 +335,6 @@ export default function PatientList() {
           )}
         </section>
 
-      </div>
-    </div>
+    </PageContent>
   );
 }

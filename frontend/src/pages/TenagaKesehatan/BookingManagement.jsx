@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { tenagaKesehatanService } from '../../services/api';
+import { PageContent } from '@/components/ui/page';
+import { DashboardHero } from '@/components/ui/dashboard';
 
 const SlidersHorizontal = ({ size, className, ...props }) => (
   <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 20, ...props.style }} {...props}>
@@ -183,26 +185,20 @@ export default function BookingManagement() {
   };
 
   return (
-    <div className="px-4 py-6 md:px-6 lg:px-8 min-h-screen bg-transparent font-inter">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <PageContent>
         
-        {/* Welcome Banner Card */}
-        <section className="relative overflow-hidden rounded-2xl bg-[radial-gradient(at_0%_0%,rgba(0,35,111,0.05)_0px,transparent_50%)] border border-slate-200/60 p-6 shadow-sm flex flex-col gap-4 group glass-card">
-          <div className="absolute -top-24 -right-24 w-72 h-72 bg-bku-primary/5 rounded-full blur-3xl pointer-events-none" />
-          
-          <div className="relative z-10 w-full flex flex-col xl:flex-row xl:items-center justify-between gap-6">
-            <div className="space-y-2 max-w-xl animate-fade-in">
-              <div className="inline-flex items-center gap-2 rounded-full bg-bku-primary/5 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-bku-primary">
-                <span className="material-symbols-outlined text-[12px]">calendar_month</span>
-                Layanan Kesehatan
-              </div>
-              <h1 className="mt-3 text-2xl font-black text-slate-800 uppercase tracking-tight font-headline">Janji Temu Medis</h1>
-              <p className="text-xs font-bold leading-5 text-slate-500">
-                Kelola pendaftaran booking online mahasiswa untuk pemeriksaan umum, screening fisik, dan konsultasi kesehatan di Klinik Kampus.
-              </p>
-            </div>
+      <DashboardHero
+        title="Janji Temu"
+        highlightedTitle="Medis"
+        subtitle="Kelola pendaftaran booking online mahasiswa untuk pemeriksaan umum, screening fisik, dan konsultasi kesehatan di Klinik Kampus."
+        icon="calendar_month"
+        badges={[
+          { label: 'Layanan Kesehatan', active: true },
+        ]}
+      />
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 xl:min-w-[480px] shrink-0">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 xl:min-w-[480px] shrink-0">
               {tabs.slice(1).map((status) => {
                 const normalizedKey = status === 'Menunggu' ? 'Menunggu Konfirmasi' : status;
                 const meta = statusMeta[normalizedKey] || statusMeta[status];
@@ -219,9 +215,6 @@ export default function BookingManagement() {
                 );
               })}
             </div>
-          </div>
-        </section>
-
         {/* Filter Bento Card */}
         <section className="rounded-2xl border border-slate-200/60 bg-white/70 p-5 shadow-sm glass-card">
           <div className="flex flex-col gap-5">
@@ -512,8 +505,6 @@ export default function BookingManagement() {
           )}
         </section>
 
-      </div>
-
       {/* Reject Modal */}
       {showRejectModal && (
         <div className="fixed inset-0 z-[999] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
@@ -554,6 +545,6 @@ export default function BookingManagement() {
         </div>
       )}
 
-    </div>
+    </PageContent>
   );
 }

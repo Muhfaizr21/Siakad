@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useMentorAvailableStudentsQuery, useMentorInviteMutation } from '../../../queries/useKencanaMentorQuery';
+import { PageHeader } from '../../../components/ui/page/PageHeader';
+import { SelectField, SelectOption } from '../../../components/ui/SelectField';
 
 const AvailableStudents = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -59,122 +61,133 @@ const AvailableStudents = () => {
   };
 
   return (
-    <div className="p-8">
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800">Cari Mahasiswa</h1>
-          <p className="text-sm font-semibold text-slate-500">Pilih mahasiswa untuk diundang sebagai bimbingan Anda.</p>
-        </div>
-        <button 
-          onClick={handleInvite}
-          disabled={selected.length === 0 || inviteMutation.isPending}
-          className="whitespace-nowrap bg-violet-600 hover:bg-violet-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
-          {inviteMutation.isPending ? 'Mengundang...' : `Undang (${selected.length}) Mahasiswa`}
-        </button>
-      </div>
+    <div className="px-4 py-6 md:px-6 lg:px-8 min-h-screen bg-transparent font-body max-w-7xl mx-auto space-y-6">
+      <PageHeader
+        icon="person_search"
+        title={
+          <>
+            <span className="text-[var(--theme-text)]">Cari </span>
+            <span className="text-[var(--theme-primary)]">Mahasiswa</span>
+          </>
+        }
+        subtitle="Pilih mahasiswa untuk diundang sebagai bimbingan Anda."
+        breadcrumbs={[
+          { label: 'Kencana Mentor', path: '/kencana-mentor/groups' },
+          { label: 'Cari Mahasiswa' }
+        ]}
+        action={
+          <button 
+            onClick={handleInvite}
+            disabled={selected.length === 0 || inviteMutation.isPending}
+            className="h-10 px-5 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-xs font-bold shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+          >
+            {inviteMutation.isPending ? 'Mengundang...' : `Undang (${selected.length}) Mahasiswa`}
+          </button>
+        }
+      />
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-[var(--theme-border)] shadow-sm overflow-hidden">
         
         {/* Filters Area */}
-        <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex flex-col lg:flex-row gap-4">
+        <div className="p-5 border-b border-[var(--theme-border-muted)] bg-[var(--theme-bg)] flex flex-col lg:flex-row gap-4 items-stretch lg:items-center">
           <div className="relative flex-1">
             <input
               type="text"
               placeholder="Cari NIM, Nama, atau Prodi..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500 font-medium"
+              className="w-full pl-10 pr-4 h-10 bg-white border border-[var(--theme-border)] rounded-xl text-sm focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] font-semibold transition-all outline-none"
             />
-            <svg className="w-5 h-5 text-slate-400 absolute left-3.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <span className="material-symbols-outlined absolute left-3.5 top-2.5 text-lg text-[var(--theme-text-muted)]">search</span>
           </div>
           
-          <select 
+          <SelectField 
             value={statusFilter} 
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 outline-none font-medium text-slate-700 min-w-[200px]"
+            onValueChange={setStatusFilter}
+            className="min-w-[200px]"
           >
-            <option value="all">Semua Status Mentor</option>
-            <option value="available">Belum Punya Mentor</option>
-            <option value="assigned">Sudah Punya Mentor</option>
-          </select>
+            <SelectOption value="all">Semua Status Mentor</SelectOption>
+            <SelectOption value="available">Belum Punya Mentor</SelectOption>
+            <SelectOption value="assigned">Sudah Punya Mentor</SelectOption>
+          </SelectField>
 
-          <select 
+          <SelectField 
             value={fakultasFilter} 
-            onChange={(e) => setFakultasFilter(e.target.value)}
-            className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 outline-none font-medium text-slate-700 min-w-[200px]"
+            onValueChange={setFakultasFilter}
+            className="min-w-[200px]"
           >
-            <option value="all">Semua Fakultas</option>
+            <SelectOption value="all">Semua Fakultas</SelectOption>
             {uniqueFakultas.map(fak => (
-              <option key={fak} value={fak}>{fak}</option>
+              <SelectOption key={fak} value={fak}>{fak}</SelectOption>
             ))}
-          </select>
+          </SelectField>
         </div>
 
         {/* Content Area */}
-        <div className="p-6 relative">
-          {message && <p className="mb-4 rounded-xl bg-violet-50 p-3 text-sm font-bold text-violet-700">{message}</p>}
+        <div className="p-5">
+          {message && <p className="mb-4 rounded-xl bg-[var(--theme-primary-light)] p-3 text-xs font-bold text-[var(--theme-primary)] border border-[var(--theme-primary-light)]">{message}</p>}
           
           {isLoading ? (
-            <div className="py-12 flex justify-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-600"></div>
+            <div className="py-12 flex justify-center bg-transparent">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--theme-primary)]"></div>
             </div>
           ) : (
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-slate-200 text-xs font-black text-slate-500 uppercase tracking-wider">
-                  <th className="pb-3 w-10"></th>
-                  <th className="pb-3 px-4">NIM</th>
-                  <th className="pb-3 px-4">Nama Mahasiswa</th>
-                  <th className="pb-3 px-4">Fakultas / Prodi</th>
-                  <th className="pb-3 px-4 text-right">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredRows.map((student) => (
-                  <tr key={student.id} className={`border-b border-slate-100 last:border-0 hover:bg-slate-50/80 transition-colors ${student.already_has_mentor ? 'bg-slate-50/40' : ''}`}>
-                    <td className="py-4">
-                      <input 
-                        type="checkbox" 
-                        checked={selected.includes(student.id)} 
-                        disabled={student.already_has_mentor}
-                        onChange={() => toggleSelect(student.id)}
-                        className="w-4 h-4 text-violet-600 rounded border-slate-300 focus:ring-violet-500 disabled:cursor-not-allowed disabled:opacity-40"
-                      />
-                    </td>
-                    <td className="py-4 px-4 font-bold text-slate-900">{student.nim}</td>
-                    <td className="py-4 px-4 text-slate-800 font-bold">{student.nama || student.name}</td>
-                    <td className="py-4 px-4">
-                      <div className="flex flex-col">
-                        <span className="text-slate-600 font-semibold">{student.fakultas || '-'}</span>
-                        <span className="text-xs text-slate-400 font-bold uppercase">{student.program_studi || '-'}</span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-4 text-right">
-                      {student.already_has_mentor ? (
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-black uppercase tracking-wider text-amber-700 border border-amber-200/60">
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                          Mentor: {student.mentor_name || 'Menunggu'}
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-black uppercase tracking-wider text-emerald-700 border border-emerald-200/60">
-                           Tersedia
-                        </span>
-                      )}
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-[var(--theme-border)] text-xs font-bold text-[var(--theme-text-muted)] uppercase tracking-wider bg-[var(--theme-bg)]/50">
+                    <th className="py-3 px-4 w-10"></th>
+                    <th className="py-3 px-4">NIM</th>
+                    <th className="py-3 px-4">Nama Mahasiswa</th>
+                    <th className="py-3 px-4">Fakultas / Prodi</th>
+                    <th className="py-3 px-4 text-right">Status</th>
                   </tr>
-                ))}
-                {!filteredRows.length && (
-                  <tr>
-                    <td colSpan="5" className="py-16 text-center text-slate-500 font-medium">
-                      <svg className="w-12 h-12 text-slate-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                      Tidak ada mahasiswa yang sesuai dengan filter Anda.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-[var(--theme-border-muted)]">
+                  {filteredRows.map((student) => (
+                    <tr key={student.id} className={`hover:bg-[var(--theme-bg)]/40 transition-colors text-sm font-semibold text-[var(--theme-text)] ${student.already_has_mentor ? 'opacity-70 bg-[var(--theme-bg)]/20' : ''}`}>
+                      <td className="py-4 px-4">
+                        <input 
+                          type="checkbox" 
+                          checked={selected.includes(student.id)} 
+                          disabled={student.already_has_mentor}
+                          onChange={() => toggleSelect(student.id)}
+                          className="w-4 h-4 text-[var(--theme-primary)] rounded border-[var(--theme-border)] focus:ring-[var(--theme-primary)] disabled:cursor-not-allowed disabled:opacity-40"
+                        />
+                      </td>
+                      <td className="py-4 px-4 font-bold text-[var(--theme-primary)]">{student.nim}</td>
+                      <td className="py-4 px-4 text-[var(--theme-text)] font-bold">{student.nama || student.name}</td>
+                      <td className="py-4 px-4">
+                        <div className="flex flex-col">
+                          <span className="text-[var(--theme-text)] font-semibold">{student.fakultas || '-'}</span>
+                          <span className="text-[10px] text-[var(--theme-text-muted)] font-bold uppercase mt-0.5">{student.program_studi || '-'}</span>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4 text-right">
+                        {student.already_has_mentor ? (
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--theme-warning-light)] px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[var(--theme-warning)] border border-[var(--theme-warning-light)]">
+                            <span className="material-symbols-outlined text-[12px]">lock</span>
+                            Mentor: {student.mentor_name || 'Menunggu'}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--theme-success-light)] px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[var(--theme-success)] border border-[var(--theme-success-light)]">
+                             Tersedia
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {!filteredRows.length && (
+                    <tr>
+                      <td colSpan="5" className="py-16 text-center text-[var(--theme-text-muted)] font-semibold">
+                        <span className="material-symbols-outlined text-4xl mb-3 block opacity-50">search_off</span>
+                        Tidak ada mahasiswa yang sesuai dengan filter Anda.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </div>

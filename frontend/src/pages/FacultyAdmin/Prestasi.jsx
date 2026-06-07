@@ -9,6 +9,8 @@ import api from "../../lib/axios"
 import useAuthStore from "../../store/useAuthStore"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/Select"
 import { Button } from "@/components/ui/Button"
+import { PageContent } from '@/components/ui/page'
+import { DashboardHero } from '@/components/ui/dashboard'
 import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
@@ -467,70 +469,31 @@ export default function FacultyPrestasi() {
   const PIE_COLORS = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444']
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-body">
+    <PageContent>
       <Toaster position="top-right" />
-      <div className="w-full space-y-6">
 
-        {/* ── Page Header ────────────────────────────────────────── */}
-        <section className="relative overflow-hidden rounded-2xl p-6 md:p-8 border border-slate-200/50 bg-white/70 backdrop-blur-md shadow-sm">
-          {/* Subtle geometric grid background overlay */}
-          <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/40 to-slate-100/30" />
-          <div className="absolute inset-0 opacity-[0.02]"
-            style={{
-              backgroundImage: `radial-gradient(circle at 20% 50%, var(--theme-primary) 1px, transparent 1px), radial-gradient(circle at 80% 20%, var(--theme-primary) 1px, transparent 1px)`,
-              backgroundSize: '40px 40px'
-            }}
-          />
-          {/* Accent glow blobs */}
-          <div className="absolute -top-20 -right-20 w-72 h-72 bg-primary/5 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute -bottom-10 right-40 w-48 h-48 bg-blue-400/5 rounded-full blur-2xl" />
-
-          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div className="flex-1 space-y-3">
-              <div className="flex items-center gap-4">
-                {/* Clean visual anchor icon */}
-                <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/[0.02] border border-primary/10 flex items-center justify-center text-primary shrink-0 shadow-sm relative overflow-hidden group/icon">
-                  <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover/icon:opacity-100 transition-opacity duration-300" />
-                  <span className="material-symbols-outlined text-primary relative z-10 transition-transform duration-300 group-hover/icon:scale-110" style={{ fontSize: '26px' }}>emoji_events</span>
-                </div>
-
-                <div className="space-y-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-primary/5 text-primary border border-primary/10">
-                      Student Achievement
-                    </span>
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-100">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      {stats.total} Pengajuan Masuk
-                    </span>
-                  </div>
-                  <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight font-headline leading-none">
-                    Validasi <span className="bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">Prestasi</span>
-                  </h1>
-                </div>
-              </div>
-
-              {/* Perfectly aligned description block */}
-              <p className="text-slate-500 font-medium text-xs md:text-sm max-w-3xl leading-relaxed mt-3 pl-0 md:pl-[72px]">
-                Verifikasi dan validasi capaian mahasiswa dalam kompetisi akademik maupun non-akademik.
-              </p>
-            </div>
-
-            {/* Action and quick count balance box */}
-            <div className="flex flex-row lg:flex-col items-end gap-3 shrink-0 self-stretch lg:self-auto justify-between lg:justify-center border-t lg:border-t-0 pt-4 lg:pt-0 border-slate-100">
-              <div className="flex items-center gap-2">
-                <button onClick={exportAchievementsPDF} disabled={loading || achievements.length === 0}
-                  className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-50 flex items-center gap-2">
-                  <Download size={13} className="text-primary" /> Ekspor PDF
-                </button>
-                <button onClick={fetchData} disabled={loading}
-                  className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-60 flex items-center gap-2">
-                  {loading ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '13px' }} >sync</span> : <RefreshCw size={13} className="text-primary" />} Refresh Data
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
+      <DashboardHero
+        icon="emoji_events"
+        title="Validasi "
+        highlightedTitle="Prestasi"
+        subtitle="Verifikasi dan validasi capaian mahasiswa dalam kompetisi akademik maupun non-akademik."
+        badges={[
+          { label: 'Student Achievement', active: false },
+          { label: `${stats.total} Pengajuan Masuk`, active: true }
+        ]}
+        actions={
+          <>
+            <button onClick={exportAchievementsPDF} disabled={loading || achievements.length === 0}
+              className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-50 flex items-center gap-2">
+              <Download size={13} className="text-primary" /> Ekspor PDF
+            </button>
+            <button onClick={fetchData} disabled={loading}
+              className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-60 flex items-center gap-2">
+              {loading ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '13px' }}>sync</span> : <RefreshCw size={13} className="text-primary" />} Refresh Data
+            </button>
+          </>
+        }
+      />
 
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -892,7 +855,6 @@ export default function FacultyPrestasi() {
             </div>
           </div>
         </div>
-      </div>
 
       {/* Detail Modal */}
       {selected && (
@@ -1094,6 +1056,6 @@ export default function FacultyPrestasi() {
           </div>
         </div>
       )}
-    </div>
+    </PageContent>
   )
 }

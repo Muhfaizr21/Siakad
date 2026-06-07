@@ -41,7 +41,7 @@ func AuthProtected(c *fiber.Ctx) error {
 		return c.Status(401).JSON(fiber.Map{"status": "error", "message": "Invalid token claims"})
 	}
 
-	// Set shared context
+	// Set shared context from JWT claims first (may be overridden below for super_admin)
 	if sub, ok := claims["sub"].(float64); ok {
 		c.Locals("user_id", uint(sub))
 	}
@@ -59,6 +59,27 @@ func AuthProtected(c *fiber.Ctx) error {
 	} else {
 		c.Locals("fakultas_id", uint(0))
 	}
+
+	// Set program_studi_id from JWT claim FIRST (super_admin block below may override)
+	if pid, ok := claims["pid"].(float64); ok {
+		c.Locals("program_studi_id", uint(pid))
+	} else {
+		c.Locals("program_studi_id", uint(0))
+	}
+
+	if oid, ok := claims["oid"].(float64); ok {
+		c.Locals("ormawa_id", uint(oid))
+	} else {
+		c.Locals("ormawa_id", nil)
+	}
+
+	if oas, ok := claims["oas"].(string); ok {
+		c.Locals("ormawa_assign", oas)
+	} else {
+		c.Locals("ormawa_assign", "")
+	}
+
+	c.Locals("nim", claims["nim"])
 
 	// Dynamic faculty & prodi injection for Super Admin
 	userRole, _ := c.Locals("role").(string)
@@ -136,26 +157,6 @@ func AuthProtected(c *fiber.Ctx) error {
 
 	log.Printf("[DEBUG JWT] Final role: %v, Final fakultas_id: %v, Final program_studi_id: %v", c.Locals("role"), c.Locals("fakultas_id"), c.Locals("program_studi_id"))
 
-	if oid, ok := claims["oid"].(float64); ok {
-		c.Locals("ormawa_id", uint(oid))
-	} else {
-		c.Locals("ormawa_id", nil)
-	}
-
-	if oas, ok := claims["oas"].(string); ok {
-		c.Locals("ormawa_assign", oas)
-	} else {
-		c.Locals("ormawa_assign", "")
-	}
-
-	if pid, ok := claims["pid"].(float64); ok {
-		c.Locals("program_studi_id", uint(pid))
-	} else {
-		c.Locals("program_studi_id", uint(0))
-	}
-
-	c.Locals("nim", claims["nim"])
-
 	return c.Next()
 }
 
@@ -178,8 +179,16 @@ func MahasiswaCheck(c *fiber.Ctx) error {
 			"message": "Akses ditolak.",
 		})
 	}
-	r := strings.ToLower(role)
-	if r != "mahasiswa" && r != "super_admin" && r != "faculty_admin" {
+	userRoles := strings.Split(strings.ToLower(role), ",")
+	allowed := false
+	for _, rRaw := range userRoles {
+		r := strings.TrimSpace(rRaw)
+		if r == "mahasiswa" || r == "student" || r == "ormawa" || r == "ormawa_admin" || r == "super_admin" || r == "faculty_admin" {
+			allowed = true
+			break
+		}
+	}
+	if !allowed {
 		return c.Status(403).JSON(fiber.Map{
 			"status":  "error",
 			"message": "Akses ditolak. Fitur ini hanya untuk Mahasiswa.",

@@ -14,6 +14,8 @@ import { Textarea } from '@/components/ui/Textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/Select'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
+import { PageContent } from '@/components/ui/page'
+import { DashboardHero } from '@/components/ui/dashboard'
 
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
@@ -1234,42 +1236,27 @@ export default function KelolaBeasiswa() {
   ]
 
   return (
-    <div className="min-h-screen bg-[#fafafa] font-body">
+    <PageContent>
       <Toaster position="top-right" />
       
-      <div className="max-w-[1600px] mx-auto space-y-10">
-        
-        {/* ── Page Header ─────────────────────────────────────────── */}
-        <section className="bg-white border border-neutral-200 rounded-xl p-5 md:p-8 relative overflow-hidden shadow-sm">
-          <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-emerald-50/50 to-transparent pointer-events-none" />
-          
-          <div className="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-            <div className="space-y-1 w-full lg:w-auto">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="h-4 w-1.5 bg-primary rounded-full" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400 font-jakarta">Student Welfare</span>
-              </div>
-              <h1 className="text-2xl md:text-3xl font-bold text-neutral-900 font-jakarta tracking-tight leading-tight">
-                Manajemen <span className="text-primary">Beasiswa</span>
-              </h1>
-              <p className="text-neutral-500 font-medium text-xs md:text-sm max-w-2xl leading-relaxed">
-                Kelola program bantuan dana pendidikan, beasiswa eksternal, dan verifikasi pendaftaran mahasiswa secara terintegrasi.
-              </p>
-            </div>
-            
-            <div className="flex items-center gap-3 w-full lg:w-auto">
-              {activeTab === 'programs' && (
-                <Button 
-                  onClick={handleOpenAdd}
-                  className="h-11 px-6 w-full lg:w-auto rounded-xl bg-primary text-white hover:bg-primary/90 shadow-md gap-2 transition-all active:scale-95 border-none justify-center"
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}  strokeWidth={3}>add</span>
-                  <span className="text-xs font-bold uppercase tracking-widest">Tambah Program</span>
-                </Button>
-              )}
-            </div>
-          </div>
-        </section>
+      <DashboardHero
+        title="Manajemen"
+        highlightedTitle="Beasiswa"
+        subtitle="Kelola program bantuan dana pendidikan, beasiswa eksternal, dan verifikasi pendaftaran mahasiswa secara terintegrasi."
+        icon="emoji_events"
+        badges={[{ label: 'Student Welfare', active: false }]}
+        actions={
+          activeTab === 'programs' && (
+            <Button 
+              onClick={handleOpenAdd}
+              className="h-11 px-6 w-full lg:w-auto rounded-xl bg-primary text-white hover:bg-primary/90 shadow-md gap-2 transition-all active:scale-95 border-none justify-center"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}  strokeWidth={3}>add</span>
+              <span className="text-xs font-bold uppercase tracking-widest">Tambah Program</span>
+            </Button>
+          )
+        }
+      />
 
         {/* ── Stats Grid ──────────────────────────────────────────── */}
         <div className="space-y-4 md:space-y-5">
@@ -1926,8 +1913,6 @@ export default function KelolaBeasiswa() {
             </Card>
           </TabsContent>
         </Tabs>
-
-      </div>
 
       {/* ── Scholarship CRUD Modal ─────────────────────────────────── */}
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
@@ -2728,6 +2713,6 @@ export default function KelolaBeasiswa() {
           </div>
         );
       })()}
-    </div>
+    </PageContent>
   )
 }

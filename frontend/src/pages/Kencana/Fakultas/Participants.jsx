@@ -1,6 +1,7 @@
 import React from 'react';
 import { useFakultasParticipantsQuery } from '../../../queries/useKencanaFakultasQuery';
 import useAuthStore from '../../../store/useAuthStore';
+import { PageHeader } from '../../../components/ui/page/PageHeader';
 
 const Participants = () => {
   const user = useAuthStore(state => state.user);
@@ -8,34 +9,59 @@ const Participants = () => {
   const { data: participants, isLoading } = useFakultasParticipantsQuery({ fakultas_id: fakultasId });
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold text-slate-800 mb-6">Data Peserta Fakultas</h1>
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-        {isLoading ? (
-          <p>Loading...</p>
-        ) : (
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-slate-200 text-sm font-semibold text-slate-500 uppercase tracking-wider">
-                <th className="pb-3 font-medium">NIM</th>
-                <th className="pb-3 font-medium">Nama</th>
-                <th className="pb-3 font-medium">Fakultas</th>
-              </tr>
-            </thead>
-            <tbody>
-              {participants?.map((p) => (
-                <tr key={p.id} className="border-b border-slate-100 last:border-0">
-                  <td className="py-4 font-medium text-slate-900">{p.nim}</td>
-                  <td className="py-4 text-slate-600">{p.nama}</td>
-                  <td className="py-4 text-slate-600">{p.fakultas_name || '-'}</td>
+    <div className="px-4 py-6 md:px-6 lg:px-8 min-h-screen bg-transparent font-body max-w-7xl mx-auto space-y-6">
+      <PageHeader
+        icon="users"
+        title={
+          <>
+            <span className="text-[var(--theme-text)]">Data Peserta </span>
+            <span className="text-[var(--theme-primary)]">Fakultas</span>
+          </>
+        }
+        subtitle="Daftar mahasiswa peserta Kencana yang terdaftar di fakultas Anda."
+        breadcrumbs={[
+          { label: 'Kencana Fakultas', path: '#' },
+          { label: 'Peserta' }
+        ]}
+      />
+
+      <div className="bg-white rounded-2xl border border-[var(--theme-border)] shadow-sm overflow-hidden">
+        <div className="p-6 md:p-8 border-b border-[var(--theme-border-muted)] bg-[var(--theme-bg)]">
+          <h2 className="text-base font-bold text-[var(--theme-text)]">Peserta Terdaftar</h2>
+          <p className="text-xs font-semibold text-[var(--theme-text-muted)] mt-1">Gunakan tabel di bawah untuk melihat rincian NIM dan Nama mahasiswa.</p>
+        </div>
+
+        <div className="overflow-x-auto">
+          {isLoading ? (
+            <div className="p-12 text-center text-[var(--theme-text-muted)] font-bold">Memuat data peserta...</div>
+          ) : (
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-[var(--theme-border)] text-xs font-bold text-[var(--theme-text-muted)] uppercase tracking-wider bg-[var(--theme-bg)]/50">
+                  <th className="px-6 py-3 font-semibold">NIM</th>
+                  <th className="px-6 py-3 font-semibold">Nama</th>
+                  <th className="px-6 py-3 font-semibold">Fakultas</th>
                 </tr>
-              ))}
-              {!participants?.length && (
-                <tr><td colSpan="3" className="py-4 text-center text-slate-500">Belum ada data peserta dari fakultas ini.</td></tr>
-              )}
-            </tbody>
-          </table>
-        )}
+              </thead>
+              <tbody className="divide-y divide-[var(--theme-border-muted)]">
+                {participants?.map((p) => (
+                  <tr key={p.id} className="hover:bg-[var(--theme-bg)]/40 transition-colors text-sm font-semibold text-[var(--theme-text)]">
+                    <td className="px-6 py-4 font-bold text-[var(--theme-primary)]">{p.nim}</td>
+                    <td className="px-6 py-4 text-[var(--theme-text)]">{p.nama}</td>
+                    <td className="px-6 py-4 text-[var(--theme-text-muted)]">{p.fakultas_name || '-'}</td>
+                  </tr>
+                ))}
+                {!participants?.length && (
+                  <tr>
+                    <td colSpan="3" className="px-6 py-8 text-center text-[var(--theme-text-muted)] font-semibold">
+                      Belum ada data peserta dari fakultas ini.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
+        </div>
       </div>
     </div>
   );

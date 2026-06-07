@@ -1,4 +1,5 @@
 import React from 'react';
+import { PageContent, PageHeader } from '@/components/ui/page';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { usePengajuanDetailQuery } from '../../queries/useScholarshipQuery';
 import useAuthStore from '../../store/useAuthStore';
@@ -110,24 +111,26 @@ export default function ScholarshipDetailPage() {
   const isFinal = pengajuanStatus.toLowerCase() === 'diterima' || pengajuanStatus.toLowerCase() === 'ditolak';
 
   return (
-    <div className="px-4 py-5 md:px-6 md:py-6 lg:px-8 lg:py-8 font-body text-bku-text min-h-screen bg-transparent">
-      
-      {/* Header */}
-      <button 
-        onClick={() => {
-          if (user?.role === 'super_admin') {
-            navigate('/admin/student-beasiswa');
-          } else {
-            navigate('/student/scholarship');
-          }
-        }}
-        className="group flex items-center gap-2 mb-8 text-text-muted hover:text-bku-text font-black uppercase tracking-widest text-[10px] transition-all"
-      >
-        <div className="w-8 h-8 rounded-xl border border-border group-hover:border-primary flex items-center justify-center transition-all">
-          <ArrowLeft size={16} />
-        </div>
-        Kembali ke Dashboard
-      </button>
+    <PageContent className="font-body">
+      <PageHeader 
+        title={beasiswaNama} 
+        subtitle={`${beasiswaPenyelenggara} • Terdaftar pada ${new Date(pengajuanCreatedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`} 
+        icon="workspace_premium" 
+        breadcrumbs={[
+          { label: 'Student Hub', path: '/student/dashboard' },
+          { label: 'Beasiswa', path: user?.role === 'super_admin' ? '/admin/student-beasiswa' : '/student/scholarship' },
+          { label: 'Detail Pengajuan' }
+        ]} 
+        action={
+          <div className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest border shadow-sm ${
+            pengajuanStatus.toLowerCase() === 'diterima' ? 'bg-success/15 border-success/30 text-success' : 
+            pengajuanStatus.toLowerCase() === 'ditolak' ? 'bg-error/15 border-error/30 text-error' :
+            'bg-primary/10 border-primary/20 text-primary'
+          }`}>
+            {pengajuanStatus.replace('_', ' ')}
+          </div>
+        } 
+      />
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
         
@@ -376,6 +379,6 @@ export default function ScholarshipDetailPage() {
         </div>
 
       </div>
-    </div>
+    </PageContent>
   );
 }

@@ -1,10 +1,13 @@
 "use client"
-
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react';
+import { PageContent, PageHeader } from '@/components/ui/page';
 import { DataTable } from '@/components/ui/DataTable'
+
+
+
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { Modal, ModalBody, ModalFooter, ModalBtn } from '@/components/ui/Modal'
+import { DialogModal } from '@/components/ui/DialogModal'
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
@@ -34,7 +37,7 @@ const getRoleStyle = (role = '') => {
   if (r.includes('sekretaris') || r.includes('bendahara')) return 'bg-blue-50 text-blue-700 border-blue-200 ring-1 ring-blue-500/10'
   if (r.includes('koordinator') || r.includes('staf khusus')) return 'bg-amber-50 text-amber-700 border-amber-200 ring-1 ring-amber-500/10'
   if (r.includes('staff') || r.includes('staf') || r === 'anggota') return 'bg-sky-50 text-sky-700 border-sky-200 ring-1 ring-sky-500/10'
-  return 'bg-slate-50 text-slate-600 border-slate-200 ring-1 ring-slate-500/5'
+  return 'bg-slate-50 text-slate-600 border-border ring-1 ring-slate-500/5'
 }
 
 const JABATAN = ['Pembina', 'Penanggung Jawab', 'Sekretaris Eksekutif', 'Koordinator Program', 'Staf Khusus']
@@ -177,11 +180,11 @@ export default function StaffManagement() {
               <img
                 src={fotoUrl}
                 alt={row.Mahasiswa?.Nama || 'Staf'}
-                className="w-10 h-10 rounded-xl object-cover shrink-0 shadow-sm border border-slate-200"
+                className="w-10 h-10 rounded-xl object-cover shrink-0 shadow-sm border border-border"
                 onError={(e) => { e.target.src = ''; }}
               />
             ) : (
-              <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-end justify-center overflow-hidden shrink-0 border border-slate-200/60 shadow-sm">
+              <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-end justify-center overflow-hidden shrink-0 border border-border shadow-sm">
                 <span className="material-symbols-outlined text-slate-400 text-2xl mb-1">person</span>
               </div>
             )}
@@ -223,44 +226,20 @@ export default function StaffManagement() {
   ]
 
   return (
-    <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-8 font-body">
+    <PageContent className="font-body">
       <Toaster position="top-right" containerStyle={{ zIndex: 99999 }} />
 
-      {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <section className="relative overflow-hidden rounded-3xl h-48 flex items-center group shadow-sm border border-slate-200/80">
-        <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/50 to-slate-100/50" />
-        <div className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage: `radial-gradient(circle at 20% 50%, black 1px, transparent 1px), radial-gradient(circle at 80% 20%, black 1px, transparent 1px)`,
-            backgroundSize: '60px 60px'
-          }}
-        />
-        <div className="absolute -top-20 -right-20 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute -bottom-10 right-40 w-48 h-48 bg-blue-400/5 rounded-full blur-2xl" />
-
-        <div className="relative z-10 px-10 flex-1">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="h-1.5 w-6 bg-primary/40 rounded-full" />
-            <span className="text-[10px] font-bold text-slate-400 tracking-[0.25em]">
-              Ormawa Admin
-            </span>
-          </div>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-primary/10 backdrop-blur-md rounded-xl text-primary shadow-inner">
-              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>admin_panel_settings</span>
-            </div>
-            <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight font-headline">
-              Manajemen Staf
-            </h1>
-          </div>
-          <p className="text-slate-500 font-medium text-sm max-w-2xl leading-relaxed">
-            Database keanggotaan pengurus struktural dan pembina organisasi mahasiswa.
-          </p>
-        </div>
-      </section>
+            {/* ── Welcome Banner ─────────────────────────────────────────── */}
+      <PageHeader 
+        title="Manajemen Staf"
+        subtitle="Database keanggotaan pengurus struktural dan pembina organisasi mahasiswa."
+        icon="admin_panel_settings"
+       
+        breadcrumbs={[ { label: 'Dashboard', path: '/ormawa' }, { label: 'Manajemen Staf', path: '#' } ]} 
+      />
 
       {/* ── Content Area ───────────────────────────────────────────── */}
-      <Card className="border border-[#e5e5e5] shadow-sm overflow-hidden bg-white rounded-3xl">
+      <Card className="border border-border shadow-sm overflow-hidden bg-surface rounded-2xl">
         <CardContent className="p-0">
           <DataTable
             columns={columns}
@@ -271,9 +250,9 @@ export default function StaffManagement() {
             addLabel="Tambah Staf"
             actions={(row) => (
               <div className="flex items-center justify-end gap-1">
-                <button onClick={() => { setSelected(row); setIsDetailOpen(true) }} className="p-1.5 text-slate-400 hover:text-bku-primary hover:bg-bku-primary/10 rounded-lg transition-colors duration-150" title="Detail"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >visibility</span></button>
-                <button onClick={() => handleOpenEdit(row)} className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors duration-150" title="Edit"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >edit</span></button>
-                <button onClick={() => { setSelected(row); setIsDelOpen(true) }} className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors duration-150" title="Hapus"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >delete</span></button>
+                <button onClick={() => { setSelected(row); setIsDetailOpen(true) }} className="p-1.5 text-[var(--theme-text-subtle)] hover:text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)] rounded-lg transition-colors duration-150" title="Detail"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >visibility</span></button>
+                <button onClick={() => handleOpenEdit(row)} className="p-1.5 text-[var(--theme-text-subtle)] hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors duration-150" title="Edit"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >edit</span></button>
+                <button onClick={() => { setSelected(row); setIsDelOpen(true) }} className="p-1.5 text-[var(--theme-text-subtle)] hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors duration-150" title="Hapus"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >delete</span></button>
               </div>
             )}
           />
@@ -281,40 +260,44 @@ export default function StaffManagement() {
       </Card>
 
       {/* DETAIL */}
-      <Modal
+      <DialogModal
         open={isDetailOpen}
+        onOpenChange={setIsDetailOpen}
         onClose={() => setIsDetailOpen(false)}
         title="Detail Staf"
-        subtitle="Informasi lengkap tugas dan kontak pengurus ormawa."
+        description="Informasi lengkap tugas dan kontak pengurus ormawa."
         icon={<span className="material-symbols-outlined">badge</span>}
-        maxWidth="max-w-2xl">
+        maxWidth="max-w-2xl"
+        footer={
+          <Button variant="default" onClick={() => setIsDetailOpen(false)} className="w-full h-10 justify-center rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white">Tutup Profil</Button>
+        }
+      >
         {selected && (() => {
           const selectedFotoUrl = getFullUrl(selected.Mahasiswa?.FotoURL || selected.Mahasiswa?.foto_url || selected.Mahasiswa?.Foto || selected.Mahasiswa?.Pengguna?.Foto || null);
           return (
-            <div>
-              <ModalBody className="p-0 overflow-hidden">
-                <div className="h-32 bg-gradient-to-br from-bku-primary to-[#00174A] relative overflow-hidden">
+            <div className="p-6 space-y-6">
+                <div className="h-32 bg-gradient-to-br from-[var(--theme-primary)] to-[var(--theme-primary-hover)] relative overflow-hidden rounded-2xl">
                   <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
                     <span className="material-symbols-outlined size-24 rotate-12 text-white">fingerprint</span>
                   </div>
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.08),transparent)]" />
-                  <div className="absolute -bottom-8 left-6 z-20 p-1 bg-white rounded-[1.2rem] shadow-xl">
+                  <div className="absolute -bottom-8 left-6 z-20 p-1 bg-[var(--theme-surface)] rounded-2xl shadow-xl">
                     {selectedFotoUrl ? (
                       <img
                         src={selectedFotoUrl}
                         alt={selected.Mahasiswa?.Nama}
-                        className="h-16 w-16 rounded-[1.0rem] object-cover"
+                        className="h-16 w-16 rounded-xl object-cover"
                         onError={(e) => { e.target.src = ''; }}
                       />
                     ) : (
-                      <div className="h-16 w-16 rounded-[1.0rem] bg-gradient-to-br from-slate-100 to-slate-200 text-slate-700 flex items-center justify-center font-headline text-xl font-black border border-slate-200">
+                      <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-[var(--theme-bg)] to-[var(--theme-border-muted)] text-[var(--theme-text)] flex items-center justify-center font-headline text-xl font-black border border-border">
                         {selected.Mahasiswa?.Nama?.split(' ').map(n => n[0]).join('').substring(0, 2) || '?'}
                       </div>
                     )}
                   </div>
                 </div>
 
-                <div className="p-6 pt-10 space-y-6">
+                <div className="pt-4 space-y-6">
                   <div>
                     <h2 className="text-xl font-black font-headline tracking-tighter leading-none" style={{ color: 'var(--theme-h2)' }}>{selected.Mahasiswa?.Nama}</h2>
                     <div className="flex items-center gap-1.5 mt-2.5">
@@ -323,7 +306,7 @@ export default function StaffManagement() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 rounded-3xl bg-slate-50/50 border border-slate-100">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 rounded-2xl bg-[var(--theme-bg)]/50 border border-[var(--theme-border-muted)]">
                     <div className="space-y-1.5">
                       <p className="text-[9px] font-black text-slate-400 tracking-widest uppercase font-headline">Jabatan Struktural</p>
                       <Badge className={cn("font-black text-[9px] px-2.5 py-0.5 border shadow-sm rounded-lg uppercase tracking-wider", getRoleStyle(selected.Role))}>
@@ -357,27 +340,23 @@ export default function StaffManagement() {
                     </p>
                   </div>
                 </div>
-              </ModalBody>
-              <ModalFooter>
-                <ModalBtn variant="default" onClick={() => setIsDetailOpen(false)} className="w-full h-11 justify-center rounded-xl bg-bku-primary hover:bg-[#003399]">Tutup Profil</ModalBtn>
-              </ModalFooter>
             </div>
           );
         })()}
-      </Modal>
+      </DialogModal>
 
       {/* CRUD */}
-      <Modal
+      <DialogModal
         open={isCrudOpen}
+        onOpenChange={setIsCrudOpen}
         onClose={() => setIsCrudOpen(false)}
         title={isEditMode ? 'Edit Staf' : 'Tambah Staf Baru'}
-        subtitle="Daftarkan mahasiswa sebagai pengurus struktural ormawa."
+        description="Daftarkan mahasiswa sebagai pengurus struktural ormawa."
         icon={isEditMode ? <span className="material-symbols-outlined">edit</span> : <span className="material-symbols-outlined stroke-[3px]">add</span>}
         maxWidth="max-w-lg"
       >
         <form onSubmit={handleSave}>
-          <ModalBody>
-            <div className="space-y-4">
+          <div className="p-6 space-y-4">
               <div className="space-y-2 relative" ref={dropdownRef}>
                 <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline">Pilih Mahasiswa</Label>
                 {isEditMode ? (
@@ -387,7 +366,7 @@ export default function StaffManagement() {
                       return s ? `${s.Nama} (${s.NIM})` : '—';
                     })() : '—'}
                     disabled
-                    className="h-12 rounded-2xl border-slate-200 bg-slate-100 text-slate-400 font-bold text-sm font-headline cursor-not-allowed"
+                    className="h-12 rounded-2xl border-border bg-slate-100 text-slate-400 font-bold text-sm font-headline cursor-not-allowed"
                   />
                 ) : (
                   <div className="relative">
@@ -402,7 +381,7 @@ export default function StaffManagement() {
                           setIsSearching(true);
                           if (form.MahasiswaID) setForm({ ...form, MahasiswaID: '' });
                         }}
-                        className="pl-11 pr-10 h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/10 transition-all font-bold text-sm"
+                        className="pl-11 pr-10 h-10 rounded-xl border border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-all font-bold text-sm"
                       />
                       {form.MahasiswaID && (
                         <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-emerald-500 font-bold" style={{ fontSize: '18px' }}>check_circle</span>
@@ -410,7 +389,7 @@ export default function StaffManagement() {
                     </div>
 
                     {isSearching && searchQuery.trim() !== '' && (
-                      <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-2xl shadow-xl max-h-60 overflow-y-auto p-1 flex flex-col">
+                      <div className="absolute z-50 w-full mt-1 bg-white border border-border rounded-2xl shadow-xl max-h-60 overflow-y-auto p-1 flex flex-col">
                         {students
                           .filter(s => s?.Nama?.toLowerCase().includes(searchQuery.toLowerCase()) || s?.NIM?.toLowerCase().includes(searchQuery.toLowerCase()))
                           .slice(0, 8)
@@ -436,11 +415,11 @@ export default function StaffManagement() {
                                   <img
                                     src={studentFotoUrl}
                                     alt={s.Nama}
-                                    className="w-7 h-7 rounded-lg object-cover shrink-0 border border-slate-200/50 shadow-sm"
+                                    className="w-7 h-7 rounded-lg object-cover shrink-0 border border-border shadow-sm"
                                     onError={(e) => { e.target.src = ''; }}
                                   />
                                 ) : (
-                                  <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-end justify-center overflow-hidden shrink-0 border border-slate-200/40">
+                                  <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-end justify-center overflow-hidden shrink-0 border border-border">
                                     <span className="material-symbols-outlined text-slate-400 text-base mb-0.5">person</span>
                                   </div>
                                 )}
@@ -452,7 +431,7 @@ export default function StaffManagement() {
                             );
                           })}
                         {students.filter(s => s?.Nama?.toLowerCase().includes(searchQuery.toLowerCase()) || s?.NIM?.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
-                          <div className="px-3 py-4 text-center text-xs font-medium text-slate-400">
+                           <div className="px-3 py-4 text-center text-xs font-medium text-slate-400">
                             Mahasiswa tidak ditemukan
                           </div>
                         )}
@@ -465,12 +444,12 @@ export default function StaffManagement() {
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Jabatan</Label>
                 <Select value={form.Jabatan} onValueChange={(val) => setForm({ ...form, Jabatan: val })}>
-                  <SelectTrigger className="w-full h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-xs md:text-sm font-bold text-slate-700 focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/10 transition-all cursor-pointer">
+                  <SelectTrigger className="w-full h-10 rounded-xl border border-border bg-[var(--theme-bg)] px-4 text-xs md:text-sm font-bold text-slate-700 focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-all cursor-pointer">
                     <SelectValue placeholder="Pilih Jabatan" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-xl border-slate-200 shadow-xl p-1 bg-white font-body">
+                  <SelectContent className="rounded-xl border-border shadow-xl p-1 bg-white font-body">
                     {JABATAN.map((j) => (
-                      <SelectItem key={j} value={j} className="rounded-lg text-xs py-1.5 focus:bg-blue-50 focus:text-blue-700 cursor-pointer font-bold text-slate-700">
+                      <SelectItem key={j} value={j} className="rounded-lg text-xs py-1.5 focus:bg-[var(--theme-primary-light)] focus:text-[var(--theme-primary)] cursor-pointer font-bold text-slate-700">
                         {j}
                       </SelectItem>
                     ))}
@@ -481,41 +460,40 @@ export default function StaffManagement() {
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Divisi</Label>
                 <Input value={form.Divisi} onChange={e => setForm({ ...form, Divisi: e.target.value })} placeholder="Masukkan nama divisi..."
-                  className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/10 transition-all font-bold text-xs md:text-sm font-headline" />
+                  className="h-10 rounded-xl border border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-all font-bold text-xs md:text-sm font-headline" />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Email</Label>
                   <Input type="email" value={form.Email} onChange={e => setForm({ ...form, Email: e.target.value })} placeholder="email@bku.ac.id"
-                    className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/10 transition-all font-bold text-xs md:text-sm font-headline" />
+                    className="h-10 rounded-xl border border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-all font-bold text-xs md:text-sm font-headline" />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">No. HP</Label>
                   <Input value={form.NoHP} onChange={e => setForm({ ...form, NoHP: e.target.value })} placeholder="08xx-xxxx-xxxx"
-                    className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/10 transition-all font-bold text-xs md:text-sm font-headline" />
+                    className="h-10 rounded-xl border border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-all font-bold text-xs md:text-sm font-headline" />
                 </div>
               </div>
             </div>
-          </ModalBody>
-          <ModalFooter>
-            <ModalBtn variant="ghost" type="button" onClick={() => setIsCrudOpen(false)}>
+          <div className="px-6 py-4 border-t border-[var(--theme-border-muted)] flex justify-end gap-3 shrink-0">
+            <Button variant="ghost" type="button" onClick={() => setIsCrudOpen(false)}>
               Batalkan
-            </ModalBtn>
-            <ModalBtn type="submit" disabled={isSubmitting}>
+            </Button>
+            <Button type="submit" disabled={isSubmitting} className="h-10 px-6 rounded-xl bg-[var(--theme-primary)] text-white hover:bg-[var(--theme-primary)]/90 transition-all font-bold font-headline uppercase flex items-center justify-center gap-2">
               {isSubmitting ? (
-                <span className="material-symbols-outlined animate-spin size-4">sync</span>
+                <span className="material-symbols-outlined animate-spin text-[16px]">sync</span>
               ) : (
                 <span className="material-symbols-outlined stroke-[3px]" style={{ fontSize: '14px' }}>save</span>
               )}
               <span className="uppercase tracking-[0.1em]">{isEditMode ? 'Update Record' : 'Simpan Data'}</span>
-            </ModalBtn>
-          </ModalFooter>
+            </Button>
+          </div>
         </form>
-      </Modal>
+      </DialogModal>
 
       <DeleteConfirmModal isOpen={isDelOpen} onClose={() => setIsDelOpen(false)} onConfirm={handleDelete}
         title="Hapus Staf?" description="Data staf ini akan dihapus permanen dari sistem." loading={isSubmitting} />
-    </div>
+    </PageContent>
   )
 }

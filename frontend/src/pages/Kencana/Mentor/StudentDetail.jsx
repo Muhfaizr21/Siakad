@@ -8,6 +8,7 @@ import {
   useMentorUpsertBulkScoreItemsMutation,
   useMentorReviewHandbookMutation
 } from '../../../queries/useKencanaMentorQuery';
+import { SelectField, SelectOption } from '../../../components/ui/SelectField';
 
 const STATIC_SCORE_DEFINITIONS = {
   cognitive: [
@@ -90,9 +91,9 @@ const StudentDetail = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
-        <span className="ml-3 font-semibold text-slate-600">Memuat detail mahasiswa...</span>
+      <div className="flex items-center justify-center min-h-[400px] bg-transparent">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--theme-primary)]"></div>
+        <span className="ml-3 font-semibold text-[var(--theme-text-muted)] text-sm">Memuat detail mahasiswa...</span>
       </div>
     );
   }
@@ -123,6 +124,7 @@ const StudentDetail = () => {
   const handbookStatusMeta = isHandbookScored
     ? `Nilai handbook: ${handbookScoreItem.score}`
     : handbookData?.reviewed_at ? `Direview: ${new Date(handbookData.reviewed_at).toLocaleDateString('id-ID')}` : 'Belum dievaluasi';
+  
   const SCORE_DEFINITIONS = {
     ...STATIC_SCORE_DEFINITIONS,
     cognitive: [
@@ -208,21 +210,21 @@ const StudentDetail = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="px-4 py-6 md:px-6 lg:px-8 min-h-screen bg-transparent font-body max-w-7xl mx-auto space-y-6">
       {/* Breadcrumbs & Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[var(--theme-border)] shadow-sm">
         <div className="flex items-center gap-4">
           <button 
             onClick={() => navigate(-1)} 
-            className="p-3 bg-slate-50 rounded-2xl text-slate-600 hover:bg-slate-100 transition-colors border border-slate-100"
+            className="px-4 py-2 bg-[var(--theme-bg)] rounded-xl text-[var(--theme-text)] hover:bg-[var(--theme-border-muted)] transition-colors border border-[var(--theme-border)] text-xs font-bold"
           >
             &larr; Kembali
           </button>
           <div>
-            <h1 className="text-xl font-black text-slate-800 tracking-tight">
+            <h1 className="text-lg font-bold text-[var(--theme-text)] tracking-tight">
               {student.Nama || student.nama || student.NAMA || student.Name || 'Detail Mahasiswa'}
             </h1>
-            <p className="text-xs font-semibold text-slate-400">
+            <p className="text-xs font-semibold text-[var(--theme-text-muted)] mt-1">
               NIM: {student.NIM || student.nim || '-'} &bull; {student.ProgramStudi?.Nama || student.program_studi?.Nama || student.program_studi?.nama || '-'} &bull; {student.Fakultas?.Nama || student.fakultas?.Nama || student.fakultas?.nama || '-'}
             </p>
           </div>
@@ -231,55 +233,56 @@ const StudentDetail = () => {
         {/* Graduation badge status inside header */}
         <div className="flex items-center gap-3">
           <div className="text-right">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Status Kelulusan</span>
-            <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
-              score.graduation_status === 'passed' ? 'bg-emerald-100 text-emerald-700' :
-              score.graduation_status === 'conditional_pass' ? 'bg-amber-100 text-amber-700' :
-              score.graduation_status === 'remedial' ? 'bg-orange-100 text-orange-700' : 'bg-slate-100 text-slate-700'
+            <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest block mb-1">Status Kelulusan</span>
+            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+              score.graduation_status === 'passed' ? 'bg-[var(--theme-success-light)] text-[var(--theme-success)] border-[var(--theme-success-light)]' :
+              score.graduation_status === 'conditional_pass' ? 'bg-[var(--theme-warning-light)] text-[var(--theme-warning)] border-[var(--theme-warning-light)]' :
+              score.graduation_status === 'remedial' ? 'bg-[var(--theme-danger-light)] text-[var(--theme-danger)] border-[var(--theme-danger-light)]' : 
+              'bg-[var(--theme-bg)] text-[var(--theme-text-muted)] border-[var(--theme-border)]'
             }`}>
               {score.graduation_status === 'passed' ? 'LULUS' :
                score.graduation_status === 'conditional_pass' ? 'LULUS BERSYARAT' :
                score.graduation_status === 'remedial' ? 'REMEDIAL' : 'BELUM EVALUASI'}
             </span>
           </div>
-          <div className="bg-indigo-50 px-4 py-2 rounded-2xl border border-indigo-100 text-center">
-            <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest block">Nilai Akhir</span>
-            <span className="text-2xl font-black text-indigo-700">{score.final_score?.toFixed(1) || '0.0'}</span>
+          <div className="bg-[var(--theme-primary-light)] px-4 py-2 rounded-xl border border-[var(--theme-primary-light)] text-center">
+            <span className="text-[9px] font-bold text-[var(--theme-primary)] uppercase tracking-widest block">Nilai Akhir</span>
+            <span className="text-2xl font-bold text-[var(--theme-primary)]">{score.final_score?.toFixed(1) || '0.0'}</span>
           </div>
         </div>
       </div>
 
       {/* Tabs Menu */}
-      <div className="flex gap-2 border-b border-slate-100 pb-px">
+      <div className="flex gap-4 border-b border-[var(--theme-border-muted)] mb-6">
         <button
           onClick={() => switchTab('progress')}
-          className={`px-5 py-3 text-sm font-bold border-b-2 transition-all rounded-t-xl ${
+          className={`pb-3 text-xs font-bold uppercase tracking-wider transition-all border-b-2 ${
             activeTab === 'progress' 
-              ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30' 
-              : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50/50'
+              ? 'border-[var(--theme-primary)] text-[var(--theme-primary)]' 
+              : 'border-transparent text-[var(--theme-text-muted)] hover:text-[var(--theme-text)]'
           }`}
         >
-          📈 Informasi &amp; Rincian Nilai
+          📈 Rincian Nilai
         </button>
         <button
           onClick={() => switchTab('form')}
-          className={`px-5 py-3 text-sm font-bold border-b-2 transition-all rounded-t-xl ${
+          className={`pb-3 text-xs font-bold uppercase tracking-wider transition-all border-b-2 ${
             activeTab === 'form' 
-              ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30' 
-              : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50/50'
+              ? 'border-[var(--theme-primary)] text-[var(--theme-primary)]' 
+              : 'border-transparent text-[var(--theme-text-muted)] hover:text-[var(--theme-text)]'
           }`}
         >
           📝 Input &amp; Edit Nilai
         </button>
         <button
           onClick={() => switchTab('handbook')}
-          className={`px-5 py-3 text-sm font-bold border-b-2 transition-all rounded-t-xl ${
+          className={`pb-3 text-xs font-bold uppercase tracking-wider transition-all border-b-2 ${
             activeTab === 'handbook' 
-              ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30' 
-              : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50/50'
+              ? 'border-[var(--theme-primary)] text-[var(--theme-primary)]' 
+              : 'border-transparent text-[var(--theme-text-muted)] hover:text-[var(--theme-text)]'
           }`}
         >
-          📘 Review &amp; Persetujuan Handbook
+          📘 Review Handbook
         </button>
       </div>
 
@@ -289,8 +292,8 @@ const StudentDetail = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Blockers / Warnings */}
             {blockers.length > 0 && (
-              <div className="md:col-span-3 p-5 bg-rose-50 border border-rose-100 rounded-3xl text-rose-800">
-                <h4 className="text-sm font-black uppercase tracking-wider mb-2 flex items-center gap-2">
+              <div className="md:col-span-3 p-5 bg-[var(--theme-danger-light)] border border-[var(--theme-danger-light)] rounded-2xl text-[var(--theme-danger)]">
+                <h4 className="text-xs font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
                   ⚠️ Syarat Kelulusan Belum Terpenuhi
                 </h4>
                 <ul className="list-disc pl-5 text-xs font-bold space-y-1">
@@ -300,46 +303,46 @@ const StudentDetail = () => {
             )}
 
             {/* Attendance widget */}
-            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between">
+            <div className="bg-white p-6 rounded-2xl border border-[var(--theme-border)] shadow-sm flex items-center justify-between">
               <div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Persentase Kehadiran</span>
-                <span className="text-3xl font-black text-slate-800">{attendancePercentage}%</span>
-                <span className="text-xs font-semibold text-slate-500 block mt-1">
+                <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest block">Persentase Kehadiran</span>
+                <span className="text-2xl font-bold text-[var(--theme-text)] mt-1 block">{attendancePercentage}%</span>
+                <span className="text-xs font-semibold text-[var(--theme-text-muted)] block mt-1">
                   {attendanceOverrideItem ? 'Diambil dari nilai manual Kehadiran' : `Sesi: ${attendance.attended_sessions} / ${attendance.required_sessions}`}
                 </span>
               </div>
-              <div className={`p-4 rounded-2xl ${attendancePercentage >= 100 ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-amber-50 text-amber-600 border border-amber-100'}`}>
-                <span className="font-black text-lg">{attendanceStatus}</span>
+              <div className={`p-3 rounded-xl border font-bold text-xs ${attendancePercentage >= 100 ? 'bg-[var(--theme-success-light)] text-[var(--theme-success)] border-[var(--theme-success-light)]' : 'bg-[var(--theme-warning-light)] text-[var(--theme-warning)] border-[var(--theme-warning-light)]'}`}>
+                <span className="font-bold text-xs">{attendanceStatus}</span>
               </div>
             </div>
 
             {/* Progress widget */}
-            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between">
+            <div className="bg-white p-6 rounded-2xl border border-[var(--theme-border)] shadow-sm flex items-center justify-between">
               <div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Progress Materi</span>
-                <span className="text-3xl font-black text-slate-800">{progress}%</span>
-                <span className="text-xs font-semibold text-slate-500 block mt-1">Materi &amp; Tugas diselesaikan</span>
+                <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest block">Progress Materi</span>
+                <span className="text-2xl font-bold text-[var(--theme-text)] mt-1 block">{progress}%</span>
+                <span className="text-xs font-semibold text-[var(--theme-text-muted)] block mt-1">Materi &amp; Tugas diselesaikan</span>
               </div>
-              <div className="p-4 bg-indigo-50 text-indigo-600 rounded-2xl border border-indigo-100">
-                <span className="font-black text-lg">Aktif</span>
+              <div className="p-3 bg-[var(--theme-primary-light)] text-[var(--theme-primary)] rounded-xl border border-[var(--theme-primary-light)] font-bold text-xs">
+                Aktif
               </div>
             </div>
 
             {/* Handbook Status widget */}
-            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between">
+            <div className="bg-white p-6 rounded-2xl border border-[var(--theme-border)] shadow-sm flex items-center justify-between">
               <div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Status Handbook</span>
-                <span className="text-xl font-black text-slate-800 uppercase tracking-tight">
+                <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest block">Status Handbook</span>
+                <span className="text-lg font-bold text-[var(--theme-text)] mt-1 block uppercase tracking-tight">
                   {handbookStatusLabel}
                 </span>
-                <span className="text-xs font-semibold text-slate-500 block mt-1">
+                <span className="text-xs font-semibold text-[var(--theme-text-muted)] block mt-1">
                   {handbookStatusMeta}
                 </span>
               </div>
-              <div className={`p-3 rounded-2xl font-black text-xs ${
-                isHandbookScored || handbookData?.status === 'approved' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
-                handbookData?.status === 'submitted' ? 'bg-indigo-50 text-indigo-600 border border-indigo-100 animate-pulse' :
-                'bg-slate-50 text-slate-600 border border-slate-100'
+              <div className={`p-3 rounded-xl border font-bold text-xs ${
+                isHandbookScored || handbookData?.status === 'approved' ? 'bg-[var(--theme-success-light)] text-[var(--theme-success)] border-[var(--theme-success-light)]' :
+                handbookData?.status === 'submitted' ? 'bg-[var(--theme-primary-light)] text-[var(--theme-primary)] border-[var(--theme-primary-light)] animate-pulse' :
+                'bg-[var(--theme-bg)] text-[var(--theme-text-muted)] border-[var(--theme-border)]'
               }`}>
                 {isHandbookScored || handbookData?.status === 'approved' ? 'SUDAH' : 'PENDING'}
               </div>
@@ -347,84 +350,84 @@ const StudentDetail = () => {
           </div>
 
           {/* Detailed Score Overview Table */}
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-slate-50 bg-slate-50/50">
-              <h3 className="font-black text-slate-800 uppercase tracking-wider text-xs">Rincian Nilai Berdasarkan Formula Form Resmi</h3>
+          <div className="bg-white rounded-2xl border border-[var(--theme-border)] shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-[var(--theme-border-muted)] bg-[var(--theme-bg)]">
+              <h3 className="font-bold text-[var(--theme-text)] uppercase tracking-wider text-xs">Rincian Nilai Berdasarkan Formula Form Resmi</h3>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-100 bg-slate-50/20">
-                    <th className="py-3 px-6 text-[10px] font-black text-slate-400 uppercase tracking-wider">Komponen Penilaian</th>
-                    <th className="py-3 px-6 text-[10px] font-black text-slate-400 uppercase tracking-wider">Bobot</th>
-                    <th className="py-3 px-6 text-[10px] font-black text-slate-400 uppercase tracking-wider">Rata-Rata</th>
-                    <th className="py-3 px-6 text-[10px] font-black text-slate-400 uppercase tracking-wider">Nilai Berbobot</th>
+                  <tr className="border-b border-[var(--theme-border)] bg-[var(--theme-bg)]/50">
+                    <th className="py-3 px-6 text-xs font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Komponen Penilaian</th>
+                    <th className="py-3 px-6 text-xs font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Bobot</th>
+                    <th className="py-3 px-6 text-xs font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Rata-Rata</th>
+                    <th className="py-3 px-6 text-xs font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Nilai Berbobot</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-sm font-semibold">
+                <tbody className="divide-y divide-[var(--theme-border-muted)] text-sm font-semibold">
                   {/* COGNITIVE */}
-                  <tr className="hover:bg-slate-50/50 transition-colors">
+                  <tr className="hover:bg-[var(--theme-bg)]/40 transition-colors">
                     <td className="py-5 px-6 align-top">
-                      <span className="font-black text-slate-700 block mb-2">KOGNITIF</span>
-                      <div className="space-y-1.5 pl-4 text-xs font-semibold text-slate-500 border-l-2 border-sky-400">
+                      <span className="font-bold text-[var(--theme-text)] block mb-2">KOGNITIF</span>
+                      <div className="space-y-1.5 pl-4 text-xs font-semibold text-[var(--theme-text-muted)] border-l-2 border-[var(--theme-primary)]">
                         {cognitiveDefinitions.length > 0 ? cognitiveDefinitions.map(def => {
                           const item = cognitiveItems.find(i => i.item_name === def.key);
                           const isQuiz = def.key.startsWith('Quiz #') || def.key.startsWith('Post Test');
                           const displayName = def.label || def.key;
                           return (
                             <div key={def.key} className="flex justify-between max-w-sm gap-4">
-                              <span>{displayName} {isQuiz && <span className="ml-2 text-[8px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">Quiz</span>}</span>
-                              <span className="font-bold text-slate-800">{item?.score ?? '-'}</span>
+                              <span>{displayName} {isQuiz && <span className="ml-2 text-[8px] bg-[var(--theme-border)] text-[var(--theme-text-muted)] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">Quiz</span>}</span>
+                              <span className="font-bold text-[var(--theme-text)]">{item?.score ?? '-'}</span>
                             </div>
                           );
                         }) : <span className="italic">Belum ada item kognitif</span>}
                       </div>
                     </td>
-                    <td className="py-5 px-6 font-black text-slate-400 text-lg align-top">25%</td>
-                    <td className="py-5 px-6 font-black text-slate-700 text-lg align-top">{score.cognitive_average?.toFixed(1) || '0.0'}</td>
-                    <td className="py-5 px-6 font-black text-sky-600 text-lg align-top">{score.cognitive_weighted?.toFixed(1) || '0.0'}</td>
+                    <td className="py-5 px-6 font-bold text-[var(--theme-text-muted)] text-lg align-top">25%</td>
+                    <td className="py-5 px-6 font-bold text-[var(--theme-text)] text-lg align-top">{score.cognitive_average?.toFixed(1) || '0.0'}</td>
+                    <td className="py-5 px-6 font-bold text-[var(--theme-primary)] text-lg align-top">{score.cognitive_weighted?.toFixed(1) || '0.0'}</td>
                   </tr>
 
                   {/* PSYCHOMOTOR */}
-                  <tr className="hover:bg-slate-50/50 transition-colors">
+                  <tr className="hover:bg-[var(--theme-bg)]/40 transition-colors">
                     <td className="py-5 px-6 align-top">
-                      <span className="font-black text-slate-700 block mb-2">PSIKOMOTOR</span>
-                      <div className="space-y-1.5 pl-4 text-xs font-semibold text-slate-500 border-l-2 border-violet-400">
+                      <span className="font-bold text-[var(--theme-text)] block mb-2">PSIKOMOTOR</span>
+                      <div className="space-y-1.5 pl-4 text-xs font-semibold text-[var(--theme-text-muted)] border-l-2 border-[var(--theme-secondary)]">
                         {psychomotorItems.length > 0 ? psychomotorItems.map(item => (
                           <div key={item.id} className="flex justify-between max-w-sm">
                             <span>{item.item_name}</span>
-                            <span className="font-bold text-slate-800">{item.score}</span>
+                            <span className="font-bold text-[var(--theme-text)]">{item.score}</span>
                           </div>
                         )) : <span className="italic">Belum ada item psikomotor</span>}
                       </div>
                     </td>
-                    <td className="py-5 px-6 font-black text-slate-400 text-lg align-top">35%</td>
-                    <td className="py-5 px-6 font-black text-slate-700 text-lg align-top">{score.psychomotor_average?.toFixed(1) || '0.0'}</td>
-                    <td className="py-5 px-6 font-black text-violet-600 text-lg align-top">{score.psychomotor_weighted?.toFixed(1) || '0.0'}</td>
+                    <td className="py-5 px-6 font-bold text-[var(--theme-text-muted)] text-lg align-top">35%</td>
+                    <td className="py-5 px-6 font-bold text-[var(--theme-text)] text-lg align-top">{score.psychomotor_average?.toFixed(1) || '0.0'}</td>
+                    <td className="py-5 px-6 font-bold text-[var(--theme-secondary)] text-lg align-top">{score.psychomotor_weighted?.toFixed(1) || '0.0'}</td>
                   </tr>
 
                   {/* AFFECTIVE */}
-                  <tr className="hover:bg-slate-50/50 transition-colors">
+                  <tr className="hover:bg-[var(--theme-bg)]/40 transition-colors">
                     <td className="py-5 px-6 align-top">
-                      <span className="font-black text-slate-700 block mb-2">AFEKTIF</span>
-                      <div className="space-y-1.5 pl-4 text-xs font-semibold text-slate-500 border-l-2 border-rose-400">
+                      <span className="font-bold text-[var(--theme-text)] block mb-2">AFEKTIF</span>
+                      <div className="space-y-1.5 pl-4 text-xs font-semibold text-[var(--theme-text-muted)] border-l-2 border-[var(--theme-danger)]">
                         {affectiveItems.length > 0 ? affectiveItems.map(item => (
                           <div key={item.id} className="flex justify-between max-w-sm">
                             <span>{item.item_name}</span>
-                            <span className="font-bold text-slate-800">{item.score}</span>
+                            <span className="font-bold text-[var(--theme-text)]">{item.score}</span>
                           </div>
                         )) : <span className="italic">Belum ada item afektif</span>}
                       </div>
                     </td>
-                    <td className="py-5 px-6 font-black text-slate-400 text-lg align-top">40%</td>
-                    <td className="py-5 px-6 font-black text-slate-700 text-lg align-top">{score.affective_average?.toFixed(1) || '0.0'}</td>
-                    <td className="py-5 px-6 font-black text-rose-600 text-lg align-top">{score.affective_weighted?.toFixed(1) || '0.0'}</td>
+                    <td className="py-5 px-6 font-bold text-[var(--theme-text-muted)] text-lg align-top">40%</td>
+                    <td className="py-5 px-6 font-bold text-[var(--theme-text)] text-lg align-top">{score.affective_average?.toFixed(1) || '0.0'}</td>
+                    <td className="py-5 px-6 font-bold text-[var(--theme-danger)] text-lg align-top">{score.affective_weighted?.toFixed(1) || '0.0'}</td>
                   </tr>
                 </tbody>
-                <tfoot className="bg-slate-50 border-t border-slate-100">
+                <tfoot className="bg-[var(--theme-bg)] border-t border-[var(--theme-border)]">
                   <tr className="font-black">
-                    <td colSpan="3" className="py-4 px-6 text-right text-slate-500 uppercase tracking-widest text-xs">Total Nilai Akhir (100%)</td>
-                    <td className="py-4 px-6 text-indigo-700 text-2xl">{score.final_score?.toFixed(1) || '0.0'}</td>
+                    <td colSpan="3" className="py-4 px-6 text-right text-[var(--theme-text-muted)] uppercase tracking-widest text-xs">Total Nilai Akhir (100%)</td>
+                    <td className="py-4 px-6 text-[var(--theme-primary)] text-2xl">{score.final_score?.toFixed(1) || '0.0'}</td>
                   </tr>
                 </tfoot>
               </table>
@@ -435,18 +438,18 @@ const StudentDetail = () => {
 
       {/* TAB CONTENT: GRADE INPUT FORM */}
       {activeTab === 'form' && (
-        <form onSubmit={handleSaveScores} className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-8">
+        <form onSubmit={handleSaveScores} className="bg-white p-8 rounded-2xl border border-[var(--theme-border)] shadow-sm space-y-8">
           <div>
-            <h3 className="text-base font-black text-slate-800 uppercase tracking-tight">Form Pengisian Nilai Mahasiswa</h3>
-            <p className="text-xs font-semibold text-slate-400 mt-1">Masukkan nilai dari 0 hingga 100 untuk sub-item manual. Nilai tes otomatis ditampilkan sebagai referensi.</p>
+            <h3 className="text-base font-bold text-[var(--theme-text)] uppercase tracking-tight">Form Pengisian Nilai Mahasiswa</h3>
+            <p className="text-xs font-semibold text-[var(--theme-text-muted)] mt-1">Masukkan nilai dari 0 hingga 100 untuk sub-item manual. Nilai tes otomatis ditampilkan sebagai referensi.</p>
           </div>
 
           <div className="space-y-6">
             {/* Cognitive */}
             <div className="space-y-4">
-              <h4 className="text-xs font-black uppercase tracking-wider text-sky-500">I. Komponen Kognitif (Bobot 25%)</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--theme-primary)]">I. Komponen Kognitif (Bobot 25%)</h4>
               {!SCORE_DEFINITIONS.cognitive.length && (
-                <div className="rounded-2xl bg-slate-50 border border-slate-100 px-4 py-3 text-xs font-bold text-slate-500">
+                <div className="rounded-2xl bg-[var(--theme-bg)] border border-[var(--theme-border)] px-4 py-3 text-xs font-bold text-[var(--theme-text-muted)]">
                   Belum ada post test aktif dari Kencana University. Nilai post test akan muncul otomatis setelah kuis aktif dan dikerjakan mahasiswa.
                 </div>
               )}
@@ -456,7 +459,7 @@ const StudentDetail = () => {
                   const currentVal = scoresInput[key] ?? '';
                   return (
                     <div key={def.key} className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-600 block">{def.label}</label>
+                      <label className="text-xs font-bold text-[var(--theme-text-muted)] block">{def.label}</label>
                       <input
                         type="number"
                         min="0"
@@ -466,14 +469,14 @@ const StudentDetail = () => {
                         value={currentVal}
                         onChange={e => handleScoreChange('cognitive', def.key, e.target.value)}
                         disabled={!def.manual}
-                        className={`w-full px-4 py-2.5 rounded-xl border text-sm font-semibold focus:outline-none transition-all ${
+                        className={`w-full h-10 px-4 bg-[var(--theme-bg)] border rounded-xl text-sm font-semibold focus:outline-none transition-all ${
                           def.manual 
-                            ? 'border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100' 
-                            : 'border-slate-100 bg-slate-50 text-slate-400 cursor-not-allowed font-medium'
+                            ? 'border-[var(--theme-border)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)]' 
+                            : 'border-[var(--theme-border-muted)] bg-[var(--theme-bg)] text-[var(--theme-text-muted)] cursor-not-allowed font-medium'
                         }`}
                       />
                       {!def.manual && (
-                        <span className="text-[10px] font-semibold text-slate-400 block">Dihitung otomatis oleh sistem</span>
+                        <span className="text-[10px] font-semibold text-[var(--theme-text-muted)] block">Dihitung otomatis oleh sistem</span>
                       )}
                     </div>
                   );
@@ -483,14 +486,14 @@ const StudentDetail = () => {
 
             {/* Psychomotor */}
             <div className="space-y-4">
-              <h4 className="text-xs font-black uppercase tracking-wider text-violet-500">II. Komponen Psikomotor (Bobot 35%)</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--theme-secondary)]">II. Komponen Psikomotor (Bobot 35%)</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {SCORE_DEFINITIONS.psychomotor.map(def => {
                   const key = `psychomotor__${def.key}`;
                   const currentVal = scoresInput[key] ?? '';
                   return (
                     <div key={def.key} className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-600 block" title={def.key}>
+                      <label className="text-xs font-bold text-[var(--theme-text-muted)] block" title={def.key}>
                         {def.label}
                       </label>
                       <input
@@ -501,7 +504,7 @@ const StudentDetail = () => {
                         placeholder="Nilai (0-100)"
                         value={currentVal}
                         onChange={e => handleScoreChange('psychomotor', def.key, e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 text-sm font-semibold focus:outline-none transition-all"
+                        className="w-full h-10 px-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] transition-all"
                       />
                     </div>
                   );
@@ -511,14 +514,14 @@ const StudentDetail = () => {
 
             {/* Affective */}
             <div className="space-y-4">
-              <h4 className="text-xs font-black uppercase tracking-wider text-rose-500">III. Komponen Afektif (Bobot 40%)</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--theme-danger)]">III. Komponen Afektif (Bobot 40%)</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {SCORE_DEFINITIONS.affective.map(def => {
                   const key = `affective__${def.key}`;
                   const currentVal = scoresInput[key] ?? '';
                   return (
                     <div key={def.key} className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-600 block">{def.label}</label>
+                      <label className="text-xs font-bold text-[var(--theme-text-muted)] block">{def.label}</label>
                       <input
                         type="number"
                         min="0"
@@ -527,7 +530,7 @@ const StudentDetail = () => {
                         placeholder="Nilai (0-100)"
                         value={currentVal}
                         onChange={e => handleScoreChange('affective', def.key, e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 text-sm font-semibold focus:outline-none transition-all"
+                        className="w-full h-10 px-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] transition-all"
                       />
                     </div>
                   );
@@ -537,14 +540,14 @@ const StudentDetail = () => {
 
             {/* Requirements Override */}
             <div className="space-y-4">
-              <h4 className="text-xs font-black uppercase tracking-wider text-amber-500">IV. Persyaratan Kelulusan (Manual Override)</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--theme-warning)]">IV. Persyaratan Kelulusan (Manual Override)</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {SCORE_DEFINITIONS.requirements.map(def => {
                   const key = `requirements__${def.key}`;
                   const currentVal = scoresInput[key] ?? '';
                   return (
                     <div key={def.key} className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-600 block">{def.label}</label>
+                      <label className="text-xs font-bold text-[var(--theme-text-muted)] block">{def.label}</label>
                       <input
                         type="number"
                         min="0"
@@ -553,9 +556,9 @@ const StudentDetail = () => {
                         placeholder="Nilai (0-100)"
                         value={currentVal}
                         onChange={e => handleScoreChange('requirements', def.key, e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 text-sm font-semibold focus:outline-none transition-all"
+                        className="w-full h-10 px-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] transition-all"
                       />
-                      <span className="text-[10px] font-semibold text-slate-400 block">Isi 100 untuk menyatakan lengkap/lulus.</span>
+                      <span className="text-[10px] font-semibold text-[var(--theme-text-muted)] block">Isi 100 untuk menyatakan lengkap/lulus.</span>
                     </div>
                   );
                 })}
@@ -563,11 +566,11 @@ const StudentDetail = () => {
             </div>
           </div>
 
-          <div className="flex justify-end pt-4 border-t border-slate-100">
+          <div className="flex justify-end pt-4 border-t border-[var(--theme-border-muted)]">
             <button
               type="submit"
               disabled={saveScoresMutation.isPending}
-              className="px-6 py-3 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 shadow-lg shadow-indigo-100 disabled:opacity-50 transition-all text-sm flex items-center gap-2"
+              className="h-10 px-6 bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white font-bold rounded-xl disabled:opacity-50 transition-all text-xs flex items-center gap-2 shadow-sm"
             >
               {saveScoresMutation.isPending && (
                 <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
@@ -582,46 +585,46 @@ const StudentDetail = () => {
       {activeTab === 'handbook' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Content panel */}
-          <div className="lg:col-span-2 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6">
-            <div className="border-b border-slate-50 pb-4">
-              <h3 className="text-base font-black text-slate-800 uppercase tracking-tight">Lembar Pengisian Handbook Mahasiswa</h3>
-              <p className="text-xs font-semibold text-slate-400 mt-1">Review isian handbook yang telah dikumpulkan mahasiswa bimbingan.</p>
+          <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-[var(--theme-border)] shadow-sm space-y-6">
+            <div className="border-b border-[var(--theme-border-muted)] pb-4">
+              <h3 className="text-base font-bold text-[var(--theme-text)] uppercase tracking-tight">Lembar Pengisian Handbook Mahasiswa</h3>
+              <p className="text-xs font-semibold text-[var(--theme-text-muted)] mt-1">Review isian handbook yang telah dikumpulkan mahasiswa bimbingan.</p>
             </div>
 
             {!handbookData || handbookData.status === 'not_started' ? (
-              <div className="p-8 text-center text-slate-500 italic">
+              <div className="p-8 text-center text-[var(--theme-text-muted)] italic font-semibold">
                 Mahasiswa belum mengisi handbook pada periode ini.
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <div className="flex items-center justify-between p-4 bg-[var(--theme-bg)] rounded-xl border border-[var(--theme-border)]">
                   <div>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Status Pengiriman</span>
-                    <span className="font-black text-slate-700 uppercase">{handbookData.status}</span>
+                    <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest block mb-1">Status Pengiriman</span>
+                    <span className="font-bold text-[var(--theme-text)] uppercase">{handbookData.status}</span>
                   </div>
                   {handbookData.submitted_at && (
                     <div className="text-right">
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Tanggal Submit</span>
-                      <span className="font-semibold text-slate-600 text-xs">{new Date(handbookData.submitted_at).toLocaleString('id-ID')}</span>
+                      <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest block mb-1">Tanggal Submit</span>
+                      <span className="font-semibold text-[var(--theme-text)] text-xs">{new Date(handbookData.submitted_at).toLocaleString('id-ID')}</span>
                     </div>
                   )}
                 </div>
 
                 <div className="space-y-4">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-400">Isi Ringkasan Handbook:</h4>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--theme-text-muted)]">Isi Ringkasan Handbook:</h4>
                   {handbookContent ? (
                     <div className="max-h-[500px] overflow-y-auto no-scrollbar">
                       <div className="space-y-4 px-1">
                         {Object.entries(handbookContent).map(([section, value]) => (
-                          <div key={section} className="p-4 rounded-2xl border border-slate-100 bg-white">
-                            <span className="text-[10px] font-black text-indigo-500 uppercase tracking-wider block mb-1">{section.replace(/_/g, ' ')}</span>
-                            <p className="text-sm font-semibold text-slate-700 whitespace-pre-wrap">{typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value || '-')}</p>
+                          <div key={section} className="p-4 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg)]">
+                            <span className="text-[10px] font-bold text-[var(--theme-primary)] uppercase tracking-wider block mb-2">{section.replace(/_/g, ' ')}</span>
+                            <p className="text-sm font-semibold text-[var(--theme-text)] whitespace-pre-wrap">{typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value || '-')}</p>
                           </div>
                         ))}
                       </div>
                     </div>
                   ) : (
-                    <div className="p-4 bg-slate-50 text-slate-500 text-xs italic rounded-2xl">
+                    <div className="p-4 bg-[var(--theme-bg)] text-[var(--theme-text-muted)] text-xs italic rounded-xl border border-[var(--theme-border)]">
                       Format isian handbook kosong atau tidak valid.
                     </div>
                   )}
@@ -631,38 +634,38 @@ const StudentDetail = () => {
           </div>
 
           {/* Approval review Form */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6 self-start">
-            <h3 className="text-base font-black text-slate-800 uppercase tracking-tight">Keputusan Evaluasi</h3>
-            <p className="text-xs font-semibold text-slate-400">Sebagai DP/Mentor, Anda wajib memverifikasi keabsahan handbook sebelum menyetujuinya.</p>
+          <div className="bg-white p-6 rounded-2xl border border-[var(--theme-border)] shadow-sm space-y-6 self-start">
+            <h3 className="text-base font-bold text-[var(--theme-text)] uppercase tracking-tight">Keputusan Evaluasi</h3>
+            <p className="text-xs font-semibold text-[var(--theme-text-muted)]">Sebagai DP/Mentor, Anda wajib memverifikasi keabsahan handbook sebelum menyetujuinya.</p>
 
             <form onSubmit={handleSaveReview} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-600 block">Status Persetujuan</label>
-                <select
+                <label className="text-xs font-bold text-[var(--theme-text-muted)] block">Status Persetujuan</label>
+                <SelectField
                   value={reviewStatus}
-                  onChange={e => setReviewStatus(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 text-sm font-bold text-slate-700 bg-white focus:outline-none transition-all"
+                  onValueChange={val => setReviewStatus(val)}
+                  className="w-full"
                 >
-                  <option value="approved">✅ Setujui (Approved)</option>
-                  <option value="rejected">❌ Perlu Perbaikan (Rejected)</option>
-                </select>
+                  <SelectOption value="approved">✅ Setujui (Approved)</SelectOption>
+                  <SelectOption value="rejected">❌ Perlu Perbaikan (Rejected)</SelectOption>
+                </SelectField>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-600 block">Feedback / Catatan</label>
+                <label className="text-xs font-bold text-[var(--theme-text-muted)] block">Feedback / Catatan</label>
                 <textarea
                   rows="4"
                   placeholder="Tuliskan catatan perbaikan atau feedback untuk mahasiswa..."
                   value={reviewFeedback}
                   onChange={e => setReviewFeedback(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 text-sm font-semibold text-slate-700 focus:outline-none transition-all resize-none"
+                  className="w-full px-4 py-3 rounded-xl bg-[var(--theme-bg)] border border-[var(--theme-border)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] text-sm font-semibold text-[var(--theme-text)] focus:outline-none transition-all resize-none"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={reviewHandbookMutation.isPending || !handbookData || handbookData.status === 'not_started'}
-                className="w-full py-3 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 shadow-lg shadow-indigo-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm flex items-center justify-center gap-2"
+                className="w-full h-10 bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white font-bold rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all text-xs flex items-center justify-center gap-2 shadow-sm"
               >
                 {reviewHandbookMutation.isPending && (
                   <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>

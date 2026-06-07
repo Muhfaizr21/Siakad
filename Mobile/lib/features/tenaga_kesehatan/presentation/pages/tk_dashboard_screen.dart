@@ -45,20 +45,27 @@ class _TkDashboardScreenState extends State<TkDashboardScreen> {
                 expandedHeight: 210,
                 showProfileOnCollapse: true,
                 showNotification: false,
-                profileImage: imageUrl.isNotEmpty
-                    ? Image.network(
-                        imageUrl,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _buildInitialsAvatar(initials),
-                      )
-                    : _buildInitialsAvatar(initials),
+                profileImage:
+                    imageUrl.isNotEmpty
+                        ? Image.network(
+                          imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder:
+                              (_, __, ___) => _buildInitialsAvatar(initials),
+                        )
+                        : _buildInitialsAvatar(initials),
                 child: _buildAvailabilityToggle(provider),
               ),
 
               // Content
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.only(left: 20, right: 20, top: 18, bottom: 20),
+                  padding: const EdgeInsets.only(
+                    left: 20,
+                    right: 20,
+                    top: 18,
+                    bottom: 20,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -220,7 +227,8 @@ class _TkDashboardScreenState extends State<TkDashboardScreen> {
                 label: 'Jadwal',
                 color: AppColors.primary,
                 onTap: () {
-                  final mainState = context.findAncestorStateOfType<TkMainScreenState>();
+                  final mainState =
+                      context.findAncestorStateOfType<TkMainScreenState>();
                   if (mainState != null) {
                     mainState.setSelectedIndex(1);
                   } else {
@@ -235,7 +243,8 @@ class _TkDashboardScreenState extends State<TkDashboardScreen> {
                 label: 'Booking',
                 color: AppColors.success,
                 onTap: () {
-                  final mainState = context.findAncestorStateOfType<TkMainScreenState>();
+                  final mainState =
+                      context.findAncestorStateOfType<TkMainScreenState>();
                   if (mainState != null) {
                     mainState.setSelectedIndex(2);
                   } else {
@@ -250,7 +259,8 @@ class _TkDashboardScreenState extends State<TkDashboardScreen> {
                 label: 'Pasien',
                 color: AppColors.info,
                 onTap: () {
-                  final mainState = context.findAncestorStateOfType<TkMainScreenState>();
+                  final mainState =
+                      context.findAncestorStateOfType<TkMainScreenState>();
                   if (mainState != null) {
                     mainState.setSelectedIndex(3);
                   } else {
@@ -279,7 +289,8 @@ class _TkDashboardScreenState extends State<TkDashboardScreen> {
               label: 'Settings',
               color: AppColors.neutral500,
               onTap: () {
-                final mainState = context.findAncestorStateOfType<TkMainScreenState>();
+                final mainState =
+                    context.findAncestorStateOfType<TkMainScreenState>();
                 if (mainState != null) {
                   mainState.setSelectedIndex(4);
                 } else {
@@ -315,22 +326,27 @@ class _TkDashboardScreenState extends State<TkDashboardScreen> {
               Container(
                 padding: EdgeInsets.all(isHighlighted ? 14 : 12),
                 decoration: BoxDecoration(
-                  color: isHighlighted
-                      ? const Color(0xFF001A4D)
-                      : color.withAlpha(20),
+                  color:
+                      isHighlighted
+                          ? const Color(0xFF001A4D)
+                          : color.withAlpha(20),
                   borderRadius: BorderRadius.circular(16),
-                  border: isHighlighted
-                      ? Border.all(color: const Color(0xFF001A4D).withAlpha(60))
-                      : null,
-                  boxShadow: isHighlighted
-                      ? [
-                          BoxShadow(
-                            color: const Color(0xFF001A4D).withAlpha(40),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ]
-                      : null,
+                  border:
+                      isHighlighted
+                          ? Border.all(
+                            color: const Color(0xFF001A4D).withAlpha(60),
+                          )
+                          : null,
+                  boxShadow:
+                      isHighlighted
+                          ? [
+                            BoxShadow(
+                              color: const Color(0xFF001A4D).withAlpha(40),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ]
+                          : null,
                 ),
                 child: Icon(
                   icon,
@@ -343,7 +359,10 @@ class _TkDashboardScreenState extends State<TkDashboardScreen> {
                 label,
                 style: AppTextStyles.labelSm.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: isHighlighted ? const Color(0xFF001A4D) : AppColors.neutral500,
+                  color:
+                      isHighlighted
+                          ? const Color(0xFF001A4D)
+                          : AppColors.neutral500,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -375,11 +394,17 @@ class _TkDashboardScreenState extends State<TkDashboardScreen> {
         child: Center(
           child: Column(
             children: [
-              Icon(Icons.event_available_rounded, size: 48, color: AppColors.neutral300),
+              Icon(
+                Icons.event_available_rounded,
+                size: 48,
+                color: AppColors.neutral300,
+              ),
               const SizedBox(height: 12),
               Text(
                 'Tidak ada booking hari ini',
-                style: AppTextStyles.bodyMd.copyWith(color: AppColors.neutral400),
+                style: AppTextStyles.bodyMd.copyWith(
+                  color: AppColors.neutral400,
+                ),
               ),
             ],
           ),
@@ -413,9 +438,10 @@ class _TkDashboardScreenState extends State<TkDashboardScreen> {
     }
 
     final parts = name.trim().split(' ');
-    final avatar = parts.length >= 2
-        ? '${parts[0][0]}${parts[1][0]}'.toUpperCase()
-        : name.isNotEmpty
+    final avatar =
+        parts.length >= 2
+            ? '${parts[0][0]}${parts[1][0]}'.toUpperCase()
+            : name.isNotEmpty
             ? name[0].toUpperCase()
             : '?';
 
@@ -426,9 +452,10 @@ class _TkDashboardScreenState extends State<TkDashboardScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: status == 'Menunggu Konfirmasi'
-              ? AppColors.warning.withAlpha(80)
-              : Colors.grey.withAlpha(30),
+          color:
+              status == 'Menunggu Konfirmasi'
+                  ? AppColors.warning.withAlpha(80)
+                  : Colors.grey.withAlpha(30),
         ),
         boxShadow: [
           BoxShadow(
@@ -466,24 +493,38 @@ class _TkDashboardScreenState extends State<TkDashboardScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '$nim',
-                  style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF64748B)),
+                  nim,
+                  style: AppTextStyles.labelSm.copyWith(
+                    color: const Color(0xFF64748B),
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    Icon(Icons.calendar_today_rounded, size: 12, color: AppColors.neutral500),
+                    Icon(
+                      Icons.calendar_today_rounded,
+                      size: 12,
+                      color: AppColors.neutral500,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       date,
-                      style: AppTextStyles.labelSm.copyWith(color: AppColors.neutral500),
+                      style: AppTextStyles.labelSm.copyWith(
+                        color: AppColors.neutral500,
+                      ),
                     ),
                     const SizedBox(width: 8),
-                    Icon(Icons.access_time_rounded, size: 12, color: AppColors.neutral500),
+                    Icon(
+                      Icons.access_time_rounded,
+                      size: 12,
+                      color: AppColors.neutral500,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       time,
-                      style: AppTextStyles.labelSm.copyWith(color: AppColors.neutral500),
+                      style: AppTextStyles.labelSm.copyWith(
+                        color: AppColors.neutral500,
+                      ),
                     ),
                   ],
                 ),
@@ -562,7 +603,11 @@ class _TkDashboardScreenState extends State<TkDashboardScreen> {
               color: AppColors.danger.withAlpha(20),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.warning_amber_rounded, color: AppColors.danger, size: 20),
+            child: const Icon(
+              Icons.warning_amber_rounded,
+              color: AppColors.danger,
+              size: 20,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -571,11 +616,15 @@ class _TkDashboardScreenState extends State<TkDashboardScreen> {
               children: [
                 Text(
                   '$name ($nim)',
-                  style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.bold),
+                  style: AppTextStyles.bodyMd.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 Text(
                   '$event - Status: $status',
-                  style: AppTextStyles.labelSm.copyWith(color: AppColors.danger),
+                  style: AppTextStyles.labelSm.copyWith(
+                    color: AppColors.danger,
+                  ),
                 ),
               ],
             ),

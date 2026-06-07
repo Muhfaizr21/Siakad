@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { PageContent, PageHeader } from '@/components/ui/page';
 import { motion, AnimatePresence } from 'framer-motion';
 import { selfScreeningService } from '../../services/api';
 import toast from 'react-hot-toast';
@@ -121,24 +122,19 @@ export default function SelfScreeningPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-teal-50 pb-20">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-teal-600 to-emerald-600 text-white px-4 py-6 shadow-lg">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center gap-3 mb-1">
-            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-              <HealthIcon size={24} className="text-white" />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold">Self-Screening</h1>
-              <p className="text-xs text-white/80">Isi data sebelum ke klinik</p>
-            </div>
-          </div>
-        </div>
-      </div>
+    <PageContent className="font-body">
+      <PageHeader 
+        title="Self-Screening" 
+        subtitle="Isi data subjektif/gejala sebelum melakukan kunjungan ke klinik" 
+        icon="medical_information" 
+        breadcrumbs={[
+          { label: 'Student Hub', path: '/student/dashboard' },
+          { label: 'Self-Screening' }
+        ]} 
+      />
 
       {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+      <div className="w-full py-6 space-y-6">
         {/* Info Card */}
         <div className="bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-200 rounded-xl p-4">
           <div className="flex gap-3">
@@ -155,13 +151,13 @@ export default function SelfScreeningPage() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex bg-white rounded-xl p-1 shadow-sm border border-slate-200">
+        <div className="flex bg-surface rounded-xl p-1 shadow-sm border border-border">
           <button
             onClick={() => setActiveTab('input')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-bold transition-all ${
+            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${
               activeTab === 'input'
-                ? 'bg-teal-500 text-white shadow-md'
-                : 'text-slate-600 hover:bg-slate-50'
+                ? 'bg-[var(--theme-primary)] text-white shadow-md'
+                : 'text-slate-600 hover:bg-background'
             }`}
           >
             <span className="material-symbols-outlined text-lg">edit_note</span>
@@ -169,10 +165,10 @@ export default function SelfScreeningPage() {
           </button>
           <button
             onClick={() => setActiveTab('riwayat')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-bold transition-all ${
+            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${
               activeTab === 'riwayat'
-                ? 'bg-teal-500 text-white shadow-md'
-                : 'text-slate-600 hover:bg-slate-50'
+                ? 'bg-[var(--theme-primary)] text-white shadow-md'
+                : 'text-slate-600 hover:bg-background'
             }`}
           >
             <span className="material-symbols-outlined text-lg">history</span>
@@ -192,7 +188,7 @@ export default function SelfScreeningPage() {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-4"
             >
-              <div className="bg-white rounded-xl p-4 border border-slate-200 space-y-4">
+              <div className="bg-surface rounded-xl p-4 border border-border space-y-4">
                 {/* Keluhan Utama */}
                 <div>
                   <label className="block text-xs font-bold text-slate-600 mb-1">
@@ -204,7 +200,7 @@ export default function SelfScreeningPage() {
                     onChange={handleInputChange}
                     rows={4}
                     placeholder="Jelaskan apa yang Anda rasakan saat ini..."
-                    className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none resize-none"
+                    className="w-full px-3 py-2.5 border border-border rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none resize-none bg-background text-[var(--theme-text)]"
                   />
                 </div>
 
@@ -220,11 +216,11 @@ export default function SelfScreeningPage() {
                       max="10"
                       value={form.skala_nyeri}
                       onChange={(e) => handleNyeriChange(e.target.value)}
-                      className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-teal-500"
+                      className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[var(--theme-primary)]"
                     />
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <div className={`w-8 h-8 rounded-lg ${getNyeriColor(form.skala_nyeri)} flex items-center justify-center`}>
+                        <div className={`w-8 h-8 rounded-xl ${getNyeriColor(form.skala_nyeri)} flex items-center justify-center`}>
                           <span className="text-white font-bold text-sm">{form.skala_nyeri}</span>
                         </div>
                         <span className="text-sm font-semibold text-slate-700">{getNyeriLabel(form.skala_nyeri)}</span>
@@ -236,7 +232,7 @@ export default function SelfScreeningPage() {
                             onClick={() => handleNyeriChange(val)}
                             className={`w-6 h-6 rounded-full text-xs font-bold transition-all ${
                               form.skala_nyeri === val
-                                ? 'bg-teal-500 text-white'
+                                ? 'bg-[var(--theme-primary)] text-white'
                                 : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
                             }`}
                           >
@@ -259,7 +255,7 @@ export default function SelfScreeningPage() {
                     value={form.alergi_obat}
                     onChange={handleInputChange}
                     placeholder="Contoh: Penicillin, Amoxicillin, dll"
-                    className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none"
+                    className="w-full px-3 py-2.5 border border-border rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-background text-[var(--theme-text)]"
                   />
                 </div>
 
@@ -274,7 +270,7 @@ export default function SelfScreeningPage() {
                     value={form.konsumsi_obat}
                     onChange={handleInputChange}
                     placeholder="Contoh: Metformin 500mg 2x1, Amlodipine 10mg 1x1"
-                    className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none"
+                    className="w-full px-3 py-2.5 border border-border rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-background text-[var(--theme-text)]"
                   />
                 </div>
 
@@ -292,7 +288,7 @@ export default function SelfScreeningPage() {
                 <button
                   onClick={handleSubmit}
                   disabled={submitting}
-                  className="w-full py-3 bg-gradient-to-r from-teal-500 to-emerald-500 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+                  className="w-full py-3 bg-[var(--theme-primary)] text-white font-bold rounded-xl shadow-md hover:opacity-90 transition-all disabled:opacity-50"
                 >
                   {submitting ? (
                     <span className="flex items-center justify-center gap-2">
@@ -323,14 +319,14 @@ export default function SelfScreeningPage() {
               {loading ? (
                 <div className="space-y-4">
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className="bg-white rounded-xl p-4 border border-slate-200 animate-pulse">
+                    <div key={i} className="bg-surface rounded-xl p-4 border border-border animate-pulse">
                       <div className="h-4 bg-slate-200 rounded w-2/3 mb-2"></div>
                       <div className="h-3 bg-slate-100 rounded w-1/2"></div>
                     </div>
                   ))}
                 </div>
               ) : screenings.length === 0 ? (
-                <div className="bg-white rounded-xl p-8 border border-slate-200 text-center">
+                <div className="bg-surface rounded-xl p-8 border border-border text-center">
                   <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
                     <span className="material-symbols-outlined text-3xl text-slate-400">medical_information</span>
                   </div>
@@ -344,7 +340,7 @@ export default function SelfScreeningPage() {
                 </div>
               ) : (
                 screenings.map((screening) => (
-                  <div key={screening.id} className="bg-white rounded-xl p-4 border border-slate-200">
+                  <div key={screening.id} className="bg-surface rounded-xl p-4 border border-border">
                     <div className="flex justify-between items-start mb-3">
                       <div>
                         <div className="flex items-center gap-2">
@@ -398,6 +394,6 @@ export default function SelfScreeningPage() {
           )}
         </AnimatePresence>
       </div>
-    </div>
+    </PageContent>
   );
 }

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { bapService } from '../../services/api';
 import toast from 'react-hot-toast';
+import { PageContent } from '@/components/ui/page';
+import { DashboardHero } from '@/components/ui/dashboard';
 
 // Auto-injected Material Symbol fallbacks
 const DocumentIcon = ({ size, className, ...props }) => (
@@ -222,26 +224,25 @@ export default function BAPManagement() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-blue-500 flex items-center justify-center">
-            <DocumentIcon size={24} className="text-white" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-slate-800">Berita Acara Pemeriksaan</h1>
-            <p className="text-sm text-slate-500">Kelola BAP kegiatan kesehatan</p>
-          </div>
-        </div>
-        <button
-          onClick={handleOpenCreate}
-          className="flex items-center gap-2 px-4 py-2.5 bg-teal-500 text-white font-bold rounded-xl hover:bg-teal-600 transition-colors"
-        >
-          <AddIcon size={18} />
-          Buat BAP Baru
-        </button>
-      </div>
+    <PageContent>
+      <DashboardHero
+        title="Berita Acara"
+        highlightedTitle="Pemeriksaan"
+        subtitle="Kelola BAP kegiatan kesehatan"
+        icon="description"
+        badges={[
+          { label: 'BAP Management', active: true },
+        ]}
+        actions={
+          <button
+            onClick={handleOpenCreate}
+            className="flex items-center gap-2 px-4 py-2.5 bg-teal-500 text-white font-bold rounded-xl hover:bg-teal-600 transition-colors"
+          >
+            <AddIcon size={18} />
+            Buat BAP Baru
+          </button>
+        }
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
@@ -629,6 +630,6 @@ export default function BAPManagement() {
           </>
         )}
       </AnimatePresence>
-    </div>
+    </PageContent>
   );
 }

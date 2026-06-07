@@ -9,6 +9,7 @@ import { format, isToday, isYesterday, isThisWeek, parseISO } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { toast } from 'react-hot-toast';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs';
+import { PageContent, PageHeader } from '@/components/ui/page';
 import { NotifListSkeleton } from '@/components/ui/SkeletonGroups';
 import EmptyState from '@/components/ui/EmptyState';
 import { 
@@ -20,12 +21,12 @@ import {
 } from '@/components/ui/Select';
 
 const CATEGORY_ICONS = {
-  achievement: <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '18px' }}>emoji_events</span>,
-  beasiswa: <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '18px' }} >school</span>,
-  konseling: <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '18px' }}>handshake</span>,
-  student_voice: <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '18px' }} >chat</span>,
-  kencana: <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '18px' }}>menu_book</span>,
-  sistem: <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '18px' }} >notifications</span>,
+  achievement: <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '18px' }}>emoji_events</span>,
+  beasiswa: <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '18px' }} >school</span>,
+  konseling: <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '18px' }}>handshake</span>,
+  student_voice: <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '18px' }} >chat</span>,
+  kencana: <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '18px' }}>menu_book</span>,
+  sistem: <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '18px' }} >notifications</span>,
 };
 
 const CATEGORIES = [
@@ -59,12 +60,12 @@ export default function NotificationPage() {
       const { data } = await api.get(`/notifikasi?tipe=${filterType}&waktu=${filterTime}`);
       return (data.data || []).map(raw => {
         const normalized = {
-          id: raw.ID,
+          id: raw.id ?? raw.ID,
           title: raw.Judul || 'Tanpa Judul',
           content: raw.Deskripsi || '',
           type: (raw.Tipe || 'sistem').toLowerCase(),
           is_read: raw.IsRead ?? false,
-          created_at: raw.CreatedAt || new Date().toISOString(),
+          created_at: raw.created_at || raw.CreatedAt || new Date().toISOString(),
           link: raw.Link || ''
         };
 
@@ -175,40 +176,35 @@ export default function NotificationPage() {
   };
 
   return (
-    <div className="p-6 md:p-10 text-[#171717] min-h-screen bg-[#fafafa]">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm font-medium text-[#a3a3a3] mb-8">
-        <NavLink to="/student/dashboard" className="hover:text-bku-primary cursor-pointer transition-colors">Dashboard</NavLink>
-        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>chevron_right</span>
-        <span className="text-[#171717]">Notifikasi</span>
-      </div>
-
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-10">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-black font-headline tracking-tight">Notifikasi</h1>
-          <p className="text-[#737373] font-bold text-xs sm:text-sm">
-            Kamu memiliki {notifData?.filter(n => !n.is_read).length || 0} pesan belum dibaca.
-          </p>
-        </div>
-        
-        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-          <button 
-            onClick={() => queryClient.invalidateQueries(['notifikasi'])}
-            disabled={!hasUnread}
-            className="w-full sm:w-auto px-5 py-2.5 bg-[#EAF1FF] text-bku-primary rounded-xl text-sm font-bold border border-[#C9D8FF] hover:bg-[#D5E2FF] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >check_circle</span>
-            Tandai Semua Dibaca
-          </button>
-          <button 
-            onClick={() => deleteReadAllMutation.mutate()}
-            className="w-full sm:w-auto px-5 py-2.5 bg-white text-[#737373] rounded-xl text-sm font-bold border border-[#e5e5e5] hover:bg-[#fafafa] transition-all flex items-center justify-center gap-2"
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >delete</span>
-            Hapus yang Sudah Dibaca
-          </button>
-        </div>
-      </div>
+    <PageContent className="font-body">
+      <PageHeader 
+        title="Notifikasi" 
+        subtitle={`Kamu memiliki ${notifData?.filter(n => !n.is_read).length || 0} pesan belum dibaca.`} 
+        icon="notifications" 
+        breadcrumbs={[
+          { label: 'Student Hub', path: '/student/dashboard' },
+          { label: 'Notifikasi' }
+        ]} 
+        action={
+          <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+            <button 
+              onClick={() => queryClient.invalidateQueries(['notifikasi'])}
+              disabled={!hasUnread}
+              className="w-full sm:w-auto px-4 py-2 bg-[var(--theme-primary-light)] text-[var(--theme-primary)] rounded-xl text-xs font-bold border border-[var(--theme-primary-light)] hover:opacity-90 transition-all disabled:opacity-50 flex items-center justify-center gap-1.5 shadow-sm"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >check_circle</span>
+              Tandai Semua Dibaca
+            </button>
+            <button 
+              onClick={() => deleteReadAllMutation.mutate()}
+              className="w-full sm:w-auto px-4 py-2 bg-[var(--theme-error-light)] text-[var(--theme-error)] rounded-xl text-xs font-bold border border-[var(--theme-error-light)] hover:opacity-90 transition-all flex items-center justify-center gap-1.5 shadow-sm"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >delete_sweep</span>
+              Hapus Terbaca
+            </button>
+          </div>
+        } 
+      />
 
       {/* Tabs & Filters */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
@@ -220,8 +216,8 @@ export default function NotificationPage() {
                 value={cat.id}
                 className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border-2 transition-all whitespace-nowrap ${
                   filterType === cat.id 
-                    ? 'bg-[#171717] text-white border-[#171717]' 
-                    : 'bg-white text-[#737373] border-[#e5e5e5] hover:border-bku-primary'
+                    ? 'bg-[var(--theme-primary)] text-white border-[var(--theme-primary)]' 
+                    : 'bg-surface text-[var(--theme-text-muted)] border-border hover:border-[var(--theme-primary)]'
                 }`}
               >
                 {cat.label}
@@ -233,7 +229,7 @@ export default function NotificationPage() {
         <div className="flex items-center justify-between sm:justify-start gap-3 w-full lg:w-auto">
            <span className="text-sm font-bold text-[#a3a3a3] whitespace-nowrap">Filter Waktu:</span>
            <Select value={filterTime} onValueChange={setFilterTime}>
-              <SelectTrigger className="w-[160px] h-10 rounded-xl bg-white border-[#e5e5e5] font-bold">
+              <SelectTrigger className="w-[160px] h-10 rounded-xl bg-surface border-border font-bold">
                 <SelectValue placeholder="Semua Waktu" />
               </SelectTrigger>
               <SelectContent>
@@ -250,7 +246,7 @@ export default function NotificationPage() {
       {selectedIds.length > 0 && (
         <div className="fixed bottom-4 sm:bottom-10 left-1/2 -translate-x-1/2 bg-[#171717] text-white px-5 py-4 rounded-2xl shadow-2xl z-50 flex flex-col sm:flex-row items-center gap-3 sm:gap-6 animate-in slide-in-from-bottom-5 duration-300 w-[92vw] sm:w-auto">
            <div className="flex items-center gap-3">
-              <span className="w-6 h-6 bg-bku-primary rounded-full flex items-center justify-center text-[10px] font-black">
+              <span className="w-6 h-6 bg-[var(--theme-primary)] rounded-full flex items-center justify-center text-[10px] font-black">
                 {selectedIds.length}
               </span>
               <span className="text-sm font-bold">dipilih</span>
@@ -259,7 +255,7 @@ export default function NotificationPage() {
            <div className="flex flex-wrap items-center justify-center gap-4 w-full sm:w-auto">
               <button 
                 onClick={() => bulkReadMutation.mutate(selectedIds)}
-                className="text-xs sm:text-sm font-bold hover:text-bku-primary transition-colors flex items-center gap-2"
+                className="text-xs sm:text-sm font-bold hover:text-[var(--theme-primary)] transition-colors flex items-center gap-2"
               >
                 <span className="material-symbols-outlined" style={{ fontSize: 16 }}>check</span> Tandai Dibaca
               </button>
@@ -292,12 +288,12 @@ export default function NotificationPage() {
               </div>
               
               <div className="grid gap-3">
-                {items.map((notif) => (
+                {items.map((notif, idx) => (
                   <div 
-                    key={notif.id}
+                    key={notif.id || `notif-${idx}`}
                     onClick={() => handleOpenNotification(notif)}
-                    className={`group relative bg-white border rounded-2xl p-4 sm:p-5 transition-all hover:shadow-md flex flex-row gap-3 sm:gap-5 items-start cursor-pointer ${
-                      !notif.is_read ? 'border-bku-primary/30 shadow-sm' : 'border-[#e5e5e5] grayscale-[0.5] opacity-80 hover:grayscale-0 hover:opacity-100'
+                    className={`group relative bg-surface border rounded-2xl p-4 sm:p-5 transition-all hover:shadow-md flex flex-row gap-3 sm:gap-5 items-start cursor-pointer ${
+                      !notif.is_read ? 'border-[var(--theme-primary)]/30 shadow-sm' : 'border-border grayscale-[0.5] opacity-80 hover:grayscale-0 hover:opacity-100'
                     }`}
                   >
                     {/* Checkbox */}
@@ -306,14 +302,14 @@ export default function NotificationPage() {
                          type="checkbox" 
                          checked={selectedIds.includes(notif.id)}
                          onChange={() => toggleSelect(notif.id)}
-                         className="w-5 h-5 rounded-md border-[#d4d4d4] text-bku-primary focus:ring-bku-primary cursor-pointer"
+                         className="w-5 h-5 rounded-md border-border text-[var(--theme-primary)] focus:ring-[var(--theme-primary)] cursor-pointer bg-background"
                        />
                     </div>
 
                     {/* Icon */}
                     <div className="shrink-0 hidden xs:block">
                        <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center border transition-transform duration-300 group-hover:scale-110 ${
-                         !notif.is_read ? 'bg-[#EAF1FF] border-[#C9D8FF]' : 'bg-[#fafafa] border-[#e5e5e5]'
+                         !notif.is_read ? 'bg-[var(--theme-primary-light)] border-[var(--theme-primary-light)]' : 'bg-background border-border'
                        }`}>
                           {CATEGORY_ICONS[notif.type] || <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >notifications</span>}
                        </div>
@@ -322,7 +318,7 @@ export default function NotificationPage() {
                     {/* Content */}
                     <div className="flex-1 min-w-0 pr-12 lg:pr-0">
                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4 mb-1">
-                          <h3 className={`text-sm sm:text-base tracking-tight truncate ${!notif.is_read ? 'font-black text-[#171717]' : 'font-bold text-[#525252]'}`}>
+                          <h3 className={`text-sm sm:text-base tracking-tight truncate ${!notif.is_read ? 'font-black text-[var(--theme-text)]' : 'font-bold text-[#525252]'}`}>
                             {notif.title}
                           </h3>
                            <span className="text-[10px] sm:text-[11px] font-bold text-[#a3a3a3] flex items-center gap-1">
@@ -347,7 +343,7 @@ export default function NotificationPage() {
                               e.stopPropagation();
                               handleOpenNotification(notif);
                             }}
-                            className="inline-flex items-center gap-2 text-[10px] sm:text-xs font-black text-bku-primary uppercase tracking-widest hover:underline"
+                            className="inline-flex items-center gap-2 text-[10px] sm:text-xs font-black text-[var(--theme-primary)] uppercase tracking-widest hover:underline"
                           >
                             Lihat Detail <span className="material-symbols-outlined" style={{ fontSize: 14 }}>chevron_right</span>
                           </button>
@@ -359,7 +355,7 @@ export default function NotificationPage() {
                        {!notif.is_read && (
                           <button 
                             onClick={(e) => { e.stopPropagation(); markReadMutation.mutate(notif.id); }}
-                            className="w-8 h-8 flex items-center justify-center bg-[#f0fdf4] text-[#16a34a] rounded-lg border border-[#dcfce7] hover:shadow-sm"
+                            className="w-8 h-8 flex items-center justify-center bg-[var(--theme-success-light)] text-[var(--theme-success)] rounded-lg border border-[var(--theme-success-light)] hover:shadow-sm"
                             title="Tandai dibaca"
                           >
                             <span className="material-symbols-outlined" style={{ fontSize: 14 }}>check</span>
@@ -367,7 +363,7 @@ export default function NotificationPage() {
                        )}
                        <button 
                          onClick={(e) => { e.stopPropagation(); deleteMutation.mutate(notif.id); }}
-                         className="w-8 h-8 flex items-center justify-center bg-[#fef2f2] text-[#ef4444] rounded-lg border border-[#fecaca] hover:shadow-sm"
+                         className="w-8 h-8 flex items-center justify-center bg-[var(--theme-error-light)] text-[var(--theme-error)] rounded-lg border border-[var(--theme-error-light)] hover:shadow-sm"
                          title="Hapus"
                        >
                          <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >delete</span>
@@ -375,7 +371,7 @@ export default function NotificationPage() {
                     </div>
 
                     {!notif.is_read && (
-                       <div className="absolute top-0 left-0 w-1 h-full bg-bku-primary rounded-l-2xl" />
+                       <div className="absolute top-0 left-0 w-1 h-full bg-[var(--theme-primary)] rounded-l-2xl" />
                     )}
                   </div>
                 ))}
@@ -390,6 +386,6 @@ export default function NotificationPage() {
           />
         )}
       </div>
-    </div>
+    </PageContent>
   );
 }

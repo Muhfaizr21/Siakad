@@ -20,7 +20,7 @@ export default function KencanaCertificatePage() {
       actions={<PrimaryButton to="/student/kencana/score">Lihat Nilai</PrimaryButton>}
     >
       <section className="grid gap-5 lg:grid-cols-[1fr_0.8fr]">
-        <div className="rounded-[2rem] border border-[#e8dfcf] bg-white/85 p-8 shadow-sm">
+        <div className="rounded-[2rem] border border-border bg-white/85 p-8 shadow-sm">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#9b8f7a]">Certificate Gate</p>
@@ -47,7 +47,7 @@ export default function KencanaCertificatePage() {
           </div>
         </div>
 
-        <div className="rounded-[2rem] border border-[#e8dfcf] bg-[#1f2f33] p-8 text-white shadow-sm">
+        <div className="rounded-[2rem] border border-border bg-[#1f2f33] p-8 text-white shadow-sm">
           <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#d8a84f]">Syarat Wajib</p>
           <h2 className="mt-2 text-2xl font-black">Checklist Kelulusan</h2>
           <div className="mt-6 space-y-3">

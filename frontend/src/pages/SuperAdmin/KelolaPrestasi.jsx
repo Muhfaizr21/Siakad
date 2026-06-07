@@ -15,6 +15,8 @@ import { toast, Toaster } from "react-hot-toast"
 import { cn } from "@/lib/utils"
 import { adminService, API_BASE_URL } from "../../services/api"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
+import { PageContent } from '@/components/ui/page'
+import { DashboardHero } from '@/components/ui/dashboard'
 
 // Material Symbol Icons
 const Trophy = ({ size = 20, className }) => <span className={cn("material-symbols-outlined shrink-0", className)} style={{ fontSize: size }}>emoji_events</span>
@@ -550,45 +552,22 @@ export default function KelolaPrestasi() {
   ]
 
   return (
-    <div className="min-h-screen bg-[#fafafa] font-body">
+    <PageContent>
       <Toaster position="top-right" />
 
-      <div className="max-w-[1600px] mx-auto space-y-10">
-        
-        {/* ── Page Header ─────────────────────────────────────────── */}
-        <section className="relative overflow-hidden rounded-3xl p-8 border border-slate-200/60 bg-white shadow-sm">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(59,130,246,0.04),transparent_50%)]" />
-          <div className="absolute inset-0 opacity-[0.015]"
-            style={{
-              backgroundImage: `radial-gradient(circle at 20% 50%, black 1px, transparent 1px), radial-gradient(circle at 80% 20%, black 1px, transparent 1px)`,
-              backgroundSize: "60px 60px"
-            }}
-          />
-          <div className="absolute -top-24 -right-24 w-80 h-80 bg-blue-500/5 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute -bottom-20 right-48 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl" />
-
-          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-6">
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <div className="h-4 w-1.5 bg-blue-500 rounded-full" />
-                <span className="text-[10px] font-black uppercase tracking-[0.25em] text-blue-600">Kemahasiswaan Portal</span>
-              </div>
-              <h1 className="text-3xl font-black text-neutral-900 font-headline tracking-tight leading-tight">
-                Kelola <span className="text-blue-600">Prestasi Mahasiswa</span>
-              </h1>
-              <p className="text-neutral-500 font-medium text-xs max-w-xl leading-relaxed mt-1.5">
-                Audit, verifikasi, dan validasi seluruh portofolio prestasi akademik/non-akademik mahasiswa secara terintegrasi.
-              </p>
-            </div>
-            
-            <div className="flex items-center gap-3 self-end md:self-auto">
-              <Button onClick={fetchData} disabled={loading} variant="outline" className="h-10 px-5 rounded-xl border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 transition-all active:scale-95 text-xs font-bold uppercase tracking-widest gap-2">
-                <RefreshCw size={14} animate={loading} className="text-blue-500" />
-                Refresh Data
-              </Button>
-            </div>
-          </div>
-        </section>
+      <DashboardHero
+        title="Kelola"
+        highlightedTitle="Prestasi Mahasiswa"
+        subtitle="Audit, verifikasi, dan validasi seluruh portofolio prestasi akademik/non-akademik mahasiswa secara terintegrasi."
+        icon="emoji_events"
+        badges={[{ label: 'Kemahasiswaan Portal', active: false }]}
+        actions={
+          <Button onClick={fetchData} disabled={loading} variant="outline" className="h-10 px-5 rounded-xl border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 transition-all active:scale-95 text-xs font-bold uppercase tracking-widest gap-2">
+            <RefreshCw size={14} animate={loading} className="text-blue-500" />
+            Refresh Data
+          </Button>
+        }
+      />
 
         {/* ── Stat Cards ──────────────────────────────────────────── */}
         <div className="space-y-4 md:space-y-5">
@@ -918,8 +897,6 @@ export default function KelolaPrestasi() {
             />
           </CardContent>
         </Card>
-
-      </div>
 
       {/* ── Detail Modal ───────────────────────────────────────────── */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
@@ -1269,6 +1246,6 @@ export default function KelolaPrestasi() {
           </DialogContent>
         )}
       </Dialog>
-    </div>
+    </PageContent>
   )
 }

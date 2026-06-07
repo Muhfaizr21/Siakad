@@ -1,12 +1,16 @@
 "use client"
-
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react';
+import { PageContent, PageHeader } from '@/components/ui/page';
 import { DataTable } from '@/components/ui/DataTable'
+
+
+
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
 import { Card, CardContent } from '@/components/ui/Card'
+import { SelectField, SelectOption } from '@/components/ui/SelectField'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import { Textarea } from '@/components/ui/Textarea'
@@ -30,7 +34,7 @@ const formatRp = (n) => {
 }
 
 const STATUS_CFG = {
-  draft: { label: 'Draft', cls: 'bg-slate-50 text-slate-600 border-slate-200' },
+  draft: { label: 'Draft', cls: 'bg-slate-50 text-slate-600 border-border' },
   diajukan: { label: 'Diajukan', cls: 'bg-blue-50 text-blue-700 border-blue-200' },
   disetujui: { label: 'Disetujui', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
   revisi: { label: 'Butuh Revisi', cls: 'bg-amber-50 text-amber-700 border-amber-200' },
@@ -316,7 +320,7 @@ export default function LpjManagement() {
       className: 'w-[140px] text-center',
       cellClassName: 'text-center',
       render: v => {
-        const cfg = STATUS_CFG[v] || { label: v || 'Draft', cls: 'bg-slate-50 text-slate-600 border-slate-200' }
+        const cfg = STATUS_CFG[v] || { label: v || 'Draft', cls: 'bg-slate-50 text-slate-600 border-border' }
         return (
           <Badge className={cn('font-bold text-[10px] uppercase tracking-wider px-3.5 py-1 border rounded-full', cfg.cls)}>
             {cfg.label}
@@ -336,119 +340,98 @@ export default function LpjManagement() {
   }, 0)
 
   return (
-    <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-8 font-body">
+    <PageContent className="font-body">
       <Toaster position="top-right" />
 
-      {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <section className="relative overflow-hidden rounded-[2rem] bg-white p-8 md:p-10 shadow-sm border border-slate-200">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(0,0,0,0.02)_0%,transparent_60%)]" />
-        <div className="absolute inset-0 opacity-[0.02]"
-          style={{
-            backgroundImage: `radial-gradient(circle at 20% 50%, var(--theme-primary) 1px, transparent 1px), radial-gradient(circle at 80% 20%, var(--theme-primary) 1px, transparent 1px)`,
-            backgroundSize: '40px 40px'
-          }}
-        />
-        <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full blur-3xl opacity-10" style={{ backgroundColor: 'var(--theme-secondary)' }} />
-        <div className="absolute -bottom-10 right-40 w-60 h-60 rounded-full blur-2xl opacity-10" style={{ backgroundColor: 'var(--theme-surface)' }} />
-
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-50 border border-slate-200 text-slate-500">
-              <span className="h-1.5 w-1.5 rounded-full animate-ping" style={{ backgroundColor: 'var(--theme-primary)' }} />
-              <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-600">Dokumen Pertanggungjawaban</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 shadow-inner" style={{ color: 'var(--theme-primary)' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>task</span>
-              </div>
-              <div>
-                <h1 className="text-3xl md:text-4xl font-black tracking-tight font-headline text-slate-900">Laporan & LPJ</h1>
-                <p className="text-slate-500 text-sm font-medium mt-1">Kelola pertanggungjawaban kegiatan, realisasi anggaran, dan evaluasi kepengurusan.</p>
-              </div>
-            </div>
-          </div>
-
+            {/* ── Welcome Banner ─────────────────────────────────────────── */}
+      <PageHeader 
+        title="Laporan & LPJ"
+        subtitle="Kelola pertanggungjawaban kegiatan, realisasi anggaran, dan evaluasi kepengurusan."
+        icon="task"
+        action={
           <Button
             onClick={handleOpenAdd}
-            className="h-12 px-6 rounded-2xl text-white font-bold text-xs tracking-wider shadow-lg shadow-blue-900/10 transition-all active:scale-95 shrink-0 w-full md:w-auto flex items-center justify-center gap-2"
+            className="h-10 px-5 rounded-xl text-white font-bold text-xs tracking-wider shadow-lg transition-all active:scale-95 shrink-0 w-full md:w-auto flex items-center justify-center gap-2"
             style={{ backgroundColor: 'var(--theme-primary)' }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add_task</span>
             <span>BUAT LPJ BARU</span>
           </Button>
-        </div>
-      </section>
+        }
+       
+        breadcrumbs={[ { label: 'Dashboard', path: '/ormawa' }, { label: 'Laporan & LPJ', path: '#' } ]} 
+      />
 
       {/* ── Statistics Summary Cards ────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
         {/* Total LPJ */}
-        <Card className="border border-slate-100 shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-md transition-all duration-300">
+        <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface hover:shadow-md transition-all duration-300">
           <CardContent className="p-6 flex items-center gap-4.5">
-            <div className="w-12 h-12 rounded-2xl bg-bku-primary/5 flex items-center justify-center text-bku-primary">
+            <div className="w-12 h-12 rounded-2xl bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)]">
               <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>assignment_turned_in</span>
             </div>
             <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Total Laporan LPJ</p>
-              <p className="text-2xl font-black text-slate-900 tracking-tight font-headline">{data.length}</p>
+              <p className="text-[10px] font-black text-[var(--theme-text-muted)] tracking-wider uppercase font-headline">Total Laporan LPJ</p>
+              <p className="text-2xl font-black text-[var(--theme-text)] tracking-tight font-headline">{data.length}</p>
             </div>
           </CardContent>
         </Card>
 
         {/* Disetujui */}
-        <Card className="border border-slate-100 shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-md transition-all duration-300">
+        <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface hover:shadow-md transition-all duration-300">
           <CardContent className="p-6 flex items-center gap-4.5">
             <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600">
               <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>check_circle</span>
             </div>
             <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">LPJ Disetujui</p>
-              <p className="text-2xl font-black text-slate-900 tracking-tight font-headline">{approvedLpjCount}</p>
+              <p className="text-[10px] font-black text-[var(--theme-text-muted)] tracking-wider uppercase font-headline">LPJ Disetujui</p>
+              <p className="text-2xl font-black text-[var(--theme-text)] tracking-tight font-headline">{approvedLpjCount}</p>
             </div>
           </CardContent>
         </Card>
 
         {/* Butuh Review */}
-        <Card className="border border-slate-100 shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-md transition-all duration-300">
+        <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface hover:shadow-md transition-all duration-300">
           <CardContent className="p-6 flex items-center gap-4.5">
             <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600">
               <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>pending_actions</span>
             </div>
             <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Diajukan & Revisi</p>
-              <p className="text-2xl font-black text-slate-900 tracking-tight font-headline">{pendingLpjCount}</p>
+              <p className="text-[10px] font-black text-[var(--theme-text-muted)] tracking-wider uppercase font-headline">Diajukan & Revisi</p>
+              <p className="text-2xl font-black text-[var(--theme-text)] tracking-tight font-headline">{pendingLpjCount}</p>
             </div>
           </CardContent>
         </Card>
 
         {/* Realisasi Keuangan */}
-        <Card className="border border-slate-100 shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-md transition-all duration-300">
+        <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface hover:shadow-md transition-all duration-300">
           <CardContent className="p-6 flex items-center gap-4.5">
             <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
               <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>payments</span>
             </div>
             <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Realisasi Anggaran</p>
-              <p className="text-xl font-black text-slate-900 tracking-tight font-headline">{formatRp(totalRealisasi)}</p>
+              <p className="text-[10px] font-black text-[var(--theme-text-muted)] tracking-wider uppercase font-headline">Realisasi Anggaran</p>
+              <p className="text-xl font-black text-[var(--theme-text)] tracking-tight font-headline">{formatRp(totalRealisasi)}</p>
             </div>
           </CardContent>
         </Card>
 
         {/* Efisiensi Tabungan */}
-        <Card className="border border-slate-100 shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-md transition-all duration-300">
+        <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface hover:shadow-md transition-all duration-300">
           <CardContent className="p-6 flex items-center gap-4.5">
             <div className="w-12 h-12 rounded-2xl bg-teal-50 flex items-center justify-center text-teal-600">
               <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>savings</span>
             </div>
             <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Sisa Saldo Efisiensi</p>
-              <p className="text-xl font-black text-slate-900 tracking-tight font-headline">{formatRp(totalSavings)}</p>
+              <p className="text-[10px] font-black text-[var(--theme-text-muted)] tracking-wider uppercase font-headline">Sisa Saldo Efisiensi</p>
+              <p className="text-xl font-black text-[var(--theme-text)] tracking-tight font-headline">{formatRp(totalSavings)}</p>
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* ── LPJ DataTable Container ─────────────────────────────────── */}
-      <Card className="border border-slate-200/50 shadow-sm rounded-[2rem] overflow-hidden bg-white/70 backdrop-blur-md">
+      <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-[var(--theme-surface)]/70 backdrop-blur-md">
         <CardContent className="p-6">
           <DataTable
             columns={columns}
@@ -489,7 +472,7 @@ export default function LpjManagement() {
                   onClick={() => { setSelected(row); setIsDetailOpen(true) }}
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-slate-400 hover:text-bku-primary hover:bg-blue-50 rounded-xl active:scale-95 transition-all"
+                  className="h-8 w-8 text-[var(--theme-text-subtle)] hover:text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)] rounded-xl active:scale-95 transition-all"
                   title="Lihat Detail LPJ"
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>visibility</span>
@@ -518,12 +501,11 @@ export default function LpjManagement() {
         </CardContent>
       </Card>
 
-      {/* ── Detail View Dialog ──────────────────────────────────────── */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-xl p-0 max-h-[90vh] overflow-y-auto border-none shadow-2xl rounded-[2.5rem] bg-white animate-in zoom-in-95 duration-200">
+        <DialogContent className="max-w-xl p-0 max-h-[90vh] overflow-y-auto border border-border shadow-2xl rounded-2xl bg-surface animate-in zoom-in-95 duration-200">
           {selected && (
             <div>
-              <div className="p-8 bg-gradient-to-r from-bku-primary to-[#1e3a8a] text-white relative overflow-hidden">
+              <div className="p-8 bg-[var(--theme-primary)] text-white relative overflow-hidden">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.06)_0%,transparent_50%)]" />
                 <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
                   <span className="material-symbols-outlined size-24 text-white">description</span>
@@ -534,7 +516,7 @@ export default function LpjManagement() {
                       <p className="text-[10px] font-black text-blue-200 tracking-[0.2em] uppercase font-headline">ID Laporan: LPJ-{selected.ID}</p>
                       <h2 className="text-xl font-black font-headline tracking-tighter leading-tight">{selected.Judul}</h2>
                     </div>
-                    <Badge className={cn('font-bold text-[10px] uppercase tracking-wider px-3.5 py-1 border shrink-0 rounded-full', STATUS_CFG[selected.Status]?.cls || 'bg-slate-50 text-slate-600 border-slate-200')}>
+                    <Badge className={cn('font-bold text-[10px] uppercase tracking-wider px-3.5 py-1 border shrink-0 rounded-full', STATUS_CFG[selected.Status]?.cls || 'bg-slate-50 text-slate-600 border-border')}>
                       {STATUS_CFG[selected.Status]?.label || selected.Status || 'Draft'}
                     </Badge>
                   </div>
@@ -615,24 +597,23 @@ export default function LpjManagement() {
         </DialogContent>
       </Dialog>
 
-      {/* ── CRUD Dialog Form ────────────────────────────────────────── */}
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
-        <DialogContent className="max-w-xl p-0 max-h-[90vh] overflow-y-auto border-none shadow-2xl rounded-[2.5rem] bg-white/95 backdrop-blur-xl animate-in zoom-in-95 duration-200">
-          <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden">
+        <DialogContent className="max-w-xl p-0 max-h-[90vh] overflow-y-auto border border-border shadow-2xl rounded-2xl bg-surface animate-in zoom-in-95 duration-200">
+          <DialogHeader className="p-8 pb-6 bg-[var(--theme-bg)] border-b border-border relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-              <span className="material-symbols-outlined size-24 rotate-12 text-bku-primary">description</span>
+              <span className="material-symbols-outlined size-24 rotate-12 text-[var(--theme-primary)]">description</span>
             </div>
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-2">
-                <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                <div className="size-8 rounded-xl bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)]">
                   <span className="material-symbols-outlined stroke-[3px]" style={{ fontSize: '16px' }}>assignment_turned_in</span>
                 </div>
-                <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-bku-primary/5 text-bku-primary border-none rounded-md">LPJ REGISTRY</Badge>
+                <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-[var(--theme-primary-light)] text-[var(--theme-primary)] border-none rounded-md">LPJ REGISTRY</Badge>
               </div>
-              <DialogTitle className="text-xl font-black font-headline tracking-tighter text-slate-900">
+              <DialogTitle className="text-xl font-black font-headline tracking-tighter text-[var(--theme-text)]">
                 {isEditMode ? 'Edit Laporan LPJ' : 'Buat Laporan LPJ Baru'}
               </DialogTitle>
-              <DialogDescription className="text-xs font-semibold text-slate-400 mt-1">
+              <DialogDescription className="text-xs font-semibold text-[var(--theme-text-muted)] mt-1">
                 Tautkan proposal, isi judul laporan, dan catat realisasi pengeluaran riil kegiatan.
               </DialogDescription>
             </div>
@@ -647,19 +628,17 @@ export default function LpjManagement() {
                   {proposals.find(p => String(p.ID) === String(form.ProposalID))?.Judul || 'Proposal Terpilih'}
                 </div>
               ) : (
-                <select
-                  required
+                <SelectField
                   value={form.ProposalID}
-                  onChange={e => handleProposalChange(e.target.value)}
-                  className="w-full h-12 rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold text-slate-700 focus:outline-none focus:bg-white focus:border-primary transition-all shadow-sm"
+                  onValueChange={handleProposalChange}
+                  placeholder="-- Pilih Proposal Acuan --"
                 >
-                  <option value="">-- Pilih Proposal Acuan --</option>
                   {proposals.map(p => (
-                    <option key={p.ID} value={p.ID}>
+                    <SelectOption key={p.ID} value={String(p.ID)}>
                       {p.Judul} (Pagu: {formatRp(p.Anggaran)})
-                    </option>
+                    </SelectOption>
                   ))}
-                </select>
+                </SelectField>
               )}
             </div>
 
@@ -671,7 +650,7 @@ export default function LpjManagement() {
                 value={form.Judul}
                 onChange={e => setForm({ ...form, Judul: e.target.value })}
                 placeholder="Misal: LPJ Seminar Kepemimpinan Mahasiswa 2026..."
-                className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm"
+                className="h-12 rounded-2xl border-border bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm"
               />
             </div>
 
@@ -687,7 +666,7 @@ export default function LpjManagement() {
                     value={form.TotalAnggaran}
                     onChange={e => setForm({ ...form, TotalAnggaran: e.target.value })}
                     placeholder="0"
-                    className="h-12 pl-10 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm"
+                    className="h-12 pl-10 rounded-2xl border-border bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm"
                   />
                 </div>
                 {/* 🌟 Dynamic live points separator for budget */}
@@ -709,7 +688,7 @@ export default function LpjManagement() {
                     value={form.RealisasiAnggaran}
                     onChange={e => setForm({ ...form, RealisasiAnggaran: e.target.value })}
                     placeholder="0"
-                    className="h-12 pl-10 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm"
+                    className="h-12 pl-10 rounded-2xl border-border bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm"
                   />
                 </div>
                 {/* 🌟 Dynamic live points separator for realisasi */}
@@ -730,7 +709,7 @@ export default function LpjManagement() {
                 value={form.Catatan}
                 onChange={e => setForm({ ...form, Catatan: e.target.value })}
                 placeholder="Tuliskan catatan pelaksanaan kegiatan, evaluasi panitia, dan ringkasan penggunaan anggaran..."
-                className="min-h-[100px] rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-semibold text-xs leading-relaxed p-4"
+                className="min-h-[100px] rounded-2xl border-border bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-semibold text-xs leading-relaxed p-4"
               />
             </div>
 
@@ -801,6 +780,6 @@ export default function LpjManagement() {
         description="Apakah Anda yakin ingin menghapus data Laporan Pertanggungjawaban ini? Tindakan ini bersifat permanen."
         loading={isSubmitting}
       />
-    </div>
+    </PageContent>
   )
 }

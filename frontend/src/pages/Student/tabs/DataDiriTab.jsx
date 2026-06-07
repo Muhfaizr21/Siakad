@@ -128,12 +128,12 @@ export default function DataDiriTab({ profile }) {
           }
         }
       )}
-      className="bg-white rounded-3xl border border-[#e5e5e5] shadow-sm overflow-hidden"
+      className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden"
     >
       
       {/* SEKSI: PRIBADI */}
-      <div className="p-6 md:p-8 border-b border-[#f5f5f5]">
-        <h3 className="text-lg font-bold font-headline mb-5 flex items-center gap-2 text-bku-primary">
+      <div className="p-6 md:p-8 border-b border-[var(--theme-border-muted)]">
+        <h3 className="text-lg font-bold font-headline mb-5 flex items-center gap-2 text-[var(--theme-primary)]">
            <User size={18} /> Data Pribadi
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
@@ -163,11 +163,11 @@ export default function DataDiriTab({ profile }) {
             <Label>Jenis Kelamin</Label>
             <div className="flex gap-6 pt-2">
               <label className="flex items-center gap-2 cursor-pointer group">
-                  <input type="radio" value="Laki-laki" {...register('gender')} className="w-4 h-4 text-bku-primary" />
+                  <input type="radio" value="Laki-laki" {...register('gender')} className="w-4 h-4 text-[var(--theme-primary)]" />
                   <span className="text-sm font-bold text-[#525252]">Laki-laki</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer group">
-                  <input type="radio" value="Perempuan" {...register('gender')} className="w-4 h-4 text-bku-primary" />
+                  <input type="radio" value="Perempuan" {...register('gender')} className="w-4 h-4 text-[var(--theme-primary)]" />
                   <span className="text-sm font-bold text-[#525252]">Perempuan</span>
               </label>
             </div>
@@ -220,8 +220,8 @@ export default function DataDiriTab({ profile }) {
       </div>
 
       {/* SEKSI: KONTAK */}
-      <div className="p-6 md:p-8 border-b border-[#f5f5f5] bg-[#fafafa]">
-        <h3 className="text-lg font-bold font-headline mb-5 flex items-center gap-2 text-bku-primary">
+      <div className="p-6 md:p-8 border-b border-[var(--theme-border-muted)] bg-background">
+        <h3 className="text-lg font-bold font-headline mb-5 flex items-center gap-2 text-[var(--theme-primary)]">
            <Phone size={18} /> Kontak Katut & Domisili
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
@@ -255,7 +255,7 @@ export default function DataDiriTab({ profile }) {
       </div>
 
       {/* SEKSI: KELUARGA */}
-      <div className="p-6 md:p-8 border-b border-[#f5f5f5]">
+      <div className="p-6 md:p-8 border-b border-[var(--theme-border-muted)]">
         <h3 className="text-lg font-bold font-headline mb-5 flex items-center gap-2 text-[#0B4FAE]">
            <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >group</span> Data Keluarga / Orang Tua
         </h3>
@@ -286,7 +286,7 @@ export default function DataDiriTab({ profile }) {
       </div>
 
        {/* SEKSI: PENDIDIKAN */}
-      <div className="p-6 md:p-8 bg-[#fafafa]">
+      <div className="p-6 md:p-8 bg-background">
         <h3 className="text-lg font-bold font-headline mb-5 flex items-center gap-2 text-[#0B4FAE]">
            <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >school</span> Pendidikan Terakhir
         </h3>
@@ -299,11 +299,11 @@ export default function DataDiriTab({ profile }) {
       </div>
 
       {/* AKSI */}
-      <div className="p-6 md:px-8 md:py-6 flex flex-col sm:flex-row gap-4 border-t border-[#f5f5f5]">
+      <div className="p-6 md:px-8 md:py-6 flex flex-col sm:flex-row gap-4 border-t border-[var(--theme-border-muted)]">
         <button 
           type="submit" 
           disabled={mutation.isPending}
-          className="flex-1 bg-bku-primary text-white py-3.5 px-8 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#0B4FAE] transition-all shadow-md shadow-bku-primary/20 disabled:opacity-50"
+          className="flex-1 bg-[var(--theme-primary)] text-white py-3.5 px-8 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[var(--theme-primary-hover)] transition-all shadow-md shadow-bku-primary/20 disabled:opacity-50"
         >
           {mutation.isPending ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >save</span>}
           Simpan Seluruh Perubahan
@@ -311,7 +311,7 @@ export default function DataDiriTab({ profile }) {
         <button 
           type="button" 
           onClick={() => reset()}
-          className="bg-white border border-[#e5e5e5] text-[#171717] py-3.5 px-8 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#fafafa] transition-all"
+          className="bg-surface border border-border text-on-surface py-3.5 px-8 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-background transition-all"
         >
           <RotateCcw size={18} />
           Batal & Reset

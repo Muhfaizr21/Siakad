@@ -9,10 +9,7 @@ import 'package:bkuhub_mobile/core/services/auth_service.dart';
 class TkSettingsScreen extends StatefulWidget {
   final bool showBackButton;
 
-  const TkSettingsScreen({
-    super.key,
-    this.showBackButton = true,
-  });
+  const TkSettingsScreen({super.key, this.showBackButton = true});
 
   @override
   State<TkSettingsScreen> createState() => _TkSettingsScreenState();
@@ -45,7 +42,11 @@ class _TkSettingsScreenState extends State<TkSettingsScreen> {
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Color(0xFF001A4D), Color(0xFF003A6E), Color(0xFF005B8A)],
+                  colors: [
+                    Color(0xFF001A4D),
+                    Color(0xFF003A6E),
+                    Color(0xFF005B8A),
+                  ],
                 ),
               ),
               child: SafeArea(
@@ -60,7 +61,10 @@ class _TkSettingsScreenState extends State<TkSettingsScreen> {
                           if (widget.showBackButton)
                             IconButton(
                               onPressed: () => context.pop(),
-                              icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+                              icon: const Icon(
+                                Icons.arrow_back_rounded,
+                                color: Colors.white,
+                              ),
                             ),
                           Expanded(
                             child: Text(
@@ -279,7 +283,10 @@ class _TkSettingsScreenState extends State<TkSettingsScreen> {
                 ),
                 const SizedBox(height: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white.withAlpha(30),
                     borderRadius: BorderRadius.circular(20),
@@ -287,7 +294,11 @@ class _TkSettingsScreenState extends State<TkSettingsScreen> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.medical_services_rounded, size: 12, color: Colors.white),
+                      const Icon(
+                        Icons.medical_services_rounded,
+                        size: 12,
+                        color: Colors.white,
+                      ),
                       const SizedBox(width: 5),
                       Text(
                         profile?.spesialisasi ?? 'Tenaga Kesehatan',
@@ -311,7 +322,11 @@ class _TkSettingsScreenState extends State<TkSettingsScreen> {
                 color: Colors.white.withAlpha(40),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.edit_rounded, color: Colors.white, size: 18),
+              child: const Icon(
+                Icons.edit_rounded,
+                color: Colors.white,
+                size: 18,
+              ),
             ),
           ),
         ],
@@ -381,16 +396,21 @@ class _TkSettingsScreenState extends State<TkSettingsScreen> {
         subtitle,
         style: AppTextStyles.labelSm.copyWith(color: AppColors.neutral500),
       ),
-      trailing: onTap != null
-          ? Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: AppColors.neutral100,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.chevron_right_rounded, color: AppColors.neutral400, size: 20),
-            )
-          : null,
+      trailing:
+          onTap != null
+              ? Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: AppColors.neutral100,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.chevron_right_rounded,
+                  color: AppColors.neutral400,
+                  size: 20,
+                ),
+              )
+              : null,
     );
   }
 
@@ -424,7 +444,7 @@ class _TkSettingsScreenState extends State<TkSettingsScreen> {
       trailing: Switch(
         value: value,
         onChanged: onChanged,
-        activeColor: AppColors.primary,
+        activeThumbColor: AppColors.primary,
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
     );
@@ -511,177 +531,227 @@ class _TkSettingsScreenState extends State<TkSettingsScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Consumer<TkDashboardProvider>(
-        builder: (context, provider, child) => Container(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: AppColors.neutral300,
-                      borderRadius: BorderRadius.circular(2),
+      builder:
+          (context) => Consumer<TkDashboardProvider>(
+            builder:
+                (context, provider, child) => Container(
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom,
+                  ),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(20),
                     ),
                   ),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withAlpha(20),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(Icons.person_rounded, color: AppColors.primary, size: 22),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Edit Profil',
-                            style: AppTextStyles.titleMd.copyWith(fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            'Ubah informasi pribadi Anda',
-                            style: AppTextStyles.labelSm.copyWith(color: AppColors.neutral500),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                TextField(
-                  controller: namaController,
-                  enabled: !provider.isLoading,
-                  decoration: InputDecoration(
-                    labelText: 'Nama Lengkap',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    prefixIcon: const Icon(Icons.badge_rounded),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: emailController,
-                  enabled: !provider.isLoading,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    labelText: 'Email',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    prefixIcon: const Icon(Icons.email_rounded),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: noHpController,
-                  enabled: !provider.isLoading,
-                  keyboardType: TextInputType.phone,
-                  decoration: InputDecoration(
-                    labelText: 'No. HP',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    prefixIcon: const Icon(Icons.phone_rounded),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: lokasiController,
-                  enabled: !provider.isLoading,
-                  decoration: InputDecoration(
-                    labelText: 'Lokasi Praktik',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    prefixIcon: const Icon(Icons.location_on_rounded),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: provider.isLoading ? null : () => Navigator.pop(context),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Center(
+                          child: Container(
+                            width: 40,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: AppColors.neutral300,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
                           ),
                         ),
-                        child: const Text('Batal'),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: provider.isLoading
-                            ? null
-                            : () async {
-                                final success = await provider.updateProfileData({
-                                  'nama': namaController.text,
-                                  'email': emailController.text,
-                                  'no_hp': noHpController.text,
-                                  'lokasi': lokasiController.text,
-                                });
-                                if (context.mounted) {
-                                  Navigator.pop(context);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Row(
-                                        children: [
-                                          Icon(
-                                            success ? Icons.check_circle_rounded : Icons.error_rounded,
-                                            color: Colors.white,
-                                            size: 20,
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Text(success ? 'Profil berhasil diperbarui' : (provider.error ?? 'Gagal memperbarui profil')),
-                                        ],
-                                      ),
-                                      backgroundColor: success ? AppColors.success : AppColors.danger,
-                                      behavior: SnackBarBehavior.floating,
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        const SizedBox(height: 20),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withAlpha(20),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.person_rounded,
+                                color: AppColors.primary,
+                                size: 22,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Edit Profil',
+                                    style: AppTextStyles.titleMd.copyWith(
+                                      fontWeight: FontWeight.bold,
                                     ),
-                                  );
-                                }
-                              },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  Text(
+                                    'Ubah informasi pribadi Anda',
+                                    style: AppTextStyles.labelSm.copyWith(
+                                      color: AppColors.neutral500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        TextField(
+                          controller: namaController,
+                          enabled: !provider.isLoading,
+                          decoration: InputDecoration(
+                            labelText: 'Nama Lengkap',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            prefixIcon: const Icon(Icons.badge_rounded),
                           ),
                         ),
-                        child: provider.isLoading
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: emailController,
+                          enabled: !provider.isLoading,
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: InputDecoration(
+                            labelText: 'Email',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            prefixIcon: const Icon(Icons.email_rounded),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: noHpController,
+                          enabled: !provider.isLoading,
+                          keyboardType: TextInputType.phone,
+                          decoration: InputDecoration(
+                            labelText: 'No. HP',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            prefixIcon: const Icon(Icons.phone_rounded),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: lokasiController,
+                          enabled: !provider.isLoading,
+                          decoration: InputDecoration(
+                            labelText: 'Lokasi Praktik',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            prefixIcon: const Icon(Icons.location_on_rounded),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed:
+                                    provider.isLoading
+                                        ? null
+                                        : () => Navigator.pop(context),
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 14,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
                                 ),
-                              )
-                            : const Text('Simpan'),
-                      ),
+                                child: const Text('Batal'),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed:
+                                    provider.isLoading
+                                        ? null
+                                        : () async {
+                                          final success = await provider
+                                              .updateProfileData({
+                                                'nama': namaController.text,
+                                                'email': emailController.text,
+                                                'no_hp': noHpController.text,
+                                                'lokasi': lokasiController.text,
+                                              });
+                                          if (context.mounted) {
+                                            Navigator.pop(context);
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Row(
+                                                  children: [
+                                                    Icon(
+                                                      success
+                                                          ? Icons
+                                                              .check_circle_rounded
+                                                          : Icons.error_rounded,
+                                                      color: Colors.white,
+                                                      size: 20,
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    Text(
+                                                      success
+                                                          ? 'Profil berhasil diperbarui'
+                                                          : (provider.error ??
+                                                              'Gagal memperbarui profil'),
+                                                    ),
+                                                  ],
+                                                ),
+                                                backgroundColor:
+                                                    success
+                                                        ? AppColors.success
+                                                        : AppColors.danger,
+                                                behavior:
+                                                    SnackBarBehavior.floating,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                        },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primary,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 14,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child:
+                                    provider.isLoading
+                                        ? const SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                  Colors.white,
+                                                ),
+                                          ),
+                                        )
+                                        : const Text('Simpan'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ],
-            ),
           ),
-        ),
-      ),
     );
   }
 
@@ -697,211 +767,333 @@ class _TkSettingsScreenState extends State<TkSettingsScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Consumer<TkDashboardProvider>(
-        builder: (context, provider, child) => StatefulBuilder(
-          builder: (context, setSheetState) => Container(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom,
-            ),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: AppColors.neutral300,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: AppColors.info.withAlpha(20),
-                          borderRadius: BorderRadius.circular(12),
+      builder:
+          (context) => Consumer<TkDashboardProvider>(
+            builder:
+                (context, provider, child) => StatefulBuilder(
+                  builder:
+                      (context, setSheetState) => Container(
+                        padding: EdgeInsets.only(
+                          bottom: MediaQuery.of(context).viewInsets.bottom,
                         ),
-                        child: const Icon(Icons.lock_rounded, color: AppColors.info, size: 22),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Ubah Password',
-                              style: AppTextStyles.titleMd.copyWith(fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              'Update kata sandi akun Anda',
-                              style: AppTextStyles.labelSm.copyWith(color: AppColors.neutral500),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  TextField(
-                    controller: oldPassController,
-                    obscureText: obscureOld,
-                    enabled: !provider.isLoading,
-                    decoration: InputDecoration(
-                      labelText: 'Password Lama',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      prefixIcon: const Icon(Icons.lock_outline_rounded),
-                      suffixIcon: IconButton(
-                        icon: Icon(obscureOld ? Icons.visibility_off_rounded : Icons.visibility_rounded),
-                        onPressed: provider.isLoading ? null : () => setSheetState(() => obscureOld = !obscureOld),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: newPassController,
-                    obscureText: obscureNew,
-                    enabled: !provider.isLoading,
-                    decoration: InputDecoration(
-                      labelText: 'Password Baru',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      prefixIcon: const Icon(Icons.lock_rounded),
-                      suffixIcon: IconButton(
-                        icon: Icon(obscureNew ? Icons.visibility_off_rounded : Icons.visibility_rounded),
-                        onPressed: provider.isLoading ? null : () => setSheetState(() => obscureNew = !obscureNew),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: confirmPassController,
-                    obscureText: obscureConfirm,
-                    enabled: !provider.isLoading,
-                    decoration: InputDecoration(
-                      labelText: 'Konfirmasi Password Baru',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      prefixIcon: const Icon(Icons.lock_rounded),
-                      suffixIcon: IconButton(
-                        icon: Icon(obscureConfirm ? Icons.visibility_off_rounded : Icons.visibility_rounded),
-                        onPressed: provider.isLoading ? null : () => setSheetState(() => obscureConfirm = !obscureConfirm),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: provider.isLoading ? null : () => Navigator.pop(context),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(20),
                           ),
-                          child: const Text('Batal'),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: provider.isLoading
-                              ? null
-                              : () async {
-                                  if (oldPassController.text.isEmpty) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: const Text('Password lama wajib diisi'),
-                                        backgroundColor: AppColors.danger,
-                                        behavior: SnackBarBehavior.floating,
-                                      ),
-                                    );
-                                    return;
-                                  }
-                                  if (newPassController.text.isEmpty) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: const Text('Password baru tidak boleh kosong'),
-                                        backgroundColor: AppColors.danger,
-                                        behavior: SnackBarBehavior.floating,
-                                      ),
-                                    );
-                                    return;
-                                  }
-                                  if (newPassController.text != confirmPassController.text) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: const Text('Password baru tidak sama'),
-                                        backgroundColor: AppColors.danger,
-                                        behavior: SnackBarBehavior.floating,
-                                      ),
-                                    );
-                                    return;
-                                  }
-                                  final success = await provider.changePassword(
-                                    oldPassController.text,
-                                    newPassController.text,
-                                    confirmPassController.text,
-                                  );
-                                  if (context.mounted) {
-                                    Navigator.pop(context);
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Row(
-                                          children: [
-                                            Icon(
-                                              success ? Icons.check_circle_rounded : Icons.error_rounded,
-                                              color: Colors.white,
-                                              size: 20,
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Text(success ? 'Password berhasil diubah' : (provider.error ?? 'Gagal mengubah password')),
-                                          ],
-                                        ),
-                                        backgroundColor: success ? AppColors.success : AppColors.danger,
-                                        behavior: SnackBarBehavior.floating,
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                      ),
-                                    );
-                                  }
-                                },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: provider.isLoading
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Center(
+                                child: Container(
+                                  width: 40,
+                                  height: 4,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.neutral300,
+                                    borderRadius: BorderRadius.circular(2),
                                   ),
-                                )
-                              : const Text('Ubah'),
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.info.withAlpha(20),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Icon(
+                                      Icons.lock_rounded,
+                                      color: AppColors.info,
+                                      size: 22,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Ubah Password',
+                                          style: AppTextStyles.titleMd.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        Text(
+                                          'Update kata sandi akun Anda',
+                                          style: AppTextStyles.labelSm.copyWith(
+                                            color: AppColors.neutral500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 24),
+                              TextField(
+                                controller: oldPassController,
+                                obscureText: obscureOld,
+                                enabled: !provider.isLoading,
+                                decoration: InputDecoration(
+                                  labelText: 'Password Lama',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  prefixIcon: const Icon(
+                                    Icons.lock_outline_rounded,
+                                  ),
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      obscureOld
+                                          ? Icons.visibility_off_rounded
+                                          : Icons.visibility_rounded,
+                                    ),
+                                    onPressed:
+                                        provider.isLoading
+                                            ? null
+                                            : () => setSheetState(
+                                              () => obscureOld = !obscureOld,
+                                            ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              TextField(
+                                controller: newPassController,
+                                obscureText: obscureNew,
+                                enabled: !provider.isLoading,
+                                decoration: InputDecoration(
+                                  labelText: 'Password Baru',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  prefixIcon: const Icon(Icons.lock_rounded),
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      obscureNew
+                                          ? Icons.visibility_off_rounded
+                                          : Icons.visibility_rounded,
+                                    ),
+                                    onPressed:
+                                        provider.isLoading
+                                            ? null
+                                            : () => setSheetState(
+                                              () => obscureNew = !obscureNew,
+                                            ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              TextField(
+                                controller: confirmPassController,
+                                obscureText: obscureConfirm,
+                                enabled: !provider.isLoading,
+                                decoration: InputDecoration(
+                                  labelText: 'Konfirmasi Password Baru',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  prefixIcon: const Icon(Icons.lock_rounded),
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      obscureConfirm
+                                          ? Icons.visibility_off_rounded
+                                          : Icons.visibility_rounded,
+                                    ),
+                                    onPressed:
+                                        provider.isLoading
+                                            ? null
+                                            : () => setSheetState(
+                                              () =>
+                                                  obscureConfirm =
+                                                      !obscureConfirm,
+                                            ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: OutlinedButton(
+                                      onPressed:
+                                          provider.isLoading
+                                              ? null
+                                              : () => Navigator.pop(context),
+                                      style: OutlinedButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 14,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                      ),
+                                      child: const Text('Batal'),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: ElevatedButton(
+                                      onPressed:
+                                          provider.isLoading
+                                              ? null
+                                              : () async {
+                                                if (oldPassController
+                                                    .text
+                                                    .isEmpty) {
+                                                  ScaffoldMessenger.of(
+                                                    context,
+                                                  ).showSnackBar(
+                                                    SnackBar(
+                                                      content: const Text(
+                                                        'Password lama wajib diisi',
+                                                      ),
+                                                      backgroundColor:
+                                                          AppColors.danger,
+                                                      behavior:
+                                                          SnackBarBehavior
+                                                              .floating,
+                                                    ),
+                                                  );
+                                                  return;
+                                                }
+                                                if (newPassController
+                                                    .text
+                                                    .isEmpty) {
+                                                  ScaffoldMessenger.of(
+                                                    context,
+                                                  ).showSnackBar(
+                                                    SnackBar(
+                                                      content: const Text(
+                                                        'Password baru tidak boleh kosong',
+                                                      ),
+                                                      backgroundColor:
+                                                          AppColors.danger,
+                                                      behavior:
+                                                          SnackBarBehavior
+                                                              .floating,
+                                                    ),
+                                                  );
+                                                  return;
+                                                }
+                                                if (newPassController.text !=
+                                                    confirmPassController
+                                                        .text) {
+                                                  ScaffoldMessenger.of(
+                                                    context,
+                                                  ).showSnackBar(
+                                                    SnackBar(
+                                                      content: const Text(
+                                                        'Password baru tidak sama',
+                                                      ),
+                                                      backgroundColor:
+                                                          AppColors.danger,
+                                                      behavior:
+                                                          SnackBarBehavior
+                                                              .floating,
+                                                    ),
+                                                  );
+                                                  return;
+                                                }
+                                                final success = await provider
+                                                    .changePassword(
+                                                      oldPassController.text,
+                                                      newPassController.text,
+                                                      confirmPassController
+                                                          .text,
+                                                    );
+                                                if (context.mounted) {
+                                                  Navigator.pop(context);
+                                                  ScaffoldMessenger.of(
+                                                    context,
+                                                  ).showSnackBar(
+                                                    SnackBar(
+                                                      content: Row(
+                                                        children: [
+                                                          Icon(
+                                                            success
+                                                                ? Icons
+                                                                    .check_circle_rounded
+                                                                : Icons
+                                                                    .error_rounded,
+                                                            color: Colors.white,
+                                                            size: 20,
+                                                          ),
+                                                          const SizedBox(
+                                                            width: 8,
+                                                          ),
+                                                          Text(
+                                                            success
+                                                                ? 'Password berhasil diubah'
+                                                                : (provider
+                                                                        .error ??
+                                                                    'Gagal mengubah password'),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      backgroundColor:
+                                                          success
+                                                              ? AppColors
+                                                                  .success
+                                                              : AppColors
+                                                                  .danger,
+                                                      behavior:
+                                                          SnackBarBehavior
+                                                              .floating,
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              10,
+                                                            ),
+                                                      ),
+                                                    ),
+                                                  );
+                                                }
+                                              },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColors.primary,
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 14,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                      ),
+                                      child:
+                                          provider.isLoading
+                                              ? const SizedBox(
+                                                width: 20,
+                                                height: 20,
+                                                child: CircularProgressIndicator(
+                                                  strokeWidth: 2,
+                                                  valueColor:
+                                                      AlwaysStoppedAnimation<
+                                                        Color
+                                                      >(Colors.white),
+                                                ),
+                                              )
+                                              : const Text('Ubah'),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+                ),
           ),
-        ),
-      ),
     );
   }
 
@@ -909,83 +1101,92 @@ class _TkSettingsScreenState extends State<TkSettingsScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.neutral300,
-                borderRadius: BorderRadius.circular(2),
-              ),
+      builder:
+          (context) => Container(
+            padding: const EdgeInsets.all(24),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
             ),
-            const SizedBox(height: 24),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.danger.withAlpha(20),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: const Icon(Icons.logout_rounded, color: AppColors.danger, size: 40),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Keluar dari Akun?',
-              style: AppTextStyles.titleMd.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Anda akan keluar dari aplikasi dan perlu login kembali.',
-              style: AppTextStyles.bodySm.copyWith(color: AppColors.neutral500),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            Row(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text('Batal'),
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.neutral300,
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      Navigator.pop(context);
-                      await AuthService().logout();
-                      if (mounted) {
-                        context.go('/login');
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.danger,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                const SizedBox(height: 24),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.danger.withAlpha(20),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Icon(
+                    Icons.logout_rounded,
+                    color: AppColors.danger,
+                    size: 40,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Keluar dari Akun?',
+                  style: AppTextStyles.titleMd.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Anda akan keluar dari aplikasi dan perlu login kembali.',
+                  style: AppTextStyles.bodySm.copyWith(
+                    color: AppColors.neutral500,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text('Batal'),
                       ),
                     ),
-                    child: const Text('Keluar'),
-                  ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          Navigator.pop(context);
+                          await AuthService().logout();
+                          if (mounted) {
+                            context.go('/login');
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.danger,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text('Keluar'),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
-        ),
-      ),
+          ),
     );
   }
 }

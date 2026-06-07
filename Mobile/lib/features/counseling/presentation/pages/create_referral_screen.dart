@@ -10,10 +10,7 @@ import 'package:bkuhub_mobile/features/counseling/presentation/providers/referra
 class CreateReferralScreen extends StatefulWidget {
   final String? studentId;
 
-  const CreateReferralScreen({
-    super.key,
-    this.studentId,
-  });
+  const CreateReferralScreen({super.key, this.studentId});
 
   @override
   State<CreateReferralScreen> createState() => _CreateReferralScreenState();
@@ -115,7 +112,8 @@ class _CreateReferralScreenState extends State<CreateReferralScreen> {
                     const SizedBox(height: 16),
                     _buildTextField(
                       label: 'Alasan Rujukan',
-                      hint: 'Tulis deskripsi klinis singkat dan alasan perlunya rujukan...',
+                      hint:
+                          'Tulis deskripsi klinis singkat dan alasan perlunya rujukan...',
                       controller: _reasonCtrl,
                       maxLines: 5,
                       validator: (value) {
@@ -175,11 +173,14 @@ class _CreateReferralScreenState extends State<CreateReferralScreen> {
         }
 
         // Check if preselected student exists in list
-        final hasPreselected = widget.studentId != null &&
+        final hasPreselected =
+            widget.studentId != null &&
             patients.any((p) => p['id'].toString() == widget.studentId);
 
         if (hasPreselected) {
-          final patient = patients.firstWhere((p) => p['id'].toString() == widget.studentId);
+          final patient = patients.firstWhere(
+            (p) => p['id'].toString() == widget.studentId,
+          );
           return Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -200,11 +201,15 @@ class _CreateReferralScreenState extends State<CreateReferralScreen> {
                     children: [
                       Text(
                         patient['name']?.toString() ?? '',
-                        style: AppTextStyles.bodyLg.copyWith(fontWeight: FontWeight.bold),
+                        style: AppTextStyles.bodyLg.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       Text(
                         'NIM: ${patient['nim']?.toString() ?? ''}',
-                        style: AppTextStyles.labelMd.copyWith(color: const Color(0xFF64748B)),
+                        style: AppTextStyles.labelMd.copyWith(
+                          color: const Color(0xFF64748B),
+                        ),
                       ),
                     ],
                   ),
@@ -216,13 +221,23 @@ class _CreateReferralScreenState extends State<CreateReferralScreen> {
         }
 
         return DropdownButtonFormField<int>(
-          value: _selectedStudentId,
-          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.primary),
+          initialValue: _selectedStudentId,
+          icon: const Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: AppColors.primary,
+          ),
           decoration: InputDecoration(
             filled: true,
             fillColor: Colors.white,
-            prefixIcon: const Icon(Icons.person_outline_rounded, color: AppColors.primary, size: 20),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            prefixIcon: const Icon(
+              Icons.person_outline_rounded,
+              color: AppColors.primary,
+              size: 20,
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide(color: Colors.grey.withAlpha(50)),
@@ -233,25 +248,40 @@ class _CreateReferralScreenState extends State<CreateReferralScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+              borderSide: const BorderSide(
+                color: AppColors.primary,
+                width: 1.5,
+              ),
             ),
           ),
-          hint: Text('Pilih Mahasiswa', style: AppTextStyles.bodyMd.copyWith(color: const Color(0xFF94A3B8))),
+          hint: Text(
+            'Pilih Mahasiswa',
+            style: AppTextStyles.bodyMd.copyWith(
+              color: const Color(0xFF94A3B8),
+            ),
+          ),
           validator: (value) {
             if (value == null) {
               return 'Harap pilih mahasiswa';
             }
             return null;
           },
-          items: patients.map((patient) {
-            final id = int.tryParse(patient['id'].toString()) ?? 0;
-            final name = patient['name']?.toString() ?? '';
-            final nim = patient['nim']?.toString() ?? '';
-            return DropdownMenuItem<int>(
-              value: id,
-              child: Text('$name ($nim)', style: AppTextStyles.bodyMd.copyWith(color: const Color(0xFF1E293B)), overflow: TextOverflow.ellipsis),
-            );
-          }).toList(),
+          items:
+              patients.map((patient) {
+                final id = int.tryParse(patient['id'].toString()) ?? 0;
+                final name = patient['name']?.toString() ?? '';
+                final nim = patient['nim']?.toString() ?? '';
+                return DropdownMenuItem<int>(
+                  value: id,
+                  child: Text(
+                    '$name ($nim)',
+                    style: AppTextStyles.bodyMd.copyWith(
+                      color: const Color(0xFF1E293B),
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                );
+              }).toList(),
           onChanged: (value) {
             setState(() {
               _selectedStudentId = value;
@@ -276,7 +306,10 @@ class _CreateReferralScreenState extends State<CreateReferralScreen> {
       children: [
         Text(
           label,
-          style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.bold, color: const Color(0xFF475569)),
+          style: AppTextStyles.labelMd.copyWith(
+            fontWeight: FontWeight.bold,
+            color: const Color(0xFF475569),
+          ),
         ),
         const SizedBox(height: 8),
         TextFormField(
@@ -287,11 +320,19 @@ class _CreateReferralScreenState extends State<CreateReferralScreen> {
           validator: validator,
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: AppTextStyles.bodyMd.copyWith(color: const Color(0xFF94A3B8)),
+            hintStyle: AppTextStyles.bodyMd.copyWith(
+              color: const Color(0xFF94A3B8),
+            ),
             filled: true,
             fillColor: Colors.white,
-            prefixIcon: icon != null ? Icon(icon, color: AppColors.primary, size: 20) : null,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            prefixIcon:
+                icon != null
+                    ? Icon(icon, color: AppColors.primary, size: 20)
+                    : null,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide(color: Colors.grey.withAlpha(50)),
@@ -302,7 +343,10 @@ class _CreateReferralScreenState extends State<CreateReferralScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+              borderSide: const BorderSide(
+                color: AppColors.primary,
+                width: 1.5,
+              ),
             ),
           ),
         ),
@@ -316,17 +360,30 @@ class _CreateReferralScreenState extends State<CreateReferralScreen> {
       children: [
         Text(
           label,
-          style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.bold, color: const Color(0xFF475569)),
+          style: AppTextStyles.labelMd.copyWith(
+            fontWeight: FontWeight.bold,
+            color: const Color(0xFF475569),
+          ),
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: _selectedType,
-          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.primary),
+          initialValue: _selectedType,
+          icon: const Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: AppColors.primary,
+          ),
           decoration: InputDecoration(
             filled: true,
             fillColor: Colors.white,
-            prefixIcon: const Icon(Icons.category_rounded, color: AppColors.primary, size: 20),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            prefixIcon: const Icon(
+              Icons.category_rounded,
+              color: AppColors.primary,
+              size: 20,
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide(color: Colors.grey.withAlpha(50)),
@@ -337,15 +394,24 @@ class _CreateReferralScreenState extends State<CreateReferralScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+              borderSide: const BorderSide(
+                color: AppColors.primary,
+                width: 1.5,
+              ),
             ),
           ),
-          items: items.map((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(value, style: AppTextStyles.bodyMd.copyWith(color: const Color(0xFF1E293B))),
-            );
-          }).toList(),
+          items:
+              items.map((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(
+                    value,
+                    style: AppTextStyles.bodyMd.copyWith(
+                      color: const Color(0xFF1E293B),
+                    ),
+                  ),
+                );
+              }).toList(),
           onChanged: (newValue) {
             if (newValue != null) {
               setState(() {
@@ -383,10 +449,21 @@ class _CreateReferralScreenState extends State<CreateReferralScreen> {
                     onPressed: isLoading ? null : () => context.pop(),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      side: const BorderSide(color: AppColors.primary, width: 1.5),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      side: const BorderSide(
+                        color: AppColors.primary,
+                        width: 1.5,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
-                    child: const Text('Batal', style: TextStyle(fontWeight: FontWeight.w900, color: AppColors.primary)),
+                    child: const Text(
+                      'Batal',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.primary,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -399,15 +476,24 @@ class _CreateReferralScreenState extends State<CreateReferralScreen> {
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
                       elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
-                    child: isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                          )
-                        : const Text('Simpan Rujukan', style: TextStyle(fontWeight: FontWeight.w900)),
+                    child:
+                        isLoading
+                            ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                            : const Text(
+                              'Simpan Rujukan',
+                              style: TextStyle(fontWeight: FontWeight.w900),
+                            ),
                   ),
                 ),
               ],
@@ -422,7 +508,9 @@ class _CreateReferralScreenState extends State<CreateReferralScreen> {
     if (_formKey.currentState!.validate()) {
       if (_selectedStudentId == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Harap pilih mahasiswa terlebih dahulu')),
+          const SnackBar(
+            content: Text('Harap pilih mahasiswa terlebih dahulu'),
+          ),
         );
         return;
       }
@@ -439,12 +527,20 @@ class _CreateReferralScreenState extends State<CreateReferralScreen> {
       if (mounted) {
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Rujukan berhasil dibuat!'), backgroundColor: AppColors.primary),
+            const SnackBar(
+              content: Text('Rujukan berhasil dibuat!'),
+              backgroundColor: AppColors.primary,
+            ),
           );
           context.pop();
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(provider.error ?? 'Gagal membuat rujukan. Silakan coba lagi.'), backgroundColor: Colors.red),
+            SnackBar(
+              content: Text(
+                provider.error ?? 'Gagal membuat rujukan. Silakan coba lagi.',
+              ),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       }

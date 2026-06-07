@@ -1,10 +1,8 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import useAuthStore from '../../../store/useAuthStore';
 import { useCreateMentorMutation, useMentorsQuery, useFakultasListQuery } from '../../../queries/useKencanaAdminQuery';
-import { DashboardHero } from '@/components/ui/dashboard';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/Select";
-import { Button } from "@/components/ui/Button";
-import { cn } from "@/lib/utils";
+import { PageHeader } from '../../../components/ui/page/PageHeader';
+import { SelectField, SelectOption } from '../../../components/ui/SelectField';
 
 const emptyForm = { name: '', email: '', password: '', phone: '', scope_type: 'faculty', fakultas_id: '' };
 
@@ -14,15 +12,6 @@ const Mentors = ({ portal = 'admin', facultyId: propFacultyId }) => {
   const isFakultasPortal = portal === 'fakultas' || portal === 'fakult' || role === 'kencana_fakultas';
   const [form, setForm] = useState(emptyForm);
   const [message, setMessage] = useState('');
-  
-  // Table interactivity states
-  const [search, setSearch] = useState('');
-  const [filterScope, setFilterScope] = useState('all');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-
   const { data: mentors, isLoading } = useMentorsQuery(portal);
   const createMentor = useCreateMentorMutation(portal);
 
@@ -55,65 +44,6 @@ const Mentors = ({ portal = 'admin', facultyId: propFacultyId }) => {
     return mentors;
   }, [mentors, isFakultasPortal, isSuperAdmin, form.fakultas_id, userFacultyId]);
 
-  const processedMentors = useMemo(() => {
-    let items = [...filteredMentors];
-
-    if (search) {
-      const q = search.toLowerCase();
-      items = items.filter(m => 
-        (m.name || m.Name || '').toLowerCase().includes(q) || 
-        (m.email || m.Email || '').toLowerCase().includes(q)
-      );
-    }
-
-    if (filterScope !== 'all') {
-      items = items.filter(m => (m.scope_type || '') === filterScope);
-    }
-
-    if (filterStatus !== 'all') {
-      items = items.filter(m => (m.status || 'aktif').toLowerCase() === filterStatus.toLowerCase());
-    }
-
-    if (sortConfig.key) {
-      items.sort((a, b) => {
-        let aVal = a[sortConfig.key];
-        let bVal = b[sortConfig.key];
-
-        if (sortConfig.key === 'name') {
-          aVal = a.name || a.Name || '';
-          bVal = b.name || b.Name || '';
-        } else if (sortConfig.key === 'email') {
-          aVal = a.email || a.Email || '';
-          bVal = b.email || b.Email || '';
-        }
-
-        if (typeof aVal === 'string') aVal = aVal.toLowerCase();
-        if (typeof bVal === 'string') bVal = bVal.toLowerCase();
-
-        if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
-        if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
-        return 0;
-      });
-    }
-
-    return items;
-  }, [filteredMentors, search, filterScope, filterStatus, sortConfig]);
-
-  const paginatedMentors = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return processedMentors.slice(start, start + pageSize);
-  }, [processedMentors, currentPage, pageSize]);
-
-  const totalItems = processedMentors.length;
-  const totalPages = Math.ceil(totalItems / pageSize);
-
-  const handleSort = (key) => {
-    let direction = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') direction = 'desc';
-    setSortConfig({ key, direction });
-    setCurrentPage(1);
-  };
-
   const hasPermission = role === 'super_admin' ||
     (role === 'kencana_fakultas' && isFakultasPortal) ||
     (role === 'kencana_admin' && !isFakultasPortal) ||
@@ -133,196 +63,125 @@ const Mentors = ({ portal = 'admin', facultyId: propFacultyId }) => {
   };
 
   return (
-    <div className="space-y-6">
-      <DashboardHero 
-        title="Dewan"
-        highlightedTitle="Pembimbing"
+    <div className="px-4 py-6 md:px-6 lg:px-8 min-h-screen bg-transparent font-body max-w-7xl mx-auto space-y-6">
+      
+      {/* Page Header */}
+      <PageHeader
+        icon="supervised_user_circle"
+        title={
+          <>
+            <span className="text-[var(--theme-text)]">Kelola Dewan </span>
+            <span className="text-[var(--theme-primary)]">Pembimbing (DP)</span>
+          </>
+        }
         subtitle={isFakultasPortal ? 'Admin fakultas hanya membuat mentor untuk fakultasnya.' : 'Admin universitas hanya membuat mentor lingkup universitas.'}
-        icon="groups"
-        badges={[
-          { label: 'PORTAL ORIENTASI MAHASISWA BARU', active: false },
-          { label: `${filteredMentors?.length || 0} TOTAL PEMBIMBING`, active: true }
+        breadcrumbs={[
+          { label: 'Kencana Admin', path: '#' },
+          { label: 'Dewan Pembimbing' }
         ]}
       />
 
       {hasPermission ? (
-        <form onSubmit={handleSubmit} className="rounded-3xl border border-slate-100 bg-white shadow-sm relative overflow-hidden">
-          <div className="p-6 md:p-8 border-b border-slate-100">
-            <h2 className="text-xl font-headline font-black text-slate-800 tracking-tight">Registrasi Pembimbing Baru</h2>
-            <p className="text-sm font-medium text-slate-500 mt-1">Lengkapi form di bawah untuk menambahkan akun mentor.</p>
+        <form onSubmit={handleSubmit} className="rounded-2xl border border-[var(--theme-border)] bg-white p-6 shadow-sm space-y-4">
+          <h2 className="text-sm font-bold text-[var(--theme-text)] uppercase tracking-wider border-b border-[var(--theme-border-muted)] pb-2">Buat Akun Mentor Baru</h2>
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <Field label="Nama Lengkap">
+              <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full h-10 px-4 rounded-xl bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm font-semibold outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)]" placeholder="Nama pembimbing" />
+            </Field>
+            <Field label="Email Resmi">
+              <input required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full h-10 px-4 rounded-xl bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm font-semibold outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)]" placeholder="mentor@bku.ac.id" />
+            </Field>
+            <Field label="Password Akun">
+              <input required type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="w-full h-10 px-4 rounded-xl bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm font-semibold outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)]" placeholder="Minimal 6 karakter" />
+            </Field>
+            <Field label="Nomor Telepon">
+              <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="w-full h-10 px-4 rounded-xl bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm font-semibold outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)]" placeholder="Contoh: 081234567890" />
+            </Field>
+            {!isFakultasPortal && (
+              <Field label="Scope Mentor">
+                <input disabled value="Universitas" className="w-full h-10 px-4 rounded-xl bg-[var(--theme-bg)] text-[var(--theme-text-muted)] border border-[var(--theme-border)] text-sm font-semibold" />
+              </Field>
+            )}
+            {isFakultasPortal && (
+              <Field label="Scope Fakultas">
+                {isSuperAdmin ? (
+                  <SelectField
+                    value={form.fakultas_id}
+                    onValueChange={(val) => setForm({ ...form, fakultas_id: val })}
+                    placeholder="Pilih Fakultas"
+                    className="w-full"
+                  >
+                    <SelectOption value="">Pilih Fakultas</SelectOption>
+                    {faculties?.map(f => <SelectOption key={f.id} value={String(f.id)}>{f.nama || f.Nama}</SelectOption>)}
+                  </SelectField>
+                ) : (
+                  <input
+                    disabled
+                    value={userFacultyId ? (faculties?.find(f => String(f.id) === String(userFacultyId))?.nama || faculties?.find(f => String(f.id) === String(userFacultyId))?.Nama || `Fakultas ID ${userFacultyId}`) : 'Fakultas akun belum tersedia'}
+                    className="w-full h-10 px-4 rounded-xl bg-[var(--theme-bg)] text-[var(--theme-text-muted)] border border-[var(--theme-border)] text-sm font-semibold"
+                  />
+                )}
+              </Field>
+            )}
           </div>
-          <div className="p-6 md:p-8 bg-slate-50/30">
-            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-              <Field label="Nama Lengkap">
-                <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-800 outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 transition-all placeholder:text-slate-400 placeholder:font-semibold" placeholder="Contoh: Budi Santoso" />
-              </Field>
-              <Field label="Email">
-                <input required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-800 outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 transition-all placeholder:text-slate-400 placeholder:font-semibold" placeholder="mentor@bku.ac.id" />
-              </Field>
-              <Field label="Password">
-                <input required type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-800 outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 transition-all placeholder:text-slate-400 placeholder:font-semibold" placeholder="Minimal 6 karakter" />
-              </Field>
-              <Field label="Nomor Telepon">
-                <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-800 outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 transition-all placeholder:text-slate-400 placeholder:font-semibold" placeholder="Opsional (contoh: 0812...)" />
-              </Field>
-              {!isFakultasPortal && (
-                <Field label="Lingkup Akses">
-                  <input disabled value="Kencana Universitas" className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-slate-100 text-sm font-bold text-slate-500 cursor-not-allowed" />
-                </Field>
-              )}
-              {isFakultasPortal && (
-                <Field label="Pilih Fakultas">
-                  {isSuperAdmin ? (
-                    <select
-                      required
-                      value={form.fakultas_id}
-                      onChange={(e) => setForm({ ...form, fakultas_id: e.target.value })}
-                      className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-800 outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 transition-all appearance-none"
-                    >
-                      <option value="">Pilih Fakultas...</option>
-                      {faculties?.map(f => <option key={f.id} value={f.id}>{f.nama || f.Nama}</option>)}
-                    </select>
-                  ) : (
-                    <input
-                      disabled
-                      value={userFacultyId ? (faculties?.find(f => String(f.id) === String(userFacultyId))?.nama || faculties?.find(f => String(f.id) === String(userFacultyId))?.Nama || `Fakultas ID ${userFacultyId}`) : 'Fakultas akun belum tersedia'}
-                      className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-slate-100 text-sm font-bold text-slate-500 cursor-not-allowed"
-                    />
-                  )}
-                </Field>
-              )}
-            </div>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
-              <button disabled={createMentor.isPending || (isFakultasPortal && (!form.fakultas_id && !userFacultyId))} className="rounded-xl bg-slate-900 hover:bg-slate-800 px-6 py-3.5 text-xs tracking-wider font-black uppercase text-white disabled:cursor-not-allowed disabled:bg-slate-300 transition-colors shadow-sm">
-                {createMentor.isPending ? 'Mendaftarkan...' : '+ Daftarkan Pembimbing'}
-              </button>
-              {message && <p className="text-sm font-bold text-emerald-600 bg-emerald-50 px-4 py-2 rounded-lg">{message}</p>}
-            </div>
+          <div className="mt-5 flex flex-wrap items-center gap-4 pt-3 border-t border-[var(--theme-border-muted)]">
+            <button disabled={createMentor.isPending || (isFakultasPortal && (!form.fakultas_id && !userFacultyId))} className="h-10 px-6 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-xs font-bold text-white shadow-md disabled:cursor-not-allowed disabled:opacity-50 transition-colors">
+              {createMentor.isPending ? 'Membuat...' : 'Buat Akun Mentor'}
+            </button>
+            {message && <p className="text-sm font-bold text-[var(--theme-text-muted)]">{message}</p>}
           </div>
         </form>
       ) : (
-        <div className="rounded-3xl border border-amber-200 bg-amber-50 p-6 md:p-8 shadow-sm">
-          <h2 className="text-lg font-headline font-black text-amber-800 mb-2">Akses Dibatasi (Hanya Lihat)</h2>
-          <p className="text-sm font-medium text-amber-700 leading-relaxed">
+        <div className="rounded-2xl border border-[var(--theme-warning-light)] bg-[var(--theme-warning-light)] p-5 shadow-sm">
+          <h2 className="text-sm font-bold text-[var(--theme-warning)] mb-2">Akses Dibatasi (Hanya Lihat)</h2>
+          <p className="text-xs font-semibold text-[var(--theme-warning)] opacity-90 leading-relaxed">
             Anda tidak memiliki izin (permission) untuk membuat atau mengelola mentor baru. Anda hanya dapat melihat daftar mentor yang sudah ada. 
             Jika Anda memerlukan akses ini, silakan hubungi Super Admin untuk mengaktifkannya di panel RBAC.
           </p>
         </div>
       )}
 
-      <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden mt-6">
-        {/* Toolbar */}
-        <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center gap-3">
-          <div className="flex-1">
-            <h2 className="font-bold text-base text-slate-900">Daftar Pembimbing Aktif</h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Menampilkan <span className="font-bold text-slate-900">{processedMentors.length}</span> dari <span className="font-bold text-slate-900">{filteredMentors.length}</span> pembimbing
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2 gap-y-3 w-full sm:w-auto">
-            <div className="relative">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '14px' }}>search</span>
-              <input type="text" placeholder="Cari nama atau email..."
-                value={search} onChange={e => setSearch(e.target.value)}
-                className="pl-9 pr-4 h-9 w-52 rounded-xl border border-slate-200/60 focus:outline-none focus:border-cyan-500 text-sm bg-white" />
-            </div>
-            {!isFakultasPortal && (
-              <div className="relative">
-                <select value={filterScope} onChange={e => setFilterScope(e.target.value)}
-                  className="h-9 pl-3 pr-8 rounded-xl border border-slate-200/60 text-xs font-medium bg-white text-slate-600 focus:outline-none focus:border-cyan-500 appearance-none cursor-pointer">
-                  <option value="all">Semua Lingkup</option>
-                  <option value="university">Universitas</option>
-                  <option value="faculty">Fakultas</option>
-                </select>
-                <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none select-none" style={{ fontSize: '16px' }}>keyboard_arrow_down</span>
-              </div>
-            )}
-            <div className="relative">
-              <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
-                className="h-9 pl-3 pr-8 rounded-xl border border-slate-200/60 text-xs font-medium bg-white text-slate-600 focus:outline-none focus:border-cyan-500 appearance-none cursor-pointer">
-                <option value="all">Semua Status</option>
-                <option value="aktif">Aktif</option>
-                <option value="nonaktif">Nonaktif</option>
-              </select>
-              <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none select-none" style={{ fontSize: '16px' }}>keyboard_arrow_down</span>
-            </div>
-            {(search || filterScope !== 'all' || filterStatus !== 'all') && (
-              <button onClick={() => { setSearch(''); setFilterScope('all'); setFilterStatus('all'); }}
-                className="h-9 px-3 text-xs font-semibold text-rose-600 bg-rose-50 rounded-xl border border-rose-200 hover:bg-rose-100">Reset</button>
-            )}
-          </div>
+      {/* Mentor List Table Card */}
+      <div className="bg-white rounded-2xl border border-[var(--theme-border)] shadow-sm overflow-hidden flex flex-col">
+        <div className="p-5 border-b border-[var(--theme-border-muted)] bg-[var(--theme-bg)]">
+          <h2 className="text-base font-bold text-[var(--theme-text)]">Daftar Dewan Pembimbing</h2>
+          <p className="text-xs font-semibold text-[var(--theme-text-muted)] mt-1">Daftar pembimbing aktif yang terdaftar dalam sistem orientasi.</p>
         </div>
-
+        
         <div className="overflow-x-auto">
           {isLoading ? (
-            <div className="p-12 flex justify-center items-center gap-3 text-slate-500 font-bold">
-              <span className="w-5 h-5 border-2 border-slate-300 border-t-slate-800 rounded-full animate-spin" /> Memuat Data...
+            <div className="flex justify-center items-center py-20 bg-[var(--theme-surface)]">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--theme-primary)]"></div>
             </div>
           ) : (
-            <table className="w-full text-left">
+            <table className="w-full text-left border-collapse bg-[var(--theme-surface)]">
               <thead>
-                <tr className="border-b border-slate-200/60">
-                  {[
-                    { label: 'No', key: null, sortable: false },
-                    { label: 'Nama Pembimbing', key: 'name', sortable: true },
-                    { label: 'Email', key: 'email', sortable: true },
-                    { label: 'Lingkup', key: 'scope_type', sortable: true },
-                    { label: 'Status', key: 'status', sortable: true },
-                  ].map(h => (
-                    <th
-                      key={h.label}
-                      onClick={() => h.sortable && handleSort(h.key)}
-                      className={cn(
-                        'px-5 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap select-none',
-                        h.sortable && 'cursor-pointer hover:text-slate-900 group'
-                      )}
-                    >
-                      <div className="flex items-center gap-1.5">
-                        {h.label}
-                        {h.sortable && (
-                          sortConfig.key === h.key ? (
-                            <span className="material-symbols-outlined size-3.5 text-slate-800" style={{ fontSize: '14px' }}>
-                              {sortConfig.direction === 'asc' ? 'expand_less' : 'expand_more'}
-                            </span>
-                          ) : (
-                            <span className="material-symbols-outlined size-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" style={{ fontSize: '14px' }}>
-                              unfold_more
-                            </span>
-                          )
-                        )}
-                      </div>
-                    </th>
-                  ))}
+                <tr className="border-b border-[var(--theme-border-muted)] bg-[var(--theme-bg)]">
+                  <th className="py-3.5 px-6 text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider">Nama Pembimbing</th>
+                  <th className="py-3.5 px-6 text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider">Email</th>
+                  <th className="py-3.5 px-6 text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider">Lingkup / Scope</th>
+                  <th className="py-3.5 px-6 text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider">Status</th>
                 </tr>
               </thead>
-              <tbody>
-                {paginatedMentors?.map((m, i) => (
-                  <tr key={m.id || m.ID} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors">
-                    <td className="px-5 py-3.5 text-sm text-slate-400 font-medium">{(currentPage - 1) * pageSize + i + 1}</td>
-                    <td className="px-5 py-3.5 font-bold text-slate-800 text-sm">{m.name || m.Name || `User ID: ${m.user_id}`}</td>
-                    <td className="px-5 py-3.5 font-semibold text-slate-500 text-sm">{m.email || m.Email || '-'}</td>
-                    <td className="px-5 py-3.5">
-                      <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border border-slate-200 bg-slate-50 text-slate-600">
-                        {m.scope_type === 'university' ? 'Universitas' : `Fakultas${m.fakultas_id ? ` ID ${m.fakultas_id}` : ''}`}
-                      </span>
+              <tbody className="divide-y divide-[var(--theme-border-muted)]">
+                {filteredMentors?.map((m) => (
+                  <tr key={m.id || m.ID} className="hover:bg-[var(--theme-bg)] transition-colors">
+                    <td className="py-4 px-6 font-bold text-[var(--theme-text)] text-sm">{m.name || m.Name || `User ID: ${m.user_id}`}</td>
+                    <td className="py-4 px-6 text-sm font-semibold text-[var(--theme-text-muted)]">{m.email || m.Email || '-'}</td>
+                    <td className="py-4 px-6 text-sm font-semibold text-[var(--theme-text-muted)] capitalize">
+                      {m.scope_type === 'university' ? 'Universitas' : `Fakultas${m.fakultas_id ? ` ID ${m.fakultas_id}` : ''}`}
                     </td>
-                    <td className="px-5 py-3.5">
-                      <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border border-emerald-200 bg-emerald-50 text-emerald-600">
-                        {m.status || 'Aktif'}
+                    <td className="py-4 px-6">
+                      <span className="inline-flex px-2.5 py-0.5 rounded-full bg-[var(--theme-success-light)] text-[var(--theme-success)] border border-[var(--theme-success-light)] text-[9px] font-bold uppercase tracking-wider">
+                        {m.status || 'active'}
                       </span>
                     </td>
                   </tr>
                 ))}
-                {!paginatedMentors?.length && (
+                {!filteredMentors?.length && (
                   <tr>
-                    <td colSpan="5" className="px-6 py-12 text-center">
-                      <div className="flex flex-col items-center gap-3">
-                        <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-blue-600"><span className="material-symbols-outlined">group_off</span></div>
-                        <p className="font-bold text-sm text-slate-900">Tidak Ada Data</p>
-                        <p className="text-xs text-slate-400">
-                          {isFakultasPortal && isSuperAdmin && !form.fakultas_id ? 'Pilih fakultas di form atas untuk melihat daftar pembimbing.' : 'Tidak ada pembimbing yang sesuai dengan filter atau belum terdaftar.'}
-                        </p>
-                      </div>
+                    <td colSpan="4" className="py-12 text-center text-sm font-bold text-[var(--theme-text-subtle)]">
+                      {isFakultasPortal && isSuperAdmin && !form.fakultas_id ? 'Pilih fakultas di form atas untuk melihat mentor' : 'Belum ada dewan pembimbing terdaftar.'}
                     </td>
                   </tr>
                 )}
@@ -330,89 +189,18 @@ const Mentors = ({ portal = 'admin', facultyId: propFacultyId }) => {
             </table>
           )}
         </div>
-        
-        {/* Modern Pagination Footer */}
-        {!isLoading && (
-          <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-              <p className="text-xs text-slate-500 font-medium text-center sm:text-left">
-                Menampilkan <span className="font-semibold text-slate-800">{totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0}</span> sampai <span className="font-semibold text-slate-800">{Math.min(currentPage * pageSize, totalItems)}</span> dari <span className="font-semibold text-slate-800">{totalItems}</span> entri
-              </p>
-
-              <div className="hidden sm:block h-5 w-px bg-slate-200" />
-
-              <div className="flex items-center gap-2.5">
-                <span className="text-xs text-slate-400 font-medium whitespace-nowrap">Baris per halaman:</span>
-                <Select value={String(pageSize)} onValueChange={(val) => { setPageSize(Number(val)); setCurrentPage(1); }}>
-                  <SelectTrigger className="h-8 w-24 rounded-lg border-slate-200 bg-white font-semibold text-xs shadow-sm focus:ring-cyan-500/20 px-2.5 py-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl border-slate-200 shadow-xl p-1 font-body">
-                    {[5, 10, 15, 25, 50].map((size) => (
-                      <SelectItem key={size} value={String(size)} className="rounded-lg text-xs py-1.5 focus:bg-cyan-500/5 focus:text-cyan-600">
-                        {size} Baris
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1 || isLoading}
-                className="h-8 px-3 rounded-lg border-slate-200 bg-white text-slate-600 font-semibold text-xs shadow-sm disabled:opacity-40 hover:bg-slate-50 transition-all active:scale-95"
-              >
-                <span className="material-symbols-outlined mr-1" style={{ fontSize: '15px' }}>chevron_left</span>
-                Sebelumnya
-              </Button>
-
-              <div className="flex items-center gap-1">
-                {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
-                  let pageNum = i + 1;
-                  if (totalPages > 5 && currentPage > 3) pageNum = currentPage - 3 + i;
-                  if (pageNum > totalPages) return null;
-
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => setCurrentPage(pageNum)}
-                      className={cn(
-                        "w-8 h-8 rounded-lg font-semibold text-xs transition-all duration-200",
-                        currentPage === pageNum
-                          ? "bg-slate-800 text-white shadow-md scale-105"
-                          : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
-                      )}
-                    >
-                      {pageNum}
-                    </button>
-                  )
-                })}
-              </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages || isLoading || totalPages === 0}
-                className="h-8 px-3 rounded-lg border-slate-200 bg-white text-slate-600 font-semibold text-xs shadow-sm disabled:opacity-40 hover:bg-slate-50 transition-all active:scale-95"
-              >
-                Berikutnya
-                <span className="material-symbols-outlined ml-1" style={{ fontSize: '15px' }}>chevron_right</span>
-              </Button>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
 };
 
 function Field({ label, children }) {
-  return <label className="space-y-2.5"><span className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">{label}</span>{children}</label>;
+  return (
+    <label className="space-y-1 block">
+      <span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--theme-text-muted)] pl-1">{label}</span>
+      {children}
+    </label>
+  );
 }
 
 export default Mentors;

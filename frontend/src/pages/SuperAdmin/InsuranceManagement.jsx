@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { insuranceService } from '../../services/api';
 import toast from 'react-hot-toast';
 import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { PageContent } from '@/components/ui/page'
+import { DashboardHero } from '@/components/ui/dashboard'
 
 // Auto-injected Material Symbol fallbacks
 const InsuranceIcon = ({ size, className, ...props }) => (
@@ -233,19 +235,14 @@ export default function InsuranceManagement() {
   });
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-teal-500 flex items-center justify-center">
-            <InsuranceIcon size={24} className="text-white" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-slate-800">Manajemen Asuransi</h1>
-            <p className="text-sm text-slate-500">Kelola seluruh pengajuan klaim asuransi</p>
-          </div>
-        </div>
-      </div>
+    <PageContent>
+      <DashboardHero
+        title="Manajemen"
+        highlightedTitle="Asuransi"
+        subtitle="Kelola seluruh pengajuan klaim asuransi mahasiswa."
+        icon="health_and_safety"
+        badges={[{ label: 'Asuransi Mahasiswa', active: false }]}
+      />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -608,6 +605,6 @@ export default function InsuranceManagement() {
           </>
         )}
       </AnimatePresence>
-    </div>
+    </PageContent>
   );
 }

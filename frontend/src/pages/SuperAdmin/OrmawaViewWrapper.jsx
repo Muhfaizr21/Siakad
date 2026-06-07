@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { OrmawaSelector } from './components/OrmawaSelector'
+import { PageContent } from '@/components/ui/page'
+import { DashboardHero } from '@/components/ui/dashboard'
 
 /**
  * Wrapper component untuk halaman ormawa di Super Admin
@@ -17,40 +19,19 @@ export function OrmawaViewWrapper({ children, title = "Dashboard Ormawa" }) {
   })
 
   return (
-    <div className="min-h-screen bg-transparent font-inter">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header dengan Dropdown Ormawa Selector */}
-        <section
-          className="rounded-xl p-5 border border-border"
-          style={{ backgroundColor: 'var(--theme-surface)' }}
-        >
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            {/* Left: Icon + Title */}
-            <div className="flex items-center gap-4">
-              <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
-                style={{ backgroundColor: 'var(--theme-primary)', color: 'white' }}
-              >
-                <span className="material-symbols-outlined text-xl">admin_panel_settings</span>
-              </div>
-              <div>
-                <h1 className="text-xl font-bold" style={{ color: 'var(--theme-text)' }}>
-                  {title}
-                </h1>
-                <p className="text-xs mt-0.5" style={{ color: 'var(--theme-text-muted)' }}>
-                  Sebagai Super Admin, pilih organisasi untuk melihat data spesifik
-                </p>
-              </div>
-            </div>
-
-            {/* Right: Ormawa Selector */}
-            <OrmawaSelector 
-              value={selectedOrmawaId} 
-              onChange={setSelectedOrmawaId}
-              className="w-full md:w-auto"
-            />
-          </div>
-        </section>
+    <PageContent>
+      <DashboardHero
+        title={title}
+        subtitle="Sebagai Super Admin, pilih organisasi untuk melihat data spesifik"
+        icon="admin_panel_settings"
+        actions={
+          <OrmawaSelector 
+            value={selectedOrmawaId} 
+            onChange={setSelectedOrmawaId}
+            className="w-full md:w-auto"
+          />
+        }
+      />
 
         {/* Content dari halaman ormawa */}
         {selectedOrmawaId ? (
@@ -67,7 +48,6 @@ export function OrmawaViewWrapper({ children, title = "Dashboard Ormawa" }) {
             </p>
           </div>
         )}
-      </div>
-    </div>
+    </PageContent>
   )
 }

@@ -12,8 +12,8 @@ export default function KencanaTimelinePage() {
     <KencanaShell title="Timeline Kencana" subtitle="Tahapan berasal dari jadwal yang dibuat dan dipublish admin, tanpa durasi hardcode." breadcrumbs={[{ label: 'Timeline' }]}>
       <div className="space-y-4">
         {stages.map((stage, index) => (
-          <Link key={stage.id} to={`/student/kencana/stage/${stage.id}`} className="group grid gap-4 rounded-3xl border border-[#e8dfcf] bg-white/85 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md md:grid-cols-[80px_1fr_auto]">
-            <div className="grid size-16 place-items-center rounded-3xl bg-[#0f4c5c] text-xl font-black text-white">{index + 1}</div>
+          <Link key={stage.id} to={`/student/kencana/stage/${stage.id}`} className="group grid gap-4 rounded-2xl border border-border bg-white/85 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md md:grid-cols-[80px_1fr_auto]">
+            <div className="grid size-16 place-items-center rounded-2xl bg-[#0f4c5c] text-xl font-black text-white">{index + 1}</div>
             <div>
               <div className="flex flex-wrap items-center gap-2"><h2 className="text-xl font-black">{stage.name}</h2><StatusBadge status={stage.status} /></div>
               <p className="mt-2 text-sm font-medium text-[#756b5a]">{stage.description}</p>

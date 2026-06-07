@@ -12,11 +12,11 @@ export function DashboardStatCard({
   route,
   loading = false,
   badge, // { text, icon: "show_chart" }
-  colorClass = "text-primary",
+  colorClass = "text-[var(--theme-primary)]",
   iconColor,
-  bgClass = "bg-primary/10 border-primary/20 border",
+  bgClass = "bg-[var(--theme-primary-light)] border-[var(--theme-primary)]/20 border",
   iconBg,
-  accentGradient = "from-primary/10",
+  accentGradient = "from-[var(--theme-primary)]/10",
   className,
   ...props
 }) {
@@ -33,7 +33,7 @@ export function DashboardStatCard({
       {...wrapperProps}
       {...props}
       className={cn(
-        "group block bg-surface border border-border rounded-xl shadow-sm text-left hover:-translate-y-0.5 transition-all duration-300 relative overflow-hidden",
+        "group block bg-surface border border-border rounded-2xl shadow-sm text-left hover:-translate-y-0.5 transition-all duration-300 relative overflow-hidden",
         (route || props.onClick) && "hover:shadow-md cursor-pointer",
         className
       )}
@@ -58,7 +58,7 @@ export function DashboardStatCard({
             </div>
             
             {badge && (
-              <div className="flex items-center gap-1 text-[10px] font-medium text-success bg-success/10 border border-success/20 px-2 py-0.5 rounded-full shrink-0">
+              <div className="flex items-center gap-1 text-[10px] font-semibold text-[var(--theme-success)] bg-[var(--theme-success-light)] border border-[var(--theme-success)]/20 px-2 py-0.5 rounded-full shrink-0">
                 {badge.icon && <span className="material-symbols-outlined" style={{ fontSize: '9px' }}>{badge.icon}</span>}
                 {badge.text}
               </div>
@@ -67,7 +67,7 @@ export function DashboardStatCard({
           
           <div className="flex-1">
             <p className="text-xs font-medium text-muted mb-1 line-clamp-1">{displayLabel}</p>
-            <p className="text-2xl font-black text-on-surface leading-none tabular-nums font-headline truncate">
+            <p className="text-2xl font-bold text-on-surface leading-none tabular-nums font-headline truncate">
               {value}
             </p>
             {displayDescription && (

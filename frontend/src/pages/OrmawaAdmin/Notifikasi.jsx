@@ -1,7 +1,9 @@
 "use client"
+import React, { useState, useEffect } from 'react';
+import { PageContent, PageHeader } from '@/components/ui/page';
 
-import React, { useState, useEffect } from 'react'
-import { Badge } from '@/components/ui/Badge'
+
+
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent } from '@/components/ui/Card'
 
@@ -64,7 +66,7 @@ const TIPE_COLORS = {
 export default function Notifikasi() {
   const [notifications, setNotifications] = useState([])
   const [loading, setLoading] = useState(true)
-  
+
   const ormawaId = getOrmawaId()
 
   const fetchData = async () => {
@@ -140,58 +142,30 @@ export default function Notifikasi() {
   const infoCount = notifications.filter(n => n.tipe !== 'proposal').length
 
   return (
-    <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-8 font-body">
+    <PageContent className="font-body">
       <Toaster position="top-right" />
-      
-      {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <section className="relative overflow-hidden rounded-[2rem] bg-white p-8 md:p-10 shadow-sm border border-slate-200">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(0,0,0,0.02)_0%,transparent_60%)]" />
-        <div className="absolute inset-0 opacity-[0.02]"
-          style={{
-            backgroundImage: `radial-gradient(circle at 20% 50%, var(--theme-primary) 1px, transparent 1px), radial-gradient(circle at 80% 20%, var(--theme-primary) 1px, transparent 1px)`,
-            backgroundSize: '40px 40px'
-          }}
-        />
-        <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full blur-3xl opacity-10" style={{ backgroundColor: 'var(--theme-secondary)' }} />
-        <div className="absolute -bottom-10 right-40 w-60 h-60 rounded-full blur-2xl opacity-10" style={{ backgroundColor: 'var(--theme-surface)' }} />
 
-        <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-          <div className="space-y-3 w-full lg:w-auto">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-50 border border-slate-200 text-slate-500">
-              <span className="h-1.5 w-1.5 rounded-full animate-ping" style={{ backgroundColor: 'var(--theme-primary)' }} />
-              <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-600">Kotak Masuk Notifikasi</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 shadow-inner relative shrink-0" style={{ color: 'var(--theme-primary)' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>notifications</span>
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 size-5 bg-rose-500 text-white text-[9px] font-black rounded-full flex items-center justify-center animate-bounce border-2 border-white">
-                    {unreadCount}
-                  </span>
-                )}
-              </div>
-              <div className="min-w-0">
-                <h1 className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tight font-headline text-slate-900">Pusat Notifikasi</h1>
-                <p className="text-slate-500 text-xs md:text-sm font-medium mt-1 leading-normal">Pantau perkembangan proposal, perubahan jadwal, dan pembukuan keuangan ormawa.</p>
-              </div>
-            </div>
-          </div>
-          
-          {unreadCount > 0 && (
-            <Button 
+            {/* ── Welcome Banner ─────────────────────────────────────────── */}
+      <PageHeader 
+        title="Pusat Notifikasi"
+        subtitle="Pantau perkembangan proposal, perubahan jadwal, dan pembukuan keuangan ormawa."
+        icon="notifications"
+        action={
+          <Button 
               onClick={handleMarkAllRead} 
-              className="h-12 px-6 rounded-2xl text-white font-bold text-xs tracking-wider shadow-lg shadow-blue-900/10 transition-all active:scale-95 shrink-0 w-full lg:w-auto flex items-center justify-center gap-2"
+              className="h-10 px-6 rounded-xl text-white font-bold text-xs tracking-wider shadow-lg shadow-[var(--theme-primary)]/10 transition-all active:scale-95 shrink-0 w-full lg:w-auto flex items-center justify-center gap-2"
               style={{ backgroundColor: 'var(--theme-primary)' }}
             >
               <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>done_all</span>
               <span>TANDAI SEMUA DIBACA</span>
             </Button>
-          )}
-        </div>
-      </section>
+        }
+       
+        breadcrumbs={[ { label: 'Dashboard', path: '/ormawa' }, { label: 'Pusat Notifikasi', path: '#' } ]} 
+      />
 
       {/* ── Content Area ───────────────────────────────────────────── */}
-      <Card className="border border-slate-200/50 shadow-sm rounded-[2rem] overflow-hidden bg-white/70 backdrop-blur-md">
+      <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface">
         <CardContent className="p-4 sm:p-6">
           {loading ? (
             <div className="divide-y divide-slate-100">
@@ -207,12 +181,12 @@ export default function Notifikasi() {
             </div>
           ) : notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
-              <div className="size-16 rounded-[2rem] bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300">
+              <div className="size-16 rounded-2xl bg-[var(--theme-bg)] border border-border flex items-center justify-center text-[var(--theme-text-subtle)]">
                 <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>notifications_off</span>
               </div>
               <div className="text-center space-y-1">
-                <p className="font-black text-[13px] tracking-widest text-slate-900 uppercase font-headline">Semua Sudah Dibaca</p>
-                <p className="text-xs font-semibold text-slate-400">Tidak ada notifikasi baru untuk kepengurusan Anda saat ini.</p>
+                <p className="font-bold text-[13px] tracking-widest text-[var(--theme-text)] uppercase font-headline">Semua Sudah Dibaca</p>
+                <p className="text-xs font-semibold text-[var(--theme-text-muted)]">Tidak ada notifikasi baru untuk kepengurusan Anda saat ini.</p>
               </div>
             </div>
           ) : (
@@ -220,7 +194,7 @@ export default function Notifikasi() {
               {notifications.map((notif) => {
                 const Icon = ICON_MAP[notif.tipe] || Bell
                 const iconColor = TIPE_COLORS[notif.tipe] || 'bg-slate-50 text-slate-500 border-slate-100'
-                
+
                 return (
                   <div 
                     key={notif.id} 
@@ -257,9 +231,9 @@ export default function Notifikasi() {
                         {/* Status Pin & Time */}
                         <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 shrink-0">
                           {!notif.is_read && (
-                            <span className="h-2 w-2 rounded-full bg-[#00236F] shadow-lg shadow-blue-900/40 animate-pulse shrink-0" />
+                            <span className="h-2 w-2 rounded-full bg-[var(--theme-primary)] shadow-lg shadow-[var(--theme-primary)]/40 animate-pulse shrink-0" />
                           )}
-                          <span className="text-[10px] font-bold text-slate-400 tracking-tight whitespace-nowrap">
+                          <span className="text-[10px] font-bold text-[var(--theme-text-subtle)] tracking-tight whitespace-nowrap">
                             {notif.created_at ? new Date(notif.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'}
                           </span>
                         </div>
@@ -272,6 +246,6 @@ export default function Notifikasi() {
           )}
         </CardContent>
       </Card>
-    </div>
+    </PageContent>
   )
 }

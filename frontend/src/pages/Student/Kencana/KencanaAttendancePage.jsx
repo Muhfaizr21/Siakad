@@ -23,7 +23,7 @@ export default function KencanaAttendancePage() {
         <MetricCard label="Persentase" value={`${summary.percentage || 0}%`} icon="percent" />
       </section>
 
-      <section className="rounded-3xl border border-[#e8dfcf] bg-white/85 p-6 shadow-sm">
+      <section className="rounded-2xl border border-border bg-white/85 p-6 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-xl font-black text-[#1d1b16]">Status Kehadiran</h2>
           <StatusBadge status={summary.percentage >= 100 ? 'completed' : 'not_eligible'} />
@@ -36,17 +36,17 @@ export default function KencanaAttendancePage() {
         </p>
       </section>
 
-      <section className="rounded-3xl border border-[#e8dfcf] bg-white/85 p-6 shadow-sm">
+      <section className="rounded-2xl border border-border bg-white/85 p-6 shadow-sm">
         <h2 className="text-xl font-black text-[#1d1b16] mb-4">Riwayat Kehadiran Sesi</h2>
         {details.length === 0 ? (
-          <p className="text-sm font-bold text-[#756b5a] p-4 text-center border border-dashed border-[#e8dfcf] rounded-2xl bg-[#fffaf0]">
+          <p className="text-sm font-bold text-[#756b5a] p-4 text-center border border-dashed border-border rounded-2xl bg-[#fffaf0]">
             Belum ada sesi wajib yang dijadwalkan.
           </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[600px]">
               <thead>
-                <tr className="border-b border-[#e8dfcf] text-xs font-black uppercase tracking-wider text-[#9b8f7a]">
+                <tr className="border-b border-border text-xs font-black uppercase tracking-wider text-[#9b8f7a]">
                   <th className="py-3 px-4">Sesi Kencana</th>
                   <th className="py-3 px-4">Tanggal Sesi</th>
                   <th className="py-3 px-4">Status</th>

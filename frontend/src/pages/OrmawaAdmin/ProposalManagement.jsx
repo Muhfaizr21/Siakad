@@ -1,11 +1,14 @@
 "use client"
-
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react';
+import { PageContent, PageHeader } from '@/components/ui/page';
 import { createPortal } from 'react-dom'
+
+
+
 import { DataTable } from '@/components/ui/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { Modal, ModalBody, ModalFooter, ModalBtn } from '@/components/ui/Modal'
+import { DialogModal } from '@/components/ui/DialogModal'
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
@@ -26,14 +29,14 @@ const STATUS_CONFIG = {
   disetujui_univ: { label: 'Disetujui Univ', cls: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-500/20 border-emerald-200', icon: 'check_circle' },
   revisi: { label: 'Butuh Revisi', cls: 'bg-amber-50 text-amber-700 ring-1 ring-amber-500/20 border-amber-200', icon: 'error' },
   ditolak: { label: 'Ditolak', cls: 'bg-rose-50 text-rose-700 ring-1 ring-rose-500/20 border-rose-200', icon: 'cancel' },
-  selesai: { label: 'Selesai', cls: 'bg-slate-100 text-slate-600 ring-1 ring-slate-400/20 border-slate-200', icon: 'check_circle' },
+  selesai: { label: 'Selesai', cls: 'bg-slate-100 text-slate-600 ring-1 ring-slate-400/20 border-border', icon: 'check_circle' },
 }
 
 const getProposalId = (p) => p?.id || p?.ID
 
 const StatusBadge = ({ status }) => {
   const s = String(status || 'diajukan').toLowerCase().trim()
-  const cfg = STATUS_CONFIG[s] || { label: status, cls: 'bg-slate-100 text-slate-600 border-slate-200', icon: 'description' }
+  const cfg = STATUS_CONFIG[s] || { label: status, cls: 'bg-slate-100 text-slate-600 border-border', icon: 'description' }
   return (
     <Badge className={cn('capitalize font-black text-[10px] px-3 py-1 border shadow-sm rounded-lg uppercase tracking-wider', cfg.cls)}>
       {cfg.label}
@@ -408,47 +411,21 @@ export default function ProposalManagement() {
   ]
 
   return (
-    <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-8 font-body">
+    <PageContent className="font-body">
       <Toaster position="top-right" containerStyle={{ zIndex: 99999 }} />
       <img src="/images/format_kop_rektorat_landscape.jpg" style={{ display: 'none' }} alt="" />
 
-      {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <section className="relative overflow-hidden rounded-3xl h-48 flex items-center group shadow-sm border border-slate-200/80">
-        <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/50 to-slate-100/50" />
-        <div className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage: `radial-gradient(circle at 20% 50%, black 1px, transparent 1px), radial-gradient(circle at 80% 20%, black 1px, transparent 1px)`,
-            backgroundSize: '60px 60px'
-          }}
-        />
-        <div className="absolute -top-20 -right-20 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute -bottom-10 right-40 w-48 h-48 bg-blue-400/5 rounded-full blur-2xl" />
-
-        <div className="relative z-10 px-10 flex-1 flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-6">
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="h-1.5 w-6 bg-primary/40 rounded-full" />
-              <span className="text-[10px] font-bold text-slate-400 tracking-[0.25em]">
-                Ormawa Admin
-              </span>
-            </div>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-primary/10 backdrop-blur-md rounded-xl text-primary shadow-inner">
-                <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>description</span>
-              </div>
-              <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight font-headline">
-                Manajemen Proposal
-              </h1>
-            </div>
-            <p className="text-slate-500 font-medium text-sm max-w-2xl leading-relaxed">
-              Ajukan & Pantau Persetujuan Kegiatan: Ormawa → Fakultas → Universitas
-            </p>
-          </div>
-        </div>
-      </section>
+            {/* ── Welcome Banner ─────────────────────────────────────────── */}
+      <PageHeader 
+        title="Manajemen Proposal"
+        subtitle="Ajukan & Pantau Persetujuan Kegiatan: Ormawa → Fakultas → Universitas"
+        icon="description"
+       
+        breadcrumbs={[ { label: 'Dashboard', path: '/ormawa' }, { label: 'Manajemen Proposal', path: '#' } ]} 
+      />
 
       {/* ── Content Area ───────────────────────────────────────────── */}
-      <Card className="border border-[#e5e5e5] shadow-sm overflow-hidden bg-white rounded-3xl">
+      <Card className="border border-border shadow-sm overflow-hidden bg-surface rounded-2xl">
         <CardContent className="p-0">
           <DataTable
             columns={columns}
@@ -469,12 +446,12 @@ export default function ProposalManagement() {
               const isLocked = ['disetujui_fakultas', 'disetujui_univ', 'selesai'].includes(statusStr)
               return (
                 <div className="flex items-center justify-end gap-1">
-                  <button onClick={() => handleView(row)} className="p-1.5 text-slate-400 hover:text-[#00236F] hover:bg-[#00236F]/10 rounded-lg transition-colors duration-150" title="Detail"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >visibility</span></button>
-                  <button onClick={() => printProposalPDF(row)} className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors duration-150" title="Cetak PDF"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >print</span></button>
+                  <button onClick={() => handleView(row)} className="p-1.5 text-slate-400 hover:text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)] rounded-lg transition-colors duration-150" title="Detail"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >visibility</span></button>
+                  <button onClick={() => printProposalPDF(row)} className="p-1.5 text-slate-400 hover:text-[var(--theme-success)] hover:bg-[var(--theme-success-light)] rounded-lg transition-colors duration-150" title="Cetak PDF"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >print</span></button>
                   {!isLocked && (
                     <>
-                      <button onClick={() => handleOpenEdit(row)} className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors duration-150" title="Edit"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >edit</span></button>
-                      <button onClick={() => { setSelected(row); setIsDelOpen(true) }} className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors duration-150" title="Hapus"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >delete</span></button>
+                      <button onClick={() => handleOpenEdit(row)} className="p-1.5 text-slate-400 hover:text-[var(--theme-warning)] hover:bg-[var(--theme-warning-light)] rounded-lg transition-colors duration-150" title="Edit"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >edit</span></button>
+                      <button onClick={() => { setSelected(row); setIsDelOpen(true) }} className="p-1.5 text-slate-400 hover:text-[var(--theme-error)] hover:bg-[var(--theme-error-light)] rounded-lg transition-colors duration-150" title="Hapus"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >delete</span></button>
                     </>
                   )}
                 </div>
@@ -485,16 +462,30 @@ export default function ProposalManagement() {
       </Card>
 
       {/* DETAIL & REVIEW MODAL */}
-      <Modal
+      <DialogModal
         open={isDetailOpen}
+        onOpenChange={setIsDetailOpen}
         onClose={() => { setIsDetailOpen(false); setKomentar('') }}
         title={selected ? `PROP-${getProposalId(selected)}: ${selected.Judul}` : 'Detail Proposal'}
         subtitle="Pantau proses persetujuan, anggaran, dan riwayat revisi kegiatan."
         icon={<span className="material-symbols-outlined">description</span>}
         maxWidth="max-w-5xl"
+        footer={
+          <>
+            {selected && (
+              <Button onClick={() => printProposalPDF(selected)} className="bg-[var(--theme-primary)] hover:bg-[var(--theme-primary)]/90 text-white font-bold gap-2 flex items-center transition-all shadow-sm h-10 rounded-xl">
+                <span className="material-symbols-outlined text-[16px]">print</span>
+                Cetak Proposal (PDF)
+              </Button>
+            )}
+            <Button variant="ghost" type="button" onClick={() => { setIsDetailOpen(false); setKomentar('') }} className="h-10 rounded-xl border border-border text-[var(--theme-text-subtle)] hover:bg-[var(--theme-bg)]">
+              Tutup Detail
+            </Button>
+          </>
+        }
       >
         {selected && (
-          <ModalBody className="p-6">
+          <div className="p-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
               {/* Left Column: Details */}
@@ -502,23 +493,23 @@ export default function ProposalManagement() {
 
                 {/* Metrics Row */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 shrink-0">
+                  <div className="bg-[var(--theme-bg)] border border-border/60 rounded-2xl p-4 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--theme-success-light)] text-[var(--theme-success)] flex items-center justify-center border border-[var(--theme-success)]/20 shrink-0">
                       <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>payments</span>
                     </div>
                     <div className="min-w-0">
-                      <p className="text-[8px] font-black text-slate-400 tracking-wider uppercase">Anggaran Diajukan</p>
-                      <p className="text-sm font-black text-emerald-600 font-headline mt-0.5 truncate">{formatRupiah(selected.Anggaran)}</p>
+                      <p className="text-[8px] font-black text-[var(--theme-text-subtle)] tracking-wider uppercase">Anggaran Diajukan</p>
+                      <p className="text-sm font-black text-[var(--theme-success)] font-headline mt-0.5 truncate">{formatRupiah(selected.Anggaran)}</p>
                     </div>
                   </div>
 
-                  <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 shrink-0">
+                  <div className="bg-[var(--theme-bg)] border border-border/60 rounded-2xl p-4 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--theme-primary-light)] text-[var(--theme-primary)] flex items-center justify-center border border-[var(--theme-primary)]/20 shrink-0">
                       <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>calendar_today</span>
                     </div>
                     <div className="min-w-0">
-                      <p className="text-[8px] font-black text-slate-400 tracking-wider uppercase">Tanggal Kegiatan</p>
-                      <p className="text-sm font-black text-slate-900 font-headline mt-0.5 truncate">
+                      <p className="text-[8px] font-black text-[var(--theme-text-subtle)] tracking-wider uppercase">Tanggal Kegiatan</p>
+                      <p className="text-sm font-black text-[var(--theme-text)] font-headline mt-0.5 truncate">
                         {selected.TanggalKegiatan ? new Date(selected.TanggalKegiatan).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
                       </p>
                     </div>
@@ -526,57 +517,57 @@ export default function ProposalManagement() {
                 </div>
 
                 {/* Detail Fields Grid */}
-                <div className="bg-slate-50 border border-slate-200/60 rounded-3xl p-6 space-y-4">
-                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest font-headline">Informasi Detail Proposal</h3>
+                <div className="bg-[var(--theme-bg)] border border-border/60 rounded-2xl p-6 space-y-4">
+                  <h3 className="text-xs font-black text-[var(--theme-text)] uppercase tracking-widest font-headline">Informasi Detail Proposal</h3>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-medium text-slate-700">
-                    <div className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Landasan Kegiatan</p>
-                      <p className="font-bold text-slate-900">{selected.LandasanKegiatan || selected.landasan_kegiatan || "—"}</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-medium text-[var(--theme-text-subtle)]">
+                    <div className="bg-[var(--theme-surface)] p-3 rounded-xl border border-border/40 space-y-1">
+                      <p className="text-[9px] font-black text-[var(--theme-text-subtle)] uppercase tracking-wider">Landasan Kegiatan</p>
+                      <p className="font-bold text-[var(--theme-text)]">{selected.LandasanKegiatan || selected.landasan_kegiatan || "—"}</p>
                     </div>
-                    <div className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Bentuk Kegiatan</p>
-                      <p className="font-bold text-slate-900">{selected.BentukKegiatan || selected.bentuk_kegiatan || "—"}</p>
+                    <div className="bg-[var(--theme-surface)] p-3 rounded-xl border border-border/40 space-y-1">
+                      <p className="text-[9px] font-black text-[var(--theme-text-subtle)] uppercase tracking-wider">Bentuk Kegiatan</p>
+                      <p className="font-bold text-[var(--theme-text)]">{selected.BentukKegiatan || selected.bentuk_kegiatan || "—"}</p>
                     </div>
-                    <div className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Mitra Kerja</p>
-                      <p className="font-bold text-slate-900">{selected.Mitra || selected.mitra || "—"}</p>
+                    <div className="bg-[var(--theme-surface)] p-3 rounded-xl border border-border/40 space-y-1">
+                      <p className="text-[9px] font-black text-[var(--theme-text-subtle)] uppercase tracking-wider">Mitra Kerja</p>
+                      <p className="font-bold text-[var(--theme-text)]">{selected.Mitra || selected.mitra || "—"}</p>
                     </div>
-                    <div className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">PJ Kegiatan</p>
-                      <p className="font-bold text-slate-900">{selected.PJKegiatan || selected.pj_kegiatan || "—"}</p>
+                    <div className="bg-[var(--theme-surface)] p-3 rounded-xl border border-border/40 space-y-1">
+                      <p className="text-[9px] font-black text-[var(--theme-text-subtle)] uppercase tracking-wider">PJ Kegiatan</p>
+                      <p className="font-bold text-[var(--theme-text)]">{selected.PJKegiatan || selected.pj_kegiatan || "—"}</p>
                     </div>
-                    <div className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Jadwal Pelaksanaan</p>
-                      <p className="font-bold text-slate-900">{selected.JadwalPelaksanaan || selected.jadwal_pelaksanaan || "—"}</p>
+                    <div className="bg-[var(--theme-surface)] p-3 rounded-xl border border-border/40 space-y-1">
+                      <p className="text-[9px] font-black text-[var(--theme-text-subtle)] uppercase tracking-wider">Jadwal Pelaksanaan</p>
+                      <p className="font-bold text-[var(--theme-text)]">{selected.JadwalPelaksanaan || selected.jadwal_pelaksanaan || "—"}</p>
                     </div>
-                    <div className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Sasaran Kegiatan</p>
-                      <p className="font-bold text-slate-900">{selected.SasaranKegiatan || selected.sasaran_kegiatan || "—"}</p>
+                    <div className="bg-[var(--theme-surface)] p-3 rounded-xl border border-border/40 space-y-1">
+                      <p className="text-[9px] font-black text-[var(--theme-text-subtle)] uppercase tracking-wider">Sasaran Kegiatan</p>
+                      <p className="font-bold text-[var(--theme-text)]">{selected.SasaranKegiatan || selected.sasaran_kegiatan || "—"}</p>
                     </div>
-                    <div className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Sumber Dana</p>
-                      <p className="font-bold text-slate-900">{selected.SumberDana || selected.sumber_dana || "—"}</p>
+                    <div className="bg-[var(--theme-surface)] p-3 rounded-xl border border-border/40 space-y-1">
+                      <p className="text-[9px] font-black text-[var(--theme-text-subtle)] uppercase tracking-wider">Sumber Dana</p>
+                      <p className="font-bold text-[var(--theme-text)]">{selected.SumberDana || selected.sumber_dana || "—"}</p>
                     </div>
-                    <div className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Indikator Keberhasilan</p>
-                      <p className="font-bold text-slate-900">{selected.IndikatorKeberhasilan || selected.indikator_keberhasilan || "—"}</p>
+                    <div className="bg-[var(--theme-surface)] p-3 rounded-xl border border-border/40 space-y-1">
+                      <p className="text-[9px] font-black text-[var(--theme-text-subtle)] uppercase tracking-wider">Indikator Keberhasilan</p>
+                      <p className="font-bold text-[var(--theme-text)]">{selected.IndikatorKeberhasilan || selected.indikator_keberhasilan || "—"}</p>
                     </div>
                   </div>
 
-                  <div className="bg-white p-4 rounded-xl border border-slate-100 space-y-1.5 text-xs text-slate-700">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Latar Belakang</p>
-                    <p className="font-medium leading-relaxed whitespace-pre-line">{selected.LatarBelakang || selected.latar_belakang || "—"}</p>
+                  <div className="bg-[var(--theme-surface)] p-4 rounded-xl border border-border/40 space-y-1.5 text-xs text-[var(--theme-text-subtle)]">
+                    <p className="text-[9px] font-black text-[var(--theme-text-subtle)] uppercase tracking-wider">Latar Belakang</p>
+                    <p className="font-medium leading-relaxed whitespace-pre-line text-[var(--theme-text)]">{selected.LatarBelakang || selected.latar_belakang || "—"}</p>
                   </div>
 
-                  <div className="bg-white p-4 rounded-xl border border-slate-100 space-y-1.5 text-xs text-slate-700">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Tujuan Kegiatan</p>
-                    <p className="font-medium leading-relaxed whitespace-pre-line">{selected.TujuanKegiatan || selected.tujuan_kegiatan || "—"}</p>
+                  <div className="bg-[var(--theme-surface)] p-4 rounded-xl border border-border/40 space-y-1.5 text-xs text-[var(--theme-text-subtle)]">
+                    <p className="text-[9px] font-black text-[var(--theme-text-subtle)] uppercase tracking-wider">Tujuan Kegiatan</p>
+                    <p className="font-medium leading-relaxed whitespace-pre-line text-[var(--theme-text)]">{selected.TujuanKegiatan || selected.tujuan_kegiatan || "—"}</p>
                   </div>
 
-                  <div className="bg-white p-4 rounded-xl border border-slate-100 space-y-1.5 text-xs text-slate-700">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Deskripsi Kegiatan</p>
-                    <p className="font-medium leading-relaxed whitespace-pre-line">{selected.Deskripsi || selected.deskripsi || "—"}</p>
+                  <div className="bg-[var(--theme-surface)] p-4 rounded-xl border border-border/40 space-y-1.5 text-xs text-[var(--theme-text-subtle)]">
+                    <p className="text-[9px] font-black text-[var(--theme-text-subtle)] uppercase tracking-wider">Deskripsi Kegiatan</p>
+                    <p className="font-medium leading-relaxed whitespace-pre-line text-[var(--theme-text)]">{selected.Deskripsi || selected.deskripsi || "—"}</p>
                   </div>
                 </div>
 
@@ -593,7 +584,7 @@ export default function ProposalManagement() {
                   const files = getFileUrlsList(selected.FileURL || selected.file_url)
                   return files.length > 0 ? (
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-black text-slate-400 tracking-[0.15em] uppercase font-headline">Dokumen Lampiran ({files.length})</Label>
+                      <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.15em] uppercase font-headline">Dokumen Lampiran ({files.length})</Label>
                       <div className="grid grid-cols-1 gap-2">
                         {files.map((file, idx) => {
                           const filename = file.split('/').pop() || `Berkas_${idx + 1}`
@@ -604,18 +595,18 @@ export default function ProposalManagement() {
                               href={`${API_BASE_URL.replace('/api', '')}${file}`}
                               target="_blank"
                               rel="noreferrer"
-                              className="flex items-center justify-between p-3.5 bg-blue-50/60 border border-blue-100 rounded-2xl hover:bg-blue-100/50 hover:border-blue-300 transition-all group"
+                              className="flex items-center justify-between p-3.5 bg-[var(--theme-primary-light)]/60 border border-[var(--theme-primary)]/20 rounded-2xl hover:bg-[var(--theme-primary-light)] hover:border-[var(--theme-primary)]/30 transition-all group"
                             >
                               <div className="flex items-center gap-3 min-w-0 flex-1">
-                                <div className="w-9 h-9 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shadow-sm shrink-0">
+                                <div className="w-9 h-9 rounded-xl bg-[var(--theme-primary-light)] text-[var(--theme-primary)] flex items-center justify-center shadow-sm shrink-0 border border-[var(--theme-primary)]/20">
                                   <span className="material-symbols-outlined normal-case" style={{ fontSize: '18px' }}>upload_file</span>
                                 </div>
                                 <div className="flex flex-col leading-tight min-w-0 flex-1">
-                                  <span className="text-[11px] font-black text-blue-900 uppercase tracking-wider font-headline truncate" title={cleanName}>{cleanName}</span>
-                                  <span className="text-[9px] text-blue-500 font-bold mt-0.5">Klik untuk melihat file</span>
+                                  <span className="text-[11px] font-black text-[var(--theme-primary)] uppercase tracking-wider font-headline truncate" title={cleanName}>{cleanName}</span>
+                                  <span className="text-[9px] text-[var(--theme-primary)] font-bold mt-0.5">Klik untuk melihat file</span>
                                 </div>
                               </div>
-                              <span className="material-symbols-outlined normal-case text-blue-400 group-hover:translate-x-0.5 transition-transform shrink-0" style={{ fontSize: '18px' }}>arrow_forward</span>
+                              <span className="material-symbols-outlined normal-case text-[var(--theme-primary)] group-hover:translate-x-0.5 transition-transform shrink-0" style={{ fontSize: '18px' }}>arrow_forward</span>
                             </a>
                           )
                         })}
@@ -623,13 +614,13 @@ export default function ProposalManagement() {
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-black text-slate-400 tracking-[0.15em] uppercase font-headline">Dokumen Lampiran</Label>
-                      <div className="flex items-center gap-3 p-4 bg-slate-50 border border-slate-200/40 rounded-2xl">
-                        <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center shadow-inner">
+                      <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.15em] uppercase font-headline">Dokumen Lampiran</Label>
+                      <div className="flex items-center gap-3 p-4 bg-[var(--theme-bg)] border border-border/40 rounded-2xl">
+                        <div className="w-10 h-10 rounded-xl bg-[var(--theme-bg)] text-[var(--theme-text-subtle)] flex items-center justify-center shadow-inner">
                           <span className="material-symbols-outlined normal-case" style={{ fontSize: '20px' }}>description</span>
                         </div>
                         <div className="flex flex-col leading-tight">
-                          <span className="text-[11px] font-bold text-slate-500">Tidak ada dokumen terunggah</span>
+                          <span className="text-[11px] font-bold text-[var(--theme-text-subtle)]">Tidak ada dokumen terunggah</span>
                         </div>
                       </div>
                     </div>
@@ -638,67 +629,46 @@ export default function ProposalManagement() {
 
                 {/* Alur Persetujuan */}
                 <div className="space-y-3">
-                  <Label className="text-[10px] font-black text-slate-400 tracking-[0.15em] uppercase font-headline">Alur Persetujuan</Label>
-                  {(() => {
-                    const isUnivLevel = !selected?.Ormawa?.FakultasID && !selected?.FakultasID
-                    if (isUnivLevel) {
-                      const done = ['disetujui_univ', 'selesai'].includes(selected.Status)
+                  <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.15em] uppercase font-headline">Alur Persetujuan</Label>
+                  <div className="bg-[var(--theme-bg)] border border-border/60 rounded-2xl p-5 flex items-center justify-between gap-2">
+                    {['disetujui_fakultas', 'disetujui_univ'].map((s, i) => {
+                      const statuses = ['disetujui_fakultas', 'disetujui_univ', 'selesai']
+                      const active = statuses.indexOf(selected.Status) >= i
                       return (
-                        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-2">
-                          <div className="flex items-center gap-2">
-                            <span className="material-symbols-outlined text-amber-600" style={{ fontSize: '16px' }}>info</span>
-                            <span className="text-[10px] font-black text-amber-700 uppercase tracking-wider">ORMAWA Tingkat Universitas</span>
+                        <React.Fragment key={s}>
+                          <div className={cn('flex flex-col items-center gap-1.5', active ? '' : 'opacity-30')}>
+                            <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center border', active ? 'bg-[var(--theme-success-light)] text-[var(--theme-success)] border-[var(--theme-success)]/20 shadow-sm' : 'bg-[var(--theme-bg)] text-[var(--theme-text-subtle)] border-border/40')}>
+                              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>check_circle</span>
+                            </div>
+                            <span className="text-[9px] font-black tracking-wider text-[var(--theme-text-subtle)] font-headline uppercase">{['Fakultas', 'Universitas'][i]}</span>
                           </div>
-                          <p className="text-[11px] text-amber-700 font-medium">Proposal dari BEM-U, UKM, atau MPM <strong>langsung</strong> diverifikasi oleh Universitas — tidak melewati Fakultas.</p>
-                          <div className={cn('flex items-center gap-2 p-2.5 rounded-xl border mt-2', done ? 'bg-emerald-50 border-emerald-100' : 'bg-slate-50 border-slate-100')}>
-                            <span className={cn('material-symbols-outlined text-[16px]', done ? 'text-emerald-600' : 'text-slate-300')}>{done ? 'check_circle' : 'radio_button_unchecked'}</span>
-                            <span className={cn('text-[10px] font-bold uppercase tracking-widest', done ? 'text-emerald-700' : 'text-slate-400')}>Universitas</span>
-                          </div>
-                        </div>
+                          {i < 1 && <div className={cn('flex-1 h-[2px] rounded-full', active ? 'bg-[var(--theme-success)]' : 'bg-[var(--theme-border)]')} />}
+                        </React.Fragment>
                       )
-                    }
-                    return (
-                      <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-5 flex items-center justify-between gap-2">
-                        {['disetujui_fakultas', 'disetujui_univ'].map((s, i) => {
-                          const statuses = ['disetujui_fakultas', 'disetujui_univ', 'selesai']
-                          const active = statuses.indexOf(selected.Status) >= i
-                          return (
-                            <React.Fragment key={s}>
-                              <div className={cn('flex flex-col items-center gap-1.5', active ? '' : 'opacity-30')}>
-                                <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center border', active ? 'bg-emerald-50 text-emerald-600 border-emerald-100 shadow-sm' : 'bg-slate-100 text-slate-400 border-slate-200/40')}>
-                                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>check_circle</span>
-                                </div>
-                                <span className="text-[9px] font-black tracking-wider text-slate-500 font-headline uppercase">{['Fakultas', 'Universitas'][i]}</span>
-                              </div>
-                              {i < 1 && <div className={cn('flex-1 h-[2px] rounded-full', active ? 'bg-emerald-300' : 'bg-slate-200')} />}
-                            </React.Fragment>
-                          )
-                        })}
-                      </div>
-                    )
-                  })()}
+                    })}
+                  </div>
                 </div>
 
                 {/* Histori */}
                 <div className="space-y-3">
-                  <Label className="text-[10px] font-black text-slate-400 tracking-[0.15em] uppercase font-headline">Riwayat Status</Label>
-                  <div className="space-y-3 relative before:absolute before:left-5 before:top-4 before:bottom-0 before:w-px before:bg-slate-100">
-                    {history.length === 0 && <p className="text-[11px] text-slate-400 font-semibold pl-4">Belum ada riwayat</p>}
+                  <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.15em] uppercase font-headline">Riwayat Status</Label>
+                  <div className="space-y-3 relative before:absolute before:left-5 before:top-4 before:bottom-0 before:w-px before:bg-[var(--theme-border)]">
+                    {history.length === 0 && <p className="text-[11px] text-[var(--theme-text-subtle)] font-semibold pl-4">Belum ada riwayat</p>}
                     {history.map((log) => {
                       const timestamp = log.created_at || log.CreatedAt || log.createdat
                       return (
                         <div key={log.id || log.ID} className="flex gap-4 relative z-10">
-                          <div className="w-10 h-10 shrink-0 rounded-xl bg-white border border-slate-200/50 flex items-center justify-center shadow-sm">
-                            <span className="material-symbols-outlined text-primary" style={{ fontSize: '18px' }}>history</span>
+                          <div className="w-10 h-10 shrink-0 rounded-xl bg-[var(--theme-surface)] border border-border/50 flex items-center justify-center shadow-sm">
+                            <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '18px' }}>history</span>
                           </div>
-                          <div className="flex-1 bg-slate-50 rounded-2xl p-4 border border-slate-200/50">
+                          <div className="flex-1 bg-[var(--theme-bg)] rounded-2xl p-4 border border-border/50">
                             <div className="flex items-center justify-between gap-2 mb-2">
                               <StatusBadge status={log.Status} />
-                              <span className="text-[9px] text-slate-400 font-semibold font-mono">
+                              <span className="text-[9px] text-[var(--theme-text-subtle)] font-semibold font-mono">
                                 {timestamp ? new Date(timestamp).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'}
                               </span>
                             </div>
-                            <p className="text-[11px] text-slate-600 font-medium leading-relaxed">{log.Catatan || 'Tanpa catatan'}</p>
+                            <p className="text-[11px] text-[var(--theme-text)] font-medium leading-relaxed">{log.Catatan || 'Tanpa catatan'}</p>
                           </div>
                         </div>
                       )
@@ -709,30 +679,30 @@ export default function ProposalManagement() {
               </div>
 
               {/* Right Column: Status Info — read only, no action buttons */}
-              <div className="space-y-5 lg:border-l lg:border-slate-100 lg:pl-6">
+              <div className="space-y-5 lg:border-l lg:border-border/50 lg:pl-6">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 tracking-[0.15em] uppercase font-headline">Status Saat Ini</Label>
+                  <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.15em] uppercase font-headline">Status Saat Ini</Label>
                   <div className="flex items-center">
                     <StatusBadge status={selected.Status} />
                   </div>
                 </div>
 
                 {/* Alur approval info box */}
-                <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4 space-y-2">
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Alur Persetujuan</p>
-                  <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+                <div className="bg-[var(--theme-bg)] border border-border/60 rounded-2xl p-4 space-y-2">
+                  <p className="text-[9px] font-black text-[var(--theme-text-subtle)] uppercase tracking-widest">Alur Persetujuan</p>
+                  <p className="text-[11px] text-[var(--theme-text-subtle)] font-medium leading-relaxed">
                     Proposal diteruskan secara otomatis setelah disetujui masing-masing tingkat:
                   </p>
                   {[{ s: 'disetujui_fakultas', label: 'Admin Fakultas' }, { s: 'disetujui_univ', label: 'Universitas' }].map((step, i) => {
                     const statuses = ['disetujui_fakultas', 'disetujui_univ', 'selesai']
                     const done = statuses.indexOf(selected.Status) >= i
                     return (
-                      <div key={step.s} className={`flex items-center gap-2.5 p-2.5 rounded-xl border ${done ? 'bg-emerald-50 border-emerald-100' : 'bg-slate-50 border-slate-100 opacity-50'
+                      <div key={step.s} className={`flex items-center gap-2.5 p-2.5 rounded-xl border ${done ? 'bg-[var(--theme-success-light)] border-[var(--theme-success)]/20' : 'bg-[var(--theme-bg)] border-border/50 opacity-50'
                         }`}>
-                        <span className={`material-symbols-outlined text-[16px] ${done ? 'text-emerald-600' : 'text-slate-300'}`}>
+                        <span className={`material-symbols-outlined text-[16px] ${done ? 'text-[var(--theme-success)]' : 'text-[var(--theme-text-subtle)]'}`}>
                           {done ? 'check_circle' : 'radio_button_unchecked'}
                         </span>
-                        <span className={`text-[10px] font-bold uppercase tracking-widest ${done ? 'text-emerald-700' : 'text-slate-400'}`}>
+                        <span className={`text-[10px] font-bold uppercase tracking-widest ${done ? 'text-[var(--theme-success)]' : 'text-[var(--theme-text-subtle)]'}`}>
                           {step.label}
                         </span>
                       </div>
@@ -742,9 +712,9 @@ export default function ProposalManagement() {
 
                 {/* Catatan dari reviewer */}
                 {selected.Catatan && (
-                  <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 space-y-1.5">
-                    <p className="text-[9px] font-black text-amber-600 uppercase tracking-widest">Catatan Reviewer</p>
-                    <p className="text-[11px] text-amber-800 font-medium leading-relaxed">{selected.Catatan}</p>
+                  <div className="bg-[var(--theme-warning-light)] border border-[var(--theme-warning)]/20 rounded-2xl p-4 space-y-1.5">
+                    <p className="text-[9px] font-black text-[var(--theme-warning)] uppercase tracking-widest">Catatan Reviewer</p>
+                    <p className="text-[11px] text-[var(--theme-warning)] font-medium leading-relaxed">{selected.Catatan}</p>
                   </div>
                 )}
 
@@ -753,7 +723,7 @@ export default function ProposalManagement() {
                   <button
                     onClick={handleResubmit}
                     disabled={isResubmitting}
-                    className="w-full h-11 rounded-2xl bg-[#00236F] hover:bg-[#00236F]/90 text-white text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-[#00236F]/20 flex items-center justify-center gap-2 border-none"
+                    className="w-full h-11 rounded-2xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary)]/90 text-white text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-[var(--theme-primary)]/20 flex items-center justify-center gap-2 border-none"
                   >
                     {isResubmitting ? (
                       <><span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }}>sync</span> Mengirim...</>
@@ -765,24 +735,14 @@ export default function ProposalManagement() {
               </div>
 
             </div>
-          </ModalBody>
+          </div>
         )}
-        <ModalFooter>
-          {selected && (
-            <Button onClick={() => printProposalPDF(selected)} className="bg-[#00236F] hover:bg-[#00236F]/90 text-white font-bold gap-2 flex items-center transition-all shadow-sm">
-              <span className="material-symbols-outlined text-[16px]">print</span>
-              Cetak Proposal (PDF)
-            </Button>
-          )}
-          <ModalBtn variant="ghost" type="button" onClick={() => { setIsDetailOpen(false); setKomentar('') }}>
-            Tutup Detail
-          </ModalBtn>
-        </ModalFooter>
-      </Modal>
+      </DialogModal>
 
       {/* CRUD MODAL */}
-      <Modal
+      <DialogModal
         open={isCrudOpen}
+        onOpenChange={setIsCrudOpen}
         onClose={() => setIsCrudOpen(false)}
         title={isEditMode ? 'Edit Proposal' : 'Buat Proposal Baru'}
         subtitle="Isi data kegiatan dan anggaran yang dibutuhkan untuk pengajuan."
@@ -790,118 +750,117 @@ export default function ProposalManagement() {
         maxWidth="max-w-4xl"
       >
         <form onSubmit={handleSave}>
-          <ModalBody>
-            <div className="space-y-4">
+          <div className="p-6 space-y-4">
 
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Nama Kegiatan</Label>
+                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Nama Kegiatan</Label>
                 <Input
                   required
                   value={formData.Judul}
                   onChange={(e) => setFormData({ ...formData, Judul: e.target.value })}
                   placeholder="Contoh: Pekan Olahraga Fakultas..."
-                  className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-2 focus:ring-[#00236F]/10 transition-all font-bold text-sm font-headline"
+                  className="h-12 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 transition-all font-bold text-sm font-headline"
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Landasan Kegiatan</Label>
+                  <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Landasan Kegiatan</Label>
                   <Input
                     required
                     value={formData.LandasanKegiatan}
                     onChange={(e) => setFormData({ ...formData, LandasanKegiatan: e.target.value })}
                     placeholder="Contoh: Program Kerja Himpunan 2026..."
-                    className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-2 focus:ring-[#00236F]/10 transition-all text-xs font-bold font-headline"
+                    className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 transition-all text-xs font-bold font-headline"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Bentuk Kegiatan</Label>
+                  <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Bentuk Kegiatan</Label>
                   <Input
                     value={formData.BentukKegiatan}
                     onChange={(e) => setFormData({ ...formData, BentukKegiatan: e.target.value })}
                     placeholder="Contoh: Kompetisi & Seminar..."
-                    className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-2 focus:ring-[#00236F]/10 transition-all text-xs font-bold font-headline"
+                    className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 transition-all text-xs font-bold font-headline"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Mitra</Label>
+                  <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Mitra</Label>
                   <Input
                     value={formData.Mitra}
                     onChange={(e) => setFormData({ ...formData, Mitra: e.target.value })}
                     placeholder="Contoh: Seluruh LK dan UKM KEMA UBK"
-                    className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-2 focus:ring-[#00236F]/10 transition-all text-xs font-bold font-headline"
+                    className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 transition-all text-xs font-bold font-headline"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">PJ Kegiatan</Label>
+                  <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">PJ Kegiatan</Label>
                   <Input
                     value={formData.PJKegiatan}
                     onChange={(e) => setFormData({ ...formData, PJKegiatan: e.target.value })}
                     placeholder="Contoh: Budi Santoso (Ketua Panitia)..."
-                    className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-2 focus:ring-[#00236F]/10 transition-all text-xs font-bold font-headline"
+                    className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 transition-all text-xs font-bold font-headline"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Jadwal Pelaksanaan (Hari, Tanggal Bulan Tahun, Waktu)</Label>
+                  <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Jadwal Pelaksanaan (Hari, Tanggal Bulan Tahun, Waktu)</Label>
                   <Input
                     value={formData.JadwalPelaksanaan}
                     onChange={(e) => setFormData({ ...formData, JadwalPelaksanaan: e.target.value })}
                     placeholder="Contoh: Senin, 15 Juli 2026, 09.00 - 15.00 WIB..."
-                    className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-2 focus:ring-[#00236F]/10 transition-all text-xs font-bold font-headline"
+                    className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 transition-all text-xs font-bold font-headline"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Sasaran Kegiatan</Label>
+                  <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Sasaran Kegiatan</Label>
                   <Input
                     value={formData.SasaranKegiatan}
                     onChange={(e) => setFormData({ ...formData, SasaranKegiatan: e.target.value })}
                     placeholder="Contoh: Seluruh Mahasiswa Fakultas Teknik..."
-                    className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-2 focus:ring-[#00236F]/10 transition-all text-xs font-bold font-headline"
+                    className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 transition-all text-xs font-bold font-headline"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Sumber Dana</Label>
+                  <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Sumber Dana</Label>
                   <Input
                     value={formData.SumberDana}
                     onChange={(e) => setFormData({ ...formData, SumberDana: e.target.value })}
                     placeholder="Contoh: Dana Kemahasiswaan & Sponsor..."
-                    className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-2 focus:ring-[#00236F]/10 transition-all text-xs font-bold font-headline"
+                    className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 transition-all text-xs font-bold font-headline"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Indikator Keberhasilan</Label>
+                  <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Indikator Keberhasilan</Label>
                   <Input
                     value={formData.IndikatorKeberhasilan}
                     onChange={(e) => setFormData({ ...formData, IndikatorKeberhasilan: e.target.value })}
                     placeholder="Contoh: Target 200 Peserta Hadir..."
-                    className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-2 focus:ring-[#00236F]/10 transition-all text-xs font-bold font-headline"
+                    className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 transition-all text-xs font-bold font-headline"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Tanggal Pelaksanaan Utama</Label>
+                  <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Tanggal Pelaksanaan Utama</Label>
                   <Input
                     required
                     type="date"
                     value={formData.TanggalKegiatan}
                     onChange={(e) => setFormData({ ...formData, TanggalKegiatan: e.target.value })}
-                    className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-2 focus:ring-[#00236F]/10 transition-all text-xs font-bold font-headline cursor-pointer"
+                    className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 transition-all text-xs font-bold font-headline cursor-pointer"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Estimasi Dana / Anggaran (Rp)</Label>
+                  <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Estimasi Dana / Anggaran (Rp)</Label>
                   <Input
                     required
                     type="text"
@@ -911,54 +870,54 @@ export default function ProposalManagement() {
                       setFormData({ ...formData, Anggaran: rawVal })
                     }}
                     placeholder="Cth: 10.000.000"
-                    className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-2 focus:ring-[#00236F]/10 transition-all text-xs font-bold font-headline"
+                    className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 transition-all text-xs font-bold font-headline"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Latar Belakang</Label>
+                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Latar Belakang</Label>
                 <Textarea
                   value={formData.LatarBelakang}
                   onChange={(e) => setFormData({ ...formData, LatarBelakang: e.target.value })}
                   placeholder="Deskripsikan latar belakang pengajuan kegiatan..."
-                  className="min-h-[80px] rounded-2xl border-slate-200 bg-slate-50 focus:bg-white p-4 text-xs font-medium leading-relaxed font-headline"
+                  className="min-h-[80px] rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white p-4 text-xs font-medium leading-relaxed font-headline"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Tujuan Kegiatan</Label>
+                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Tujuan Kegiatan</Label>
                 <Textarea
                   value={formData.TujuanKegiatan}
                   onChange={(e) => setFormData({ ...formData, TujuanKegiatan: e.target.value })}
                   placeholder="Deskripsikan tujuan dari kegiatan..."
-                  className="min-h-[80px] rounded-2xl border-slate-200 bg-slate-50 focus:bg-white p-4 text-xs font-medium leading-relaxed font-headline"
+                  className="min-h-[80px] rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white p-4 text-xs font-medium leading-relaxed font-headline"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Deskripsi Detail Kegiatan</Label>
+                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Deskripsi Detail Kegiatan</Label>
                 <Textarea
                   value={formData.Deskripsi}
                   onChange={(e) => setFormData({ ...formData, Deskripsi: e.target.value })}
                   placeholder="Deskripsikan rincian detail/mekanisme kegiatan..."
-                  className="min-h-[80px] rounded-2xl border-slate-200 bg-slate-50 focus:bg-white p-4 text-xs font-medium leading-relaxed font-headline"
+                  className="min-h-[80px] rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white p-4 text-xs font-medium leading-relaxed font-headline"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Catatan Reviewer / Keterangan Lainnya</Label>
+                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Catatan Reviewer / Keterangan Lainnya</Label>
                 <Textarea
                   required
                   value={formData.Catatan}
                   onChange={(e) => setFormData({ ...formData, Catatan: e.target.value })}
                   placeholder="Tambahkan catatan atau keterangan pelengkap..."
-                  className="min-h-[80px] rounded-2xl border-slate-200 bg-slate-50 focus:bg-white p-4 text-xs font-medium leading-relaxed font-headline"
+                  className="min-h-[80px] rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white p-4 text-xs font-medium leading-relaxed font-headline"
                 />
               </div>
               <div className="space-y-2.5">
-                <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase">Upload Dokumen Proposal</Label>
-                <div className="border-2 border-dashed border-slate-200 hover:border-[#00236F]/50 rounded-2xl p-6 text-center hover:bg-slate-50/50 transition-all duration-150 relative group">
+                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase">Upload Dokumen Proposal</Label>
+                <div className="border-2 border-dashed border-border hover:border-[var(--theme-primary)]/50 rounded-2xl p-6 text-center hover:bg-[var(--theme-bg)]/50 transition-all duration-150 relative group">
                   <input
                     type="file"
                     multiple
@@ -967,29 +926,29 @@ export default function ProposalManagement() {
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                   />
                   <div className="pointer-events-none flex flex-col items-center">
-                    <div className="w-12 h-12 rounded-xl bg-slate-100 group-hover:bg-[#00236F]/10 text-slate-400 group-hover:text-[#00236F] flex items-center justify-center mb-3 transition-colors duration-150 border border-slate-200/50">
+                    <div className="w-12 h-12 rounded-xl bg-[var(--theme-bg)] group-hover:bg-[var(--theme-primary-light)] text-[var(--theme-text-subtle)] group-hover:text-[var(--theme-primary)] flex items-center justify-center mb-3 transition-colors duration-150 border border-border/50">
                       <span className="material-symbols-outlined normal-case" style={{ fontSize: '24px' }}>upload_file</span>
                     </div>
-                    <p className="text-xs font-black text-[#00236F] uppercase tracking-wider">Klik untuk Upload Dokumen</p>
-                    <p className="text-[10px] text-slate-400 font-semibold mt-1">Bisa pilih lebih dari 1 file (PDF, Word, Excel, Maks. 5MB per file)</p>
+                    <p className="text-xs font-black text-[var(--theme-primary)] uppercase tracking-wider">Klik untuk Upload Dokumen</p>
+                    <p className="text-[10px] text-[var(--theme-text-subtle)] font-semibold mt-1">Bisa pilih lebih dari 1 file (PDF, Word, Excel, Maks. 5MB per file)</p>
                   </div>
                 </div>
 
                 {/* List of newly selected files */}
                 {dokumenList.length > 0 && (
                   <div className="space-y-1.5">
-                    <p className="text-[9px] font-black text-emerald-600 tracking-wider uppercase ml-1">File Baru Terpilih ({dokumenList.length})</p>
+                    <p className="text-[9px] font-black text-[var(--theme-success)] tracking-wider uppercase ml-1">File Baru Terpilih ({dokumenList.length})</p>
                     <div className="space-y-1.5">
                       {dokumenList.map((file, idx) => (
-                        <div key={idx} className="px-3.5 py-2.5 bg-emerald-50/60 border border-emerald-100 rounded-2xl flex items-center justify-between gap-2 shadow-sm">
+                        <div key={idx} className="px-3.5 py-2.5 bg-[var(--theme-success-light)] border border-[var(--theme-success)]/20 rounded-2xl flex items-center justify-between gap-2 shadow-sm">
                           <div className="flex items-center gap-2 truncate min-w-0">
-                            <span className="material-symbols-outlined normal-case text-emerald-600 text-[16px] shrink-0">check_circle</span>
-                            <span className="text-[11px] font-bold text-emerald-800 truncate">{file.name}</span>
+                            <span className="material-symbols-outlined normal-case text-[var(--theme-success)] text-[16px] shrink-0">check_circle</span>
+                            <span className="text-[11px] font-bold text-[var(--theme-success)] truncate">{file.name}</span>
                           </div>
                           <button
                             type="button"
                             onClick={() => handleRemoveNewFile(idx)}
-                            className="w-6 h-6 rounded-lg hover:bg-emerald-100 text-emerald-600 hover:text-emerald-800 flex items-center justify-center transition-colors shrink-0"
+                            className="w-6 h-6 rounded-lg hover:bg-[var(--theme-success-light)]/80 text-[var(--theme-success)] flex items-center justify-center transition-colors shrink-0"
                           >
                             <span className="material-symbols-outlined normal-case text-[14px]">close</span>
                           </button>
@@ -1002,26 +961,26 @@ export default function ProposalManagement() {
                 {/* List of previously uploaded files */}
                 {existingFileList.length > 0 && (
                   <div className="space-y-1.5">
-                    <p className="text-[9px] font-black text-blue-600 tracking-wider uppercase ml-1">Dokumen Aktif Saat Ini ({existingFileList.length})</p>
+                    <p className="text-[9px] font-black text-[var(--theme-primary)] tracking-wider uppercase ml-1">Dokumen Aktif Saat Ini ({existingFileList.length})</p>
                     <div className="space-y-1.5">
                       {existingFileList.map((file, idx) => {
                         const filename = file.split('/').pop() || `Berkas_${idx + 1}`
                         const cleanName = filename.substring(filename.indexOf('_') + 1)
                         return (
-                          <div key={idx} className="px-3.5 py-2.5 bg-blue-50/60 border border-blue-100 rounded-2xl flex items-center justify-between gap-2 shadow-sm">
+                          <div key={idx} className="px-3.5 py-2.5 bg-[var(--theme-primary-light)]/60 border border-[var(--theme-primary)]/20 rounded-2xl flex items-center justify-between gap-2 shadow-sm">
                             <a
                               href={`${API_BASE_URL.replace('/api', '')}${file}`}
                               target="_blank"
                               rel="noreferrer"
                               className="flex items-center gap-2 hover:underline truncate min-w-0"
                             >
-                              <span className="material-symbols-outlined normal-case text-blue-600 text-[16px] shrink-0">description</span>
-                              <span className="text-[11px] font-bold text-blue-800 truncate">{cleanName}</span>
+                              <span className="material-symbols-outlined normal-case text-[var(--theme-primary)] text-[16px] shrink-0">description</span>
+                              <span className="text-[11px] font-bold text-[var(--theme-primary)] truncate">{cleanName}</span>
                             </a>
                             <button
                               type="button"
                               onClick={() => handleRemoveExistingFile(idx)}
-                              className="w-6 h-6 rounded-lg hover:bg-blue-100 text-rose-600 hover:text-rose-800 flex items-center justify-center transition-colors shrink-0"
+                              className="w-6 h-6 rounded-lg hover:bg-[var(--theme-primary-light)] text-[var(--theme-error)] flex items-center justify-center transition-colors shrink-0"
                             >
                               <span className="material-symbols-outlined normal-case text-[14px]">delete</span>
                             </button>
@@ -1033,22 +992,21 @@ export default function ProposalManagement() {
                 )}
               </div>
             </div>
-          </ModalBody>
-          <ModalFooter>
-            <ModalBtn variant="ghost" type="button" onClick={() => setIsCrudOpen(false)}>
+          <div className="px-6 py-4 border-t border-[var(--theme-border-muted)] flex justify-end gap-3 shrink-0">
+            <Button variant="ghost" type="button" onClick={() => setIsCrudOpen(false)} className="h-10 rounded-xl border border-border text-[var(--theme-text-subtle)] hover:bg-[var(--theme-bg)]">
               Batalkan
-            </ModalBtn>
-            <ModalBtn type="submit" disabled={isSubmitting}>
+            </Button>
+            <Button type="submit" disabled={isSubmitting} className="h-10 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary)]/90 text-white font-bold gap-2 flex items-center transition-all shadow-sm px-5">
               {isSubmitting ? (
-                <span className="material-symbols-outlined animate-spin size-4">sync</span>
+                <span className="material-symbols-outlined animate-spin text-[16px]">sync</span>
               ) : (
                 <span className="material-symbols-outlined stroke-[3px]" style={{ fontSize: '14px' }}>save</span>
               )}
               <span className="uppercase tracking-[0.1em]">{isEditMode ? 'Update Record' : 'Create Record'}</span>
-            </ModalBtn>
-          </ModalFooter>
+            </Button>
+          </div>
         </form>
-      </Modal>
+      </DialogModal>
 
       <DeleteConfirmModal
         isOpen={isDelOpen}
@@ -1601,6 +1559,6 @@ export default function ProposalManagement() {
           })()}
         </div>,
         document.body
-      )}    </div>
+      )}    </PageContent>
   )
 }

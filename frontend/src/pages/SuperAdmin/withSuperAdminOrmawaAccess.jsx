@@ -27,9 +27,8 @@ export function withSuperAdminOrmawaAccess(Component, title) {
       return (
         <div className="px-4 py-6 md:px-6 lg:px-8 min-h-screen bg-transparent font-inter">
           <div className="max-w-7xl mx-auto">
-            <SuperAdminOrmawaHeader title={title} />
-            <div className="text-center py-20">
-              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-slate-100 mb-4">
+            <div className="text-center py-20 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-2xl shadow-sm">
+              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-[var(--theme-bg)] mb-4">
                 <span className="material-symbols-outlined text-slate-400" style={{ fontSize: '40px' }}>
                   groups
                 </span>
@@ -45,37 +44,26 @@ export function withSuperAdminOrmawaAccess(Component, title) {
     }
 
     return (
-      <div>
-        {/* Header dengan dropdown untuk semua halaman */}
-        {title && (
-          <div className="px-4 md:px-6 lg:px-8 pt-6">
-            <div className="max-w-7xl mx-auto">
-              <SuperAdminOrmawaHeader title={title} />
-            </div>
-          </div>
-        )}
-
-        {/* Render original component dengan override ormawaId via global state */}
-        <SuperAdminOrmawaOverrideProvider ormawaId={selectedOrmawaId}>
-          <Component {...props} />
-        </SuperAdminOrmawaOverrideProvider>
-      </div>
+      <SuperAdminOrmawaOverrideProvider ormawaId={selectedOrmawaId}>
+        <Component {...props} />
+      </SuperAdminOrmawaOverrideProvider>
     )
   }
 }
 
 // Provider untuk override ormawaId di auth store
 function SuperAdminOrmawaOverrideProvider({ ormawaId, children }) {
-  useEffect(() => {
-    if (ormawaId) {
-      // Set override di global window object untuk diakses oleh halaman
-      window.__SUPER_ADMIN_ORMAWA_ID_OVERRIDE__ = ormawaId
-    }
+  // Set secara sinkronus agar child component langsung mendapatkan ormawaId pada render pertama
+  if (ormawaId) {
+    window.__SUPER_ADMIN_ORMAWA_ID_OVERRIDE__ = ormawaId
+  }
 
+  useEffect(() => {
     return () => {
+      // Cleanup ketika unmount
       window.__SUPER_ADMIN_ORMAWA_ID_OVERRIDE__ = null
     }
-  }, [ormawaId])
+  }, [])
 
   return <>{children}</>
 }

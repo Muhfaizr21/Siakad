@@ -153,12 +153,12 @@ const TopNavBar = ({ setIsOpen }) => {
 
   return (
     <>
-      <header className="fixed top-0 right-0 left-0 lg:left-64 z-[50] h-20 glass-card border-b border-white/40 flex items-center justify-between px-6 lg:px-10 font-body transition-all duration-300">
+      <header className="fixed top-0 right-0 left-0 lg:left-64 z-[50] h-20 bg-white/80 backdrop-blur-xl border-b border-[var(--theme-border)] flex items-center justify-between px-6 lg:px-10 font-body transition-all duration-300">
         <div className="flex items-center gap-6 flex-1">
           {/* Mobile Toggle */}
           <button
             onClick={() => setIsOpen?.(true)}
-            className="lg:hidden p-2 rounded-xl bg-slate-50 text-slate-600 hover:bg-slate-100 transition-all border border-slate-200 active:scale-95"
+            className="lg:hidden p-2 rounded-xl bg-[var(--theme-bg)] text-[var(--theme-text-muted)] hover:bg-[var(--theme-border-muted)] transition-all border border-[var(--theme-border)] active:scale-95"
           >
             <span className="material-symbols-outlined size-5" style={{ fontSize: '20px' }}>menu</span>
           </button>
@@ -179,19 +179,18 @@ const TopNavBar = ({ setIsOpen }) => {
                 return (
                   <React.Fragment key={to}>
                     {index > 0 && (
-                      <span className="material-symbols-outlined text-slate-300 mx-2 text-[14px] leading-none select-none">
+                      <span className="material-symbols-outlined text-[var(--theme-text-subtle)] mx-2 text-[14px] leading-none select-none">
                         chevron_right
                       </span>
                     )}
                     {last ? (
-                      <span className="text-slate-800 bg-slate-100/50 px-3 py-1 rounded-xl truncate max-w-[160px] border border-slate-200/30 normal-case font-extrabold text-[11px] font-body">
+                      <span className="text-[var(--theme-text)] bg-[var(--theme-bg)]/50 px-3 py-1 rounded-xl truncate max-w-[160px] border border-[var(--theme-border)]/30 normal-case font-extrabold text-[11px] font-body">
                         {getBreadcrumbLabel(value)}
                       </span>
                     ) : (
                       <Link
                         to={to}
-                        className="text-slate-400 transition-all duration-200 truncate max-w-[150px]"
-                        style={{ ':hover': { color: 'var(--theme-primary)' } }}
+                        className="text-[var(--theme-text-subtle)] hover:text-[var(--theme-primary)] transition-all duration-200 truncate max-w-[150px]"
                       >
                         {getBreadcrumbLabel(value)}
                       </Link>
@@ -222,49 +221,49 @@ const TopNavBar = ({ setIsOpen }) => {
             {/* Search Trigger Button */}
             <button 
               onClick={() => setIsSearchOpen(true)}
-              className="h-10 px-4 rounded-2xl bg-slate-50/70 border border-slate-200/60 hover:bg-slate-100 hover:border-slate-300 text-slate-500 hover:text-bku-primary transition-all active:scale-95 shadow-sm flex items-center gap-2"
+              className="h-10 px-4 rounded-2xl bg-[var(--theme-bg)]/70 border border-[var(--theme-border)] hover:bg-[var(--theme-border-muted)] hover:border-[var(--theme-primary)] text-[var(--theme-text-muted)] hover:text-[var(--theme-primary)] transition-all active:scale-95 shadow-sm flex items-center gap-2"
             >
               <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>search</span>
-              <span className="hidden sm:inline text-[10px] font-extrabold tracking-wider text-slate-400 uppercase mr-1">CARI (Ctrl+K)</span>
+              <span className="hidden sm:inline text-[10px] font-extrabold tracking-wider text-[var(--theme-text-subtle)] uppercase mr-1">CARI (Ctrl+K)</span>
             </button>
 
             {/* Notification Bell */}
-            <div className="relative w-10 h-10 flex items-center justify-center shrink-0 rounded-2xl bg-slate-50/70 border border-slate-200/60 hover:bg-slate-100 hover:border-slate-300 text-slate-500 hover:text-bku-primary transition-all cursor-pointer group active:scale-95 shadow-sm">
+            <div className="relative w-10 h-10 flex items-center justify-center shrink-0 rounded-2xl bg-[var(--theme-bg)]/70 border border-[var(--theme-border)] hover:bg-[var(--theme-border-muted)] hover:border-[var(--theme-primary)] text-[var(--theme-text-muted)] hover:text-[var(--theme-primary)] transition-all cursor-pointer group active:scale-95 shadow-sm">
               <span className="material-symbols-outlined transition-transform duration-300 group-hover:rotate-12" style={{ fontSize: '20px' }}>notifications</span>
               {stats.unreadNotifications > 0 && (
-                <span className="absolute top-1 right-1 w-4 h-4 bg-rose-500 text-white text-[8px] font-black flex items-center justify-center rounded-full border-2 border-white ring-2 ring-rose-500/20 animate-pulse">
+                <span className="absolute top-1 right-1 w-4 h-4 bg-[var(--theme-error)] text-white text-[8px] font-black flex items-center justify-center rounded-full border-2 border-white ring-2 ring-[var(--theme-error-light)] animate-pulse">
                   {stats.unreadNotifications}
                 </span>
               )}
 
               {/* Popover Preview */}
-              <div className="fixed sm:absolute top-20 sm:top-full left-4 right-4 sm:left-auto sm:right-0 mt-4 sm:w-80 w-auto glass-card rounded-3xl shadow-xl border border-white/40 p-6 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-[100] cursor-default font-inter" onClick={(e) => e.stopPropagation()}>
+              <div className="fixed sm:absolute top-20 sm:top-full left-4 right-4 sm:left-auto sm:right-0 mt-4 sm:w-80 w-auto bg-[var(--theme-surface)] rounded-2xl shadow-xl border border-[var(--theme-border)] p-6 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-[100] cursor-default font-inter" onClick={(e) => e.stopPropagation()}>
                 <div className="flex justify-between items-center mb-5">
                   <h4 className="text-[10px] font-bold font-headline uppercase tracking-widest" style={{ color: 'var(--theme-h4)' }}>Pemberitahuan</h4>
                   {stats.unreadNotifications > 0 && (
-                    <Badge variant="secondary" className="bg-rose-50 text-rose-600 border-none font-bold text-[9px] px-2 py-0.5 rounded-lg">
+                    <Badge variant="secondary" className="bg-[var(--theme-error-light)] text-[var(--theme-error)] border-none font-bold text-[9px] px-2 py-0.5 rounded-lg">
                       {stats.unreadNotifications} BARU
                     </Badge>
                   )}
                 </div>
                 <div className="space-y-3 text-left">
-                  <div className="flex gap-4 items-center p-2.5 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer group/item" onClick={() => { navigate('/ormawa/proposal'); }}>
-                    <div className="p-2 rounded-xl bg-orange-50 text-orange-600 group-hover/item:bg-orange-600 group-hover/item:text-white transition-colors flex items-center justify-center w-9 h-9 shrink-0">
+                  <div className="flex gap-4 items-center p-2.5 rounded-2xl hover:bg-[var(--theme-bg)] transition-colors cursor-pointer group/item" onClick={() => { navigate('/ormawa/proposal'); }}>
+                    <div className="p-2 rounded-xl bg-[var(--theme-warning-light)] text-[var(--theme-warning)] group-hover/item:bg-[var(--theme-warning)] group-hover/item:text-white transition-colors flex items-center justify-center w-9 h-9 shrink-0">
                       <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>description</span>
                     </div>
                     <div className="flex flex-col overflow-hidden">
-                      <p className="text-[11px] font-bold text-slate-900 leading-none uppercase tracking-tight font-headline">Status Proposal</p>
-                      <p className="text-[10px] font-medium text-slate-400 mt-1 truncate">Pantau progress pengajuan proposal</p>
+                      <p className="text-[11px] font-bold text-[var(--theme-text)] leading-none uppercase tracking-tight font-headline">Status Proposal</p>
+                      <p className="text-[10px] font-medium text-[var(--theme-text-subtle)] mt-1 truncate">Pantau progress pengajuan proposal</p>
                     </div>
                   </div>
 
-                  <div className="flex gap-4 items-center p-2.5 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer group/item" onClick={() => { navigate('/ormawa/aspirasi'); }}>
-                    <div className="p-2 rounded-xl bg-blue-50 text-blue-600 group-hover/item:bg-blue-600 group-hover/item:text-white transition-colors flex items-center justify-center w-9 h-9 shrink-0">
+                  <div className="flex gap-4 items-center p-2.5 rounded-2xl hover:bg-[var(--theme-bg)] transition-colors cursor-pointer group/item" onClick={() => { navigate('/ormawa/aspirasi'); }}>
+                    <div className="p-2 rounded-xl bg-[var(--theme-info-light)] text-[var(--theme-info)] group-hover/item:bg-[var(--theme-info)] group-hover/item:text-white transition-colors flex items-center justify-center w-9 h-9 shrink-0">
                       <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>campaign</span>
                     </div>
                     <div className="flex flex-col overflow-hidden">
-                      <p className="text-[11px] font-bold text-slate-900 leading-none uppercase tracking-tight font-headline">Aspirasi Masuk</p>
-                      <p className="text-[10px] font-medium text-slate-400 mt-1 truncate">Lihat feedback aspirasi terbaru</p>
+                      <p className="text-[11px] font-bold text-[var(--theme-text)] leading-none uppercase tracking-tight font-headline">Aspirasi Masuk</p>
+                      <p className="text-[10px] font-medium text-[var(--theme-text-subtle)] mt-1 truncate">Lihat feedback aspirasi terbaru</p>
                     </div>
                   </div>
                 </div>
@@ -274,19 +273,19 @@ const TopNavBar = ({ setIsOpen }) => {
             {/* Calendar Button */}
             <button 
               onClick={() => navigate('/ormawa/jadwal')}
-              className="hidden sm:flex w-10 h-10 items-center justify-center shrink-0 rounded-2xl bg-slate-50/70 border border-slate-200/60 hover:bg-slate-100 hover:border-slate-300 text-slate-500 hover:text-bku-primary transition-all active:scale-95 shadow-sm"
+              className="hidden sm:flex w-10 h-10 items-center justify-center shrink-0 rounded-2xl bg-[var(--theme-bg)]/70 border border-[var(--theme-border)] hover:bg-[var(--theme-border-muted)] hover:border-[var(--theme-primary)] text-[var(--theme-text-muted)] hover:text-[var(--theme-primary)] transition-all active:scale-95 shadow-sm"
             >
               <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>calendar_month</span>
             </button>
           </div>
 
-          <div className="h-8 w-px bg-slate-200 mx-1 hidden sm:block"></div>
+          <div className="h-8 w-px bg-[var(--theme-border)] mx-1 hidden sm:block"></div>
 
           {/* Premium Capsule Profile Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <div className="flex items-center gap-2.5 cursor-pointer group hover:bg-slate-50 p-1 pr-3 rounded-full transition-all duration-300 outline-none border border-slate-200/60 bg-white shadow-sm hover:shadow-md">
-                <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-bku-primary to-indigo-500 text-white flex items-center justify-center font-bold shadow-lg shadow-blue-900/10 group-hover:scale-105 transition-transform shrink-0 overflow-hidden ring-2 ring-white">
+              <div className="flex items-center gap-2.5 cursor-pointer group hover:bg-[var(--theme-bg)] p-1 pr-3 rounded-full transition-all duration-300 outline-none border border-[var(--theme-border)] bg-[var(--theme-surface)] shadow-sm hover:shadow-md">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[var(--theme-primary)] to-[var(--theme-primary-hover)] text-white flex items-center justify-center font-bold shadow-lg shadow-blue-900/10 group-hover:scale-105 transition-transform shrink-0 overflow-hidden ring-2 ring-white">
                   {ormawaInfo?.LogoURL ? (
                     <img 
                       src={getLogoPath(ormawaInfo.LogoURL)} 
@@ -298,31 +297,31 @@ const TopNavBar = ({ setIsOpen }) => {
                   )}
                 </div>
                 <div className="hidden sm:flex flex-col leading-tight pr-1.5 shrink-0 text-left">
-                  <span className="text-[11px] font-extrabold text-slate-800 group-hover:text-bku-primary transition-colors truncate max-w-[100px]">
+                  <span className="text-[11px] font-extrabold text-[var(--theme-text)] group-hover:text-[var(--theme-primary)] transition-colors truncate max-w-[100px]">
                     {ormawaInfo?.Nama || "Administrator"}
                   </span>
-                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Ormawa Admin</span>
+                  <span className="text-[9px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider mt-0.5">Ormawa Admin</span>
                 </div>
-                <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-slate-600 transition-colors" style={{ fontSize: '16px' }}>expand_more</span>
+                <span className="material-symbols-outlined text-[16px] text-[var(--theme-text-subtle)] group-hover:text-[var(--theme-text-muted)] transition-colors" style={{ fontSize: '16px' }}>expand_more</span>
               </div>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 mt-2 rounded-2xl p-1.5 shadow-xl border border-white/40 glass-card font-inter">
-              <DropdownMenuItem onClick={() => navigate('/ormawa/pengaturan')} className="rounded-xl p-2.5 focus:bg-slate-50 group cursor-pointer transition-all">
-                <span className="material-symbols-outlined mr-2.5 size-4 text-slate-400 group-hover:text-bku-primary transition-colors" style={{ fontSize: '16px' }}>settings</span>
-                <span className="text-[12px] font-bold text-slate-600 group-hover:text-slate-900 transition-colors">Pengaturan Profil</span>
+            <DropdownMenuContent align="end" className="w-56 mt-2 rounded-2xl p-1.5 shadow-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] font-inter">
+              <DropdownMenuItem onClick={() => navigate('/ormawa/pengaturan')} className="rounded-xl p-2.5 focus:bg-[var(--theme-bg)] group cursor-pointer transition-all">
+                <span className="material-symbols-outlined mr-2.5 size-4 text-[var(--theme-text-subtle)] group-hover:text-[var(--theme-primary)] transition-colors" style={{ fontSize: '16px' }}>settings</span>
+                <span className="text-[12px] font-bold text-[var(--theme-text-muted)] group-hover:text-[var(--theme-text)] transition-colors">Pengaturan Profil</span>
               </DropdownMenuItem>
 
-              <DropdownMenuSeparator className="my-1 bg-slate-50" />
+              <DropdownMenuSeparator className="my-1 bg-[var(--theme-border-muted)]" />
               
               <DropdownMenuItem 
                 onClick={() => {
                   logout();
                   navigate('/login');
                 }} 
-                className="rounded-xl p-2.5 focus:bg-rose-50 group cursor-pointer transition-all"
+                className="rounded-xl p-2.5 focus:bg-[var(--theme-error-light)] group cursor-pointer transition-all"
               >
-                <span className="material-symbols-outlined mr-2.5 size-4 text-rose-400 group-hover:text-rose-600 transition-colors" style={{ fontSize: '16px' }}>logout</span>
-                <span className="text-[12px] font-bold text-rose-500 group-hover:text-rose-600 transition-colors">Keluar</span>
+                <span className="material-symbols-outlined mr-2.5 size-4 text-[var(--theme-error)] group-hover:text-[var(--theme-error)] transition-colors" style={{ fontSize: '16px' }}>logout</span>
+                <span className="text-[12px] font-bold text-[var(--theme-error)] group-hover:text-[var(--theme-error)] transition-colors">Keluar</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -332,28 +331,28 @@ const TopNavBar = ({ setIsOpen }) => {
       {/* Spotlight Command Palette Search Overlay */}
       {isSearchOpen && (
         <div 
-          className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[200] flex items-start justify-center pt-[12vh] px-4 animate-in fade-in duration-200"
+          className="fixed inset-0 bg-[var(--theme-text)]/40 backdrop-blur-sm z-[200] flex items-start justify-center pt-[12vh] px-4 animate-in fade-in duration-200"
           onClick={() => setIsSearchOpen(false)}
         >
           <div 
             ref={searchRef}
-            className="bg-white rounded-3xl border border-slate-100 shadow-2xl w-full max-w-xl overflow-hidden flex flex-col max-h-[70vh] animate-in zoom-in-95 duration-200"
+            className="bg-[var(--theme-surface)] rounded-2xl border border-[var(--theme-border)] shadow-2xl w-full max-w-xl overflow-hidden flex flex-col max-h-[70vh] animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Search Input Box */}
-            <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-100 shrink-0">
-              <span className="material-symbols-outlined text-slate-400" style={{ fontSize: '22px' }}>search</span>
+            <div className="flex items-center gap-3 px-5 py-4 border-b border-[var(--theme-border-muted)] shrink-0">
+              <span className="material-symbols-outlined text-[var(--theme-text-subtle)]" style={{ fontSize: '22px' }}>search</span>
               <input
                 ref={searchInputRef}
                 autoFocus
-                className="flex-1 bg-transparent text-sm font-semibold text-slate-800 placeholder:text-slate-400 outline-none h-6"
+                className="flex-1 bg-transparent text-sm font-semibold text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] outline-none h-6"
                 placeholder="Ketik menu atau halaman ormawa yang dicari..."
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
               <div className="flex items-center gap-1">
-                <div className="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-[9px] font-black text-slate-400 uppercase">
+                <div className="px-1.5 py-0.5 rounded bg-[var(--theme-bg)] border border-[var(--theme-border)] text-[9px] font-black text-[var(--theme-text-subtle)] uppercase">
                   ESC
                 </div>
               </div>
@@ -361,8 +360,8 @@ const TopNavBar = ({ setIsOpen }) => {
 
             {/* Results Area */}
             <div className="flex-1 overflow-y-auto p-3 space-y-0.5 no-scrollbar">
-              <div className="px-3 py-2 border-b border-slate-50 mb-1 text-left">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Hasil Pencarian ({filteredResults.length})</p>
+              <div className="px-3 py-2 border-b border-[var(--theme-border-muted)] mb-1 text-left">
+                <p className="text-[10px] font-black text-[var(--theme-text-subtle)] uppercase tracking-widest font-headline">Hasil Pencarian ({filteredResults.length})</p>
               </div>
 
               {filteredResults.length > 0 ? (
@@ -370,39 +369,39 @@ const TopNavBar = ({ setIsOpen }) => {
                   <div
                     key={index}
                     onClick={() => handleNavigate(page.path)}
-                    className="flex items-center gap-3.5 p-3 rounded-2xl hover:bg-slate-50 cursor-pointer transition-all duration-200 group active:scale-[0.99]"
+                    className="flex items-center gap-3.5 p-3 rounded-2xl hover:bg-[var(--theme-bg)] cursor-pointer transition-all duration-200 group active:scale-[0.99]"
                   >
-                    <div className="w-9 h-9 rounded-xl bg-bku-primary/5 text-bku-primary flex items-center justify-center group-hover:bg-bku-primary group-hover:text-white transition-colors shrink-0">
+                    <div className="w-9 h-9 rounded-xl bg-[var(--theme-primary-light)] text-[var(--theme-primary)] flex items-center justify-center group-hover:bg-[var(--theme-primary)] group-hover:text-white transition-colors shrink-0">
                       <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{page.icon}</span>
                     </div>
                     <div className="flex flex-col flex-1 leading-tight text-left">
-                      <span className="text-xs font-bold text-slate-700 group-hover:text-slate-900 transition-colors">{page.name}</span>
-                      <span className="text-[10px] text-slate-400 mt-0.5">{page.path}</span>
+                      <span className="text-xs font-bold text-[var(--theme-text)] group-hover:text-[var(--theme-text-muted)] transition-colors">{page.name}</span>
+                      <span className="text-[10px] text-[var(--theme-text-subtle)] mt-0.5">{page.path}</span>
                     </div>
-                    <span className="material-symbols-outlined text-[16px] text-slate-300 opacity-0 group-hover:opacity-100 transition-all transform translate-x-1 group-hover:translate-x-0">arrow_forward</span>
+                    <span className="material-symbols-outlined text-[16px] text-[var(--theme-text-subtle)] opacity-0 group-hover:opacity-100 transition-all transform translate-x-1 group-hover:translate-x-0">arrow_forward</span>
                   </div>
                 ))
               ) : (
                 <div className="py-12 text-center flex flex-col items-center justify-center gap-2">
-                  <span className="material-symbols-outlined text-slate-300" style={{ fontSize: '40px' }}>find_in_page</span>
-                  <p className="text-xs font-bold text-slate-400">Tidak ada fitur yang cocok</p>
-                  <p className="text-[10px] text-slate-400/70 max-w-[200px]">Coba cari dengan kata kunci lain seperti 'anggota', 'keuangan', 'absensi'.</p>
+                  <span className="material-symbols-outlined text-[var(--theme-text-subtle)]" style={{ fontSize: '40px' }}>find_in_page</span>
+                  <p className="text-xs font-bold text-[var(--theme-text-subtle)]">Tidak ada fitur yang cocok</p>
+                  <p className="text-[10px] text-[var(--theme-text-subtle)]/70 max-w-[200px]">Coba cari dengan kata kunci lain seperti 'anggota', 'keuangan', 'absensi'.</p>
                 </div>
               )}
             </div>
 
             {/* Hotkeys Guide Footer */}
-            <div className="px-5 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[9px] font-black text-slate-400 uppercase tracking-widest font-headline shrink-0">
+            <div className="px-5 py-3.5 bg-[var(--theme-bg)] border-t border-[var(--theme-border)] flex items-center justify-between text-[9px] font-black text-[var(--theme-text-subtle)] uppercase tracking-widest font-headline shrink-0">
               <div className="flex items-center gap-1.5">
-                <span className="bg-white border border-slate-200 px-1 py-0.5 rounded shadow-sm text-slate-500">↑↓</span>
+                <span className="bg-[var(--theme-surface)] border border-[var(--theme-border)] px-1 py-0.5 rounded shadow-sm text-[var(--theme-text-muted)]">↑↓</span>
                 <span>Navigasi</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="bg-white border border-slate-200 px-1.5 py-0.5 rounded shadow-sm text-slate-500">Enter</span>
+                <span className="bg-[var(--theme-surface)] border border-[var(--theme-border)] px-1.5 py-0.5 rounded shadow-sm text-[var(--theme-text-muted)]">Enter</span>
                 <span>Pilih</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="bg-white border border-slate-200 px-1 py-0.5 rounded shadow-sm text-slate-500">ESC</span>
+                <span className="bg-[var(--theme-surface)] border border-[var(--theme-border)] px-1 py-0.5 rounded shadow-sm text-[var(--theme-text-muted)]">ESC</span>
                 <span>Tutup</span>
               </div>
             </div>

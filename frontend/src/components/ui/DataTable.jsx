@@ -213,7 +213,7 @@ export default function DataTable({
                       className={cn("px-4 py-3 text-sm", col.className, col.cellClassName)}
                       style={{ color: 'var(--theme-text)' }}
                     >
-                      {col.render ? col.render(row[col.key], row) : row[col.key]}
+                      {col.render ? col.render(row[col.key], row, (currentPage - 1) * pageSize + idx) : row[col.key]}
                     </td>
                   ))}
                   {(onRowClick || (actions && typeof actions === 'function')) && (

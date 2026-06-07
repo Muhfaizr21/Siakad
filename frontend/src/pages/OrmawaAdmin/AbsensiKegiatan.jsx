@@ -1,6 +1,9 @@
 "use client"
+import React, { useState, useEffect } from 'react';
+import { PageContent, PageHeader } from '@/components/ui/page';
 
-import React, { useState, useEffect } from 'react'
+
+
 import { DataTable } from '@/components/ui/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -135,7 +138,7 @@ export default function AbsensiKegiatan() {
   const attendanceRate = attendance.length > 0 ? Math.round((attendedCount / attendance.length) * 100) : 0
 
   return (
-    <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-8 font-body">
+    <PageContent className="font-body">
       <Toaster position="top-right" />
 
       {/* ── Keyframe Animations for QR Beam Scanner ───────────────── */}
@@ -150,71 +153,48 @@ export default function AbsensiKegiatan() {
       `}</style>
 
       {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <section className="relative overflow-hidden rounded-[2rem] bg-white p-8 md:p-10 shadow-sm border border-slate-200">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(0,0,0,0.02)_0%,transparent_60%)]" />
-        <div className="absolute inset-0 opacity-[0.02]"
-          style={{
-            backgroundImage: `radial-gradient(circle at 20% 50%, var(--theme-primary) 1px, transparent 1px), radial-gradient(circle at 80% 20%, var(--theme-primary) 1px, transparent 1px)`,
-            backgroundSize: '40px 40px'
-          }}
-        />
-        <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full blur-3xl opacity-10" style={{ backgroundColor: 'var(--theme-secondary)' }} />
-        <div className="absolute -bottom-10 right-40 w-60 h-60 rounded-full blur-2xl opacity-10" style={{ backgroundColor: 'var(--theme-surface)' }} />
-
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-50 border border-slate-200 text-slate-500">
-              <span className="h-1.5 w-1.5 rounded-full animate-ping" style={{ backgroundColor: 'var(--theme-primary)' }} />
-              <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-600">Modul Kehadiran</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 shadow-inner" style={{ color: 'var(--theme-primary)' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>qr_code_scanner</span>
-              </div>
-              <div>
-                <h1 className="text-3xl md:text-4xl font-black tracking-tight font-headline text-slate-900">Absensi Kegiatan</h1>
-                <p className="text-slate-500 text-sm font-medium mt-1">Kelola data presensi anggota dan buat kode pemindaian QR absensi instan.</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              onClick={fetchEvents}
-              className="h-11 px-5 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 font-bold text-xs tracking-wider transition-all flex items-center gap-2 active:scale-95 shadow-sm"
-              style={{ color: 'var(--theme-primary)' }}
-            >
-              <span className="material-symbols-outlined size-4" style={{ fontSize: '16px' }}>sync</span>
-              <span>REFRESH</span>
-            </button>
-          </div>
-        </div>
-      </section>
+      <PageHeader 
+        title="Absensi Kegiatan"
+        subtitle="Kelola data presensi anggota dan buat kode pemindaian QR absensi instan."
+        icon="qr_code_scanner"
+        action={
+          <button
+            onClick={fetchEvents}
+            className="h-10 px-5 rounded-xl bg-[var(--theme-surface)] hover:bg-[var(--theme-bg)] border border-border font-bold text-xs tracking-wider transition-all flex items-center gap-2 active:scale-95 shadow-sm"
+            style={{ color: 'var(--theme-primary)' }}
+          >
+            <span className="material-symbols-outlined size-4" style={{ fontSize: '16px' }}>sync</span>
+            <span>REFRESH</span>
+          </button>
+        }
+       
+        breadcrumbs={[ { label: 'Dashboard', path: '/ormawa' }, { label: 'Absensi Kegiatan', path: '#' } ]} 
+      />
 
       {/* ── Overview Statistics Cards Grid ────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {/* Total Kegiatan */}
-        <Card className="border border-slate-100 shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-md transition-all duration-300">
+        <Card className="border border-border/50 shadow-sm rounded-2xl overflow-hidden bg-[var(--theme-surface)] hover:shadow-md transition-all duration-300">
           <CardContent className="p-6 flex items-center gap-4.5">
-            <div className="w-12 h-12 rounded-2xl bg-bku-primary/5 flex items-center justify-center text-bku-primary">
+            <div className="w-12 h-12 rounded-xl bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)] border border-[var(--theme-primary)]/20">
               <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>layers</span>
             </div>
             <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Total Sesi Kegiatan</p>
-              <p className="text-2xl font-black text-slate-900 tracking-tight font-headline">{events.length}</p>
+              <p className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-wider uppercase font-headline">Total Sesi Kegiatan</p>
+              <p className="text-2xl font-black text-[var(--theme-text)] tracking-tight font-headline">{events.length}</p>
             </div>
           </CardContent>
         </Card>
 
         {/* Total Anggota Terdaftar */}
-        <Card className="border border-slate-100 shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-md transition-all duration-300">
+        <Card className="border border-border/50 shadow-sm rounded-2xl overflow-hidden bg-[var(--theme-surface)] hover:shadow-md transition-all duration-300">
           <CardContent className="p-6 flex items-center gap-4.5">
-            <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
+            <div className="w-12 h-12 rounded-xl bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)] border border-[var(--theme-primary)]/20">
               <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>group</span>
             </div>
             <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Anggota Terdaftar</p>
-              <p className="text-2xl font-black text-slate-900 tracking-tight font-headline">
+              <p className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-wider uppercase font-headline">Anggota Terdaftar</p>
+              <p className="text-2xl font-black text-[var(--theme-text)] tracking-tight font-headline">
                 {selectedEvent ? attendance.length : 0}
               </p>
             </div>
@@ -222,14 +202,14 @@ export default function AbsensiKegiatan() {
         </Card>
 
         {/* Kehadiran Terpenuhi */}
-        <Card className="border border-slate-100 shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-md transition-all duration-300">
+        <Card className="border border-border/50 shadow-sm rounded-2xl overflow-hidden bg-[var(--theme-surface)] hover:shadow-md transition-all duration-300">
           <CardContent className="p-6 flex items-center gap-4.5">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+            <div className="w-12 h-12 rounded-xl bg-[var(--theme-success-light)] flex items-center justify-center text-[var(--theme-success)] border border-[var(--theme-success)]/20">
               <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>check_circle</span>
             </div>
             <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Hadir / Tidak Hadir</p>
-              <p className="text-2xl font-black text-slate-900 tracking-tight font-headline">
+              <p className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-wider uppercase font-headline">Hadir / Tidak Hadir</p>
+              <p className="text-2xl font-black text-[var(--theme-text)] tracking-tight font-headline">
                 {selectedEvent ? `${attendedCount} / ${absentCount}` : '0 / 0'}
               </p>
             </div>
@@ -237,14 +217,14 @@ export default function AbsensiKegiatan() {
         </Card>
 
         {/* Kehadiran Rate */}
-        <Card className="border border-slate-100 shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-md transition-all duration-300">
+        <Card className="border border-border/50 shadow-sm rounded-2xl overflow-hidden bg-[var(--theme-surface)] hover:shadow-md transition-all duration-300">
           <CardContent className="p-6 flex items-center gap-4.5">
-            <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600">
+            <div className="w-12 h-12 rounded-xl bg-[var(--theme-warning-light)] flex items-center justify-center text-[var(--theme-warning)] border border-[var(--theme-warning)]/20">
               <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>percent</span>
             </div>
             <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Rasio Kehadiran</p>
-              <p className="text-2xl font-black text-slate-900 tracking-tight font-headline">
+              <p className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-wider uppercase font-headline">Rasio Kehadiran</p>
+              <p className="text-2xl font-black text-[var(--theme-text)] tracking-tight font-headline">
                 {selectedEvent ? `${attendanceRate}%` : '0%'}
               </p>
             </div>
@@ -256,18 +236,18 @@ export default function AbsensiKegiatan() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Side: Events List (5 Cols) */}
         <div className="lg:col-span-5 space-y-6">
-          <div className="bg-white rounded-[2rem] border border-slate-200/50 shadow-sm overflow-hidden p-6 space-y-4">
+          <div className="bg-[var(--theme-surface)] rounded-2xl border border-border shadow-sm overflow-hidden p-6 space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <h2 className="font-black text-[15px] font-headline uppercase tracking-wider" style={{ color: 'var(--theme-h2)' }}>Daftar Kegiatan</h2>
-                <p className="text-[11px] text-slate-400 font-bold">Pilih salah satu sesi kegiatan di bawah ini</p>
+                <p className="text-[11px] text-[var(--theme-text-subtle)] font-bold">Pilih salah satu sesi kegiatan di bawah ini</p>
               </div>
-              <Badge className="bg-bku-primary/5 text-bku-primary px-2.5 py-1 border-none font-bold text-[10px] rounded-lg">
+              <Badge className="bg-[var(--theme-primary-light)] text-[var(--theme-primary)] px-2.5 py-1 border-none font-bold text-[10px] rounded-lg">
                 {events.length} Sesi
               </Badge>
             </div>
 
-            <div className="border border-slate-100 rounded-2xl overflow-hidden">
+            <div className="border border-border/50 rounded-2xl overflow-hidden">
               <DataTable
                 columns={eventColumns}
                 data={events}
@@ -281,10 +261,10 @@ export default function AbsensiKegiatan() {
                       onClick={() => handleSelectEvent(row)}
                       size="sm"
                       className={cn(
-                        'h-8 px-4 rounded-xl text-[10px] font-bold border-none transition-all hover:scale-105 active:scale-95',
+                        'h-8 px-4 rounded-xl text-[10px] font-bold border-none transition-all hover:scale-105 active:scale-95 cursor-pointer',
                         isSelected
-                          ? 'bg-bku-primary text-white shadow-md shadow-blue-900/10'
-                          : 'bg-bku-primary/5 text-bku-primary hover:bg-bku-primary/10'
+                          ? 'bg-[var(--theme-primary)] text-white shadow-md shadow-[var(--theme-primary)]/10'
+                          : 'bg-[var(--theme-primary-light)] text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)]/80'
                       )}
                     >
                       {isSelected ? 'Dipilih' : 'Pilih'}
@@ -299,30 +279,30 @@ export default function AbsensiKegiatan() {
         {/* Right Side: Attendance Dashboard Control (7 Cols) */}
         <div className="lg:col-span-7">
           {!selectedEvent ? (
-            <Card className="border border-dashed border-slate-200 rounded-[2rem] bg-slate-50/50 p-12 text-center shadow-none flex flex-col items-center justify-center min-h-[460px] transition-all hover:bg-slate-50">
-              <div className="w-16 h-16 rounded-[2rem] bg-slate-100 flex items-center justify-center text-slate-400 mb-4 shadow-sm border border-white">
+            <Card className="border border-dashed border-border rounded-2xl bg-[var(--theme-bg)] p-12 text-center shadow-none flex flex-col items-center justify-center min-h-[460px] transition-all hover:bg-[var(--theme-bg)]/80">
+              <div className="w-16 h-16 rounded-2xl bg-[var(--theme-bg)] flex items-center justify-center text-[var(--theme-text-subtle)] mb-4 shadow-sm border border-border/50">
                 <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>qr_code_scanner</span>
               </div>
               <h3 className="font-black text-sm font-headline tracking-wider uppercase" style={{ color: 'var(--theme-h3)' }}>Belum Ada Kegiatan Terpilih</h3>
-              <p className="text-xs text-slate-400 max-w-sm mx-auto mt-2 leading-relaxed font-medium">
+              <p className="text-xs text-[var(--theme-text-subtle)] max-w-sm mx-auto mt-2 leading-relaxed font-medium">
                 Pilih salah satu sesi kegiatan dari daftar sebelah kiri untuk memproses absensi QR Code dan memasukkan data absensi secara manual.
               </p>
             </Card>
           ) : (
             <div className="space-y-6">
               {/* Event Quick Info Banner */}
-              <div className="p-6 bg-gradient-to-r from-bku-primary/5 via-bku-primary/5 to-transparent rounded-[2rem] border border-blue-900/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+              <div className="p-6 bg-gradient-to-r from-[var(--theme-primary-light)]/40 via-[var(--theme-primary-light)]/20 to-transparent rounded-2xl border border-[var(--theme-primary)]/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-black text-bku-primary tracking-widest uppercase font-headline">Sesi Aktif</span>
-                    <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0.5 text-[8px] font-black tracking-wider uppercase rounded-full">
+                    <span className="text-[10px] font-black text-[var(--theme-primary)] tracking-widest uppercase font-headline">Sesi Aktif</span>
+                    <Badge className="bg-[var(--theme-success-light)] text-[var(--theme-success)] border border-[var(--theme-success)]/20 px-2 py-0.5 text-[8px] font-black tracking-wider uppercase rounded-full">
                       Ready
                     </Badge>
                   </div>
-                  <h3 className="text-lg font-black text-slate-900 font-headline tracking-tighter leading-tight">
+                  <h3 className="text-lg font-black text-[var(--theme-text)] font-headline tracking-tighter leading-tight">
                     {selectedEvent.Judul}
                   </h3>
-                  <p className="text-[11px] text-slate-400 font-bold flex items-center gap-1.5 mt-1">
+                  <p className="text-[11px] text-[var(--theme-text-subtle)] font-bold flex items-center gap-1.5 mt-1">
                     <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>calendar_today</span>
                     {selectedEvent.TanggalMulai ? new Date(selectedEvent.TanggalMulai).toLocaleDateString('id-ID', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }) : '—'}
                   </p>
@@ -332,18 +312,18 @@ export default function AbsensiKegiatan() {
                   {/* Dynamic mini QR box inside dashboard */}
                   <div
                     onClick={() => setIsQrOpen(true)}
-                    className="p-1.5 bg-white rounded-xl border border-slate-100 shadow-sm cursor-pointer hover:scale-105 active:scale-95 transition-all group relative shrink-0"
+                    className="p-1.5 bg-[var(--theme-surface)] rounded-xl border border-border/50 shadow-sm cursor-pointer hover:scale-105 active:scale-95 transition-all group relative shrink-0"
                     title="Perbesar QR Code"
                   >
                     <img src={qrUrl} alt="Mini QR" className="size-11 object-contain" />
-                    <div className="absolute inset-0 bg-bku-primary/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
-                      <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '14px' }}>zoom_in</span>
+                    <div className="absolute inset-0 bg-[var(--theme-primary-light)]/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
+                      <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '14px' }}>zoom_in</span>
                     </div>
                   </div>
 
                   <Button
                     onClick={() => setIsQrOpen(true)}
-                    className="flex-1 sm:flex-initial h-11 px-5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs tracking-wider gap-2 shadow-lg shadow-slate-900/10 active:scale-95 transition-all"
+                    className="flex-1 sm:flex-initial h-11 px-5 rounded-2xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary)]/90 text-white font-bold text-xs tracking-wider gap-2 shadow-lg shadow-[var(--theme-primary)]/10 active:scale-95 transition-all border-none"
                   >
                     <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>qr_code_2</span>
                     <span>BUKA SCANNER</span>
@@ -352,21 +332,21 @@ export default function AbsensiKegiatan() {
               </div>
 
               {/* Attendance Checklist Control List */}
-              <div className="bg-white rounded-[2rem] border border-slate-200/50 shadow-sm overflow-hidden p-6 space-y-4">
+              <div className="bg-[var(--theme-surface)] rounded-2xl border border-border shadow-sm overflow-hidden p-6 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <h3 className="font-black text-xs font-headline tracking-wider uppercase" style={{ color: 'var(--theme-h3)' }}>Konfirmasi Kehadiran Anggota</h3>
-                    <p className="text-[11px] text-slate-400 font-bold">Cek lis secara manual untuk memperbarui status</p>
+                    <p className="text-[11px] text-[var(--theme-text-subtle)] font-bold">Cek lis secara manual untuk memperbarui status</p>
                   </div>
 
                   {/* Status Indicator */}
                   <div className="flex items-center gap-3 text-[10px] font-black tracking-wider uppercase">
-                    <span className="flex items-center gap-1 text-emerald-600">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                    <span className="flex items-center gap-1 text-[var(--theme-success)]">
+                      <span className="h-1.5 w-1.5 rounded-full bg-[var(--theme-success)]" />
                       {attendedCount} Hadir
                     </span>
-                    <span className="flex items-center gap-1 text-rose-500">
-                      <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+                    <span className="flex items-center gap-1 text-[var(--theme-error)]">
+                      <span className="h-1.5 w-1.5 rounded-full bg-[var(--theme-error)]" />
                       {absentCount} Alpa
                     </span>
                   </div>
@@ -374,31 +354,36 @@ export default function AbsensiKegiatan() {
 
                 {loadingAtt ? (
                   <div className="flex flex-col items-center justify-center py-16 gap-3">
-                    <span className="material-symbols-outlined size-6 animate-spin text-bku-primary" style={{ fontSize: '28px' }}>sync</span>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest animate-pulse">Memuat absensi...</p>
+                    <span className="material-symbols-outlined size-6 animate-spin text-[var(--theme-primary)]" style={{ fontSize: '28px' }}>sync</span>
+                    <p className="text-[10px] font-black text-[var(--theme-text-subtle)] uppercase tracking-widest animate-pulse">Memuat absensi...</p>
                   </div>
                 ) : attendance.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 gap-3 border border-dashed border-slate-100 rounded-2xl bg-slate-50/20">
-                    <span className="material-symbols-outlined text-slate-300" style={{ fontSize: '32px' }}>group_off</span>
-                    <p className="text-[10px] font-black text-slate-400 tracking-widest uppercase">Belum ada anggota terdaftar</p>
+                  <div className="flex flex-col items-center justify-center py-16 gap-3 border border-dashed border-border/50 rounded-2xl bg-[var(--theme-bg)]/20">
+                    <span className="material-symbols-outlined text-[var(--theme-text-subtle)]" style={{ fontSize: '32px' }}>group_off</span>
+                    <p className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-widest uppercase">Belum ada anggota terdaftar</p>
                   </div>
                 ) : (
-                  <div className="space-y-2.5 max-h-[460px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-100 scrollbar-track-transparent">
+                  <div className="space-y-2.5 max-h-[460px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-[var(--theme-border)] scrollbar-track-transparent">
                     {attendance.map((att, idx) => {
                       const isAttended = att.Status === 'hadir'
                       const isAbsent = att.Status === 'tidak_hadir'
 
-                      // HSL Tailored color arrays to give stunning dynamic avatars
-                      const bgAvatars = ['bg-blue-50 text-blue-600', 'bg-indigo-50 text-indigo-600', 'bg-purple-50 text-purple-600', 'bg-teal-50 text-teal-600']
+                      // Dynamic themed avatars
+                      const bgAvatars = [
+                        'bg-[var(--theme-primary-light)] text-[var(--theme-primary)] border border-[var(--theme-primary)]/20',
+                        'bg-[var(--theme-secondary-light)] text-[var(--theme-secondary)] border border-[var(--theme-secondary)]/20',
+                        'bg-[var(--theme-info-light)] text-[var(--theme-info)] border border-[var(--theme-info)]/20',
+                        'bg-[var(--theme-success-light)] text-[var(--theme-success)] border border-[var(--theme-success)]/20'
+                      ]
                       const avatarStyle = bgAvatars[idx % bgAvatars.length]
 
                       return (
                         <div
                           key={att.ID}
                           className={cn(
-                            "flex items-center justify-between p-3.5 rounded-2xl border border-slate-100 shadow-sm transition-all duration-300",
-                            isAttended && "bg-emerald-50/20 border-emerald-100/50",
-                            isAbsent && "bg-rose-50/10 border-rose-100/40"
+                            "flex items-center justify-between p-3.5 rounded-2xl border border-border/50 shadow-sm transition-all duration-300",
+                            isAttended && "bg-[var(--theme-success-light)]/20 border-[var(--theme-success)]/20",
+                            isAbsent && "bg-[var(--theme-error-light)]/10 border-[var(--theme-error)]/20"
                           )}
                         >
                           <div className="flex items-center gap-3.5 min-w-0">
@@ -408,10 +393,10 @@ export default function AbsensiKegiatan() {
                               </AvatarFallback>
                             </Avatar>
                             <div className="min-w-0 space-y-0.5">
-                              <p className="font-bold text-slate-900 text-xs font-headline truncate leading-none">
+                              <p className="font-bold text-[var(--theme-text)] text-xs font-headline truncate leading-none">
                                 {att.Mahasiswa?.Nama || '—'}
                               </p>
-                              <p className="text-[10px] text-slate-400 font-bold leading-none">
+                              <p className="text-[10px] text-[var(--theme-text-subtle)] font-bold leading-none">
                                 NIM. {att.Mahasiswa?.NIM || '—'}
                               </p>
                             </div>
@@ -423,10 +408,10 @@ export default function AbsensiKegiatan() {
                               onClick={() => handleRecordAttendance(att.StudentID || att.MahasiswaID || att.id || att.ID, 'hadir')}
                               disabled={isSubmitting}
                               className={cn(
-                                'h-9 w-9 rounded-xl flex items-center justify-center transition-all border border-transparent active:scale-90',
+                                'h-9 w-9 rounded-xl flex items-center justify-center transition-all border border-transparent active:scale-90 cursor-pointer',
                                 isAttended
-                                  ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                                  : 'bg-slate-50 text-slate-400 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200'
+                                  ? 'bg-[var(--theme-success)] text-white shadow-lg shadow-[var(--theme-success)]/20'
+                                  : 'bg-[var(--theme-bg)] text-[var(--theme-text-subtle)] hover:bg-[var(--theme-success-light)] hover:text-[var(--theme-success)] hover:border-[var(--theme-success)]/20'
                               )}
                               title="Set Hadir"
                             >
@@ -438,10 +423,10 @@ export default function AbsensiKegiatan() {
                               onClick={() => handleRecordAttendance(att.StudentID || att.MahasiswaID || att.id || att.ID, 'tidak_hadir')}
                               disabled={isSubmitting}
                               className={cn(
-                                'h-9 w-9 rounded-xl flex items-center justify-center transition-all border border-transparent active:scale-90',
+                                'h-9 w-9 rounded-xl flex items-center justify-center transition-all border border-transparent active:scale-90 cursor-pointer',
                                 isAbsent
-                                  ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20'
-                                  : 'bg-slate-50 text-slate-400 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200'
+                                  ? 'bg-[var(--theme-error)] text-white shadow-lg shadow-[var(--theme-error)]/20'
+                                  : 'bg-[var(--theme-bg)] text-[var(--theme-text-subtle)] hover:bg-[var(--theme-error-light)] hover:text-[var(--theme-error)] hover:border-[var(--theme-error)]/20'
                               )}
                               title="Set Alpa"
                             >
@@ -461,42 +446,42 @@ export default function AbsensiKegiatan() {
 
       {/* ── QR Scanner Popup Dialog ───────────────────────────────── */}
       <Dialog open={isQrOpen} onOpenChange={setIsQrOpen}>
-        <DialogContent className="max-w-md p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white animate-in zoom-in-95 duration-200">
+        <DialogContent className="max-w-md p-0 overflow-hidden border border-border shadow-2xl rounded-2xl bg-[var(--theme-surface)] animate-in zoom-in-95 duration-200">
           <div className="p-8 flex flex-col items-center gap-6 relative">
             <div className="text-center space-y-1.5">
-              <span className="text-[9px] font-black text-bku-primary tracking-[0.25em] uppercase font-headline">PEMINDAI QR PRESENSI</span>
-              <h3 className="text-xl font-black text-slate-900 font-headline tracking-tighter leading-tight">
+              <span className="text-[9px] font-black text-[var(--theme-primary)] tracking-[0.25em] uppercase font-headline">PEMINDAI QR PRESENSI</span>
+              <h3 className="text-xl font-black text-[var(--theme-text)] font-headline tracking-tighter leading-tight">
                 {selectedEvent?.Judul}
               </h3>
-              <p className="text-[10px] font-bold text-slate-400 tracking-wider">Arahkan kamera mahasiswa ke kode QR di bawah ini</p>
+              <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] tracking-wider">Arahkan kamera mahasiswa ke kode QR di bawah ini</p>
             </div>
 
             {/* Elegant QR display with high-tech laser beam animation effect */}
-            <div className="size-72 p-6 bg-slate-50 rounded-[2.5rem] border-4 border-slate-100 flex items-center justify-center relative overflow-hidden shadow-inner group">
+            <div className="size-72 p-6 bg-[var(--theme-bg)] rounded-2xl border-4 border-border/50 flex items-center justify-center relative overflow-hidden shadow-inner group">
               <img src={qrUrl} alt="QR Code Absensi" className="size-full object-contain relative z-10 transition-transform duration-500 group-hover:scale-105" />
 
               {/* Animated laser scan beam line */}
-              <div className="absolute left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-bku-primary to-transparent shadow-[0_0_12px_#00236F] animate-scan top-0 z-20 pointer-events-none" />
+              <div className="absolute left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-[var(--theme-primary)] to-transparent shadow-[0_0_12px_var(--theme-primary)] animate-scan top-0 z-20 pointer-events-none" />
 
               {/* Outer decorative scanner corners */}
-              <div className="absolute top-4 left-4 w-6 h-6 border-t-4 border-l-4 border-bku-primary rounded-tl-xl" />
-              <div className="absolute top-4 right-4 w-6 h-6 border-t-4 border-r-4 border-bku-primary rounded-tr-xl" />
-              <div className="absolute bottom-4 left-4 w-6 h-6 border-b-4 border-l-4 border-bku-primary rounded-bl-xl" />
-              <div className="absolute bottom-4 right-4 w-6 h-6 border-b-4 border-r-4 border-bku-primary rounded-br-xl" />
+              <div className="absolute top-4 left-4 w-6 h-6 border-t-4 border-l-4 border-[var(--theme-primary)] rounded-tl-xl" />
+              <div className="absolute top-4 right-4 w-6 h-6 border-t-4 border-r-4 border-[var(--theme-primary)] rounded-tr-xl" />
+              <div className="absolute bottom-4 left-4 w-6 h-6 border-b-4 border-l-4 border-[var(--theme-primary)] rounded-bl-xl" />
+              <div className="absolute bottom-4 right-4 w-6 h-6 border-b-4 border-r-4 border-[var(--theme-primary)] rounded-br-xl" />
             </div>
 
             <div className="w-full space-y-4">
-              <div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-900/5 text-center flex items-center justify-center gap-2.5">
-                <span className="material-symbols-outlined text-bku-primary animate-pulse" style={{ fontSize: '18px' }}>verified_user</span>
+              <div className="p-4 bg-[var(--theme-primary-light)]/40 rounded-2xl border border-[var(--theme-primary)]/10 text-center flex items-center justify-center gap-2.5">
+                <span className="material-symbols-outlined text-[var(--theme-primary)] animate-pulse" style={{ fontSize: '18px' }}>verified_user</span>
                 <div className="text-left space-y-0.5">
-                  <p className="text-[9px] font-black text-bku-primary tracking-widest uppercase leading-none">Security Encryption Active</p>
-                  <p className="text-[10px] font-bold text-slate-500 leading-none">Sistem memvalidasi NIM dan waktu secara real-time</p>
+                  <p className="text-[9px] font-black text-[var(--theme-primary)] tracking-widest uppercase leading-none">Security Encryption Active</p>
+                  <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] leading-none">Sistem memvalidasi NIM dan waktu secara real-time</p>
                 </div>
               </div>
 
               <Button
                 onClick={() => setIsQrOpen(false)}
-                className="w-full h-12 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-[10px] tracking-[0.2em] uppercase active:scale-95 transition-all shadow-lg"
+                className="w-full h-12 rounded-2xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary)]/90 text-white font-black text-[10px] tracking-[0.2em] uppercase active:scale-95 transition-all shadow-lg border-none"
               >
                 TUTUP SCANNER
               </Button>
@@ -504,6 +489,6 @@ export default function AbsensiKegiatan() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </PageContent>
   )
 }

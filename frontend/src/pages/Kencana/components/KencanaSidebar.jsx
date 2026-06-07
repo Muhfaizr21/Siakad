@@ -223,7 +223,7 @@ const KencanaSidebar = ({ isOpen, setIsOpen, portalType = 'admin' }) => {
                 <img src="/images/bku logo.png" alt="BKU Logo" className="w-full h-full object-contain brightness-110" />
               </div>
               <div
-                className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 shadow-sm"
+                className="absolute -bottom-1 -right-1 w-4 h-4 bg-[var(--theme-success)] rounded-full border-2 shadow-sm"
                 style={{ borderColor: 'var(--theme-sidebar-bg, #00236f)' }}
               />
             </div>
@@ -322,14 +322,14 @@ const KencanaSidebar = ({ isOpen, setIsOpen, portalType = 'admin' }) => {
             <div className="p-4 bg-transparent border-t border-white/10 shrink-0">
             <Link
               to="/admin"
-              className="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-2xl font-bold text-amber-400 hover:bg-white/5 transition-all duration-300 group active:scale-[0.98]"
+              className="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-2xl font-bold text-[var(--theme-secondary)] hover:bg-white/5 transition-all duration-300 group active:scale-[0.98]"
             >
               <div className="w-6 h-6 flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-amber-400 group-hover:scale-110 transition-all duration-300" style={{ fontSize: '20px' }}>
+                <span className="material-symbols-outlined text-[var(--theme-secondary)] group-hover:scale-110 transition-all duration-300" style={{ fontSize: '20px' }}>
                   arrow_back
                 </span>
               </div>
-              <span className="text-[13px] tracking-tight flex-1 text-left font-bold text-amber-400 transition-colors duration-300">
+              <span className="text-[13px] tracking-tight flex-1 text-left font-bold text-[var(--theme-secondary)] transition-colors duration-300">
                 Master Hub
               </span>
             </Link>

@@ -85,7 +85,10 @@ class _TkAddScheduleScreenState extends State<TkAddScheduleScreen> {
                   borderRadius: BorderRadius.circular(12),
                   borderSide: const BorderSide(color: AppColors.neutral200),
                 ),
-                prefixIcon: const Icon(Icons.location_on_rounded, color: AppColors.neutral500),
+                prefixIcon: const Icon(
+                  Icons.location_on_rounded,
+                  color: AppColors.neutral500,
+                ),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -101,7 +104,7 @@ class _TkAddScheduleScreenState extends State<TkAddScheduleScreen> {
             _buildSectionLabel('Tipe Layanan'),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
-              value: _tipeLayanan,
+              initialValue: _tipeLayanan,
               decoration: InputDecoration(
                 filled: true,
                 fillColor: Colors.white,
@@ -114,12 +117,10 @@ class _TkAddScheduleScreenState extends State<TkAddScheduleScreen> {
                   borderSide: const BorderSide(color: AppColors.neutral200),
                 ),
               ),
-              items: _tipeLayananOptions.map((type) {
-                return DropdownMenuItem(
-                  value: type,
-                  child: Text(type),
-                );
-              }).toList(),
+              items:
+                  _tipeLayananOptions.map((type) {
+                    return DropdownMenuItem(value: type, child: Text(type));
+                  }).toList(),
               onChanged: (value) {
                 setState(() {
                   _tipeLayanan = value ?? 'Pemeriksaan Umum';
@@ -162,22 +163,25 @@ class _TkAddScheduleScreenState extends State<TkAddScheduleScreen> {
                     borderRadius: BorderRadius.circular(16),
                   ),
                 ),
-                child: _isSaving
-                    ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                child:
+                    _isSaving
+                        ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          ),
+                        )
+                        : const Text(
+                          'Simpan Jadwal',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      )
-                    : const Text(
-                        'Simpan Jadwal',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
               ),
             ),
           ],
@@ -225,7 +229,10 @@ class _TkAddScheduleScreenState extends State<TkAddScheduleScreen> {
               style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.w500),
             ),
             const Spacer(),
-            const Icon(Icons.chevron_right_rounded, color: AppColors.neutral400),
+            const Icon(
+              Icons.chevron_right_rounded,
+              color: AppColors.neutral400,
+            ),
           ],
         ),
       ),
@@ -258,16 +265,24 @@ class _TkAddScheduleScreenState extends State<TkAddScheduleScreen> {
                 children: [
                   Text(
                     'Jam Mulai',
-                    style: AppTextStyles.labelSm.copyWith(color: AppColors.neutral500),
+                    style: AppTextStyles.labelSm.copyWith(
+                      color: AppColors.neutral500,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.access_time_rounded, color: AppColors.primary, size: 18),
+                      const Icon(
+                        Icons.access_time_rounded,
+                        color: AppColors.primary,
+                        size: 18,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         _formatTime(_startTime),
-                        style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.w500),
+                        style: AppTextStyles.bodyMd.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ],
                   ),
@@ -278,7 +293,10 @@ class _TkAddScheduleScreenState extends State<TkAddScheduleScreen> {
         ),
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 12),
-          child: Text('-', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          child: Text(
+            '-',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
         ),
         Expanded(
           child: GestureDetector(
@@ -303,16 +321,24 @@ class _TkAddScheduleScreenState extends State<TkAddScheduleScreen> {
                 children: [
                   Text(
                     'Jam Selesai',
-                    style: AppTextStyles.labelSm.copyWith(color: AppColors.neutral500),
+                    style: AppTextStyles.labelSm.copyWith(
+                      color: AppColors.neutral500,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.access_time_rounded, color: AppColors.primary, size: 18),
+                      const Icon(
+                        Icons.access_time_rounded,
+                        color: AppColors.primary,
+                        size: 18,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         _formatTime(_endTime),
-                        style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.w500),
+                        style: AppTextStyles.bodyMd.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ],
                   ),
@@ -371,10 +397,28 @@ class _TkAddScheduleScreenState extends State<TkAddScheduleScreen> {
 
   String _formatDate(DateTime date) {
     const months = [
-      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
     ];
-    const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+    const days = [
+      'Senin',
+      'Selasa',
+      'Rabu',
+      'Kamis',
+      'Jumat',
+      'Sabtu',
+      'Minggu',
+    ];
     return '${days[date.weekday - 1]}, ${date.day} ${months[date.month - 1]} ${date.year}';
   }
 

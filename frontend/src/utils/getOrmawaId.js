@@ -12,9 +12,6 @@ export function getOrmawaId() {
     state?.user?.OrmawaID ||
     null
   )
-  if (!ormawaId) {
-    console.warn('[getOrmawaId] No ormawa ID found in auth store')
-  }
   return ormawaId
 }
 

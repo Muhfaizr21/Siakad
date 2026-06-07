@@ -101,7 +101,7 @@ export default function KencanaMentorInvitationsPage() {
       )}
 
       {(!invitationList.length && !groupList.length) && (
-        <p className="rounded-[2rem] border border-[#e8dfcf] bg-white/85 p-8 text-center text-sm font-bold text-[#756b5a]">Belum ada undangan Dewan Pembimbing.</p>
+        <p className="rounded-[2rem] border border-border bg-white/85 p-8 text-center text-sm font-bold text-[#756b5a]">Belum ada undangan Dewan Pembimbing.</p>
       )}
     </KencanaShell>
   );
@@ -115,7 +115,7 @@ function GroupDetailModal({ isOpen, onClose, group }) {
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-2xl rounded-3xl bg-[#fdfcf9] p-8 shadow-2xl relative overflow-hidden">
+      <div className="w-full max-w-2xl rounded-2xl bg-[#fdfcf9] p-8 shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#0f4c5c] to-emerald-500"></div>
         <button onClick={onClose} className="absolute right-6 top-6 text-[#9b8f7a] hover:text-[#1d1b16]">
           <span className="material-symbols-rounded">close</span>
@@ -125,13 +125,13 @@ function GroupDetailModal({ isOpen, onClose, group }) {
         <p className="text-sm font-semibold text-[#756b5a] mt-1">{group.name || group.Name || '-'}</p>
 
         <div className="mt-6 grid gap-6 md:grid-cols-2">
-          <div className="rounded-2xl border border-[#e8dfcf] bg-white p-5">
+          <div className="rounded-2xl border border-border bg-surface p-5">
             <p className="text-xs font-black uppercase tracking-[0.24em] text-[#9b8f7a]">Dewan Pembimbing</p>
             <p className="mt-2 text-lg font-bold text-[#1d1b16]">{mentor.name || mentor.Name || '-'}</p>
             <p className="text-sm text-[#756b5a]">{mentor.email || mentor.Email || '-'}</p>
           </div>
 
-          <div className="rounded-2xl border border-[#e8dfcf] bg-white p-5">
+          <div className="rounded-2xl border border-border bg-surface p-5">
             <p className="text-xs font-black uppercase tracking-[0.24em] text-[#9b8f7a]">Informasi Grup</p>
             <p className="mt-2 text-sm font-bold text-[#1d1b16]">Kode: {group.code || group.Code || '-'}</p>
             <p className="mt-1 text-sm font-bold text-[#1d1b16]">Lingkup: {(group.scope_type || group.ScopeType) === 'faculty' ? 'Fakultas' : 'Universitas'}</p>
@@ -141,7 +141,7 @@ function GroupDetailModal({ isOpen, onClose, group }) {
 
         <div className="mt-6">
           <p className="text-xs font-black uppercase tracking-[0.24em] text-[#9b8f7a] mb-3">Daftar Anggota Saat Ini</p>
-          <div className="max-h-48 overflow-y-auto rounded-2xl border border-[#e8dfcf] bg-white">
+          <div className="max-h-48 overflow-y-auto rounded-2xl border border-border bg-white">
             {members.length > 0 ? (
               <ul className="divide-y divide-[#e8dfcf]">
                 {members.map((m, idx) => {
@@ -181,7 +181,7 @@ function GroupInvitationSection({ title, description, items, hasActive, respond,
 
   if (!items.length) return null; // Only render if there are items to prevent clutter
   return (
-    <section className="rounded-[2rem] border border-[#e8dfcf] bg-white/60 p-5">
+    <section className="rounded-[2rem] border border-border bg-white/60 p-5">
       <div className="mb-4">
         <h2 className="text-xl font-black text-[#1d1b16]">{title}</h2>
         <p className="mt-1 text-sm font-semibold text-[#756b5a]">{description}</p>
@@ -193,7 +193,7 @@ function GroupInvitationSection({ title, description, items, hasActive, respond,
           const status = inv.status || inv.Status;
           
           return (
-            <article key={inv.id || inv.ID} className="rounded-[2rem] border border-[#e8dfcf] bg-white/90 p-6 shadow-sm">
+            <article key={inv.id || inv.ID} className="rounded-[2rem] border border-border bg-white/90 p-6 shadow-sm">
               <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                 <div>
                   <p className="text-xs font-black uppercase tracking-[0.24em] text-[#9b8f7a]">Undangan Kelompok</p>
@@ -233,7 +233,7 @@ function GroupInvitationSection({ title, description, items, hasActive, respond,
 function InvitationSection({ title, description, items, activeMentor, respond, handleRespond }) {
   if (!items.length) return null;
   return (
-    <section className="rounded-[2rem] border border-[#e8dfcf] bg-white/60 p-5">
+    <section className="rounded-[2rem] border border-border bg-white/60 p-5">
       <div className="mb-4">
         <h2 className="text-xl font-black text-[#1d1b16]">{title}</h2>
         <p className="mt-1 text-sm font-semibold text-[#756b5a]">{description}</p>
@@ -243,7 +243,7 @@ function InvitationSection({ title, description, items, activeMentor, respond, h
           const mentor = inv.mentor || inv.Mentor || {};
           const status = inv.status || inv.Status;
           return (
-            <article key={inv.id || inv.ID} className="rounded-[2rem] border border-[#e8dfcf] bg-white/90 p-6 shadow-sm">
+            <article key={inv.id || inv.ID} className="rounded-[2rem] border border-border bg-white/90 p-6 shadow-sm">
               <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                 <div>
                   <p className="text-xs font-black uppercase tracking-[0.24em] text-[#9b8f7a]">Undangan Pembimbing</p>

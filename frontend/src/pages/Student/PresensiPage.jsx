@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { PageContent } from '@/components/ui/page';
 import { useSearchParams, NavLink, useNavigate } from 'react-router-dom';
 import { fetchWithAuth, API_BASE_URL } from '../../services/api';
 import useAuthStore from '../../store/useAuthStore';
@@ -71,7 +72,7 @@ export default function PresensiPage() {
   }, [eventId, isAuthenticated, student, user, navigate]);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-body">
+    <PageContent className="font-body flex items-center justify-center min-h-[70vh]">
       <Toaster position="top-center" />
       
       {/* Dynamic scan laser pulse keyframes */}
@@ -85,12 +86,12 @@ export default function PresensiPage() {
         }
       `}</style>
 
-      <Card className="w-full max-w-md border-none shadow-2xl rounded-[2.5rem] bg-white overflow-hidden">
+      <Card className="w-full max-w-md border-none shadow-2xl rounded-[2.5rem] bg-surface overflow-hidden">
         <CardContent className="p-8 flex flex-col items-center text-center gap-6 relative">
           
           {/* Header branding */}
           <div className="space-y-1">
-            <span className="text-[9px] font-black text-[#00236F] tracking-[0.25em] uppercase font-headline">PRESENSI DIGITAL</span>
+            <span className="text-[9px] font-black text-[var(--theme-primary)] tracking-[0.25em] uppercase font-headline">PRESENSI DIGITAL</span>
             <h2 className="text-2xl font-black text-slate-900 font-headline tracking-tighter leading-none">BKU Student Hub</h2>
           </div>
 
@@ -101,7 +102,7 @@ export default function PresensiPage() {
                 {/* Pulsing radar circles */}
                 <div className="absolute inset-0 rounded-full bg-blue-500/10 animate-radar" />
                 <div className="absolute inset-2 rounded-full bg-blue-500/20 animate-radar" style={{ animationDelay: '0.6s' }} />
-                <div className="w-16 h-16 rounded-full bg-[#00236F] flex items-center justify-center text-white relative z-10 shadow-lg shadow-blue-900/30">
+                <div className="w-16 h-16 rounded-full bg-[var(--theme-primary)] flex items-center justify-center text-white relative z-10 shadow-lg shadow-blue-900/30">
                   <span className="material-symbols-outlined text-3xl animate-spin">sync</span>
                 </div>
               </div>
@@ -158,6 +159,6 @@ export default function PresensiPage() {
 
         </CardContent>
       </Card>
-    </div>
+    </PageContent>
   );
 }
