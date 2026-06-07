@@ -213,6 +213,34 @@ export default function PsychologistDashboard() {
     }
   }, [filteredBookings, data])
 
+  const topStudentsData = useMemo(() => {
+    const studentCounts = {}
+    filteredBookings.forEach(b => {
+      const mhs = b.mahasiswa || b.Mahasiswa
+      if (!mhs) return
+      const nim = mhs.NIM || mhs.nim || ''
+      const name = mhs.Nama || mhs.nama || '—'
+      const prodi = mhs.program_studi?.nama || mhs.ProgramStudi?.Nama || mhs.program_studi?.Nama || '—'
+      const fakultas = mhs.fakultas?.Nama || mhs.Fakultas?.Nama || mhs.fakultas?.nama || mhs.Fakultas?.nama || ''
+      if (!nim) return
+
+      if (!studentCounts[nim]) {
+        studentCounts[nim] = {
+          nim,
+          name,
+          prodi,
+          fakultas,
+          count: 0
+        }
+      }
+      studentCounts[nim].count++
+    })
+
+    return Object.values(studentCounts)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5)
+  }, [filteredBookings])
+
   const PIE_COLORS = ['var(--theme-primary)', 'var(--theme-secondary)', 'var(--theme-warning)', 'var(--theme-success)']
 
   return (
@@ -360,7 +388,7 @@ export default function PsychologistDashboard() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                 {/* Horizontal Bar Chart: Sebaran Spesialisasi Psikolog */}
                 <PageCard>
                   <PageCardHeader title="Sebaran Spesialisasi Psikolog" icon="badge" />
@@ -402,6 +430,43 @@ export default function PsychologistDashboard() {
                       </ResponsiveContainer>
                     ) : (
                       <div className="h-full flex items-center justify-center text-xs text-[var(--theme-text-muted)] italic">Tidak ada data topik</div>
+                    )}
+                  </div>
+                </PageCard>
+
+                {/* Card: Mahasiswa Teraktif Konseling */}
+                <PageCard className="flex flex-col justify-between h-full">
+                  <PageCardHeader title="Mahasiswa Teraktif Konseling" icon="group" />
+                  <div className="flex-1 mt-4 space-y-3">
+                    {topStudentsData.length > 0 ? (
+                      topStudentsData.map((item) => (
+                        <div 
+                          key={item.nim} 
+                          className="flex items-center justify-between p-3 rounded-2xl bg-[var(--theme-bg)] border border-[var(--theme-border-muted)] hover:border-[var(--theme-primary)]/30 hover:bg-slate-50/50 transition-all duration-200"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            {/* Avatar Circle */}
+                            <div className="w-9 h-9 rounded-xl bg-[var(--theme-primary)]/10 text-[var(--theme-primary)] flex items-center justify-center font-bold text-xs shrink-0 border border-[var(--theme-primary)]/10">
+                              {item.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs font-bold text-[var(--theme-text)] truncate">{item.name}</p>
+                              <p className="text-[10px] text-[var(--theme-text-muted)] font-bold mt-0.5 truncate">{item.nim}</p>
+                              <p className="text-[9px] text-[var(--theme-text-muted)]/70 font-medium mt-0.5 truncate">{item.prodi}</p>
+                            </div>
+                          </div>
+                          
+                          {/* Sessions Count Pill */}
+                          <div className="px-2.5 py-1 rounded-xl bg-[var(--theme-primary)]/10 border border-[var(--theme-primary)]/20 text-[var(--theme-primary)] text-[10px] font-extrabold tracking-wide uppercase shrink-0">
+                            {item.count} Sesi
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="h-full min-h-[180px] flex flex-col items-center justify-center gap-2 text-center text-xs text-[var(--theme-text-muted)] italic">
+                        <span className="material-symbols-outlined text-3xl opacity-40">person_off</span>
+                        <span>Tidak ada data mahasiswa</span>
+                      </div>
                     )}
                   </div>
                 </PageCard>
