@@ -123,6 +123,8 @@ export default function AnggotaManagement() {
   const [isSavingDiv, setIsSavingDiv] = useState(false)
   const [periods, setPeriods] = useState([])
   const [selectedPeriod, setSelectedPeriod] = useState('aktif')
+  const [isRegenOpen, setIsRegenOpen] = useState(false)
+  const [isRegenerating, setIsRegenerating] = useState(false)
 
   const fetchMembers = async () => {
     setLoading(true)
@@ -233,6 +235,23 @@ export default function AnggotaManagement() {
     } catch { toast.error('Terjadi kesalahan') } finally { setIsSubmitting(false) }
   }
 
+  const handleRegenerate = async () => {
+    setIsRegenerating(true)
+    try {
+      const data = await fetchWithAuth(API + '/members/regenerate', { method: 'POST' })
+      if (data.status === 'success') {
+        toast.success(data.message || 'Regenerasi berhasil')
+        setIsRegenOpen(false)
+        fetchMembers()
+      } else {
+        toast.error(data.message || 'Gagal regenerasi')
+      }
+    } catch (e) {
+      toast.error('Terjadi kesalahan')
+    } finally {
+      setIsRegenerating(false)
+    }
+  }
 
   const columns = [
     {
@@ -335,6 +354,11 @@ export default function AnggotaManagement() {
           <h3 className="text-sm font-black text-slate-800 uppercase tracking-tight font-headline">Periode Kepengurusan</h3>
           <p className="text-xs font-semibold text-slate-400">Tampilkan daftar pengurus berdasarkan tahun periode aktif.</p>
         </div>
+        <button type="button" onClick={() => setIsRegenOpen(true)}
+          className="h-11 px-5 rounded-2xl bg-rose-500 hover:bg-rose-600 text-white text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-sm shrink-0 flex items-center gap-2 border-none">
+          <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>history</span>
+          Regenerasi
+        </button>
         <div className="w-full sm:w-72">
           <select
             value={selectedPeriod}
@@ -645,6 +669,11 @@ export default function AnggotaManagement() {
 
       <DeleteConfirmModal isOpen={isDelOpen} onClose={() => setIsDelOpen(false)} onConfirm={handleDelete}
         title="Hapus Anggota?" description="Data keanggotaan ini akan dihapus permanen dari sistem." loading={isSubmitting} />
+
+      <DeleteConfirmModal isOpen={isRegenOpen} onClose={() => setIsRegenOpen(false)} onConfirm={handleRegenerate}
+        title="Regenerasi Kepengurusan?"
+        description="Arsipkan semua anggota aktif ke periode sebelumnya. Tindakan ini tidak bisa dikembalikan."
+        loading={isRegenerating} />
     </div>
   )
 }

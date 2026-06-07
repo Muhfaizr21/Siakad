@@ -1190,6 +1190,72 @@ func GetMembers(c *fiber.Ctx) error {
 	})
 }
 
+func RegenerateMembers(c *fiber.Ctx) error {
+	ormawaIdVal := c.Locals("ormawa_id")
+	if ormawaIdVal == nil {
+		return c.Status(401).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
+	}
+	ormawaId := ormawaIdVal.(uint)
+
+	var ormawa models.Ormawa
+	if err := config.DB.First(&ormawa, ormawaId).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Organisasi tidak ditemukan"})
+	}
+
+	var members []models.OrmawaAnggota
+	config.DB.Preload("Mahasiswa").Where("ormawa_id = ? AND LOWER(status) = 'aktif'", ormawaId).Find(&members)
+
+	if len(members) == 0 {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Tidak ada anggota aktif untuk diregenerasi"})
+	}
+
+	year := time.Now().Year()
+	periodeStr := fmt.Sprintf("%d/%d", year-1, year)
+
+	err := config.DB.Transaction(func(tx *gorm.DB) error {
+		for _, m := range members {
+			existingRiwayat := config.DB.Where("mahasiswa_id = ? AND ormawa_id = ? AND periode = ?", m.MahasiswaID, ormawaId, periodeStr).First(&models.RiwayatOrganisasi{}).Error
+			if existingRiwayat != nil {
+				riwayat := models.RiwayatOrganisasi{
+					MahasiswaID:       m.MahasiswaID,
+					OrmawaID:          ormawaId,
+					NamaOrganisasi:    ormawa.Nama,
+					Tipe:              ormawa.Kategori,
+					Jabatan:           m.Role,
+					PeriodeMulai:      year - 1,
+					PeriodeSelesai:    &[]int{year}[0],
+					Periode:           periodeStr,
+					Status:            "Selesai",
+					DeskripsiKegiatan: "Anggota pengurus ormawa periode " + periodeStr,
+					StatusVerifikasi:  "Terverifikasi",
+				}
+				if err := tx.Create(&riwayat).Error; err != nil {
+					return err
+				}
+			}
+		}
+
+		if err := tx.Model(&models.OrmawaAnggota{}).Where("ormawa_id = ? AND LOWER(status) = 'aktif'", ormawaId).Update("status", "tidak_aktif").Error; err != nil {
+			return err
+		}
+
+		tx.Create(&models.OrmawaNotifikasi{
+			OrmawaID: ormawaId,
+			Tipe:     "anggota",
+			Judul:    "Regenerasi Kepengurusan",
+			Pesan:    fmt.Sprintf("Periode %s telah diarsipkan. Semua anggota aktif dinonaktifkan. Silakan daftarkan anggota baru.", periodeStr),
+		})
+
+		return nil
+	})
+
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal regenerasi: " + err.Error()})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "message": fmt.Sprintf("Regenerasi berhasil. %d anggota diarsipkan ke periode %s.", len(members), periodeStr)})
+}
+
 func CreateMember(c *fiber.Ctx) error {
 	var payload struct {
 		MahasiswaID uint   `json:"MahasiswaID"`
