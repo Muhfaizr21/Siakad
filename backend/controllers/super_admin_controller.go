@@ -1069,7 +1069,13 @@ func ApproveProposalUniv(c *fiber.Ctx) error {
 			Pesan:    fmt.Sprintf("Proposal '%s' telah disetujui Universitas. Anggaran %v telah dicairkan ke kas organisasi.", proposal.Judul, proposal.Anggaran),
 		})
 
-		// 4. Ensure draft LPJ exists
+		// 4. Set LPJ deadline (14 days from approval)
+		tenggat := time.Now().Add(14 * 24 * time.Hour)
+		if err := tx.Model(&proposal).Update("tenggat_lpj", tenggat).Error; err != nil {
+			return err
+		}
+
+		// 5. Ensure draft LPJ exists
 		var lpjCount int64
 		if err := tx.Model(&models.LaporanPertanggungjawaban{}).Where("proposal_id = ?", proposal.ID).Count(&lpjCount).Error; err == nil && lpjCount == 0 {
 			lpj := models.LaporanPertanggungjawaban{

@@ -287,6 +287,29 @@ export default function LpjManagement() {
       }
     },
     {
+      key: 'TenggatLPJ',
+      label: 'Tenggat LPJ',
+      className: 'w-[130px]',
+      render: v => {
+        if (!v) return <span className="text-[10px] text-slate-300 italic">—</span>
+        const tenggat = new Date(v)
+        const now = new Date()
+        const diffDays = Math.ceil((tenggat - now) / (1000 * 60 * 60 * 24))
+        const isLate = diffDays < 0
+        const isUrgent = diffDays >= 0 && diffDays <= 3
+        return (
+          <div className="flex flex-col gap-0.5">
+            <span className={cn('text-[11px] font-bold', isLate ? 'text-rose-600' : isUrgent ? 'text-amber-600' : 'text-slate-700')}>
+              {tenggat.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}
+            </span>
+            <span className={cn('text-[9px] font-black uppercase tracking-wider', isLate ? 'text-rose-500' : isUrgent ? 'text-amber-500' : 'text-slate-400')}>
+              {isLate ? `🔴 Telat ${Math.abs(diffDays)} hr` : isUrgent ? `🟡 Sisa ${diffDays} hr` : `✅ ${diffDays} hr`}
+            </span>
+          </div>
+        )
+      }
+    },
+    {
       key: 'Status',
       label: 'Status LPJ',
       className: 'w-[140px] text-center',

@@ -1478,6 +1478,7 @@ func GetLPJs(c *fiber.Ctx) error {
 			"RealisasiAnggaran": item.RealisasiAnggaran,
 			"TotalAnggaran":     item.Proposal.Anggaran,
 			"FileURL":           item.FileURL,
+			"TenggatLPJ":        item.Proposal.TenggatLPJ,
 			"Proposal":          item.Proposal,
 			"CreatedAt":         item.CreatedAt,
 			"UpdatedAt":         item.UpdatedAt,
@@ -1513,6 +1514,12 @@ func CreateLPJ(c *fiber.Ctx) error {
 		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Akses ditolak"})
 	}
 
+	// Auto-penalty if past LPJ deadline
+	var isLate bool
+	if proposal.TenggatLPJ != nil && time.Now().After(*proposal.TenggatLPJ) {
+		isLate = true
+	}
+
 	if payload.TotalAnggaran > 0 {
 		if err := config.DB.Model(&proposal).Update("anggaran", payload.TotalAnggaran).Error; err == nil {
 			proposal.Anggaran = payload.TotalAnggaran
@@ -1542,6 +1549,18 @@ func CreateLPJ(c *fiber.Ctx) error {
 
 	if err := config.DB.Preload("Proposal").First(&lpj, lpj.ID).Error; err != nil {
 		return c.JSON(fiber.Map{"status": "success", "data": lpj})
+	}
+
+	// Auto-penalty if late
+	if isLate {
+		gamifikasi.AwardOrmawaPoints(config.DB, proposal.OrmawaID, "lpj_terlambat", -50, "kurang",
+			fmt.Sprintf("LPJ proposal '%s' diajukan setelah tenggat waktu.", proposal.Judul))
+		config.DB.Create(&models.OrmawaNotifikasi{
+			OrmawaID: lpj.Proposal.OrmawaID,
+			Tipe:     "lpj",
+			Judul:    "LPJ Terlambat — Poin Dikurangi",
+			Pesan:    fmt.Sprintf("LPJ untuk '%s' diajukan setelah tenggat %s. Poin ormawa dikurangi -50.", proposal.Judul, proposal.TenggatLPJ.Format("2 Jan 2006")),
+		})
 	}
 
 	// Buat notifikasi ormawa
@@ -1608,6 +1627,18 @@ func UpdateLPJ(c *fiber.Ctx) error {
 
 	if lpj.Status == "disetujui" && oldStatus != "disetujui" {
 		config.DB.Model(&models.Proposal{}).Where("id = ?", lpj.ProposalID).Update("status", "selesai")
+
+		// Auto-penalty if approved but was late
+		if lpj.Proposal.TenggatLPJ != nil && time.Now().After(*lpj.Proposal.TenggatLPJ) {
+			gamifikasi.AwardOrmawaPoints(config.DB, lpj.Proposal.OrmawaID, "lpj_terlambat", -50, "kurang",
+				fmt.Sprintf("LPJ proposal '%s' disetujui setelah tenggat waktu.", lpj.Proposal.Judul))
+			config.DB.Create(&models.OrmawaNotifikasi{
+				OrmawaID: lpj.Proposal.OrmawaID,
+				Tipe:     "lpj",
+				Judul:    "LPJ Disetujui Tapi Terlambat",
+				Pesan:    fmt.Sprintf("LPJ '%s' disetujui tapi melewati tenggat %s. Poin dikurangi -50.", lpj.Proposal.Judul, lpj.Proposal.TenggatLPJ.Format("2 Jan 2006")),
+			})
+		}
 
 		config.DB.Create(&models.OrmawaMutasiSaldo{
 			OrmawaID:   lpj.Proposal.OrmawaID,

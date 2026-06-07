@@ -707,6 +707,7 @@ type Proposal struct {
 
 	ApprovedDosenID    *uint `gorm:"index"`
 	ApprovedFakultasID *uint `gorm:"index"`
+	TenggatLPJ         *time.Time `json:"tenggat_lpj"`
 
 	Riwayat []ProposalRiwayat           `gorm:"foreignKey:ProposalID"`
 	LPJ     []LaporanPertanggungjawaban `gorm:"foreignKey:ProposalID"`
