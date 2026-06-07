@@ -7,7 +7,7 @@ import {
 } from '../../queries/useCounselingQuery';
 import { CardGridSkeleton } from '@/components/ui/SkeletonGroups';
 import EmptyState from '@/components/ui/EmptyState';
-import { toast } from 'react-hot-toast';
+import { toast, Toaster } from 'react-hot-toast';
 import { NavLink } from 'react-router-dom';
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
@@ -76,27 +76,36 @@ export default function CounselingPage() {
   }, [selectedSlot]);
 
   const handleBooking = () => {
+    console.log("handleBooking triggered:", { selectedSlot, privacyAgreed, keluhan, topik, mode });
     if (!privacyAgreed) return toast.error('Harap setujui pernyataan privasi');
     if (keluhan.length < 20) return toast.error('Ceritakan topik minimal 20 karakter');
-    bookingMutation.mutate({
+
+    const payload = {
       psikolog_id: selectedSlot.PsikologID,
       slot_id: selectedSlot.SlotID || selectedSlot.ID,
-      date: selectedSlot.Tanggal?.slice(0, 10),
+      date: selectedSlot.Tanggal ? selectedSlot.Tanggal.slice(0, 10) : new Date().toISOString().slice(0, 10),
       start: selectedSlot.JamMulai,
       end: selectedSlot.JamSelesai,
       topic: topik,
       complaint: keluhan,
       mode: mode,
-    }, {
+    };
+
+    console.log("Sending booking payload:", payload);
+
+    bookingMutation.mutate(payload, {
       onSuccess: () => { 
         toast.success('Booking berhasil diajukan!'); 
         setSelectedSlot(null); 
         setKeluhan(''); 
         setMode('Tatap Muka');
-        setTopik('Pribadi');
+        setTopik('Psikologi');
         setPrivacyAgreed(false); 
       },
-      onError: (err) => toast.error(err.response?.data?.message || 'Gagal melakukan booking'),
+      onError: (err) => {
+        console.error("Booking mutation failed:", err);
+        toast.error(err.response?.data?.message || 'Gagal melakukan booking');
+      },
     });
   };
 
@@ -108,6 +117,7 @@ export default function CounselingPage() {
 
   return (
     <div className="px-4 py-5 md:px-6 md:py-6 lg:px-8 lg:py-8 font-body text-[#171717] min-h-screen bg-[#fafafa]">
+      <Toaster position="top-right" />
       <div className="w-full">
 
         {/* Breadcrumb */}

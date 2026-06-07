@@ -87,6 +87,7 @@ func SetupMahasiswaRoutes(app *fiber.App) {
 	counselingGroup.Get("/psychologists/:id/schedules", mahasiswa.GetPsychologistSchedules)
 	counselingGroup.Get("/psychologist-bookings", mahasiswa.GetStudentPsychologistBookings)
 	counselingGroup.Get("/medical-record", mahasiswa.GetStudentPsychologistMedicalRecord)
+	counselingGroup.Get("/session-notes/:id/export-pdf", mahasiswa.ExportStudentSessionNotePDF)
 	counselingGroup.Get("/referrals", mahasiswa.GetStudentReferrals)
 	counselingGroup.Post("/psychologist-bookings", mahasiswa.CreateStudentPsychologistBooking)
 	counselingGroup.Put("/psychologist-bookings/:id/reschedule", mahasiswa.RescheduleStudentPsychologistBooking)

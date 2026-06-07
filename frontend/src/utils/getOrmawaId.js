@@ -1,3 +1,4 @@
+import React from 'react'
 import useAuthStore from '../store/useAuthStore'
 
 export function getOrmawaId() {
@@ -14,5 +15,30 @@ export function getOrmawaId() {
   if (!ormawaId) {
     console.warn('[getOrmawaId] No ormawa ID found in auth store')
   }
+  return ormawaId
+}
+
+/**
+ * React hook untuk get ormawa ID yang reactive
+ * Akan re-render component ketika ormawaId berubah
+ */
+export function useOrmawaId() {
+  const [ormawaId, setOrmawaId] = React.useState(() => getOrmawaId())
+  
+  React.useEffect(() => {
+    // Listen untuk perubahan window global override
+    const checkOverride = () => {
+      const newId = getOrmawaId()
+      if (newId !== ormawaId) {
+        setOrmawaId(newId)
+      }
+    }
+    
+    // Check setiap 100ms untuk perubahan
+    const interval = setInterval(checkOverride, 100)
+    
+    return () => clearInterval(interval)
+  }, [ormawaId])
+  
   return ormawaId
 }

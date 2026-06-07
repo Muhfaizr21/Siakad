@@ -228,7 +228,7 @@ export default function PortalTopbar({ config, onMenuClick }) {
     if (p.startsWith('/admin')) return { profile: '/admin/profile', pengaturan: '/admin/theme' };
     if (p.startsWith('/ormawa')) return { profile: null, pengaturan: '/ormawa/pengaturan' };
     if (p.startsWith('/faculty')) return { profile: '/faculty/profile', pengaturan: '/faculty/pengaturan' };
-    if (p.startsWith('/psychologist')) return { profile: '/psychologist/profile', pengaturan: null };
+    if (p.startsWith('/psychologist')) return { profile: '/psychologist/settings', pengaturan: null };
     if (p.startsWith('/student')) return { profile: '/student/profile', pengaturan: null };
     return { profile: null, pengaturan: null };
   }, [location.pathname]);
@@ -483,7 +483,7 @@ export default function PortalTopbar({ config, onMenuClick }) {
               borderColor: 'var(--theme-border)',
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>search</span>
+            <span className="material-symbols-outlined text-lg shrink-0">search</span>
             <span
               className="hidden lg:inline text-[9px] font-bold font-mono px-1.5 py-0.5 rounded"
               style={{ backgroundColor: 'var(--theme-border)', color: 'var(--theme-text-muted)' }}
@@ -532,8 +532,8 @@ export default function PortalTopbar({ config, onMenuClick }) {
                 </span>
               </div>
               <span
-                className="material-symbols-outlined text-[18px] hidden sm:block ml-1 opacity-40 group-hover:opacity-100 transition-opacity"
-                style={{ fontSize: '18px', color: 'var(--theme-text-muted)' }}
+                className="material-symbols-outlined text-lg shrink-0 hidden sm:block ml-1 opacity-40 group-hover:opacity-100 transition-opacity"
+                style={{ color: 'var(--theme-text-muted)' }}
               >
                 expand_more
               </span>
@@ -569,11 +569,11 @@ export default function PortalTopbar({ config, onMenuClick }) {
                     <div className="min-w-0 flex-1">
                       <p className="font-bold text-white text-sm truncate leading-snug">{displayName}</p>
                       <div className="flex items-center gap-1 mt-0.5">
-                        <span className="material-symbols-outlined text-white/60" style={{ fontSize: '11px' }}>mail</span>
+                        <span className="material-symbols-outlined text-white/60 text-xs shrink-0">mail</span>
                         <p className="text-[11px] text-white/70 font-medium truncate">{user?.Email || user?.email || '—'}</p>
                       </div>
                       <div className="mt-1.5 inline-flex items-center gap-1 bg-white/15 border border-white/20 px-2 py-0.5 rounded-full">
-                        <span className="material-symbols-outlined text-white/80" style={{ fontSize: '10px' }}>badge</span>
+                        <span className="material-symbols-outlined text-white/80 text-xs shrink-0">badge</span>
                         <span className="text-[9px] text-white/90 font-black uppercase tracking-widest">{displayRole}</span>
                       </div>
                     </div>
@@ -582,7 +582,7 @@ export default function PortalTopbar({ config, onMenuClick }) {
                   {/* Ormawa name if applicable */}
                   {(user?.ormawa_name || mahasiswa?.ormawaName || user?.ormawaName || config?.orgName) && (
                     <div className="mt-3 flex items-center gap-2 bg-white/10 border border-white/15 px-3 py-1.5 rounded-xl relative z-10">
-                      <span className="material-symbols-outlined text-white/70" style={{ fontSize: '13px' }}>groups</span>
+                      <span className="material-symbols-outlined text-white/70 text-sm shrink-0">groups</span>
                       <span className="text-[10px] text-white/80 font-bold truncate">
                         {user?.ormawa_name || mahasiswa?.ormawaName || user?.ormawaName || config?.orgName}
                       </span>
@@ -599,7 +599,7 @@ export default function PortalTopbar({ config, onMenuClick }) {
                       style={{ color: 'var(--theme-text)' }}
                     >
                       <span className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'var(--theme-primary)', color: 'white' }}>
-                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>person</span>
+                        <span className="material-symbols-outlined text-base shrink-0">person</span>
                       </span>
                       <div className="flex flex-col leading-none">
                         <span className="text-xs font-bold">Profil Saya</span>
@@ -615,7 +615,7 @@ export default function PortalTopbar({ config, onMenuClick }) {
                       style={{ color: 'var(--theme-text)' }}
                     >
                       <span className="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-100">
-                        <span className="material-symbols-outlined text-slate-500" style={{ fontSize: '16px' }}>settings</span>
+                        <span className="material-symbols-outlined text-slate-500 text-base shrink-0">settings</span>
                       </span>
                       <div className="flex flex-col leading-none">
                         <span className="text-xs font-bold">Pengaturan</span>
@@ -632,7 +632,7 @@ export default function PortalTopbar({ config, onMenuClick }) {
                     style={{ color: 'var(--theme-error)' }}
                   >
                     <span className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
-                      <span className="material-symbols-outlined text-red-500" style={{ fontSize: '16px' }}>logout</span>
+                      <span className="material-symbols-outlined text-red-500 text-base shrink-0">logout</span>
                     </span>
                     <div className="flex flex-col leading-none">
                       <span className="text-xs font-bold">Keluar</span>

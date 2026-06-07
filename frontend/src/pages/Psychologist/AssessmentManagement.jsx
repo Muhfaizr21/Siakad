@@ -70,7 +70,7 @@ export default function AssessmentManagement() {
           <div className="relative z-10 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between w-full">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full bg-primary/5 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-primary">
-                <span className="material-symbols-outlined size-3.5">auto_awesome</span>
+                <span className="material-symbols-outlined text-base shrink-0">auto_awesome</span>
                 Modul Asesmen
               </div>
               <h1 className="mt-3 text-2xl font-black text-primary uppercase tracking-tight font-headline">Manajemen Asesmen</h1>
@@ -83,7 +83,7 @@ export default function AssessmentManagement() {
               onClick={() => setIsModalOpen(true)}
               className="bg-primary hover:bg-primary/95 text-white px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/10 hover:shadow-primary/20 transition-all flex items-center gap-2 w-fit shrink-0 relative z-20"
             >
-              <span className="material-symbols-outlined text-base">add</span> Buat Asesmen Baru
+              <span className="material-symbols-outlined text-base shrink-0">add</span> Buat Asesmen Baru
             </button>
           </div>
         </section>
@@ -123,7 +123,7 @@ export default function AssessmentManagement() {
             {/* Search & Filter Chips Bento Card */}
             <div className="rounded-2xl border shadow-sm p-5 space-y-5" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
               <div className="relative group">
-                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-base transition-colors group-focus-within:text-primary">search</span>
+                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-base shrink-0 transition-colors group-focus-within:text-primary">search</span>
                 <input
                   type="text"
                   placeholder="Cari mahasiswa atau nama asesmen..."
@@ -151,7 +151,7 @@ export default function AssessmentManagement() {
             <div className="rounded-2xl border shadow-sm p-5" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
               <div className="flex items-center justify-between mb-6 pb-2 border-b border-slate-50">
                 <h3 className="text-xs font-black text-primary uppercase tracking-widest flex items-center gap-2">
-                  <span className="material-symbols-outlined text-base">analytics</span> Submisi {selectedCategory !== 'Semua' ? `: ${selectedCategory}` : 'Terbaru'}
+                  <span className="material-symbols-outlined text-base shrink-0">analytics</span> Submisi {selectedCategory !== 'Semua' ? `: ${selectedCategory}` : 'Terbaru'}
                 </h3>
                 <button className="text-[9px] font-black text-primary hover:text-primary/80 uppercase tracking-widest hover:underline transition-colors">Lihat Semua</button>
               </div>
@@ -163,7 +163,7 @@ export default function AssessmentManagement() {
                       {sub.foto_url || sub.foto ? (
                         <img src={sub.foto_url || sub.foto} alt={sub.name} className="w-full h-full object-cover" />
                       ) : (
-                        <span className="material-symbols-outlined text-white/80" style={{ fontSize: '24px' }}>person</span>
+                        <span className="material-symbols-outlined text-white/80 text-2xl shrink-0">person</span>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -175,7 +175,7 @@ export default function AssessmentManagement() {
                       <p className={`text-[10px] font-black uppercase mt-1 ${sub.score === 'Tinggi' || sub.score === 'Indikasi Depresi' || sub.score === 'Risiko Tinggi' ? 'text-rose-500' : 'text-primary'}`}>{sub.score}</p>
                     </div>
                     <button className="w-8 h-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-slate-300 hover:text-primary hover:bg-primary/5 hover:border-primary/20 transition-all duration-300 shrink-0">
-                      <span className="material-symbols-outlined text-base">chevron_right</span>
+                      <span className="material-symbols-outlined text-base shrink-0">chevron_right</span>
                     </button>
                   </div>
                 )) : (
@@ -196,7 +196,7 @@ export default function AssessmentManagement() {
               <div className="absolute -right-8 -top-5 w-24 h-24 bg-white/5 rounded-full blur-xl pointer-events-none" />
 
               <div className="relative z-10">
-                <span className="material-symbols-outlined text-white/60 mb-4" style={{ fontSize: '24px' }}>analytics</span>
+                <span className="material-symbols-outlined text-white/60 mb-4 text-2xl shrink-0">analytics</span>
                 <h4 className="text-[10px] font-black uppercase tracking-widest text-emerald-300 mb-2">Rata-rata Skor Mental</h4>
                 <p className="text-4xl font-extrabold tracking-tight mb-4 leading-none">{assessmentMeta.mentalScore}</p>
                 <div className="h-1.5 bg-white/20 rounded-full overflow-hidden mb-2">
@@ -210,7 +210,7 @@ export default function AssessmentManagement() {
             {/* Verification Queue Bento Card */}
             <div className="rounded-2xl border shadow-sm p-5 space-y-5" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
               <h3 className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2 pb-2 border-b border-slate-50">
-                <span className="material-symbols-outlined text-base">schedule</span> Antrean Verifikasi
+                <span className="material-symbols-outlined text-base shrink-0">schedule</span> Antrean Verifikasi
               </h3>
               <div className="space-y-3.5">
                 {assessmentMeta.verificationQueue.map((item, i) => (
@@ -247,7 +247,7 @@ export default function AssessmentManagement() {
                 <p className="text-[10px] text-white/70 font-bold uppercase tracking-widest mt-0.5">Konfigurasi Instrumen Tes</p>
               </div>
               <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-white/10 rounded-xl transition-colors relative z-10">
-                <span className="material-symbols-outlined text-lg">close</span>
+                <span className="material-symbols-outlined text-lg shrink-0">close</span>
               </button>
             </div>
 
@@ -290,7 +290,7 @@ export default function AssessmentManagement() {
               <div className="pt-4 flex gap-3">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 border hover:bg-slate-100 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all" style={{ borderColor: 'var(--theme-border)', color: 'var(--theme-text-muted)' }}>Batal</button>
                 <button type="submit" className="flex-2 bg-primary text-white px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center justify-center gap-2 hover:bg-primary/95 transition-all">
-                  <span className="material-symbols-outlined text-base">save</span> Publikasikan Tes
+                  <span className="material-symbols-outlined text-base shrink-0">save</span> Publikasikan Tes
                 </button>
               </div>
             </form>

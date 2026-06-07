@@ -2,7 +2,10 @@ package mahasiswa
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -10,6 +13,7 @@ import (
 	"siakad-backend/models"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/jung-kurt/gofpdf"
 )
 
 func studentWithRelations(c *fiber.Ctx) (*models.Mahasiswa, error) {
@@ -314,7 +318,7 @@ func GetStudentPsychologistBookings(c *fiber.Ctx) error {
 		item := psychologistBookingResponse(booking)
 		var noteCount int64
 		config.DB.Model(&models.PsikologSessionNote{}).
-			Where("mahasiswa_id = ? AND psikolog_id = ? AND (booking_id = ? OR booking_id IS NULL)", student.ID, booking.PsikologID, booking.ID).
+			Where("mahasiswa_id = ? AND psikolog_id = ? AND booking_id = ?", student.ID, booking.PsikologID, booking.ID).
 			Count(&noteCount)
 		item["has_medical_record"] = noteCount > 0
 		item["medical_record_count"] = noteCount
@@ -725,4 +729,354 @@ func GetStudentReferrals(c *fiber.Ctx) error {
 	}
 
 	return jsonSuccess(c, items)
+}
+
+// ExportStudentSessionNotePDF generates a complete PDF record for a single counseling session for student
+func ExportStudentSessionNotePDF(c *fiber.Ctx) error {
+	student, err := getStudent(c)
+	if err != nil {
+		return err
+	}
+
+	var rec models.PsikologSessionNote
+	if err := config.DB.Preload("Mahasiswa.Fakultas").Preload("Mahasiswa.ProgramStudi").Preload("Mahasiswa.DosenPA").Preload("Psikolog").
+		Where("id = ? AND mahasiswa_id = ?", c.Params("id"), student.ID).First(&rec).Error; err != nil {
+		return fiber.NewError(fiber.StatusNotFound, "Catatan sesi tidak ditemukan")
+	}
+
+	psikolog := rec.Psikolog
+
+	// Create Landscape PDF
+	pdf := gofpdf.New("L", "mm", "A4", "")
+	pdf.SetMargins(20, 38, 20)
+	pdf.SetAutoPageBreak(true, 15)
+	pdf.AliasNbPages("")
+
+	// Background Kop Surat
+	pdf.SetHeaderFunc(func() {
+		pdf.Image("assets/kop_rektorat_landscape.jpeg", 0, 0, 297, 210, false, "JPEG", 0, "")
+	})
+
+	pdf.AddPage()
+
+	pdf.SetTextColor(15, 23, 42) // Slate 900
+	
+	// Title
+	pdf.SetFont("Helvetica", "B", 12)
+	pdf.CellFormat(0, 5, "LAPORAN SESI KONSELING MAHASISWA", "", 1, "C", false, 0, "")
+	pdf.SetFont("Helvetica", "I", 8)
+	pdf.SetTextColor(100, 116, 139)
+	pdf.CellFormat(0, 4, fmt.Sprintf("Dicetak pada: %s", time.Now().Format("02 January 2006, 15:04 WIB")), "", 1, "C", false, 0, "")
+	pdf.Ln(2)
+
+	// Divider
+	pdf.SetDrawColor(226, 232, 240)
+	pdf.Line(20, pdf.GetY(), 277, pdf.GetY())
+	pdf.Ln(3)
+
+	// ── Student Identity Section ─────────────────────────────────────────────
+	pdf.SetTextColor(15, 23, 42)
+	pdf.SetFont("Helvetica", "B", 9.5)
+	pdf.CellFormat(0, 5, "I. DATA DIRI MAHASISWA (STUDENT PROFILE)", "", 1, "L", false, 0, "")
+	pdf.Ln(1)
+
+	// Profile Table Grid (Total printable width is 257mm)
+	dosenPAVal := "-"
+	if rec.Mahasiswa.DosenPA != nil {
+		dosenPAVal = rec.Mahasiswa.DosenPA.Nama
+	}
+
+	tglLahirStr := "-"
+	if !rec.Mahasiswa.TanggalLahir.IsZero() {
+		tglLahirStr = rec.Mahasiswa.TanggalLahir.Format("02 January 2006")
+	}
+
+	details := [][]string{
+		{"Nama Mahasiswa", rec.Mahasiswa.Nama, "NIM", rec.Mahasiswa.NIM},
+		{"Program Studi", rec.Mahasiswa.ProgramStudi.Nama, "Fakultas", rec.Mahasiswa.Fakultas.Nama},
+		{"Semester Sekarang", strconv.Itoa(rec.Mahasiswa.SemesterSekarang), "IPK", fmt.Sprintf("%.2f", rec.Mahasiswa.IPK)},
+		{"Tempat/Tgl Lahir", fmt.Sprintf("%s, %s", rec.Mahasiswa.TempatLahir, tglLahirStr), "Jenis Kelamin", rec.Mahasiswa.JenisKelamin},
+		{"Dosen Wali (PA)", dosenPAVal, "No. Handphone", rec.Mahasiswa.NoHP},
+	}
+
+	// Table style
+	pdf.SetFillColor(248, 250, 252) // Slate 50
+	pdf.SetDrawColor(241, 245, 249) // Slate 100
+
+	for _, row := range details {
+		pdf.SetFont("Helvetica", "B", 8)
+		pdf.CellFormat(50, 5, row[0], "1", 0, "L", true, 0, "")
+		pdf.SetFont("Helvetica", "", 8)
+		pdf.CellFormat(78, 5, row[1], "1", 0, "L", false, 0, "")
+		
+		pdf.SetFont("Helvetica", "B", 8)
+		pdf.CellFormat(50, 5, row[2], "1", 0, "L", true, 0, "")
+		pdf.SetFont("Helvetica", "", 8)
+		pdf.CellFormat(79, 5, row[3], "1", 1, "L", false, 0, "")
+	}
+	pdf.Ln(4)
+
+	// ── Session Details Section ──────────────────────────────────────────────
+	pdf.SetFont("Helvetica", "B", 9.5)
+	pdf.CellFormat(0, 5, "II. CATATAN ASESMEN & SESI KONSELING", "", 1, "L", false, 0, "")
+	pdf.Ln(1)
+
+	// Session Header Band (257mm width)
+	pdf.SetFillColor(241, 245, 249) // Slate 100
+	pdf.SetDrawColor(226, 232, 240) // Slate 200
+	pdf.SetTextColor(15, 23, 42)
+	
+	pdf.SetFont("Helvetica", "B", 8.5)
+	headerText := fmt.Sprintf(" Tanggal Sesi: %s  •  Waktu: %s WIB  •  Mode: %s", rec.Tanggal.Format("02 January 2006"), rec.Tanggal.Format("15:04"), rec.JenisSesi)
+	pdf.CellFormat(257, 5.5, headerText, "1", 1, "L", true, 0, "")
+
+	// Sesi Meta info (Mood / Status Pasien)
+	pdf.SetFont("Helvetica", "", 7.5)
+	pdf.SetTextColor(71, 85, 105)
+	metaText := fmt.Sprintf("  Mood: %s  |  Status Pasien: %s", rec.Mood, rec.StatusPasien)
+	pdf.CellFormat(257, 4, metaText, "LRB", 1, "L", false, 0, "")
+	pdf.Ln(2)
+
+	// 1. Tujuan Pemeriksaan & Riwayat Keluhan
+	pdf.SetTextColor(15, 23, 42)
+	pdf.SetFont("Helvetica", "B", 8)
+	pdf.Cell(0, 3.5, "Tujuan Pemeriksaan / Asesmen:")
+	pdf.Ln(3)
+	pdf.SetFont("Helvetica", "", 8)
+	tujuan := rec.TujuanPemeriksaan
+	if tglAsesStr := ""; rec.TanggalAsesmen != nil {
+		tglAsesStr = rec.TanggalAsesmen.Format("02 January 2006")
+		tujuan = tujuan + " (Tanggal Asesmen: " + tglAsesStr + ")"
+	}
+	if tujuan == "" {
+		tujuan = "-"
+	}
+	pdf.MultiCell(257, 3.5, tujuan, "", "L", false)
+	pdf.Ln(2)
+
+	pdf.SetFont("Helvetica", "B", 8)
+	pdf.Cell(0, 3.5, "Riwayat Keluhan / Isu Utama:")
+	pdf.Ln(3)
+	pdf.SetFont("Helvetica", "", 8)
+	kel := rec.RiwayatKeluhan
+	if kel == "" {
+		kel = rec.Keluhan
+	}
+	if kel == "" {
+		kel = "-"
+	}
+	pdf.MultiCell(257, 3.5, kel, "", "L", false)
+	pdf.Ln(3)
+
+	// 2. Aspek Asesmen Klinis Table (3 columns: 85mm + 85mm + 87mm = 257mm)
+	cog := rec.AspekKognitif
+	if cog == "" {
+		cog = "-"
+	}
+	emo := rec.AspekEmosional
+	if emo == "" {
+		emo = "-"
+	}
+	beh := rec.AspekPerilaku
+	if beh == "" {
+		beh = "-"
+	}
+
+	// Calculate row height dynamically
+	cogLines := pdf.SplitLines([]byte(cog), 85)
+	emoLines := pdf.SplitLines([]byte(emo), 85)
+	behLines := pdf.SplitLines([]byte(beh), 87)
+	maxLines := len(cogLines)
+	if len(emoLines) > maxLines {
+		maxLines = len(emoLines)
+	}
+	if len(behLines) > maxLines {
+		maxLines = len(behLines)
+	}
+	if maxLines < 1 {
+		maxLines = 1
+	}
+	colH := float64(maxLines)*3.2 + 2
+
+	// Preemptive check before drawing Aspek Asesmen
+	if pdf.GetY() + colH + 10 > 195 {
+		pdf.AddPage()
+	}
+
+	pdf.SetFont("Helvetica", "B", 8)
+	pdf.Cell(0, 3.5, "Aspek Asesmen Klinis:")
+	pdf.Ln(3.5)
+
+	pdf.SetFillColor(248, 250, 252)
+	pdf.CellFormat(85, 4, "Aspek Kognitif", "1", 0, "C", true, 0, "")
+	pdf.CellFormat(85, 4, "Aspek Emosional", "1", 0, "C", true, 0, "")
+	pdf.CellFormat(87, 4, "Aspek Perilaku", "1", 1, "C", true, 0, "")
+
+	curX := pdf.GetX()
+	curY := pdf.GetY()
+	pdf.Rect(curX, curY, 257, colH, "D")
+	pdf.Line(curX+85, curY, curX+85, curY+colH)
+	pdf.Line(curX+170, curY, curX+170, curY+colH)
+
+	pdf.SetXY(curX, curY+1)
+	pdf.MultiCell(85, 3, cog, "", "L", false)
+	pdf.SetXY(curX+85, curY+1)
+	pdf.MultiCell(85, 3, emo, "", "L", false)
+	pdf.SetXY(curX+170, curY+1)
+	pdf.MultiCell(87, 3, beh, "", "L", false)
+
+	pdf.SetXY(curX, curY+colH)
+	pdf.Ln(3)
+
+	// 3. Rekomendasi
+	rekMhs := rec.RekomendasiMahasiswa
+	if rekMhs == "" && rec.Rekomendasi != "" {
+		rekMhs = rec.Rekomendasi
+	}
+	if rekMhs == "" {
+		rekMhs = "-"
+	}
+	rekProdi := rec.RekomendasiProdi
+	if rekProdi == "" {
+		rekProdi = "-"
+	}
+	rekOrtu := rec.RekomendasiOrangTua
+	if rekOrtu == "" {
+		rekOrtu = "-"
+	}
+
+	rekMhsLines := pdf.SplitLines([]byte(rekMhs), 85)
+	rekProdiLines := pdf.SplitLines([]byte(rekProdi), 85)
+	rekOrtuLines := pdf.SplitLines([]byte(rekOrtu), 87)
+	maxLinesRek := len(rekMhsLines)
+	if len(rekProdiLines) > maxLinesRek {
+		maxLinesRek = len(rekProdiLines)
+	}
+	if len(rekOrtuLines) > maxLinesRek {
+		maxLinesRek = len(rekOrtuLines)
+	}
+	if maxLinesRek < 1 {
+		maxLinesRek = 1
+	}
+	colHRek := float64(maxLinesRek)*3.2 + 2
+
+	// Preemptive check before drawing Rekomendasi
+	if pdf.GetY() + colHRek + 10 > 195 {
+		pdf.AddPage()
+	}
+
+	pdf.SetFont("Helvetica", "B", 8)
+	pdf.Cell(0, 3.5, "Rekomendasi Hasil Konseling:")
+	pdf.Ln(3.5)
+
+	pdf.CellFormat(85, 4, "Rekomendasi Mahasiswa", "1", 0, "C", true, 0, "")
+	pdf.CellFormat(85, 4, "Rekomendasi Program Studi", "1", 0, "C", true, 0, "")
+	pdf.CellFormat(87, 4, "Rekomendasi Orang Tua / Wali", "1", 1, "C", true, 0, "")
+
+	curXRek := pdf.GetX()
+	curYRek := pdf.GetY()
+	pdf.Rect(curXRek, curYRek, 257, colHRek, "D")
+	pdf.Line(curXRek+85, curYRek, curXRek+85, curYRek+colHRek)
+	pdf.Line(curXRek+170, curYRek, curXRek+170, curYRek+colHRek)
+
+	pdf.SetXY(curXRek, curYRek+1)
+	pdf.MultiCell(85, 3, rekMhs, "", "L", false)
+	pdf.SetXY(curXRek+85, curYRek+1)
+	pdf.MultiCell(85, 3, rekProdi, "", "L", false)
+	pdf.SetXY(curXRek+170, curYRek+1)
+	pdf.MultiCell(87, 3, rekOrtu, "", "L", false)
+
+	pdf.SetXY(curXRek, curYRek+colHRek)
+	pdf.Ln(3)
+
+	// 4. Tindak Lanjut & Kesimpulan
+	kes := rec.Kesimpulan
+	if kes == "" {
+		kes = "-"
+	}
+
+	kesLines := pdf.SplitLines([]byte(kes), 137)
+	kesHeight := float64(len(kesLines))*3.2 + 2
+	sectionHeight := kesHeight
+	if sectionHeight < 15 {
+		sectionHeight = 15 // Checkbox section height
+	}
+
+	// Preemptive check for Section + Signature (approx 35mm total)
+	if pdf.GetY() + sectionHeight + 35 > 195 {
+		pdf.AddPage()
+	}
+
+	pdf.SetFont("Helvetica", "B", 8)
+	pdf.Cell(120, 3.5, "Tindak Lanjut Layanan:")
+	pdf.Cell(0, 3.5, "Kesimpulan Akhir:")
+	pdf.Ln(3.5)
+
+	curXTl := pdf.GetX()
+	curYTl := pdf.GetY()
+
+	// Tindak Lanjut checks
+	pdf.SetFont("Helvetica", "", 8)
+	tuntasCheck := " [ ] Sesi Tuntas"
+	if rec.TindakLanjutTuntas {
+		tuntasCheck = " [X] Sesi Tuntas"
+	}
+	lanjutCheck := " [ ] Konseling Lanjutan"
+	if rec.TindakLanjutLanjutan {
+		lanjutCheck = " [X] Konseling Lanjutan"
+	}
+	rujukCheck := " [ ] Rujuk Klinis"
+	if rec.TindakLanjutRujuk {
+		rujukCheck = " [X] Rujuk Klinis"
+	}
+
+	pdf.CellFormat(120, 4, tuntasCheck, "", 1, "L", false, 0, "")
+	pdf.SetX(curXTl)
+	pdf.CellFormat(120, 4, lanjutCheck, "", 1, "L", false, 0, "")
+	pdf.SetX(curXTl)
+	pdf.CellFormat(120, 4, rujukCheck, "", 1, "L", false, 0, "")
+
+	// Kesimpulan
+	pdf.SetXY(curXTl+120, curYTl)
+	pdf.SetFont("Helvetica", "I", 8)
+	pdf.MultiCell(137, 3.2, kes, "", "L", false)
+
+	// Set cursor below Tindak Lanjut / Kesimpulan block
+	pdf.SetXY(curXTl, curYTl+sectionHeight)
+	pdf.Ln(4)
+
+	// ── Signature ────────────────────────────────────────────────────────────
+	sigY := pdf.GetY()
+	
+	pdf.SetFont("Helvetica", "", 8)
+	pdf.SetTextColor(15, 23, 42)
+	pdf.SetXY(180, sigY)
+	pdf.CellFormat(0, 4, fmt.Sprintf("Bandung, %s", time.Now().Format("02 January 2006")), "", 1, "C", false, 0, "")
+	pdf.SetX(180)
+	pdf.CellFormat(0, 4, "Psikolog Penanggung Jawab,", "", 1, "C", false, 0, "")
+	
+	pdf.SetXY(180, sigY+18)
+	pdf.SetFont("Helvetica", "BU", 8.5)
+	pdf.CellFormat(0, 4, psikolog.Nama, "", 1, "C", false, 0, "")
+	pdf.SetX(180)
+	pdf.SetFont("Helvetica", "", 7.5)
+	pdf.SetTextColor(100, 116, 139)
+	pdf.CellFormat(0, 3.5, fmt.Sprintf("BKU Care Center • NIP/Reg: %d", psikolog.ID), "", 1, "C", false, 0, "")
+
+	// Save and download
+	exportsDir := "uploads/exports"
+	if err := os.MkdirAll(exportsDir, 0755); err != nil {
+		return err
+	}
+
+	fileName := fmt.Sprintf("sesi_%d_%s.pdf", rec.ID, time.Now().Format("20060102150405"))
+	filePath := filepath.Join(exportsDir, fileName)
+
+	if err := pdf.OutputFileAndClose(filePath); err != nil {
+		return err
+	}
+
+	c.Set("Content-Type", "application/pdf")
+	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"sesi_%d_rekam_medis_%s.pdf\"", rec.ID, rec.Mahasiswa.Nama))
+	return c.SendFile(filePath)
 }

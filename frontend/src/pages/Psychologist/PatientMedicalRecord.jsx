@@ -20,7 +20,7 @@ export default function PatientMedicalRecord() {
   const bookingId = searchParams.get('bookingId');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Form State
+  // Form State — tuntas/lanjutan/rujuk use null = not yet chosen, true = Ya, false = Tidak
   const [newRecord, setNewRecord] = useState({
     complaint: '',
     observation: '',
@@ -35,14 +35,20 @@ export default function PatientMedicalRecord() {
     rekomendasi_mahasiswa: '',
     rekomendasi_prodi: '',
     rekomendasi_orang_tua: '',
-    tindak_lanjut_tuntas: false,
-    tindak_lanjut_lanjutan: false,
-    tindak_lanjut_rujuk: false,
-    kesimpulan: ''
+    tindak_lanjut_tuntas: null,
+    tindak_lanjut_lanjutan: null,
+    tindak_lanjut_rujuk: null,
+    kesimpulan: '',
+    rujukan_tipe: 'Medis',
+    rujukan_pihak_tujuan: '',
+    rujukan_email_tujuan: '',
+    rujukan_alasan: '',
   });
 
   const [records, setRecords] = useState([]);
   const [patient, setPatient] = useState({ id, name: 'Memuat...', nim: '-', faculty: '-', color: 'bg-primary', initials: '-', status: 'Baru', totalSessions: 0 });
+  const [activeBookingId, setActiveBookingId] = useState(null);
+  const [lastSessionTuntas, setLastSessionTuntas] = useState(false);
 
   useEffect(() => {
     let ignore = false;
@@ -50,50 +56,65 @@ export default function PatientMedicalRecord() {
       if (!ignore) {
         setPatient(res.data.patient);
         setRecords(res.data.records || []);
+        setActiveBookingId(res.data.active_booking_id || null);
+        setLastSessionTuntas(res.data.last_session_tuntas === true);
       }
     });
     return () => { ignore = true; };
   }, [id]);
 
+  const emptyRecord = {
+    complaint: '', observation: '', recommendation: '', mood: 'Stabil',
+    tujuan_pemeriksaan: '', tanggal_asesmen: new Date().toISOString().split('T')[0],
+    riwayat_keluhan: '', aspek_kognitif: '', aspek_emosional: '', aspek_perilaku: '',
+    rekomendasi_mahasiswa: '', rekomendasi_prodi: '', rekomendasi_orang_tua: '',
+    tindak_lanjut_tuntas: null, tindak_lanjut_lanjutan: null, tindak_lanjut_rujuk: null,
+    kesimpulan: '', rujukan_tipe: 'Medis', rujukan_pihak_tujuan: '', rujukan_email_tujuan: '', rujukan_alasan: '',
+  };
+
   const handleAddRecord = async (e) => {
     e.preventDefault();
+    // Validate tindak lanjut tuntas is selected
+    if (newRecord.tindak_lanjut_tuntas === null) {
+      alert('Harap pilih status Sesi Tuntas (Ya/Tidak).');
+      return;
+    }
     const observationCombined = `Kognitif: ${newRecord.aspek_kognitif}\nEmosional: ${newRecord.aspek_emosional}\nPerilaku: ${newRecord.aspek_perilaku}`;
     const recommendationCombined = `Mhs: ${newRecord.rekomendasi_mahasiswa}\nProdi: ${newRecord.rekomendasi_prodi}\nOrangTua: ${newRecord.rekomendasi_orang_tua}`;
-
-    await psychologistService.createSessionNote(id, {
-      ...newRecord,
-      complaint: newRecord.riwayat_keluhan || newRecord.complaint,
-      observation: observationCombined,
-      recommendation: recommendationCombined,
-      type: 'Konseling Baru',
-      status: newRecord.tindak_lanjut_tuntas ? 'Selesai' : newRecord.mood,
-      ...(bookingId ? { booking_id: Number(bookingId) } : {}),
-    });
-    const res = await psychologistService.getMedicalRecord(id);
-    setPatient(res.data.patient);
-    setRecords(res.data.records || []);
-    setIsModalOpen(false);
-    if (bookingId) setSearchParams({});
-    setNewRecord({
-      complaint: '',
-      observation: '',
-      recommendation: '',
-      mood: 'Stabil',
-      tujuan_pemeriksaan: '',
-      tanggal_asesmen: new Date().toISOString().split('T')[0],
-      riwayat_keluhan: '',
-      aspek_kognitif: '',
-      aspek_emosional: '',
-      aspek_perilaku: '',
-      rekomendasi_mahasiswa: '',
-      rekomendasi_prodi: '',
-      rekomendasi_orang_tua: '',
-      tindak_lanjut_tuntas: false,
-      tindak_lanjut_lanjutan: false,
-      tindak_lanjut_rujuk: false,
-      kesimpulan: ''
-    });
+    const isTuntas = newRecord.tindak_lanjut_tuntas === true;
+    const isRujuk = newRecord.tindak_lanjut_rujuk === true;
+    try {
+      await psychologistService.createSessionNote(id, {
+        ...newRecord,
+        tindak_lanjut_tuntas: isTuntas,
+        tindak_lanjut_lanjutan: newRecord.tindak_lanjut_lanjutan === true,
+        tindak_lanjut_rujuk: isRujuk,
+        complaint: newRecord.riwayat_keluhan || newRecord.complaint,
+        observation: observationCombined,
+        recommendation: recommendationCombined,
+        type: 'Konseling Baru',
+        status: isTuntas ? 'Selesai' : newRecord.mood,
+        booking_id: Number(bookingId || activeBookingId || 0),
+      });
+      const res = await psychologistService.getMedicalRecord(id);
+      setPatient(res.data.patient);
+      setRecords(res.data.records || []);
+      setActiveBookingId(res.data.active_booking_id || null);
+      setLastSessionTuntas(res.data.last_session_tuntas === true);
+      setIsModalOpen(false);
+      if (bookingId) setSearchParams({});
+      setNewRecord(emptyRecord);
+      // If rujuk = Ya, redirect to referral management
+      if (isRujuk) {
+        navigate('/psychologist/referrals');
+      }
+    } catch (err) {
+      alert(err.message || 'Gagal menyimpan catatan sesi.');
+    }
   };
+
+  // Lock button if: last session is Tuntas OR no active booking at all
+  const hasActiveBooking = Boolean(bookingId || activeBookingId) && !lastSessionTuntas;
 
   return (
     <>
@@ -111,12 +132,40 @@ export default function PatientMedicalRecord() {
              <div className="flex gap-2">
                 <button 
                   onClick={() => setIsModalOpen(true)}
-                  className="bg-primary text-white px-6 py-2.5 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center gap-2 hover:scale-105 active:scale-95 transition-all"
+                  disabled={!hasActiveBooking}
+                  className={`px-6 py-2.5 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg flex items-center gap-2 transition-all ${
+                    hasActiveBooking 
+                      ? 'bg-primary text-white shadow-primary/20 hover:scale-105 active:scale-95' 
+                      : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
+                  }`}
                 >
-                   <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >add</span> Tambah Sesi
+                   <span className="material-symbols-outlined text-base shrink-0" >add</span> Tambah Sesi
                 </button>
              </div>
           </div>
+
+          {lastSessionTuntas && (
+            <div className="mb-4 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-start gap-3">
+              <span className="material-symbols-outlined text-emerald-600 text-xl shrink-0">check_circle</span>
+              <div>
+                <h4 className="text-xs font-black text-emerald-900">Sesi Terakhir Telah Ditandai Tuntas</h4>
+                <p className="text-[10px] text-emerald-700 mt-0.5 leading-relaxed">
+                  Sesi konseling terakhir sudah selesai. Untuk melanjutkan, mahasiswa perlu melakukan booking baru terlebih dahulu.
+                </p>
+              </div>
+            </div>
+          )}
+          {!lastSessionTuntas && !Boolean(bookingId || activeBookingId) && (
+            <div className="mb-4 p-4 rounded-2xl bg-amber-50 border border-amber-100 flex items-start gap-3">
+              <span className="material-symbols-outlined text-amber-500 text-xl shrink-0">info</span>
+              <div>
+                <h4 className="text-xs font-bold text-amber-900">Tidak ada sesi booking aktif</h4>
+                <p className="text-[10px] text-amber-700 mt-0.5 leading-relaxed">
+                  Mahasiswa belum memiliki janji temu aktif. Tambah sesi hanya bisa dilakukan setelah mahasiswa booking.
+                </p>
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
             
@@ -125,7 +174,7 @@ export default function PatientMedicalRecord() {
                <div className="rounded-3xl border shadow-sm p-5" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
                   <div className="flex items-center justify-between mb-10">
                      <h3 className="text-sm font-black text-primary uppercase tracking-tight font-headline flex items-center gap-3">
-                        <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >description</span> Riwayat Sesi Konseling
+                        <span className="material-symbols-outlined text-xl shrink-0" >description</span> Riwayat Sesi Konseling
                      </h3>
                      <div className="text-[9px] font-black text-slate-300 uppercase tracking-widest">Total: {patient.totalSessions} Sesi</div>
                   </div>
@@ -134,7 +183,7 @@ export default function PatientMedicalRecord() {
                      {records.map((record, index) => (
                        <div key={record.id} className="relative pl-12 group">
                           <div className={`absolute left-0 top-1.5 size-10 rounded-xl border-4 border-white shadow-md flex items-center justify-center z-10 transition-transform group-hover:scale-110 ${index === 0 ? 'bg-primary text-white' : 'bg-slate-100 text-slate-400'}`}>
-                             <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >calendar_month</span>
+                             <span className="material-symbols-outlined text-base shrink-0" >calendar_month</span>
                           </div>
 
                           <div className="rounded-3xl border p-5 space-y-4 hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-500" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
@@ -185,7 +234,7 @@ export default function PatientMedicalRecord() {
                                  {(record.aspek_kognitif || record.aspek_emosional || record.aspek_perilaku) && (
                                     <div className="pt-4 border-t border-slate-100">
                                        <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                                          <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>psychology</span> Aspek Asesmen Klinis
+                                          <span className="material-symbols-outlined text-xs shrink-0">psychology</span> Aspek Asesmen Klinis
                                        </h4>
                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                           <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4">
@@ -208,7 +257,7 @@ export default function PatientMedicalRecord() {
                                  {(record.rekomendasi_mahasiswa || record.rekomendasi_prodi || record.rekomendasi_orang_tua || record.recommendation) && (
                                     <div className="pt-4 border-t border-slate-100">
                                        <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                                          <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>reviews</span> Rekomendasi Hasil Konseling
+                                          <span className="material-symbols-outlined text-xs shrink-0">reviews</span> Rekomendasi Hasil Konseling
                                        </h4>
                                        {record.rekomendasi_mahasiswa || record.rekomendasi_prodi || record.rekomendasi_orang_tua ? (
                                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -239,19 +288,19 @@ export default function PatientMedicalRecord() {
                                        <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Tindak Lanjut</h4>
                                        <div className="flex flex-col gap-1.5">
                                           <div className="flex items-center gap-2">
-                                             <span className={`material-symbols-outlined text-sm font-bold ${record.tindak_lanjut_tuntas ? 'text-emerald-500' : 'text-slate-300'}`}>
+                                             <span className={`material-symbols-outlined text-sm font-bold shrink-0 ${record.tindak_lanjut_tuntas ? 'text-emerald-500' : 'text-slate-300'}`}>
                                                 {record.tindak_lanjut_tuntas ? 'check_circle' : 'cancel'}
                                              </span>
                                              <span className={`text-[10px] font-black uppercase tracking-widest ${record.tindak_lanjut_tuntas ? 'text-slate-800' : 'text-slate-400'}`}>Sesi Tuntas</span>
                                           </div>
                                           <div className="flex items-center gap-2">
-                                             <span className={`material-symbols-outlined text-sm font-bold ${record.tindak_lanjut_lanjutan ? 'text-emerald-500' : 'text-slate-300'}`}>
+                                             <span className={`material-symbols-outlined text-sm font-bold shrink-0 ${record.tindak_lanjut_lanjutan ? 'text-emerald-500' : 'text-slate-300'}`}>
                                                 {record.tindak_lanjut_lanjutan ? 'check_circle' : 'cancel'}
                                              </span>
                                              <span className={`text-[10px] font-black uppercase tracking-widest ${record.tindak_lanjut_lanjutan ? 'text-slate-800' : 'text-slate-400'}`}>Jadwal Konseling Lanjutan</span>
                                           </div>
                                           <div className="flex items-center gap-2">
-                                             <span className="material-symbols-outlined text-sm font-bold" style={{ color: record.tindak_lanjut_rujuk ? 'var(--theme-primary)' : '#cbd5e1' }}>
+                                             <span className="material-symbols-outlined text-sm font-bold shrink-0" style={{ color: record.tindak_lanjut_rujuk ? 'var(--theme-primary)' : '#cbd5e1' }}>
                                                 {record.tindak_lanjut_rujuk ? 'check_circle' : 'cancel'}
                                              </span>
                                              <span className={`text-[10px] font-black uppercase tracking-widest ${record.tindak_lanjut_rujuk ? 'text-slate-800' : 'text-slate-400'}`}>Rujuk Klinis</span>
@@ -261,7 +310,7 @@ export default function PatientMedicalRecord() {
                                     {record.kesimpulan && (
                                        <div>
                                           <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1">
-                                             <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>summarize</span> Kesimpulan
+                                             <span className="material-symbols-outlined text-xs shrink-0">summarize</span> Kesimpulan
                                           </h4>
                                           <p className="text-[11px] font-semibold text-slate-700 leading-relaxed border rounded-2xl p-4 italic" style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)', borderColor: 'color-mix(in srgb, var(--theme-primary) 10%, transparent)' }}>
                                              "{record.kesimpulan}"
@@ -306,7 +355,7 @@ export default function PatientMedicalRecord() {
 
                <div className="rounded-3xl border shadow-sm p-5 space-y-6" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
                   <h3 className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2">
-                     <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >trending_up</span> Analitik Kesehatan
+                     <span className="material-symbols-outlined text-base shrink-0" >trending_up</span> Analitik Kesehatan
                   </h3>
                   <div className="space-y-4">
                      <div>
@@ -320,7 +369,7 @@ export default function PatientMedicalRecord() {
                      </div>
                      <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10">
                         <div className="flex items-center gap-2 mb-2 text-primary">
-                           <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >error</span>
+                           <span className="material-symbols-outlined text-sm shrink-0" >error</span>
                            <span className="text-[9px] font-black uppercase tracking-widest">Catatan Penting</span>
                         </div>
                         <p className="text-[10px] font-medium text-slate-600 leading-relaxed uppercase">
@@ -334,7 +383,7 @@ export default function PatientMedicalRecord() {
                   <div className="relative z-10">
                      <div className="flex items-center gap-3 mb-4">
                         <div className="p-2 bg-emerald-500/20 rounded-lg text-emerald-400">
-                           <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >security</span>
+                           <span className="material-symbols-outlined text-xl shrink-0" >security</span>
                         </div>
                         <h4 className="text-[10px] font-black font-headline uppercase tracking-widest" style={{ color: 'var(--theme-h4)' }}>Data Terenkripsi</h4>
                      </div>
@@ -360,7 +409,7 @@ export default function PatientMedicalRecord() {
                     <p className="text-[10px] text-white/70 font-bold uppercase tracking-widest mt-0.5">{bookingId ? `Terhubung ke booking #${bookingId}` : 'Form Asesmen dan Rekomendasi Hasil Konseling'}</p>
                   </div>
                   <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-white/10 rounded-xl transition-colors">
-                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >close</span>
+                    <span className="material-symbols-outlined text-xl shrink-0" >close</span>
                   </button>
                </div>
 
@@ -368,7 +417,7 @@ export default function PatientMedicalRecord() {
                   {/* Data Diri Mahasiswa Section */}
                   <div className="bg-slate-50 border border-slate-200/60 rounded-3xl p-5">
                      <h4 className="text-[10px] font-black text-[#00236F] uppercase tracking-widest mb-4 flex items-center gap-2">
-                        <span className="material-symbols-outlined text-sm">badge</span> Data Diri Mahasiswa (Auto-Populated)
+                        <span className="material-symbols-outlined text-sm shrink-0">badge</span> Data Diri Mahasiswa (Auto-Populated)
                      </h4>
                      <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-4 text-[11px] font-medium text-slate-600">
                         <div>
@@ -530,65 +579,69 @@ export default function PatientMedicalRecord() {
                      
                      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 bg-slate-50 border border-slate-200/60 rounded-3xl p-5">
                         <div className="flex flex-col gap-2">
-                           <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">1. Sesi Tuntas</label>
+                           <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">1. Sesi Tuntas <span className="text-rose-500">*</span></label>
                            <div className="flex gap-2">
-                              <button
-                                type="button"
-                                onClick={() => setNewRecord({ ...newRecord, tindak_lanjut_tuntas: true })}
-                                className={`flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${newRecord.tindak_lanjut_tuntas ? 'bg-primary text-white shadow-md shadow-primary/20' : 'bg-white text-slate-400 border border-slate-200 hover:bg-slate-50'}`}
-                              >
-                                Ya
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setNewRecord({ ...newRecord, tindak_lanjut_tuntas: false })}
-                                className={`flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${!newRecord.tindak_lanjut_tuntas ? 'bg-rose-500 text-white shadow-md shadow-rose-500/20' : 'bg-white text-slate-400 border border-slate-200 hover:bg-slate-50'}`}
-                              >
-                                Tidak
-                              </button>
+                              <button type="button" onClick={() => setNewRecord({ ...newRecord, tindak_lanjut_tuntas: true })} className={`flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${newRecord.tindak_lanjut_tuntas === true ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20' : 'bg-white text-slate-400 border border-slate-200 hover:border-emerald-300 hover:text-emerald-600'}`}>Ya</button>
+                              <button type="button" onClick={() => setNewRecord({ ...newRecord, tindak_lanjut_tuntas: false })} className={`flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${newRecord.tindak_lanjut_tuntas === false ? 'bg-rose-500 text-white shadow-md shadow-rose-500/20' : 'bg-white text-slate-400 border border-slate-200 hover:border-rose-300 hover:text-rose-500'}`}>Tidak</button>
                            </div>
+                           {newRecord.tindak_lanjut_tuntas === true && <p className="text-[9px] text-emerald-600 font-bold ml-1">⚠ Booking akan dikunci setelah disimpan</p>}
                         </div>
 
                         <div className="flex flex-col gap-2">
                            <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">2. Konseling Lanjutan</label>
                            <div className="flex gap-2">
-                              <button
-                                type="button"
-                                onClick={() => setNewRecord({ ...newRecord, tindak_lanjut_lanjutan: true })}
-                                className={`flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${newRecord.tindak_lanjut_lanjutan ? 'bg-primary text-white shadow-md shadow-primary/20' : 'bg-white text-slate-400 border border-slate-200 hover:bg-slate-50'}`}
-                              >
-                                Ya
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setNewRecord({ ...newRecord, tindak_lanjut_lanjutan: false })}
-                                className={`flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${!newRecord.tindak_lanjut_lanjutan ? 'bg-rose-500 text-white shadow-md shadow-rose-500/20' : 'bg-white text-slate-400 border border-slate-200 hover:bg-slate-50'}`}
-                              >
-                                Tidak
-                              </button>
+                              <button type="button" onClick={() => setNewRecord({ ...newRecord, tindak_lanjut_lanjutan: true })} className={`flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${newRecord.tindak_lanjut_lanjutan === true ? 'bg-primary text-white shadow-md shadow-primary/20' : 'bg-white text-slate-400 border border-slate-200 hover:border-primary/40 hover:text-primary'}`}>Ya</button>
+                              <button type="button" onClick={() => setNewRecord({ ...newRecord, tindak_lanjut_lanjutan: false })} className={`flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${newRecord.tindak_lanjut_lanjutan === false ? 'bg-rose-500 text-white shadow-md shadow-rose-500/20' : 'bg-white text-slate-400 border border-slate-200 hover:border-rose-300 hover:text-rose-500'}`}>Tidak</button>
                            </div>
                         </div>
 
                         <div className="flex flex-col gap-2">
                            <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">3. Rujuk Klinis</label>
                            <div className="flex gap-2">
-                              <button
-                                type="button"
-                                onClick={() => setNewRecord({ ...newRecord, tindak_lanjut_rujuk: true })}
-                                className={`flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${newRecord.tindak_lanjut_rujuk ? 'bg-primary text-white shadow-md shadow-primary/20' : 'bg-white text-slate-400 border border-slate-200 hover:bg-slate-50'}`}
-                              >
-                                Ya
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setNewRecord({ ...newRecord, tindak_lanjut_rujuk: false })}
-                                className={`flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${!newRecord.tindak_lanjut_rujuk ? 'bg-rose-500 text-white shadow-md shadow-rose-500/20' : 'bg-white text-slate-400 border border-slate-200 hover:bg-slate-50'}`}
-                              >
-                                Tidak
-                              </button>
+                              <button type="button" onClick={() => setNewRecord({ ...newRecord, tindak_lanjut_rujuk: true })} className={`flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${newRecord.tindak_lanjut_rujuk === true ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20' : 'bg-white text-slate-400 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600'}`}>Ya</button>
+                              <button type="button" onClick={() => setNewRecord({ ...newRecord, tindak_lanjut_rujuk: false })} className={`flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${newRecord.tindak_lanjut_rujuk === false ? 'bg-rose-500 text-white shadow-md shadow-rose-500/20' : 'bg-white text-slate-400 border border-slate-200 hover:border-rose-300 hover:text-rose-500'}`}>Tidak</button>
                            </div>
+                           {newRecord.tindak_lanjut_rujuk === true && <p className="text-[9px] text-indigo-600 font-bold ml-1">→ Surat rujukan otomatis dibuat & dikirim ke Referral</p>}
                         </div>
                      </div>
+
+                     {newRecord.tindak_lanjut_rujuk && (
+                       <div className="grid grid-cols-1 md:grid-cols-3 gap-5 bg-primary/5 border border-primary/10 rounded-3xl p-5 animate-in fade-in slide-in-from-top-1 duration-200">
+                         <div className="flex flex-col gap-1.5">
+                           <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Tipe Rujukan</label>
+                           <select
+                             value={newRecord.rujukan_tipe}
+                             onChange={(e) => setNewRecord({ ...newRecord, rujukan_tipe: e.target.value })}
+                             className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-xs font-bold focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                           >
+                             <option value="Medis">Rujukan Medis</option>
+                             <option value="Akademik">Rujukan Akademik</option>
+                           </select>
+                         </div>
+                         <div className="flex flex-col gap-1.5">
+                           <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Pihak / Instansi Tujuan</label>
+                           <input
+                             required
+                             type="text"
+                             value={newRecord.rujukan_pihak_tujuan}
+                             onChange={(e) => setNewRecord({ ...newRecord, rujukan_pihak_tujuan: e.target.value })}
+                             className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-xs font-bold focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                             placeholder="Misal: RS Pusat, Dekan FT"
+                           />
+                         </div>
+                         <div className="flex flex-col gap-1.5">
+                           <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Email Tujuan</label>
+                           <input
+                             required
+                             type="email"
+                             value={newRecord.rujukan_email_tujuan}
+                             onChange={(e) => setNewRecord({ ...newRecord, rujukan_email_tujuan: e.target.value })}
+                             className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-xs font-bold focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                             placeholder="email@tujuan.com"
+                           />
+                         </div>
+                       </div>
+                     )}
 
                      <div>
                         <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Kesimpulan</label>
@@ -621,7 +674,7 @@ export default function PatientMedicalRecord() {
                   <div className="pt-6 border-t border-slate-100 flex gap-3 sticky bottom-0 bg-white">
                      <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 bg-slate-50 text-slate-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all">Batal</button>
                      <button type="submit" className="flex-2 bg-primary text-white px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center justify-center gap-2 hover:bg-primary/90 transition-all">
-                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >save</span> Simpan Catatan Asesmen
+                        <span className="material-symbols-outlined text-base shrink-0" >save</span> Simpan Catatan Asesmen
                      </button>
                   </div>
                </form>

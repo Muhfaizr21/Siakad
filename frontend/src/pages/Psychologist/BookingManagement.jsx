@@ -215,10 +215,10 @@ export default function BookingManagement() {
             
             <div className="relative z-10 w-full flex flex-col xl:flex-row xl:items-center justify-between gap-6">
               <div className="space-y-2 max-w-xl">
-                <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest"
+                <div className="inline-flex items-center gap-2.5 rounded-full px-5 py-2 text-[12px] font-black uppercase tracking-widest"
                   style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)', color: 'var(--theme-primary)' }}
                 >
-                  <span className="material-symbols-outlined size-3.5">assignment</span>
+                  <span className="material-symbols-outlined text-base">assignment</span>
                   Manajemen Booking
                 </div>
                 <h1 className="mt-3 text-2xl font-black uppercase tracking-tight font-headline" style={{ color: 'var(--theme-primary)' }}>Janji Temu Konseling</h1>
@@ -367,20 +367,20 @@ export default function BookingManagement() {
               </div>
 
               <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between border-t border-slate-50 pt-4">
-                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+                <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-1">
                   {tabs.map((tab) => (
                     <button
                       key={tab}
                       onClick={() => setSelectedTab(tab)}
                       className={`
-                        inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2.5 text-[9px] font-black uppercase tracking-widest transition-all
+                        inline-flex shrink-0 items-center gap-2 rounded-full border px-5 py-3 text-[11px] font-black uppercase tracking-widest transition-all
                         ${selectedTab === tab
                           ? 'border-[var(--theme-primary)] shadow-sm'
                           : 'border-slate-100 bg-slate-50/50 text-slate-400 hover:border-[var(--theme-primary)]/30 hover:text-[var(--theme-primary)] hover:bg-white'}
                       `}
                     >
                       {tab}
-                      <span className={`rounded-full px-2 py-0.5 text-[8px] font-extrabold ${selectedTab === tab ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                      <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold ${selectedTab === tab ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>
                         {statusCounts[tab] || 0}
                       </span>
                     </button>
@@ -411,7 +411,7 @@ export default function BookingManagement() {
                 <span className="inline-flex w-fit items-center gap-2 rounded-full px-3 py-1 text-[9px] font-black uppercase tracking-widest"
                   style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)', color: 'var(--theme-primary)' }}
                 >
-                  <span className="material-symbols-outlined size-3">filter_alt</span>
+                  <span className="material-symbols-outlined text-sm shrink-0">filter_alt</span>
                   Filter aktif
                 </span>
               )}
@@ -419,13 +419,13 @@ export default function BookingManagement() {
 
             {loading ? (
               <div className="flex min-h-[320px] flex-col items-center justify-center gap-3 text-slate-400">
-                <span className="material-symbols-outlined size-8 animate-spin text-primary/50" >sync</span>
+                <span className="material-symbols-outlined text-3xl shrink-0 animate-spin text-primary/50">sync</span>
                 <p className="text-[10px] font-black uppercase tracking-widest">Memuat data booking...</p>
               </div>
             ) : error ? (
               <div className="flex min-h-[320px] flex-col items-center justify-center gap-4 px-6 text-center">
                 <div className="flex size-16 items-center justify-center rounded-[1.5rem] bg-rose-50 text-rose-600">
-                  <span className="material-symbols-outlined size-7" >error</span>
+                  <span className="material-symbols-outlined text-2xl shrink-0" >error</span>
                 </div>
                 <div>
                   <h3 className="text-sm font-black uppercase tracking-tight font-headline" style={{ color: 'var(--theme-h3)' }}>Data belum bisa dimuat</h3>
@@ -435,7 +435,7 @@ export default function BookingManagement() {
             ) : filteredBookings.length === 0 ? (
               <div className="flex min-h-[320px] flex-col items-center justify-center gap-4 px-6 text-center">
                 <div className="flex size-16 items-center justify-center rounded-[1.5rem] bg-slate-50 text-slate-300">
-                  <span className="material-symbols-outlined size-7">assignment</span>
+                  <span className="material-symbols-outlined text-2xl shrink-0">assignment</span>
                 </div>
                 <div>
                   <h3 className="text-sm font-black uppercase tracking-tight font-headline" style={{ color: 'var(--theme-h3)' }}>Tidak ada booking yang cocok</h3>
@@ -461,7 +461,7 @@ export default function BookingManagement() {
                       <div 
                         key={booking.id} 
                         onClick={() => navigate(`/psychologist/bookings/${booking.id}`)} 
-                        className="flex items-center gap-4 p-5 rounded-2xl border transition-all duration-300 group cursor-pointer hover:shadow-md"
+                        className={`flex items-center gap-4 p-5 rounded-2xl border transition-all duration-300 group cursor-pointer hover:shadow-md ${status === 'Selesai' ? 'opacity-60 grayscale-[35%]' : ''}`}
                         style={{ backgroundColor: 'var(--theme-bg)', borderColor: 'var(--theme-border)' }}
                       >
                         <div className="w-11 h-11 rounded-[1.25rem] flex items-center justify-center font-black text-xs group-hover:scale-105 transition-transform duration-300 shrink-0 shadow-inner"
@@ -485,13 +485,13 @@ export default function BookingManagement() {
                           </div>
                           <p className="mt-1 line-clamp-1 text-xs font-medium text-slate-500 italic">"{booking.note || 'Tidak ada catatan tambahan.'}"</p>
                         </div>
-                        <div className="px-4 shrink-0 w-[180px]">
+                        <div className="px-4 shrink-0 min-w-[200px]">
                           <div className="flex items-center gap-2 whitespace-nowrap text-xs font-black text-slate-800">
-                            <span className="material-symbols-outlined size-4" style={{ color: 'var(--theme-primary)' }} >calendar_month</span>
+                            <span className="material-symbols-outlined text-base shrink-0" style={{ color: 'var(--theme-primary)' }} >calendar_month</span>
                             {booking.date || '-'}
                           </div>
-                          <div className="flex items-center gap-2 whitespace-nowrap text-[11px] font-bold text-slate-400 mt-1">
-                            <span className="material-symbols-outlined size-4" >schedule</span>
+                          <div className="flex items-center gap-2 whitespace-nowrap text-[11px] font-bold text-slate-400 mt-2">
+                            <span className="material-symbols-outlined text-base shrink-0" >schedule</span>
                             {booking.time || '-'}
                           </div>
                         </div>
@@ -515,7 +515,7 @@ export default function BookingManagement() {
                                 className="inline-flex size-10 items-center justify-center rounded-xl transition-all hover:scale-110 disabled:cursor-wait disabled:opacity-50"
                                 style={{ backgroundColor: 'color-mix(in srgb, var(--theme-error) 10%, transparent)', color: 'var(--theme-error)' }}
                               >
-                                <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >close</span>
+                                <span className="material-symbols-outlined text-base shrink-0">close</span>
                               </button>
                               <button
                                 type="button"
@@ -526,7 +526,7 @@ export default function BookingManagement() {
                                 className="inline-flex size-10 items-center justify-center rounded-xl shadow-sm transition-all hover:scale-110 disabled:cursor-wait disabled:opacity-50"
                                 style={{ backgroundColor: 'var(--theme-primary)', color: 'white' }}
                               >
-                                <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >check_circle</span>
+                                <span className="material-symbols-outlined text-base shrink-0">check_circle</span>
                               </button>
                             </>
                           ) : (
@@ -536,7 +536,7 @@ export default function BookingManagement() {
                               className="inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-500 transition-all hover:border-[var(--theme-primary)]/30 hover:text-[var(--theme-primary)]"
                             >
                               Detail
-                              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>chevron_right</span>
+                              <span className="material-symbols-outlined text-sm shrink-0">chevron_right</span>
                             </button>
                           )}
                         </div>
@@ -555,7 +555,7 @@ export default function BookingManagement() {
                       <article
                         key={booking.id}
                         onClick={() => navigate(`/psychologist/bookings/${booking.id}`)}
-                        className="rounded-2xl border p-4 shadow-sm transition-all active:scale-[0.99]"
+                        className={`rounded-2xl border p-4 shadow-sm transition-all active:scale-[0.99] ${status === 'Selesai' ? 'opacity-60 grayscale-[35%]' : ''}`}
                         style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}
                       >
                         <div className="flex items-start gap-3">
@@ -588,9 +588,9 @@ export default function BookingManagement() {
                         </div>
 
                         <div className="mt-4 flex items-center justify-between gap-3">
-                          <div className="space-y-1">
-                            <p className="flex items-center gap-2 text-xs font-black text-slate-800"><span className="material-symbols-outlined size-4" style={{ color: 'var(--theme-primary)' }} >calendar_month</span> {booking.date || '-'}</p>
-                            <p className="flex items-center gap-2 text-[11px] font-bold text-slate-400"><span className="material-symbols-outlined size-4" >schedule</span> {booking.time || '-'}</p>
+                          <div className="space-y-2">
+                            <p className="flex items-center gap-2 text-xs font-black text-slate-800"><span className="material-symbols-outlined text-base shrink-0" style={{ color: 'var(--theme-primary)' }} >calendar_month</span> {booking.date || '-'}</p>
+                            <p className="flex items-center gap-2 text-[11px] font-bold text-slate-400"><span className="material-symbols-outlined text-base shrink-0" >schedule</span> {booking.time || '-'}</p>
                           </div>
 
                           {status === 'Menunggu' ? (
@@ -603,7 +603,7 @@ export default function BookingManagement() {
                                 className="inline-flex size-10 items-center justify-center rounded-xl transition-all active:scale-95 disabled:cursor-wait disabled:opacity-50"
                                 style={{ backgroundColor: 'color-mix(in srgb, var(--theme-error) 10%, transparent)', color: 'var(--theme-error)' }}
                               >
-                                <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >close</span>
+                                <span className="material-symbols-outlined text-base shrink-0">close</span>
                               </button>
                               <button
                                 type="button"
@@ -613,11 +613,11 @@ export default function BookingManagement() {
                                 className="inline-flex size-10 items-center justify-center rounded-xl transition-all active:scale-95 disabled:cursor-wait disabled:opacity-50"
                                 style={{ backgroundColor: 'var(--theme-primary)', color: 'white' }}
                               >
-                                <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >check_circle</span>
+                                <span className="material-symbols-outlined text-base shrink-0">check_circle</span>
                               </button>
                             </div>
                           ) : (
-                            <span className="material-symbols-outlined size-5 text-slate-300">chevron_right</span>
+                            <span className="material-symbols-outlined text-xl shrink-0 text-slate-300">chevron_right</span>
                           )}
                         </div>
                       </article>

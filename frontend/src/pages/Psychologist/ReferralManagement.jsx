@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { psychologistService } from '../../services/api';
+import { toast } from 'react-hot-toast';
 
 // Material Symbol icons
-const Send = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>send</span>;
-const CheckCircle = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>check_circle</span>;
-const Clock = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>schedule</span>;
-const FileDownload = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>download</span>;
+const Send = ({ size, className, ...props }) => <span className={`material-symbols-outlined shrink-0 ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>send</span>;
+const CheckCircle = ({ size, className, ...props }) => <span className={`material-symbols-outlined shrink-0 ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>check_circle</span>;
+const Clock = ({ size, className, ...props }) => <span className={`material-symbols-outlined shrink-0 ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>schedule</span>;
+const FileDownload = ({ size, className, ...props }) => <span className={`material-symbols-outlined shrink-0 ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>download</span>;
 
 export default function ReferralManagement() {
     const [referrals, setReferrals] = useState([]);
@@ -80,30 +81,30 @@ export default function ReferralManagement() {
     
     // Validate all fields
     if (!newReferral.mahasiswa_id) {
-      alert('Pilih pasien terlebih dahulu');
+      toast.error('Pilih pasien terlebih dahulu');
       return;
     }
     if (!newReferral.tipe) {
-      alert('Pilih tipe rujukan');
+      toast.error('Pilih tipe rujukan');
       return;
     }
     if (!newReferral.alasan || newReferral.alasan.trim() === '') {
-      alert('Alasan rujukan tidak boleh kosong');
+      toast.error('Alasan rujukan tidak boleh kosong');
       return;
     }
     if (!newReferral.pihak_tujuan || newReferral.pihak_tujuan.trim() === '') {
-      alert('Pihak tujuan tidak boleh kosong');
+      toast.error('Pihak tujuan tidak boleh kosong');
       return;
     }
     if (!newReferral.email_tujuan || newReferral.email_tujuan.trim() === '') {
-      alert('Email tujuan tidak boleh kosong');
+      toast.error('Email tujuan tidak boleh kosong');
       return;
     }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(newReferral.email_tujuan)) {
-      alert('Format email tidak valid');
+      toast.error('Format email tidak valid');
       return;
     }
 
@@ -118,7 +119,7 @@ export default function ReferralManagement() {
       
       // Validate mahasiswa_id is a valid number
       if (isNaN(payload.mahasiswa_id) || payload.mahasiswa_id <= 0) {
-        alert('ID Pasien tidak valid');
+        toast.error('ID Pasien tidak valid');
         return;
       }
 
@@ -135,10 +136,10 @@ export default function ReferralManagement() {
       setSearchQuery('');
       setSelectedPatientHistory([]);
       setIsModalOpen(false);
-      alert('Surat rujukan berhasil dibuat');
+      toast.success('Surat rujukan berhasil dibuat');
     } catch (err) {
       console.error('Error creating referral:', err);
-      alert('Gagal membuat surat rujukan: ' + (err.response?.data?.message || err.message || 'Unknown error'));
+      toast.error('Gagal membuat surat rujukan: ' + (err.response?.data?.message || err.message || 'Unknown error'));
     }
   };
 
@@ -146,9 +147,9 @@ export default function ReferralManagement() {
     try {
       await psychologistService.sendReferral(referralId);
       await loadReferrals();
-      alert('Surat rujukan berhasil dikirim');
+      toast.success('Surat rujukan berhasil dikirim');
     } catch (err) {
-      alert('Gagal mengirim surat rujukan: ' + err.message);
+      toast.error('Gagal mengirim surat rujukan: ' + err.message);
     }
   };
 
@@ -156,9 +157,9 @@ export default function ReferralManagement() {
     try {
       await psychologistService.confirmReferralReceived(referralId);
       await loadReferrals();
-      alert('Penerimaan surat rujukan dikonfirmasi');
+      toast.success('Penerimaan surat rujukan dikonfirmasi');
     } catch (err) {
-      alert('Gagal mengkonfirmasi penerimaan: ' + err.message);
+      toast.error('Gagal mengkonfirmasi penerimaan: ' + err.message);
     }
   };
 
@@ -190,7 +191,7 @@ export default function ReferralManagement() {
                 <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest"
                   style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)', color: 'var(--theme-primary)' }}
                 >
-                  <span className="material-symbols-outlined size-3.5">send</span>
+                  <span className="material-symbols-outlined text-base shrink-0">send</span>
                   Tindak Lanjut
                 </div>
                 <h1 className="mt-3 text-2xl font-black uppercase tracking-tight font-headline" style={{ color: 'var(--theme-primary)' }}>Manajemen Surat Rujukan</h1>
@@ -215,7 +216,7 @@ export default function ReferralManagement() {
                 className="text-white px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg transition-all flex items-center gap-2 w-fit shrink-0 relative z-20"
                 style={{ backgroundColor: 'var(--theme-primary)' }}
               >
-                <span className="material-symbols-outlined text-base">add</span> Buat Rujukan Baru
+                <span className="material-symbols-outlined text-base shrink-0">add</span> Buat Rujukan Baru
               </button>
             </div>
           </section>
@@ -244,7 +245,7 @@ export default function ReferralManagement() {
           <div className="rounded-2xl border shadow-sm p-5" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
             <div className="flex items-center justify-between mb-6 pb-2 border-b border-slate-50">
               <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2" style={{ color: 'var(--theme-primary)' }}>
-                <span className="material-symbols-outlined text-base">list</span> Daftar Surat Rujukan
+                <span className="material-symbols-outlined text-base shrink-0">list</span> Daftar Surat Rujukan
               </h3>
               <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
                 Total: {filteredReferrals.length}
@@ -260,12 +261,12 @@ export default function ReferralManagement() {
               </div>
             ) : error ? (
               <div className="py-20 text-center">
-                <span className="material-symbols-outlined text-slate-300 text-4xl mb-3">error</span>
+                <span className="material-symbols-outlined text-slate-300 text-4xl mb-3 shrink-0">error</span>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{error}</p>
               </div>
             ) : filteredReferrals.length === 0 ? (
               <div className="py-20 text-center">
-                <span className="material-symbols-outlined text-slate-300 text-4xl mb-3">inbox</span>
+                <span className="material-symbols-outlined text-slate-300 text-4xl mb-3 shrink-0">inbox</span>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tidak ada data ditemukan</p>
               </div>
             ) : (
@@ -285,7 +286,7 @@ export default function ReferralManagement() {
                         {referral.foto_url || referral.foto ? (
                           <img src={referral.foto_url || referral.foto} alt={referral.mahasiswa_name} className="w-full h-full object-cover" />
                         ) : (
-                          <span className="material-symbols-outlined text-slate-400" style={{ fontSize: '24px' }}>person</span>
+                          <span className="material-symbols-outlined text-slate-400 text-2xl shrink-0">person</span>
                         )}
                       </div>
                       
@@ -308,6 +309,7 @@ export default function ReferralManagement() {
                         {referral.status === 'Pending' && (
                           <button
                             onClick={() => handleSendReferral(referral.id)}
+                            className="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-300 shadow-sm hover:shadow-md"
                             style={{ backgroundColor: 'var(--theme-primary)', color: 'white' }}
                             title="Kirim Rujukan"
                           >
@@ -317,6 +319,7 @@ export default function ReferralManagement() {
                         {referral.status === 'Sent' && (
                           <button
                             onClick={() => handleConfirmReceived(referral.id)}
+                            className="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-300 shadow-sm hover:shadow-md"
                             style={{ backgroundColor: 'var(--theme-success)', color: 'white' }}
                             title="Konfirmasi Terima"
                           >
@@ -329,7 +332,7 @@ export default function ReferralManagement() {
                               try {
                                 await psychologistService.downloadReferralPDF(referral.id);
                               } catch (err) {
-                                alert('Gagal download PDF: ' + err.message);
+                                toast.error('Gagal download PDF: ' + err.message);
                               }
                             }}
                             className="w-9 h-9 rounded-lg bg-slate-200 text-slate-600 flex items-center justify-center hover:bg-slate-300 transition-all duration-300 shadow-sm hover:shadow-md"
@@ -366,7 +369,7 @@ export default function ReferralManagement() {
                   onClick={() => setIsModalOpen(false)} 
                   className="p-2 hover:bg-white/10 rounded-xl transition-colors relative z-10"
                 >
-                  <span className="material-symbols-outlined text-lg">close</span>
+                  <span className="material-symbols-outlined text-base shrink-0">close</span>
                 </button>
               </div>
 
@@ -390,7 +393,7 @@ export default function ReferralManagement() {
                         placeholder="Cari nama pasien atau NIM..."
                         className="w-full bg-slate-50 border border-slate-200/60 rounded-2xl px-5 py-3.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-[var(--theme-primary)/5] transition-all outline-none"
                       />
-                      <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" style={{ fontSize: '18px' }}>search</span>
+                      <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-base shrink-0">search</span>
                     </div>
 
                     {showDropdown && (
@@ -439,7 +442,7 @@ export default function ReferralManagement() {
                     {newReferral.mahasiswa_id && (
                       <div className="bg-slate-50 border border-slate-200/50 rounded-2xl p-4 mt-2 max-h-48 overflow-y-auto">
                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2.5 flex items-center gap-1.5">
-                          <span className="material-symbols-outlined text-[11px]">history</span> Riwayat Sesi Konseling
+                           <span className="material-symbols-outlined text-sm shrink-0">history</span> Riwayat Sesi Konseling
                         </p>
                         {loadingHistory ? (
                           <div className="flex items-center justify-center py-4">
@@ -530,7 +533,7 @@ export default function ReferralManagement() {
                     className="flex-1 text-white px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center justify-center gap-2 hover:opacity-90 transition-all"
                     style={{ backgroundColor: 'var(--theme-primary)' }}
                   >
-                    <span className="material-symbols-outlined text-base">save</span> Buat Rujukan
+                    <span className="material-symbols-outlined text-base shrink-0">save</span> Buat Rujukan
                   </button>
                 </div>
               </form>

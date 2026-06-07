@@ -114,7 +114,7 @@ export default function PatientList() {
                 <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest"
                   style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)', color: 'var(--theme-primary)' }}
                 >
-                  <span className="material-symbols-outlined size-3.5">stars</span>
+                  <span className="material-symbols-outlined text-base shrink-0">stars</span>
                   Rekam Medis Klinis
                 </div>
                 <h1 className="mt-3 text-2xl font-black uppercase tracking-tight font-headline" style={{ color: 'var(--theme-primary)' }}>Daftar Pasien</h1>
@@ -141,7 +141,7 @@ export default function PatientList() {
                   className="flex items-center justify-center p-3 bg-white border border-slate-200/80 rounded-2xl text-slate-500 hover:text-[var(--theme-primary)] hover:border-[var(--theme-primary)] transition-all shadow-sm shrink-0 hover:scale-105 active:scale-95"
                   title="Download Rekap Rekam Medis PDF"
                 >
-                  <span className="material-symbols-outlined text-lg">download</span>
+                  <span className="material-symbols-outlined text-base shrink-0">download</span>
                 </button>
               </div>
             </div>
@@ -151,7 +151,7 @@ export default function PatientList() {
           <section className="rounded-2xl border p-5 shadow-sm space-y-4" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
             <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: 'var(--theme-border)' }}>
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-lg" style={{ color: 'color-mix(in srgb, var(--theme-primary) 60%, transparent)' }}>filter_alt</span>
+                <span className="material-symbols-outlined text-base shrink-0" style={{ color: 'color-mix(in srgb, var(--theme-primary) 60%, transparent)' }}>filter_alt</span>
                 <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Filter Data</h3>
               </div>
               {(selectedFakultas !== 'Semua Fakultas' || selectedProdi !== 'Semua Prodi' || filterStatus !== 'Semua Status' || startDate || endDate || searchQuery) && (
@@ -167,7 +167,7 @@ export default function PatientList() {
                   }}
                   className="text-[10px] font-black text-rose-500 hover:text-rose-600 uppercase tracking-wider flex items-center gap-1 transition-colors"
                 >
-                  <span className="material-symbols-outlined text-xs">restart_alt</span> Reset Filter
+                  <span className="material-symbols-outlined text-sm shrink-0">restart_alt</span> Reset Filter
                 </button>
               )}
             </div>
@@ -177,7 +177,7 @@ export default function PatientList() {
               <div className="flex flex-col gap-1">
                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Pencarian</label>
                 <div className="relative">
-                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">search</span>
+                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-base shrink-0">search</span>
                   <input 
                     type="text" 
                     placeholder="Nama atau NIM..."
@@ -282,14 +282,17 @@ export default function PatientList() {
                     </thead>
                     <tbody className="divide-y divide-slate-50">
                       {paginatedPatients.map((patient) => (
-                        <tr key={patient.id} className="group hover:bg-slate-50/40 transition-colors">
+                        <tr 
+                          key={patient.id} 
+                          className={`group hover:bg-slate-50/40 transition-colors ${patient.status === 'Selesai' ? 'opacity-60 grayscale-[35%]' : ''}`}
+                        >
                           <td className="py-4 px-4">
                             <div className="flex items-center gap-3.5">
                               <div className={`w-11 h-11 rounded-[1.25rem] ${patient.color || 'bg-primary'} text-white flex items-center justify-center font-black text-xs shadow-sm group-hover:scale-105 transition-transform duration-300 shrink-0 overflow-hidden relative`}>
                                 {patient.foto_url || patient.foto ? (
                                   <img src={patient.foto_url || patient.foto} alt={patient.name} className="w-full h-full object-cover" />
                                 ) : (
-                                  <span className="material-symbols-outlined text-white/80" style={{ fontSize: '24px' }}>person</span>
+                                  <span className="material-symbols-outlined text-white/80 text-2xl shrink-0">person</span>
                                 )}
                               </div>
                               <div>
@@ -301,7 +304,7 @@ export default function PatientList() {
                           <td className="py-4 px-4">
                             <div className="flex items-center gap-2">
                               <span className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)', color: 'var(--theme-primary)' }}>
-                                <span className="material-symbols-outlined text-[13px]" >show_chart</span>
+                                 <span className="material-symbols-outlined text-sm shrink-0" >show_chart</span>
                               </span>
                               <span className="text-xs font-black text-slate-700">{patient.sessions} Kali</span>
                             </div>
@@ -309,29 +312,31 @@ export default function PatientList() {
                           <td className="py-4 px-4">
                             <div className="flex items-center gap-2 text-slate-500">
                               <span className="w-6 h-6 bg-slate-100 text-slate-400 rounded-lg flex items-center justify-center shrink-0">
-                                <span className="material-symbols-outlined text-[13px]" >calendar_month</span>
+                                 <span className="material-symbols-outlined text-sm shrink-0" >calendar_month</span>
                               </span>
                               <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">{patient.lastVisit}</span>
                             </div>
                           </td>
                           <td className="py-4 px-4">
-                            const statusStyle = getStatusColor(patient.status);
-                            return (
-                              <span
-                                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border"
-                                style={{ backgroundColor: statusStyle.bg, color: statusStyle.text, borderColor: statusStyle.border }}
-                              >
-                                <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dotAnim}`} style={{ backgroundColor: statusStyle.dot }} />
-                                {patient.status}
-                              </span>
-                            );
+                            {(() => {
+                              const statusStyle = getStatusColor(patient.status);
+                              return (
+                                <span
+                                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border"
+                                  style={{ backgroundColor: statusStyle.bg, color: statusStyle.text, borderColor: statusStyle.border }}
+                                >
+                                  <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dotAnim}`} style={{ backgroundColor: statusStyle.dot }} />
+                                  {patient.status}
+                                </span>
+                              );
+                            })()}
                           </td>
                           <td className="py-4 px-4 text-right">
                             <button 
                               onClick={() => navigate(`/psychologist/patients/${patient.id}/medical-record`)}
                               className="w-9 h-9 rounded-xl bg-slate-50 text-slate-400 hover:text-[var(--theme-primary)] hover:bg-primary/5 transition-all flex items-center justify-center ml-auto group/btn border border-slate-100/50"
                             >
-                              <span className="material-symbols-outlined group-hover/btn:translate-x-0.5 transition-transform text-lg" >chevron_right</span>
+                              <span className="material-symbols-outlined group-hover/btn:translate-x-0.5 transition-transform text-base shrink-0" >chevron_right</span>
                             </button>
                           </td>
                         </tr>
@@ -367,7 +372,7 @@ export default function PatientList() {
               {/* Ringkasan Data Section */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2 px-2">
-                  <span className="material-symbols-outlined style={{ color: 'color-mix(in srgb, var(--theme-primary) 60%, transparent)' }} text-base">analytics</span>
+                  <span className="material-symbols-outlined text-base shrink-0" style={{ color: 'color-mix(in srgb, var(--theme-primary) 60%, transparent)' }}>analytics</span>
                   <h3 className="text-[10px] font-black font-headline uppercase tracking-widest" style={{ color: 'var(--theme-h3)' }}>Ringkasan Data</h3>
                 </div>
                 
@@ -377,7 +382,7 @@ export default function PatientList() {
                   
                   <div className="flex items-center justify-between">
                     <div className="w-11 h-11 rounded-[1rem] flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shrink-0" style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)', color: 'var(--theme-primary)' }}>
-                      <span className="material-symbols-outlined text-lg">group</span>
+                      <span className="material-symbols-outlined text-base shrink-0">group</span>
                     </div>
                     <div className="flex items-center gap-1 rounded-full bg-blue-50/80 border border-blue-100 px-2.5 py-0.5 text-[9px] font-black text-blue-600 uppercase tracking-widest">
                       AKTIF
@@ -395,7 +400,7 @@ export default function PatientList() {
                   
                   <div className="flex items-center justify-between">
                     <div className="w-11 h-11 bg-amber-50 text-amber-600 rounded-[1rem] flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shrink-0">
-                      <span className="material-symbols-outlined text-lg">show_chart</span>
+                      <span className="material-symbols-outlined text-base shrink-0">show_chart</span>
                     </div>
                     <div className="flex items-center gap-1 rounded-full bg-emerald-50/80 border border-emerald-100 px-2.5 py-0.5 text-[9px] font-black text-emerald-600 uppercase tracking-widest">
                       <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
@@ -417,7 +422,7 @@ export default function PatientList() {
                 
                 <div className="relative z-10">
                   <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-emerald-400 border border-white/10 mb-4 shadow-inner">
-                    <span className="material-symbols-outlined text-xl">security</span>
+                    <span className="material-symbols-outlined text-base shrink-0">security</span>
                   </div>
                   <h4 className="text-[10px] font-black uppercase tracking-widest text-emerald-300">Keamanan Data</h4>
                   <p className="mt-2 text-xs font-semibold text-slate-100/90 leading-relaxed uppercase tracking-wider">

@@ -406,13 +406,14 @@ export const PORTAL_CONFIG = {
           { name: 'Booking', icon: 'calendar_month', path: '/psychologist/bookings' },
           { name: 'Jadwal Saya', icon: 'schedule', path: '/psychologist/schedule' },
           { name: 'Daftar Pasien', icon: 'people', path: '/psychologist/patients' },
+          { name: 'Rekam Medis', icon: 'medical_services', path: '/psychologist/medical-records' },
         ]
       },
       {
         group: 'ANALISIS & REFERRAL',
         items: [
           { name: 'Analytics & Trend', icon: 'analytics', path: '/psychologist/analytics' },
-          { name: 'Manajemen Referral', icon: 'forward', path: '/psychologist/referrals' },
+          { name: 'Tindak Lanjut', icon: 'forward', path: '/psychologist/referrals' },
         ]
       },
       {

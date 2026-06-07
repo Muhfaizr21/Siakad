@@ -133,14 +133,14 @@ export default function PsychologistSettings() {
 
           {message && (
             <div className="flex items-center gap-3 rounded-3xl border border-emerald-100 bg-emerald-50 px-5 py-4 text-emerald-700">
-              <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >check_circle</span>
+              <span className="material-symbols-outlined text-lg shrink-0">check_circle</span>
               <p className="text-sm font-semibold">{message}</p>
             </div>
           )}
 
           {error && (
             <div className="flex items-start gap-3 rounded-3xl border border-rose-100 bg-rose-50 px-5 py-4 text-rose-700">
-              <span className="material-symbols-outlined mt-0.5 shrink-0" style={{ fontSize: '18px' }} >error</span>
+              <span className="material-symbols-outlined mt-0.5 shrink-0 text-lg">error</span>
               <p className="text-sm font-semibold">{error}</p>
             </div>
           )}
@@ -165,7 +165,7 @@ export default function PsychologistSettings() {
               <div className="overflow-hidden rounded-2xl border shadow-sm" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
                 {loading ? (
                   <div className="flex min-h-96 items-center justify-center">
-                    <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '28px' }} >sync</span>
+                    <span className="material-symbols-outlined animate-spin text-primary text-3xl shrink-0">sync</span>
                   </div>
                 ) : (
                   <>
@@ -176,7 +176,7 @@ export default function PsychologistSettings() {
                             {profile.foto_url || profile.foto ? (
                               <img src={profile.foto_url || profile.foto} alt={profile.nama} className="w-full h-full object-cover" />
                             ) : (
-                              <span className="material-symbols-outlined text-white/80" style={{ fontSize: '64px' }}>person</span>
+                              <span className="material-symbols-outlined text-white/80 text-6xl shrink-0">person</span>
                             )}
                           </div>
                           <div>
@@ -268,7 +268,7 @@ export default function PsychologistSettings() {
                       <div className="grid grid-cols-1 gap-5 p-5 lg:grid-cols-2 lg:p-5">
                         <div className="space-y-4">
                           <h2 className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-primary">
-                            <span className="material-symbols-outlined" style={{ fontSize: '17px' }} >schedule</span>
+                            <span className="material-symbols-outlined text-lg shrink-0">schedule</span>
                             Jadwal Dari Database
                           </h2>
                           <div className="space-y-3">
@@ -326,7 +326,7 @@ export default function PsychologistSettings() {
                           disabled={saving === 'password'}
                           className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-7 py-3 text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-primary/20 transition hover:bg-primary/90 disabled:cursor-wait disabled:opacity-70"
                         >
-                          {saving === 'password' ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >save</span>}
+                          {saving === 'password' ? <span className="material-symbols-outlined animate-spin text-base shrink-0">sync</span> : <span className="material-symbols-outlined text-base shrink-0">save</span>}
                           Simpan Password
                         </button>
                       ) : (
@@ -336,7 +336,7 @@ export default function PsychologistSettings() {
                           disabled={saving === 'profile'}
                           className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-7 py-3 text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-primary/20 transition hover:bg-primary/90 disabled:cursor-wait disabled:opacity-70"
                         >
-                          {saving === 'profile' ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >save</span>}
+                          {saving === 'profile' ? <span className="material-symbols-outlined animate-spin text-base shrink-0">sync</span> : <span className="material-symbols-outlined text-base shrink-0">save</span>}
                           Simpan Profil
                         </button>
                       )}

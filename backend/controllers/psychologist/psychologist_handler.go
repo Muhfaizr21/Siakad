@@ -667,6 +667,13 @@ func GetMedicalRecord(c *fiber.Ctx) error {
 		})
 	}
 
+	var activeBooking models.PsikologBooking
+	var activeBookingID *uint
+	if err := config.DB.Where("mahasiswa_id = ? AND psikolog_id = ? AND status IN ?", student.ID, psikolog.ID, []string{"Menunggu", "Dikonfirmasi"}).
+		Order("tanggal desc, jam_mulai desc").First(&activeBooking).Error; err == nil {
+		activeBookingID = &activeBooking.ID
+	}
+
 	dosenPaName := "-"
 	if student.DosenPA != nil {
 		dosenPaName = student.DosenPA.Nama
@@ -697,7 +704,9 @@ func GetMedicalRecord(c *fiber.Ctx) error {
 			"tempat_lahir":   student.TempatLahir,
 			"tanggal_lahir":  tglLahirStr,
 		},
-		"records": items,
+		"active_booking_id":    activeBookingID,
+		"records":              items,
+		"last_session_tuntas":  len(records) > 0 && records[0].TindakLanjutTuntas,
 	})
 }
 
@@ -728,6 +737,11 @@ func CreateSessionNote(c *fiber.Ctx) error {
 		TindakLanjutLanjutan bool   `json:"tindak_lanjut_lanjutan"`
 		TindakLanjutRujuk    bool   `json:"tindak_lanjut_rujuk"`
 		Kesimpulan           string `json:"kesimpulan"`
+		// Rujukan fields
+		RujukanTipe        string `json:"rujukan_tipe"`
+		RujukanPihakTujuan string `json:"rujukan_pihak_tujuan"`
+		RujukanEmailTujuan string `json:"rujukan_email_tujuan"`
+		RujukanAlasan      string `json:"rujukan_alasan"`
 	}
 	if err := c.BodyParser(&body); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, "Payload catatan sesi tidak valid")
@@ -741,10 +755,22 @@ func CreateSessionNote(c *fiber.Ctx) error {
 	var bookingID *uint
 	if body.BookingID != 0 {
 		var booking models.PsikologBooking
-		if err := config.DB.Where("id = ? AND psikolog_id = ? AND mahasiswa_id = ?", body.BookingID, psikolog.ID, studentID).First(&booking).Error; err != nil {
-			return fiber.NewError(fiber.StatusBadRequest, "Booking tidak valid untuk mahasiswa ini")
+		if err := config.DB.Where("id = ? AND psikolog_id = ? AND mahasiswa_id = ?", body.BookingID, psikolog.ID, studentID).First(&booking).Error; err == nil {
+			if booking.Status == "Selesai" {
+				return fiber.NewError(fiber.StatusBadRequest, "Sesi booking ini sudah selesai, tidak bisa menambahkan catatan sesi lagi.")
+			}
+			bookingID = &body.BookingID
 		}
-		bookingID = &body.BookingID
+	}
+	if bookingID == nil {
+		var activeBooking models.PsikologBooking
+		if err := config.DB.Where("mahasiswa_id = ? AND psikolog_id = ? AND status IN ?", studentID, psikolog.ID, []string{"Menunggu", "Dikonfirmasi"}).
+			Order("tanggal desc, jam_mulai desc").First(&activeBooking).Error; err == nil {
+			bookingID = &activeBooking.ID
+		}
+	}
+	if bookingID == nil {
+		return fiber.NewError(fiber.StatusBadRequest, "Tidak ada booking aktif untuk mahasiswa ini. Catatan sesi hanya dapat ditambahkan jika ada booking aktif.")
 	}
 
 	var tAsesmen *time.Time
@@ -795,9 +821,67 @@ func CreateSessionNote(c *fiber.Ctx) error {
 	if err := config.DB.Create(&record).Error; err != nil {
 		return err
 	}
-	if bookingID != nil {
+
+	if bookingID != nil && body.TindakLanjutTuntas {
 		_ = config.DB.Model(&models.PsikologBooking{}).Where("id = ? AND psikolog_id = ?", *bookingID, psikolog.ID).Update("status", "Selesai").Error
 	}
+
+	// Automate referral creation if TindakLanjutRujuk is true
+	if body.TindakLanjutRujuk {
+		refTipe := body.RujukanTipe
+		if refTipe != "Medis" && refTipe != "Akademik" {
+			refTipe = "Medis"
+		}
+		refPihak := body.RujukanPihakTujuan
+		if refPihak == "" {
+			refPihak = "Klinik Rujukan Utama"
+		}
+		refEmail := body.RujukanEmailTujuan
+		if refEmail == "" {
+			refEmail = "rujukan@bku.ac.id"
+		}
+		refAlasan := body.RujukanAlasan
+		if refAlasan == "" {
+			refAlasan = body.Kesimpulan
+			if refAlasan == "" {
+				refAlasan = body.Complaint
+			}
+		}
+
+		var mahasiswa models.Mahasiswa
+		if err := config.DB.Preload("Fakultas").Preload("ProgramStudi").Where("id = ?", studentID).First(&mahasiswa).Error; err == nil {
+			suratRujukanURL := generateReferralLetter(psikolog, mahasiswa, refTipe, refAlasan, refPihak, refEmail)
+
+			referral := models.PsikologReferral{
+				PsikologID:       psikolog.ID,
+				MahasiswaID:      uint(studentID),
+				BookingID:        bookingID,
+				Tipe:             refTipe,
+				Alasan:           refAlasan,
+				SuratRujiukanURL: suratRujukanURL,
+				Status:           "Pending",
+				PihakTujuan:      refPihak,
+				EmailTujuan:      refEmail,
+				TanggalDibuat:    time.Now(),
+			}
+			_ = config.DB.Create(&referral).Error
+
+			go func() {
+				_ = notifikasi.Kirim(config.DB, notifikasi.KirimParams{
+					MahasiswaID: uint(studentID),
+					Type:        "info",
+					Title:       "Surat Rujukan Otomatis Dibuat",
+					Content: fmt.Sprintf(
+						"Psikolog %s telah merujuk Anda ke %s (%s). Surat rujukan telah diterbitkan.",
+						psikolog.Nama,
+						refPihak,
+						refTipe,
+					),
+				})
+			}()
+		}
+	}
+
 	return jsonOK(c, record)
 }
 
@@ -1416,5 +1500,59 @@ func UpdatePatientStatus(c *fiber.Ctx) error {
 		"status":  body.Status,
 	})
 }
+
+func GetMedicalRecords(c *fiber.Ctx) error {
+	psikolog, err := currentPsikolog(c)
+	if err != nil {
+		return err
+	}
+
+	var records []models.PsikologSessionNote
+	if err := config.DB.Preload("Mahasiswa.Fakultas").Preload("Mahasiswa.ProgramStudi").
+		Where("psikolog_id = ?", psikolog.ID).Order("tanggal desc").Find(&records).Error; err != nil {
+		return err
+	}
+
+	items := make([]fiber.Map, 0, len(records))
+	for _, record := range records {
+		tAsesmenStr := ""
+		if record.TanggalAsesmen != nil {
+			tAsesmenStr = record.TanggalAsesmen.Format("2006-01-02")
+		}
+
+		items = append(items, fiber.Map{
+			"id":                     record.ID,
+			"mahasiswa_id":          record.MahasiswaID,
+			"mahasiswa_name":        record.Mahasiswa.Nama,
+			"mahasiswa_nim":         record.Mahasiswa.NIM,
+			"mahasiswa_prodi":       record.Mahasiswa.ProgramStudi.Nama,
+			"mahasiswa_fakultas":    record.Mahasiswa.Fakultas.Nama,
+			"date":                   formatDate(record.Tanggal),
+			"time":                   record.Tanggal.Format("15:04"),
+			"complaint":              record.Keluhan,
+			"observation":            record.Observasi,
+			"recommendation":         record.Rekomendasi,
+			"mood":                   record.Mood,
+			"type":                   record.JenisSesi,
+			"status_pasien":         record.StatusPasien,
+			"tujuan_pemeriksaan":     record.TujuanPemeriksaan,
+			"tanggal_asesmen":        tAsesmenStr,
+			"riwayat_keluhan":        record.RiwayatKeluhan,
+			"aspek_kognitif":         record.AspekKognitif,
+			"aspek_emosional":        record.AspekEmosional,
+			"aspek_perilaku":         record.AspekPerilaku,
+			"rekomendasi_mahasiswa":  record.RekomendasiMahasiswa,
+			"rekomendasi_prodi":      record.RekomendasiProdi,
+			"rekomendasi_orang_tua":  record.RekomendasiOrangTua,
+			"tindak_lanjut_tuntas":   record.TindakLanjutTuntas,
+			"tindak_lanjut_lanjutan": record.TindakLanjutLanjutan,
+			"tindak_lanjut_rujuk":    record.TindakLanjutRujuk,
+			"kesimpulan":             record.Kesimpulan,
+		})
+	}
+
+	return jsonOK(c, items)
+}
+
 
 

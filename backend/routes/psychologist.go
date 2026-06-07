@@ -26,6 +26,7 @@ func SetupPsychologistRoutes(app *fiber.App) {
 	api.Get("/patients/export-pdf", psychologist.ExportPatientsRecapPDF)
 	api.Get("/session-notes/:id/export-pdf", psychologist.ExportSessionNotePDF)
 	api.Get("/patients/:id/medical-record", psychologist.GetMedicalRecord)
+	api.Get("/medical-records", psychologist.GetMedicalRecords)
 	api.Post("/patients/:id/session-notes", psychologist.CreateSessionNote)
 	api.Put("/patients/:studentId/status", psychologist.UpdatePatientStatus)
 

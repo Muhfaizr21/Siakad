@@ -104,7 +104,7 @@ export default function NotificationsCenter() {
             <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
               <div>
                 <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/10 bg-primary/5 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-primary">
-                  <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >notifications</span>
+                  <span className="material-symbols-outlined text-sm shrink-0">notifications</span>
                   {unreadCount} Belum Dibaca
                 </div>
                 <h1 className="font-headline text-2xl font-black uppercase tracking-tight text-primary">Pusat Notifikasi</h1>
@@ -120,7 +120,7 @@ export default function NotificationsCenter() {
                   disabled={loading}
                   className="inline-flex h-11 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 shadow-sm transition hover:text-primary disabled:cursor-wait disabled:opacity-60"
                 >
-                  {loading ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: 16 }}>sync</span>}
+                  {loading ? <span className="material-symbols-outlined animate-spin text-base shrink-0">sync</span> : <span className="material-symbols-outlined text-base shrink-0">sync</span>}
                   Muat Ulang
                 </button>
                 <button
@@ -129,7 +129,7 @@ export default function NotificationsCenter() {
                   disabled={!unreadCount || busyId === 'read-all'}
                   className="inline-flex h-11 items-center gap-2 rounded-2xl bg-primary px-4 text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-primary/20 transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
                 >
-                  {busyId === 'read-all' ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: 16 }}>check</span>}
+                  {busyId === 'read-all' ? <span className="material-symbols-outlined animate-spin text-base shrink-0">sync</span> : <span className="material-symbols-outlined text-base shrink-0">check</span>}
                   Tandai Semua Dibaca
                 </button>
               </div>
@@ -138,12 +138,12 @@ export default function NotificationsCenter() {
 
           {error && (
             <div className="flex items-start gap-3 rounded-3xl border border-rose-100 bg-rose-50 px-5 py-4 text-rose-700">
-              <span className="material-symbols-outlined mt-0.5 shrink-0" style={{ fontSize: '18px' }} >error</span>
+              <span className="material-symbols-outlined mt-0.5 shrink-0 text-lg">error</span>
               <p className="text-sm font-semibold">{error}</p>
             </div>
           )}
 
-          <section className="mx-auto max-w-4xl space-y-4">
+          <section className="w-full space-y-4">
             {loading
               ? Array.from({ length: 3 }).map((_, index) => (
                   <div key={index} className="h-28 animate-pulse rounded-2xl border p-5 shadow-sm" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
@@ -164,14 +164,14 @@ export default function NotificationsCenter() {
                       {noti.unread && <span className="absolute left-3 top-1/2 size-2 -translate-y-1/2 rounded-full bg-primary shadow-lg shadow-primary/40" />}
 
                       <div className={`flex size-14 shrink-0 items-center justify-center rounded-3xl ${colorByType[noti.type] || 'bg-primary'} text-white shadow-sm`}>
-                        <span className="material-symbols-outlined" style={{ fontSize: 23 }}>{Icon}</span>
+                        <span className="material-symbols-outlined text-2xl shrink-0">{Icon}</span>
                       </div>
 
                       <div className="min-w-0 flex-1">
                         <div className="mb-1 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                           <h2 className="truncate text-sm font-black uppercase tracking-tight font-headline" style={{ color: 'var(--theme-h2)' }}>{noti.title}</h2>
                           <span className="inline-flex shrink-0 items-center gap-1 text-[9px] font-black uppercase tracking-widest text-slate-400">
-                            <span className="material-symbols-outlined" style={{ fontSize: '11px' }} >schedule</span>
+                            <span className="material-symbols-outlined text-xs shrink-0">schedule</span>
                             {noti.time}
                           </span>
                         </div>
@@ -187,7 +187,7 @@ export default function NotificationsCenter() {
                             className="rounded-xl p-2 text-slate-300 transition hover:bg-primary/5 hover:text-primary disabled:cursor-wait"
                             aria-label="Tandai dibaca"
                           >
-                            {busyId === `read-${noti.id}` ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: 18 }}>check</span>}
+                            {busyId === `read-${noti.id}` ? <span className="material-symbols-outlined animate-spin text-lg shrink-0">sync</span> : <span className="material-symbols-outlined text-lg shrink-0">check</span>}
                           </button>
                         )}
                         <button
@@ -197,7 +197,7 @@ export default function NotificationsCenter() {
                           className="rounded-xl p-2 text-slate-300 transition hover:bg-rose-50 hover:text-rose-500 disabled:cursor-wait"
                           aria-label="Hapus notifikasi"
                         >
-                          {busyId === `delete-${noti.id}` ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >delete</span>}
+                          {busyId === `delete-${noti.id}` ? <span className="material-symbols-outlined animate-spin text-lg shrink-0">sync</span> : <span className="material-symbols-outlined text-lg shrink-0">delete</span>}
                         </button>
                       </div>
                     </article>
@@ -206,7 +206,7 @@ export default function NotificationsCenter() {
 
             {!loading && notifications.length === 0 && (
               <div className="rounded-2xl border border-dashed p-10 text-center shadow-sm" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
-                <span className="material-symbols-outlined mx-auto mb-3 text-slate-300" style={{ fontSize: '34px' }} >notifications</span>
+                <span className="material-symbols-outlined mx-auto mb-3 text-slate-300 text-4xl shrink-0">notifications</span>
                 <p className="text-sm font-black uppercase tracking-widest text-slate-500">Belum ada notifikasi</p>
                 <p className="mt-1 text-xs font-semibold text-slate-400">Notifikasi baru akan muncul dari tabel `psikolog.notifications`.</p>
               </div>

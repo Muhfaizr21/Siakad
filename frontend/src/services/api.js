@@ -87,6 +87,7 @@ export const psychologistService = {
   }),
   getPatients: () => fetchWithAuth(`${API_BASE_URL}/psychologist/patients`),
   getMedicalRecord: (id) => fetchWithAuth(`${API_BASE_URL}/psychologist/patients/${id}/medical-record`),
+  getMedicalRecords: () => fetchWithAuth(`${API_BASE_URL}/psychologist/medical-records`),
   createSessionNote: (id, data) => fetchWithAuth(`${API_BASE_URL}/psychologist/patients/${id}/session-notes`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -811,6 +812,31 @@ export const insuranceService = {
       headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
     })
   },
+};
+
+// ========================
+// COUNSELING SERVICE (Mahasiswa)
+// ========================
+export const studentCounselingService = {
+  downloadSessionNotePDF: async (id) => {
+    const token = getAuthToken();
+    const res = await fetch(`${API_BASE_URL}/counseling/session-notes/${id}/export-pdf`, {
+      headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({ message: 'Gagal download PDF Sesi' }));
+      throw new Error(errData.message || `Error ${res.status}`);
+    }
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `sesi_${id}_rekam_medis.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  }
 };
 
 // ========================

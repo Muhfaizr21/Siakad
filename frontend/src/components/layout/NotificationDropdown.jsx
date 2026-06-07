@@ -55,7 +55,7 @@ export default function NotificationDropdown() {
       }
       if (isPsychologist) {
         const { data } = await api.get('/psychologist/notifications');
-        const unreadCount = (data.data || []).filter(n => !(n.is_read ?? n.IsRead)).length;
+        const unreadCount = (data.data || []).filter(n => n.unread !== undefined ? n.unread : !(n.is_read ?? n.IsRead)).length;
         return { count: unreadCount };
       }
       const { data } = await api.get('/notifikasi/unread-count');
@@ -75,21 +75,51 @@ export default function NotificationDropdown() {
         responseData = (data.data || []).filter(n => !(n.is_read ?? n.IsRead));
       } else if (isPsychologist) {
         const { data } = await api.get('/psychologist/notifications');
-        responseData = (data.data || []).filter(n => !(n.is_read ?? n.IsRead));
+        responseData = (data.data || []).filter(n => n.unread !== undefined ? n.unread : !(n.is_read ?? n.IsRead));
       } else {
         const { data } = await api.get('/notifikasi?status=unread');
         responseData = data.data || [];
       }
 
-      return responseData.slice(0, 5).map(raw => ({
-        id: raw.id ?? raw.ID,
-        title: raw.judul ?? raw.Judul ?? 'Tanpa Judul',
-        content: raw.pesan ?? raw.Pesan ?? raw.deskripsi ?? raw.Deskripsi ?? '',
-        type: (raw.tipe ?? raw.Tipe ?? 'sistem').toLowerCase(),
-        is_read: raw.is_read ?? raw.IsRead ?? false,
-        created_at: raw.created_at ?? raw.CreatedAt,
-        link: raw.link ?? raw.Link ?? ''
-      }));
+      return responseData.slice(0, 5).map(raw => {
+        let defaultLink = raw.link ?? raw.Link ?? '';
+        if (!defaultLink) {
+          const typeLower = (raw.tipe ?? raw.Tipe ?? raw.type ?? raw.Type ?? 'sistem').toLowerCase();
+          if (isPsychologist) {
+            if (typeLower === 'booking' || typeLower === 'reschedule') {
+              defaultLink = '/psychologist/bookings';
+            } else {
+              defaultLink = '/psychologist/notifications';
+            }
+          } else if (isOrmawa) {
+            defaultLink = '/ormawa/notifikasi';
+          } else { // Student
+            if (typeLower === 'konseling') {
+              defaultLink = '/student/counseling';
+            } else if (typeLower === 'beasiswa') {
+              defaultLink = '/student/scholarship';
+            } else if (typeLower === 'achievement' || typeLower === 'prestasi') {
+              defaultLink = '/student/achievement';
+            } else if (typeLower === 'student_voice' || typeLower === 'aspirasi') {
+              defaultLink = '/student/student-voice';
+            } else if (typeLower === 'kencana') {
+              defaultLink = '/student/kencana';
+            } else {
+              defaultLink = '/student/notification';
+            }
+          }
+        }
+
+        return {
+          id: raw.id ?? raw.ID,
+          title: raw.title ?? raw.judul ?? raw.Judul ?? 'Tanpa Judul',
+          content: raw.desc ?? raw.pesan ?? raw.Pesan ?? raw.deskripsi ?? raw.Deskripsi ?? '',
+          type: (raw.tipe ?? raw.Tipe ?? raw.type ?? raw.Type ?? 'sistem').toLowerCase(),
+          is_read: raw.unread !== undefined ? !raw.unread : (raw.is_read ?? raw.IsRead ?? false),
+          created_at: raw.created_at ?? raw.CreatedAt,
+          link: defaultLink
+        };
+      });
     },
     enabled: isOpen && hasNotifications // Only load when open AND role has notifications
   });
@@ -284,9 +314,9 @@ export default function NotificationDropdown() {
                 if (isOrmawa) {
                   navigate('/ormawa/notifikasi');
                 } else if (isPsychologist) {
-                  navigate('/psychologist');
+                  navigate('/psychologist/notifications');
                 } else {
-                  navigate('/student/notifikasi');
+                  navigate('/student/notification');
                 }
               }}
               className="w-full p-4 border-t border-neutral-100 text-xs font-bold text-neutral-900 hover:bg-neutral-50 transition-colors flex items-center justify-center gap-2"

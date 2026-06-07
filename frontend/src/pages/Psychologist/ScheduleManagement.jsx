@@ -155,7 +155,7 @@ export default function ScheduleManagement() {
     <>
       <div className="w-full relative space-y-6 scroll-smooth">
           {/* Welcome Banner Card */}
-          <section className="relative overflow-hidden rounded-2xl border p-5 shadow-sm flex flex-col gap-5 group"
+          <section className="relative overflow-hidden rounded-xl border p-5 shadow-sm flex flex-col gap-5 group"
             style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
             {/* Soft decorative blur nodes */}
             <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)' }}></div>
@@ -163,8 +163,8 @@ export default function ScheduleManagement() {
             
             <div className="relative z-10 flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between w-full">
               <div>
-                <div className="inline-flex items-center gap-2 rounded-full bg-primary/5 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-primary">
-                  <span className="material-symbols-outlined size-3.5">stars</span>
+                <div className="inline-flex items-center gap-2 rounded-full bg-primary/5 px-4 py-1.5 text-[11px] font-black uppercase tracking-widest text-primary">
+                  <span className="material-symbols-outlined text-base shrink-0">stars</span>
                   Ketersediaan Konseling
                 </div>
                 <h1 className="mt-3 text-2xl font-black text-primary uppercase tracking-tight font-headline">Manajemen Jadwal</h1>
@@ -180,7 +180,7 @@ export default function ScheduleManagement() {
                   disabled={!hasUnsavedChanges || saving}
                   className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-500 transition-all hover:border-primary/30 hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  <span className="material-symbols-outlined size-4">history</span>
+                  <span className="material-symbols-outlined text-base shrink-0">history</span>
                   Reset
                 </button>
                 <button
@@ -189,7 +189,7 @@ export default function ScheduleManagement() {
                   disabled={saving || loading}
                   className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-3 text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 hover:shadow-primary/30 disabled:cursor-wait disabled:opacity-70"
                 >
-                  {saving ? <span className="material-symbols-outlined size-4 animate-spin" >sync</span> : <span className="material-symbols-outlined size-4" >save</span>}
+                  {saving ? <span className="material-symbols-outlined text-base shrink-0 animate-spin" >sync</span> : <span className="material-symbols-outlined text-base shrink-0" >save</span>}
                   {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
                 </button>
               </div>
@@ -199,72 +199,61 @@ export default function ScheduleManagement() {
           {/* Bento Grid Stats Card (Diluar dan dibawah banner utama) */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3 w-full">
             {/* Card 1 */}
-            <div className="group relative overflow-hidden rounded-2xl border p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
-              {/* Soft decorative glow background */}
+            <div className="group relative overflow-hidden rounded-xl border p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
               <div className="absolute -right-8 -top-5 w-24 h-24 bg-primary/5 rounded-full blur-xl pointer-events-none" />
-              
               <div className="flex items-center justify-between">
-                <div className="w-12 h-12 bg-primary/5 text-primary rounded-[1.25rem] flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shrink-0">
-                  <span className="material-symbols-outlined text-xl">calendar_today</span>
+                <div className="w-10 h-10 bg-primary/5 text-primary rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shrink-0 shadow-inner">
+                  <span className="material-symbols-outlined text-base shrink-0">calendar_today</span>
                 </div>
-                <div className="flex items-center gap-1 rounded-full bg-emerald-50/80 border border-emerald-100 px-2.5 py-0.5 text-[9px] font-black text-emerald-600 uppercase tracking-widest">
-                  <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                <div className="flex items-center gap-1 rounded-full bg-primary/5 px-2 py-0.5 text-xs font-semibold text-primary uppercase tracking-wider">
+                  <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   AKTIF
                 </div>
               </div>
-              
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-5">Hari Aktif</p>
-              <p className="mt-1 text-4xl font-extrabold text-slate-900 tracking-tight leading-none">{summary.activeDays}</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mt-5">Hari Aktif</p>
+              <p className="mt-1 text-xl font-bold text-slate-900 tracking-tight leading-none">{summary.activeDays}</p>
               <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wide mt-1.5">hari pelayanan aktif</p>
             </div>
             
-            {/* Card 2 */}
-            <div className="group relative overflow-hidden rounded-2xl border p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
-              {/* Soft decorative glow background */}
+            <div className="group relative overflow-hidden rounded-xl border p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
               <div className="absolute -right-8 -top-5 w-24 h-24 bg-emerald-500/5 rounded-full blur-xl pointer-events-none" />
-              
               <div className="flex items-center justify-between">
-                <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-[1.25rem] flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shrink-0">
-                  <span className="material-symbols-outlined text-xl">schedule</span>
+                <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shrink-0 shadow-inner">
+                  <span className="material-symbols-outlined text-base shrink-0">schedule</span>
                 </div>
-                <div className="flex items-center gap-1 rounded-full bg-emerald-50/80 border border-emerald-100 px-2.5 py-0.5 text-[9px] font-black text-emerald-600 uppercase tracking-widest">
-                  <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                <div className="flex items-center gap-1 rounded-full bg-emerald-50/80 border border-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-600 uppercase tracking-wider">
+                  <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   LIVE
                 </div>
               </div>
-              
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-5">Total Slot</p>
-              <p className="mt-1 text-4xl font-extrabold text-slate-900 tracking-tight leading-none">{summary.totalSlots}</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mt-5">Total Slot</p>
+              <p className="mt-1 text-xl font-bold text-slate-900 tracking-tight leading-none">{summary.totalSlots}</p>
               <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wide mt-1.5">slot konseling tersedia</p>
             </div>
 
-            {/* Card 3 */}
-            <div className="group relative overflow-hidden rounded-2xl border p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
-              {/* Soft decorative glow background */}
+            <div className="group relative overflow-hidden rounded-xl border p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
               <div className="absolute -right-8 -top-5 w-24 h-24 bg-amber-500/5 rounded-full blur-xl pointer-events-none" />
-              
               <div className="flex items-center justify-between">
-                <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-[1.25rem] flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shrink-0">
-                  <span className="material-symbols-outlined text-xl">group</span>
+                <div className="w-10 h-10 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shrink-0 shadow-inner">
+                  <span className="material-symbols-outlined text-base shrink-0">group</span>
                 </div>
-                <div className="flex items-center gap-1 rounded-full bg-emerald-50/80 border border-emerald-100 px-2.5 py-0.5 text-[9px] font-black text-emerald-600 uppercase tracking-widest">
-                  <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                <div className="flex items-center gap-1 rounded-full bg-amber-50/80 border border-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-600 uppercase tracking-wider">
+                  <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   KUOTA
                 </div>
               </div>
-              
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-5">Kuota Mingguan</p>
-              <p className="mt-1 text-4xl font-extrabold text-slate-900 tracking-tight leading-none">{summary.totalQuota}</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mt-5">Kuota Mingguan</p>
+              <p className="mt-1 text-xl font-bold text-slate-900 tracking-tight leading-none">{summary.totalQuota}</p>
               <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wide mt-1.5">maksimal kuota pasien</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-12 w-full">
             <aside className="lg:col-span-4 xl:col-span-3">
-              <div className="rounded-3xl border p-4 shadow-sm" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
+              <div className="rounded-xl border p-5 shadow-sm" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
                 <div className="mb-4 flex items-center justify-between px-2">
                   <h2 className="text-[10px] font-black font-headline uppercase tracking-widest" style={{ color: 'var(--theme-h2)' }}>Pilih Hari</h2>
-                  {loading && <span className="material-symbols-outlined size-4 animate-spin text-primary/60" >sync</span>}
+                  {loading && <span className="material-symbols-outlined text-base shrink-0 animate-spin text-primary/60" >sync</span>}
                 </div>
 
                 <div className="space-y-2">
@@ -289,7 +278,7 @@ export default function ScheduleManagement() {
                         )}
                         <div className="flex items-center justify-between gap-3">
                           <div className="flex items-center gap-3">
-                            <span className={`material-symbols-outlined size-4 ${isSelected ? 'text-white' : 'text-primary'}`}>{Icon}</span>
+                            <span className={`material-symbols-outlined text-base shrink-0 ${isSelected ? 'text-white' : 'text-primary'}`}>{Icon}</span>
                             <span className="text-sm font-black">{item.day}</span>
                           </div>
                           <span className={`size-2.5 rounded-full ${item.enabled ? (isSelected ? 'bg-white' : 'bg-emerald-500') : 'bg-slate-300'}`} />
@@ -305,12 +294,12 @@ export default function ScheduleManagement() {
             </aside>
 
             <section className="lg:col-span-8 xl:col-span-9">
-              <div className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm transition-all duration-300">
+              <div className="overflow-hidden rounded-xl border shadow-sm transition-all duration-300" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
                 <div className={`border-b border-slate-100 p-5 ${currentDayData.enabled ? 'bg-slate-50/50' : 'bg-rose-50/30'}`}>
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-4">
                       <div className={`flex size-12 items-center justify-center rounded-2xl shadow-sm ${currentDayData.enabled ? 'bg-primary text-white' : 'border border-slate-100 bg-white text-slate-300'}`}>
-                        <span className="material-symbols-outlined" style={{ fontSize: 24 }}>{currentDayIcon}</span>
+                        <span className="material-symbols-outlined text-2xl shrink-0">{currentDayIcon}</span>
                       </div>
                       <div>
                         <h2 className="text-lg font-black font-headline uppercase tracking-tight" style={{ color: 'var(--theme-h2)' }}>{selectedDay}</h2>
@@ -336,7 +325,7 @@ export default function ScheduleManagement() {
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                           <h3 className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-primary">
-                            <span className="material-symbols-outlined size-4" >schedule</span>
+                            <span className="material-symbols-outlined text-base shrink-0" >schedule</span>
                             Slot Waktu
                           </h3>
                           <p className="mt-1 text-[11px] font-semibold text-slate-500">Setiap slot bisa punya jenis layanan, lokasi, dan kuota berbeda.</p>
@@ -347,14 +336,14 @@ export default function ScheduleManagement() {
                           onClick={() => addSlot(selectedDay)}
                           className="inline-flex items-center justify-center gap-2 rounded-2xl border border-primary/20 bg-primary/5 px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-primary transition-all duration-300 hover:bg-primary hover:text-white"
                         >
-                          <span className="material-symbols-outlined size-4">add</span>
+                          <span className="material-symbols-outlined text-base shrink-0">add</span>
                           Tambah Slot
                         </button>
                       </div>
 
                       {currentDayData.slots.length === 0 ? (
-                        <div className="flex min-h-[260px] flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/70 px-6 text-center">
-                          <span className="material-symbols-outlined size-9 text-slate-300" >schedule</span>
+                        <div className="flex min-h-[260px] flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/70 px-6 text-center">
+                          <span className="material-symbols-outlined text-3xl shrink-0 text-slate-300" >schedule</span>
                           <h4 className="mt-4 text-sm font-black font-headline uppercase tracking-tight" style={{ color: 'var(--theme-h4)' }}>Belum Ada Slot</h4>
                           <p className="mt-1 text-xs font-semibold text-slate-500">Tambahkan slot agar mahasiswa bisa memilih jadwal konseling.</p>
                           <button
@@ -371,7 +360,7 @@ export default function ScheduleManagement() {
                             const invalidTime = toMinutes(slot.end) <= toMinutes(slot.start);
 
                             return (
-                              <div key={`${selectedDay}-${index}`} className={`rounded-2xl border p-5 transition-all duration-300 ${invalidTime ? 'border-amber-200 bg-amber-50/40' : 'border-slate-100 bg-slate-50/40 hover:border-primary/20 hover:bg-white hover:shadow-md'}`}>
+                              <div key={`${selectedDay}-${index}`} className={`rounded-xl border p-5 transition-all duration-300 ${invalidTime ? 'border-amber-200 bg-amber-50/40' : 'border-slate-100 bg-slate-50/40 hover:border-primary/20 hover:bg-white hover:shadow-md'}`}>
                                 <div className="flex flex-col gap-4 xl:flex-row xl:items-center">
                                   <div className="grid flex-1 grid-cols-2 gap-3">
                                     <label className="space-y-2">
@@ -434,7 +423,7 @@ export default function ScheduleManagement() {
                                     aria-label={`Hapus slot ${selectedDay} ${index + 1}`}
                                     className="inline-flex size-11 shrink-0 items-center justify-center rounded-xl bg-white text-slate-300 transition-all hover:bg-rose-50 hover:text-rose-600 active:scale-95 duration-300"
                                   >
-                                    <span className="material-symbols-outlined size-4" >delete</span>
+                                    <span className="material-symbols-outlined text-base shrink-0" >delete</span>
                                   </button>
                                 </div>
 
@@ -450,7 +439,7 @@ export default function ScheduleManagement() {
                   ) : (
                     <div className="flex min-h-[340px] flex-col items-center justify-center px-6 text-center">
                       <div className="flex size-20 items-center justify-center rounded-3xl bg-rose-50 text-rose-300">
-                        <span className="material-symbols-outlined size-10">dark_mode</span>
+                        <span className="material-symbols-outlined text-4xl shrink-0">dark_mode</span>
                       </div>
                       <h3 className="mt-5 text-sm font-black font-headline uppercase tracking-tight" style={{ color: 'var(--theme-h3)' }}>Hari Tidak Aktif</h3>
                       <p className="mt-1 max-w-md text-xs font-semibold leading-5 text-slate-500">

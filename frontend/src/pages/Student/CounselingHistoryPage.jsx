@@ -9,7 +9,7 @@ import {
   useCounselingReferralsQuery,
   useRescheduleMutation,
 } from '../../queries/useCounselingQuery';
-import { API_BASE_URL } from '../../services/api';
+import { API_BASE_URL, studentCounselingService } from '../../services/api';
 
 const getFullUrl = (path) => {
   if (!path) return '';
@@ -129,6 +129,15 @@ export default function CounselingHistoryPage() {
         },
       }
     );
+  };
+
+  const handleDownloadPDF = async (id) => {
+    try {
+      await studentCounselingService.downloadSessionNotePDF(id);
+      toast.success('PDF Sesi berhasil diunduh');
+    } catch (err) {
+      toast.error('Gagal mengunduh PDF Sesi');
+    }
   };
 
   return (
@@ -419,11 +428,24 @@ export default function CounselingHistoryPage() {
                                     </div>
                                   )}
                                 </div>
-                                <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition-transform ${
-                                  isExpanded ? 'bg-violet-100 rotate-180' : 'bg-neutral-100'
-                                }`}>
-                                  <span className="material-symbols-outlined text-neutral-600" style={{ fontSize: '14px' }}>expand_more</span>
-                                </span>
+                                <div className="flex items-center gap-2 shrink-0">
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDownloadPDF(record.id);
+                                    }}
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-600 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all shadow-sm"
+                                  >
+                                    <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>download</span>
+                                    PDF
+                                  </button>
+                                  <span className={`flex h-6 w-6 items-center justify-center rounded-full transition-transform ${
+                                    isExpanded ? 'bg-violet-100 rotate-180' : 'bg-neutral-100'
+                                  }`}>
+                                    <span className="material-symbols-outlined text-neutral-600" style={{ fontSize: '14px' }}>expand_more</span>
+                                  </span>
+                                </div>
                               </div>
                             </button>
 
@@ -565,9 +587,19 @@ export default function CounselingHistoryPage() {
                               <h3 className="mt-1 text-sm font-extrabold text-neutral-900">{record.type}</h3>
                               <p className="mt-0.5 text-xs font-semibold text-neutral-500">Psikolog: {record.psychologist}</p>
                             </div>
-                            <span className="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700">
-                              {record.status}
-                            </span>
+                            <div className="flex flex-col items-end gap-2 shrink-0">
+                              <span className="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700">
+                                {record.status}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleDownloadPDF(record.id)}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-600 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all shadow-sm"
+                              >
+                                <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>download</span>
+                                PDF
+                              </button>
+                            </div>
                           </div>
 
                           <div className="mt-4 space-y-3">
@@ -589,6 +621,33 @@ export default function CounselingHistoryPage() {
                               </p>
                               <p className="mt-1 text-xs leading-relaxed text-emerald-900">{record.recommendation}</p>
                             </div>
+                            {record.tindak_lanjut?.length > 0 && (
+                              <div className="rounded-xl border border-neutral-100 bg-white p-3 shadow-sm">
+                                <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-neutral-500">
+                                  <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>assignment_turned_in</span>
+                                  Tindak Lanjut Sesi
+                                </p>
+                                <div className="flex flex-wrap gap-1.5 mt-2">
+                                  {record.tindak_lanjut.map((t) => {
+                                    const tindakChipConfig = {
+                                      Tuntas: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                      Lanjutan: 'bg-blue-50 text-blue-700 border-blue-200',
+                                      Rujuk: 'bg-amber-50 text-amber-700 border-amber-200',
+                                    };
+                                    return (
+                                      <span key={t} className={`inline-flex items-center gap-0.5 rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-wide ${
+                                        tindakChipConfig[t] || 'bg-neutral-50 text-neutral-600 border-neutral-200'
+                                      }`}>
+                                        <span className="material-symbols-outlined" style={{ fontSize: '10px' }}>
+                                          {t === 'Tuntas' ? 'check_circle' : t === 'Rujuk' ? 'local_hospital' : 'repeat'}
+                                        </span>
+                                        {t}
+                                      </span>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </article>
                       ))}

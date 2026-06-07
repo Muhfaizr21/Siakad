@@ -69,7 +69,7 @@ export default function BookingDetail() {
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 text-slate-400 hover:text-primary transition-all mb-4 group"
           >
-            <span className="material-symbols-outlined size-4 group-hover:-translate-x-1 transition-transform">arrow_back</span>
+            <span className="material-symbols-outlined text-base shrink-0 group-hover:-translate-x-1 transition-transform">arrow_back</span>
             <span className="text-[10px] font-black uppercase tracking-widest">Kembali</span>
           </button>
 
@@ -105,7 +105,7 @@ export default function BookingDetail() {
                       { label: 'Akademik', value: `Smt ${booking.semester}`, icon: 'menu_book' },
                     ].map((item, i) => (
                       <div key={i} className="flex items-center gap-3 p-3 rounded-xl" style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, var(--theme-bg))' }}>
-                         <item.icon className="size-3.5 text-slate-400" />
+                         <item.icon className="text-base text-slate-400 shrink-0" />
                          <div className="overflow-hidden">
                             <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{item.label}</p>
                             <p className="text-[10px] font-bold text-slate-700 truncate">{item.value}</p>
@@ -120,21 +120,21 @@ export default function BookingDetail() {
               <div className="rounded-3xl border shadow-sm p-5 space-y-6" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">                    <div className="space-y-3">
                        <div className="p-4 rounded-2xl border flex items-center gap-4" style={{ backgroundColor: 'var(--theme-bg)', borderColor: 'var(--theme-border)' }}>
-                          <span className="material-symbols-outlined size-4 text-primary" >calendar_month</span>
+                           <span className="material-symbols-outlined text-base shrink-0 text-primary" >calendar_month</span>
                           <div>
                              <p className="text-[8px] font-black uppercase text-slate-400">Tanggal</p>
                              <p className="text-xs font-bold text-slate-900">{booking.date}</p>
                           </div>
                        </div>
                        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-4">
-                          <span className="material-symbols-outlined size-4 text-primary" >schedule</span>
+                           <span className="material-symbols-outlined text-base shrink-0 text-primary" >schedule</span>
                           <div>
                              <p className="text-[8px] font-black uppercase text-slate-400">Waktu</p>
                              <p className="text-xs font-bold text-slate-900">{booking.time}</p>
                           </div>
                        </div>
                        <div className="p-4 rounded-2xl border flex items-center gap-4" style={{ backgroundColor: 'var(--theme-bg)', borderColor: 'var(--theme-border)' }}>
-                          <span className="material-symbols-outlined size-4 text-primary" >
+                           <span className="material-symbols-outlined text-base shrink-0 text-primary" >
                             {booking.mode === 'Online' ? 'videocam' : 'groups'}
                           </span>
                           <div>
@@ -156,7 +156,7 @@ export default function BookingDetail() {
                        </div>
                     </div>
                     <div className="p-5 rounded-2xl bg-primary text-white space-y-2 relative overflow-hidden flex flex-col justify-center">
-                       <span className="material-symbols-outlined absolute -right-4 -bottom-4 size-24 text-white/10" >show_chart</span>
+                       <span className="material-symbols-outlined absolute -right-4 -bottom-4 text-[96px] text-white/10" >show_chart</span>
                        <p className="text-[9px] font-black uppercase tracking-widest text-white/60">Isu Utama</p>
                        <p className="text-xl font-black uppercase tracking-tight">{booking.issue}</p>
                     </div>
@@ -199,7 +199,7 @@ export default function BookingDetail() {
                     onClick={() => navigate(`/psychologist/patients/${booking.mahasiswa_id}/medical-record?bookingId=${booking.id}`)}
                     className="w-full py-3 border border-slate-100 text-slate-400 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:border-primary/30 hover:text-primary transition-all"
                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >description</span> Rekam Medis
+                     <span className="material-symbols-outlined text-sm shrink-0" >description</span> Rekam Medis
                  </button>
               </div>
 
@@ -209,7 +209,7 @@ export default function BookingDetail() {
                      {history.map((item, i) => (
                       <div key={i} className="flex gap-4 relative z-10">
                          <div className="size-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center shadow-sm">
-                            <item.icon className={`size-4 ${item.color}`} />
+                             <item.icon className={`text-base shrink-0 ${item.color}`} />
                          </div>
                          <div>
                             <p className="text-[10px] font-black text-slate-900 uppercase">{item.action}</p>

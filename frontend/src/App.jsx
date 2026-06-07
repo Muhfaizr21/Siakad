@@ -29,6 +29,7 @@ import ReferralManagement from './pages/Psychologist/ReferralManagement'
 import PsychologistLayout from './pages/Psychologist/PsychologistLayout'
 import NotificationsCenter from './pages/Psychologist/NotificationsCenter'
 import PsychologistSettings from './pages/Psychologist/PsychologistSettings'
+import MedicalRecordsPage from './pages/Psychologist/MedicalRecords'
 
 import TenagaKesehatanLayout from './pages/TenagaKesehatan/TenagaKesehatanLayout'
 import TenagaKesehatanDashboard from './pages/TenagaKesehatan/TenagaKesehatanDashboard'
@@ -470,6 +471,7 @@ function App() {
                   <Route path="analytics" element={<AnalyticsTrends />} />
                   <Route path="notifications" element={<NotificationsCenter />} />
                   <Route path="settings" element={<PsychologistSettings />} />
+                   <Route path="medical-records" element={<MedicalRecordsPage />} />
                 </Route>
 
                 {/* Tenaga Kesehatan */}
