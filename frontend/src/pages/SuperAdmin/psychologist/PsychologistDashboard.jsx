@@ -11,20 +11,41 @@ export default function PsychologistDashboard() {
   const [data, setData] = useState([])
   const [bookings, setBookings] = useState([])
   const [referrals, setReferrals] = useState([])
+  const [periods, setPeriods] = useState([])
   const [loading, setLoading] = useState(true)
+
+  const [activeFilters, setActiveFilters] = useState({
+    facultyId: localStorage.getItem('superadmin_fakultas_id') || 'all',
+    prodiId: localStorage.getItem('superadmin_prodi_id') || 'all',
+    periodId: localStorage.getItem('superadmin_period_id') || 'all'
+  })
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setActiveFilters({
+        facultyId: localStorage.getItem('superadmin_fakultas_id') || 'all',
+        prodiId: localStorage.getItem('superadmin_prodi_id') || 'all',
+        periodId: localStorage.getItem('superadmin_period_id') || 'all'
+      })
+    }
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
+  }, [])
 
   const fetchData = async () => {
     setLoading(true)
     try {
-      const [psRes, bkRes, rfRes] = await Promise.all([
+      const [psRes, bkRes, rfRes, periodsRes] = await Promise.all([
         adminService.getAllPsychologists(),
         adminService.getPsychologistBookings(),
-        adminService.getPsychologistReferrals()
+        adminService.getPsychologistReferrals(),
+        adminService.getAllAcademicPeriods()
       ])
 
       if (psRes.status === 'success') setData(psRes.data || [])
       if (bkRes.status === 'success') setBookings(bkRes.data || [])
       if (rfRes.status === 'success') setReferrals(rfRes.data || [])
+      if (periodsRes.status === 'success') setPeriods(periodsRes.data || [])
     } catch (err) {
       console.error(err)
       toast.error('Koneksi sistem terputus / Gagal memuat data')
@@ -37,8 +58,82 @@ export default function PsychologistDashboard() {
     fetchData()
   }, [])
 
-  const getTodayBookingsCount = () => {
+  const isDateInPeriod = (dateStr, period) => {
+    if (!dateStr || !period) return false
+    const date = new Date(dateStr)
+    const year = date.getFullYear()
+    const month = date.getMonth() + 1
+
+    const years = (period.AcademicYear || period.tahun_ajaran || '')?.split('/') || []
+    if (years.length !== 2) return false
+    const startYear = parseInt(years[0])
+    const endYear = parseInt(years[1])
+
+    const sem = period.Semester || period.semester || ''
+    if (sem === 'Ganjil') {
+      return (year === startYear && month >= 8 && month <= 12) || (year === endYear && month === 1)
+    } else if (sem === 'Genap') {
+      return (year === endYear && month >= 2 && month <= 7)
+    }
+    return false
+  }
+
+  const filteredBookings = useMemo(() => {
     return bookings.filter(b => {
+      const mhs = b.mahasiswa || b.Mahasiswa
+      if (!mhs) return false
+
+      if (activeFilters.facultyId !== 'all') {
+        const mhsFacId = String(mhs.FakultasID || mhs.fakultas_id || mhs.Fakultas?.id || mhs.Fakultas?.ID || mhs.fakultas?.id || mhs.fakultas?.ID || '')
+        if (mhsFacId !== String(activeFilters.facultyId)) return false
+      }
+
+      if (activeFilters.prodiId !== 'all') {
+        const mhsProdiId = String(mhs.ProgramStudiID || mhs.program_studi_id || mhs.ProgramStudi?.id || mhs.ProgramStudi?.ID || mhs.program_studi?.id || mhs.program_studi?.ID || '')
+        if (mhsProdiId !== String(activeFilters.prodiId)) return false
+      }
+
+      if (activeFilters.periodId !== 'all') {
+        const selectedPeriod = periods.find(p => String(p.id || p.ID) === String(activeFilters.periodId))
+        if (selectedPeriod) {
+          const dateStr = b.tanggal || b.Tanggal
+          if (!isDateInPeriod(dateStr, selectedPeriod)) return false
+        }
+      }
+
+      return true
+    })
+  }, [bookings, activeFilters, periods])
+
+  const filteredReferrals = useMemo(() => {
+    return referrals.filter(r => {
+      const mhs = r.mahasiswa || r.Mahasiswa
+      if (!mhs) return false
+
+      if (activeFilters.facultyId !== 'all') {
+        const mhsFacId = String(mhs.FakultasID || mhs.fakultas_id || mhs.Fakultas?.id || mhs.Fakultas?.ID || mhs.fakultas?.id || mhs.fakultas?.ID || '')
+        if (mhsFacId !== String(activeFilters.facultyId)) return false
+      }
+
+      if (activeFilters.prodiId !== 'all') {
+        const mhsProdiId = String(mhs.ProgramStudiID || mhs.program_studi_id || mhs.ProgramStudi?.id || mhs.ProgramStudi?.ID || mhs.program_studi?.id || mhs.program_studi?.ID || '')
+        if (mhsProdiId !== String(activeFilters.prodiId)) return false
+      }
+
+      if (activeFilters.periodId !== 'all') {
+        const selectedPeriod = periods.find(p => String(p.id || p.ID) === String(activeFilters.periodId))
+        if (selectedPeriod) {
+          const dateStr = r.tanggal_dibuat || r.TanggalDibuat || r.CreatedAt || r.created_at
+          if (!isDateInPeriod(dateStr, selectedPeriod)) return false
+        }
+      }
+
+      return true
+    })
+  }, [referrals, activeFilters, periods])
+
+  const getTodayBookingsCount = () => {
+    return filteredBookings.filter(b => {
       const d = b.tanggal || b.Tanggal
       if (!d) return false
       const bd = new Date(d)
@@ -51,7 +146,7 @@ export default function PsychologistDashboard() {
 
   const topicChartData = useMemo(() => {
     const counts = {}
-    bookings.forEach(b => {
+    filteredBookings.forEach(b => {
       const t = b.topik || b.Topik || 'Lainnya'
       const normalized = t.trim()
       counts[normalized] = (counts[normalized] || 0) + 1
@@ -60,11 +155,11 @@ export default function PsychologistDashboard() {
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 5)
-  }, [bookings])
+  }, [filteredBookings])
 
   const modeChartData = useMemo(() => {
     const counts = { 'Online': 0, 'Tatap Muka': 0 }
-    bookings.forEach(b => {
+    filteredBookings.forEach(b => {
       const m = b.mode || b.Mode || 'Tatap Muka'
       const key = m === 'Online' ? 'Online' : 'Tatap Muka'
       counts[key]++
@@ -72,7 +167,7 @@ export default function PsychologistDashboard() {
     return Object.entries(counts)
       .map(([name, value]) => ({ name, value }))
       .filter(d => d.value > 0)
-  }, [bookings])
+  }, [filteredBookings])
 
   const specializationData = useMemo(() => {
     const counts = {}
@@ -88,7 +183,7 @@ export default function PsychologistDashboard() {
   const monthlyBookingData = useMemo(() => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
     const counts = Array(12).fill(0)
-    bookings.forEach(b => {
+    filteredBookings.forEach(b => {
       const d = b.tanggal || b.Tanggal
       if (d) {
         const date = new Date(d)
@@ -99,11 +194,11 @@ export default function PsychologistDashboard() {
       name,
       'Jumlah Booking': counts[index]
     }))
-  }, [bookings])
+  }, [filteredBookings])
 
   const stats = useMemo(() => {
-    const totalBookings = bookings.length
-    const selesaiBookings = bookings.filter(b => {
+    const totalBookings = filteredBookings.length
+    const selesaiBookings = filteredBookings.filter(b => {
       const statusLower = String(b.status || b.Status || '').toLowerCase()
       return statusLower === 'selesai' || statusLower === 'completed' || statusLower === 'disetujui' || statusLower === 'confirmed'
     }).length
@@ -116,7 +211,7 @@ export default function PsychologistDashboard() {
       tingkatPenyelesaian,
       rerataBebanKerja
     }
-  }, [bookings, data])
+  }, [filteredBookings, data])
 
   const PIE_COLORS = ['var(--theme-primary)', 'var(--theme-secondary)', 'var(--theme-warning)', 'var(--theme-success)']
 
@@ -174,7 +269,7 @@ export default function PsychologistDashboard() {
               />
               <DashboardStatCard 
                 label="Rujukan Eksternal" 
-                value={referrals.length} 
+                value={filteredReferrals.length} 
                 icon="forward_to_inbox" 
                 colorClass="text-secondary" 
                 bgClass="bg-secondary/10 border border-secondary/20" 
@@ -200,7 +295,7 @@ export default function PsychologistDashboard() {
                   <PageCard className="h-full">
                     <PageCardHeader title="Tren Booking Bulanan" icon="show_chart" />
                     <div className="h-[240px] w-full mt-4">
-                      {bookings.length > 0 ? (
+                      {filteredBookings.length > 0 ? (
                         <ResponsiveContainer width="100%" height={240}>
                           <LineChart data={monthlyBookingData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--theme-border-muted)" />
