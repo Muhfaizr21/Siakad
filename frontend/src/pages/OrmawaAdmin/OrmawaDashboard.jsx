@@ -1,12 +1,13 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent } from '@/components/ui/Card'
 
 import { cn } from '@/lib/utils'
 import { useNavigate } from 'react-router-dom'
+import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 
 import { fetchWithAuth, API_BASE_URL, ormawaService } from '../../services/api'
 import useAuthStore from '../../store/useAuthStore'
@@ -79,11 +80,63 @@ export default function OrmawaDashboard() {
     load()
   }, [ormawaId])
 
+  const approvalRate = proposals.length > 0
+    ? Math.round((proposals.filter(p => ['disetujui_fakultas', 'disetujui_univ', 'selesai'].includes(p.Status)).length / proposals.length) * 100)
+    : 0
+
+  const proposalStatusData = useMemo(() => {
+    const counts = {}
+    proposals.forEach(p => {
+      const s = p.Status || 'diajukan'
+      counts[s] = (counts[s] || 0) + 1
+    })
+    return Object.entries(counts).map(([name, value]) => ({ name, value }))
+  }, [proposals])
+
+  const roleDistData = useMemo(() => {
+    const counts = {}
+    members.forEach(m => {
+      const r = m.Role || 'Anggota'
+      counts[r] = (counts[r] || 0) + 1
+    })
+    return Object.entries(counts).map(([name, value]) => ({ name, value }))
+  }, [members])
+
+  const monthlyActivityData = useMemo(() => {
+    const byMonth = {}
+    const addToMonth = (arr, key) => {
+      arr.forEach(item => {
+        const d = item.TanggalMulai || item.TanggalKegiatan || item.created_at || item.CreatedAt
+        if (!d) return
+        const date = new Date(d)
+        if (isNaN(date.getTime())) return
+        const k = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`
+        if (!byMonth[k]) byMonth[k] = { kegiatan: 0, proposal: 0 }
+        byMonth[k][key] = (byMonth[k][key] || 0) + 1
+      })
+    }
+    addToMonth(events, 'kegiatan')
+    addToMonth(proposals, 'proposal')
+    const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des']
+    return Object.entries(byMonth).sort(([a],[b]) => a.localeCompare(b)).slice(-6).map(([m, v]) => {
+      const [y, mo] = m.split('-')
+      return { month: `${months[parseInt(mo)-1]}`, kegiatan: v.kegiatan || 0, proposal: v.proposal || 0 }
+    })
+  }, [events, proposals])
+
+  const topAnggaranData = useMemo(() => {
+    return [...proposals].sort((a, b) => (b.Anggaran || 0) - (a.Anggaran || 0)).slice(0, 5)
+      .map(p => ({ name: p.Judul?.substring(0, 15) || 'Proposal', value: p.Anggaran || 0 }))
+  }, [proposals])
+
+  const PIE_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
+
   const statCards = [
     { label: 'Total Proposal', value: stats.totalProposals || proposals.length, icon: 'description', colorClass: 'text-primary', bgClass: 'bg-primary/10 border-primary/20 border', accentGradient: 'from-primary/10', route: '/ormawa/proposal', badge: { text: 'Live', icon: 'show_chart' } },
     { label: 'Total Anggota', value: stats.totalMembers || members.length, icon: 'group', colorClass: 'text-secondary', bgClass: 'bg-secondary/10 border-secondary/20 border', accentGradient: 'from-secondary/10', route: '/ormawa/anggota', badge: { text: 'Live', icon: 'show_chart' } },
     { label: 'PAGU', value: formatRp(stats.totalKas), icon: 'attach_money', colorClass: 'text-success', bgClass: 'bg-success/10 border-success/20 border', accentGradient: 'from-success/10', route: '/ormawa/keuangan', badge: { text: 'Live', icon: 'show_chart' } },
     { label: 'Kegiatan Aktif', value: stats.totalEvents || events.length, icon: 'calendar_today', colorClass: 'text-warning', bgClass: 'bg-warning/10 border-warning/20 border', accentGradient: 'from-warning/10', route: '/ormawa/jadwal', badge: { text: 'Live', icon: 'show_chart' } },
+    { label: 'Approval Rate', value: `${approvalRate}%`, icon: 'checklist', colorClass: 'text-indigo-600', bgClass: 'bg-indigo-50 border-indigo-200 border', accentGradient: 'from-indigo-500/10', route: '/ormawa/proposal', badge: { text: proposals.length > 0 ? `${proposals.filter(p => ['disetujui_fakultas','disetujui_univ','selesai'].includes(p.Status)).length}/${proposals.length}` : '0/0', icon: 'trending_up' } },
   ]
 
   const firstName = user?.Email?.split('@')[0] || 'Admin';
@@ -130,6 +183,127 @@ export default function OrmawaDashboard() {
           <DashboardStatCard key={i} {...card} loading={isLoading} />
         ))}
       </DashboardStatGrid>
+
+      {/* ── 5W1H Charts ─────────────────────────────────────────────── */}
+      {!isLoading && (
+        <>
+          {/* WHEN → Line: Aktivitas Bulanan (full width) */}
+          {monthlyActivityData.length > 0 && (
+            <div className="bg-white border border-[var(--theme-border)] rounded-2xl p-5 shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 shrink-0">
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>trending_up</span>
+                </div>
+                <span className="text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest font-headline">Aktivitas Bulanan</span>
+              </div>
+              <div className="h-[200px] w-full">
+                <ResponsiveContainer width="100%" height={200}>
+                  <LineChart data={monthlyActivityData} margin={{ top: 10, right: 20, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="month" tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '11px', fontWeight: 'bold' }} />
+                    <Line type="monotone" dataKey="proposal" name="Proposal" stroke="#3b82f6" strokeWidth={2.5} dot={{ r: 3 }} />
+                    <Line type="monotone" dataKey="kegiatan" name="Kegiatan" stroke="#10b981" strokeWidth={2.5} dot={{ r: 3 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+
+          {/* WHAT + WHO: 3 charts grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* WHAT → Pie: Status Proposal */}
+            <div className="bg-white border border-[var(--theme-border)] rounded-2xl p-5 shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 shrink-0">
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>pie_chart</span>
+                </div>
+                <span className="text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest font-headline">Status Proposal</span>
+              </div>
+              <div className="h-[170px] w-full flex items-center justify-center">
+                {proposalStatusData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={170}>
+                    <PieChart>
+                      <Pie data={proposalStatusData} cx="50%" cy="50%" innerRadius={42} outerRadius={68} paddingAngle={3} dataKey="value" stroke="none">
+                        {proposalStatusData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : <span className="text-xs text-slate-400 italic">Belum ada proposal</span>}
+              </div>
+              <div className="grid grid-cols-2 gap-1.5 mt-2">
+                {proposalStatusData.slice(0, 6).map((item, i) => (
+                  <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50 border border-slate-100">
+                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
+                    <div className="min-w-0">
+                      <p className="text-[9px] font-bold text-slate-400 truncate leading-none">{item.name.replace(/_/g, ' ')}</p>
+                      <p className="text-xs font-extrabold text-slate-800 leading-none mt-1">{item.value}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* WHAT → Bar: Anggaran per Proposal */}
+            <div className="bg-white border border-[var(--theme-border)] rounded-2xl p-5 shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 shrink-0">
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>bar_chart</span>
+                </div>
+                <span className="text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest font-headline">Anggaran per Proposal (Top 5)</span>
+              </div>
+              <div className="h-[170px] w-full">
+                {topAnggaranData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={170}>
+                    <BarChart data={topAnggaranData} layout="vertical" margin={{ top: 5, right: 20, left: 5, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+                      <XAxis type="number" tick={{ fontSize: 8, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                      <YAxis type="category" dataKey="name" tick={{ fontSize: 8, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} width={80} />
+                      <Tooltip formatter={(v) => formatRp(v)} />
+                      <Bar dataKey="value" name="Anggaran" fill="#10b981" radius={[0, 4, 4, 0]} barSize={14} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : <div className="h-full flex items-center justify-center"><span className="text-xs text-slate-400 italic">Belum ada data</span></div>}
+              </div>
+            </div>
+
+            {/* WHO → Pie: Sebaran Role Anggota */}
+            <div className="bg-white border border-[var(--theme-border)] rounded-2xl p-5 shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 shrink-0">
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>group</span>
+                </div>
+                <span className="text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest font-headline">Sebaran Role Anggota</span>
+              </div>
+              <div className="h-[170px] w-full flex items-center justify-center">
+                {roleDistData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={170}>
+                    <PieChart>
+                      <Pie data={roleDistData} cx="50%" cy="50%" innerRadius={42} outerRadius={68} paddingAngle={3} dataKey="value" stroke="none">
+                        {roleDistData.map((_, i) => <Cell key={i} fill={['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'][i % 5]} />)}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : <span className="text-xs text-slate-400 italic">Belum ada anggota</span>}
+              </div>
+              <div className="grid grid-cols-2 gap-1.5 mt-2">
+                {roleDistData.slice(0, 5).map((item, i) => (
+                  <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50 border border-slate-100">
+                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'][i % 5] }} />
+                    <div className="min-w-0">
+                      <p className="text-[9px] font-bold text-slate-400 truncate leading-none">{item.name}</p>
+                      <p className="text-xs font-extrabold text-slate-800 leading-none mt-1">{item.value}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Main Bento Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
