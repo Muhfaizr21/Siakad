@@ -41,7 +41,7 @@ const GroupDetail = () => {
   if (!group) return <div className="p-8 text-center font-bold text-[var(--theme-text-subtle)]">Kelompok tidak ditemukan.</div>;
 
   return (
-    <div className="px-4 py-6 md:px-6 lg:px-8 min-h-screen bg-transparent font-body max-w-7xl mx-auto space-y-6">
+    <div className="bg-transparent font-body max-w-7xl mx-auto space-y-6">
       
       <div>
         <button

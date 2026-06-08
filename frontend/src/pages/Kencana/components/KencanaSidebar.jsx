@@ -275,12 +275,12 @@ const KencanaSidebar = ({ isOpen, setIsOpen, portalType = 'admin' }) => {
                         flex items-center gap-3.5 px-3 py-2.5 rounded-2xl font-bold text-sm
                         transition-all duration-300 relative group overflow-hidden
                         ${active 
-                          ? 'bg-white/10 border-l-4 shadow-md shadow-white/5' 
-                          : 'hover:bg-white/5'
+                          ? 'bg-white/10 border-l-4 shadow-md shadow-white/5 opacity-100' 
+                          : 'hover:bg-white/5 opacity-70 hover:opacity-100'
                         }
                       `}
                       style={{
-                        color: active ? 'var(--theme-sidebar-text, #ffffff)' : 'color-mix(in srgb, var(--theme-sidebar-text, #ffffff) 70%, transparent)',
+                        color: 'var(--theme-sidebar-text, #ffffff)',
                         borderLeftColor: active ? 'var(--theme-secondary, #fed7aa)' : 'transparent'
                       }}
                     >
@@ -291,7 +291,7 @@ const KencanaSidebar = ({ isOpen, setIsOpen, portalType = 'admin' }) => {
                       <span
                         className="material-symbols-outlined size-5 relative z-10"
                         style={{
-                          color: active ? 'var(--theme-secondary, #fed7aa)' : 'color-mix(in srgb, var(--theme-sidebar-text, #ffffff) 60%, transparent)',
+                          color: active ? 'var(--theme-secondary, #fed7aa)' : 'inherit',
                           fontVariationSettings: "'FILL' 1"
                         }}
                       >

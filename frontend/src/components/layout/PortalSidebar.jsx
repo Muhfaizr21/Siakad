@@ -251,10 +251,13 @@ export default function PortalSidebar({ config, onNavigate }) {
                           onClick={() => toggleSubmenu(item.path)}
                           className={`
                             w-full relative flex items-center gap-2.5 px-3 py-2 rounded-lg font-bold transition-all duration-300 group active:scale-[0.98] font-inter text-[11px]
-                            ${active || hasActiveChild ? 'bg-white/10 border-l-4 shadow-md shadow-white/5' : 'hover:bg-white/5'}
+                            ${active || hasActiveChild 
+                              ? 'bg-white/10 border-l-4 shadow-md shadow-white/5 opacity-100' 
+                              : 'hover:bg-white/5 opacity-70 hover:opacity-100'
+                            }
                           `}
                           style={{
-                            color: active || hasActiveChild ? 'var(--theme-sidebar-text)' : 'color-mix(in srgb, var(--theme-sidebar-text) 70%, transparent)',
+                            color: 'var(--theme-sidebar-text)',
                             borderLeftColor: active || hasActiveChild ? 'var(--theme-secondary)' : 'transparent'
                           }}
                         >
@@ -263,7 +266,7 @@ export default function PortalSidebar({ config, onNavigate }) {
                               className="material-symbols-outlined transition-all duration-300"
                               style={{
                                 fontSize: '16px',
-                                color: active || hasActiveChild ? 'var(--theme-secondary)' : 'color-mix(in srgb, var(--theme-sidebar-text) 60%, transparent)'
+                                color: active || hasActiveChild ? 'var(--theme-secondary)' : 'inherit'
                               }}
                             >
                               {item.icon}
@@ -272,7 +275,7 @@ export default function PortalSidebar({ config, onNavigate }) {
                           <span className="tracking-tight flex-1 font-medium text-left truncate">{item.name}</span>
                           <span
                             className={`material-symbols-outlined transition-transform duration-300 ${isSubmenuOpen ? 'rotate-90' : ''}`}
-                            style={{ fontSize: '14px', color: 'color-mix(in srgb, var(--theme-sidebar-text) 50%, transparent)' }}
+                            style={{ fontSize: '14px', color: 'inherit' }}
                           >
                             chevron_right
                           </span>
@@ -282,26 +285,36 @@ export default function PortalSidebar({ config, onNavigate }) {
                         {isSubmenuOpen && item.submenu && (
                           <div className="ml-2.5 mt-1 space-y-0.5 border-l border-white/10 pl-2.5">
                             {item.submenu.map((subItem) => {
-                              const urlHasTab = location.search.includes('tab=');
-                              const itemHasTab = subItem.path.includes('tab=');
                               const subActive = subItem.path.includes('?') 
                                 ? (location.pathname + location.search) === subItem.path 
-                                : (location.pathname === subItem.path && (!urlHasTab || itemHasTab));
+                                : (() => {
+                                    if (!location.pathname.startsWith(subItem.path)) return false;
+                                    // Check if there is a more specific submenu path match
+                                    const moreSpecific = item.submenu.find(sub =>
+                                      sub.path !== subItem.path &&
+                                      sub.path.length > subItem.path.length &&
+                                      location.pathname.startsWith(sub.path)
+                                    );
+                                    return !moreSpecific;
+                                  })();
                               return (
                                 <Link
                                   key={subItem.path}
                                   to={subItem.path}
                                   onClick={onNavigate}
                                   className={`
-                                    flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg font-medium transition-all duration-300 font-inter text-[10px]
-                                    ${subActive ? 'bg-white/10' : 'hover:bg-white/5'}
+                                    flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg font-medium transition-all duration-300 font-inter text-[10px] group
+                                    ${subActive 
+                                      ? 'bg-white/10 opacity-100' 
+                                      : 'hover:bg-white/5 opacity-60 hover:opacity-100'
+                                    }
                                   `}
                                   style={{
-                                    color: subActive ? 'var(--theme-sidebar-text)' : 'color-mix(in srgb, var(--theme-sidebar-text) 60%, transparent)'
+                                    color: 'var(--theme-sidebar-text)'
                                   }}
                                 >
                                   <span
-                                    className="material-symbols-outlined"
+                                    className="material-symbols-outlined transition-all duration-300"
                                     style={{ fontSize: '14px', color: subActive ? 'var(--theme-secondary)' : 'inherit' }}
                                   >
                                     {subItem.icon}
@@ -320,10 +333,13 @@ export default function PortalSidebar({ config, onNavigate }) {
                         onClick={onNavigate}
                         className={`
                           relative flex items-center gap-2.5 px-3 py-2 rounded-lg font-bold transition-all duration-300 group active:scale-[0.98] font-inter text-[11px]
-                          ${active ? 'bg-white/10 border-l-4 shadow-md shadow-white/5' : 'hover:bg-white/5'}
+                          ${active 
+                            ? 'bg-white/10 border-l-4 shadow-md shadow-white/5 opacity-100' 
+                            : 'hover:bg-white/5 opacity-70 hover:opacity-100'
+                          }
                         `}
                         style={{
-                          color: active ? 'var(--theme-sidebar-text)' : 'color-mix(in srgb, var(--theme-sidebar-text) 70%, transparent)',
+                          color: 'var(--theme-sidebar-text)',
                           borderLeftColor: active ? 'var(--theme-secondary)' : 'transparent'
                         }}
                       >
@@ -332,7 +348,7 @@ export default function PortalSidebar({ config, onNavigate }) {
                             className={`material-symbols-outlined transition-all duration-300 ${active ? 'scale-110' : 'group-hover:scale-110'}`}
                             style={{
                               fontSize: '16px',
-                              color: active ? 'var(--theme-secondary)' : 'color-mix(in srgb, var(--theme-sidebar-text) 60%, transparent)'
+                              color: active ? 'var(--theme-secondary)' : 'inherit'
                             }}
                           >
                             {item.icon}
@@ -343,7 +359,7 @@ export default function PortalSidebar({ config, onNavigate }) {
                           <div className="w-3 h-3 flex items-center justify-center shrink-0">
                             <span
                               className="material-symbols-outlined"
-                              style={{ fontSize: '12px', color: 'color-mix(in srgb, var(--theme-sidebar-text) 50%, transparent)' }}
+                              style={{ fontSize: '12px', color: 'inherit' }}
                             >
                               chevron_right
                             </span>
@@ -352,7 +368,7 @@ export default function PortalSidebar({ config, onNavigate }) {
                           <div className="w-3 h-3 flex items-center justify-center shrink-0">
                             <span
                               className="material-symbols-outlined opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all duration-300"
-                              style={{ fontSize: '12px', color: 'color-mix(in srgb, var(--theme-sidebar-text) 50%, transparent)' }}
+                              style={{ fontSize: '12px', color: 'inherit' }}
                             >
                               chevron_right
                             </span>

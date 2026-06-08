@@ -159,7 +159,7 @@ const SessionContent = () => {
 
   if (!session) {
     return (
-      <div className="px-4 py-6 md:px-6 lg:px-8 max-w-5xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-[var(--theme-border)]">
           <h2 className="text-xl font-bold text-[var(--theme-text)] mb-2">Sesi Tidak Ditemukan</h2>
           <p className="text-[var(--theme-text-muted)] font-medium text-sm">Sesi yang Anda cari tidak ada atau telah dihapus.</p>
@@ -170,7 +170,7 @@ const SessionContent = () => {
   }
 
   return (
-    <div className="px-4 py-6 md:px-6 lg:px-8 min-h-screen bg-transparent font-body max-w-5xl mx-auto space-y-6">
+    <div className="bg-transparent font-body max-w-5xl mx-auto space-y-6">
       
       {/* Back button */}
       <div>

@@ -9,7 +9,7 @@ const Participants = () => {
   const { data: participants, isLoading } = useFakultasParticipantsQuery({ fakultas_id: fakultasId });
 
   return (
-    <div className="px-4 py-6 md:px-6 lg:px-8 min-h-screen bg-transparent font-body max-w-7xl mx-auto space-y-6">
+    <div className="bg-transparent font-body max-w-7xl mx-auto space-y-6">
       <PageHeader
         icon="users"
         title={

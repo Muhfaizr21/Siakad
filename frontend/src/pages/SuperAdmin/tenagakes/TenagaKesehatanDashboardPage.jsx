@@ -148,7 +148,7 @@ export default function TenagaKesehatanDashboardPage() {
         ) : (
           <>
             {/* ── Stats Grid ──────────────────────────────────────────── */}
-            <DashboardStatGrid>
+            <DashboardStatGrid className="xl:grid-cols-5">
               <DashboardStatCard 
                 label="Tenaga Medis" 
                 value={data.length} 

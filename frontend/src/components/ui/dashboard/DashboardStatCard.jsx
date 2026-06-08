@@ -58,7 +58,30 @@ export function DashboardStatCard({
             </div>
             
             {badge && (
-              <div className="flex items-center gap-1 text-[10px] font-semibold text-[var(--theme-success)] bg-[var(--theme-success-light)] border border-[var(--theme-success)]/20 px-2 py-0.5 rounded-full shrink-0">
+              <div 
+                className={cn(
+                  "flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0",
+                  badge.className || (() => {
+                    const color = badge.color || (
+                      colorClass?.includes('primary') ? 'primary' :
+                      colorClass?.includes('info') ? 'info' :
+                      colorClass?.includes('success') ? 'success' :
+                      colorClass?.includes('secondary') ? 'secondary' :
+                      colorClass?.includes('warning') ? 'warning' :
+                      colorClass?.includes('error') ? 'error' : 'success'
+                    );
+                    const colorMap = {
+                      primary: 'text-[var(--theme-primary)] bg-[var(--theme-primary-light)] border border-[var(--theme-primary)]/20',
+                      info: 'text-[var(--theme-info)] bg-[var(--theme-info-light)] border border-[var(--theme-info)]/20',
+                      success: 'text-[var(--theme-success)] bg-[var(--theme-success-light)] border border-[var(--theme-success)]/20',
+                      secondary: 'text-[var(--theme-secondary)] bg-[var(--theme-secondary-light)] border border-[var(--theme-secondary)]/20',
+                      warning: 'text-[var(--theme-warning)] bg-[var(--theme-warning-light)] border border-[var(--theme-warning)]/20',
+                      error: 'text-[var(--theme-error)] bg-[var(--theme-error-light)] border border-[var(--theme-error)]/20',
+                    };
+                    return colorMap[color] || colorMap.success;
+                  })()
+                )}
+              >
                 {badge.icon && <span className="material-symbols-outlined" style={{ fontSize: '9px' }}>{badge.icon}</span>}
                 {badge.text}
               </div>

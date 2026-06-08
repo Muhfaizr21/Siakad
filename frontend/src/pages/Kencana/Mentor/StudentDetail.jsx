@@ -210,7 +210,7 @@ const StudentDetail = () => {
   }
 
   return (
-    <div className="px-4 py-6 md:px-6 lg:px-8 min-h-screen bg-transparent font-body max-w-7xl mx-auto space-y-6">
+    <div className="bg-transparent font-body max-w-7xl mx-auto space-y-6">
       {/* Breadcrumbs & Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[var(--theme-border)] shadow-sm">
         <div className="flex items-center gap-4">
@@ -253,33 +253,33 @@ const StudentDetail = () => {
       </div>
 
       {/* Tabs Menu */}
-      <div className="flex gap-4 border-b border-[var(--theme-border-muted)] mb-6">
+      <div className="flex flex-wrap items-center gap-1.5 p-1 bg-[var(--theme-surface)] rounded-2xl border border-[var(--theme-border)] shadow-sm w-fit mb-6">
         <button
           onClick={() => switchTab('progress')}
-          className={`pb-3 text-xs font-bold uppercase tracking-wider transition-all border-b-2 ${
+          className={`h-10 px-5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${
             activeTab === 'progress' 
-              ? 'border-[var(--theme-primary)] text-[var(--theme-primary)]' 
-              : 'border-transparent text-[var(--theme-text-muted)] hover:text-[var(--theme-text)]'
+              ? 'bg-[var(--theme-primary)] text-white shadow-md' 
+              : 'text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg)] hover:text-[var(--theme-text)]'
           }`}
         >
           📈 Rincian Nilai
         </button>
         <button
           onClick={() => switchTab('form')}
-          className={`pb-3 text-xs font-bold uppercase tracking-wider transition-all border-b-2 ${
+          className={`h-10 px-5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${
             activeTab === 'form' 
-              ? 'border-[var(--theme-primary)] text-[var(--theme-primary)]' 
-              : 'border-transparent text-[var(--theme-text-muted)] hover:text-[var(--theme-text)]'
+              ? 'bg-[var(--theme-primary)] text-white shadow-md' 
+              : 'text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg)] hover:text-[var(--theme-text)]'
           }`}
         >
           📝 Input &amp; Edit Nilai
         </button>
         <button
           onClick={() => switchTab('handbook')}
-          className={`pb-3 text-xs font-bold uppercase tracking-wider transition-all border-b-2 ${
+          className={`h-10 px-5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${
             activeTab === 'handbook' 
-              ? 'border-[var(--theme-primary)] text-[var(--theme-primary)]' 
-              : 'border-transparent text-[var(--theme-text-muted)] hover:text-[var(--theme-text)]'
+              ? 'bg-[var(--theme-primary)] text-white shadow-md' 
+              : 'text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg)] hover:text-[var(--theme-text)]'
           }`}
         >
           📘 Review Handbook
