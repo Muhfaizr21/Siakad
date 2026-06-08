@@ -55,11 +55,10 @@ const Scores = () => {
                     <td className="px-6 py-4 text-[var(--theme-text-muted)]">{s.affective_score?.toFixed(1)}</td>
                     <td className="px-6 py-4 font-bold text-[var(--theme-primary)]">{s.final_score?.toFixed(1)}</td>
                     <td className="px-6 py-4">
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                        s.is_passed 
-                          ? 'bg-[var(--theme-success-light)] text-[var(--theme-success)] border-[var(--theme-success-light)]' 
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${s.is_passed
+                          ? 'bg-[var(--theme-success-light)] text-[var(--theme-success)] border-[var(--theme-success-light)]'
                           : 'bg-[var(--theme-danger-light)] text-[var(--theme-danger)] border-[var(--theme-danger-light)]'
-                      }`}>
+                        }`}>
                         {s.is_passed ? 'Lulus' : 'Belum Lulus'}
                       </span>
                     </td>

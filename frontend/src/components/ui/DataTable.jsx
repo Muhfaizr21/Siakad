@@ -31,6 +31,11 @@ export default function DataTable({
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedFilters, setSelectedFilters] = useState({});
+  const [limit, setLimit] = useState(pageSize);
+
+  React.useEffect(() => {
+    setLimit(pageSize);
+  }, [pageSize]);
 
   // Search filter
   const searchedData = searchable && onSearch
@@ -98,9 +103,9 @@ export default function DataTable({
   }, [filteredData, sortConfig]);
 
   // Pagination
-  const totalPages = Math.ceil(filteredData.length / pageSize);
+  const totalPages = Math.ceil(filteredData.length / limit);
   const paginatedData = pagination
-    ? sortedData.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+    ? sortedData.slice((currentPage - 1) * limit, currentPage * limit)
     : sortedData;
 
   const handleSearch = (e) => {
@@ -110,19 +115,19 @@ export default function DataTable({
 
   return (
     <div
-      className="rounded-2xl overflow-hidden"
+      className="rounded-2xl overflow-hidden shadow-none border font-body"
       style={{
         backgroundColor: 'var(--theme-surface)',
-        border: '1px solid var(--theme-border)',
+        borderColor: 'var(--theme-border)',
       }}
     >
       {/* Table Toolbar */}
       {(searchable || onAdd || filters.length > 0) && (
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between p-4 gap-3 border-b" style={{ borderColor: 'var(--theme-border-muted)' }}>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between p-3 gap-3 border-b" style={{ borderColor: 'var(--theme-border-muted)' }}>
           {searchable && (
             <div className="relative flex-1 max-w-sm">
               <span
-                className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg"
+                className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-base"
                 style={{ color: 'var(--theme-text-muted)' }}
               >
                 search
@@ -132,7 +137,7 @@ export default function DataTable({
                 placeholder={searchPlaceholder}
                 value={search}
                 onChange={handleSearch}
-                className="w-full pl-10 pr-4 h-10 rounded-xl text-sm outline-none"
+                className="w-full pl-9 pr-4 h-9 rounded-lg text-xs font-semibold outline-none"
                 style={{
                   backgroundColor: 'var(--theme-bg)',
                   color: 'var(--theme-text)',
@@ -154,7 +159,7 @@ export default function DataTable({
                       setCurrentPage(1);
                     }}
                     placeholder={f.placeholder}
-                    className="w-full h-10"
+                    className="w-full h-9 text-xs rounded-lg"
                   >
                     <SelectOption value="all">Semua {f.placeholder}</SelectOption>
                     {f.options.map((opt) => (
@@ -174,9 +179,9 @@ export default function DataTable({
               <button
                 type="button"
                 onClick={onAdd}
-                className="h-10 px-4 rounded-xl bg-[var(--theme-primary)] text-white text-xs font-bold uppercase tracking-wider hover:bg-[var(--theme-primary-hover)] transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer border-none shadow-sm"
+                className="h-9 px-3.5 rounded-lg bg-[var(--theme-primary)] text-white text-[11px] font-semibold uppercase tracking-wider hover:bg-[var(--theme-primary-hover)] transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer border-none shadow-sm"
               >
-                <span className="material-symbols-outlined text-[16px]">add</span>
+                <span className="material-symbols-outlined text-[14px]">add</span>
                 {addLabel}
               </button>
             )}
@@ -187,8 +192,8 @@ export default function DataTable({
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead style={{ backgroundColor: 'var(--theme-bg)' }}>
+        <table className="w-full font-body">
+          <thead style={{ backgroundColor: 'var(--theme-bg)' }} className="font-headline">
             <tr>
               {columns.map((col) => {
                 const isSortable = col.sortable !== false && col.key;
@@ -197,7 +202,7 @@ export default function DataTable({
                     key={col.key}
                     onClick={() => isSortable && handleSort(col.key)}
                     className={cn(
-                      "px-4 py-3 text-left text-xs font-bold uppercase tracking-wider select-none",
+                      "px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider select-none",
                       isSortable && "cursor-pointer hover:text-slate-900 group",
                       col.className
                     )}
@@ -221,7 +226,7 @@ export default function DataTable({
                 );
               })}
               {(onRowClick || (actions && typeof actions === 'function')) && (
-                <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--theme-h4)' }}>
+                <th className="px-4 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--theme-h4)' }}>
                   Aksi
                 </th>
               )}
@@ -233,20 +238,20 @@ export default function DataTable({
               Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i} className="border-t" style={{ borderColor: 'var(--theme-border-muted)' }}>
                   {columns.map((col) => (
-                    <td key={col.key} className={cn("px-4 py-3", col.className, col.cellClassName)}>
+                    <td key={col.key} className={cn("px-4 py-2", col.className, col.cellClassName)}>
                       <div
-                        className="h-4 rounded animate-pulse"
+                        className="h-2.5 rounded animate-pulse"
                         style={{ backgroundColor: 'var(--theme-border-muted)', width: `${60 + Math.random() * 40}%` }}
                       />
                     </td>
                   ))}
-                  {(onRowClick || (actions && typeof actions === 'function')) && <td className="px-4 py-3"><div className="h-4 w-16 rounded animate-pulse" style={{ backgroundColor: 'var(--theme-border-muted)' }} /></td>}
+                  {(onRowClick || (actions && typeof actions === 'function')) && <td className="px-4 py-2"><div className="h-2.5 w-16 rounded animate-pulse" style={{ backgroundColor: 'var(--theme-border-muted)' }} /></td>}
                 </tr>
               ))
             ) : paginatedData.length === 0 ? (
               // Empty state
               <tr>
-                <td colSpan={columns.length + (onRowClick || (actions && typeof actions === 'function') ? 1 : 0)} className="px-4 py-16 text-center">
+                <td colSpan={columns.length + (onRowClick || (actions && typeof actions === 'function') ? 1 : 0)} className="px-4 py-12 text-center">
                   <div className="flex flex-col items-center justify-center gap-3">
                     <span
                       className="material-symbols-outlined text-4xl"
@@ -254,7 +259,7 @@ export default function DataTable({
                     >
                       {emptyIcon}
                     </span>
-                    <p style={{ color: 'var(--theme-text-muted)' }}>{emptyMessage}</p>
+                    <p className="text-xs font-semibold" style={{ color: 'var(--theme-text-muted)' }}>{emptyMessage}</p>
                   </div>
                 </td>
               </tr>
@@ -270,14 +275,14 @@ export default function DataTable({
                   {columns.map((col) => (
                     <td
                       key={col.key}
-                      className={cn("px-4 py-3 text-sm", col.className, col.cellClassName)}
+                      className={cn("px-4 py-2 text-xs font-normal", col.className, col.cellClassName)}
                       style={{ color: 'var(--theme-text)' }}
                     >
-                      {col.render ? col.render(row[col.key], row, (currentPage - 1) * pageSize + idx) : row[col.key]}
+                      {col.render ? col.render(row[col.key], row, (currentPage - 1) * limit + idx) : row[col.key]}
                     </td>
                   ))}
                   {(onRowClick || (actions && typeof actions === 'function')) && (
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-2">
                       <div className="flex items-center justify-end gap-1.5">
                         {actions && typeof actions === 'function' && actions(row)}
                         {onRowClick && (
@@ -302,17 +307,48 @@ export default function DataTable({
       {/* Pagination */}
       {pagination && (
         <div
-          className="flex items-center justify-between px-4 py-3 border-t"
+          className="flex flex-col sm:flex-row items-center justify-between px-4 py-3 gap-3 border-t"
           style={{ borderColor: 'var(--theme-border-muted)' }}
         >
-          <span className="text-xs font-medium" style={{ color: 'var(--theme-text-muted)' }}>
-            Menampilkan {filteredData.length > 0 ? (currentPage - 1) * pageSize + 1 : 0}–{Math.min(currentPage * pageSize, filteredData.length)} dari {filteredData.length} entri
-          </span>
+          <div className="flex flex-wrap items-center gap-4">
+            <span className="text-xs font-medium" style={{ color: 'var(--theme-text-muted)' }}>
+              Menampilkan {filteredData.length > 0 ? (currentPage - 1) * limit + 1 : 0}–{Math.min(currentPage * limit, filteredData.length)} dari {filteredData.length} entri
+            </span>
+            
+            {/* Rows Per Page Selector */}
+            <div className="flex items-center gap-1.5 text-xs animate-in fade-in duration-200" style={{ color: 'var(--theme-text-muted)' }}>
+              <span>Tampilkan</span>
+              <div className="relative">
+                <select
+                  value={limit}
+                  onChange={(e) => {
+                    setLimit(parseInt(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="pl-2 pr-6 py-1 bg-surface border rounded-md text-xs font-bold outline-none cursor-pointer appearance-none"
+                  style={{
+                    borderColor: 'var(--theme-border)',
+                    color: 'var(--theme-text)',
+                    backgroundColor: 'var(--theme-surface)'
+                  }}
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+                <span className="material-symbols-outlined absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none" style={{ fontSize: '14px', color: 'var(--theme-text-muted)' }}>expand_more</span>
+              </div>
+              <span>entri</span>
+            </div>
+          </div>
+
           <div className="flex items-center gap-2">
             <button
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
               disabled={currentPage === 1 || totalPages <= 1}
-              className="px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40 hover:bg-black/[0.03] flex items-center gap-1 text-xs font-bold border border-slate-200 bg-white"
+              className="px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40 hover:bg-black/[0.03] flex items-center gap-1 text-xs font-semibold border border-slate-200 bg-white cursor-pointer"
               style={{ color: 'var(--theme-text)' }}
             >
               <span className="material-symbols-outlined text-base" style={{ fontSize: '16px' }}>chevron_left</span>
@@ -326,7 +362,7 @@ export default function DataTable({
                     <button
                       key={page}
                       onClick={() => setCurrentPage(page)}
-                      className="w-8 h-8 rounded-lg text-xs font-bold transition-colors"
+                      className="w-8 h-8 rounded-lg text-xs font-bold transition-colors cursor-pointer"
                       style={
                         currentPage === page
                           ? { backgroundColor: 'var(--theme-primary)', color: 'white' }
@@ -342,7 +378,7 @@ export default function DataTable({
             <button
               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages || totalPages <= 1}
-              className="px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40 hover:bg-black/[0.03] flex items-center gap-1 text-xs font-bold border border-slate-200 bg-white"
+              className="px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40 hover:bg-black/[0.03] flex items-center gap-1 text-xs font-semibold border border-slate-200 bg-white cursor-pointer"
               style={{ color: 'var(--theme-text)' }}
             >
               Berikutnya

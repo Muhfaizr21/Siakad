@@ -11,6 +11,7 @@ import (
 func SetupSuperAdminRoutes(r fiber.Router) {
 	// User & RBAC Management
 	r.Get("/stats", controllers.GetDashboardStats)
+	r.Get("/system-health", controllers.GetSystemHealth)
 	r.Get("/users", controllers.GetUsers)
 	r.Post("/users", controllers.CreateUser)
 	r.Put("/users/role", controllers.UpdateUserRole)

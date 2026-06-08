@@ -680,7 +680,7 @@ export default function PsychologistDashboard() {
                     )}
                   </div>
                 ) : (
-                  <div className="mt-4 space-y-4 flex-1">
+                  <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1 content-center">
                     {specializationData.length > 0 ? (
                       specializationData.map((item, idx) => {
                         const percentage = data.length > 0 ? Math.round((item.value / data.length) * 100) : 0;
@@ -703,22 +703,53 @@ export default function PsychologistDashboard() {
                         const textColorClass = textColorClasses[idx % textColorClasses.length];
 
                         return (
-                          <div key={item.name} className="space-y-1.5 text-left font-inter">
-                            <div className="flex justify-between items-center text-xs font-semibold">
-                              <span className="text-[var(--theme-text)] font-bold truncate max-w-[320px]" title={item.name}>{item.name}</span>
-                              <span className={cn("font-black text-[10px] shrink-0", textColorClass)}>{item.value} Ahli ({percentage}%)</span>
+                          <div 
+                            key={item.name} 
+                            className="p-4 rounded-2xl bg-[var(--theme-bg)] border border-[var(--theme-border-muted)] hover:border-[var(--theme-primary)]/30 hover:bg-slate-50/50 transition-all duration-200 flex flex-col justify-between"
+                          >
+                            <div className="flex items-start justify-between gap-3 mb-3">
+                              <div className="flex items-center gap-3 min-w-0">
+                                <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 border",
+                                  idx % 5 === 0 && "bg-[var(--theme-primary)]/10 text-[var(--theme-primary)] border-[var(--theme-primary)]/20",
+                                  idx % 5 === 1 && "bg-[var(--theme-secondary)]/10 text-[var(--theme-secondary)] border-[var(--theme-secondary)]/20",
+                                  idx % 5 === 2 && "bg-[var(--theme-info)]/10 text-[var(--theme-info)] border-[var(--theme-info)]/20",
+                                  idx % 5 === 3 && "bg-[var(--theme-warning)]/10 text-[var(--theme-warning)] border-[var(--theme-warning)]/20",
+                                  idx % 5 === 4 && "bg-[var(--theme-success)]/10 text-[var(--theme-success)] border-[var(--theme-success)]/20"
+                                )}>
+                                  <span className="material-symbols-outlined text-base">psychology</span>
+                                </div>
+                                <div className="text-left min-w-0">
+                                  <span className="text-xs font-bold text-[var(--theme-text)] block line-clamp-2 leading-snug" title={item.name}>{item.name}</span>
+                                </div>
+                              </div>
+                              <span className={cn("px-2 py-0.5 rounded-lg text-[9px] font-extrabold tracking-wide shrink-0 border bg-surface shadow-sm", textColorClass,
+                                idx % 5 === 0 && "border-[var(--theme-primary)]/20",
+                                idx % 5 === 1 && "border-[var(--theme-secondary)]/20",
+                                idx % 5 === 2 && "border-[var(--theme-info)]/20",
+                                idx % 5 === 3 && "border-[var(--theme-warning)]/20",
+                                idx % 5 === 4 && "border-[var(--theme-success)]/20"
+                              )}>
+                                {item.value} Ahli
+                              </span>
                             </div>
-                            <div className="w-full h-2 bg-[var(--theme-border-muted)] rounded-full overflow-hidden">
-                              <div 
-                                className={cn("h-full rounded-full transition-all duration-500", colorClass)} 
-                                style={{ width: `${percentage}%` }} 
-                              />
+                            
+                            <div className="space-y-1">
+                              <div className="flex justify-between items-center text-[9px] font-bold text-[var(--theme-text-muted)]">
+                                <span>Persentase Sebaran</span>
+                                <span className={textColorClass}>{percentage}%</span>
+                              </div>
+                              <div className="w-full h-1.5 bg-[var(--theme-border-muted)] rounded-full overflow-hidden">
+                                <div 
+                                  className={cn("h-full rounded-full transition-all duration-500", colorClass)} 
+                                  style={{ width: `${percentage}%` }} 
+                                />
+                              </div>
                             </div>
                           </div>
                         )
                       })
                     ) : (
-                      <div className="py-8 text-center text-xs text-[var(--theme-text-muted)] italic">Tidak ada data spesialisasi</div>
+                      <div className="py-8 text-center text-xs text-[var(--theme-text-muted)] italic col-span-full">Tidak ada data spesialisasi</div>
                     )}
                   </div>
                 )}

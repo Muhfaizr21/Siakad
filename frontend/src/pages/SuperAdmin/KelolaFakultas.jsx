@@ -205,10 +205,16 @@ export default function KelolaFakultas() {
 
   const PIE_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#6366f1', '#ec4899', '#8b5cf6']
 
-  const chartData = data.map(fac => ({
-    name: fac.Kode || fac.Nama || '—',
-    'Jumlah Prodi': fac.JumlahProdi || fac.jumlah_prodi || fac.ProgramStudi?.length || fac.program_studi?.length || 0
-  }))
+  const kapasitasProdiData = useMemo(() => {
+    return allProdis
+      .map(p => ({
+        name: p.Nama || p.nama || '—',
+        kapasitas: p.Kapasitas || p.kapasitas || 0
+      }))
+      .sort((a, b) => b.kapasitas - a.kapasitas)
+  }, [allProdis])
+
+  const maxKapasitas = Math.max(...kapasitasProdiData.map(d => d.kapasitas), 1)
 
   const extraStats = useMemo(() => {
     // 1. Who - Top Faculty (biggest by prodi count)
@@ -304,148 +310,223 @@ export default function KelolaFakultas() {
       />
 
         {/* ── Enriched Stats Grid ─────────────────────────────────── */}
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="space-y-6 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {/* Card 1: Total Fakultas */}
             <div
               onClick={() => setIsAllFacultiesOpen(true)}
-              className="bg-white p-4 rounded-xl border border-[#e5e5e5] shadow-sm cursor-pointer hover:bg-neutral-50/50 hover:shadow-md hover:border-neutral-300 transition-all group flex flex-col justify-between"
+              className="group relative bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-xl hover:shadow-blue-500/10 hover:border-blue-200 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col justify-between"
             >
-               <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-[#eef4ff] rounded-lg flex justify-center items-center text-[#00236F] shrink-0">
-                     <Building2 size={14} />
-                  </div>
-                  <span className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest">Total Fakultas</span>
+               <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-150 group-hover:-rotate-12 transition-transform duration-500 text-blue-600 pointer-events-none">
+                  <Building2 size={80} />
                </div>
-               <p className="text-2xl font-black text-[#171717] mt-3">{data.length}</p>
+               <div className="flex items-center justify-between mb-4 relative z-10">
+                  <div className="w-12 h-12 bg-blue-50/80 rounded-xl flex justify-center items-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300 shadow-sm">
+                     <Building2 size={24} />
+                  </div>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 text-[10px] font-bold text-blue-600 border border-blue-100">
+                    <span className="material-symbols-outlined text-[12px]">verified</span> Active
+                  </span>
+               </div>
+               <div className="relative z-10">
+                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Fakultas</p>
+                  <p className="text-3xl font-black text-slate-800 tracking-tight">{data.length}</p>
+               </div>
             </div>
 
+            {/* Card 2: Total Prodi */}
             <div
               onClick={() => setIsAllProdiOpen(true)}
-              className="bg-white p-4 rounded-xl border border-[#e5e5e5] shadow-sm cursor-pointer hover:bg-neutral-50/50 hover:shadow-md hover:border-neutral-300 transition-all group flex flex-col justify-between"
+              className="group relative bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 hover:border-indigo-200 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col justify-between"
             >
-               <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-indigo-50 rounded-lg flex justify-center items-center text-indigo-600 shrink-0">
-                     <LayoutGrid size={14} />
-                  </div>
-                  <span className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest">Total Prodi</span>
+               <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-150 group-hover:rotate-12 transition-transform duration-500 text-indigo-600 pointer-events-none">
+                  <LayoutGrid size={80} />
                </div>
-               <p className="text-2xl font-black text-[#171717] mt-3">{totalProdi}</p>
+               <div className="flex items-center justify-between mb-4 relative z-10">
+                  <div className="w-12 h-12 bg-indigo-50/80 rounded-xl flex justify-center items-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-300 shadow-sm">
+                     <LayoutGrid size={24} />
+                  </div>
+               </div>
+               <div className="relative z-10">
+                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Prodi</p>
+                  <p className="text-3xl font-black text-slate-800 tracking-tight">{totalProdi}</p>
+               </div>
             </div>
 
-            <div className="bg-white p-4 rounded-xl border border-[#e5e5e5] shadow-sm flex flex-col justify-between">
-               <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-emerald-50 rounded-lg flex justify-center items-center text-emerald-600 shrink-0">
-                     <Group size={14} />
-                  </div>
-                  <span className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest">Kapasitas Tampung</span>
+            {/* Card 3: Kapasitas Tampung */}
+            <div className="group relative bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-xl hover:shadow-emerald-500/10 hover:border-emerald-200 transition-all duration-300 overflow-hidden flex flex-col justify-between">
+               <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-150 group-hover:-rotate-12 transition-transform duration-500 text-emerald-600 pointer-events-none">
+                  <Group size={80} />
                </div>
-               <p className="text-2xl font-black text-[#171717] mt-3">{kapasitasTampung.toLocaleString('id-ID')} Mhs</p>
+               <div className="flex items-center justify-between mb-4 relative z-10">
+                  <div className="w-12 h-12 bg-emerald-50/80 rounded-xl flex justify-center items-center text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300 shadow-sm">
+                     <Group size={24} />
+                  </div>
+               </div>
+               <div className="relative z-10">
+                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Kapasitas Tampung</p>
+                  <p className="text-3xl font-black text-slate-800 tracking-tight">{kapasitasTampung.toLocaleString('id-ID')} <span className="text-sm font-bold text-slate-400">Mhs</span></p>
+               </div>
             </div>
 
-            <div className="bg-white p-4 rounded-xl border border-[#e5e5e5] shadow-sm flex flex-col justify-between">
-               <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-amber-50 rounded-lg flex justify-center items-center text-amber-600 shrink-0">
-                     <Award size={14} />
-                  </div>
-                  <span className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest">Prodi Unggul/A</span>
+            {/* Card 4: Prodi Unggul/A */}
+            <div className="group relative bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-xl hover:shadow-amber-500/10 hover:border-amber-200 transition-all duration-300 overflow-hidden flex flex-col justify-between">
+               <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-150 group-hover:rotate-12 transition-transform duration-500 text-amber-600 pointer-events-none">
+                  <Award size={80} />
                </div>
-               <p className="text-2xl font-black text-[#171717] mt-3">{akreditasiA}</p>
+               <div className="flex items-center justify-between mb-4 relative z-10">
+                  <div className="w-12 h-12 bg-amber-50/80 rounded-xl flex justify-center items-center text-amber-600 group-hover:bg-amber-500 group-hover:text-white transition-colors duration-300 shadow-sm">
+                     <Award size={24} />
+                  </div>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-[10px] font-bold text-amber-600 border border-amber-100">
+                    <span className="material-symbols-outlined text-[12px]">trending_up</span> {extraStats.rasioUnggulPct}%
+                  </span>
+               </div>
+               <div className="relative z-10">
+                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Prodi Unggul / A</p>
+                  <p className="text-3xl font-black text-slate-800 tracking-tight">{akreditasiA}</p>
+               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-             <div className="bg-white p-4 rounded-xl border border-[#e5e5e5] shadow-sm flex flex-col justify-between">
-                <div className="flex items-center gap-2">
-                   <div className="w-8 h-8 bg-blue-50 rounded-lg flex justify-center items-center text-blue-600 shrink-0">
-                      <span className="material-symbols-outlined text-blue-600" style={{ fontSize: '18px' }} >domain</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+             <div className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-md hover:border-slate-300 transition-all flex flex-col justify-between">
+                <div className="flex items-center gap-3 mb-4">
+                   <div className="w-10 h-10 bg-cyan-50 rounded-xl flex justify-center items-center text-cyan-600 shrink-0">
+                      <span className="material-symbols-outlined text-cyan-600" style={{ fontSize: '20px' }}>corporate_fare</span>
                    </div>
-                   <span className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest">Fakultas Terbesar</span>
+                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Fakultas Terbesar</span>
                 </div>
-                <p className="text-lg font-black text-[#171717] mt-3 truncate">{extraStats.topFaculty}</p>
-                <p className="text-[11px] text-slate-400 font-medium mt-1">{extraStats.topFacultyProdiCount} Program Studi</p>
+                <div>
+                   <p className="text-xl font-black text-slate-800 truncate">{extraStats.topFaculty}</p>
+                   <p className="text-xs text-slate-500 font-medium mt-1">{extraStats.topFacultyProdiCount} Program Studi</p>
+                </div>
              </div>
 
-             <div className="bg-white p-4 rounded-xl border border-[#e5e5e5] shadow-sm flex flex-col justify-between">
-                <div className="flex items-center gap-2">
-                   <div className="w-8 h-8 bg-emerald-50 rounded-lg flex justify-center items-center text-emerald-600 shrink-0">
-                      <span className="material-symbols-outlined text-emerald-600" style={{ fontSize: '18px' }} >school</span>
+             <div className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-md hover:border-slate-300 transition-all flex flex-col justify-between">
+                <div className="flex items-center gap-3 mb-4">
+                   <div className="w-10 h-10 bg-fuchsia-50 rounded-xl flex justify-center items-center text-fuchsia-600 shrink-0">
+                      <span className="material-symbols-outlined text-fuchsia-600" style={{ fontSize: '20px' }}>school</span>
                    </div>
-                   <span className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest">Jenjang Terbanyak</span>
+                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jenjang Terbanyak</span>
                 </div>
-                <p className="text-lg font-black text-[#171717] mt-3">{extraStats.topJenjang}</p>
-                <p className="text-[11px] text-slate-400 font-medium mt-1">{extraStats.topJenjangCount} Program Studi</p>
+                <div>
+                   <p className="text-xl font-black text-slate-800">{extraStats.topJenjang}</p>
+                   <p className="text-xs text-slate-500 font-medium mt-1">{extraStats.topJenjangCount} Program Studi</p>
+                </div>
              </div>
 
-             <div className="bg-white p-4 rounded-xl border border-[#e5e5e5] shadow-sm flex flex-col justify-between">
-                <div className="flex items-center gap-2">
-                   <div className="w-8 h-8 bg-indigo-50 rounded-lg flex justify-center items-center text-indigo-600 shrink-0">
-                      <span className="material-symbols-outlined text-indigo-600" style={{ fontSize: '18px' }} >stars</span>
+             <div className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-md hover:border-slate-300 transition-all flex flex-col justify-between">
+                <div className="flex items-center gap-3 mb-4">
+                   <div className="w-10 h-10 bg-violet-50 rounded-xl flex justify-center items-center text-violet-600 shrink-0">
+                      <span className="material-symbols-outlined text-violet-600" style={{ fontSize: '20px' }}>stars</span>
                    </div>
-                   <span className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest">Rasio Unggul / A</span>
+                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Rasio Unggul</span>
                 </div>
-                <p className="text-lg font-black text-[#171717] mt-3">{extraStats.rasioUnggulPct}%</p>
-                <p className="text-[11px] text-slate-400 font-medium mt-1">{extraStats.akreditasiA} prodi terakreditasi A/Unggul</p>
+                <div>
+                   <p className="text-xl font-black text-slate-800">{extraStats.rasioUnggulPct}%</p>
+                   <p className="text-xs text-slate-500 font-medium mt-1">{extraStats.akreditasiA} prodi terakreditasi</p>
+                </div>
              </div>
 
-             <div className="bg-white p-4 rounded-xl border border-[#e5e5e5] shadow-sm flex flex-col justify-between">
-                <div className="flex items-center gap-2">
-                   <div className="w-8 h-8 bg-amber-50 rounded-lg flex justify-center items-center text-amber-600 shrink-0">
-                      <span className="material-symbols-outlined text-amber-600" style={{ fontSize: '18px' }} >group</span>
+             <div className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-md hover:border-slate-300 transition-all flex flex-col justify-between">
+                <div className="flex items-center gap-3 mb-4">
+                   <div className="w-10 h-10 bg-rose-50 rounded-xl flex justify-center items-center text-rose-600 shrink-0">
+                      <span className="material-symbols-outlined text-rose-600" style={{ fontSize: '20px' }}>group_add</span>
                    </div>
-                   <span className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest">Rata-rata Kapasitas</span>
+                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Rata-rata Kapasitas</span>
                 </div>
-                <p className="text-lg font-black text-[#171717] mt-3">{extraStats.rataKapasitas} Mhs</p>
-                <p className="text-[11px] text-slate-400 font-medium mt-1">Per Program Studi</p>
+                <div>
+                   <p className="text-xl font-black text-slate-800">{extraStats.rataKapasitas} Mhs</p>
+                   <p className="text-xs text-slate-500 font-medium mt-1">Per Program Studi</p>
+                </div>
              </div>
           </div>
         </div>
 
         {/* ── Enriched Visual Charts Grid ─────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-           {/* Chart 1: Prodi per Fakultas */}
-           <div className="lg:col-span-1 bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm flex flex-col justify-between">
-              <div>
-                 <div className="flex items-center gap-3 mb-3">
-                    <div className="w-8 h-8 bg-[#eef4ff] rounded-lg flex justify-center items-center text-[#00236F]">
-                       <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '16px' }} >bar_chart</span>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+           {/* Chart 1: Kapasitas Prodi (List) */}
+           <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+              <div className="flex flex-col h-full">
+                 <div className="flex items-center gap-4 mb-4 shrink-0">
+                    <div className="w-12 h-12 bg-blue-50/80 rounded-xl flex justify-center items-center text-blue-600 group-hover:scale-110 group-hover:-rotate-6 transition-all duration-300">
+                       <span className="material-symbols-outlined text-[24px]">groups</span>
                     </div>
-                    <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Jumlah Prodi / Fakultas</span>
+                    <div>
+                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Statistik Distribusi</span>
+                       <h3 className="text-sm font-bold text-slate-800 leading-tight">Daya Tampung per Prodi</h3>
+                    </div>
                  </div>
-                 <div className="h-[180px] w-full mt-1">
-                    <ResponsiveContainer width="100%" height={180}>
-                       <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                          <XAxis dataKey="name" tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                          <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                          <Tooltip
-                             cursor={{ fill: '#f8fafc' }}
-                             contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "11px", fontWeight: "bold" }}
-                          />
-                          <Bar dataKey="Jumlah Prodi" fill="var(--theme-primary, #00236f)" radius={[4, 4, 0, 0]} barSize={18} />
-                       </BarChart>
-                    </ResponsiveContainer>
+                 <div className="h-[200px] w-full mt-2 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+                    {kapasitasProdiData.length > 0 ? (
+                       kapasitasProdiData.map((item, idx) => {
+                          const percentage = Math.round((item.kapasitas / maxKapasitas) * 100);
+                          const colors = [
+                             { bg: 'bg-blue-500', text: 'text-blue-600', iconBg: 'bg-blue-50 text-blue-600 border-blue-100' },
+                             { bg: 'bg-indigo-500', text: 'text-indigo-600', iconBg: 'bg-indigo-50 text-indigo-600 border-indigo-100' },
+                             { bg: 'bg-emerald-500', text: 'text-emerald-600', iconBg: 'bg-emerald-50 text-emerald-600 border-emerald-100' },
+                             { bg: 'bg-amber-500', text: 'text-amber-600', iconBg: 'bg-amber-50 text-amber-600 border-amber-100' },
+                             { bg: 'bg-rose-500', text: 'text-rose-600', iconBg: 'bg-rose-50 text-rose-600 border-rose-100' }
+                          ];
+                          const color = colors[idx % colors.length];
+
+                          return (
+                             <div key={idx} className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex flex-col justify-between transition-colors hover:bg-white hover:border-slate-200 hover:shadow-sm cursor-default">
+                                <div className="flex items-start justify-between gap-3 mb-2">
+                                   <div className="flex items-center gap-3 min-w-0">
+                                      <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 border", color.iconBg)}>
+                                         <span className="material-symbols-outlined text-base">school</span>
+                                      </div>
+                                      <div className="text-left min-w-0">
+                                         <span className="text-[11px] font-bold text-slate-800 block truncate" title={item.name}>{item.name}</span>
+                                      </div>
+                                   </div>
+                                   <span className={cn("px-2 py-0.5 rounded-lg text-[9px] font-extrabold tracking-wide shrink-0 border bg-white shadow-sm", color.text, color.iconBg)}>
+                                      {item.kapasitas} Mhs
+                                   </span>
+                                </div>
+                                
+                                <div className="space-y-1">
+                                   <div className="flex justify-between items-center text-[9px] font-bold text-slate-400">
+                                      <span>Rasio terhadap Tertinggi</span>
+                                      <span className={color.text}>{percentage}%</span>
+                                   </div>
+                                   <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                                      <div className={cn("h-full rounded-full transition-all duration-500", color.bg)} style={{ width: `${percentage}%` }} />
+                                   </div>
+                                </div>
+                             </div>
+                          )
+                       })
+                    ) : (
+                       <div className="py-8 text-center text-xs text-slate-400 italic">Tidak ada data program studi</div>
+                    )}
                  </div>
               </div>
            </div>
 
            {/* Chart 2: Donut Chart - Distribusi Jenjang */}
-           <div className="lg:col-span-1 bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm flex flex-col justify-between">
+           <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
               <div>
-                 <div className="flex items-center gap-3 mb-3">
-                    <div className="w-8 h-8 bg-emerald-50 rounded-lg flex justify-center items-center text-emerald-600">
-                       <span className="material-symbols-outlined text-emerald-600" style={{ fontSize: '16px' }}>pie_chart</span>
+                 <div className="flex items-center gap-4 mb-4">
+                    <div className="w-12 h-12 bg-emerald-50/80 rounded-xl flex justify-center items-center text-emerald-600 group-hover:scale-110 group-hover:-rotate-6 transition-all duration-300">
+                       <span className="material-symbols-outlined text-[24px]">donut_small</span>
                     </div>
-                    <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Sebaran Jenjang Prodi</span>
+                    <div>
+                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Komposisi Pendidikan</span>
+                       <h3 className="text-sm font-bold text-slate-800 leading-tight">Sebaran Jenjang Program Studi</h3>
+                    </div>
                  </div>
                  <div className="h-[180px] w-full flex items-center justify-center relative">
-                    <ResponsiveContainer width="100%" height={180}>
+                    <ResponsiveContainer width="100%" height="100%">
                        <PieChart>
                           <Pie
                              data={jenjangChartData}
                              cx="50%"
                              cy="50%"
-                             innerRadius={45}
-                             outerRadius={65}
+                             innerRadius={50}
+                             outerRadius={75}
                              paddingAngle={4}
                              dataKey="value"
                              stroke="none"
@@ -454,18 +535,18 @@ export default function KelolaFakultas() {
                                 <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                              ))}
                           </Pie>
-                          <Tooltip contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", fontSize: "11px", fontWeight: "bold" }} />
+                          <Tooltip contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)", fontSize: "11px", fontWeight: "bold" }} />
                        </PieChart>
                     </ResponsiveContainer>
                  </div>
               </div>
-              <div className="grid grid-cols-3 gap-1 mt-2">
+              <div className="grid grid-cols-3 gap-2 mt-4">
                  {jenjangChartData.map((item, idx) => (
-                    <div key={item.name} className="flex items-center gap-1.5 p-1 rounded bg-slate-50 border border-slate-100">
-                       <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
+                    <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-md bg-slate-50 border border-slate-100 hover:bg-white transition-colors">
+                       <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
                        <div className="min-w-0">
-                          <p className="text-[8px] font-bold text-slate-400 truncate leading-none">{item.name}</p>
-                          <p className="text-xs font-black text-slate-700 leading-none mt-1">{item.value}</p>
+                          <p className="text-[9px] font-bold text-slate-400 truncate leading-none">{item.name}</p>
+                          <p className="text-sm font-black text-slate-700 leading-none mt-1">{item.value}</p>
                        </div>
                     </div>
                  ))}
@@ -473,25 +554,28 @@ export default function KelolaFakultas() {
            </div>
 
            {/* Chart 3: Akreditasi Prodi */}
-           <div className="lg:col-span-1 bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm flex flex-col justify-between">
+           <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
               <div>
-                 <div className="flex items-center gap-3 mb-3">
-                    <div className="w-8 h-8 bg-indigo-50 rounded-lg flex justify-center items-center text-indigo-600">
-                       <span className="material-symbols-outlined text-indigo-600" style={{ fontSize: '16px' }}>award</span>
+                 <div className="flex items-center gap-4 mb-4">
+                    <div className="w-12 h-12 bg-indigo-50/80 rounded-xl flex justify-center items-center text-indigo-600 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                       <span className="material-symbols-outlined text-[24px]">workspace_premium</span>
                     </div>
-                    <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Akreditasi Program Studi</span>
+                    <div>
+                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Kualitas Mutu</span>
+                       <h3 className="text-sm font-bold text-slate-800 leading-tight">Sebaran Akreditasi Nasional</h3>
+                    </div>
                  </div>
-                 <div className="h-[180px] w-full mt-1">
-                    <ResponsiveContainer width="100%" height={180}>
+                 <div className="h-[200px] w-full mt-2">
+                    <ResponsiveContainer width="100%" height="100%">
                        <BarChart data={akreditasiChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                           <XAxis dataKey="name" tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
                           <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
                           <Tooltip
                              cursor={{ fill: '#f8fafc' }}
-                             contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", fontSize: "11px", fontWeight: "bold" }}
+                             contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)", fontSize: "11px", fontWeight: "bold" }}
                           />
-                          <Bar dataKey="value" name="Jumlah Prodi" fill="#8b5cf6" radius={[4, 4, 0, 0]} barSize={20} />
+                          <Bar dataKey="value" name="Jumlah Prodi" fill="#8b5cf6" radius={[4, 4, 0, 0]} barSize={24} />
                        </BarChart>
                     </ResponsiveContainer>
                  </div>

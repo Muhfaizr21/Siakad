@@ -490,6 +490,7 @@ export const adminService = {
     if (params.program_studi_id) q.append('program_studi_id', params.program_studi_id)
     return fetchWithAuth(`${API_BASE_URL}/admin/stats?${q.toString()}`)
   },
+  getSystemHealth: () => fetchWithAuth(`${API_BASE_URL}/admin/system-health`),
   // Trigger PDDikti sync for the whole university (Super Admin only, no faculty filter)
   syncPddikti: (keyword = 'Universitas Bhakti Kencana', type = 'all') =>
     fetchWithAuth(`${API_BASE_URL}/pddikti/proxy?keyword=${encodeURIComponent(keyword)}&type=${type}&sync=true`),

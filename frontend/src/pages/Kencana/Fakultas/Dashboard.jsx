@@ -87,6 +87,8 @@ const Dashboard = () => {
     percentage: f.percentage
   }));
 
+  const maxJumlah = Math.max(...chartData.map(d => d.jumlah), 1);
+
   return (
     <div className="bg-transparent font-body">
       <div className="max-w-[1600px] mx-auto space-y-8">
@@ -237,30 +239,51 @@ const Dashboard = () => {
                     </div>
                  </div>
                  
-                 <div className="w-full mt-6">
+                 <div className="w-full mt-6 h-[240px] overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-[var(--theme-border)] scrollbar-track-transparent">
                     {chartData.length > 0 ? (
-                      <ResponsiveContainer width="99%" height={240} debounce={50}>
-                        <BarChart data={chartData} layout="vertical" margin={{ left: 10, right: 20 }}>
-                          <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="var(--theme-border-muted)" />
-                          <XAxis type="number" hide domain={[0, 'dataMax']} />
-                          <YAxis dataKey="name" type="category" width={160}
-                            tick={({ y, payload }) => (
-                              <text x={0} y={y} dy={4} textAnchor="start" fill="var(--theme-text-muted)" fontSize={9.5} fontWeight={700} className="font-headline">
-                                {payload.value?.length > 25 ? `${payload.value.substring(0, 25)}...` : payload.value}
-                              </text>
-                            )}
-                            axisLine={false} tickLine={false}
-                          />
-                          <Tooltip cursor={{ fill: 'var(--theme-bg)' }}
-                            contentStyle={{ backgroundColor: "var(--theme-surface)", border: "1px solid var(--theme-border)", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "bold", color: "var(--theme-text)" }}
-                          />
-                          <Bar dataKey="jumlah" fill="var(--theme-primary)" radius={[0, 10, 10, 0]} barSize={14} />
-                        </BarChart>
-                      </ResponsiveContainer>
+                       chartData.map((item, idx) => {
+                          const fillPercentage = Math.round((item.jumlah / maxJumlah) * 100);
+                          const colors = [
+                             { bg: 'bg-blue-500', text: 'text-blue-600', iconBg: 'bg-blue-50 text-blue-600 border-blue-100' },
+                             { bg: 'bg-indigo-500', text: 'text-indigo-600', iconBg: 'bg-indigo-50 text-indigo-600 border-indigo-100' },
+                             { bg: 'bg-emerald-500', text: 'text-emerald-600', iconBg: 'bg-emerald-50 text-emerald-600 border-emerald-100' },
+                             { bg: 'bg-amber-500', text: 'text-amber-600', iconBg: 'bg-amber-50 text-amber-600 border-amber-100' },
+                             { bg: 'bg-rose-500', text: 'text-rose-600', iconBg: 'bg-rose-50 text-rose-600 border-rose-100' }
+                          ];
+                          const color = colors[idx % colors.length];
+
+                          return (
+                             <div key={idx} className="p-3 rounded-xl bg-[var(--theme-bg)] border border-[var(--theme-border-muted)] flex flex-col justify-between transition-colors hover:bg-[var(--theme-surface)] hover:border-[var(--theme-primary)]/30 hover:shadow-sm cursor-default">
+                                <div className="flex items-start justify-between gap-3 mb-2">
+                                   <div className="flex items-center gap-3 min-w-0">
+                                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 border ${color.iconBg}`}>
+                                         <span className="material-symbols-outlined text-base">school</span>
+                                      </div>
+                                      <div className="text-left min-w-0">
+                                         <span className="text-xs font-bold text-[var(--theme-text)] block truncate" title={item.name}>{item.name}</span>
+                                      </div>
+                                   </div>
+                                   <span className={`px-2 py-0.5 rounded-lg text-[9px] font-extrabold tracking-wide shrink-0 border bg-[var(--theme-surface)] shadow-sm ${color.text} ${color.iconBg}`}>
+                                      {item.jumlah} Maba
+                                   </span>
+                                </div>
+                                
+                                <div className="space-y-1">
+                                   <div className="flex justify-between items-center text-[9px] font-bold text-[var(--theme-text-muted)]">
+                                      <span>Rasio terhadap Tertinggi</span>
+                                      <span className={color.text}>{fillPercentage}%</span>
+                                   </div>
+                                   <div className="w-full h-1.5 bg-[var(--theme-border-muted)] rounded-full overflow-hidden">
+                                      <div className={`h-full rounded-full transition-all duration-500 ${color.bg}`} style={{ width: `${fillPercentage}%` }} />
+                                   </div>
+                                </div>
+                             </div>
+                          )
+                       })
                     ) : (
-                       <div className="h-[200px] flex flex-col items-center justify-center text-[var(--theme-text-muted)] bg-[var(--theme-bg)] rounded-2xl border border-dashed border-[var(--theme-border)]">
+                       <div className="h-full flex flex-col items-center justify-center text-[var(--theme-text-muted)] bg-[var(--theme-bg)] rounded-2xl border border-dashed border-[var(--theme-border)]">
                           <span className="material-symbols-outlined text-4xl mb-2 opacity-30">analytics</span>
-                          <p className="text-sm font-bold">{isParticipantsLoading ? 'Memuat grafik...' : 'Belum ada data'}</p>
+                          <p className="text-sm font-bold">{isParticipantsLoading ? 'Memuat data...' : 'Belum ada data'}</p>
                        </div>
                     )}
                  </div>
