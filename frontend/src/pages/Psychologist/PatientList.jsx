@@ -1,18 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { psychologistService } from '../../services/api';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/Table';
+import { DataTable } from '@/components/ui/DataTable';
 
 export default function PatientList() {
-  const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
-
+  const [loading, setLoading] = useState(true);
   const [patients, setPatients] = useState([]);
   const [filterStatus, setFilterStatus] = useState('Semua Status');
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-
   const [fakultasList, setFakultasList] = useState([]);
   const [prodiList, setProdiList] = useState([]);
   const [selectedFakultas, setSelectedFakultas] = useState('Semua Fakultas');
@@ -20,17 +15,26 @@ export default function PatientList() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
-  const handleSort = (key) => {
-    let direction = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') direction = 'desc';
-    setSortConfig({ key, direction });
-  };
-
   useEffect(() => {
     let ignore = false;
-    psychologistService.getPatients().then((res) => {
-      if (!ignore) setPatients(res.data || []);
-    });
+    setLoading(true);
+    psychologistService.getPatients()
+      .then((res) => {
+        if (!ignore) {
+          const sanitized = (res.data || []).map(p => ({
+            ...p,
+            sessions: Number(p.sessions || 0)
+          }));
+          setPatients(sanitized);
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+      })
+      .finally(() => {
+        if (!ignore) setLoading(false);
+      });
+
     psychologistService.getFakultasList().then((res) => {
       if (!ignore) setFakultasList(res.data || []);
     });
@@ -50,15 +54,19 @@ export default function PatientList() {
   const handleFakultasChange = (val) => {
     setSelectedFakultas(val);
     setSelectedProdi('Semua Prodi');
-    setCurrentPage(1);
   };
 
-  const filteredAndSortedPatients = useMemo(() => {
-    let result = [...patients];
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(p => p.name.toLowerCase().includes(query) || p.nim.includes(searchQuery));
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Stabil': return { bg: 'color-mix(in srgb, var(--theme-success) 10%, transparent)', text: 'var(--theme-success)', border: 'color-mix(in srgb, var(--theme-success) 20%, transparent)', dot: 'var(--theme-success)', dotAnim: '' };
+      case 'Perlu Perhatian': return { bg: 'color-mix(in srgb, var(--theme-error) 10%, transparent)', text: 'var(--theme-error)', border: 'color-mix(in srgb, var(--theme-error) 20%, transparent)', dot: 'var(--theme-error)', dotAnim: 'animate-pulse' };
+      case 'Pemulihan': return { bg: 'color-mix(in srgb, var(--theme-info) 10%, transparent)', text: 'var(--theme-info)', border: 'color-mix(in srgb, var(--theme-info) 20%, transparent)', dot: 'var(--theme-info)', dotAnim: '' };
+      default: return { bg: 'color-mix(in srgb, var(--theme-text-muted) 10%, transparent)', text: 'var(--theme-text-muted)', border: 'color-mix(in srgb, var(--theme-text-muted) 20%, transparent)', dot: 'var(--theme-text-muted)', dotAnim: '' };
     }
+  };
+
+  const filteredPatients = useMemo(() => {
+    let result = [...patients];
     if (filterStatus !== 'Semua Status') {
       result = result.filter(p => p.status === filterStatus);
     }
@@ -74,30 +82,88 @@ export default function PatientList() {
     if (endDate) {
       result = result.filter(p => p.raw_last_visit && p.raw_last_visit <= endDate);
     }
-    if (sortConfig.key) {
-      result.sort((a, b) => {
-        let valA = a[sortConfig.key];
-        let valB = b[sortConfig.key];
-        if (sortConfig.key === 'sessions') { valA = Number(valA); valB = Number(valB); }
-        if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
-        if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
-        return 0;
-      });
-    }
     return result;
-  }, [patients, searchQuery, filterStatus, selectedFakultas, selectedProdi, startDate, endDate, sortConfig]);
+  }, [patients, filterStatus, selectedFakultas, selectedProdi, startDate, endDate]);
 
-  const totalPages = Math.ceil(filteredAndSortedPatients.length / pageSize);
-  const paginatedPatients = filteredAndSortedPatients.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Stabil': return { bg: 'color-mix(in srgb, var(--theme-success) 10%, transparent)', text: 'var(--theme-success)', border: 'color-mix(in srgb, var(--theme-success) 20%, transparent)', dot: 'var(--theme-success)', dotAnim: '' };
-      case 'Perlu Perhatian': return { bg: 'color-mix(in srgb, var(--theme-error) 10%, transparent)', text: 'var(--theme-error)', border: 'color-mix(in srgb, var(--theme-error) 20%, transparent)', dot: 'var(--theme-error)', dotAnim: 'animate-pulse' };
-      case 'Pemulihan': return { bg: 'color-mix(in srgb, var(--theme-info) 10%, transparent)', text: 'var(--theme-info)', border: 'color-mix(in srgb, var(--theme-info) 20%, transparent)', dot: 'var(--theme-info)', dotAnim: '' };
-      default: return { bg: 'color-mix(in srgb, var(--theme-text-muted) 10%, transparent)', text: 'var(--theme-text-muted)', border: 'color-mix(in srgb, var(--theme-text-muted) 20%, transparent)', dot: 'var(--theme-text-muted)', dotAnim: '' };
-    }
+  const handleTableSearch = (data, searchVal) => {
+    const query = searchVal.trim().toLowerCase();
+    if (!query) return data;
+    return data.filter((p) => {
+      const searchableStr = [
+        p.name,
+        p.nim,
+        p.faculty,
+        p.program_studi,
+        p.status,
+      ].filter(Boolean).join(' ').toLowerCase();
+      return searchableStr.includes(query);
+    });
   };
+
+  const columns = [
+    {
+      key: 'name',
+      label: 'Identitas Pasien',
+      sortable: true,
+      render: (v, row) => (
+        <div className="flex items-center gap-3">
+          <div className={`w-10 h-10 rounded-xl ${row.color || 'bg-primary'} text-white flex items-center justify-center font-black text-xs shadow-sm bg-primary border border-primary/20 shrink-0 overflow-hidden relative`}>
+            {row.foto_url || row.foto ? (
+              <img src={row.foto_url || row.foto} alt={row.name} className="w-full h-full object-cover" />
+            ) : (
+              row.name?.charAt(0) || 'P'
+            )}
+          </div>
+          <div>
+            <p className="font-bold text-sm text-slate-900 group-hover:text-primary transition-colors max-w-[200px] truncate">{row.name}</p>
+            <p className="text-[10px] text-slate-400 font-medium mt-0.5">{row.nim} &bull; {row.faculty}</p>
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'sessions',
+      label: 'Aktivitas Sesi',
+      sortable: true,
+      render: (v, row) => (
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <span className="w-5 h-5 rounded flex items-center justify-center shrink-0 bg-primary/10 text-primary">
+              <span className="material-symbols-outlined !text-[12px]">show_chart</span>
+            </span>
+            <div>
+              <p className="text-[11px] font-black text-slate-700">{row.sessions} Kali</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-5 h-5 rounded flex items-center justify-center shrink-0 bg-slate-100 text-slate-500">
+              <span className="material-symbols-outlined !text-[12px]">calendar_month</span>
+            </span>
+            <div>
+              <p className="text-[10px] font-bold text-slate-500">{row.lastVisit}</p>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'status',
+      label: 'Status Klinis',
+      sortable: true,
+      render: (v, row) => {
+        const statusStyle = getStatusColor(row.status);
+        return (
+          <span
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest border whitespace-nowrap"
+            style={{ backgroundColor: statusStyle.bg, color: statusStyle.text, borderColor: statusStyle.border }}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dotAnim}`} style={{ backgroundColor: statusStyle.dot }} />
+            {row.status}
+          </span>
+        );
+      }
+    }
+  ];
 
   return (
     <>
@@ -169,22 +235,7 @@ export default function PatientList() {
                 <h3 className="text-xs font-black uppercase tracking-widest text-slate-800 font-headline">Filter Data</h3>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-5">
-                {/* Search */}
-                <div className="space-y-2">
-                  <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                    <span className="material-symbols-outlined text-base">search</span>
-                    Pencarian
-                  </label>
-                  <input 
-                    type="text" 
-                    placeholder="Nama atau NIM..."
-                    value={searchQuery}
-                    onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-                    className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
-                  />
-                </div>
-
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5">
                 {/* Status */}
                 <div className="space-y-2">
                   <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
@@ -193,7 +244,7 @@ export default function PatientList() {
                   </label>
                   <select
                     value={filterStatus}
-                    onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}
+                    onChange={(e) => setFilterStatus(e.target.value)}
                     className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 cursor-pointer"
                   >
                     <option value="Semua Status">Semua Status</option>
@@ -229,7 +280,7 @@ export default function PatientList() {
                   </label>
                   <select
                     value={selectedProdi}
-                    onChange={(e) => { setSelectedProdi(e.target.value); setCurrentPage(1); }}
+                    onChange={(e) => setSelectedProdi(e.target.value)}
                     disabled={selectedFakultas === 'Semua Fakultas'}
                     className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -249,7 +300,7 @@ export default function PatientList() {
                   <input
                     type="date"
                     value={startDate}
-                    onChange={(e) => { setStartDate(e.target.value); setCurrentPage(1); }}
+                    onChange={(e) => setStartDate(e.target.value)}
                     className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
                   />
                 </div>
@@ -263,7 +314,7 @@ export default function PatientList() {
                   <input
                     type="date"
                     value={endDate}
-                    onChange={(e) => { setEndDate(e.target.value); setCurrentPage(1); }}
+                    onChange={(e) => setEndDate(e.target.value)}
                     className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
                   />
                 </div>
@@ -281,10 +332,8 @@ export default function PatientList() {
                     setFilterStatus('Semua Status');
                     setStartDate('');
                     setEndDate('');
-                    setSearchQuery('');
-                    setCurrentPage(1);
                   }}
-                  disabled={!(selectedFakultas !== 'Semua Fakultas' || selectedProdi !== 'Semua Prodi' || filterStatus !== 'Semua Status' || startDate || endDate || searchQuery)}
+                  disabled={!(selectedFakultas !== 'Semua Fakultas' || selectedProdi !== 'Semua Prodi' || filterStatus !== 'Semua Status' || startDate || endDate)}
                   className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-5 py-2.5 text-[10px] font-black uppercase tracking-widest text-slate-500 transition-all hover:bg-slate-50 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <span className="material-symbols-outlined text-[16px]">restart_alt</span>
@@ -302,126 +351,23 @@ export default function PatientList() {
                 <div className="flex flex-col gap-2 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <h2 className="text-sm font-black uppercase tracking-widest text-slate-800 font-headline">Daftar Pasien Terdaftar</h2>
-                    <p className="text-[10px] font-bold text-slate-500 mt-1">Total {filteredAndSortedPatients.length} pasien ditemukan</p>
-                  </div>
-                  <div className="flex items-center gap-2 mt-3 sm:mt-0">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Urutkan:</span>
-                    <button onClick={() => handleSort('name')} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-[9px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50">
-                      Nama {sortConfig.key === 'name' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}
-                    </button>
-                    <button onClick={() => handleSort('sessions')} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-[9px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50">
-                      Sesi {sortConfig.key === 'sessions' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}
-                    </button>
+                    <p className="text-[10px] font-bold text-slate-500 mt-1">Total {filteredPatients.length} pasien ditemukan</p>
                   </div>
                 </div>
 
-                {paginatedPatients.length === 0 ? (
-                  <div className="flex min-h-[300px] flex-col items-center justify-center gap-4 text-center">
-                    <div className="flex w-20 h-20 items-center justify-center rounded-[1.5rem] bg-slate-50 border border-slate-100 text-slate-300">
-                      <span className="material-symbols-outlined text-[40px]">group_off</span>
-                    </div>
-                    <div>
-                      <h3 className="text-base font-black uppercase tracking-tight text-slate-800 font-headline">Tidak ada pasien</h3>
-                      <p className="mt-1.5 text-sm font-medium text-slate-500">Coba ubah filter atau kata kunci pencarian.</p>
-                    </div>
-                  </div>
-                ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Identitas Pasien</TableHead>
-                        <TableHead>Aktivitas Sesi</TableHead>
-                        <TableHead>Status Klinis</TableHead>
-                        <TableHead className="text-right">Aksi</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {paginatedPatients.map((patient) => {
-                        const statusStyle = getStatusColor(patient.status);
-                        
-                        return (
-                          <TableRow 
-                            key={patient.id} 
-                            onClick={() => navigate(`/psychologist/patients/${patient.id}/medical-record`)}
-                            className={`cursor-pointer group ${patient.status === 'Selesai' ? 'opacity-60 grayscale-[35%]' : ''}`}
-                          >
-                            <TableCell>
-                              <div className="flex items-center gap-3">
-                                <div className={`w-10 h-10 rounded-xl ${patient.color || 'bg-primary'} text-white flex items-center justify-center font-black text-xs shadow-sm bg-primary border border-primary/20 shrink-0 overflow-hidden relative`}>
-                                  {patient.foto_url || patient.foto ? (
-                                    <img src={patient.foto_url || patient.foto} alt={patient.name} className="w-full h-full object-cover" />
-                                  ) : (
-                                    patient.name?.charAt(0) || 'P'
-                                  )}
-                                </div>
-                                <div>
-                                  <p className="font-bold text-sm text-slate-900 group-hover:text-primary transition-colors max-w-[200px] truncate">{patient.name}</p>
-                                  <p className="text-[10px] text-slate-400 font-medium mt-0.5">{patient.nim} &bull; {patient.faculty}</p>
-                                </div>
-                              </div>
-                            </TableCell>
-                            
-                            <TableCell>
-                              <div className="flex flex-col gap-2">
-                                <div className="flex items-center gap-2">
-                                  <span className="w-5 h-5 rounded flex items-center justify-center shrink-0 bg-primary/10 text-primary">
-                                    <span className="material-symbols-outlined !text-[12px]">show_chart</span>
-                                  </span>
-                                  <div>
-                                    <p className="text-[11px] font-black text-slate-700">{patient.sessions} Kali</p>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <span className="w-5 h-5 rounded flex items-center justify-center shrink-0 bg-slate-100 text-slate-500">
-                                    <span className="material-symbols-outlined !text-[12px]">calendar_month</span>
-                                  </span>
-                                  <div>
-                                    <p className="text-[10px] font-bold text-slate-500">{patient.lastVisit}</p>
-                                  </div>
-                                </div>
-                              </div>
-                            </TableCell>
-                            
-                            <TableCell>
-                              <span
-                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest border whitespace-nowrap"
-                                style={{ backgroundColor: statusStyle.bg, color: statusStyle.text, borderColor: statusStyle.border }}
-                              >
-                                <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dotAnim}`} style={{ backgroundColor: statusStyle.dot }} />
-                                {patient.status}
-                              </span>
-                            </TableCell>
-                            
-                            <TableCell className="text-right">
-                              <div className="flex items-center justify-end">
-                                <span className="material-symbols-outlined text-[20px] text-slate-300 group-hover:text-primary transition-colors">chevron_right</span>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                )}
-                <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-b-[2rem]">
-                  <div className="flex items-center gap-4 text-xs font-bold text-slate-500">
-                    <div className="flex items-center gap-2">
-                      <span>Tampilkan:</span>
-                      <select value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }} className="p-1.5 rounded-lg bg-white border border-slate-200 outline-none">
-                        <option value={5}>5 Data</option>
-                        <option value={10}>10 Data</option>
-                        <option value={20}>20 Data</option>
-                      </select>
-                    </div>
-                    <span className="hidden sm:inline-block w-px h-4 bg-slate-300"></span>
-                    <span>Total: {filteredAndSortedPatients.length} Data</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className="px-3 py-1.5 text-[10px] uppercase tracking-widest font-black rounded-lg bg-white border border-slate-200 text-slate-600 disabled:opacity-50 hover:bg-slate-50 transition-all">Prev</button>
-                    <span className="text-xs font-bold text-slate-600 px-2">Hal {currentPage} / {totalPages || 1}</span>
-                    <button disabled={currentPage === totalPages || totalPages === 0} onClick={() => setCurrentPage(p => p + 1)} className="px-3 py-1.5 text-[10px] uppercase tracking-widest font-black rounded-lg bg-white border border-slate-200 text-slate-600 disabled:opacity-50 hover:bg-slate-50 transition-all">Next</button>
-                  </div>
-                </div>
+                <DataTable
+                  columns={columns}
+                  data={filteredPatients}
+                  loading={loading}
+                  searchable={true}
+                  onSearch={handleTableSearch}
+                  searchPlaceholder="Cari nama, NIM, fakultas..."
+                  pagination={true}
+                  pageSize={10}
+                  onRowClick={(row) => navigate(`/psychologist/patients/${row.id}/medical-record`)}
+                  emptyMessage="Tidak ada pasien. Coba ubah filter atau kata kunci pencarian."
+                  emptyIcon="group_off"
+                />
               </div>
             </div>
 

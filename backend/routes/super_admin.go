@@ -74,6 +74,7 @@ func SetupSuperAdminRoutes(r fiber.Router) {
 	r.Get("/psychologists/bookings", controllers.GetPsychologistBookingsAdmin)
 	r.Get("/psychologists/medical-records", controllers.GetPsychologistMedicalRecordsAdmin)
 	r.Get("/psychologists/referrals", controllers.GetPsychologistReferralsAdmin)
+	r.Post("/psychologists/referrals/:id/approve", controllers.ApprovePsychologistReferral)
 	r.Get("/psychologists/:id/schedules", controllers.GetPsychologistSchedulesAdmin)
 	r.Put("/psychologists/:id/schedules", controllers.SavePsychologistSchedulesAdmin)
 

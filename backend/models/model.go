@@ -530,7 +530,7 @@ type KategoriOrmawa struct {
 	Deskripsi           string `gorm:"type:text" json:"deskripsi"`
 	TerafiliasiFakultas bool   `gorm:"default:false" json:"terafiliasi_fakultas"`
 	WajibProdi          bool   `gorm:"default:false" json:"wajib_prodi"` // jika true, prodi wajib diisi
-	IsSystem            bool   `gorm:"default:false" json:"is_system"`  // built-in, tidak bisa dihapus
+	IsSystem            bool   `gorm:"default:false" json:"is_system"`   // built-in, tidak bisa dihapus
 	Urutan              int    `gorm:"default:0" json:"urutan"`
 }
 
@@ -543,7 +543,7 @@ type Ormawa struct {
 	Nama       string
 	Singkatan  string `gorm:"size:20"`
 	Deskripsi  string
-	FakultasID *uint `gorm:"index" json:"fakultas_id"`
+	FakultasID *uint     `gorm:"index" json:"fakultas_id"`
 	Fakultas   *Fakultas `json:"fakultas,omitempty"`
 
 	ProgramStudiID *uint         `gorm:"index" json:"program_studi_id,omitempty"`
@@ -602,11 +602,11 @@ type OrmawaAnggota struct {
 
 	Role             string
 	Divisi           string
-	DivisiPilihanDua string    `json:"divisi_pilihan_dua"`
-	IPK              float64   `json:"ipk"`
-	Alasan           string    `json:"alasan"`
-	CVURL            string    `json:"cv_url"`
-	CustomAnswers    string    `gorm:"type:text" json:"custom_answers"`
+	DivisiPilihanDua string  `json:"divisi_pilihan_dua"`
+	IPK              float64 `json:"ipk"`
+	Alasan           string  `json:"alasan"`
+	CVURL            string  `json:"cv_url"`
+	CustomAnswers    string  `gorm:"type:text" json:"custom_answers"`
 	Status           string
 	ParentID         *uint
 	JoinedAt         time.Time
@@ -620,8 +620,8 @@ type OrmawaRecruitmentField struct {
 	BaseModel
 	OrmawaID uint   `gorm:"index" json:"ormawa_id"`
 	Label    string `json:"label"`
-	Type     string `json:"type"`   // "text", "paragraph", "select", "checkbox", "file"
-	Options  string `json:"options"`  // Comma-separated list of options
+	Type     string `json:"type"`    // "text", "paragraph", "select", "checkbox", "file"
+	Options  string `json:"options"` // Comma-separated list of options
 	Required bool   `json:"required"`
 	Order    int    `gorm:"default:0" json:"order"`
 }
@@ -748,9 +748,9 @@ type Proposal struct {
 	MahasiswaID uint  `gorm:"index"`
 	FakultasID  *uint `gorm:"index" json:"FakultasID"` // NULL = ORMAWA tingkat universitas (BEM-U, UKM, MPM)
 
-	Ormawa    Ormawa     `gorm:"foreignKey:OrmawaID"`
-	Mahasiswa Mahasiswa  `gorm:"foreignKey:MahasiswaID"`
-	Fakultas  *Fakultas  `gorm:"foreignKey:FakultasID" json:"Fakultas,omitempty"`
+	Ormawa    Ormawa    `gorm:"foreignKey:OrmawaID"`
+	Mahasiswa Mahasiswa `gorm:"foreignKey:MahasiswaID"`
+	Fakultas  *Fakultas `gorm:"foreignKey:FakultasID" json:"Fakultas,omitempty"`
 
 	Judul           string
 	TanggalKegiatan time.Time
@@ -772,8 +772,8 @@ type Proposal struct {
 	SumberDana            string `json:"sumber_dana"`
 	PJKegiatan            string `json:"pj_kegiatan"`
 
-	ApprovedDosenID    *uint `gorm:"index"`
-	ApprovedFakultasID *uint `gorm:"index"`
+	ApprovedDosenID    *uint      `gorm:"index"`
+	ApprovedFakultasID *uint      `gorm:"index"`
 	TenggatLPJ         *time.Time `json:"tenggat_lpj"`
 
 	Riwayat []ProposalRiwayat           `gorm:"foreignKey:ProposalID"`
@@ -967,7 +967,7 @@ func (OrmawaAspirasi) TableName() string {
 
 type OrmawaNotifikasi struct {
 	BaseModel
-	OrmawaID uint   `gorm:"index"`
+	OrmawaID uint `gorm:"index"`
 	Ormawa   Ormawa
 	Tipe     string // approval, proposal, finance, event
 	Judul    string

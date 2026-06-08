@@ -2730,6 +2730,133 @@ func GetPsychologistReferralsAdmin(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"status": "success", "data": referrals})
 }
 
+// ApprovePsychologistReferral allows SuperAdmin to approve or reject a referral request
+func ApprovePsychologistReferral(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	var referral models.PsikologReferral
+	if err := config.DB.
+		Preload("Psikolog").
+		Preload("Psikolog.User").
+		Preload("Mahasiswa").
+		Where("id = ?", id).
+		First(&referral).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Referral tidak ditemukan"})
+	}
+
+	var body struct {
+		Action  string `json:"action"`  // "approve" atau "reject"
+		Catatan string `json:"catatan"` // alasan penolakan (opsional)
+	}
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload tidak valid"})
+	}
+
+	if body.Action != "approve" && body.Action != "reject" {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Action harus 'approve' atau 'reject'"})
+	}
+
+	var newApprovalStatus string
+	var newStatus string
+	var notifTitle, notifContent string
+
+	if body.Action == "approve" {
+		newApprovalStatus = "disetujui"
+		newStatus = "Selesai"
+		notifTitle = "Referral Disetujui ✅"
+		notifContent = fmt.Sprintf(
+			"Surat rujukan untuk mahasiswa %s (tipe: %s) telah disetujui oleh administrator dan final.",
+			referral.Mahasiswa.Nama,
+			referral.Tipe,
+		)
+	} else {
+		newApprovalStatus = "ditolak"
+		newStatus = "Ditolak"
+		catatan := body.Catatan
+		if catatan == "" {
+			catatan = "Tidak ada alasan yang diberikan"
+		}
+		notifTitle = "Referral Ditolak ❌"
+		notifContent = fmt.Sprintf(
+			"Surat rujukan untuk mahasiswa %s (tipe: %s) ditolak oleh administrator. Alasan: %s",
+			referral.Mahasiswa.Nama,
+			referral.Tipe,
+			catatan,
+		)
+	}
+
+	updates := map[string]any{
+		"approval_status": newApprovalStatus,
+		"approval_note":   body.Catatan,
+		"status":          newStatus,
+	}
+
+	if newStatus == "Selesai" {
+		updates["tanggal_dikirim"] = time.Now()
+		updates["tanggal_diterima"] = time.Now()
+	}
+
+	if err := config.DB.Model(&referral).Updates(updates).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+
+	// Kirim notifikasi ke psikolog dan mahasiswa yang bersangkutan
+	mahasiswaID := referral.MahasiswaID
+	mahasiswaNama := referral.Mahasiswa.Nama
+	psikologID := referral.PsikologID
+	psikologUserID := referral.Psikolog.UserID
+	psikologNama := referral.Psikolog.Nama
+	referralTipe := referral.Tipe
+	approvalAction := body.Action
+	catatanPenolakan := body.Catatan // capture sebelum goroutine
+
+	go func() {
+		// 1. Notifikasi ke psikolog via tabel psikolog.notifications (agar muncul di portal psikolog)
+		_ = notifikasi.KirimPsikolog(config.DB, psikologID, psikologUserID, "referral", notifTitle, notifContent)
+
+		// 2. Notifikasi ke mahasiswa yang bersangkutan
+		var mhsNotifTitle, mhsNotifContent string
+		if approvalAction == "approve" {
+			mhsNotifTitle = "Surat Rujukan Anda Disetujui ✅"
+			mhsNotifContent = fmt.Sprintf(
+				"Surat rujukan tipe %s yang dibuat oleh Psikolog %s untuk Anda telah disetujui oleh administrator. Rujukan akan segera dikirimkan ke pihak tujuan.",
+				referralTipe,
+				psikologNama,
+			)
+		} else {
+			catatan := catatanPenolakan
+			if catatan == "" {
+				catatan = "Tidak ada alasan yang diberikan"
+			}
+			mhsNotifTitle = "Surat Rujukan Anda Ditolak ❌"
+			mhsNotifContent = fmt.Sprintf(
+				"Surat rujukan tipe %s yang dibuat oleh Psikolog %s untuk Anda telah ditolak oleh administrator. Alasan: %s. Silakan hubungi psikolog Anda untuk informasi lebih lanjut.",
+				referralTipe,
+				psikologNama,
+				catatan,
+			)
+		}
+
+		if mahasiswaID > 0 {
+			_ = notifikasi.Kirim(config.DB, notifikasi.KirimParams{
+				MahasiswaID: mahasiswaID,
+				Type:        "referral",
+				Title:       mhsNotifTitle,
+				Content:     mhsNotifContent,
+				Link:        "/student/counseling?tab=referrals",
+			})
+		}
+
+		log.Printf("[Referral] Action=%s, Mahasiswa=%s, Psikolog=%s", approvalAction, mahasiswaNama, psikologNama)
+	}()
+
+	return c.JSON(fiber.Map{
+		"status":          "success",
+		"message":         fmt.Sprintf("Referral berhasil %s", map[string]string{"approve": "disetujui", "reject": "ditolak"}[body.Action]),
+		"approval_status": newApprovalStatus,
+	})
+}
+
 // GetAllTenagaKesehatan returns all registered health workers (Tenaga Kesehatan) profiles
 func GetAllTenagaKesehatan(c *fiber.Ctx) error {
 	var list []models.TenagaKesehatan

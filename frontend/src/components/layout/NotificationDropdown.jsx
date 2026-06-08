@@ -43,7 +43,7 @@ export default function NotificationDropdown() {
   const isOrmawa = role === 'ormawa' || role === 'ormawa_admin';
   const isPsychologist = role === 'psychologist' || role === 'psikolog';
   const isSuperAdmin = role === 'super_admin';
-  const hasNotifications = !isSuperAdmin; // super_admin has no notification endpoint
+  const hasNotifications = true; // Enable notifications for all roles
 
   // Polling strategy: check unread count every 30s
   const { data: unreadData } = useQuery({

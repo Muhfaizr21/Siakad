@@ -156,6 +156,9 @@ type PsikologReferral struct {
 	FilePendukungURL string           `json:"file_pendukung_url"`
 	SuratRujiukanURL string           `json:"surat_rujiukan_url"`
 	Status           string           `gorm:"index" json:"status"`
+	// Approval by SuperAdmin
+	ApprovalStatus string `gorm:"index;default:'menunggu_approval'" json:"approval_status"`
+	ApprovalNote   string `json:"approval_note"`
 	PihakTujuan      string           `json:"pihak_tujuan"`
 	EmailTujuan      string           `json:"email_tujuan"`
 	TanggalDibuat    time.Time        `json:"tanggal_dibuat"`

@@ -8,10 +8,18 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+// getActualUserID returns the true authenticated user ID without impersonation logic
+func getActualUserID(c *fiber.Ctx) (uint, error) {
+	v, ok := c.Locals("user_id").(uint)
+	if !ok || v == 0 {
+		return 0, fiber.NewError(fiber.StatusUnauthorized, "User tidak terautentikasi")
+	}
+	return v, nil
+}
 
 // GetNotifications returns a list of notifications for the current student
 func GetNotifications(c *fiber.Ctx) error {
-	UserID, err := getUserID(c)
+	UserID, err := getActualUserID(c)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
 	}
@@ -57,7 +65,7 @@ func GetNotifications(c *fiber.Ctx) error {
 
 // GetUnreadCount returns the number of unread notifications
 func GetUnreadCount(c *fiber.Ctx) error {
-	UserID, err := getUserID(c)
+	UserID, err := getActualUserID(c)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
 	}
@@ -76,7 +84,7 @@ func GetUnreadCount(c *fiber.Ctx) error {
 
 // MarkAsRead marks a single notification as read
 func MarkAsRead(c *fiber.Ctx) error {
-	UserID, err := getUserID(c)
+	UserID, err := getActualUserID(c)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
 	}
@@ -95,7 +103,7 @@ func MarkAsRead(c *fiber.Ctx) error {
 
 // MarkAllAsRead marks all notifications as read for the current user
 func MarkAllAsRead(c *fiber.Ctx) error {
-	UserID, err := getUserID(c)
+	UserID, err := getActualUserID(c)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
 	}
@@ -113,7 +121,7 @@ func MarkAllAsRead(c *fiber.Ctx) error {
 
 // DeleteNotification deletes a single notification
 func DeleteNotification(c *fiber.Ctx) error {
-	UserID, err := getUserID(c)
+	UserID, err := getActualUserID(c)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
 	}
@@ -129,7 +137,7 @@ func DeleteNotification(c *fiber.Ctx) error {
 
 // DeleteBulk deletes multiple notifications
 func DeleteBulk(c *fiber.Ctx) error {
-	UserID, err := getUserID(c)
+	UserID, err := getActualUserID(c)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
 	}
@@ -151,7 +159,7 @@ func DeleteBulk(c *fiber.Ctx) error {
 
 // DeleteRead deletes all read notifications
 func DeleteRead(c *fiber.Ctx) error {
-	UserID, err := getUserID(c)
+	UserID, err := getActualUserID(c)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
 	}

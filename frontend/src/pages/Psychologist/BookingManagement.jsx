@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { psychologistService } from '../../services/api';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/Table';
+import { DataTable } from '@/components/ui/DataTable';
 
 const tabs = ['Semua', 'Menunggu', 'Dikonfirmasi', 'Selesai', 'Ditolak'];
 const statusMeta = {
@@ -33,7 +33,6 @@ const statusMeta = {
 
 export default function BookingManagement() {
   const [selectedTab, setSelectedTab] = useState('Semua');
-  const [searchQuery, setSearchQuery] = useState('');
   const [issueFilter, setIssueFilter] = useState('Semua Topik');
   const [sortOrder, setSortOrder] = useState('Terbaru');
   const [loading, setLoading] = useState(true);
@@ -52,9 +51,6 @@ export default function BookingManagement() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
     let ignore = false;
@@ -109,7 +105,6 @@ export default function BookingManagement() {
   }, [bookings]);
 
   const filteredBookings = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
     const getScheduleTime = (booking) => {
       const raw = `${booking.raw_date || booking.date || ''} ${booking.time || ''}`;
       const parsed = Date.parse(raw);
@@ -119,18 +114,8 @@ export default function BookingManagement() {
     return bookings
       .filter((booking) => {
         const status = booking.status || 'Menunggu';
-        const searchable = [
-          booking.name,
-          booking.nim,
-          booking.issue,
-          booking.date,
-          booking.time,
-          booking.note,
-        ].filter(Boolean).join(' ').toLowerCase();
-
         const matchesTab = selectedTab === 'Semua' || status === selectedTab;
         const matchesIssue = issueFilter === 'Semua Topik' || booking.issue === issueFilter;
-        const matchesSearch = !query || searchable.includes(query);
         const matchesFakultas = selectedFakultas === 'Semua Fakultas' || booking.faculty === selectedFakultas;
         const matchesProdi = selectedProdi === 'Semua Prodi' || booking.prodi === selectedProdi;
         
@@ -138,7 +123,7 @@ export default function BookingManagement() {
         const matchesStartDate = !startDate || (bookingRawDate && bookingRawDate >= startDate);
         const matchesEndDate = !endDate || (bookingRawDate && bookingRawDate <= endDate);
 
-        return matchesTab && matchesIssue && matchesSearch && matchesFakultas && matchesProdi && matchesStartDate && matchesEndDate;
+        return matchesTab && matchesIssue && matchesFakultas && matchesProdi && matchesStartDate && matchesEndDate;
       })
       .sort((a, b) => {
         const first = getScheduleTime(a);
@@ -150,27 +135,30 @@ export default function BookingManagement() {
           ? String(second).localeCompare(String(first))
           : String(first).localeCompare(String(second));
       });
-  }, [bookings, issueFilter, searchQuery, selectedTab, sortOrder, selectedFakultas, selectedProdi, startDate, endDate]);
+  }, [bookings, issueFilter, selectedTab, sortOrder, selectedFakultas, selectedProdi, startDate, endDate]);
 
-  // Pagination logic
-  const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
-  
-  // Reset to page 1 if filter changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [filteredBookings.length, itemsPerPage]);
+  const handleTableSearch = (data, searchVal) => {
+    const query = searchVal.trim().toLowerCase();
+    if (!query) return data;
+    return data.filter((booking) => {
+      const searchableStr = [
+        booking.name,
+        booking.nim,
+        booking.prodi,
+        booking.issue,
+        booking.date,
+        booking.time,
+        booking.note,
+      ].filter(Boolean).join(' ').toLowerCase();
+      return searchableStr.includes(query);
+    });
+  };
 
-  const paginatedBookings = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredBookings.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredBookings, currentPage, itemsPerPage]);
-
-  const hasActiveFilter = selectedTab !== 'Semua' || issueFilter !== 'Semua Topik' || searchQuery.trim() || selectedFakultas !== 'Semua Fakultas' || selectedProdi !== 'Semua Prodi' || startDate || endDate;
+  const hasActiveFilter = selectedTab !== 'Semua' || issueFilter !== 'Semua Topik' || selectedFakultas !== 'Semua Fakultas' || selectedProdi !== 'Semua Prodi' || startDate || endDate;
 
   const resetFilters = () => {
     setSelectedTab('Semua');
     setIssueFilter('Semua Topik');
-    setSearchQuery('');
     setSelectedFakultas('Semua Fakultas');
     setSelectedProdi('Semua Prodi');
     setStartDate('');
@@ -208,6 +196,96 @@ export default function BookingManagement() {
     setShowLinkModal(false);
     handleAction(pendingConfirmId, 'Dikonfirmasi', meetingLink);
     setPendingConfirmId(null);
+  };
+
+  const columns = [
+    {
+      key: 'name',
+      label: 'Mahasiswa',
+      render: (v, row) => (
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm bg-primary/10 text-primary border border-primary/20 shrink-0">
+            {row.avatar || row.name?.charAt(0) || 'M'}
+          </div>
+          <div>
+            <p className="font-bold text-sm text-slate-900 group-hover:text-primary transition-colors max-w-[200px] truncate">{row.name || 'Mahasiswa'}</p>
+            <p className="text-[10px] text-slate-400 font-medium mt-0.5">{row.nim || '-'} &bull; {row.prodi || '-'}</p>
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'issue',
+      label: 'Topik Keluhan',
+      render: (v, row) => (
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[10px] font-bold text-slate-600 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg uppercase tracking-wider">{row.issue || '—'}</span>
+            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wider border ${
+              row.mode === 'Online' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-slate-50 text-slate-600 border-slate-200'
+            }`}>
+              <span className="material-symbols-outlined !text-[12px] shrink-0">{row.mode === 'Online' ? 'videocam' : 'groups'}</span>
+              {row.mode || 'Tatap Muka'}
+            </span>
+          </div>
+          <p className="line-clamp-1 text-[10px] font-medium text-slate-500 italic max-w-[250px]">"{row.note || 'Tidak ada catatan'}"</p>
+        </div>
+      )
+    },
+    {
+      key: 'date',
+      label: 'Jadwal Sesi',
+      render: (v, row) => (
+        <div>
+          <p className="font-black text-sm text-slate-700">{row.date || '-'}</p>
+          <p className="text-[10px] text-primary font-bold mt-0.5 bg-primary/10 inline-block px-1.5 py-0.5 rounded uppercase tracking-wider">{row.time || '-'}</p>
+        </div>
+      )
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      render: (v, row) => {
+        const status = row.status || 'Menunggu';
+        const statusCfg = statusMeta[status] || statusMeta['Menunggu'];
+        return (
+          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider whitespace-nowrap ${statusCfg.badgeBg} ${statusCfg.badgeText} ${statusCfg.badgeBorder}`}>
+            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${statusCfg.dot}`} />
+            {status}
+          </span>
+        );
+      }
+    }
+  ];
+
+  const renderActions = (row) => {
+    const status = row.status || 'Menunggu';
+    const isUpdating = updatingId === row.id;
+
+    if (status !== 'Menunggu') return null;
+
+    return (
+      <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+        <button
+          type="button"
+          disabled={isUpdating}
+          onClick={(e) => { e.stopPropagation(); handleAction(row.id, 'Ditolak'); }}
+          className="w-8 h-8 flex items-center justify-center rounded-xl bg-rose-50 text-rose-600 border border-rose-100 hover:bg-rose-100 transition-all disabled:opacity-50"
+          title="Tolak Booking"
+        >
+          <span className="material-symbols-outlined text-[16px]">close</span>
+        </button>
+        <button
+          type="button"
+          disabled={isUpdating}
+          onClick={(e) => { e.stopPropagation(); handleConfirmClick(row); }}
+          className="w-8 h-8 flex items-center justify-center rounded-xl bg-primary text-white hover:bg-primary/90 shadow-sm transition-all disabled:opacity-50"
+          title="Setujui Booking"
+        >
+          <span className="material-symbols-outlined text-[16px]">check</span>
+        </button>
+      </div>
+    );
   };
 
   if (loading) {
@@ -273,25 +351,8 @@ export default function BookingManagement() {
       {/* ── Search & Filter Bento ────────────────────────────────────── */}
       <section className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-5 relative overflow-hidden">
         <div className="flex flex-col gap-5 relative z-10">
-          {/* Row 1: Search, Topik, Urutan */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                <span className="material-symbols-outlined text-base">search</span>
-                Pencarian
-              </label>
-              <div className="relative">
-                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
-                <input
-                  type="text"
-                  placeholder="Cari nama, NIM, isu, atau tanggal..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 pl-11 pr-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
-                />
-              </div>
-            </div>
-
+          {/* Row 1: Topik, Urutan */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             <div className="space-y-2">
               <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
                 <span className="material-symbols-outlined text-base">filter_alt</span>
@@ -437,147 +498,20 @@ export default function BookingManagement() {
           )}
         </div>
 
-        {filteredBookings.length === 0 ? (
-          <div className="flex min-h-[300px] flex-col items-center justify-center gap-4 text-center">
-            <div className="flex w-20 h-20 items-center justify-center rounded-[1.5rem] bg-slate-50 border border-slate-100 text-slate-300">
-              <span className="material-symbols-outlined text-[40px]">assignment</span>
-            </div>
-            <div>
-              <h3 className="text-base font-black uppercase tracking-tight text-slate-800 font-headline">Tidak ada booking</h3>
-              <p className="mt-1.5 text-sm font-medium text-slate-500">Coba ubah filter atau kata kunci untuk menampilkan data lain.</p>
-            </div>
-          </div>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Mahasiswa</TableHead>
-                <TableHead>Topik Keluhan</TableHead>
-                <TableHead>Jadwal Sesi</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Aksi</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedBookings.map((booking) => {
-                const status = booking.status || 'Menunggu';
-                const isUpdating = updatingId === booking.id;
-                const statusCfg = statusMeta[status] || statusMeta['Menunggu'];
-
-                return (
-                  <TableRow 
-                    key={booking.id} 
-                    onClick={() => navigate(`/psychologist/bookings/${booking.id}`)} 
-                    className={`cursor-pointer group ${status === 'Selesai' ? 'opacity-70 grayscale-[30%]' : ''}`}
-                  >
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm bg-primary/10 text-primary border border-primary/20 shrink-0 group-hover:scale-105 transition-transform">
-                          {booking.avatar || booking.name?.charAt(0) || 'M'}
-                        </div>
-                        <div>
-                          <p className="font-bold text-sm text-slate-900 group-hover:text-primary transition-colors max-w-[200px] truncate">{booking.name || 'Mahasiswa'}</p>
-                          <p className="text-[10px] text-slate-400 font-medium mt-0.5">{booking.nim || '-'} &bull; {booking.prodi || '-'}</p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    
-                    <TableCell>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[10px] font-bold text-slate-600 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg uppercase tracking-wider">{booking.issue || '—'}</span>
-                        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wider border ${
-                          booking.mode === 'Online' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-slate-50 text-slate-600 border-slate-200'
-                        }`}>
-                          <span className="material-symbols-outlined !text-[12px] shrink-0">{booking.mode === 'Online' ? 'videocam' : 'groups'}</span>
-                          {booking.mode || 'Tatap Muka'}
-                        </span>
-                      </div>
-                      <p className="line-clamp-1 text-[10px] font-medium text-slate-500 italic max-w-[250px]">"{booking.note || 'Tidak ada catatan'}"</p>
-                    </TableCell>
-                    
-                    <TableCell>
-                      <p className="font-black text-sm text-slate-700">{booking.date || '-'}</p>
-                      <p className="text-[10px] text-primary font-bold mt-0.5 bg-primary/10 inline-block px-1.5 py-0.5 rounded uppercase tracking-wider">{booking.time || '-'}</p>
-                    </TableCell>
-                    
-                    <TableCell>
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider whitespace-nowrap ${statusCfg.badgeBg} ${statusCfg.badgeText} ${statusCfg.badgeBorder}`}>
-                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${statusCfg.dot}`} />
-                        {status}
-                      </span>
-                    </TableCell>
-                    
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        {status === 'Menunggu' ? (
-                          <>
-                            <button
-                              type="button"
-                              disabled={isUpdating}
-                              onClick={(e) => { e.stopPropagation(); handleAction(booking.id, 'Ditolak'); }}
-                              className="w-8 h-8 flex items-center justify-center rounded-xl bg-rose-50 text-rose-600 border border-rose-100 hover:bg-rose-100 transition-all disabled:opacity-50"
-                            >
-                              <span className="material-symbols-outlined text-[16px]">close</span>
-                            </button>
-                            <button
-                              type="button"
-                              disabled={isUpdating}
-                              onClick={(e) => { e.stopPropagation(); handleConfirmClick(booking); }}
-                              className="w-8 h-8 flex items-center justify-center rounded-xl bg-primary text-white hover:bg-primary/90 shadow-sm transition-all disabled:opacity-50"
-                            >
-                              <span className="material-symbols-outlined text-[16px]">check</span>
-                            </button>
-                          </>
-                        ) : (
-                          <span className="material-symbols-outlined text-[20px] text-slate-300 group-hover:text-primary transition-colors">chevron_right</span>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        )}
-
-        {/* ── Pagination Controls ──────────────────────────────────── */}
-        {filteredBookings.length > 0 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-100">
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Tampilkan:</span>
-              <select
-                value={itemsPerPage}
-                onChange={(e) => setItemsPerPage(Number(e.target.value))}
-                className="h-8 rounded-lg border border-slate-200 bg-slate-50 px-2 text-xs font-bold text-slate-700 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-              >
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-              </select>
-              <span className="text-[10px] font-bold text-slate-400">data per halaman</span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-                className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
-              >
-                <span className="material-symbols-outlined text-[18px]">chevron_left</span>
-              </button>
-              <span className="text-xs font-bold text-slate-600 px-2">
-                Hal {currentPage} dari {totalPages}
-              </span>
-              <button
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-                className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
-              >
-                <span className="material-symbols-outlined text-[18px]">chevron_right</span>
-              </button>
-            </div>
-          </div>
-        )}
+        <DataTable
+          columns={columns}
+          data={filteredBookings}
+          loading={loading}
+          searchable={true}
+          onSearch={handleTableSearch}
+          searchPlaceholder="Cari nama, NIM, topik..."
+          pagination={true}
+          pageSize={10}
+          actions={renderActions}
+          onRowClick={(row) => navigate(`/psychologist/bookings/${row.id}`)}
+          emptyMessage="Tidak ada booking. Coba ubah filter atau kata kunci untuk menampilkan data lain."
+          emptyIcon="assignment"
+        />
       </section>
 
       {/* Zoom / Meeting Link Modal */}

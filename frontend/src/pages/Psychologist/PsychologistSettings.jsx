@@ -41,6 +41,12 @@ const EMPTY_PROFILE = {
 const DAYS = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
 const FIELD_CLASS = 'w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-primary/30 focus:bg-white focus:ring-4 focus:ring-primary/10';
 
+const getInitials = (name) => {
+  if (!name) return '?';
+  const parts = name.trim().split(/\s+/);
+  return parts.map(p => p[0]).slice(0, 2).join('').toUpperCase();
+};
+
 export default function PsychologistSettings() {
   const [activeTab, setActiveTab] = useState('profil');
   const [profile, setProfile] = useState(EMPTY_PROFILE);
@@ -177,11 +183,7 @@ export default function PsychologistSettings() {
                       <div className="space-y-6 p-5 lg:p-5">
                         <div className="flex flex-col gap-5 border-b border-slate-100 pb-6 md:flex-row md:items-center">
                           <div className="flex size-28 items-center justify-center rounded-2xl bg-primary text-3xl font-black text-white shadow-lg shadow-primary/20 overflow-hidden relative">
-                            {profile.foto_url || profile.foto ? (
-                              <img src={profile.foto_url || profile.foto} alt={profile.nama} className="w-full h-full object-cover" />
-                            ) : (
-                              <span className="material-symbols-outlined text-white/80 text-6xl shrink-0">person</span>
-                            )}
+                            {getInitials(profile.nama)}
                           </div>
                           <div>
                             <h2 className="text-sm font-black font-headline uppercase tracking-widest" style={{ color: 'var(--theme-h2)' }}>Identitas Profesional</h2>

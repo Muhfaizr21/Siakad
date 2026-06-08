@@ -1,19 +1,16 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { psychologistService } from '../../services/api';
+import { DataTable } from '@/components/ui/DataTable';
 
 export default function MedicalRecords() {
   const [medicalRecords, setMedicalRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('Semua Status');
   const [selectedFakultas, setSelectedFakultas] = useState('Semua Fakultas');
   const [selectedProdi, setSelectedProdi] = useState('Semua Prodi');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [sortConfig, setSortConfig] = useState({ key: 'date', direction: 'desc' });
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
 
   const [fakultasList, setFakultasList] = useState([]);
   const [prodiList, setProdiList] = useState([]);
@@ -21,12 +18,6 @@ export default function MedicalRecords() {
   // Detail Modal State
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [detailItem, setDetailItem] = useState(null);
-
-  const handleSort = (key) => {
-    let direction = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') direction = 'desc';
-    setSortConfig({ key, direction });
-  };
 
   useEffect(() => {
     let ignore = false;
@@ -78,20 +69,19 @@ export default function MedicalRecords() {
   const handleFakultasChange = (val) => {
     setSelectedFakultas(val);
     setSelectedProdi('Semua Prodi');
-    setCurrentPage(1);
   };
 
-  const filteredAndSortedRecords = useMemo(() => {
-    let result = [...medicalRecords];
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(r => 
-        r._name.toLowerCase().includes(query) || 
-        r._nim.includes(searchQuery) ||
-        (r.complaint && r.complaint.toLowerCase().includes(query)) ||
-        (r.observation && r.observation.toLowerCase().includes(query))
-      );
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Stabil': return { bg: 'color-mix(in srgb, var(--theme-success) 10%, transparent)', text: 'var(--theme-success)', border: 'color-mix(in srgb, var(--theme-success) 20%, transparent)', dot: 'var(--theme-success)', dotAnim: '' };
+      case 'Perlu Perhatian': return { bg: 'color-mix(in srgb, var(--theme-error) 10%, transparent)', text: 'var(--theme-error)', border: 'color-mix(in srgb, var(--theme-error) 20%, transparent)', dot: 'var(--theme-error)', dotAnim: 'animate-pulse' };
+      case 'Pemulihan': return { bg: 'color-mix(in srgb, var(--theme-info) 10%, transparent)', text: 'var(--theme-info)', border: 'color-mix(in srgb, var(--theme-info) 20%, transparent)', dot: 'var(--theme-info)', dotAnim: '' };
+      default: return { bg: 'color-mix(in srgb, var(--theme-text-muted) 10%, transparent)', text: 'var(--theme-text-muted)', border: 'color-mix(in srgb, var(--theme-text-muted) 20%, transparent)', dot: 'var(--theme-text-muted)', dotAnim: '' };
     }
+  };
+
+  const filteredRecords = useMemo(() => {
+    let result = [...medicalRecords];
     if (filterStatus !== 'Semua Status') {
       result = result.filter(r => r.status_pasien === filterStatus);
     }
@@ -104,7 +94,6 @@ export default function MedicalRecords() {
     if (startDate) {
       result = result.filter(r => {
         if (!r.date) return false;
-        // Parsing "07 Jun 2026" or raw format is needed. Let's compare via time or raw string if we add raw_date, but since we parsed to date, let's convert record.date string back to YYYY-MM-DD
         const parsedRecordDate = new Date(r.date);
         const start = new Date(startDate);
         return parsedRecordDate >= start;
@@ -119,33 +108,90 @@ export default function MedicalRecords() {
         return parsedRecordDate <= end;
       });
     }
-    if (sortConfig.key) {
-      result.sort((a, b) => {
-        let valA = a[sortConfig.key];
-        let valB = b[sortConfig.key];
-        if (sortConfig.key === 'date') {
-          valA = new Date(a.date);
-          valB = new Date(b.date);
-        }
-        if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
-        if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
-        return 0;
-      });
-    }
     return result;
-  }, [medicalRecords, searchQuery, filterStatus, selectedFakultas, selectedProdi, startDate, endDate, sortConfig]);
+  }, [medicalRecords, filterStatus, selectedFakultas, selectedProdi, startDate, endDate]);
 
-  const totalPages = Math.ceil(filteredAndSortedRecords.length / pageSize);
-  const paginatedRecords = filteredAndSortedRecords.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Stabil': return { bg: 'color-mix(in srgb, var(--theme-success) 10%, transparent)', text: 'var(--theme-success)', border: 'color-mix(in srgb, var(--theme-success) 20%, transparent)', dot: 'var(--theme-success)', dotAnim: '' };
-      case 'Perlu Perhatian': return { bg: 'color-mix(in srgb, var(--theme-error) 10%, transparent)', text: 'var(--theme-error)', border: 'color-mix(in srgb, var(--theme-error) 20%, transparent)', dot: 'var(--theme-error)', dotAnim: 'animate-pulse' };
-      case 'Pemulihan': return { bg: 'color-mix(in srgb, var(--theme-info) 10%, transparent)', text: 'var(--theme-info)', border: 'color-mix(in srgb, var(--theme-info) 20%, transparent)', dot: 'var(--theme-info)', dotAnim: '' };
-      default: return { bg: 'color-mix(in srgb, var(--theme-text-muted) 10%, transparent)', text: 'var(--theme-text-muted)', border: 'color-mix(in srgb, var(--theme-text-muted) 20%, transparent)', dot: 'var(--theme-text-muted)', dotAnim: '' };
-    }
+  const handleTableSearch = (data, searchVal) => {
+    const query = searchVal.trim().toLowerCase();
+    if (!query) return data;
+    return data.filter((r) => {
+      const searchableStr = [
+        r._name,
+        r._nim,
+        r._fakultas,
+        r._prodi,
+        r.complaint,
+        r.observation,
+        r.recommendation,
+        r.status_pasien,
+      ].filter(Boolean).join(' ').toLowerCase();
+      return searchableStr.includes(query);
+    });
   };
+
+  const columns = [
+    {
+      key: '_name',
+      label: 'Pasien',
+      sortable: true,
+      render: (v, row) => (
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-indigo-50/80 text-indigo-600 border border-indigo-100 flex items-center justify-center font-black text-sm shrink-0">
+            {getInitials(row._name)}
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-xs font-black text-slate-900">{row._name}</p>
+            <p className="mt-0.5 truncate text-[9px] font-bold uppercase tracking-widest text-slate-500">{row._nim} &bull; {row._fakultas}</p>
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'date',
+      label: 'Jadwal Pemeriksaan',
+      sortable: true,
+      render: (v, row) => (
+        <div>
+          <div className="flex items-center gap-1.5 text-[11px] font-black text-slate-800">
+            <span className="material-symbols-outlined text-[16px] text-primary shrink-0">calendar_month</span>
+            {row.date || '-'}
+          </div>
+          <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 mt-1">
+            <span className="material-symbols-outlined text-[14px] shrink-0">schedule</span>
+            {row.time || '-'} WIB
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'type',
+      label: 'Sesi & Mood',
+      sortable: true,
+      render: (v, row) => (
+        <div>
+          <p className="text-[11px] font-black text-slate-700">{row.type || 'Sesi Umum'}</p>
+          <p className="text-[10px] font-bold text-indigo-600 mt-0.5">Mood: {row.mood || '—'}</p>
+        </div>
+      )
+    },
+    {
+      key: 'status_pasien',
+      label: 'Status Klinis',
+      sortable: true,
+      render: (v, row) => {
+        const statusStyle = getStatusColor(row.status_pasien);
+        return (
+          <span
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border"
+            style={{ backgroundColor: statusStyle.bg, color: statusStyle.text, borderColor: statusStyle.border }}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dotAnim}`} style={{ backgroundColor: statusStyle.dot }} />
+            {row.status_pasien || '—'}
+          </span>
+        );
+      }
+    }
+  ];
 
   const handleOpenDetail = (item) => {
     setDetailItem(item);
@@ -206,22 +252,7 @@ export default function MedicalRecords() {
               <h3 className="text-xs font-black uppercase tracking-widest text-slate-800 font-headline">Filter Data</h3>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-5">
-              {/* Search */}
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                  <span className="material-symbols-outlined text-base">search</span>
-                  Pencarian
-                </label>
-                <input 
-                  type="text" 
-                  placeholder="Nama, NIM, keluhan..."
-                  value={searchQuery}
-                  onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-                  className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
-                />
-              </div>
-
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5">
               {/* Status */}
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
@@ -230,7 +261,7 @@ export default function MedicalRecords() {
                 </label>
                 <select
                   value={filterStatus}
-                  onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}
+                  onChange={(e) => setFilterStatus(e.target.value)}
                   className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 cursor-pointer"
                 >
                   <option value="Semua Status">Semua Status</option>
@@ -266,7 +297,7 @@ export default function MedicalRecords() {
                 </label>
                 <select
                   value={selectedProdi}
-                  onChange={(e) => { setSelectedProdi(e.target.value); setCurrentPage(1); }}
+                  onChange={(e) => setSelectedProdi(e.target.value)}
                   disabled={selectedFakultas === 'Semua Fakultas'}
                   className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -286,7 +317,7 @@ export default function MedicalRecords() {
                 <input
                   type="date"
                   value={startDate}
-                  onChange={(e) => { setStartDate(e.target.value); setCurrentPage(1); }}
+                  onChange={(e) => setStartDate(e.target.value)}
                   className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
                 />
               </div>
@@ -300,7 +331,7 @@ export default function MedicalRecords() {
                 <input
                   type="date"
                   value={endDate}
-                  onChange={(e) => { setEndDate(e.target.value); setCurrentPage(1); }}
+                  onChange={(e) => setEndDate(e.target.value)}
                   className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
                 />
               </div>
@@ -318,10 +349,8 @@ export default function MedicalRecords() {
                   setFilterStatus('Semua Status');
                   setStartDate('');
                   setEndDate('');
-                  setSearchQuery('');
-                  setCurrentPage(1);
                 }}
-                disabled={!(selectedFakultas !== 'Semua Fakultas' || selectedProdi !== 'Semua Prodi' || filterStatus !== 'Semua Status' || startDate || endDate || searchQuery)}
+                disabled={!(selectedFakultas !== 'Semua Fakultas' || selectedProdi !== 'Semua Prodi' || filterStatus !== 'Semua Status' || startDate || endDate)}
                 className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-5 py-2.5 text-[10px] font-black uppercase tracking-widest text-slate-500 transition-all hover:bg-slate-50 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <span className="material-symbols-outlined text-[16px]">restart_alt</span>
@@ -332,152 +361,38 @@ export default function MedicalRecords() {
         </section>
 
         {/* Medical Records List Card */}
-        <section className="rounded-2xl border shadow-sm p-5" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 pb-4 border-b border-slate-100 gap-4">
+        <section className="rounded-2xl border shadow-sm p-5 space-y-5 bg-white" style={{ borderColor: 'var(--theme-border)' }}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-4">
             <div>
               <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-primary">
                 <span className="material-symbols-outlined text-base shrink-0">list</span> Daftar Sesi Rekam Medis
               </h3>
               <p className="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-widest">
-                Total {filteredAndSortedRecords.length} data
+                Total {filteredRecords.length} data
               </p>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Urutkan:</span>
-              <button onClick={() => handleSort('date')} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-[9px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 transition-colors">
-                Tanggal {sortConfig.key === 'date' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}
-              </button>
             </div>
           </div>
 
-          {loading ? (
-            <div className="py-20 text-center">
-              <div className="inline-block">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-              </div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-4">Memuat data...</p>
-            </div>
-          ) : error ? (
-            <div className="py-20 text-center">
-              <span className="material-symbols-outlined text-rose-400 text-4xl mb-3 shrink-0">error</span>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{error}</p>
-            </div>
-          ) : filteredAndSortedRecords.length === 0 ? (
-            <div className="flex min-h-[300px] flex-col items-center justify-center gap-4 text-center">
-              <div className="flex w-20 h-20 items-center justify-center rounded-[1.5rem] bg-slate-50 border border-slate-100 text-slate-300">
-                <span className="material-symbols-outlined text-[40px]">inbox</span>
-              </div>
-              <div>
-                <h3 className="text-base font-black uppercase tracking-tight text-slate-800 font-headline">Tidak ada rekam medis</h3>
-                <p className="mt-1.5 text-sm font-medium text-slate-500">Coba ubah filter atau kata kunci pencarian.</p>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {paginatedRecords.map((record) => {
-                const statusStyle = getStatusColor(record.status_pasien);
-                return (
-                  <div 
-                    key={record.id} 
-                    className="flex flex-col lg:flex-row lg:items-center gap-4 p-4 rounded-2xl border border-slate-200 hover:border-primary/40 bg-white transition-all duration-300 group hover:shadow-md hover:shadow-primary/5"
-                  >
-                    {/* Left: Patient Info */}
-                    <div className="flex items-center gap-3 lg:w-[280px] shrink-0">
-                      <div className="w-10 h-10 rounded-xl bg-indigo-50/80 text-indigo-600 border border-indigo-100 flex items-center justify-center font-black text-sm group-hover:scale-105 transition-transform duration-300 shrink-0">
-                        {getInitials(record._name)}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="truncate text-xs font-black text-slate-900 group-hover:text-primary transition-colors">{record._name}</p>
-                        <p className="mt-0.5 truncate text-[9px] font-bold uppercase tracking-widest text-slate-500">{record._nim} • {record._fakultas}</p>
-                      </div>
-                    </div>
-                    
-                    {/* Middle: Details */}
-                    <div className="flex-1 min-w-0 lg:px-4 lg:border-l border-slate-100 grid grid-cols-2 md:grid-cols-3 gap-4">
-                      <div>
-                        <div className="flex items-center gap-1.5 text-[11px] font-black text-slate-800">
-                          <span className="material-symbols-outlined text-[16px] text-primary shrink-0">calendar_month</span>
-                          {record.date || '-'}
-                        </div>
-                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 mt-1">
-                          <span className="material-symbols-outlined text-[14px] shrink-0">schedule</span>
-                          {record.time || '-'} WIB
-                        </div>
-                      </div>
-                      <div>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Jenis Sesi</p>
-                        <p className="text-[11px] font-black text-slate-700 mt-0.5">{record.type || 'Sesi Umum'}</p>
-                      </div>
-                      <div className="hidden md:block">
-                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Mood</p>
-                        <p className="text-[11px] font-black text-slate-700 mt-0.5">{record.mood || '—'}</p>
-                      </div>
-                    </div>
-                    
-                    {/* Right: Status & Action */}
-                    <div className="flex flex-row items-center justify-between lg:justify-end gap-5 lg:shrink-0">
-                      <span
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border"
-                        style={{ backgroundColor: statusStyle.bg, color: statusStyle.text, borderColor: statusStyle.border }}
-                      >
-                        <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dotAnim}`} style={{ backgroundColor: statusStyle.dot }} />
-                        {record.status_pasien || '—'}
-                      </span>
-                      
-                      <button
-                        onClick={() => handleOpenDetail(record)}
-                        className="w-8 h-8 rounded-lg bg-slate-50 text-slate-400 hover:text-primary hover:bg-primary/5 transition-all flex items-center justify-center shrink-0 border border-slate-100/50"
-                        title="Lihat Detail Sesi"
-                      >
-                        <span className="material-symbols-outlined text-[18px] shrink-0">visibility</span>
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Pagination Controls */}
-          {filteredAndSortedRecords.length > 0 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 mt-2 border-t border-slate-100">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Tampilkan:</span>
-                <select
-                  value={pageSize}
-                  onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}
-                  className="h-8 rounded-lg border border-slate-200 bg-slate-50 px-2 text-xs font-bold text-slate-700 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                >
-                  <option value={10}>10</option>
-                  <option value={20}>20</option>
-                  <option value={50}>50</option>
-                </select>
-                <span className="text-[10px] font-bold text-slate-400">data per halaman</span>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
-                >
-                  <span className="material-symbols-outlined text-[18px]">chevron_left</span>
-                </button>
-                <span className="text-xs font-bold text-slate-600 px-2">
-                  Hal {currentPage} dari {totalPages || 1}
-                </span>
-                <button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages || totalPages === 0}
-                  className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
-                >
-                  <span className="material-symbols-outlined text-[18px]">chevron_right</span>
-                </button>
-              </div>
-            </div>
-          )}
+          <DataTable
+            columns={columns}
+            data={filteredRecords}
+            loading={loading}
+            searchable={true}
+            onSearch={handleTableSearch}
+            searchPlaceholder="Cari nama, NIM, keluhan..."
+            pagination={true}
+            pageSize={10}
+            onRowClick={(row) => handleOpenDetail(row)}
+            emptyMessage="Tidak ada rekam medis. Coba ubah filter atau kata kunci pencarian."
+            emptyIcon="inbox"
+          />
         </section>
+
+
+
+
+
+
       </div>
 
       {/* Detail Modal */}

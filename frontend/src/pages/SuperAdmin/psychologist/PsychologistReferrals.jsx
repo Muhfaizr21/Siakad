@@ -5,11 +5,10 @@ import { DataTable } from '@/components/ui/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
-import { Card, CardContent } from '@/components/ui/Card'
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import { adminService, API_BASE_URL } from '../../../services/api'
-import { PageContent } from '@/components/ui/page'
+import { PageContent, PageCard } from '@/components/ui/page'
 import { DashboardHero } from '@/components/ui/dashboard'
 
 const getCleanImageUrl = (url) => {
@@ -19,11 +18,39 @@ const getCleanImageUrl = (url) => {
   return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`
 }
 
+const APPROVAL_META = {
+  menunggu_approval: { 
+    label: 'Menunggu Persetujuan', 
+    cls: 'bg-[var(--theme-warning-light)] text-[var(--theme-warning)] border-[var(--theme-warning)]/20',
+    icon: 'hourglass_empty'
+  },
+  disetujui: { 
+    label: 'Disetujui Admin', 
+    cls: 'bg-[var(--theme-success-light)] text-[var(--theme-success)] border-[var(--theme-success)]/20',
+    icon: 'check_circle'
+  },
+  ditolak: { 
+    label: 'Ditolak Admin', 
+    cls: 'bg-[var(--theme-error-light)] text-[var(--theme-error)] border-[var(--theme-error)]/20',
+    icon: 'cancel'
+  },
+}
+
+const getInitials = (name = '') => {
+  return name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() || '?'
+}
+
 export default function PsychologistReferrals() {
   const [referrals, setReferrals] = useState([])
   const [loading, setLoading] = useState(true)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [detailItem, setDetailItem] = useState(null)
+  
+  // Approval modal state
+  const [approvalModal, setApprovalModal] = useState({ open: false, item: null, action: null })
+  const [approvalNote, setApprovalNote] = useState('')
+  const [approving, setApproving] = useState(false)
+  const [comingFromDetail, setComingFromDetail] = useState(false)
 
   const fetchData = async () => {
     setLoading(true)
@@ -31,12 +58,12 @@ export default function PsychologistReferrals() {
       const rfRes = await adminService.getPsychologistReferrals()
       if (rfRes.status === 'success') {
         const flattened = (rfRes.data || []).map(item => {
-          const mhs = item.mahasiswa || item.Mahasiswa;
+          const mhs = item.mahasiswa || item.Mahasiswa
           return {
             ...item,
             _fakultas: mhs?.fakultas?.Nama || mhs?.Fakultas?.Nama || mhs?.fakultas?.nama || mhs?.Fakultas?.nama || '',
             _semester: mhs?.SemesterSekarang || mhs?.semester_sekarang || ''
-          };
+          }
         })
         setReferrals(flattened)
       } else {
@@ -52,14 +79,43 @@ export default function PsychologistReferrals() {
 
   useEffect(() => { fetchData() }, [])
 
+  const handleOpenApproval = (item, action, fromDetail = false) => {
+    if (fromDetail) {
+      setComingFromDetail(true)
+      setIsDetailOpen(false)
+    } else {
+      setComingFromDetail(false)
+    }
+    setApprovalModal({ open: true, item, action })
+    setApprovalNote('')
+  }
+
+  const handleApprove = async () => {
+    const { item, action } = approvalModal
+    if (!item) return
+    setApproving(true)
+    try {
+      const res = await adminService.approvePsychologistReferral(item.id, action, approvalNote)
+      if (res.status === 'success') {
+        toast.success(action === 'approve' ? 'Referral berhasil disetujui' : 'Referral berhasil ditolak')
+        setApprovalModal({ open: false, item: null, action: null })
+        setComingFromDetail(false)
+        setIsDetailOpen(false)
+        setDetailItem(null)
+        fetchData()
+      } else {
+        toast.error(res.message || 'Gagal memproses tindakan')
+      }
+    } catch (err) {
+      toast.error(err.message || 'Terjadi kesalahan')
+    } finally {
+      setApproving(false)
+    }
+  }
+
   const fakultasOptions = useMemo(() => {
     const unique = [...new Set(referrals.map(i => i._fakultas).filter(Boolean))].sort()
     return unique.map(f => ({ label: f.toUpperCase(), value: f }))
-  }, [referrals])
-
-  const semesterOptions = useMemo(() => {
-    const unique = [...new Set(referrals.map(i => i._semester).filter(v => v !== '' && v !== undefined && v !== null))].sort((a, b) => Number(a) - Number(b))
-    return unique.map(s => ({ label: `SEMESTER ${s}`, value: String(s) }))
   }, [referrals])
 
   const referralColumns = [
@@ -68,15 +124,22 @@ export default function PsychologistReferrals() {
       label: 'Mahasiswa',
       className: 'w-[250px]',
       render: (v, row) => {
-        const mhs = row.mahasiswa || row.Mahasiswa;
+        const mhs = row.mahasiswa || row.Mahasiswa
         return (
-          <div className="flex flex-col py-1 font-jakarta">
-            <span className="font-bold text-neutral-900 text-xs">{mhs?.Nama || mhs?.nama || '—'}</span>
-            <span className="text-[10px] text-neutral-400 font-bold">{mhs?.NIM || mhs?.nim || '—'}</span>
-            <span className="text-[9px] text-neutral-400 font-medium tracking-wide uppercase">{mhs?.program_studi?.nama || mhs?.ProgramStudi?.Nama || mhs?.program_studi?.Nama || '—'}</span>
-            <div className="flex items-center gap-2 mt-0.5">
-              {row._fakultas && <span className="text-[8px] text-bku-primary font-bold bg-bku-primary/10 px-1.5 py-0.5 rounded">{row._fakultas}</span>}
-              {row._semester && <span className="text-[8px] text-blue-600 font-bold bg-blue-50 px-1.5 py-0.5 rounded">Sem {row._semester}</span>}
+          <div className="flex items-center gap-3 py-1 font-body">
+            <div className="w-9 h-9 rounded-xl bg-[var(--theme-primary-light)] text-[var(--theme-primary)] flex items-center justify-center font-bold text-xs shrink-0 shadow-sm border border-[var(--theme-primary)]/20">
+              {getInitials(mhs?.Nama || mhs?.nama)}
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="font-bold text-[var(--theme-text)] text-xs truncate">{mhs?.Nama || mhs?.nama || '—'}</span>
+              <span className="text-[10px] text-[var(--theme-text-muted)] font-semibold">{mhs?.NIM || mhs?.nim || '—'}</span>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                {row._fakultas && (
+                  <span className="text-[8px] text-[var(--theme-primary)] font-semibold bg-[var(--theme-primary-light)] border border-[var(--theme-primary)]/10 px-1 py-0.2 rounded uppercase tracking-wider">
+                    {row._fakultas}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         )
@@ -84,234 +147,434 @@ export default function PsychologistReferrals() {
     },
     {
       key: 'psikolog',
-      label: 'Psikolog Asal',
-      className: 'w-[200px]',
+      label: 'Psikolog',
+      className: 'w-[180px]',
       render: (v, row) => (
-        <div className="flex flex-col py-1 font-jakarta">
-          <span className="font-bold text-neutral-800 text-xs">{row.psikolog?.nama || '—'}</span>
-          <span className="text-[9px] text-neutral-400 font-bold uppercase tracking-wider">{row.psikolog?.spesialisasi || '—'}</span>
-        </div>
-      )
-    },
-    {
-      key: 'pihak_tujuan',
-      label: 'Tujuan Rujukan',
-      className: 'w-[200px]',
-      render: (v, row) => (
-        <div className="flex flex-col py-1 font-jakarta">
-          <span className="font-bold text-neutral-800 text-xs">{row.pihak_tujuan || '—'}</span>
-          <span className="text-[10px] text-neutral-400 font-medium">{row.email_tujuan || '—'}</span>
+        <div className="flex flex-col py-1 font-body">
+          <span className="font-bold text-[var(--theme-text)] text-xs">{row.psikolog?.nama || '—'}</span>
+          <span className="text-[9px] text-[var(--theme-text-muted)] font-semibold uppercase tracking-widest">{row.psikolog?.spesialisasi || '—'}</span>
         </div>
       )
     },
     {
       key: 'tipe',
-      label: 'Tipe & Alasan',
-      className: 'w-[250px]',
+      label: 'Tipe & Tujuan',
+      className: 'w-[200px]',
       render: (v, row) => (
-        <div className="flex flex-col py-1 max-w-[220px] font-jakarta">
-          <Badge className="w-fit px-1.5 py-0.5 rounded bg-bku-primary/5 text-bku-primary border border-bku-primary/20 text-[9px] font-bold uppercase tracking-wider mb-1 shadow-none">
-            Tipe: {row.tipe || '—'}
-          </Badge>
-          <span className="text-[10px] text-neutral-400 truncate" title={row.alasan}>{row.alasan || '—'}</span>
+        <div className="flex flex-col py-1 font-body">
+          <span className="inline-flex w-fit items-center px-2 py-0.5 rounded-md text-[9px] font-medium uppercase tracking-wider bg-[var(--theme-bg)] text-[var(--theme-text-muted)] border border-[var(--theme-border)] mb-1">
+            {row.tipe || 'Medis'}
+          </span>
+          <span className="text-[10px] text-[var(--theme-text)] font-semibold leading-tight">{row.pihak_tujuan || '—'}</span>
+          <span className="text-[9px] text-[var(--theme-text-muted)] font-medium truncate">{row.email_tujuan || '—'}</span>
         </div>
       )
     },
     {
+      key: 'approval_status',
+      label: 'Persetujuan',
+      className: 'w-[150px]',
+      render: (v) => {
+        const meta = APPROVAL_META[v] || APPROVAL_META.menunggu_approval
+        return (
+          <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-widest border font-body shadow-none', meta.cls)}>
+            <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>{meta.icon}</span>
+            {meta.label}
+          </span>
+        )
+      }
+    },
+    {
       key: 'status',
-      label: 'Status',
-      className: 'w-[100px]',
-      render: v => {
+      label: 'Pengiriman',
+      className: 'w-[120px]',
+      render: (v) => {
         const statusLower = String(v || '').toLowerCase()
-        let bg = 'bg-neutral-50 text-neutral-600 border-neutral-100'
-        if (statusLower === 'dikirim' || statusLower === 'sent') {
-          bg = 'bg-blue-50 text-blue-600 border-blue-100'
-        } else if (statusLower === 'diterima' || statusLower === 'received' || statusLower === 'confirmed') {
-          bg = 'bg-emerald-50 text-emerald-600 border-emerald-100'
-        } else if (statusLower === 'draft') {
-          bg = 'bg-neutral-50 text-neutral-400 border-neutral-200'
+        let cls = 'bg-[var(--theme-bg)] text-[var(--theme-text-muted)] border-[var(--theme-border)]'
+        if (statusLower === 'sent' || statusLower === 'dikirim') {
+          cls = 'bg-[var(--theme-info-light)] text-[var(--theme-info)] border-[var(--theme-info)]/20'
+        } else if (statusLower === 'received' || statusLower === 'diterima') {
+          cls = 'bg-[var(--theme-success-light)] text-[var(--theme-success)] border-[var(--theme-success)]/20'
         }
         return (
-          <Badge className={cn('px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider border font-jakarta shadow-none', bg)}>
+          <span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-wider border font-body shadow-none', cls)}>
             {v || 'Draft'}
-          </Badge>
+          </span>
         )
       }
     }
   ]
 
-  const handleOpenDetail = (item) => {
-    setDetailItem(item)
-    setIsDetailOpen(true)
-  }
-
   return (
     <PageContent>
       <Toaster position="top-right" />
-      
+
       <DashboardHero
-        title="Tindak Lanjut"
-        highlightedTitle="(Rujukan)"
-        subtitle="Log surat rujukan klinis eksternal yang dikeluarkan oleh psikolog bimbingan konseling untuk penanganan medis lanjutan."
+        title="Tindak Lanjut &"
+        highlightedTitle="Rujukan Psikolog"
+        subtitle="Log surat rujukan klinis eksternal yang dikeluarkan oleh psikolog. Tinjau dan berikan persetujuan sebelum rujukan dapat dikirimkan."
         icon="forward_to_inbox"
-        badges={[{ label: 'Layanan Konseling Kampus', active: false }]}
-        actions={
-          <div className="px-4 py-2 bg-bku-primary/5 border border-bku-primary/20 rounded-xl flex items-center gap-3 w-full lg:w-auto justify-center">
-             <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '16px' }}>forward_to_inbox</span>
-             <div className="flex flex-col leading-tight">
-                <span className="text-[10px] font-bold text-bku-primary/70 uppercase tracking-widest">Akses Validasi</span>
-                <span className="text-[12px] font-bold text-bku-primary font-jakarta">Super Admin Portal</span>
-             </div>
-          </div>
-        }
+        badges={[
+          { label: 'Layanan Konseling Kampus', active: false },
+          { label: `${referrals.filter(r => r.approval_status === 'menunggu_approval').length} Perlu Persetujuan`, active: true }
+        ]}
       />
 
-        {/* ── Table Section ────────────────────────────────────────── */}
-        <Card className="border-neutral-200 shadow-sm rounded-xl bg-white overflow-hidden">
-          <CardContent className="p-0 animate-in fade-in duration-300">
-            <DataTable
-              columns={referralColumns}
-              data={referrals}
-              loading={loading}
-              searchPlaceholder="Cari Nama Mahasiswa, Penerima, atau Alasan..."
-              filters={[
-                { key: '_fakultas', placeholder: 'Pilih Fakultas', options: fakultasOptions },
-                { key: '_semester', placeholder: 'Pilih Semester', options: semesterOptions },
-                { key: 'status', placeholder: 'Pilih Status Rujukan', options: [{ label: 'Draft', value: 'draft' }, { label: 'Dikirim', value: 'dikirim' }, { label: 'Diterima', value: 'diterima' }] }
-              ]}
-              actions={(row) => (
-                <div className="flex items-center gap-1.5">
-                  <Button onClick={() => handleOpenDetail(row)} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-bku-primary hover:bg-bku-primary/10 rounded-lg transition-colors" title="Lihat Detail"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >visibility</span></Button>
+      {/* ── Table Section ────────────────────────────────────────── */}
+      <PageCard noPadding className="mt-6">
+        <DataTable
+          columns={referralColumns}
+          data={referrals}
+          loading={loading}
+          searchable
+          searchPlaceholder="Cari nama mahasiswa, psikolog, atau penerima rujukan..."
+          onSearch={(data, q) => {
+            if (!q) return data
+            const lower = q.toLowerCase()
+            return data.filter(item => {
+              const mhs = item.mahasiswa || item.Mahasiswa
+              return (
+                (mhs?.Nama || mhs?.nama || '').toLowerCase().includes(lower) ||
+                (item.psikolog?.nama || '').toLowerCase().includes(lower) ||
+                (item.alasan || '').toLowerCase().includes(lower) ||
+                (item.pihak_tujuan || '').toLowerCase().includes(lower) ||
+                (item.tipe || '').toLowerCase().includes(lower)
+              )
+            })
+          }}
+          filters={[
+            { key: '_fakultas', placeholder: 'Pilih Fakultas', options: fakultasOptions },
+            { key: 'approval_status', placeholder: 'Status Approval', options: [
+              { label: 'Menunggu', value: 'menunggu_approval' },
+              { label: 'Disetujui', value: 'disetujui' },
+              { label: 'Ditolak', value: 'ditolak' },
+            ]},
+            { key: 'tipe', placeholder: 'Tipe Rujukan', options: [
+              { label: 'Medis', value: 'Medis' },
+              { label: 'Akademik', value: 'Akademik' },
+            ]},
+          ]}
+          actions={(row) => (
+            <div className="flex items-center gap-1.5 font-body">
+              <Button
+                onClick={() => { setDetailItem(row); setIsDetailOpen(true) }}
+                variant="ghost" size="icon"
+                className="h-8 w-8 text-[var(--theme-text-subtle)] hover:text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)] rounded-lg transition-colors"
+                title="Lihat Detail Rujukan"
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>visibility</span>
+              </Button>
+              {(row.approval_status === 'menunggu_approval' || !row.approval_status) && (
+                <div className="flex gap-1.5">
+                  <button
+                    onClick={() => handleOpenApproval(row, 'approve')}
+                    className="h-8 px-3 rounded-lg bg-[var(--theme-success-light)] hover:bg-[var(--theme-success)]/20 border border-[var(--theme-success)]/10 text-[var(--theme-success)] text-xs font-semibold transition-all flex items-center gap-1 shadow-none active:scale-95 cursor-pointer"
+                    title="Setujui Rujukan"
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>check_circle</span>
+                    Setujui
+                  </button>
+                  <button
+                    onClick={() => handleOpenApproval(row, 'reject')}
+                    className="h-8 px-3 rounded-lg bg-[var(--theme-error-light)] hover:bg-[var(--theme-error)]/20 border border-[var(--theme-error)]/10 text-[var(--theme-error)] text-xs font-semibold transition-all flex items-center gap-1 shadow-none active:scale-95 cursor-pointer"
+                    title="Tolak Rujukan"
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>cancel</span>
+                    Tolak
+                  </button>
                 </div>
               )}
-            />
-          </CardContent>
-        </Card>
+            </div>
+          )}
+        />
+      </PageCard>
+
+      {/* ── Approval Confirmation Modal ───────────────────────── */}
+      <Dialog open={approvalModal.open} onOpenChange={(o) => {
+        if (!o) {
+          setApprovalModal({ open: false, item: null, action: null })
+          if (comingFromDetail) {
+            setIsDetailOpen(true)
+            setComingFromDetail(false)
+          }
+        }
+      }}>
+        <DialogContent className="w-[95vw] sm:max-w-lg p-0 overflow-hidden border border-[var(--theme-border)] shadow-2xl rounded-2xl bg-[var(--theme-surface)] animate-in zoom-in-95 duration-200">
+          
+          <div className={cn(
+            'px-6 py-5 border-b border-[var(--theme-border-muted)] flex items-center gap-3.5',
+            approvalModal.action === 'approve' ? 'bg-[var(--theme-success-light)]/30' : 'bg-[var(--theme-error-light)]/30'
+          )}>
+            <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center border shrink-0',
+              approvalModal.action === 'approve' 
+                ? 'bg-[var(--theme-success-light)] border-[var(--theme-success)]/20 text-[var(--theme-success)]' 
+                : 'bg-[var(--theme-error-light)] border-[var(--theme-error)]/20 text-[var(--theme-error)]'
+            )}>
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                {approvalModal.action === 'approve' ? 'check_circle' : 'cancel'}
+              </span>
+            </div>
+            <div className="font-body min-w-0">
+              <DialogTitle className="text-base font-semibold text-[var(--theme-text)]">
+                {approvalModal.action === 'approve' ? 'Setujui Surat Rujukan?' : 'Tolak Surat Rujukan?'}
+              </DialogTitle>
+              <DialogDescription className="text-xs text-[var(--theme-text-muted)] mt-0.5 truncate">
+                {approvalModal.item && (() => {
+                  const mhs = approvalModal.item.mahasiswa || approvalModal.item.Mahasiswa
+                  return `Pasien: ${mhs?.Nama || mhs?.nama || '—'} (Rujukan ${approvalModal.item.tipe})`
+                })()}
+              </DialogDescription>
+            </div>
+          </div>
+
+          <div className="px-6 py-5 space-y-4 font-body">
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest block">
+                {approvalModal.action === 'approve' ? 'Catatan Tambahan (Opsional)' : 'Alasan Penolakan (Wajib)'}
+              </label>
+              <textarea
+                value={approvalNote}
+                onChange={e => setApprovalNote(e.target.value)}
+                rows={3}
+                placeholder={approvalModal.action === 'approve'
+                  ? 'Tambahkan instruksi atau pesan opsional untuk psikolog...'
+                  : 'Sebutkan alasan penolakan rujukan agar dapat diperbaiki...'}
+                className="w-full px-3 py-2.5 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg)] text-sm text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors resize-none leading-relaxed"
+              />
+            </div>
+          </div>
+
+          <div className="px-6 py-4 border-t border-[var(--theme-border-muted)] flex justify-end gap-3 bg-[var(--theme-bg)] font-body">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setApprovalModal({ open: false, item: null, action: null })
+                if (comingFromDetail) {
+                  setIsDetailOpen(true)
+                  setComingFromDetail(false)
+                }
+              }}
+              className="h-10 px-4 rounded-xl border border-[var(--theme-border)] text-sm font-medium text-[var(--theme-text)] hover:bg-[var(--theme-bg)]"
+              disabled={approving}
+            >
+              Batal
+            </Button>
+            <button
+              onClick={handleApprove}
+              disabled={approving || (approvalModal.action === 'reject' && !approvalNote.trim())}
+              className={cn(
+                'h-10 px-5 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm active:scale-98 cursor-pointer',
+                approvalModal.action === 'approve'
+                  ? 'bg-[var(--theme-success)] hover:bg-[var(--theme-success-hover)]'
+                  : 'bg-[var(--theme-error)] hover:bg-[var(--theme-error-hover)]'
+              )}
+            >
+              {approving && <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }}>sync</span>}
+              {approvalModal.action === 'approve' ? 'Ya, Setujui' : 'Ya, Tolak'}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* ── Detail Modal ─────────────────────────────────────────── */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="w-[95vw] sm:w-[90vw] md:max-w-2xl p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white animate-in slide-in-from-bottom-4 duration-300">
-          <DialogHeader className="p-6 sm:p-8 pb-4 sm:pb-6 border-b border-neutral-100 relative overflow-hidden bg-neutral-50/50">
-            <div className="relative z-10 space-y-1">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
-                  <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >visibility</span>
-                </div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-bku-primary">
-                  Detail Surat Rujukan
-                </span>
-              </div>
-              <DialogTitle className="text-xl sm:text-2xl font-bold font-jakarta tracking-tight text-neutral-900 uppercase">
-                Tindak Lanjut & Rujukan
-              </DialogTitle>
+        <DialogContent className="w-[95vw] sm:w-[90vw] md:max-w-2xl p-0 overflow-hidden border border-[var(--theme-border)] shadow-2xl rounded-2xl bg-[var(--theme-surface)] font-body animate-in slide-in-from-bottom-8 duration-300">
+          
+          {/* Header */}
+          <div className="px-6 py-5 border-b border-[var(--theme-border-muted)] relative overflow-hidden bg-gradient-to-br from-[var(--theme-primary-light)]/20 via-[var(--theme-surface)] to-[var(--theme-bg)]">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--theme-primary)]/5 rounded-full blur-2xl -mr-6 -mt-6"></div>
+            <div className="relative z-10 flex items-center gap-2 mb-1">
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest bg-[var(--theme-primary)] text-white">
+                Rujukan Klinis
+              </span>
+              <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">&bull; Tinjauan SuperAdmin</span>
             </div>
-          </DialogHeader>
-
-          <div className="p-6 sm:p-8 space-y-6 max-h-[70vh] overflow-y-auto font-jakarta">
-            {detailItem && (
-              <>
-                {/* Mahasiswa Info Section */}
-                <div className="bg-neutral-50 p-4 rounded-xl border border-neutral-100 space-y-3">
-                  <h4 className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Identitas Mahasiswa</h4>
-                  {(() => {
-                    const mhs = detailItem.mahasiswa || detailItem.Mahasiswa;
-                    return (
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <span className="text-[10px] text-neutral-400 font-bold block">Nama Lengkap</span>
-                          <span className="text-sm font-bold text-neutral-800">{mhs?.Nama || mhs?.nama || '—'}</span>
-                        </div>
-                        <div>
-                          <span className="text-[10px] text-neutral-400 font-bold block">NIM (Nomor Induk Mahasiswa)</span>
-                          <span className="text-sm font-bold text-neutral-800">{mhs?.NIM || mhs?.nim || '—'}</span>
-                        </div>
-                        <div>
-                          <span className="text-[10px] text-neutral-400 font-bold block">Program Studi</span>
-                          <span className="text-xs font-semibold text-neutral-700">{mhs?.program_studi?.nama || mhs?.ProgramStudi?.Nama || mhs?.program_studi?.Nama || '—'}</span>
-                        </div>
-                        <div>
-                          <span className="text-[10px] text-neutral-400 font-bold block">Fakultas</span>
-                          <span className="text-xs font-semibold text-neutral-700">{mhs?.fakultas?.Nama || mhs?.Fakultas?.Nama || mhs?.fakultas?.nama || mhs?.Fakultas?.nama || '—'}</span>
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
-
-                {/* Psychologist Info Section */}
-                <div className="bg-neutral-50 p-4 rounded-xl border border-neutral-100 space-y-3">
-                  <h4 className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Tenaga Profesional</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <span className="text-[10px] text-neutral-400 font-bold block">Nama Psikolog</span>
-                      <span className="text-sm font-bold text-neutral-800">{detailItem.psikolog?.nama || '—'}</span>
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-neutral-400 font-bold block">Spesialisasi</span>
-                      <span className="text-xs font-bold text-bku-primary uppercase tracking-wide">{detailItem.psikolog?.spesialisasi || '—'}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <span className="text-[10px] text-neutral-400 font-bold block">Tipe Tindak Lanjut</span>
-                      <Badge className="px-2 py-0.5 mt-1 rounded text-[9px] font-bold uppercase tracking-wider bg-bku-primary/5 text-bku-primary border border-bku-primary/20 shadow-none">
-                        {detailItem.tipe || 'Rujukan Medis'}
-                      </Badge>
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-neutral-400 font-bold block">Status Rujukan</span>
-                      <Badge className="px-2 py-0.5 mt-1 rounded text-[9px] font-bold uppercase tracking-wider bg-blue-50 text-blue-600 border border-blue-100 shadow-none">
-                        {detailItem.status || 'Draft'}
-                      </Badge>
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-neutral-400 font-bold block">Pihak Penerima Rujukan</span>
-                      <span className="text-xs font-bold text-neutral-800">{detailItem.pihak_tujuan || '—'}</span>
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-neutral-400 font-bold block">Email Pihak Tujuan</span>
-                      <span className="text-xs font-semibold text-neutral-600">{detailItem.email_tujuan || '—'}</span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <span className="text-[10px] text-neutral-400 font-bold block">Alasan Rujukan / Kondisi Klinis</span>
-                    <p className="text-xs font-medium text-neutral-700 bg-neutral-50/50 p-3 rounded-lg border border-neutral-100 whitespace-pre-wrap leading-relaxed">{detailItem.alasan || '—'}</p>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    {detailItem.surat_rujiukan_url && (
-                      <div>
-                        <span className="text-[10px] text-neutral-400 font-bold block mb-1">Surat Rujukan Resmi</span>
-                        <a href={getCleanImageUrl(detailItem.surat_rujiukan_url)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-2 bg-bku-primary/10 border border-bku-primary/20 rounded-lg text-xs font-bold text-bku-primary hover:bg-bku-primary/20 transition-colors">
-                          <span className="material-symbols-outlined text-[16px]">picture_as_pdf</span>
-                          Download Surat Rujukan
-                        </a>
-                      </div>
-                    )}
-                    {detailItem.file_pendukung_url && (
-                      <div>
-                        <span className="text-[10px] text-neutral-400 font-bold block mb-1">Dokumen Pendukung</span>
-                        <a href={getCleanImageUrl(detailItem.file_pendukung_url)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-2 bg-neutral-100 border border-neutral-200 rounded-lg text-xs font-bold text-neutral-600 hover:bg-neutral-200 transition-colors">
-                          <span className="material-symbols-outlined text-[16px]">cloud_download</span>
-                          Download Lampiran
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </>
-            )}
+            <DialogTitle className="text-base font-bold text-[var(--theme-text)] uppercase font-headline tracking-tight">
+              Detail Surat Rujukan
+            </DialogTitle>
           </div>
 
-          <DialogFooter className="p-6 border-t border-neutral-100 bg-neutral-50/50">
-            <Button onClick={() => setIsDetailOpen(false)} className="h-10 px-5 rounded-xl font-bold bg-neutral-800 text-white hover:bg-neutral-900">
-              Tutup Detail
+          {/* Body */}
+          <div className="px-6 py-5 space-y-6 max-h-[60vh] overflow-y-auto leading-relaxed scrollbar-thin">
+            {detailItem && (() => {
+              const mhs = detailItem.mahasiswa || detailItem.Mahasiswa
+              const approvalMeta = APPROVAL_META[detailItem.approval_status] || APPROVAL_META.menunggu_approval
+              
+              return (
+                <div className="space-y-6">
+                  {/* Identity Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    {/* Patient Card */}
+                    <div className="bg-[var(--theme-bg)]/40 p-4 rounded-2xl border border-[var(--theme-border)] shadow-sm flex items-start gap-4 hover:border-[var(--theme-primary)]/20 transition-colors">
+                      <div className="w-10 h-10 rounded-xl bg-[var(--theme-primary-light)] border border-[var(--theme-primary)]/10 text-[var(--theme-primary)] flex items-center justify-center text-xs font-bold shrink-0 shadow-sm">
+                        {getInitials(mhs?.Nama || mhs?.nama)}
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[9px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-widest block mb-0.5">Mahasiswa / Pasien</span>
+                        <p className="text-xs font-bold text-[var(--theme-text)] truncate leading-tight">{mhs?.Nama || mhs?.nama || '—'}</p>
+                        <p className="text-[10px] text-[var(--theme-text-muted)] font-semibold mt-0.5">{mhs?.NIM || mhs?.nim || '—'}</p>
+                        <p className="text-[9px] text-[var(--theme-primary)] font-bold uppercase tracking-widest mt-1">
+                          {mhs?.program_studi?.nama || mhs?.ProgramStudi?.Nama || mhs?.program_studi?.Nama || '—'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Psychologist Card */}
+                    <div className="bg-[var(--theme-bg)]/40 p-4 rounded-2xl border border-[var(--theme-border)] shadow-sm flex items-start gap-4 hover:border-[var(--theme-primary)]/20 transition-colors">
+                      <div className="w-10 h-10 rounded-xl bg-[var(--theme-bg)] border border-[var(--theme-border)] text-[var(--theme-text-subtle)] flex items-center justify-center text-xs font-bold shrink-0 shadow-sm">
+                        {getInitials(detailItem.psikolog?.nama)}
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[9px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-widest block mb-0.5">Psikolog Pengirim</span>
+                        <p className="text-xs font-bold text-[var(--theme-text)] truncate leading-tight">{detailItem.psikolog?.nama || '—'}</p>
+                        <p className="text-[10px] text-[var(--theme-text-muted)] font-semibold mt-0.5 truncate">{detailItem.psikolog?.email || '—'}</p>
+                        <p className="text-[9px] text-[var(--theme-text-subtle)] font-bold uppercase tracking-widest mt-1">
+                          {detailItem.psikolog?.spesialisasi || '—'}
+                        </p>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  {/* Details Section */}
+                  <div className="p-4 rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-surface-muted)]/30 space-y-4">
+                    <h4 className="text-[9px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest">Metadata Rujukan</h4>
+                    
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-4 gap-x-6">
+                      <div>
+                        <span className="text-[10px] text-[var(--theme-text-subtle)] font-semibold block mb-0.5">Tipe Rujukan</span>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[9px] font-semibold uppercase tracking-wider bg-[var(--theme-primary-light)] text-[var(--theme-primary)] border border-[var(--theme-primary)]/10">
+                          {detailItem.tipe || 'Medis'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-[var(--theme-text-subtle)] font-semibold block mb-0.5">Persetujuan Admin</span>
+                        <span className={cn('inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-widest border shadow-none', approvalMeta.cls)}>
+                          <span className="material-symbols-outlined shrink-0" style={{ fontSize: '10px' }}>{approvalMeta.icon}</span>
+                          {approvalMeta.label}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-[var(--theme-text-subtle)] font-semibold block mb-0.5">Tanggal Dibuat</span>
+                        <span className="text-xs font-semibold text-[var(--theme-text)]">
+                          {detailItem.tanggal_dibuat ? new Date(detailItem.tanggal_dibuat).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'}
+                        </span>
+                      </div>
+                      <div className="col-span-2 sm:col-span-2">
+                        <span className="text-[10px] text-[var(--theme-text-subtle)] font-semibold block mb-0.5">Instansi/Pihak Penerima</span>
+                        <span className="text-xs font-semibold text-[var(--theme-text)]">{detailItem.pihak_tujuan || '—'}</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-[var(--theme-text-subtle)] font-semibold block mb-0.5">Email Penerima</span>
+                        <span className="text-xs font-medium text-[var(--theme-text-muted)] truncate block">{detailItem.email_tujuan || '—'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Rejection / Note Area */}
+                  {detailItem.approval_note && (
+                    <div className="p-4 rounded-xl bg-[var(--theme-error-light)] border border-[var(--theme-error)]/10 flex gap-3 items-start animate-pulse">
+                      <span className="material-symbols-outlined text-[var(--theme-error)] shrink-0 mt-0.5" style={{ fontSize: '16px' }}>error</span>
+                      <div>
+                        <span className="text-[9px] font-bold text-[var(--theme-error)] uppercase tracking-widest block">Catatan Penolakan Admin</span>
+                        <p className="text-xs font-semibold text-[var(--theme-error)] mt-1 leading-relaxed">{detailItem.approval_note}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Alasan Kondisi Klinis */}
+                  <div className="space-y-1.5">
+                    <span className="text-[9px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest ml-1 block">Alasan Rujukan & Keluhan Klinis</span>
+                    <div className="relative p-5 rounded-2xl bg-[var(--theme-bg)] border border-[var(--theme-border-muted)] text-xs font-medium text-[var(--theme-text)] whitespace-pre-wrap leading-relaxed shadow-inner">
+                      <span className="absolute right-4 bottom-2 text-4xl text-[var(--theme-text-subtle)]/5 font-serif pointer-events-none">”</span>
+                      {detailItem.alasan || '—'}
+                    </div>
+                  </div>
+
+                  {/* Documents Download Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {detailItem.surat_rujiukan_url && (
+                      <div className="p-3.5 rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-bg)]/50 shadow-sm flex items-center justify-between hover:border-[var(--theme-primary)]/30 transition-all group">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-9 h-9 rounded-xl bg-[var(--theme-error-light)] border border-[var(--theme-error)]/10 text-[var(--theme-error)] flex items-center justify-center shrink-0">
+                            <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-[var(--theme-text)] truncate">Surat Rujukan PDF</p>
+                            <p className="text-[9px] text-[var(--theme-text-subtle)] font-bold uppercase tracking-widest mt-0.5">Surat Perujuk Resmi</p>
+                          </div>
+                        </div>
+                        <a 
+                          href={getCleanImageUrl(detailItem.surat_rujiukan_url)} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="h-8 px-3 rounded-lg bg-[var(--theme-surface)] hover:bg-[var(--theme-primary)] hover:text-white border border-[var(--theme-border)] hover:border-[var(--theme-primary)] text-[var(--theme-text-muted)] text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1 transition-all"
+                        >
+                          Unduh
+                          <span className="material-symbols-outlined text-[12px]">download</span>
+                        </a>
+                      </div>
+                    )}
+
+                    {detailItem.file_pendukung_url && (
+                      <div className="p-3.5 rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-bg)]/50 shadow-sm flex items-center justify-between hover:border-[var(--theme-primary)]/30 transition-all group">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-9 h-9 rounded-xl bg-[var(--theme-info-light)] border border-[var(--theme-info)]/10 text-[var(--theme-info)] flex items-center justify-center shrink-0">
+                            <span className="material-symbols-outlined text-[18px]">attachment</span>
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-[var(--theme-text)] truncate">Dokumen Pendukung</p>
+                            <p className="text-[9px] text-[var(--theme-text-subtle)] font-bold uppercase tracking-widest mt-0.5">Lampiran Hasil Sesi</p>
+                          </div>
+                        </div>
+                        <a 
+                          href={getCleanImageUrl(detailItem.file_pendukung_url)} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="h-8 px-3 rounded-lg bg-[var(--theme-surface)] hover:bg-[var(--theme-primary)] hover:text-white border border-[var(--theme-border)] hover:border-[var(--theme-primary)] text-[var(--theme-text-muted)] text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1 transition-all"
+                        >
+                          Unduh
+                          <span className="material-symbols-outlined text-[12px]">download</span>
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Action row in detail if status is waiting */}
+                  {(detailItem.approval_status === 'menunggu_approval' || !detailItem.approval_status) && (
+                    <div className="pt-4 border-t border-[var(--theme-border-muted)] flex items-center justify-end gap-3">
+                      <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest mr-auto">Tindakan Admin</span>
+                      <button
+                        onClick={() => handleOpenApproval(detailItem, 'reject', true)}
+                        className="h-9 px-3 rounded-xl bg-[var(--theme-error-light)] border border-[var(--theme-error)]/20 hover:bg-[var(--theme-error)]/10 text-[var(--theme-error)] text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1 shadow-none active:scale-95 cursor-pointer"
+                      >
+                        <span className="material-symbols-outlined text-[13px]">cancel</span>
+                        Tolak
+                      </button>
+                      <button
+                        onClick={() => handleOpenApproval(detailItem, 'approve', true)}
+                        className="h-9 px-4 rounded-xl bg-[var(--theme-success)] hover:bg-[var(--theme-success-hover)] text-white text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1 shadow-sm active:scale-95 cursor-pointer"
+                      >
+                        <span className="material-symbols-outlined text-[13px]">check_circle</span>
+                        Setujui
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )
+            })()}
+          </div>
+
+          {/* Footer */}
+          <div className="px-6 py-4 border-t border-[var(--theme-border-muted)] flex justify-end bg-[var(--theme-bg)]">
+            <Button 
+              onClick={() => setIsDetailOpen(false)} 
+              className="h-10 px-6 rounded-xl font-bold bg-[var(--theme-primary)] text-white hover:bg-[var(--theme-primary-hover)] border-none shadow-sm active:scale-98 transition-all"
+            >
+              Tutup Rincian
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </PageContent>

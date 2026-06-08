@@ -3,6 +3,7 @@ package psychologist
 import (
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -16,6 +17,25 @@ import (
 	"github.com/jung-kurt/gofpdf"
 	"github.com/google/uuid"
 )
+
+// kirimNotifPsikolog mengirim notifikasi ke tabel psikolog.notifications
+func kirimNotifPsikolog(psikologID, userID uint, tipe, judul, deskripsi string) {
+	if psikologID == 0 || userID == 0 {
+		log.Printf("[Notif] Psikolog notif skipped: psikologID=%d userID=%d", psikologID, userID)
+		return
+	}
+	notif := models.PsikologNotification{
+		PsikologID: psikologID,
+		UserID:     userID,
+		Tipe:       tipe,
+		Judul:      judul,
+		Deskripsi:  deskripsi,
+		IsRead:     false,
+	}
+	if err := config.DB.Create(&notif).Error; err != nil {
+		log.Printf("[Notif] Gagal simpan notif psikolog: %v", err)
+	}
+}
 
 // GetReferrals — list semua referral milik psikolog
 func GetReferrals(c *fiber.Ctx) error {
@@ -43,6 +63,8 @@ func GetReferrals(c *fiber.Ctx) error {
 			"tipe":              r.Tipe,
 			"alasan":            r.Alasan,
 			"status":            r.Status,
+			"approval_status":   r.ApprovalStatus,
+			"approval_note":     r.ApprovalNote,
 			"pihak_tujuan":      r.PihakTujuan,
 			"email_tujuan":      r.EmailTujuan,
 			"tanggal_dibuat":    r.TanggalDibuat,
@@ -153,7 +175,8 @@ func CreateReferral(c *fiber.Ctx) error {
 		Alasan:           body.Alasan,
 		FilePendukungURL: filePendukungURL,
 		SuratRujiukanURL: suratRujiukanURL,
-		Status:           "Pending",
+		Status:           "menunggu_approval",
+		ApprovalStatus:   "menunggu_approval",
 		PihakTujuan:      body.PihakTujuan,
 		EmailTujuan:      body.EmailTujuan,
 		TanggalDibuat:    time.Now(),
@@ -163,18 +186,44 @@ func CreateReferral(c *fiber.Ctx) error {
 		return err
 	}
 
-	// Kirim notifikasi ke mahasiswa
+	// Capture variables sebelum goroutine untuk menghindari race condition
+	mhsID := body.MahasiswaID
+	mhsNama := mahasiswa.Nama
+	psikNama := psikolog.Nama
+	tipeRef := body.Tipe
+
 	go func() {
+		// Notifikasi ke mahasiswa
 		_ = notifikasi.Kirim(config.DB, notifikasi.KirimParams{
-			MahasiswaID: body.MahasiswaID,
-			Type:        "info",
-			Title:       "Surat Rujukan Dibuat",
+			MahasiswaID: mhsID,
+			Type:        "referral",
+			Title:       "Surat Rujukan Dibuat 📋",
 			Content: fmt.Sprintf(
-				"Psikolog %s telah membuat surat rujukan %s untuk Anda. Silakan cek di aplikasi.",
-				psikolog.Nama,
-				body.Tipe,
+				"Psikolog %s telah membuat surat rujukan tipe %s untuk Anda. Rujukan sedang menunggu persetujuan administrator sebelum dapat dikirimkan.",
+				psikNama,
+				tipeRef,
 			),
+			Link: "/student/counseling?tab=referrals",
 		})
+
+		// Notifikasi ke semua SuperAdmin
+		var adminUsers []models.User
+		if err := config.DB.Where("role = ?", "super_admin").Find(&adminUsers).Error; err == nil {
+			for _, admin := range adminUsers {
+				_ = notifikasi.Kirim(config.DB, notifikasi.KirimParams{
+					UserID: admin.ID,
+					Type:   "referral",
+					Title:  "Referral Baru Perlu Persetujuan 🔔",
+					Content: fmt.Sprintf(
+						"Psikolog %s mengajukan surat rujukan tipe %s untuk mahasiswa %s. Harap tinjau dan berikan persetujuan di portal admin.",
+						psikNama,
+						tipeRef,
+						mhsNama,
+					),
+					Link: "/admin/psychologists/referrals",
+				})
+			}
+		}
 	}()
 
 	return jsonOK(c, fiber.Map{
@@ -198,7 +247,17 @@ func SendReferral(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusNotFound, "Referral tidak ditemukan")
 	}
 
-	if referral.Status != "Pending" {
+	// Cek approval status dulu
+	if referral.ApprovalStatus != "disetujui" {
+		switch referral.ApprovalStatus {
+		case "ditolak":
+			return fiber.NewError(fiber.StatusForbidden, "Referral ini telah ditolak oleh administrator: "+referral.ApprovalNote)
+		default:
+			return fiber.NewError(fiber.StatusForbidden, "Referral belum mendapat persetujuan dari Super Admin. Harap tunggu konfirmasi.")
+		}
+	}
+
+	if referral.Status != "menunggu_approval" && referral.Status != "Pending" {
 		return fiber.NewError(fiber.StatusBadRequest, "Referral sudah dikirim sebelumnya")
 	}
 
@@ -224,7 +283,11 @@ func SendReferral(c *fiber.Ctx) error {
 func ConfirmReferralReceived(c *fiber.Ctx) error {
 	referralID := c.Params("id")
 	var referral models.PsikologReferral
-	if err := config.DB.Where("id = ?", referralID).First(&referral).Error; err != nil {
+	if err := config.DB.
+		Preload("Psikolog").
+		Preload("Mahasiswa").
+		Where("id = ?", referralID).
+		First(&referral).Error; err != nil {
 		return fiber.NewError(fiber.StatusNotFound, "Referral tidak ditemukan")
 	}
 
@@ -234,24 +297,27 @@ func ConfirmReferralReceived(c *fiber.Ctx) error {
 
 	now := time.Now()
 	if err := config.DB.Model(&referral).Updates(map[string]any{
-		"status":            "Received",
-		"tanggal_diterima":  now,
+		"status":           "Received",
+		"tanggal_diterima": now,
 	}).Error; err != nil {
 		return err
 	}
 
-	// Kirim notifikasi ke psikolog
+	// Capture vars sebelum goroutine
+	psikologID := referral.PsikologID
+	psikologUserID := referral.Psikolog.UserID
+	mhsNama := referral.Mahasiswa.Nama
+	pihakTujuan := referral.PihakTujuan
+
+	// Kirim notifikasi ke psikolog (tabel psikolog.notifications)
 	go func() {
-		_ = notifikasi.Kirim(config.DB, notifikasi.KirimParams{
-			UserID: referral.Psikolog.UserID,
-			Type:       "info",
-			Title:      "Surat Rujukan Diterima",
-			Content: fmt.Sprintf(
-				"Surat rujukan untuk %s telah diterima oleh %s.",
-				referral.Mahasiswa.Nama,
-				referral.PihakTujuan,
-			),
-		})
+		kirimNotifPsikolog(
+			psikologID,
+			psikologUserID,
+			"info",
+			"Surat Rujukan Diterima ✅",
+			fmt.Sprintf("Surat rujukan untuk %s telah diterima oleh %s.", mhsNama, pihakTujuan),
+		)
 	}()
 
 	return jsonOK(c, fiber.Map{

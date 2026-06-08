@@ -559,6 +559,12 @@ export const adminService = {
   getPsychologistBookings: () => fetchWithAuth(`${API_BASE_URL}/admin/psychologists/bookings`),
   getPsychologistMedicalRecords: () => fetchWithAuth(`${API_BASE_URL}/admin/psychologists/medical-records`),
   getPsychologistReferrals: () => fetchWithAuth(`${API_BASE_URL}/admin/psychologists/referrals`),
+  approvePsychologistReferral: (id, action, catatan = '') =>
+    fetchWithAuth(`${API_BASE_URL}/admin/psychologists/referrals/${id}/approve`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, catatan }),
+    }),
 
   // Tenaga Kesehatan (Health Worker) management API endpoints
   getAllTenagaKesehatan: () => fetchWithAuth(`${API_BASE_URL}/admin/tenagakes`),
