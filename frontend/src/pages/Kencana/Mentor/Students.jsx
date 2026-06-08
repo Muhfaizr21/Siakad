@@ -2,22 +2,35 @@ import React from 'react';
 import { useMentorStudentsQuery, useMentorRemoveAssignmentMutation } from '../../../queries/useKencanaMentorQuery';
 import { Link } from 'react-router-dom';
 import { PageHeader } from '../../../components/ui/page/PageHeader';
+import { DeleteConfirmModal } from '../../../components/ui/DeleteConfirmModal';
 
 const Students = () => {
   const { data: students, isLoading } = useMentorStudentsQuery();
   const removeMutation = useMentorRemoveAssignmentMutation();
   const rows = Array.isArray(students) ? students : [];
 
-  const handleRemove = (id) => {
-    if(window.confirm('Hapus mahasiswa ini dari daftar bimbingan?')) {
-      removeMutation.mutate(id);
-    }
+  const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
+  const [selectedStudentId, setSelectedStudentId] = React.useState(null);
+
+  const handleRemoveClick = (id) => {
+    setSelectedStudentId(id);
+    setDeleteModalOpen(true);
   };
 
+  const handleConfirmDelete = () => {
+    if(selectedStudentId) {
+      removeMutation.mutate(selectedStudentId, {
+        onSettled: () => {
+          setDeleteModalOpen(false);
+          setSelectedStudentId(null);
+        }
+      });
+    }
+  };
   return (
     <div className="px-4 py-6 md:px-6 lg:px-8 min-h-screen bg-transparent font-body max-w-7xl mx-auto space-y-6">
       <PageHeader
-        icon="users"
+        icon="group"
         title={
           <>
             <span className="text-[var(--theme-text)]">Mahasiswa </span>
@@ -74,16 +87,21 @@ const Students = () => {
                     </td>
                     <td className="px-6 py-4 text-right flex items-center justify-end gap-2">
                       {assignment.status === 'active' && (
-                        <Link to={`/kencana-mentor/students/${assignment.student_id}`} className="h-8 px-3 rounded-lg bg-[var(--theme-primary-light)] text-[var(--theme-primary)] text-xs font-bold hover:bg-[var(--theme-primary-light)]/85 transition-colors border border-[var(--theme-primary-light)] flex items-center">
-                          Detail
+                        <Link 
+                          to={`/kencana-mentor/students/${assignment.student_id}`} 
+                          className="w-8 h-8 rounded-lg bg-[var(--theme-primary-light)] text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)]/85 transition-colors border border-[var(--theme-primary-light)] flex items-center justify-center"
+                          title="Lihat Detail"
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>visibility</span>
                         </Link>
                       )}
                       <button 
-                        onClick={() => handleRemove(assignment.id)}
+                        onClick={() => handleRemoveClick(assignment.id)}
                         disabled={removeMutation.isPending}
-                        className="h-8 px-3 rounded-lg bg-[var(--theme-danger-light)] text-[var(--theme-danger)] text-xs font-bold hover:bg-[var(--theme-danger-light)]/85 transition-colors border border-[var(--theme-danger-light)] disabled:opacity-50"
+                        className="w-8 h-8 rounded-lg bg-[var(--theme-danger-light)] text-[var(--theme-danger)] hover:bg-[var(--theme-danger-light)]/85 transition-colors border border-[var(--theme-danger-light)] disabled:opacity-50 flex items-center justify-center"
+                        title="Hapus Bimbingan"
                       >
-                        Hapus
+                        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>delete</span>
                       </button>
                     </td>
                   </tr>
@@ -100,6 +118,15 @@ const Students = () => {
           )}
         </div>
       </div>
+
+      <DeleteConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Hapus Mahasiswa?"
+        description="Mahasiswa ini akan dihapus dari daftar bimbingan Anda. Anda bisa mengundangnya kembali dari daftar mahasiswa yang tersedia jika terjadi kesalahan."
+        loading={removeMutation.isPending}
+      />
     </div>
   );
 };

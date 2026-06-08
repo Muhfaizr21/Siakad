@@ -57,7 +57,7 @@ export {
   BreadcrumbSeparator,
   BreadcrumbEllipsis
 } from './Breadcrumb';
-export { ButtonGroup, ButtonGroupItem } from './ButtonGroup';
+export { ButtonGroup, ButtonGroupSeparator, ButtonGroupText, buttonGroupVariants } from './ButtonGroup';
 export { Calendar, CalendarDayButton } from './Calendar';
 export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent } from './Card';
 export {
@@ -145,12 +145,15 @@ export {
 } from './Empty';
 export {
   Field,
-  FieldGroup,
-  FieldControl,
   FieldLabel,
   FieldDescription,
   FieldError,
-  FieldRequired
+  FieldGroup,
+  FieldLegend,
+  FieldSeparator,
+  FieldSet,
+  FieldContent,
+  FieldTitle,
 } from './Field';
 export {
   useFormField,
@@ -170,7 +173,18 @@ export {
   InputGroupAddon
 } from './InputGroup';
 export { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from './InputOTP';
-export { Item, ItemGroup, ItemLabel, ItemValue } from './Item';
+export {
+  Item,
+  ItemMedia,
+  ItemContent,
+  ItemActions,
+  ItemGroup,
+  ItemSeparator,
+  ItemTitle,
+  ItemDescription,
+  ItemHeader,
+  ItemFooter,
+} from './Item';
 export { Kbd, KbdGroup } from './Kbd';
 export {
   Menubar,
@@ -190,7 +204,7 @@ export {
   MenubarGroup,
   MenubarShortcut
 } from './Menubar';
-export { Modal, ModalHeader, ModalFooter, ModalBody, ModalBtn } from './Modal';
+export { Modal, ModalFooter, ModalBody, ModalBtn } from './Modal';
 export {
   NavigationMenu,
   NavigationMenuList,
@@ -219,8 +233,6 @@ export { ScrollArea, ScrollBar } from './ScrollArea';
 export { Separator } from './Separator';
 export {
   Sheet,
-  SheetPortal,
-  SheetOverlay,
   SheetTrigger,
   SheetClose,
   SheetContent,

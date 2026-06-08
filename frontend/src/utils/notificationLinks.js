@@ -74,7 +74,12 @@ export const resolveStudentNotificationLink = (notification = {}) => {
   if (type === 'beasiswa') return '/student/scholarship';
   if (type === 'achievement' || type === 'prestasi') return '/student/achievement';
   if (type === 'student_voice' || type === 'aspirasi') return '/student/voice';
-  if (type === 'kencana') return '/student/kencana';
+  if (type === 'kencana') {
+    if (text.includes('undangan') || text.includes('kelompok') || text.includes('pembimbing')) {
+      return '/student/kencana/invitations';
+    }
+    return '/student/kencana';
+  }
 
   return STUDENT_NOTIFICATION_PATH;
 };

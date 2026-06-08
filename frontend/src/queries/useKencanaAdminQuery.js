@@ -317,7 +317,7 @@ export const useGenerateCertificateMutation = () => {
 };
 
 // ─── Mentors ───
-const kencanaBase = (portal = 'admin') => portal === 'fakultas' ? '/kencana-fakultas' : '/kencana-admin';
+const kencanaBase = (portal = 'admin') => (portal === 'fakultas' || portal === 'fakult') ? '/kencana-fakultas' : '/kencana-admin';
 
 export const useMentorsQuery = (portal = 'admin') => useQuery({
   queryKey: [`kencana-${portal}`, 'mentors'],

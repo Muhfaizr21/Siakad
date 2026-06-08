@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { psychologistService } from '../../services/api';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/Table';
 
 const tabs = ['Semua', 'Menunggu', 'Dikonfirmasi', 'Selesai', 'Ditolak'];
 const statusMeta = {
@@ -447,67 +448,74 @@ export default function BookingManagement() {
             </div>
           </div>
         ) : (
-          <div className="space-y-4">
-            {paginatedBookings.map((booking) => {
-              const status = booking.status || 'Menunggu';
-              const isUpdating = updatingId === booking.id;
-              const statusCfg = statusMeta[status] || statusMeta['Menunggu'];
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Mahasiswa</TableHead>
+                <TableHead>Topik Keluhan</TableHead>
+                <TableHead>Jadwal Sesi</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Aksi</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {paginatedBookings.map((booking) => {
+                const status = booking.status || 'Menunggu';
+                const isUpdating = updatingId === booking.id;
+                const statusCfg = statusMeta[status] || statusMeta['Menunggu'];
 
-              return (
-                <div 
-                  key={booking.id} 
-                  onClick={() => navigate(`/psychologist/bookings/${booking.id}`)} 
-                  className={`flex flex-col lg:flex-row lg:items-center gap-4 p-4 rounded-2xl border border-slate-200 hover:border-primary/40 bg-white transition-all duration-300 group cursor-pointer hover:shadow-md hover:shadow-primary/5 ${status === 'Selesai' ? 'opacity-70 grayscale-[30%]' : ''}`}
-                >
-                  <div className="flex items-center gap-3 lg:w-[280px] shrink-0">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm group-hover:scale-105 transition-transform duration-300 shrink-0 bg-primary/10 text-primary border border-primary/20">
-                      {booking.avatar || booking.name?.charAt(0) || 'M'}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="truncate text-xs font-black text-slate-900 group-hover:text-primary transition-colors">{booking.name || 'Mahasiswa'}</p>
-                      <p className="mt-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-500">NIM {booking.nim || '-'}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex-1 min-w-0 lg:px-4 lg:border-l border-slate-100">
-                    <div className="flex items-center gap-2">
-                      <p className="text-xs font-black uppercase tracking-tight text-slate-800">{booking.issue || 'Topik Umum'}</p>
-                      <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider border ${
-                        booking.mode === 'Online' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-slate-50 text-slate-600 border-slate-200'
-                      }`}>
-                        <span className="material-symbols-outlined !text-[12px] shrink-0">{booking.mode === 'Online' ? 'videocam' : 'groups'}</span>
-                        {booking.mode || 'Tatap Muka'}
-                      </span>
-                    </div>
-                    <p className="mt-1 line-clamp-1 text-[10px] font-medium text-slate-500 italic">"{booking.note || 'Tidak ada catatan tambahan.'}"</p>
-                  </div>
-                  
-                  <div className="flex flex-row items-center justify-between lg:justify-end gap-5 lg:shrink-0">
-                    <div className="text-left lg:text-right">
-                      <div className="flex items-center gap-1.5 text-[11px] font-black text-slate-800">
-                        <span className="material-symbols-outlined text-[16px] text-primary shrink-0">calendar_month</span>
-                        {booking.date || '-'}
+                return (
+                  <TableRow 
+                    key={booking.id} 
+                    onClick={() => navigate(`/psychologist/bookings/${booking.id}`)} 
+                    className={`cursor-pointer group ${status === 'Selesai' ? 'opacity-70 grayscale-[30%]' : ''}`}
+                  >
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm bg-primary/10 text-primary border border-primary/20 shrink-0 group-hover:scale-105 transition-transform">
+                          {booking.avatar || booking.name?.charAt(0) || 'M'}
+                        </div>
+                        <div>
+                          <p className="font-bold text-sm text-slate-900 group-hover:text-primary transition-colors max-w-[200px] truncate">{booking.name || 'Mahasiswa'}</p>
+                          <p className="text-[10px] text-slate-400 font-medium mt-0.5">{booking.nim || '-'} &bull; {booking.prodi || '-'}</p>
+                        </div>
                       </div>
-                      <div className="flex items-center lg:justify-end gap-1.5 text-[10px] font-bold text-slate-500 mt-1">
-                        <span className="material-symbols-outlined text-[14px] shrink-0">schedule</span>
-                        {booking.time || '-'}
-                      </div>
-                    </div>
+                    </TableCell>
                     
-                    <div className="flex items-center gap-3">
-                      <span className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-widest ${statusCfg.badgeBg} ${statusCfg.badgeText} ${statusCfg.badgeBorder}`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${statusCfg.dot}`} />
+                    <TableCell>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[10px] font-bold text-slate-600 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg uppercase tracking-wider">{booking.issue || '—'}</span>
+                        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wider border ${
+                          booking.mode === 'Online' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-slate-50 text-slate-600 border-slate-200'
+                        }`}>
+                          <span className="material-symbols-outlined !text-[12px] shrink-0">{booking.mode === 'Online' ? 'videocam' : 'groups'}</span>
+                          {booking.mode || 'Tatap Muka'}
+                        </span>
+                      </div>
+                      <p className="line-clamp-1 text-[10px] font-medium text-slate-500 italic max-w-[250px]">"{booking.note || 'Tidak ada catatan'}"</p>
+                    </TableCell>
+                    
+                    <TableCell>
+                      <p className="font-black text-sm text-slate-700">{booking.date || '-'}</p>
+                      <p className="text-[10px] text-primary font-bold mt-0.5 bg-primary/10 inline-block px-1.5 py-0.5 rounded uppercase tracking-wider">{booking.time || '-'}</p>
+                    </TableCell>
+                    
+                    <TableCell>
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider whitespace-nowrap ${statusCfg.badgeBg} ${statusCfg.badgeText} ${statusCfg.badgeBorder}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${statusCfg.dot}`} />
                         {status}
                       </span>
-                      
-                      <div className="flex items-center gap-2">
+                    </TableCell>
+                    
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2">
                         {status === 'Menunggu' ? (
                           <>
                             <button
                               type="button"
                               disabled={isUpdating}
                               onClick={(e) => { e.stopPropagation(); handleAction(booking.id, 'Ditolak'); }}
-                              className="w-8 h-8 flex items-center justify-center rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-100 hover:scale-110 transition-all disabled:opacity-50"
+                              className="w-8 h-8 flex items-center justify-center rounded-xl bg-rose-50 text-rose-600 border border-rose-100 hover:bg-rose-100 transition-all disabled:opacity-50"
                             >
                               <span className="material-symbols-outlined text-[16px]">close</span>
                             </button>
@@ -515,7 +523,7 @@ export default function BookingManagement() {
                               type="button"
                               disabled={isUpdating}
                               onClick={(e) => { e.stopPropagation(); handleConfirmClick(booking); }}
-                              className="w-8 h-8 flex items-center justify-center rounded-xl bg-primary text-white hover:bg-primary/90 hover:scale-110 shadow-sm transition-all disabled:opacity-50"
+                              className="w-8 h-8 flex items-center justify-center rounded-xl bg-primary text-white hover:bg-primary/90 shadow-sm transition-all disabled:opacity-50"
                             >
                               <span className="material-symbols-outlined text-[16px]">check</span>
                             </button>
@@ -524,12 +532,12 @@ export default function BookingManagement() {
                           <span className="material-symbols-outlined text-[20px] text-slate-300 group-hover:text-primary transition-colors">chevron_right</span>
                         )}
                       </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
         )}
 
         {/* ── Pagination Controls ──────────────────────────────────── */}

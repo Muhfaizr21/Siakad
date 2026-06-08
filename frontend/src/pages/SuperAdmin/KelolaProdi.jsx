@@ -71,8 +71,8 @@ export default function KelolaProdi() {
         toast.error('Gagal memuat data Fakultas: ' + err.message)
       }
 
-    } catch (err) { 
-      toast.error(err.message || 'Gagal sinkronisasi cluster akademik') 
+    } catch (err) {
+      toast.error(err.message || 'Gagal sinkronisasi cluster akademik')
     } finally { setLoading(false) }
   }
 
@@ -87,23 +87,23 @@ export default function KelolaProdi() {
     }
   }
 
-  const handleOpenAdd = () => { 
+  const handleOpenAdd = () => {
     setIsEditMode(false)
     setForm({ Nama: '', Kode: '', Jenjang: 'S1', FakultasID: '' })
-    setIsCrudOpen(true) 
+    setIsCrudOpen(true)
   }
 
-  const handleOpenEdit = (row) => { 
+  const handleOpenEdit = (row) => {
     setIsEditMode(true)
     setSelected(row)
-    setForm({ 
-      ID: row.id || row.ID, 
-      Nama: row.Nama || '', 
-      Kode: row.Kode || '', 
-      Jenjang: row.Jenjang || 'S1', 
+    setForm({
+      ID: row.id || row.ID,
+      Nama: row.Nama || '',
+      Kode: row.Kode || '',
+      Jenjang: row.Jenjang || 'S1',
       FakultasID: row.FakultasID ? String(row.FakultasID) : ''
     })
-    setIsCrudOpen(true) 
+    setIsCrudOpen(true)
   }
 
   const handleSave = async (e) => {
@@ -113,10 +113,10 @@ export default function KelolaProdi() {
     try {
       const targetId = form.ID || form.id
       const res = targetId ? await adminService.updateProdi(targetId, payload) : await adminService.createProdi(payload)
-      if (res.status === 'success') { 
+      if (res.status === 'success') {
         toast.success(targetId ? 'Konfigurasi prodi berhasil dimodifikasi' : 'Registrasi prodi baru berhasil')
         setIsCrudOpen(false)
-        fetchData() 
+        fetchData()
       } else {
         toast.error(res.message || 'Gagal menyimpan konfigurasi data')
       }
@@ -184,362 +184,362 @@ export default function KelolaProdi() {
   return (
     <PageContent>
       <Toaster position="top-right" />
-      
-        {/* ── Page Header ─────────────────────────────────────────── */}
-        <DashboardHero
-          title="Kelola"
-          highlightedTitle="Program Studi"
-          subtitle="Manajemen kurikulum, jenjang pendidikan, dan sinkronisasi struktur program studi lintas fakultas melalui master database PDDIKTI."
+
+      {/* ── Page Header ─────────────────────────────────────────── */}
+      <DashboardHero
+        title="Kelola"
+        highlightedTitle="Program Studi"
+        subtitle="Manajemen kurikulum, jenjang pendidikan, dan sinkronisasi struktur program studi lintas fakultas melalui master database PDDIKTI."
+        icon="school"
+        badges={[
+          { label: 'Academic Operations', active: true }
+        ]}
+        actions={
+          <>
+            <Button
+              onClick={handleSyncPddikti}
+              variant="outline"
+              disabled={isSyncing}
+              className="h-11 px-6 rounded-xl border-slate-200 text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-50 gap-2 transition-all active:scale-95 shadow-sm w-full sm:w-auto flex items-center justify-center font-headline"
+            >
+              {isSyncing ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '14px' }} >sync</span> : <RefreshCw size={14} className="text-primary" />}
+              {isSyncing ? 'Syncing...' : 'PDDIKTI Sync'}
+            </Button>
+
+            <Button
+              onClick={handleOpenAdd}
+              className="h-11 px-8 rounded-xl bg-slate-900 text-white hover:bg-primary shadow-xl shadow-slate-900/10 gap-3 transition-all active:scale-95 border-none group w-full sm:w-auto flex items-center justify-center font-headline"
+            >
+              <div className="size-5 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                <span className="material-symbols-outlined" style={{ fontSize: '14px' }} strokeWidth={3}>add</span>
+              </div>
+              <span className="text-xs font-bold uppercase tracking-[0.2em]">Registrasi Prodi</span>
+            </Button>
+          </>
+        }
+      />
+
+      {/* ── Stats Grid ──────────────────────────────────────────── */}
+      {/* ── Stats Grid ──────────────────────────────────────────── */}
+      <DashboardStatGrid>
+        <DashboardStatCard
+          title="Total Prodi"
+          value={stats.total}
           icon="school"
-          badges={[
-            { label: 'Academic Operations', active: true }
-          ]}
-          actions={
-            <>
-              <Button 
-                onClick={handleSyncPddikti} 
-                variant="outline" 
-                disabled={isSyncing}
-                className="h-11 px-6 rounded-xl border-slate-200 text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-50 gap-2 transition-all active:scale-95 shadow-sm w-full sm:w-auto flex items-center justify-center font-headline"
-              >
-                {isSyncing ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '14px' }} >sync</span> : <RefreshCw size={14} className="text-primary" />}
-                {isSyncing ? 'Syncing...' : 'PDDIKTI Sync'}
-              </Button>
-              
-              <Button 
-                onClick={handleOpenAdd}
-                className="h-11 px-8 rounded-xl bg-slate-900 text-white hover:bg-primary shadow-xl shadow-slate-900/10 gap-3 transition-all active:scale-95 border-none group w-full sm:w-auto flex items-center justify-center font-headline"
-              >
-                <div className="size-5 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                  <span className="material-symbols-outlined" style={{ fontSize: '14px' }}  strokeWidth={3}>add</span>
-                </div>
-                <span className="text-xs font-bold uppercase tracking-[0.2em]">Registrasi Prodi</span>
-              </Button>
-            </>
-          }
+          iconColor="text-blue-600"
+          iconBg="bg-blue-50"
+          subtitle="Program studi terdaftar"
         />
-        
-        {/* ── Stats Grid ──────────────────────────────────────────── */}
-        {/* ── Stats Grid ──────────────────────────────────────────── */}
-        <DashboardStatGrid>
-          <DashboardStatCard
-            title="Total Prodi"
-            value={stats.total}
-            icon="school"
-            iconColor="text-blue-600"
-            iconBg="bg-blue-50"
-            subtitle="Program studi terdaftar"
-          />
 
-          <DashboardStatCard
-            title="Fakultas"
-            value={stats.faculties}
-            icon="menu_book"
-            iconColor="text-indigo-600"
-            iconBg="bg-indigo-50"
-            subtitle="Unit akademik naungan"
-          />
+        <DashboardStatCard
+          title="Fakultas"
+          value={stats.faculties}
+          icon="menu_book"
+          iconColor="text-indigo-600"
+          iconBg="bg-indigo-50"
+          subtitle="Unit akademik naungan"
+        />
 
-          <DashboardStatCard
-            title="Jenjang S1"
-            value={stats.s1}
-            icon="layers"
-            iconColor="text-amber-600"
-            iconBg="bg-amber-50"
-            subtitle="Program sarjana strata 1"
-          />
+        <DashboardStatCard
+          title="Jenjang S1"
+          value={stats.s1}
+          icon="layers"
+          iconColor="text-amber-600"
+          iconBg="bg-amber-50"
+          subtitle="Program sarjana strata 1"
+        />
 
-          <DashboardStatCard
-            title="Jenjang D3"
-            value={stats.d3}
-            icon="menu_book"
-            iconColor="text-emerald-600"
-            iconBg="bg-emerald-50"
-            subtitle="Program diploma tiga"
-          />
-        </DashboardStatGrid>
+        <DashboardStatCard
+          title="Jenjang D3"
+          value={stats.d3}
+          icon="menu_book"
+          iconColor="text-emerald-600"
+          iconBg="bg-emerald-50"
+          subtitle="Program diploma tiga"
+        />
+      </DashboardStatGrid>
 
-        {/* ── Charts Section ──────────────────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-           {/* Bar Chart: Prodi per Fakultas */}
-           <div className="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-              <div className="flex items-center gap-3 mb-3">
-                 <div className="w-10 h-10 bg-blue-50 rounded-xl flex justify-center items-center text-bku-primary flex-shrink-0">
-                    <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '18px' }} >bar_chart</span>
-                 </div>
-                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Jumlah Program Studi per Fakultas</span>
-              </div>
-              <div className="h-[200px] w-full">
-                 <ResponsiveContainer width="100%" height={200}>
-                    <BarChart data={prodiPerFacultyData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                       <XAxis dataKey="name" tick={{ fontSize: 8.5, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                       <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                       <Tooltip
-                          cursor={{ fill: '#f8fafc' }}
-                          contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "11px", fontWeight: "bold" }}
-                       />
-                       <Bar dataKey="count" name="Jumlah Prodi" fill="var(--theme-primary, #00236f)" radius={[4, 4, 0, 0]} barSize={24} />
-                    </BarChart>
-                 </ResponsiveContainer>
-              </div>
-           </div>
-
-           {/* Pie Chart: Jenjang Pendidikan */}
-           <div className="lg:col-span-1 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
-              <div className="flex items-center gap-3 mb-3">
-                 <div className="w-10 h-10 bg-indigo-50 rounded-xl flex justify-center items-center text-indigo-600 flex-shrink-0">
-                    <span className="material-symbols-outlined text-indigo-600" style={{ fontSize: '18px' }} >pie_chart</span>
-                 </div>
-                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Jenjang Pendidikan</span>
-              </div>
-              <div className="h-[140px] w-full flex items-center justify-center">
-                 {jenjangData.length > 0 ? (
-                    <ResponsiveContainer width="100%" height={140}>
-                       <PieChart>
-                          <Pie
-                             data={jenjangData}
-                             cx="50%"
-                             cy="50%"
-                             innerRadius={40}
-                             outerRadius={60}
-                             paddingAngle={4}
-                             dataKey="value"
-                             stroke="none"
-                          >
-                             {jenjangData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                             ))}
-                          </Pie>
-                          <Tooltip
-                             contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }}
-                          />
-                       </PieChart>
-                    </ResponsiveContainer>
-                 ) : (
-                    <span className="text-xs text-slate-400 italic">Tidak ada data</span>
-                 )}
-              </div>
-              <div className="grid grid-cols-2 gap-1.5 mt-2">
-                 {jenjangData.slice(0, 4).map((item, idx) => (
-                    <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50 border border-slate-100">
-                       <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
-                       <div className="min-w-0">
-                          <p className="text-[9px] font-bold text-slate-400 truncate leading-none">{item.name}</p>
-                          <p className="text-xs font-extrabold text-slate-800 leading-none mt-1">{item.value}</p>
-                       </div>
-                    </div>
-                 ))}
-              </div>
-           </div>
+      {/* ── Charts Section ──────────────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Bar Chart: Prodi per Fakultas */}
+        <div className="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 bg-blue-50 rounded-xl flex justify-center items-center text-bku-primary flex-shrink-0">
+              <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '18px' }} >bar_chart</span>
+            </div>
+            <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Jumlah Program Studi per Fakultas</span>
+          </div>
+          <div className="h-[200px] w-full">
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={prodiPerFacultyData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="name" tick={{ fontSize: 8.5, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                <Tooltip
+                  cursor={{ fill: '#f8fafc' }}
+                  contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "11px", fontWeight: "bold" }}
+                />
+                <Bar dataKey="count" name="Jumlah Prodi" fill="var(--theme-primary, #00236f)" radius={[4, 4, 0, 0]} barSize={24} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
-        {/* ── Table Section ────────────────────────────────────────── */}
-        <PageCard>
-
-          {/* Table Toolbar */}
-          <div className="p-4 md:p-5 border-b border-[#e5e5e5] bg-transparent">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex-1">
-                <h2 className="font-bold text-base text-[#171717]">Daftar Program Studi</h2>
-                <p className="text-xs text-[#737373] mt-0.5">Manajemen seluruh program studi yang terdaftar di universitas.</p>
-              </div>
-              <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 w-full sm:w-auto mt-2 sm:mt-0">
-                {/* Search */}
-                <div className="relative w-full sm:w-auto">
-                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]" style={{ fontSize: '14px' }} >search</span>
-                  <input
-                    type="text"
-                    placeholder="Cari nama atau kode prodi..."
-                    value={searchTerm}
-                    onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                    className="pl-9 pr-4 h-9 w-full sm:w-56 rounded-xl border border-[#e5e5e5] focus:outline-none focus:border-bku-primary text-sm bg-white"
-                  />
-                </div>
-                {/* Filter Jenjang */}
-                <Select value={filterJenjang} onValueChange={v => { setFilterJenjang(v); setCurrentPage(1); }}>
-                  <SelectTrigger className="h-9 w-full sm:w-36 rounded-xl border-[#e5e5e5] bg-white text-xs font-medium">
-                    <SelectValue placeholder="Semua Jenjang" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl border-neutral-200 shadow-xl">
-                    <SelectItem value="all" className="text-xs">Semua Jenjang</SelectItem>
-                    {JENJANG_OPTIONS.map(j => <SelectItem key={j} value={j} className="text-xs">{j}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                {/* Filter Fakultas */}
-                <Select value={filterFakultasID} onValueChange={v => { setFilterFakultasID(v); setCurrentPage(1); }}>
-                  <SelectTrigger className="h-9 w-full sm:w-44 rounded-xl border-[#e5e5e5] bg-white text-xs font-medium">
-                    <SelectValue placeholder="Semua Fakultas" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl border-neutral-200 shadow-xl">
-                    <SelectItem value="all" className="text-xs">Semua Fakultas</SelectItem>
-                    {faculties.filter(f => f && (f.id || f.ID)).map((f) => (
-                      <SelectItem key={f.id || f.ID} value={String(f.id || f.ID)} className="text-xs">
-                        {f.Nama || f.nama || '—'}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {/* Reset */}
-                {(searchTerm || filterJenjang !== 'all' || filterFakultasID !== 'all') && (
-                  <button
-                    onClick={() => { setSearchTerm(''); setFilterJenjang('all'); setFilterFakultasID('all'); setCurrentPage(1); }}
-                    className="h-9 px-3 text-xs font-semibold text-[#dc2626] bg-[#fef2f2] rounded-xl border border-[#fecaca] hover:bg-[#fee2e2] transition-colors w-full sm:w-auto"
+        {/* Pie Chart: Jenjang Pendidikan */}
+        <div className="lg:col-span-1 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 bg-indigo-50 rounded-xl flex justify-center items-center text-indigo-600 flex-shrink-0">
+              <span className="material-symbols-outlined text-indigo-600" style={{ fontSize: '18px' }} >pie_chart</span>
+            </div>
+            <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Jenjang Pendidikan</span>
+          </div>
+          <div className="h-[140px] w-full flex items-center justify-center">
+            {jenjangData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={140}>
+                <PieChart>
+                  <Pie
+                    data={jenjangData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={40}
+                    outerRadius={60}
+                    paddingAngle={4}
+                    dataKey="value"
+                    stroke="none"
                   >
-                    Reset
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-transparent border-b border-[#e5e5e5]">
-                  <th className="px-5 py-3.5 text-xs font-bold text-[#a3a3a3] uppercase tracking-wider w-[50px]">#</th>
-                  <th className="px-5 py-3.5 text-xs font-bold text-[#a3a3a3] uppercase tracking-wider w-[150px]">Kode</th>
-                  <th className="px-5 py-3.5 text-xs font-bold text-[#a3a3a3] uppercase tracking-wider">Nama Program Studi</th>
-                  <th className="px-5 py-3.5 text-xs font-bold text-[#a3a3a3] uppercase tracking-wider w-[110px] text-center">Jenjang</th>
-                  <th className="px-5 py-3.5 text-xs font-bold text-[#a3a3a3] uppercase tracking-wider">Fakultas</th>
-                  <th className="px-5 py-3.5 text-xs font-bold text-[#a3a3a3] uppercase tracking-wider text-right w-[100px]">Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  Array.from({ length: 6 }).map((_, i) => (
-                    <tr key={i} className="border-b border-[#eef1f6]">
-                      {[...Array(6)].map((__, j) => (
-                        <td key={j} className="px-5 py-4">
-                          <div className="h-4 bg-[#f5f5f5] rounded animate-pulse" />
-                        </td>
-                      ))}
-                    </tr>
-                  ))
-                ) : paginatedData.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-5 py-16 text-center">
-                      <div className="flex flex-col items-center gap-3">
-                        <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-bku-primary">
-                          <span className="material-symbols-outlined" style={{ fontSize: '22px' }} >school</span>
-                        </div>
-                        <p className="font-bold text-sm text-[#171717]">Belum Ada Program Studi</p>
-                        <p className="text-xs text-[#a3a3a3]">Klik "Registrasi Prodi" untuk menambahkan data baru.</p>
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  paginatedData.map((row, i) => {
-                    const fakultasNama = row.FakultasNama || row.Fakultas?.Nama || '—'
-                    const jenjangStyle = JENJANG_STYLES[row.Jenjang] || JENJANG_STYLES.DEFAULT
-                    return (
-                      <tr key={row.id || row.ID || i} className="border-b border-[#eef1f6] hover:bg-[#f7faff] transition-colors">
-                        <td className="px-5 py-3.5 text-sm text-[#a3a3a3] font-medium">
-                          {(currentPage - 1) * pageSize + i + 1}
-                        </td>
-                         <td className="px-5 py-3.5">
-                          <code className="text-[12px] font-bold text-[#3b82f6] tracking-[0.1em]">
-                            {row.Kode || '—'}
-                          </code>
-                        </td>
-                        <td className="px-5 py-3.5">
-                          <p className="font-semibold text-sm text-[#171717] leading-snug">{row.Nama || '—'}</p>
-                        </td>
-                        <td className="px-5 py-3.5 text-center">
-                          <span className={cn('inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider shadow-sm border-none', jenjangStyle)}>
-                            {row.Jenjang || '—'}
-                          </span>
-                        </td>
-                        <td className="px-5 py-3.5">
-                          <p className="text-sm text-[#525252] font-medium leading-snug">{fakultasNama}</p>
-                        </td>
-                        <td className="px-5 py-3.5 text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <button
-                              onClick={() => handleOpenEdit(row)}
-                              className="p-1.5 text-[#a3a3a3] hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
-                              title="Edit"
-                            >
-                              <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >edit</span>
-                            </button>
-                            <button
-                              onClick={() => { setSelected(row); setIsDelOpen(true) }}
-                              className="p-1.5 text-[#a3a3a3] hover:text-[#dc2626] hover:bg-[#fef2f2] rounded-lg transition-colors"
-                              title="Hapus"
-                            >
-                              <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >delete</span>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination Footer */}
-          <div className="p-4 border-t border-[#e5e5e5] flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-[#525252]">
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-[#a3a3a3]">
-                Menampilkan <span className="font-bold text-[#171717]">{filteredData.length === 0 ? 0 : (currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, filteredData.length)}</span> dari <span className="font-bold text-bku-primary">{filteredData.length}</span> data
-              </span>
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs text-[#a3a3a3]">Baris:</span>
-                <Select value={String(pageSize)} onValueChange={v => { setPageSize(Number(v)); setCurrentPage(1); }}>
-                  <SelectTrigger className="h-8 w-24 rounded-lg border-[#e5e5e5] bg-white text-xs font-semibold">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl border-neutral-200 shadow-xl">
-                    {[5, 10, 15, 25, 50].map(s => (
-                      <SelectItem key={s} value={String(s)} className="text-xs">{s} baris</SelectItem>
+                    {jenjangData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                     ))}
-                  </SelectContent>
-                </Select>
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <span className="text-xs text-slate-400 italic">Tidak ada data</span>
+            )}
+          </div>
+          <div className="grid grid-cols-2 gap-1.5 mt-2">
+            {jenjangData.slice(0, 4).map((item, idx) => (
+              <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50 border border-slate-100">
+                <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
+                <div className="min-w-0">
+                  <p className="text-[9px] font-bold text-slate-400 truncate leading-none">{item.name}</p>
+                  <p className="text-xs font-extrabold text-slate-800 leading-none mt-1">{item.value}</p>
+                </div>
               </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Table Section ────────────────────────────────────────── */}
+      <PageCard>
+
+        {/* Table Toolbar */}
+        <div className="p-4 md:p-5 border-b border-[#e5e5e5] bg-transparent">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex-1">
+              <h2 className="font-bold text-base text-[#171717]">Daftar Program Studi</h2>
+              <p className="text-xs text-[#737373] mt-0.5">Manajemen seluruh program studi yang terdaftar di universitas.</p>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="px-3 py-1.5 text-xs font-semibold border border-[#e5e5e5] rounded-lg bg-white hover:bg-[#eef4ff] disabled:opacity-40 transition-colors flex items-center gap-1"
-              >
-                <ChevronLeft size={14} /> Prev
-              </button>
-              <div className="flex items-center gap-1">
-                {Array.from({ length: Math.min(5, totalPages) }).map((_, idx) => {
-                  let p = idx + 1
-                  if (totalPages > 5 && currentPage > 3) p = currentPage - 2 + idx
-                  if (p > totalPages) return null
-                  return (
-                    <button
-                      key={p}
-                      onClick={() => setCurrentPage(p)}
-                      className={cn(
-                        'w-8 h-8 rounded-lg text-xs font-bold transition-all',
-                        currentPage === p
-                          ? 'bg-bku-primary text-white shadow-sm'
-                          : 'text-[#525252] hover:bg-[#eef4ff] border border-[#e5e5e5]'
-                      )}
-                    >
-                      {p}
-                    </button>
-                  )
-                })}
+            <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 w-full sm:w-auto mt-2 sm:mt-0">
+              {/* Search */}
+              <div className="relative w-full sm:w-auto">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]" style={{ fontSize: '14px' }} >search</span>
+                <input
+                  type="text"
+                  placeholder="Cari nama atau kode prodi..."
+                  value={searchTerm}
+                  onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                  className="pl-9 pr-4 h-9 w-full sm:w-56 rounded-xl border border-[#e5e5e5] focus:outline-none focus:border-bku-primary text-sm bg-white"
+                />
               </div>
-              <button
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages || totalPages === 0}
-                className="px-3 py-1.5 text-xs font-semibold border border-[#e5e5e5] rounded-lg bg-white hover:bg-[#eef4ff] disabled:opacity-40 transition-colors flex items-center gap-1"
-              >
-                Next <ChevronRight size={14} />
-              </button>
+              {/* Filter Jenjang */}
+              <Select value={filterJenjang} onValueChange={v => { setFilterJenjang(v); setCurrentPage(1); }}>
+                <SelectTrigger className="h-9 w-full sm:w-36 rounded-xl border-[#e5e5e5] bg-white text-xs font-medium">
+                  <SelectValue placeholder="Semua Jenjang" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-neutral-200 shadow-xl">
+                  <SelectItem value="all" className="text-xs">Semua Jenjang</SelectItem>
+                  {JENJANG_OPTIONS.map(j => <SelectItem key={j} value={j} className="text-xs">{j}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              {/* Filter Fakultas */}
+              <Select value={filterFakultasID} onValueChange={v => { setFilterFakultasID(v); setCurrentPage(1); }}>
+                <SelectTrigger className="h-9 w-full sm:w-44 rounded-xl border-[#e5e5e5] bg-white text-xs font-medium">
+                  <SelectValue placeholder="Semua Fakultas" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-neutral-200 shadow-xl">
+                  <SelectItem value="all" className="text-xs">Semua Fakultas</SelectItem>
+                  {faculties.filter(f => f && (f.id || f.ID)).map((f) => (
+                    <SelectItem key={f.id || f.ID} value={String(f.id || f.ID)} className="text-xs">
+                      {f.Nama || f.nama || '—'}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {/* Reset */}
+              {(searchTerm || filterJenjang !== 'all' || filterFakultasID !== 'all') && (
+                <button
+                  onClick={() => { setSearchTerm(''); setFilterJenjang('all'); setFilterFakultasID('all'); setCurrentPage(1); }}
+                  className="h-9 px-3 text-xs font-semibold text-[#dc2626] bg-[#fef2f2] rounded-xl border border-[#fecaca] hover:bg-[#fee2e2] transition-colors w-full sm:w-auto"
+                >
+                  Reset
+                </button>
+              )}
             </div>
           </div>
+        </div>
 
-        </PageCard>
+        {/* Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-transparent border-b border-[#e5e5e5]">
+                <th className="px-5 py-3.5 text-xs font-bold text-[#a3a3a3] uppercase tracking-wider w-[50px]">#</th>
+                <th className="px-5 py-3.5 text-xs font-bold text-[#a3a3a3] uppercase tracking-wider w-[150px]">Kode</th>
+                <th className="px-5 py-3.5 text-xs font-bold text-[#a3a3a3] uppercase tracking-wider">Nama Program Studi</th>
+                <th className="px-5 py-3.5 text-xs font-bold text-[#a3a3a3] uppercase tracking-wider w-[110px] text-center">Jenjang</th>
+                <th className="px-5 py-3.5 text-xs font-bold text-[#a3a3a3] uppercase tracking-wider">Fakultas</th>
+                <th className="px-5 py-3.5 text-xs font-bold text-[#a3a3a3] uppercase tracking-wider text-right w-[100px]">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                Array.from({ length: 6 }).map((_, i) => (
+                  <tr key={i} className="border-b border-[#eef1f6]">
+                    {[...Array(6)].map((__, j) => (
+                      <td key={j} className="px-5 py-4">
+                        <div className="h-4 bg-[#f5f5f5] rounded animate-pulse" />
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              ) : paginatedData.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-5 py-16 text-center">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-bku-primary">
+                        <span className="material-symbols-outlined" style={{ fontSize: '22px' }} >school</span>
+                      </div>
+                      <p className="font-bold text-sm text-[#171717]">Belum Ada Program Studi</p>
+                      <p className="text-xs text-[#a3a3a3]">Klik "Registrasi Prodi" untuk menambahkan data baru.</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                paginatedData.map((row, i) => {
+                  const fakultasNama = row.FakultasNama || row.Fakultas?.Nama || '—'
+                  const jenjangStyle = JENJANG_STYLES[row.Jenjang] || JENJANG_STYLES.DEFAULT
+                  return (
+                    <tr key={row.id || row.ID || i} className="border-b border-[#eef1f6] hover:bg-[#f7faff] transition-colors">
+                      <td className="px-5 py-3.5 text-sm text-[#a3a3a3] font-medium">
+                        {(currentPage - 1) * pageSize + i + 1}
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <code className="text-[12px] font-bold text-[#3b82f6] tracking-[0.1em]">
+                          {row.Kode || '—'}
+                        </code>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <p className="font-semibold text-sm text-[#171717] leading-snug">{row.Nama || '—'}</p>
+                      </td>
+                      <td className="px-5 py-3.5 text-center">
+                        <span className={cn('inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider shadow-sm border-none', jenjangStyle)}>
+                          {row.Jenjang || '—'}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <p className="text-sm text-[#525252] font-medium leading-snug">{fakultasNama}</p>
+                      </td>
+                      <td className="px-5 py-3.5 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => handleOpenEdit(row)}
+                            className="p-1.5 text-[#a3a3a3] hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                            title="Edit"
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >edit</span>
+                          </button>
+                          <button
+                            onClick={() => { setSelected(row); setIsDelOpen(true) }}
+                            className="p-1.5 text-[#a3a3a3] hover:text-[#dc2626] hover:bg-[#fef2f2] rounded-lg transition-colors"
+                            title="Hapus"
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >delete</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination Footer */}
+        <div className="p-4 border-t border-[#e5e5e5] flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-[#525252]">
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-[#a3a3a3]">
+              Menampilkan <span className="font-bold text-[#171717]">{filteredData.length === 0 ? 0 : (currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, filteredData.length)}</span> dari <span className="font-bold text-bku-primary">{filteredData.length}</span> data
+            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-[#a3a3a3]">Baris:</span>
+              <Select value={String(pageSize)} onValueChange={v => { setPageSize(Number(v)); setCurrentPage(1); }}>
+                <SelectTrigger className="h-8 w-24 rounded-lg border-[#e5e5e5] bg-white text-xs font-semibold">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-neutral-200 shadow-xl">
+                  {[5, 10, 15, 25, 50].map(s => (
+                    <SelectItem key={s} value={String(s)} className="text-xs">{s} baris</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1.5 text-xs font-semibold border border-[#e5e5e5] rounded-lg bg-white hover:bg-[#eef4ff] disabled:opacity-40 transition-colors flex items-center gap-1"
+            >
+              <ChevronLeft size={14} /> Prev
+            </button>
+            <div className="flex items-center gap-1">
+              {Array.from({ length: Math.min(5, totalPages) }).map((_, idx) => {
+                let p = idx + 1
+                if (totalPages > 5 && currentPage > 3) p = currentPage - 2 + idx
+                if (p > totalPages) return null
+                return (
+                  <button
+                    key={p}
+                    onClick={() => setCurrentPage(p)}
+                    className={cn(
+                      'w-8 h-8 rounded-lg text-xs font-bold transition-all',
+                      currentPage === p
+                        ? 'bg-bku-primary text-white shadow-sm'
+                        : 'text-[#525252] hover:bg-[#eef4ff] border border-[#e5e5e5]'
+                    )}
+                  >
+                    {p}
+                  </button>
+                )
+              })}
+            </div>
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages || totalPages === 0}
+              className="px-3 py-1.5 text-xs font-semibold border border-[#e5e5e5] rounded-lg bg-white hover:bg-[#eef4ff] disabled:opacity-40 transition-colors flex items-center gap-1"
+            >
+              Next <ChevronRight size={14} />
+            </button>
+          </div>
+        </div>
+
+      </PageCard>
 
       {/* ── CRUD Modal ───────────────────────────────────────────── */}
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
@@ -547,7 +547,7 @@ export default function KelolaProdi() {
           <DialogHeader className="p-5 md:p-8 pb-5 border-b border-[#f0f0f0]">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-7 h-7 rounded-lg bg-[#eef4ff] flex items-center justify-center text-bku-primary">
-                {isEditMode ? <span className="material-symbols-outlined" style={{ fontSize: '13px' }} >edit</span> : <span className="material-symbols-outlined" style={{ fontSize: '13px' }}  strokeWidth={3}>add</span>}
+                {isEditMode ? <span className="material-symbols-outlined" style={{ fontSize: '13px' }} >edit</span> : <span className="material-symbols-outlined" style={{ fontSize: '13px' }} strokeWidth={3}>add</span>}
               </div>
               <span className="text-xs font-bold text-bku-primary tracking-wide">
                 {isEditMode ? 'Edit Program Studi' : 'Tambah Program Studi'}

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { psychologistService } from '../../services/api';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/Table';
 
 export default function PatientList() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -325,70 +326,82 @@ export default function PatientList() {
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    {paginatedPatients.map((patient) => {
-                      const statusStyle = getStatusColor(patient.status);
-                      
-                      return (
-                        <div 
-                          key={patient.id} 
-                          onClick={() => navigate(`/psychologist/patients/${patient.id}/medical-record`)}
-                          className={`flex flex-col lg:flex-row lg:items-center gap-4 p-4 rounded-2xl border border-slate-200 hover:border-primary/40 bg-white transition-all duration-300 group cursor-pointer hover:shadow-md hover:shadow-primary/5 ${patient.status === 'Selesai' ? 'opacity-60 grayscale-[35%]' : ''}`}
-                        >
-                          {/* Left: Patient Info */}
-                          <div className="flex items-center gap-3 lg:w-[280px] shrink-0">
-                            <div className={`w-10 h-10 rounded-xl ${patient.color || 'bg-primary'} text-white flex items-center justify-center font-black text-xs shadow-sm group-hover:scale-105 transition-transform duration-300 shrink-0 overflow-hidden relative`}>
-                              {patient.foto_url || patient.foto ? (
-                                <img src={patient.foto_url || patient.foto} alt={patient.name} className="w-full h-full object-cover" />
-                              ) : (
-                                <span className="material-symbols-outlined text-white/80 text-[20px] shrink-0">person</span>
-                              )}
-                            </div>
-                            <div className="min-w-0">
-                              <p className="truncate text-xs font-black text-slate-900 group-hover:text-primary transition-colors">{patient.name}</p>
-                              <p className="mt-0.5 truncate text-[9px] font-bold uppercase tracking-widest text-slate-500">{patient.nim} • {patient.faculty}</p>
-                            </div>
-                          </div>
-                          
-                          {/* Middle: Stats */}
-                          <div className="flex-1 min-w-0 lg:px-4 lg:border-l border-slate-100 flex items-center gap-6">
-                            <div className="flex items-center gap-2">
-                              <span className="w-6 h-6 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                                <span className="material-symbols-outlined text-[14px] shrink-0">show_chart</span>
-                              </span>
-                              <div>
-                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Total Sesi</p>
-                                <p className="text-[11px] font-black text-slate-700">{patient.sessions} Kali</p>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Identitas Pasien</TableHead>
+                        <TableHead>Aktivitas Sesi</TableHead>
+                        <TableHead>Status Klinis</TableHead>
+                        <TableHead className="text-right">Aksi</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {paginatedPatients.map((patient) => {
+                        const statusStyle = getStatusColor(patient.status);
+                        
+                        return (
+                          <TableRow 
+                            key={patient.id} 
+                            onClick={() => navigate(`/psychologist/patients/${patient.id}/medical-record`)}
+                            className={`cursor-pointer group ${patient.status === 'Selesai' ? 'opacity-60 grayscale-[35%]' : ''}`}
+                          >
+                            <TableCell>
+                              <div className="flex items-center gap-3">
+                                <div className={`w-10 h-10 rounded-xl ${patient.color || 'bg-primary'} text-white flex items-center justify-center font-black text-xs shadow-sm bg-primary border border-primary/20 shrink-0 overflow-hidden relative`}>
+                                  {patient.foto_url || patient.foto ? (
+                                    <img src={patient.foto_url || patient.foto} alt={patient.name} className="w-full h-full object-cover" />
+                                  ) : (
+                                    patient.name?.charAt(0) || 'P'
+                                  )}
+                                </div>
+                                <div>
+                                  <p className="font-bold text-sm text-slate-900 group-hover:text-primary transition-colors max-w-[200px] truncate">{patient.name}</p>
+                                  <p className="text-[10px] text-slate-400 font-medium mt-0.5">{patient.nim} &bull; {patient.faculty}</p>
+                                </div>
                               </div>
-                            </div>
+                            </TableCell>
                             
-                            <div className="flex items-center gap-2">
-                              <span className="w-6 h-6 bg-slate-100 text-slate-400 rounded-lg flex items-center justify-center shrink-0">
-                                <span className="material-symbols-outlined text-[14px] shrink-0">calendar_month</span>
-                              </span>
-                              <div>
-                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Kunjungan Terakhir</p>
-                                <p className="text-[11px] font-black text-slate-700">{patient.lastVisit}</p>
+                            <TableCell>
+                              <div className="flex flex-col gap-2">
+                                <div className="flex items-center gap-2">
+                                  <span className="w-5 h-5 rounded flex items-center justify-center shrink-0 bg-primary/10 text-primary">
+                                    <span className="material-symbols-outlined !text-[12px]">show_chart</span>
+                                  </span>
+                                  <div>
+                                    <p className="text-[11px] font-black text-slate-700">{patient.sessions} Kali</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className="w-5 h-5 rounded flex items-center justify-center shrink-0 bg-slate-100 text-slate-500">
+                                    <span className="material-symbols-outlined !text-[12px]">calendar_month</span>
+                                  </span>
+                                  <div>
+                                    <p className="text-[10px] font-bold text-slate-500">{patient.lastVisit}</p>
+                                  </div>
+                                </div>
                               </div>
-                            </div>
-                          </div>
-                          
-                          {/* Right: Status & Action */}
-                          <div className="flex flex-row items-center justify-between lg:justify-end gap-5 lg:shrink-0">
-                            <span
-                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border"
-                              style={{ backgroundColor: statusStyle.bg, color: statusStyle.text, borderColor: statusStyle.border }}
-                            >
-                              <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dotAnim}`} style={{ backgroundColor: statusStyle.dot }} />
-                              {patient.status}
-                            </span>
+                            </TableCell>
                             
-                            <span className="material-symbols-outlined text-[20px] text-slate-300 group-hover:text-primary transition-colors">chevron_right</span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                            <TableCell>
+                              <span
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest border whitespace-nowrap"
+                                style={{ backgroundColor: statusStyle.bg, color: statusStyle.text, borderColor: statusStyle.border }}
+                              >
+                                <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dotAnim}`} style={{ backgroundColor: statusStyle.dot }} />
+                                {patient.status}
+                              </span>
+                            </TableCell>
+                            
+                            <TableCell className="text-right">
+                              <div className="flex items-center justify-end">
+                                <span className="material-symbols-outlined text-[20px] text-slate-300 group-hover:text-primary transition-colors">chevron_right</span>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
                 )}
                 <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-b-[2rem]">
                   <div className="flex items-center gap-4 text-xs font-bold text-slate-500">

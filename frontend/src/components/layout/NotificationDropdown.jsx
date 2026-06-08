@@ -104,7 +104,13 @@ export default function NotificationDropdown() {
             } else if (typeLower === 'student_voice' || typeLower === 'aspirasi') {
               defaultLink = '/student/voice';
             } else if (typeLower === 'kencana') {
-              defaultLink = '/student/kencana';
+              const text = (raw.title ?? raw.judul ?? raw.Judul ?? '') + ' ' + (raw.desc ?? raw.pesan ?? raw.Pesan ?? raw.deskripsi ?? raw.Deskripsi ?? '');
+              const lowerText = text.toLowerCase();
+              if (lowerText.includes('undangan') || lowerText.includes('kelompok') || lowerText.includes('pembimbing')) {
+                defaultLink = '/student/kencana/invitations';
+              } else {
+                defaultLink = '/student/kencana';
+              }
             } else {
               defaultLink = '/student/notifikasi';
             }

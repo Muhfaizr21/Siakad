@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"siakad-backend/config"
 	"siakad-backend/models"
+	"siakad-backend/pkg/notifikasi"
 	"strings"
 	"time"
 
@@ -293,6 +294,46 @@ func MentorInviteStudents(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal invite mahasiswa"})
 	}
+
+	// Send notifications to successfully invited students
+	if invited > 0 {
+		for _, studentID := range req.StudentIDs {
+			isSkipped := false
+			for _, id := range invalid {
+				if id == studentID {
+					isSkipped = true
+					break
+				}
+			}
+			for _, id := range conflicts {
+				if id == studentID {
+					isSkipped = true
+					break
+				}
+			}
+			if isSkipped {
+				continue
+			}
+
+			var title, content string
+			if mg != nil {
+				title = "Undangan Kelompok Kencana"
+				content = fmt.Sprintf("Dewan Pembimbing %s mengundang Anda bergabung ke kelompok %s.", mentor.Name, mg.Name)
+			} else {
+				title = "Undangan Dewan Pembimbing"
+				content = fmt.Sprintf("Dewan Pembimbing %s mengundang Anda sebagai anak bimbingannya.", mentor.Name)
+			}
+
+			_ = notifikasi.Kirim(config.DB, notifikasi.KirimParams{
+				MahasiswaID: studentID,
+				Type:        "kencana",
+				Title:       title,
+				Content:     content,
+				Link:        "/student/kencana/invitations",
+			})
+		}
+	}
+
 	if len(invalid) > 0 || len(conflicts) > 0 {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Sebagian mahasiswa tidak dapat diundang", "invalid_student_ids": invalid, "conflict_student_ids": conflicts, "invited_count": invited})
 	}
@@ -683,11 +724,25 @@ func MentorAddGroupMembers(c *fiber.Ctx) error {
 			existing.AddedBy = &uid
 			if config.DB.Unscoped().Save(&existing).Error == nil {
 				added++
+				_ = notifikasi.Kirim(config.DB, notifikasi.KirimParams{
+					MahasiswaID: studentID,
+					Type:        "kencana",
+					Title:       "Undangan Kelompok Kencana",
+					Content:     fmt.Sprintf("Dewan Pembimbing %s mengundang Anda bergabung ke kelompok %s.", mentor.Name, group.Name),
+					Link:        "/student/kencana/invitations",
+				})
 			}
 		} else {
 			member := models.KencanaGroupMember{GroupID: group.ID, PeriodID: group.PeriodID, StudentID: studentID, Status: "pending", JoinedAt: &now, AddedBy: &uid}
 			if config.DB.Create(&member).Error == nil {
 				added++
+				_ = notifikasi.Kirim(config.DB, notifikasi.KirimParams{
+					MahasiswaID: studentID,
+					Type:        "kencana",
+					Title:       "Undangan Kelompok Kencana",
+					Content:     fmt.Sprintf("Dewan Pembimbing %s mengundang Anda bergabung ke kelompok %s.", mentor.Name, group.Name),
+					Link:        "/student/kencana/invitations",
+				})
 			}
 		}
 	}

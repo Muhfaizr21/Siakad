@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 import { insuranceService } from '../../services/api';
 import toast from 'react-hot-toast';
+import StudentPageHeader from './components/StudentPageHeader';
 
 // Auto-injected Material Symbol fallbacks
 const InsuranceIcon = ({ size, className, ...props }) => (
@@ -224,53 +225,37 @@ export default function InsurancePage() {
   return (
     <div className="px-4 py-5 md:px-6 md:py-6 lg:px-8 lg:py-8 font-body text-[#171717] min-h-screen bg-[#fafafa]">
       
-      {/* Header Section */}
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8"
-      >
-        <div>
-          <h1 className="text-2xl md:text-3xl font-black font-headline tracking-tight flex items-center gap-2.5">
-            <div className="w-10 h-10 bg-bku-primary rounded-xl flex items-center justify-center shadow-md shadow-bku-primary/20">
-              <InsuranceIcon size={22} className="text-white" />
+      <div className="mb-8">
+        <StudentPageHeader
+          title="Klaim Asuransi"
+          subtitle="Layanan Mandiri Klaim Asuransi Kesehatan Mahasiswa BKU"
+          icon="health_and_safety"
+          breadcrumbs={[{ label: 'Klaim Asuransi' }]}
+          actions={
+            <div className="flex p-1 bg-white rounded-2xl shadow-sm border border-[#e5e5e5] w-fit">
+              <button 
+                onClick={() => setActiveTab('ajuan')}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs md:text-sm transition-all ${activeTab === 'ajuan' ? 'bg-bku-primary text-white shadow-md shadow-bku-primary/20' : 'text-[#a3a3a3] hover:text-[#525252]'}`}
+              >
+                <span className="material-symbols-outlined text-sm">add_circle</span>
+                Ajukan Klaim
+              </button>
+              <button 
+                onClick={() => setActiveTab('riwayat')}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs md:text-sm transition-all ${activeTab === 'riwayat' ? 'bg-bku-primary text-white shadow-md shadow-bku-primary/20' : 'text-[#a3a3a3] hover:text-[#525252]'}`}
+              >
+                <span className="material-symbols-outlined text-sm">history</span>
+                Riwayat Saya
+                {claims.length > 0 && (
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${activeTab === 'riwayat' ? 'bg-white/20 text-white' : 'bg-[#e5e5e5] text-[#525252]'}`}>
+                    {claims.length}
+                  </span>
+                )}
+              </button>
             </div>
-            Klaim Asuransi
-          </h1>
-          <p className="text-[#a3a3a3] mt-1.5 font-bold uppercase tracking-[0.16em] text-[10px]">Layanan Mandiri Klaim Asuransi Kesehatan Mahasiswa BKU</p>
-        </div>
-
-        {/* Tab Switcher */}
-        <div className="flex p-1 bg-white rounded-2xl shadow-sm border border-[#e5e5e5] w-fit">
-          <button 
-            onClick={() => setActiveTab('ajuan')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs md:text-sm transition-all ${
-              activeTab === 'ajuan' 
-                ? 'bg-bku-primary text-white shadow-md shadow-bku-primary/20' 
-                : 'text-[#a3a3a3] hover:text-[#525252]'
-            }`}
-          >
-            <span className="material-symbols-outlined text-sm">add_circle</span>
-            Ajukan Klaim
-          </button>
-          <button 
-            onClick={() => setActiveTab('riwayat')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs md:text-sm transition-all ${
-              activeTab === 'riwayat' 
-                ? 'bg-bku-primary text-white shadow-md shadow-bku-primary/20' 
-                : 'text-[#a3a3a3] hover:text-[#525252]'
-            }`}
-          >
-            <span className="material-symbols-outlined text-sm">history</span>
-            Riwayat Saya
-            {claims.length > 0 && (
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${activeTab === 'riwayat' ? 'bg-white/20 text-white' : 'bg-[#e5e5e5] text-[#525252]'}`}>
-                {claims.length}
-              </span>
-            )}
-          </button>
-        </div>
-      </motion.div>
+          }
+        />
+      </div>
 
       {/* Ajukan Tab */}
       <AnimatePresence mode="wait">
@@ -727,3 +712,4 @@ export default function InsurancePage() {
     </div>
   );
 }
+

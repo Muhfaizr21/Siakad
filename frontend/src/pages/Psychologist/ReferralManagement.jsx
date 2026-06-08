@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { psychologistService } from '../../services/api';
 import { toast } from 'react-hot-toast';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/Table';
 
 // Material Symbol icons
 const Send = ({ size, className, ...props }) => <span className={`material-symbols-outlined shrink-0 ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>send</span>;
@@ -290,95 +291,102 @@ export default function ReferralManagement() {
                 </div>
               </div>
             ) : (
-              <div className="space-y-4">
-                {filteredReferrals.map((referral) => {
-                  const statusStyle = statusColors[referral.status] || statusColors['Pending'];
-                  return (
-                    <div 
-                      key={referral.id} 
-                      className="flex flex-col lg:flex-row lg:items-center gap-4 p-4 rounded-2xl border border-slate-200 hover:border-primary/40 bg-white transition-all duration-300 group hover:shadow-md hover:shadow-primary/5"
-                    >
-                      {/* Left: Patient Info */}
-                      <div className="flex items-center gap-3 lg:w-[280px] shrink-0">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs shadow-sm group-hover:scale-105 transition-transform duration-300 shrink-0 overflow-hidden relative`}
-                          style={{ backgroundColor: statusStyle.badgeBg, color: statusStyle.text }}
-                        >
-                          {referral.foto_url || referral.foto ? (
-                            <img src={referral.foto_url || referral.foto} alt={referral.mahasiswa_name} className="w-full h-full object-cover" />
-                          ) : (
-                            <span className="material-symbols-outlined text-slate-400 text-[20px] shrink-0">person</span>
-                          )}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="truncate text-xs font-black text-slate-900 group-hover:text-primary transition-colors">{referral.mahasiswa_name}</p>
-                          <p className="mt-0.5 truncate text-[9px] font-bold uppercase tracking-widest text-slate-500">{referral.tipe} • {referral.pihak_tujuan}</p>
-                        </div>
-                      </div>
-                      
-                      {/* Middle: Details */}
-                      <div className="flex-1 min-w-0 lg:px-4 lg:border-l border-slate-100 flex items-center gap-6">
-                        <div className="flex items-center gap-2">
-                          <span className="w-6 h-6 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                            <span className="material-symbols-outlined text-[14px] shrink-0">description</span>
-                          </span>
-                          <div>
-                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Alasan Rujukan</p>
-                            <p className="text-[11px] font-black text-slate-700 mt-0.5 line-clamp-1">{referral.alasan}</p>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Identitas Pasien</TableHead>
+                    <TableHead>Alasan Rujukan</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Aksi</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredReferrals.map((referral) => {
+                    const statusStyle = statusColors[referral.status] || statusColors['Pending'];
+                    return (
+                      <TableRow key={referral.id} className="group cursor-default">
+                        <TableCell>
+                          <div className="flex items-center gap-3 lg:w-[280px] shrink-0">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs shadow-sm group-hover:scale-105 transition-transform duration-300 shrink-0 overflow-hidden relative`}
+                              style={{ backgroundColor: statusStyle.badgeBg, color: statusStyle.text }}
+                            >
+                              {referral.foto_url || referral.foto ? (
+                                <img src={referral.foto_url || referral.foto} alt={referral.mahasiswa_name} className="w-full h-full object-cover" />
+                              ) : (
+                                <span className="material-symbols-outlined text-slate-400 text-[20px] shrink-0">person</span>
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="truncate text-xs font-black text-slate-900 group-hover:text-primary transition-colors">{referral.mahasiswa_name}</p>
+                              <p className="mt-0.5 truncate text-[9px] font-bold uppercase tracking-widest text-slate-500">{referral.tipe} • {referral.pihak_tujuan}</p>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                      
-                      {/* Right: Status & Action */}
-                      <div className="flex flex-row items-center justify-between lg:justify-end gap-5 lg:shrink-0">
-                        <span
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border"
-                          style={{ backgroundColor: statusStyle.bg, color: statusStyle.text, borderColor: statusStyle.border }}
-                        >
-                          {getStatusLabel(referral.status)}
-                        </span>
+                        </TableCell>
                         
-                        <div className="flex gap-2 shrink-0">
-                          {referral.status === 'Pending' && (
-                            <button
-                              onClick={() => handleSendReferral(referral.id)}
-                              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 shadow-sm hover:shadow-md"
-                              style={{ backgroundColor: 'var(--theme-primary)', color: 'white' }}
-                              title="Kirim Rujukan"
-                            >
-                              <span className="material-symbols-outlined text-[16px]">send</span>
-                            </button>
-                          )}
-                          {referral.status === 'Sent' && (
-                            <button
-                              onClick={() => handleConfirmReceived(referral.id)}
-                              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 shadow-sm hover:shadow-md"
-                              style={{ backgroundColor: 'var(--theme-success)', color: 'white' }}
-                              title="Konfirmasi Terima"
-                            >
-                              <span className="material-symbols-outlined text-[16px]">check_circle</span>
-                            </button>
-                          )}
-                          {referral.surat_rujukan_url && (
-                            <button
-                              onClick={async () => {
-                                try {
-                                  await psychologistService.downloadReferralPDF(referral.id);
-                                } catch (err) {
-                                  toast.error('Gagal download PDF: ' + err.message);
-                                }
-                              }}
-                              className="w-8 h-8 rounded-lg bg-slate-50 text-slate-400 flex items-center justify-center hover:text-primary hover:bg-primary/5 transition-all duration-300 border border-slate-100/50"
-                              title="Download PDF"
-                            >
-                              <span className="material-symbols-outlined text-[16px]">download</span>
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <span className="w-6 h-6 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                              <span className="material-symbols-outlined text-[14px] shrink-0">description</span>
+                            </span>
+                            <div>
+                              <p className="text-[11px] font-black text-slate-700 line-clamp-1">{referral.alasan}</p>
+                            </div>
+                          </div>
+                        </TableCell>
+                        
+                        <TableCell>
+                          <span
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border"
+                            style={{ backgroundColor: statusStyle.bg, color: statusStyle.text, borderColor: statusStyle.border }}
+                          >
+                            {getStatusLabel(referral.status)}
+                          </span>
+                        </TableCell>
+                        
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2 shrink-0">
+                            {referral.status === 'Pending' && (
+                              <button
+                                onClick={() => handleSendReferral(referral.id)}
+                                className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 shadow-sm hover:shadow-md"
+                                style={{ backgroundColor: 'var(--theme-primary)', color: 'white' }}
+                                title="Kirim Rujukan"
+                              >
+                                <span className="material-symbols-outlined text-[16px]">send</span>
+                              </button>
+                            )}
+                            {referral.status === 'Sent' && (
+                              <button
+                                onClick={() => handleConfirmReceived(referral.id)}
+                                className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 shadow-sm hover:shadow-md"
+                                style={{ backgroundColor: 'var(--theme-success)', color: 'white' }}
+                                title="Konfirmasi Terima"
+                              >
+                                <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                              </button>
+                            )}
+                            {referral.surat_rujukan_url && (
+                              <button
+                                onClick={async () => {
+                                  try {
+                                    await psychologistService.downloadReferralPDF(referral.id);
+                                  } catch (err) {
+                                    toast.error('Gagal download PDF: ' + err.message);
+                                  }
+                                }}
+                                className="w-8 h-8 rounded-lg bg-slate-50 text-slate-400 flex items-center justify-center hover:text-primary hover:bg-primary/5 transition-all duration-300 border border-slate-100/50"
+                                title="Download PDF"
+                              >
+                                <span className="material-symbols-outlined text-[16px]">download</span>
+                              </button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
             )}
           </section>
         </div>

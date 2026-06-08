@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { SelectField, SelectOption } from './SelectField';
 
@@ -36,14 +36,14 @@ export default function DataTable({
   const searchedData = searchable && onSearch
     ? onSearch(data, search)
     : search
-    ? data.filter(row =>
+      ? data.filter(row =>
         columns.some(col =>
           String(row[col.key] || '')
             .toLowerCase()
             .includes(search.toLowerCase())
         )
       )
-    : data;
+      : data;
 
   // Selected filters
   const filteredData = searchedData.filter(row => {
@@ -58,11 +58,50 @@ export default function DataTable({
     return true;
   });
 
+  // Sorting
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const sortedData = useMemo(() => {
+    let items = [...filteredData];
+    if (sortConfig.key) {
+      items.sort((a, b) => {
+        let aVal = a[sortConfig.key];
+        let bVal = b[sortConfig.key];
+
+        // Handle nested paths (e.g. Mahasiswa.Nama)
+        if (sortConfig.key.includes('.')) {
+          const keys = sortConfig.key.split('.');
+          aVal = keys.reduce((o, i) => (o ? o[i] : ''), a);
+          bVal = keys.reduce((o, i) => (o ? o[i] : ''), b);
+        }
+
+        if (aVal === undefined || aVal === null) return 1;
+        if (bVal === undefined || bVal === null) return -1;
+
+        if (typeof aVal === 'string') aVal = aVal.toLowerCase();
+        if (typeof bVal === 'string') bVal = bVal.toLowerCase();
+
+        if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    return items;
+  }, [filteredData, sortConfig]);
+
   // Pagination
   const totalPages = Math.ceil(filteredData.length / pageSize);
   const paginatedData = pagination
-    ? filteredData.slice((currentPage - 1) * pageSize, currentPage * pageSize)
-    : filteredData;
+    ? sortedData.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+    : sortedData;
 
   const handleSearch = (e) => {
     setSearch(e.target.value);
@@ -151,15 +190,36 @@ export default function DataTable({
         <table className="w-full">
           <thead style={{ backgroundColor: 'var(--theme-bg)' }}>
             <tr>
-              {columns.map((col) => (
-                <th
-                  key={col.key}
-                  className={cn("px-4 py-3 text-left text-xs font-bold uppercase tracking-wider", col.className)}
-                  style={{ color: 'var(--theme-h4)' }}
-                >
-                  {col.label}
-                </th>
-              ))}
+              {columns.map((col) => {
+                const isSortable = col.sortable !== false && col.key;
+                return (
+                  <th
+                    key={col.key}
+                    onClick={() => isSortable && handleSort(col.key)}
+                    className={cn(
+                      "px-4 py-3 text-left text-xs font-bold uppercase tracking-wider select-none",
+                      isSortable && "cursor-pointer hover:text-slate-900 group",
+                      col.className
+                    )}
+                    style={{ color: 'var(--theme-h4)' }}
+                  >
+                    <div className="flex items-center gap-1">
+                      {col.label}
+                      {isSortable && (
+                        sortConfig.key === col.key ? (
+                          sortConfig.direction === 'asc' ? (
+                            <span className="material-symbols-outlined text-sm text-[var(--theme-primary)]" style={{ fontSize: '14px' }}>expand_less</span>
+                          ) : (
+                            <span className="material-symbols-outlined text-sm text-[var(--theme-primary)]" style={{ fontSize: '14px' }}>expand_more</span>
+                          )
+                        ) : (
+                          <span className="material-symbols-outlined text-sm text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" style={{ fontSize: '14px' }}>unfold_more</span>
+                        )
+                      )}
+                    </div>
+                  </th>
+                );
+              })}
               {(onRowClick || (actions && typeof actions === 'function')) && (
                 <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--theme-h4)' }}>
                   Aksi
@@ -240,47 +300,53 @@ export default function DataTable({
       </div>
 
       {/* Pagination */}
-      {pagination && totalPages > 1 && (
+      {pagination && (
         <div
           className="flex items-center justify-between px-4 py-3 border-t"
           style={{ borderColor: 'var(--theme-border-muted)' }}
         >
-          <span className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>
-            Menampilkan {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, filteredData.length)} dari {filteredData.length}
+          <span className="text-xs font-medium" style={{ color: 'var(--theme-text-muted)' }}>
+            Menampilkan {filteredData.length > 0 ? (currentPage - 1) * pageSize + 1 : 0}–{Math.min(currentPage * pageSize, filteredData.length)} dari {filteredData.length} entri
           </span>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             <button
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="p-2 rounded-lg transition-colors disabled:opacity-50"
-              style={{ color: 'var(--theme-text-muted)' }}
+              disabled={currentPage === 1 || totalPages <= 1}
+              className="px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40 hover:bg-black/[0.03] flex items-center gap-1 text-xs font-bold border border-slate-200 bg-white"
+              style={{ color: 'var(--theme-text)' }}
             >
-              <span className="material-symbols-outlined">chevron_left</span>
+              <span className="material-symbols-outlined text-base" style={{ fontSize: '16px' }}>chevron_left</span>
+              Sebelumnya
             </button>
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              const page = i + 1;
-              return (
-                <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className="w-8 h-8 rounded-lg text-xs font-bold transition-colors"
-                  style={
-                    currentPage === page
-                      ? { backgroundColor: 'var(--theme-primary)', color: 'white' }
-                      : { color: 'var(--theme-text-muted)' }
-                  }
-                >
-                  {page}
-                </button>
-              );
-            })}
+            {totalPages > 1 && (
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  const page = i + 1;
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className="w-8 h-8 rounded-lg text-xs font-bold transition-colors"
+                      style={
+                        currentPage === page
+                          ? { backgroundColor: 'var(--theme-primary)', color: 'white' }
+                          : { color: 'var(--theme-text-muted)' }
+                      }
+                    >
+                      {page}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
             <button
               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="p-2 rounded-lg transition-colors disabled:opacity-50"
-              style={{ color: 'var(--theme-text-muted)' }}
+              disabled={currentPage === totalPages || totalPages <= 1}
+              className="px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40 hover:bg-black/[0.03] flex items-center gap-1 text-xs font-bold border border-slate-200 bg-white"
+              style={{ color: 'var(--theme-text)' }}
             >
-              <span className="material-symbols-outlined">chevron_right</span>
+              Berikutnya
+              <span className="material-symbols-outlined text-base" style={{ fontSize: '16px' }}>chevron_right</span>
             </button>
           </div>
         </div>

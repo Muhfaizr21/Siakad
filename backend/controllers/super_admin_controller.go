@@ -96,7 +96,7 @@ var defaultRBACRoles = []models.RBACRole{
 	{Key: "psychologist", Label: "Psikolog", Description: "Otoritas untuk layanan konseling, rekam medis, dan jadwal.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{"psychologist.core.view", "psychologist.bookings.view", "psychologist.bookings.update", "psychologist.medical_records.view", "psychologist.medical_records.create", "psychologist.medical_records.update", "psychologist.schedules.view", "psychologist.schedules.create", "psychologist.schedules.update", "psychologist.reports.view", "psychologist.reports.create"})},
 	{Key: "kencana_admin", Label: "Admin Kencana Universitas", Description: "Mengelola Kencana level universitas, periode, timeline, quiz, mentor universitas, remedial, dan sertifikat.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{"kencana.period.view", "kencana.period.create", "kencana.period.update", "kencana.stage.view", "kencana.stage.create", "kencana.stage.update", "kencana.session.view", "kencana.session.create", "kencana.session.update", "kencana.material.create", "kencana.quiz.create", "kencana.quiz.update", "kencana.question.create", "kencana.question.update", "kencana.assignment.create", "kencana.participants.view", "kencana.scores.view", "kencana.remedial.create", "kencana.certificate.create", "kencana.mentor.view", "kencana.mentor.update"})},
 	{Key: "kencana_fakultas", Label: "Admin Kencana Fakultas", Description: "Mengelola Kencana dalam scope fakultas.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{"kencana.participants.view", "kencana.scores.view", "kencana.stage.view", "kencana.mentor.view", "kencana.attendance.view", "kencana.attendance.update", "kencana.handbook.view", "kencana.handbook.update"})},
-	{Key: "kencana_mentor", Label: "Dewan Pembimbing Kencana", Description: "Mendampingi mahasiswa Kencana, mengundang mahasiswa, mencatat progress, dan memberi nilai afektif/psikomotor.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{"kencana.mentor.view", "kencana.mentor.update", "kencana.scores.view", "kencana.attendance.view", "kencana.handbook.view"})},
+	{Key: "kencana_mentor", Label: "Dewan Pembimbing Kencana", Description: "Mendampingi mahasiswa Kencana, mengundang mahasiswa, mencatat progress, dan memberi nilai afektif/psikomotor.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{"kencana.mentor.dashboard", "kencana.mentor.view", "kencana.mentor.update", "kencana.scores.view", "kencana.attendance.view", "kencana.handbook.view"})},
 }
 
 func mustJSON(v any) []byte {
@@ -109,6 +109,13 @@ func ensureDefaultRBACRoles(db *gorm.DB) {
 		var existing models.RBACRole
 		if err := db.Where("key = ?", role.Key).First(&existing).Error; err == gorm.ErrRecordNotFound {
 			db.Create(&role)
+		} else {
+			// Update system roles to make sure they are synced with the code
+			existing.Permissions = role.Permissions
+			existing.Label = role.Label
+			existing.Description = role.Description
+			existing.IsSystem = true
+			db.Save(&existing)
 		}
 	}
 }
