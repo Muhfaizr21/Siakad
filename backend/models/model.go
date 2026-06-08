@@ -261,12 +261,56 @@ type Prestasi struct {
 	DanaDisetujui      float64   `json:"dana_disetujui" gorm:"type:decimal(15,2);default:0"`
 	CatatanVerifikator string    `json:"catatan_verifikator" gorm:"type:text"`
 
+	// Simkatmawa Integration Fields
+	Cabang             string `json:"cabang" gorm:"size:255"`
+	JumlahUnitPeserta  int    `json:"jumlah_unit_peserta" gorm:"default:1"`
+	KelompokPrestasi   string `json:"kelompok_prestasi" gorm:"size:50;default:'INDIVIDU'"` // INDIVIDU / KELOMPOK
+	Bentuk             string `json:"bentuk" gorm:"size:50;default:'LURING'"` // DARING / LURING
+	UrlPeserta         string `json:"url_peserta" gorm:"size:255"`
+	UrlSertifikat      string `json:"url_sertifikat" gorm:"size:255"` // Specific URL for certificate
+	UrlFotoUpp         string `json:"url_foto_upp" gorm:"size:255"`
+	UrlDokumenUndangan string `json:"url_dokumen_undangan" gorm:"size:255"`
+	JenisRekognisi     string `json:"jenis_rekognisi" gorm:"size:100"` // KHUSUS REKOGNISI (SERKOM, dll)
+	SimkatmawaId       string `json:"simkatmawa_id" gorm:"size:100"`
+	SimkatmawaStatus   string `json:"simkatmawa_status" gorm:"size:50;default:'Belum Dikirim'"` // Belum Dikirim / Sukses / Gagal
+
+	// Relations for Simkatmawa
+	AnggotaMahasiswa []PrestasiMahasiswa `gorm:"foreignKey:PrestasiID" json:"anggota_mahasiswa,omitempty"`
+	PembimbingDosen  []PrestasiDosen     `gorm:"foreignKey:PrestasiID" json:"pembimbing_dosen,omitempty"`
+
 	RiwayatOrganisasiID *uint              `json:"riwayat_organisasi_id,omitempty"`
 	RiwayatOrganisasi   *RiwayatOrganisasi `gorm:"foreignKey:RiwayatOrganisasiID" json:"riwayat_organisasi,omitempty"`
 }
 
 func (Prestasi) TableName() string {
 	return "mahasiswa.prestasi"
+}
+
+type PrestasiMahasiswa struct {
+	BaseModel
+	PrestasiID  uint      `gorm:"index" json:"prestasi_id"`
+	MahasiswaID uint      `gorm:"index" json:"mahasiswa_id"`
+	Prestasi    Prestasi  `json:"-"`
+	Mahasiswa   Mahasiswa `json:"mahasiswa,omitempty"`
+	Peran       string    `json:"peran" gorm:"size:100;default:'Anggota'"` // Ketua / Anggota
+}
+
+func (PrestasiMahasiswa) TableName() string {
+	return "mahasiswa.prestasi_mahasiswa"
+}
+
+type PrestasiDosen struct {
+	BaseModel
+	PrestasiID    uint     `gorm:"index" json:"prestasi_id"`
+	DosenID       uint     `gorm:"index" json:"dosen_id"`
+	Prestasi      Prestasi `json:"-"`
+	Dosen         Dosen    `json:"dosen,omitempty"`
+	Peran         string   `json:"peran" gorm:"size:100;default:'Pembimbing'"`
+	SuratTugasURL string   `json:"surat_tugas_url" gorm:"size:255"`
+}
+
+func (PrestasiDosen) TableName() string {
+	return "mahasiswa.prestasi_dosen"
 }
 
 type Beasiswa struct {

@@ -66,6 +66,8 @@ func migrateModels(db *gorm.DB) error {
 	if err := db.AutoMigrate(
 		&models.Mahasiswa{},
 		&models.Prestasi{},
+		&models.PrestasiMahasiswa{},
+		&models.PrestasiDosen{},
 		&models.Beasiswa{},
 		&models.BeasiswaPendaftaran{},
 		&models.Aspirasi{},

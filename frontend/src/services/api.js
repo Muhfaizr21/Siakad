@@ -733,6 +733,29 @@ export const adminService = {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
   }),
+  syncSimkatmawa: (id) => fetchWithAuth(`${API_BASE_URL}/admin/achievements/${id}/sync-simkatmawa`, {
+    method: 'POST'
+  }),
+  updateSimkatmawaStatus: (id, status) => fetchWithAuth(`${API_BASE_URL}/admin/achievements/${id}/simkatmawa-status`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ simkatmawa_status: status })
+  }),
+  importAchievements: (formData) => {
+    const token = getAuthToken()
+    return fetch(`${API_BASE_URL}/admin/achievements/import`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData
+    }).then(async res => {
+      if (!res.ok) {
+        let err;
+        try { err = await res.json() } catch(e) { err = { message: 'Koneksi gagal' } }
+        throw new Error(err.message || 'Koneksi gagal')
+      }
+      return res.json()
+    })
+  },
   // Theme Customizer
   getTheme: () => fetchWithAuth(`${API_BASE_URL}/admin/theme`),
   updateTheme: (data) => fetchWithAuth(`${API_BASE_URL}/admin/theme`, {

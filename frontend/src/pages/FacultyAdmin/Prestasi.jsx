@@ -114,7 +114,6 @@ export default function FacultyPrestasi() {
   const [isVerifyOpen, setIsVerifyOpen] = useState(false)
   const [verifyStatus, setVerifyStatus] = useState("verified")
   const [verifyCatatan, setVerifyCatatan] = useState("")
-  const [verifyPoin, setVerifyPoin] = useState(5)
   const [verifyDanaDisetujui, setVerifyDanaDisetujui] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -305,8 +304,7 @@ export default function FacultyPrestasi() {
     setSelected(row)
     setVerifyStatus(status)
     const isFunding = (row.Tipe || row.tipe) === "Pengajuan Dana"
-    setVerifyCatatan(status === "verified" ? (isFunding ? "Pengajuan dana disetujui." : "Prestasi tervalidasi oleh fakultas.") : "Berkas tidak sesuai kriteria.")
-    setVerifyPoin(isFunding ? 0 : 5)
+    setVerifyCatatan(status === "verified" ? (isFunding ? "Pengajuan dana disetujui." : "Prestasi tervalidasi oleh Fakultas.") : "Berkas tidak sesuai kriteria.")
     setVerifyDanaDisetujui(isFunding ? String(row.DanaDiajukan || row.dana_diajukan || 0) : "")
     setIsVerifyOpen(true)
   }
@@ -320,7 +318,7 @@ export default function FacultyPrestasi() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           Status: verifyStatus === 'verified' ? 'Diverifikasi' : 'Ditolak',
-          Poin: Number(verifyPoin) || 0,
+          Poin: 0,
           Catatan: verifyCatatan,
           DanaDisetujui: Number(verifyDanaDisetujui) || 0
         })
@@ -336,6 +334,24 @@ export default function FacultyPrestasi() {
       }
     } catch {
       toast.error('Koneksi gagal saat menyimpan verifikasi')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleSyncSimkatmawa = async (e, id) => {
+    if (e) e.preventDefault()
+    setIsSubmitting(true)
+    try {
+      const res = await api.post(`/faculty/achievements/${id}/sync-simkatmawa`)
+      if (res.data?.status === 'success') {
+        toast.success('Berhasil sinkronisasi dengan SIMKATMAWA! ✅')
+        fetchData()
+      } else {
+        toast.error(res.data?.message || 'Gagal sinkronisasi dengan SIMKATMAWA')
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Koneksi gagal saat sinkronisasi')
     } finally {
       setIsSubmitting(false)
     }
@@ -427,8 +443,6 @@ export default function FacultyPrestasi() {
     pending: achievements.filter(a => !['verified', 'terverifikasi', 'disetujui', 'diverifikasi', 'rejected', 'ditolak'].includes((a.Status || '').toLowerCase())).length,
   }
 
-  const totalPoin = achievements.reduce((a, p) => a + (p.Poin || 0), 0)
-
   const tingkatData = useMemo(() => {
     const counts = {}
     achievements.forEach(a => {
@@ -496,12 +510,11 @@ export default function FacultyPrestasi() {
       />
 
         {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           {[
             { label: 'Total Pengajuan', value: stats.total, icon: Trophy, bg: 'bg-[#eef4ff]', color: 'text-primary', desc: 'Prestasi masuk' },
             { label: 'Tervalidasi', value: stats.verified, icon: CheckCircle2, bg: 'bg-emerald-50', color: 'text-emerald-600', desc: 'Sudah diverifikasi' },
             { label: 'Menunggu Review', value: stats.pending, icon: Clock, bg: 'bg-amber-50', color: 'text-amber-600', desc: 'Perlu tindak lanjut' },
-            { label: 'Total Poin', value: totalPoin, icon: Star, bg: 'bg-violet-50', color: 'text-violet-600', desc: 'Akumulasi poin' },
           ].map(s => (
             <div key={s.label} className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
               <div className="flex items-center gap-3 mb-3">
@@ -916,8 +929,6 @@ export default function FacultyPrestasi() {
                   { icon: Star, label: 'Tingkat', value: selected.Tingkat },
                   selected.Tipe === 'Pengajuan Dana' ? null : { icon: Trophy, label: 'Peringkat', value: selected.Peringkat },
                   { icon: Calendar, label: 'Tanggal', value: formatDate(selected.CreatedAt) },
-                  selected.Tipe === 'Pengajuan Dana' ? { icon: CheckCircle2, label: 'Dana Diajukan', value: `Rp ${(selected.DanaDiajukan || 0).toLocaleString('id-ID')}` } : { icon: CheckCircle2, label: 'Poin Didapat', value: selected.Poin != null ? `${selected.Poin} Poin` : '—' },
-                  selected.Tipe === 'Pengajuan Dana' && selected.DanaDisetujui > 0 ? { icon: CheckCircle2, label: 'Dana Disetujui', value: `Rp ${selected.DanaDisetujui.toLocaleString('id-ID')}` } : null,
                 ].filter(Boolean).map(r => (
                   <div key={r.label} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50/50 border border-slate-100 hover:bg-white transition-all">
                     <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center text-primary shadow-sm border border-slate-100 flex-shrink-0">
@@ -930,6 +941,55 @@ export default function FacultyPrestasi() {
                   </div>
                 ))}
               </div>
+
+              {/* Dana Info */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {selected.Tipe === 'Pengajuan Dana' ? (
+                  <>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
+                      <p className="text-[9px] font-black text-slate-400 uppercase">Dana Diajukan</p>
+                      <p className="text-xs font-extrabold text-amber-600 mt-0.5">Rp {(selected.DanaDiajukan || 0).toLocaleString('id-ID')}</p>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
+                      <p className="text-[9px] font-black text-slate-400 uppercase">Dana Disetujui</p>
+                      <p className="text-xs font-extrabold text-emerald-600 mt-0.5">Rp {(selected.DanaDisetujui || 0).toLocaleString('id-ID')}</p>
+                    </div>
+                  </>
+                ) : null}
+              </div>
+
+              {/* SIMKATMAWA Info */}
+              {selected.SimkatmawaId && (
+                <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex items-start gap-3 mt-4">
+                  <span className="material-symbols-outlined text-blue-600 flex-shrink-0 mt-0.5" style={{ fontSize: '16px' }} >cloud_sync</span>
+                  <div>
+                    <p className="font-bold text-blue-700 text-sm">Disinkronkan ke SIMKATMAWA</p>
+                    <p className="text-blue-600 text-xs mt-0.5 mb-2">ID Simkatmawa: {selected.SimkatmawaId}</p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold text-blue-700">Status:</span>
+                      <select 
+                        className="bg-white border border-blue-200 text-blue-700 text-xs font-bold rounded-lg px-2 py-1 outline-none cursor-pointer hover:border-blue-300 transition-colors"
+                        value={selected.SimkatmawaStatus || "Sukses"}
+                        onChange={async (e) => {
+                          const newStatus = e.target.value;
+                          try {
+                            await api.put(`/faculty/achievements/${selected.ID || selected.id}/simkatmawa-status`, { simkatmawa_status: newStatus });
+                            toast.success("Status SIMKATMAWA diperbarui! ✅");
+                            fetchData();
+                            setSelected({...selected, SimkatmawaStatus: newStatus});
+                          } catch(err) {
+                            toast.error("Gagal update status");
+                          }
+                        }}
+                      >
+                        <option value="Sukses">Sukses Terkirim (Menunggu)</option>
+                        <option value="Diterima SIMKATMAWA">Diterima SIMKATMAWA</option>
+                        <option value="Ditolak SIMKATMAWA">Ditolak SIMKATMAWA</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Bukti */}
               <div>
@@ -975,6 +1035,12 @@ export default function FacultyPrestasi() {
                   </button>
                 </>
               )}
+              {['diverifikasi', 'valid', 'disetujui', 'verified'].includes((selected.Status || '').toLowerCase()) && !selected.SimkatmawaId && (
+                 <button onClick={(e) => handleSyncSimkatmawa(e, selected.ID || selected.id)} disabled={isSubmitting}
+                   className="flex-1 h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-blue-600/20 disabled:opacity-60 flex items-center justify-center gap-2">
+                   <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>sync</span> Kirim ke SIMKATMAWA
+                 </button>
+              )}
             </div>
           </div>
         </div>
@@ -1005,29 +1071,17 @@ export default function FacultyPrestasi() {
                 />
               </div>
 
-              {(selected.Tipe || selected.tipe) === "Pengajuan Dana" ? (
+              {selected.Tipe === "Pengajuan Dana" && (
                 verifyStatus === "verified" && (
-                  <div className="flex flex-col gap-1">
-                    <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Dana yang Disetujui (Rp)</label>
+                  <div className="space-y-1.5">
+                    <label htmlFor="verify_dana" className="text-xs font-bold uppercase tracking-widest text-slate-500">Dana yang Disetujui (Rp)</label>
                     <input
+                      id="verify_dana"
                       type="number"
                       value={verifyDanaDisetujui}
                       onChange={(e) => setVerifyDanaDisetujui(e.target.value)}
-                      className="rounded-xl border border-slate-200 focus:border-primary text-sm px-4 py-2 w-full outline-none"
+                      className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-semibold transition-all"
                       placeholder="Cth: 1200000"
-                      required
-                    />
-                  </div>
-                )
-              ) : (
-                verifyStatus === "verified" && (
-                  <div className="flex flex-col gap-1">
-                    <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Poin SKPI Didapat</label>
-                    <input
-                      type="number"
-                      value={verifyPoin}
-                      onChange={(e) => setVerifyPoin(e.target.value)}
-                      className="rounded-xl border border-slate-200 focus:border-primary text-sm px-4 py-2 w-full outline-none"
                       required
                     />
                   </div>

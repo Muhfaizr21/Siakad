@@ -51,6 +51,8 @@ func InisialisasiRuteFakultas(aplikasi *fiber.App) {
 	api.Put("/achievements/:id/verify", fakultas.VerifikasiPrestasi)
 	api.Put("/prestasi/:id/verify", fakultas.VerifikasiPrestasi) // ALIAS
 	api.Put("/prestasi/:id", fakultas.VerifikasiPrestasi)        // ALIAS
+	api.Post("/achievements/:id/sync-simkatmawa", fakultas.SyncSimkatmawa)
+	api.Put("/achievements/:id/simkatmawa-status", fakultas.UpdateSimkatmawaStatus)
 	api.Delete("/achievements/:id", fakultas.HapusPrestasi)
 	api.Delete("/prestasi/:id", fakultas.HapusPrestasi) // ALIAS
 

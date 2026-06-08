@@ -64,6 +64,16 @@ const achievementSchema = z.object({
       'Format hanya PDF, JPG, atau PNG'
     ),
   riwayat_organisasi_id: z.string().optional(),
+  cabang: z.string().optional(),
+  kelompok_prestasi: z.string().optional(),
+  bentuk: z.string().optional(),
+  url_peserta: z.string().optional(),
+  url_foto_upp: z.string().optional(),
+  url_dokumen_undangan: z.string().optional(),
+  jenis_rekognisi: z.string().optional(),
+  jumlah_unit_peserta: z.string().optional(),
+  anggota_mahasiswa: z.string().optional(),
+  pembimbing_dosen: z.string().optional(),
 }).superRefine((data, ctx) => {
   if (data.tipe === 'Laporan Prestasi' && !data.peringkat) {
     ctx.addIssue({
@@ -178,6 +188,24 @@ export default function AchievementPage() {
     
     if (formData.riwayat_organisasi_id) {
        payload.append('riwayat_organisasi_id', formData.riwayat_organisasi_id);
+    }
+    if (formData.cabang) payload.append('cabang', formData.cabang);
+    if (formData.kelompok_prestasi) payload.append('kelompok_prestasi', formData.kelompok_prestasi);
+    if (formData.bentuk) payload.append('bentuk', formData.bentuk);
+    if (formData.url_peserta) payload.append('url_peserta', formData.url_peserta);
+    if (formData.url_foto_upp) payload.append('url_foto_upp', formData.url_foto_upp);
+    if (formData.url_dokumen_undangan) payload.append('url_dokumen_undangan', formData.url_dokumen_undangan);
+    if (formData.jenis_rekognisi) payload.append('jenis_rekognisi', formData.jenis_rekognisi);
+    if (formData.jumlah_unit_peserta) payload.append('jumlah_unit_peserta', formData.jumlah_unit_peserta);
+
+    // Convert comma separated string to JSON array
+    if (formData.anggota_mahasiswa) {
+       const arr = formData.anggota_mahasiswa.split(',').map(s => Number(s.trim())).filter(n => !isNaN(n));
+       if (arr.length > 0) payload.append('anggota_mahasiswa', JSON.stringify(arr));
+    }
+    if (formData.pembimbing_dosen) {
+       const arr = formData.pembimbing_dosen.split(',').map(s => Number(s.trim())).filter(n => !isNaN(n));
+       if (arr.length > 0) payload.append('pembimbing_dosen', JSON.stringify(arr));
     }
 
     createMutation.mutate(payload, {
@@ -618,6 +646,49 @@ export default function AchievementPage() {
                        <option key={org.id || org.ID} value={org.id || org.ID}>{org.NamaOrganisasi} ({org.Jabatan})</option>
                     ))}
                  </select>
+              </div>
+
+              {/* SIMKATMAWA Optional Fields */}
+              <div className="bg-[#f8fafc] border border-slate-200 rounded-xl p-4 mt-2">
+                 <h3 className="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{fontSize: '18px'}}>account_balance</span>
+                    Informasi Tambahan untuk SIMKATMAWA (Opsional)
+                 </h3>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold mb-1 text-[#525252]">Cabang Lomba</label>
+                      <input {...register('cabang')} className="w-full border border-border rounded-xl px-3 py-1.5 focus:border-[var(--theme-primary)] outline-none text-sm" placeholder="Cth: Lomba Esai" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold mb-1 text-[#525252]">Bentuk Kompetisi</label>
+                      <input {...register('bentuk')} className="w-full border border-border rounded-xl px-3 py-1.5 focus:border-[var(--theme-primary)] outline-none text-sm" placeholder="Cth: Luring / Daring" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold mb-1 text-[#525252]">URL Peserta / Info Lomba</label>
+                      <input {...register('url_peserta')} className="w-full border border-border rounded-xl px-3 py-1.5 focus:border-[var(--theme-primary)] outline-none text-sm" placeholder="https://..." />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold mb-1 text-[#525252]">URL Foto UPP (Serah Terima)</label>
+                      <input {...register('url_foto_upp')} className="w-full border border-border rounded-xl px-3 py-1.5 focus:border-[var(--theme-primary)] outline-none text-sm" placeholder="https://..." />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold mb-1 text-[#525252]">URL Dokumen Undangan</label>
+                      <input {...register('url_dokumen_undangan')} className="w-full border border-border rounded-xl px-3 py-1.5 focus:border-[var(--theme-primary)] outline-none text-sm" placeholder="https://..." />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold mb-1 text-[#525252]">Jumlah Unit Peserta</label>
+                      <input type="number" {...register('jumlah_unit_peserta')} className="w-full border border-border rounded-xl px-3 py-1.5 focus:border-[var(--theme-primary)] outline-none text-sm" placeholder="Cth: 1" />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-xs font-semibold mb-1 text-[#525252]">ID Mahasiswa Tim (Pisahkan dengan koma)</label>
+                      <input {...register('anggota_mahasiswa')} className="w-full border border-border rounded-xl px-3 py-1.5 focus:border-[var(--theme-primary)] outline-none text-sm" placeholder="Cth: 1, 2, 3" />
+                      <p className="text-[10px] text-slate-500 mt-1">Isi jika prestasi ini diraih secara berkelompok.</p>
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-xs font-semibold mb-1 text-[#525252]">ID Dosen Pembimbing (Pisahkan dengan koma)</label>
+                      <input {...register('pembimbing_dosen')} className="w-full border border-border rounded-xl px-3 py-1.5 focus:border-[var(--theme-primary)] outline-none text-sm" placeholder="Cth: 5, 8" />
+                    </div>
+                 </div>
               </div>
 
               <div>

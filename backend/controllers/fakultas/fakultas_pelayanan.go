@@ -6,6 +6,7 @@ import (
 	"siakad-backend/models"
 	"siakad-backend/pkg/gamifikasi"
 	"siakad-backend/pkg/notifikasi"
+	"siakad-backend/services"
 	"strconv"
 	"strings"
 	"time"
@@ -13,6 +14,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
+	"github.com/xuri/excelize/v2"
 )
 
 // --- ASPIRASI ---
@@ -105,7 +107,7 @@ func AmbilDaftarPrestasi(c *fiber.Ctx) error {
 	fid := c.Locals("fakultas_id").(uint)
 
 	var daftar = []models.Prestasi{}
-	query := config.DB.Preload("Mahasiswa.ProgramStudi").Preload("Mahasiswa.Pengguna").Order("created_at desc")
+	query := config.DB.Preload("Mahasiswa.ProgramStudi").Preload("Mahasiswa.Fakultas").Preload("Mahasiswa.Pengguna").Order("created_at desc")
 
 	if role == "faculty_admin" {
 		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.prestasi.mahasiswa_id").
@@ -215,6 +217,125 @@ func VerifikasiPrestasi(c *fiber.Ctx) error {
 	})
 
 	return c.JSON(fiber.Map{"status": "success", "message": "Prestasi diverifikasi"})
+}
+
+// SyncSimkatmawa mengirim data prestasi ke API SIMKATMAWA
+func SyncSimkatmawa(c *fiber.Ctx) error {
+	role := c.Locals("role").(string)
+	fid := c.Locals("fakultas_id").(uint)
+
+	id := c.Params("id")
+
+	// 1. Ambil data prestasi
+	var prestasi models.Prestasi
+	query := config.DB.Model(&models.Prestasi{}).Preload("AnggotaMahasiswa.Mahasiswa").Preload("PembimbingDosen.Dosen")
+	
+	if role == "faculty_admin" {
+		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.prestasi.mahasiswa_id").
+			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid)
+	} else if role == "prodi_admin" {
+		pid, _ := c.Locals("program_studi_id").(uint)
+		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.prestasi.mahasiswa_id").
+			Where("mahasiswa.mahasiswa.fakultas_id = ? AND mahasiswa.mahasiswa.program_studi_id = ?", fid, pid)
+	}
+
+	if err := query.Where("mahasiswa.prestasi.id = ?", id).First(&prestasi).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Prestasi tidak ditemukan atau Anda tidak memiliki akses"})
+	}
+
+	// 2. Format payload
+	mahasiswaList := []map[string]interface{}{}
+	for _, m := range prestasi.AnggotaMahasiswa {
+		mahasiswaList = append(mahasiswaList, map[string]interface{}{
+			"nim":  m.Mahasiswa.NIM,
+			"nama": m.Mahasiswa.Nama,
+		})
+	}
+	
+	dosenList := []map[string]interface{}{}
+	for _, d := range prestasi.PembimbingDosen {
+		dosenList = append(dosenList, map[string]interface{}{
+			"nuptk":           d.Dosen.NIDN,
+			"nama":            d.Dosen.Nama,
+			"url_surat_tugas": d.SuratTugasURL,
+		})
+	}
+
+	payload := map[string]interface{}{
+		"level":                prestasi.Tingkat,
+		"penyelenggara":        prestasi.Penyelenggara,
+		"url_peserta":          prestasi.UrlPeserta,
+		"url_sertifikat":       prestasi.UrlSertifikat,
+		"tgl_sertifikat":       prestasi.Tanggal.Format("2006-01-02"),
+		"url_foto_upp":         prestasi.UrlFotoUpp,
+		"url_dokumen_undangan": prestasi.UrlDokumenUndangan,
+		"keterangan":           prestasi.CatatanVerifikator,
+		"mahasiswa":            mahasiswaList,
+		"dosen":                dosenList,
+	}
+
+	// 3. Panggil service
+	simkatmawaSvc := services.NewSimkatmawaService()
+	var simkatmawaID string
+	var errSync error
+
+	if prestasi.Tipe == "Sertifikasi" {
+		payload["nama"] = prestasi.NamaKegiatan
+		simkatmawaID, errSync = simkatmawaSvc.PostSertifikasi(payload)
+	} else if prestasi.Tipe == "Rekognisi" {
+		payload["nama"] = prestasi.NamaKegiatan
+		payload["jenis"] = prestasi.JenisRekognisi
+		simkatmawaID, errSync = simkatmawaSvc.PostRekognisi(payload)
+	} else {
+		payload["kategori"] = prestasi.Kategori
+		payload["lomba"] = prestasi.NamaKegiatan
+		payload["cabang"] = prestasi.Cabang
+		payload["peringkat"] = prestasi.Peringkat
+		payload["jumlah_unit_peserta"] = strconv.Itoa(prestasi.JumlahUnitPeserta)
+		payload["kelompok_prestasi"] = prestasi.KelompokPrestasi
+		payload["bentuk"] = prestasi.Bentuk
+		simkatmawaID, errSync = simkatmawaSvc.PostPrestasiMandiri(payload)
+	}
+
+	// 4. Update status
+	if errSync != nil {
+		config.DB.Model(&prestasi).Updates(map[string]interface{}{
+			"simkatmawa_status": "Gagal: " + errSync.Error(),
+		})
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal sinkronisasi ke SIMKATMAWA: " + errSync.Error()})
+	}
+
+	config.DB.Model(&prestasi).Updates(map[string]interface{}{
+		"simkatmawa_id":     simkatmawaID,
+		"simkatmawa_status": "Sukses",
+	})
+
+	return c.JSON(fiber.Map{
+		"status": "success",
+		"message": "Sinkronisasi ke SIMKATMAWA berhasil",
+		"simkatmawa_id": simkatmawaID,
+	})
+}
+
+// UpdateSimkatmawaStatus update status simkatmawa manual
+func UpdateSimkatmawaStatus(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var req struct {
+		SimkatmawaStatus string `json:"simkatmawa_status"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload tidak valid"})
+	}
+
+	// Update langsung ke database
+	if err := config.DB.Model(&models.Prestasi{}).Where("id = ?", id).Update("simkatmawa_status", req.SimkatmawaStatus).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal update status simkatmawa"})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": "success",
+		"message": "Status SIMKATMAWA berhasil diperbarui",
+	})
 }
 
 // HapusPrestasi — Tidak diizinkan untuk admin fakultas
@@ -999,4 +1120,118 @@ func HapusSesiKonseling(c *fiber.Ctx) error {
 	id := c.Params("id")
 	config.DB.Delete(&models.PsikologBooking{}, id)
 	return c.JSON(fiber.Map{"status": "success", "message": "Sesi konseling dihapus"})
+}
+
+func ImportAchievements(c *fiber.Ctx) error {
+	file, err := c.FormFile("file")
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "File tidak ditemukan"})
+	}
+
+	f, err := file.Open()
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal membuka file"})
+	}
+	defer f.Close()
+
+	xf, err := excelize.OpenReader(f)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Format file excel tidak valid"})
+	}
+	defer xf.Close()
+
+	sheets := xf.GetSheetList()
+	if len(sheets) == 0 {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "File excel kosong"})
+	}
+	sheet := sheets[0]
+
+	rows, err := xf.GetRows(sheet)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal membaca baris"})
+	}
+
+	if len(rows) < 2 {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Data kosong"})
+	}
+
+	var imported int
+	var failed []string
+
+	for i, row := range rows {
+		if i == 0 {
+			continue // skip header
+		}
+		// Expected: NIM | Nama Prestasi | Tipe | Level | Kategori | Peringkat | Penyelenggara | Tahun | Cabang | Bentuk | Kelompok | URL Sertifikat | Simkatmawa ID
+		if len(row) < 8 {
+			failed = append(failed, fmt.Sprintf("Baris %d: Kolom tidak lengkap", i+1))
+			continue
+		}
+
+		nim := strings.TrimSpace(row[0])
+		if nim == "" {
+			continue
+		}
+
+		var mhs models.Mahasiswa
+		if err := config.DB.Where("nim = ?", nim).First(&mhs).Error; err != nil {
+			failed = append(failed, fmt.Sprintf("Baris %d: NIM %s tidak ditemukan", i+1, nim))
+			continue
+		}
+
+		yearStr := row[7]
+		yearInt, _ := strconv.Atoi(yearStr)
+		if yearInt == 0 {
+			yearInt = time.Now().Year()
+		}
+
+		prestasi := models.Prestasi{
+			MahasiswaID:      mhs.ID,
+			NamaKegiatan:     row[1],
+			Tipe:             row[2], // Mandiri / Sertifikasi / Rekognisi
+			Tingkat:          row[3], // NAS/PROV/KAB/INT
+			Kategori:         row[4], // RISNOV / SENBUD / OLAHRAGA / MINAT
+			Peringkat:        row[5],
+			Penyelenggara:    row[6],
+			Tanggal:          time.Date(yearInt, 1, 1, 0, 0, 0, 0, time.UTC),
+			Cabang:           safelyGetCol(row, 8),
+			Bentuk:           safelyGetCol(row, 9),
+			KelompokPrestasi: safelyGetCol(row, 10),
+			UrlSertifikat:    safelyGetCol(row, 11),
+			Status:           "Disetujui",
+			Poin:             10,
+		}
+
+		simkatmawaId := safelyGetCol(row, 12)
+		if simkatmawaId != "" {
+			prestasi.SimkatmawaId = simkatmawaId
+			prestasi.SimkatmawaStatus = "Disinkronkan"
+		}
+
+		if err := config.DB.Create(&prestasi).Error; err != nil {
+			failed = append(failed, fmt.Sprintf("Baris %d: Gagal menyimpan data", i+1))
+			continue
+		}
+
+		// Connect to mahasiswa
+		pm := models.PrestasiMahasiswa{
+			PrestasiID:  prestasi.ID,
+			MahasiswaID: mhs.ID,
+		}
+		config.DB.Create(&pm)
+		imported++
+	}
+
+	return c.JSON(fiber.Map{
+		"status": "success",
+		"message": fmt.Sprintf("Berhasil import %d data. Gagal: %d data.", imported, len(failed)),
+		"failed": failed,
+	})
+}
+
+func safelyGetCol(row []string, index int) string {
+	if index < len(row) {
+		return strings.TrimSpace(row[index])
+	}
+	return ""
 }

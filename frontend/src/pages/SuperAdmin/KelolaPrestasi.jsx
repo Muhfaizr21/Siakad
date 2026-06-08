@@ -65,6 +65,39 @@ const getShortFacultyName = (name) => {
     .replace(/Sains\s+&\s+Teknologi/i, 'Sains & Tek')
 }
 
+const getCleanImageUrl = (url) => {
+  if (!url) return ''
+  if (url.startsWith('http')) return url
+  const baseUrl = API_BASE_URL.replace('/api', '')
+  return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`
+}
+
+function StudentAvatar({ src, name, className = "w-9 h-9 rounded-xl" }) {
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
+  
+  const hasNoImage = !src || src.trim() === "" || src.endsWith("/profiles/") || src.endsWith("/students/") || src.endsWith("localhost:8000") || src.endsWith("localhost:8000/");
+
+  return (
+    <div className={cn("relative bg-slate-50 flex items-center justify-center shrink-0 border border-slate-200/40 shadow-inner overflow-hidden", className)}>
+      {(!loaded || error || hasNoImage) && (
+        <span className="material-symbols-outlined text-slate-400/80 block select-none leading-none absolute animate-in fade-in" style={{ fontSize: className.includes('w-28') ? '56px' : className.includes('w-14') ? '28px' : '20px' }}>
+          person
+        </span>
+      )}
+      {!hasNoImage && !error && (
+        <img
+          src={src}
+          alt={name}
+          className={cn("absolute inset-0 w-full h-full object-cover transition-opacity duration-200", loaded ? "opacity-100" : "opacity-0")}
+          onLoad={() => setLoaded(true)}
+          onError={() => setError(true)}
+        />
+      )}
+    </div>
+  );
+}
+
 export default function KelolaPrestasi() {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
@@ -75,6 +108,9 @@ export default function KelolaPrestasi() {
   const [expandedFaculty, setExpandedFaculty] = useState(null)
   const [chartFacultyFilter, setChartFacultyFilter] = useState("all")
   const [tableFilters, setTableFilters] = useState({})
+
+  const [isImportOpen, setIsImportOpen] = useState(false)
+  const [importFile, setImportFile] = useState(null)
 
   const [allFaculties, setAllFaculties] = useState([])
   const [allProdi, setAllProdi] = useState([])
@@ -87,7 +123,6 @@ export default function KelolaPrestasi() {
   // Verification Form State
   const [verifyStatus, setVerifyStatus] = useState("verified")
   const [verifyCatatan, setVerifyCatatan] = useState("")
-  const [verifyPoin, setVerifyPoin] = useState(5)
   const [verifyDanaDisetujui, setVerifyDanaDisetujui] = useState("")
 
   const fetchData = async () => {
@@ -103,12 +138,17 @@ export default function KelolaPrestasi() {
         setData((res.data || []).map((item, i) => {
           const mhs = item.mahasiswa || {}
           const prodi = mhs.program_studi || mhs.ProgramStudi || {}
-          const fakultas = prodi.fakultas || prodi.Fakultas || mhs.fakultas || mhs.Fakultas || {}
+          
+          const f_mhs = mhs.fakultas || mhs.Fakultas || {}
+          const f_prodi = prodi.fakultas || prodi.Fakultas || {}
+          const fnama = f_mhs.nama || f_mhs.Nama || f_prodi.nama || f_prodi.Nama || ''
+          const fid = f_mhs.id || f_mhs.ID || f_prodi.id || f_prodi.ID || ''
+
           return {
             ...item,
             colorIdx: i % AVATAR_COLORS.length,
-            fakultas_id: String(fakultas.id || fakultas.ID || ''),
-            fakultas_nama: String(fakultas.nama || fakultas.Nama || ''),
+            fakultas_id: String(fid),
+            fakultas_nama: String(fnama),
             prodi_id: String(prodi.id || prodi.ID || ''),
             prodi_nama: String(prodi.nama || prodi.Nama || ''),
             kategori_filter: String(item.kategori || ''),
@@ -169,7 +209,6 @@ export default function KelolaPrestasi() {
     setVerifyStatus(status)
     const isFunding = (row.Tipe || row.tipe) === "Pengajuan Dana"
     setVerifyCatatan(status === "verified" ? (isFunding ? "Pengajuan dana disetujui." : "Prestasi tervalidasi oleh Super Admin.") : "Berkas tidak sesuai kriteria.")
-    setVerifyPoin(isFunding ? 0 : 5)
     setVerifyDanaDisetujui(isFunding ? String(row.DanaDiajukan || row.dana_diajukan || 0) : "")
     setIsVerifyOpen(true)
   }
@@ -180,7 +219,7 @@ export default function KelolaPrestasi() {
     try {
       const payload = {
         Status: verifyStatus === 'verified' ? 'Diverifikasi' : 'Ditolak',
-        Poin: Number(verifyPoin) || 0,
+        Poin: 0,
         Catatan: verifyCatatan,
         DanaDisetujui: Number(verifyDanaDisetujui) || 0
       }
@@ -195,6 +234,51 @@ export default function KelolaPrestasi() {
       }
     } catch {
       toast.error("Koneksi gagal saat menyimpan verifikasi")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleSyncSimkatmawa = async (e, id) => {
+    if (e) e.preventDefault()
+    setIsSubmitting(true)
+    try {
+      const res = await adminService.syncSimkatmawa(id)
+      if (res.status === 'success') {
+        toast.success('Berhasil sinkronisasi dengan SIMKATMAWA! ✅')
+        fetchData()
+      } else {
+        toast.error(res.message || 'Gagal sinkronisasi dengan SIMKATMAWA')
+      }
+    } catch (err) {
+      toast.error(err.message || 'Koneksi gagal saat sinkronisasi')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleImport = async (e) => {
+    e.preventDefault()
+    if (!importFile) return toast.error("Pilih file excel dulu!")
+    setIsSubmitting(true)
+    const formData = new FormData()
+    formData.append('file', importFile)
+    try {
+      const res = await adminService.importAchievements(formData)
+      if (res.status === 'success') {
+        if (res.failed && res.failed.length > 0) {
+          toast.error(`${res.message}\nDetail Error:\n${res.failed.slice(0, 3).join('\n')}`, { duration: 6000 })
+        } else {
+          toast.success(res.message || 'Import berhasil!')
+        }
+        setIsImportOpen(false)
+        setImportFile(null)
+        fetchData()
+      } else {
+        toast.error(res.message || 'Gagal import')
+      }
+    } catch(err) {
+      toast.error(err.message || 'Koneksi gagal saat import')
     } finally {
       setIsSubmitting(false)
     }
@@ -467,9 +551,11 @@ export default function KelolaPrestasi() {
         const nim = mhs.NIM || mhs.nim || "—"
         return (
           <div className="flex items-center gap-3">
-            <div className={cn("w-9 h-9 rounded-xl bg-gradient-to-br flex items-center justify-center text-white text-[11px] font-black flex-shrink-0 shadow-sm", AVATAR_COLORS[row.colorIdx])}>
-              {getInitials(name)}
-            </div>
+            <StudentAvatar
+              src={getCleanImageUrl(mhs.FotoURL || mhs.foto_url)}
+              name={name}
+              className="w-9 h-9 rounded-xl shadow-sm"
+            />
             <div className="flex flex-col">
               <span className="font-bold text-neutral-900 text-[13px] font-jakarta leading-tight">{name}</span>
               <span className="text-[11px] text-neutral-400 font-medium">{nim}</span>
@@ -562,10 +648,16 @@ export default function KelolaPrestasi() {
         icon="emoji_events"
         badges={[{ label: 'Kemahasiswaan Portal', active: false }]}
         actions={
-          <Button onClick={fetchData} disabled={loading} variant="outline" className="h-10 px-5 rounded-xl border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 transition-all active:scale-95 text-xs font-bold uppercase tracking-widest gap-2">
-            <RefreshCw size={14} animate={loading} className="text-blue-500" />
-            Refresh Data
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setIsImportOpen(true)} variant="outline" className="h-10 px-5 rounded-xl border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-900 transition-all active:scale-95 text-xs font-bold uppercase tracking-widest gap-2">
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>upload_file</span>
+              Import Excel
+            </Button>
+            <Button onClick={fetchData} disabled={loading} variant="outline" className="h-10 px-5 rounded-xl border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 transition-all active:scale-95 text-xs font-bold uppercase tracking-widest gap-2">
+              <RefreshCw size={14} animate={loading} className="text-blue-500" />
+              Refresh Data
+            </Button>
+          </div>
         }
       />
 
@@ -839,24 +931,14 @@ export default function KelolaPrestasi() {
                   options: kategoriOptions
                 },
                 {
-                  key: "fakultas_id",
-                  placeholder: "Fakultas",
-                  options: fakultasOptions
-                },
-                {
                   key: "prodi_id",
-                  placeholder: "Program Studi",
+                  placeholder: "Prodi",
                   options: prodiOptions
                 },
                 {
                   key: "semester_filter",
                   placeholder: "Semester",
                   options: semesterOptions
-                },
-                {
-                  key: "periode_filter",
-                  placeholder: "Periode",
-                  options: periodeOptions
                 }
               ]}
               actions={(row) => (
@@ -899,21 +981,28 @@ export default function KelolaPrestasi() {
         </Card>
 
       {/* ── Detail Modal ───────────────────────────────────────────── */}
-      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        {selected && (
-          <DialogContent className="max-w-2xl p-0 overflow-hidden border-none shadow-2xl rounded-3xl bg-white">
-            <DialogHeader className="relative bg-gradient-to-br from-[#0f172a] to-[#1e293b] pt-8 pb-7 px-8 overflow-hidden flex-shrink-0 text-white">
+      {isDetailOpen && selected && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setIsDetailOpen(false)}>
+          <div className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-200/60 flex flex-col overflow-hidden max-h-[90vh]" onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div className="relative bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] pt-8 pb-7 px-8 overflow-hidden flex-shrink-0 text-white">
               <div className="absolute -top-12 -right-12 w-48 h-48 bg-white/5 rounded-full pointer-events-none" />
+              <button type="button" onClick={() => setIsDetailOpen(false)}
+                className="absolute z-50 top-6 right-6 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
+                <span className="material-symbols-outlined text-white" style={{ fontSize: '18px' }}>close</span>
+              </button>
               
-              <div className="relative z-10 flex items-center gap-4 mb-6">
-                <div className={cn("w-14 h-14 rounded-2xl bg-gradient-to-br flex-shrink-0 flex items-center justify-center text-white text-base font-black shadow-xl ring-4 ring-white/10", AVATAR_COLORS[selected.colorIdx])}>
-                  {getInitials(selected.mahasiswa?.Nama || selected.mahasiswa?.nama)}
-                </div>
+              <div className="relative z-10 flex items-center gap-4 mb-6 pr-8">
+                <StudentAvatar
+                  src={getCleanImageUrl(selected.mahasiswa?.FotoURL || selected.mahasiswa?.foto_url)}
+                  name={selected.mahasiswa?.Nama || selected.mahasiswa?.nama}
+                  className="w-14 h-14 rounded-2xl shadow-xl ring-4 ring-white/10 bg-white"
+                />
                 <div className="min-w-0">
                   <p className="text-[9px] font-black text-blue-400 uppercase tracking-[0.25em] mb-1">
                     {selected.Tipe === 'Pengajuan Dana' ? 'Pengajuan Dana Lomba' : 'Capaian Prestasi'}
                   </p>
-                  <DialogTitle className="text-lg font-black text-white leading-tight font-headline">{selected.nama_kegiatan}</DialogTitle>
+                  <h2 className="text-lg font-black text-white leading-tight font-headline">{selected.nama_kegiatan}</h2>
                   <p className="text-xs text-slate-300 font-medium mt-1">
                     {selected.mahasiswa?.Nama || selected.mahasiswa?.nama} · NIM {selected.mahasiswa?.NIM || selected.mahasiswa?.nim}
                   </p>
@@ -944,9 +1033,9 @@ export default function KelolaPrestasi() {
                   {["verified", "terverifikasi", "disetujui", "diverifikasi"].includes((selected.status || "").toLowerCase()) ? "Terverifikasi" : (selected.status || "").toLowerCase() === "menunggu" ? "Menunggu" : "Ditolak"}
                 </Badge>
               </div>
-            </DialogHeader>
+            </div>
 
-            <div className="p-8 space-y-6 max-h-[60vh] overflow-y-auto font-jakarta">
+            <div className="p-8 space-y-6 overflow-y-auto flex-1 font-jakarta bg-white">
               {/* Reject Alert / Note */}
               {((selected.status || "").toLowerCase() === "rejected" || (selected.status || "").toLowerCase() === "ditolak") && (
                 <div className="bg-rose-50 border border-rose-100 rounded-2xl p-4 flex items-start gap-3">
@@ -1075,7 +1164,7 @@ export default function KelolaPrestasi() {
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
                     <span className="material-symbols-outlined text-blue-600" style={{ fontSize: 18 }}>payments</span>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">HOW — Pendanaan, Poin & Berkas</span>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">HOW — Pendanaan & Berkas</span>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {selected.Tipe === 'Pengajuan Dana' ? (
@@ -1089,13 +1178,41 @@ export default function KelolaPrestasi() {
                           <p className="text-xs font-extrabold text-emerald-600 mt-0.5">Rp {(selected.DanaDisetujui || 0).toLocaleString('id-ID')}</p>
                         </div>
                       </>
-                    ) : (
-                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50 md:col-span-2">
-                        <p className="text-[9px] font-black text-slate-400 uppercase">Poin SKPI Didapat</p>
-                        <p className="text-xs font-extrabold text-emerald-600 mt-0.5">{(selected.poin !== undefined ? selected.poin : selected.Poin) ?? 0} Poin</p>
-                      </div>
-                    )}
+                    ) : null}
                   </div>
+
+                  {/* SIMKATMAWA Info */}
+                  {selected.SimkatmawaId && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex items-start gap-3 mt-4">
+                      <span className="material-symbols-outlined text-blue-600 flex-shrink-0 mt-0.5" style={{ fontSize: '18px' }} >cloud_sync</span>
+                      <div>
+                        <p className="font-bold text-blue-700 text-sm">Disinkronkan ke SIMKATMAWA</p>
+                        <p className="text-blue-600 text-xs mt-0.5 mb-2">ID Simkatmawa: {selected.SimkatmawaId}</p>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-semibold text-blue-700">Status:</span>
+                          <select 
+                            className="bg-white border border-blue-200 text-blue-700 text-xs font-bold rounded-lg px-2 py-1 outline-none cursor-pointer hover:border-blue-300 transition-colors"
+                            value={selected.SimkatmawaStatus || "Sukses"}
+                            onChange={async (e) => {
+                              const newStatus = e.target.value;
+                              try {
+                                await adminService.updateSimkatmawaStatus(selected.id || selected.ID, newStatus);
+                                toast.success("Status SIMKATMAWA diperbarui! ✅");
+                                fetchData();
+                                setSelected({...selected, SimkatmawaStatus: newStatus});
+                              } catch(err) {
+                                toast.error("Gagal update status");
+                              }
+                            }}
+                          >
+                            <option value="Sukses">Sukses Terkirim (Menunggu)</option>
+                            <option value="Diterima SIMKATMAWA">Diterima SIMKATMAWA</option>
+                            <option value="Ditolak SIMKATMAWA">Ditolak SIMKATMAWA</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Bukti File */}
                   <div className="mt-3">
@@ -1130,122 +1247,169 @@ export default function KelolaPrestasi() {
               </div>
             </div>
 
-            <DialogFooter className="px-8 py-5 border-t border-neutral-100 bg-neutral-50/50 flex gap-3 flex-shrink-0">
-              <Button
+            <div className="px-8 py-5 border-t border-neutral-100 bg-neutral-50/50 flex gap-3 flex-shrink-0 mt-auto">
+              <button
                 onClick={() => setIsDetailOpen(false)}
-                variant="outline"
-                className="flex-1 h-11 rounded-xl border-neutral-200 bg-white text-xs font-bold text-neutral-600 uppercase tracking-widest hover:bg-neutral-50"
+                className="flex-1 h-11 rounded-xl border border-neutral-200 bg-white text-xs font-bold text-neutral-600 uppercase tracking-widest hover:bg-neutral-50 transition-colors"
               >
                 Tutup
-              </Button>
+              </button>
               {(selected.status || "").toLowerCase() === "menunggu" && (
                 <>
-                  <Button
+                  <button
                     onClick={() => handleOpenVerify(selected, "rejected")}
                     className="flex-1 h-11 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-md shadow-rose-600/10 border-none"
                   >
                     Tolak Pengajuan
-                  </Button>
-                  <Button
+                  </button>
+                  <button
                     onClick={() => handleOpenVerify(selected, "verified")}
                     className="flex-1 h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-md shadow-emerald-600/10 border-none"
                   >
                     Setujui & Validasi
-                  </Button>
+                  </button>
                 </>
               )}
-            </DialogFooter>
-          </DialogContent>
-        )}
-      </Dialog>
+              {['diverifikasi', 'valid', 'disetujui', 'verified'].includes((selected.status || '').toLowerCase()) && !selected.SimkatmawaId && (
+                 <button onClick={(e) => handleSyncSimkatmawa(e, selected.ID || selected.id)} disabled={isSubmitting}
+                   className="flex-1 h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-md shadow-blue-600/10 border-none flex items-center justify-center gap-2">
+                   <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>sync</span> Kirim ke SIMKATMAWA
+                 </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Verification Action Dialog ─────────────────────────────── */}
-      <Dialog open={isVerifyOpen} onOpenChange={setIsVerifyOpen}>
-        {selected && (
-          <DialogContent className="max-w-md p-6 overflow-hidden border-none shadow-2xl rounded-2xl bg-white font-jakarta">
-            <DialogHeader className="space-y-1.5">
-              <DialogTitle className="text-base font-black text-neutral-900 font-headline leading-tight">
-                {verifyStatus === "verified" 
-                  ? (selected.Tipe === 'Pengajuan Dana' ? 'Setujui Pengajuan Dana' : 'Setujui Pengajuan Prestasi') 
-                  : (selected.Tipe === 'Pengajuan Dana' ? 'Tolak Pengajuan Dana' : 'Tolak Pengajuan Prestasi')
-                }
-              </DialogTitle>
-              <DialogDescription className="text-xs text-neutral-400 font-medium">
-                {verifyStatus === "verified" 
-                  ? "Berikan catatan verifikasi kelayakan untuk mahasiswa."
-                  : "Berikan alasan penolakan berkas agar mahasiswa dapat memperbaiki pengajuannya."
-                }
-              </DialogDescription>
-            </DialogHeader>
+      {isVerifyOpen && selected && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setIsVerifyOpen(false)}>
+          <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200/60 flex flex-col overflow-hidden max-h-[90vh]" onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div className="relative bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] pt-6 pb-6 px-6 overflow-hidden flex-shrink-0 text-left">
+              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
+              <div className="absolute -bottom-6 right-16 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
+              <button type="button" onClick={() => setIsVerifyOpen(false)}
+                className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
+                <span className="material-symbols-outlined text-white" style={{ fontSize: '15px' }}>close</span>
+              </button>
+              <div className="relative z-10 flex items-center gap-4">
+                <div className="min-w-0">
+                  <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">
+                    Verifikasi Dokumen
+                  </p>
+                  <h2 className="text-base font-extrabold font-headline leading-tight text-white">
+                    {verifyStatus === "verified" 
+                      ? (selected.Tipe === 'Pengajuan Dana' ? 'Setujui Pengajuan Dana' : 'Setujui Pengajuan Prestasi') 
+                      : (selected.Tipe === 'Pengajuan Dana' ? 'Tolak Pengajuan Dana' : 'Tolak Pengajuan Prestasi')
+                    }
+                  </h2>
+                  <p className="text-xs text-white/80 font-medium mt-0.5">
+                    {verifyStatus === "verified" 
+                      ? "Berikan catatan verifikasi kelayakan untuk mahasiswa."
+                      : "Berikan alasan penolakan berkas agar mahasiswa dapat memperbaiki pengajuannya."
+                    }
+                  </p>
+                </div>
+              </div>
+            </div>
 
-            <form onSubmit={handleVerifySubmit} className="space-y-5 mt-4">
-
+            <form onSubmit={handleVerifySubmit} className="p-6 space-y-4 overflow-y-auto flex-1 font-body text-left bg-white">
               <div className="space-y-1.5">
-                <Label htmlFor="verify_catatan" className="text-xs font-bold uppercase tracking-widest text-neutral-400">Catatan Verifikator</Label>
-                <Textarea
+                <label htmlFor="verify_catatan" className="text-xs font-bold uppercase tracking-widest text-slate-500">Catatan Verifikator</label>
+                <textarea
                   id="verify_catatan"
                   placeholder="Masukkan catatan alasan verifikasi..."
                   value={verifyCatatan}
                   onChange={(e) => setVerifyCatatan(e.target.value)}
-                  className="rounded-xl border-neutral-200 focus:border-primary shadow-none text-xs bg-neutral-50/50 focus:bg-white min-h-[90px] p-3"
+                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-semibold transition-all resize-none min-h-[90px]"
                   required
                 />
               </div>
 
-              {selected.Tipe === "Pengajuan Dana" ? (
+              {selected.Tipe === "Pengajuan Dana" && (
                 verifyStatus === "verified" && (
                   <div className="space-y-1.5">
-                    <Label htmlFor="verify_dana" className="text-xs font-bold uppercase tracking-widest text-neutral-400">Dana yang Disetujui (Rp)</Label>
-                    <Input
+                    <label htmlFor="verify_dana" className="text-xs font-bold uppercase tracking-widest text-slate-500">Dana yang Disetujui (Rp)</label>
+                    <input
                       id="verify_dana"
                       type="number"
                       value={verifyDanaDisetujui}
                       onChange={(e) => setVerifyDanaDisetujui(e.target.value)}
-                      className="rounded-xl border-neutral-200 focus:border-primary text-xs"
+                      className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-semibold transition-all"
                       placeholder="Cth: 1200000"
                       required
                     />
                   </div>
                 )
-              ) : (
-                verifyStatus === "verified" && (
-                  <div className="space-y-1.5">
-                    <Label htmlFor="verify_poin" className="text-xs font-bold uppercase tracking-widest text-neutral-400">Poin SKPI Didapat</Label>
-                    <Input
-                      id="verify_poin"
-                      type="number"
-                      value={verifyPoin}
-                      onChange={(e) => setVerifyPoin(e.target.value)}
-                      className="rounded-xl border-neutral-200 focus:border-primary text-xs"
-                      required
-                    />
-                  </div>
-                )
               )}
 
-              <div className="flex gap-3 pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsVerifyOpen(false)}
-                  className="flex-1 h-10 rounded-xl text-xs font-bold uppercase tracking-widest text-neutral-500"
-                >
-                  Batal
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className={cn("flex-1 h-10 rounded-xl text-xs font-bold uppercase tracking-widest border-none text-white",
-                    verifyStatus === "verified" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-rose-600 hover:bg-rose-700"
-                  )}
-                >
-                  {isSubmitting ? "Menyimpan..." : verifyStatus === "verified" ? "Validasi" : "Tolak"}
-                </Button>
+              <div className="flex justify-end gap-3 pt-5 border-t border-slate-100 flex-shrink-0 mt-6">
+                <button type="button" onClick={() => setIsVerifyOpen(false)} className="px-5 py-3 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-500 hover:bg-slate-100 transition-colors">Batal</button>
+                <button type="submit" disabled={isSubmitting} className={`px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider text-white shadow-md active:scale-95 disabled:opacity-50 transition-all flex items-center gap-2 ${verifyStatus === "verified" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-rose-600 hover:bg-rose-700"}`}>
+                  <span className="material-symbols-outlined text-[16px]">{verifyStatus === "verified" ? "check_circle" : "cancel"}</span> {isSubmitting ? "Menyimpan..." : verifyStatus === "verified" ? "Validasi" : "Tolak"}
+                </button>
               </div>
             </form>
-          </DialogContent>
-        )}
-      </Dialog>
+          </div>
+        </div>
+      )}
+
+      {/* ── Import Modal ────────────────────────────────────────────── */}
+      {isImportOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setIsImportOpen(false)}>
+          <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200/60 flex flex-col overflow-hidden max-h-[90vh]" onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div className="relative bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] pt-6 pb-6 px-6 overflow-hidden flex-shrink-0 text-left">
+              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
+              <div className="absolute -bottom-6 right-16 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
+              <button type="button" onClick={() => setIsImportOpen(false)}
+                className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
+                <span className="material-symbols-outlined text-white" style={{ fontSize: '15px' }}>close</span>
+              </button>
+              <div className="relative z-10 flex items-center gap-4">
+                <div className="min-w-0">
+                  <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">
+                    Sinkronisasi Data
+                  </p>
+                  <h2 className="text-base font-extrabold font-headline leading-tight text-white">
+                    Import Data Prestasi Lama
+                  </h2>
+                  <p className="text-xs text-emerald-100 font-medium mt-0.5">
+                    Upload file Excel berisi rekapitulasi data prestasi mahasiswa
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Form */}
+            <form onSubmit={handleImport} className="p-6 space-y-4 overflow-y-auto flex-1 font-body text-left bg-white">
+              <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200">
+                <p className="text-xs text-amber-800 leading-relaxed font-medium">
+                  Pastikan kolom pada excel berurutan seperti berikut:<br />
+                  <strong className="block mt-2">NIM | Nama Prestasi | Tipe | Level | Kategori | Peringkat | Penyelenggara | Tahun | Cabang | Bentuk | Kelompok | URL Sertifikat | Simkatmawa ID</strong>
+                </p>
+              </div>
+              <div className="space-y-1.5 pt-2">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Pilih File Excel (.xlsx)</label>
+                <input
+                  type="file"
+                  accept=".xlsx, .xls"
+                  onChange={(e) => setImportFile(e.target.files[0])}
+                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-semibold transition-all file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-100 file:text-emerald-700 hover:file:bg-emerald-200 cursor-pointer"
+                  required
+                />
+              </div>
+              <div className="flex justify-end gap-3 pt-5 border-t border-slate-100 flex-shrink-0 mt-6">
+                <button type="button" onClick={() => setIsImportOpen(false)} className="px-5 py-3 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-500 hover:bg-slate-100 transition-colors">Batal</button>
+                <button type="submit" disabled={isSubmitting || !importFile} className="px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider bg-emerald-600 hover:bg-emerald-700 text-white shadow-md active:scale-95 disabled:opacity-50 transition-all flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[16px]">{isSubmitting ? 'sync' : 'cloud_upload'}</span> {isSubmitting ? "Mengimport..." : "Upload"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </PageContent>
   )
 }

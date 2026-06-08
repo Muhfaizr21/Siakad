@@ -1,6 +1,7 @@
 package mahasiswa
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -71,6 +72,16 @@ func CreateAchievement(c *fiber.Ctx) error {
 		Penyelenggara string  `json:"penyelenggara"`
 		Tanggal       string  `json:"tanggal"`
 		DanaDiajukan  float64 `json:"dana_diajukan"`
+		Cabang             string `json:"cabang"`
+		JumlahUnitPeserta  int    `json:"jumlah_unit_peserta"`
+		KelompokPrestasi   string `json:"kelompok_prestasi"`
+		Bentuk             string `json:"bentuk"`
+		UrlPeserta         string `json:"url_peserta"`
+		UrlFotoUpp         string `json:"url_foto_upp"`
+		UrlDokumenUndangan string `json:"url_dokumen_undangan"`
+		JenisRekognisi     string `json:"jenis_rekognisi"`
+		AnggotaMahasiswa string `json:"anggota_mahasiswa"` // JSON array of Mahasiswa IDs
+		PembimbingDosen  string `json:"pembimbing_dosen"`  // JSON array of Dosen IDs
 	}
 	_ = c.BodyParser(&input)
 
@@ -103,6 +114,27 @@ func CreateAchievement(c *fiber.Ctx) error {
 	} else {
 		danaDiajukan = input.DanaDiajukan
 	}
+
+	cabang := firstNonEmpty(c.FormValue("cabang"), input.Cabang)
+	kelompokPrestasi := firstNonEmpty(c.FormValue("kelompok_prestasi"), input.KelompokPrestasi)
+	bentuk := firstNonEmpty(c.FormValue("bentuk"), input.Bentuk)
+	urlPeserta := firstNonEmpty(c.FormValue("url_peserta"), input.UrlPeserta)
+	urlFotoUpp := firstNonEmpty(c.FormValue("url_foto_upp"), input.UrlFotoUpp)
+	urlDokumenUndangan := firstNonEmpty(c.FormValue("url_dokumen_undangan"), input.UrlDokumenUndangan)
+	jenisRekognisi := firstNonEmpty(c.FormValue("jenis_rekognisi"), input.JenisRekognisi)
+
+	var jumlahUnitPeserta int
+	jumlahUnitPesertaStr := c.FormValue("jumlah_unit_peserta")
+	if jumlahUnitPesertaStr != "" {
+		if val, err := strconv.Atoi(jumlahUnitPesertaStr); err == nil {
+			jumlahUnitPeserta = val
+		}
+	} else {
+		jumlahUnitPeserta = input.JumlahUnitPeserta
+	}
+
+	anggotaMahasiswaStr := firstNonEmpty(c.FormValue("anggota_mahasiswa"), input.AnggotaMahasiswa)
+	pembimbingDosenStr := firstNonEmpty(c.FormValue("pembimbing_dosen"), input.PembimbingDosen)
 
 	if namaKegiatan == "" || tingkat == "" {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Field nama kegiatan dan tingkat wajib diisi"})
@@ -151,6 +183,17 @@ func CreateAchievement(c *fiber.Ctx) error {
 		Penyelenggara: penyelenggara,
 		Tanggal:       tanggalObj,
 		DanaDiajukan:  danaDiajukan,
+
+		Cabang:             cabang,
+		JumlahUnitPeserta:  jumlahUnitPeserta,
+		KelompokPrestasi:   kelompokPrestasi,
+		Bentuk:             bentuk,
+		UrlPeserta:         urlPeserta,
+		UrlSertifikat:      buktiURL, // Use same proof as certificate for now
+		UrlFotoUpp:         urlFotoUpp,
+		UrlDokumenUndangan: urlDokumenUndangan,
+		JenisRekognisi:     jenisRekognisi,
+		SimkatmawaStatus:   "Belum Dikirim",
 	}
 
 	orgID := c.FormValue("riwayat_organisasi_id")
@@ -162,6 +205,34 @@ func CreateAchievement(c *fiber.Ctx) error {
 	}
 
 	config.DB.Create(&achievement)
+
+	// Save Anggota Mahasiswa
+	if anggotaMahasiswaStr != "" {
+		var anggotaIDs []uint
+		if err := json.Unmarshal([]byte(anggotaMahasiswaStr), &anggotaIDs); err == nil {
+			for _, mID := range anggotaIDs {
+				config.DB.Create(&models.PrestasiMahasiswa{
+					PrestasiID:  achievement.ID,
+					MahasiswaID: mID,
+					Peran:       "Anggota",
+				})
+			}
+		}
+	}
+
+	// Save Dosen Pembimbing
+	if pembimbingDosenStr != "" {
+		var dosenIDs []uint
+		if err := json.Unmarshal([]byte(pembimbingDosenStr), &dosenIDs); err == nil {
+			for _, dID := range dosenIDs {
+				config.DB.Create(&models.PrestasiDosen{
+					PrestasiID: achievement.ID,
+					DosenID:    dID,
+					Peran:      "Pembimbing",
+				})
+			}
+		}
+	}
 
 	// Notifikasi konfirmasi ke mahasiswa
 	var notifTitle, notifContent string
@@ -206,7 +277,7 @@ func GetAchievementDetail(c *fiber.Ctx) error {
 	}
 
 	var achievement models.Prestasi
-	if err := config.DB.Where("id = ? AND mahasiswa_id = ?", id, student.ID).First(&achievement).Error; err != nil {
+	if err := config.DB.Preload("AnggotaMahasiswa.Mahasiswa").Preload("PembimbingDosen.Dosen").Where("id = ? AND mahasiswa_id = ?", id, student.ID).First(&achievement).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Data tidak ditemukan"})
 	}
 
@@ -268,6 +339,16 @@ func UpdateAchievement(c *fiber.Ctx) error {
 		Penyelenggara string  `json:"penyelenggara"`
 		Tanggal       string  `json:"tanggal"`
 		DanaDiajukan  float64 `json:"dana_diajukan"`
+		Cabang             string `json:"cabang"`
+		JumlahUnitPeserta  int    `json:"jumlah_unit_peserta"`
+		KelompokPrestasi   string `json:"kelompok_prestasi"`
+		Bentuk             string `json:"bentuk"`
+		UrlPeserta         string `json:"url_peserta"`
+		UrlFotoUpp         string `json:"url_foto_upp"`
+		UrlDokumenUndangan string `json:"url_dokumen_undangan"`
+		JenisRekognisi     string `json:"jenis_rekognisi"`
+		AnggotaMahasiswa string `json:"anggota_mahasiswa"` // JSON array of Mahasiswa IDs
+		PembimbingDosen  string `json:"pembimbing_dosen"`  // JSON array of Dosen IDs
 	}
 	_ = c.BodyParser(&input)
 
@@ -300,6 +381,27 @@ func UpdateAchievement(c *fiber.Ctx) error {
 	} else {
 		danaDiajukan = input.DanaDiajukan
 	}
+
+	cabang := firstNonEmpty(c.FormValue("cabang"), input.Cabang)
+	kelompokPrestasi := firstNonEmpty(c.FormValue("kelompok_prestasi"), input.KelompokPrestasi)
+	bentuk := firstNonEmpty(c.FormValue("bentuk"), input.Bentuk)
+	urlPeserta := firstNonEmpty(c.FormValue("url_peserta"), input.UrlPeserta)
+	urlFotoUpp := firstNonEmpty(c.FormValue("url_foto_upp"), input.UrlFotoUpp)
+	urlDokumenUndangan := firstNonEmpty(c.FormValue("url_dokumen_undangan"), input.UrlDokumenUndangan)
+	jenisRekognisi := firstNonEmpty(c.FormValue("jenis_rekognisi"), input.JenisRekognisi)
+
+	var jumlahUnitPeserta int
+	jumlahUnitPesertaStr := c.FormValue("jumlah_unit_peserta")
+	if jumlahUnitPesertaStr != "" {
+		if val, err := strconv.Atoi(jumlahUnitPesertaStr); err == nil {
+			jumlahUnitPeserta = val
+		}
+	} else {
+		jumlahUnitPeserta = input.JumlahUnitPeserta
+	}
+
+	anggotaMahasiswaStr := firstNonEmpty(c.FormValue("anggota_mahasiswa"), input.AnggotaMahasiswa)
+	pembimbingDosenStr := firstNonEmpty(c.FormValue("pembimbing_dosen"), input.PembimbingDosen)
 
 	if namaKegiatan == "" || tingkat == "" {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Field nama kegiatan dan tingkat wajib diisi"})
@@ -340,11 +442,52 @@ func UpdateAchievement(c *fiber.Ctx) error {
 	achievement.Penyelenggara = penyelenggara
 	achievement.Tanggal = tanggalObj
 	achievement.DanaDiajukan = danaDiajukan
+
+	if cabang != "" { achievement.Cabang = cabang }
+	if jumlahUnitPeserta != 0 { achievement.JumlahUnitPeserta = jumlahUnitPeserta }
+	if kelompokPrestasi != "" { achievement.KelompokPrestasi = kelompokPrestasi }
+	if bentuk != "" { achievement.Bentuk = bentuk }
+	if urlPeserta != "" { achievement.UrlPeserta = urlPeserta }
+	if urlFotoUpp != "" { achievement.UrlFotoUpp = urlFotoUpp }
+	if urlDokumenUndangan != "" { achievement.UrlDokumenUndangan = urlDokumenUndangan }
+	if jenisRekognisi != "" { achievement.JenisRekognisi = jenisRekognisi }
+
 	if buktiURL != "" {
 		achievement.BuktiURL = buktiURL
+		achievement.UrlSertifikat = buktiURL
 	}
 
 	config.DB.Save(&achievement)
+
+	// Update Anggota Mahasiswa
+	if anggotaMahasiswaStr != "" {
+		var anggotaIDs []uint
+		if err := json.Unmarshal([]byte(anggotaMahasiswaStr), &anggotaIDs); err == nil {
+			config.DB.Where("prestasi_id = ?", achievement.ID).Delete(&models.PrestasiMahasiswa{})
+			for _, mID := range anggotaIDs {
+				config.DB.Create(&models.PrestasiMahasiswa{
+					PrestasiID:  achievement.ID,
+					MahasiswaID: mID,
+					Peran:       "Anggota",
+				})
+			}
+		}
+	}
+
+	// Update Dosen Pembimbing
+	if pembimbingDosenStr != "" {
+		var dosenIDs []uint
+		if err := json.Unmarshal([]byte(pembimbingDosenStr), &dosenIDs); err == nil {
+			config.DB.Where("prestasi_id = ?", achievement.ID).Delete(&models.PrestasiDosen{})
+			for _, dID := range dosenIDs {
+				config.DB.Create(&models.PrestasiDosen{
+					PrestasiID: achievement.ID,
+					DosenID:    dID,
+					Peran:      "Pembimbing",
+				})
+			}
+		}
+	}
 
 	return c.JSON(fiber.Map{
 		"success": true,

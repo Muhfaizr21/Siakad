@@ -101,7 +101,10 @@ func SetupSuperAdminRoutes(r fiber.Router) {
 
 	// Achievements (Prestasi Mahasiswa)
 	r.Get("/achievements", fakultas.AmbilDaftarPrestasi)
+	r.Post("/achievements/import", fakultas.ImportAchievements)
 	r.Put("/achievements/:id/verify", fakultas.VerifikasiPrestasi)
+	r.Post("/achievements/:id/sync-simkatmawa", fakultas.SyncSimkatmawa)
+	r.Put("/achievements/:id/simkatmawa-status", fakultas.UpdateSimkatmawaStatus)
 	r.Delete("/achievements/:id", fakultas.HapusPrestasi)
 
 	// Counseling
