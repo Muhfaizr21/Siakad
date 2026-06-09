@@ -477,9 +477,9 @@ export default function RoleBasedAccess() {
       </Card>
 
       {/* ── CRUD Dialog (Gorgeously Redesigned and Fitted for Screen Viewport) ── */}
-      <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
-        <DialogContent className="w-[95vw] sm:w-[90vw] md:w-full max-w-4xl p-0 overflow-hidden border border-border shadow-2xl rounded-2xl bg-[var(--theme-surface)] animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
-          <DialogHeader className="p-6 pb-4 bg-gradient-to-br from-[var(--theme-bg)] to-[var(--theme-surface)] border-b border-[var(--theme-border-muted)] relative overflow-hidden shrink-0">
+      <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen} maxWidth="max-w-4xl">
+        <DialogContent>
+          <DialogHeader className="relative overflow-hidden">
             <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
               <span className="material-symbols-outlined size-24 rotate-12 text-[var(--theme-primary)]">security</span>
             </div>
@@ -490,17 +490,17 @@ export default function RoleBasedAccess() {
                 </div>
                 <Badge className="text-[9px] font-semibold tracking-widest px-2.5 py-0.5 bg-[var(--theme-primary-light)] text-[var(--theme-primary)] border-none rounded-md">RBAC SECURITY MATRIX</Badge>
               </div>
-              <DialogTitle className="text-lg md:text-xl font-bold font-headline tracking-tighter text-[var(--theme-text)]">
+              <DialogTitle className="text-xl font-bold font-jakarta tracking-tight text-slate-800 uppercase leading-none">
                 {isEditMode ? 'Konfigurasi Hak Akses Role' : 'Daftarkan Role Baru'}
               </DialogTitle>
-              <DialogDescription className="text-[11px] font-semibold text-[var(--theme-text-muted)] mt-0.5">
+              <DialogDescription className="text-xs font-semibold text-slate-400 mt-1.5">
                 Definisikan kewenangan akses, tugas tanggung jawab, dan otorisasi modul fungsional ormawa.
               </DialogDescription>
             </div>
           </DialogHeader>
 
-          <form onSubmit={handleSave} className="flex-1 overflow-y-auto p-6 space-y-5 flex flex-col justify-between min-h-0">
-            <div className="space-y-5">
+          <form onSubmit={handleSave}>
+            <div className="p-6 md:p-8 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar font-inter">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Nama Role */}
                 <div className="space-y-1.5">
@@ -531,7 +531,7 @@ export default function RoleBasedAccess() {
                 <Label className="text-[10px] font-bold text-[var(--theme-text-muted)] tracking-[0.2em] ml-1 uppercase font-headline block">
                   Matriks Izin Otorisasi (Centang per CRUD)
                 </Label>
-                <div className="max-h-[400px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-[var(--theme-border)]">
+                <div className="max-h-[300px] overflow-y-auto pr-1 no-scrollbar">
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="text-[9px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest border-b border-[var(--theme-border-muted)]">
@@ -596,31 +596,27 @@ export default function RoleBasedAccess() {
               </div>
             </div>
 
-            {/* Dialog Footer Actions */}
-            <div className="mt-5 pt-4 flex flex-col md:flex-row items-center justify-end gap-3 border-t border-[var(--theme-border-muted)] -mx-6 px-6 bg-[var(--theme-bg)]/30 pb-0 shrink-0">
-              <Button 
+            <DialogFooter>
+              <button 
                 type="button" 
-                variant="ghost" 
                 onClick={() => setIsCrudOpen(false)} 
-                className="w-full md:w-auto text-[10px] font-bold tracking-widest text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] px-8 h-10 rounded-xl active:scale-95 transition-all"
+                className="flex-1 sm:flex-initial h-12 px-6 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-body cursor-pointer"
               >
-                BATAL
-              </Button>
-              <Button 
+                Batal
+              </button>
+              <button 
                 type="submit" 
                 disabled={isSubmitting} 
-                className="w-full md:w-auto h-10 px-8 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white transition-all active:scale-95 flex items-center justify-center gap-2 border-none"
+                className="flex-1 sm:flex-initial h-12 px-8 bg-neutral-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2 font-body disabled:opacity-50 cursor-pointer border-none"
               >
                 {isSubmitting ? (
-                  <span className="material-symbols-outlined animate-spin size-4" style={{ fontSize: '15px' }}>sync</span>
+                  <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }}>sync</span>
                 ) : (
-                  <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>save</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>save</span>
                 )}
-                <span className="text-[10px] font-bold tracking-widest uppercase">
-                  {isEditMode ? 'SIMPAN OTORITAS' : 'TERBITKAN ROLE'}
-                </span>
-              </Button>
-            </div>
+                <span>{isEditMode ? 'Simpan Otoritas' : 'Terbitkan Role'}</span>
+              </button>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>

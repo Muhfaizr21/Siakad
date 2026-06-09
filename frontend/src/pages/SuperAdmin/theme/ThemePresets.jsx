@@ -9,33 +9,55 @@ const PRESETS = [
     name: 'UBK Original',
     desc: 'Warna resmi Navy & Emas Universitas Bhakti Kencana. Terlihat formal, berwibawa, dan elegan.',
     colors: {
-      color_primary: '#0D2B55',
-      color_secondary: '#C89B3C',
-      color_accent: '#E8B84B',
-      color_background: '#F9F6F0',
+      color_primary: '#003399',
+      color_secondary: '#ffbf00',
+      color_accent: '#ffd500',
+      color_background: '#F8FAFC',
       color_surface: '#FFFFFF',
       color_border: '#E2E8F0',
       color_border_muted: '#F1F5F9',
       font_headline: 'Plus Jakarta Sans',
       font_body: 'Inter',
-      button_radius: '12px'
+      button_radius: '12px',
+      // Mobile Colors
+      mobile_color_primary: '#002068',
+      mobile_color_primary_container: '#003399',
+      mobile_color_secondary: '#745B00',
+      mobile_color_secondary_container: '#FDD355',
+      mobile_color_background: '#FBF9F8',
+      mobile_color_surface: '#FFFFFF',
+      mobile_color_on_surface: '#1B1C1C',
+      mobile_gradient_start: '#00164E',
+      mobile_gradient_middle: '#002068',
+      mobile_gradient_end: '#003399',
     }
   },
   {
     id: 'ocean_blue',
-    name: 'Ocean Blue',
-    desc: 'Biru laut modern berpadu dengan aksen kuning cerah. Memberikan kesan dinamis, bersih, dan teknologi modern.',
+    name: 'Sunset Orange',
+    desc: 'Oranye hangat berpadu dengan aksen keemasan. Memberikan kesan energik, kreatif, dan ceria.',
     colors: {
-      color_primary: '#2563EB',
-      color_secondary: '#EAB308',
-      color_accent: '#FDE047',
+      color_primary: '#ff670f',
+      color_secondary: '#ff9c1a',
+      color_accent: '#ffbf1f',
       color_background: '#F8FAFC',
       color_surface: '#FFFFFF',
       color_border: '#E2E8F0',
       color_border_muted: '#F1F5F9',
       font_headline: 'Poppins',
       font_body: 'Inter',
-      button_radius: '8px'
+      button_radius: '8px',
+      // Mobile Colors
+      mobile_color_primary: '#CC5200',
+      mobile_color_primary_container: '#FF8533',
+      mobile_color_secondary: '#CC8000',
+      mobile_color_secondary_container: '#FFD699',
+      mobile_color_background: '#FFF8F5',
+      mobile_color_surface: '#FFFFFF',
+      mobile_color_on_surface: '#1A0F00',
+      mobile_gradient_start: '#994D00',
+      mobile_gradient_middle: '#CC6600',
+      mobile_gradient_end: '#FF8040',
     }
   },
   {
@@ -52,7 +74,18 @@ const PRESETS = [
       color_border_muted: '#F1F5F9',
       font_headline: 'Outfit',
       font_body: 'Inter',
-      button_radius: '10px'
+      button_radius: '10px',
+      // Mobile Colors
+      mobile_color_primary: '#14532D',
+      mobile_color_primary_container: '#166534',
+      mobile_color_secondary: '#A16207',
+      mobile_color_secondary_container: '#FDE047',
+      mobile_color_background: '#F0FDF4',
+      mobile_color_surface: '#FFFFFF',
+      mobile_color_on_surface: '#14532D',
+      mobile_gradient_start: '#052E16',
+      mobile_gradient_middle: '#14532D',
+      mobile_gradient_end: '#166534',
     }
   },
   {
@@ -69,7 +102,18 @@ const PRESETS = [
       color_border_muted: '#F1F5F9',
       font_headline: 'Montserrat',
       font_body: 'Roboto',
-      button_radius: '12px'
+      button_radius: '12px',
+      // Mobile Colors
+      mobile_color_primary: '#6D28D9',
+      mobile_color_primary_container: '#8B5CF6',
+      mobile_color_secondary: '#D97706',
+      mobile_color_secondary_container: '#FDE68A',
+      mobile_color_background: '#FAF5FF',
+      mobile_color_surface: '#FFFFFF',
+      mobile_color_on_surface: '#4C1D95',
+      mobile_gradient_start: '#5B21B6',
+      mobile_gradient_middle: '#6D28D9',
+      mobile_gradient_end: '#8B5CF6',
     }
   },
   {
@@ -86,7 +130,18 @@ const PRESETS = [
       color_border_muted: '#F1F5F9',
       font_headline: 'Space Grotesk',
       font_body: 'DM Sans',
-      button_radius: '6px'
+      button_radius: '6px',
+      // Mobile Colors
+      mobile_color_primary: '#1E293B',
+      mobile_color_primary_container: '#334155',
+      mobile_color_secondary: '#0284C7',
+      mobile_color_secondary_container: '#E0F2FE',
+      mobile_color_background: '#F8FAFC',
+      mobile_color_surface: '#FFFFFF',
+      mobile_color_on_surface: '#1E293B',
+      mobile_gradient_start: '#0F172A',
+      mobile_gradient_middle: '#1E293B',
+      mobile_gradient_end: '#334155',
     }
   },
   {
@@ -103,7 +158,18 @@ const PRESETS = [
       color_border_muted: '#F1F5F9',
       font_headline: 'Quicksand',
       font_body: 'Nunito',
-      button_radius: '16px'
+      button_radius: '16px',
+      // Mobile Colors
+      mobile_color_primary: '#9D174D',
+      mobile_color_primary_container: '#BE185D',
+      mobile_color_secondary: '#D97706',
+      mobile_color_secondary_container: '#FEF3C7',
+      mobile_color_background: '#FFF1F3',
+      mobile_color_surface: '#FFFFFF',
+      mobile_color_on_surface: '#831843',
+      mobile_gradient_start: '#831843',
+      mobile_gradient_middle: '#9D174D',
+      mobile_gradient_end: '#BE185D',
     }
   }
 ];
@@ -181,11 +247,28 @@ export default function ThemePresets() {
         ...preset.colors,
         sidebar_bg_color: preset.colors.color_primary,
         sidebar_text_color: '',
-        sidebar_text_muted_color: ''
+        sidebar_text_muted_color: '',
+        // Sync mobile colors from preset
+        mobile_color_primary: preset.colors.mobile_color_primary || preset.colors.color_primary,
+        mobile_color_primary_container: preset.colors.mobile_color_primary_container || preset.colors.mobile_color_primary || preset.colors.color_primary,
+        mobile_color_secondary: preset.colors.mobile_color_secondary || preset.colors.color_secondary,
+        mobile_color_secondary_container: preset.colors.mobile_color_secondary_container || preset.colors.color_secondary,
+        mobile_color_background: preset.colors.mobile_color_background || preset.colors.color_background,
+        mobile_color_surface: preset.colors.mobile_color_surface || preset.colors.color_surface,
+        mobile_color_on_surface: preset.colors.mobile_color_on_surface || preset.colors.color_text_primary || '#1B1C1C',
+        mobile_color_on_surface_variant: preset.colors.mobile_color_on_surface_variant || '#444653',
+        mobile_color_outline: preset.colors.mobile_color_outline || '#747684',
+        mobile_color_outline_variant: preset.colors.mobile_color_outline_variant || '#C4C5D5',
+        mobile_gradient_start: preset.colors.mobile_gradient_start || preset.colors.mobile_color_primary || preset.colors.color_primary,
+        mobile_gradient_middle: preset.colors.mobile_gradient_middle || preset.colors.mobile_color_primary || preset.colors.color_primary,
+        mobile_gradient_end: preset.colors.mobile_gradient_end || preset.colors.mobile_color_primary_container || preset.colors.color_primary,
+        mobile_gradient_secondary_start: preset.colors.mobile_gradient_secondary_start || preset.colors.mobile_color_secondary || preset.colors.color_secondary,
+        mobile_gradient_secondary_middle: preset.colors.mobile_gradient_secondary_middle || preset.colors.mobile_color_secondary || preset.colors.color_secondary,
+        mobile_gradient_secondary_end: preset.colors.mobile_gradient_secondary_end || preset.colors.mobile_color_secondary_container || preset.colors.color_secondary,
       };
       const res = await adminService.updateTheme(payload);
       if (res.success) {
-        showToast('success', `Preset "${preset.name}" berhasil diterapkan`);
+        showToast('success', `Preset "${preset.name}" berhasil diterapkan (termasuk warna mobile)`);
         const updated = await fetchTheme();
         if (updated) setActiveTheme(updated);
       } else {

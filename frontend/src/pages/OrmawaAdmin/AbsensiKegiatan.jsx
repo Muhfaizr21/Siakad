@@ -446,18 +446,18 @@ export default function AbsensiKegiatan() {
 
       {/* ── QR Scanner Popup Dialog ───────────────────────────────── */}
       <Dialog open={isQrOpen} onOpenChange={setIsQrOpen}>
-        <DialogContent className="max-w-md p-0 overflow-hidden border border-border shadow-2xl rounded-2xl bg-[var(--theme-surface)] animate-in zoom-in-95 duration-200">
-          <div className="p-8 flex flex-col items-center gap-6 relative">
-            <div className="text-center space-y-1.5">
-              <span className="text-[9px] font-black text-[var(--theme-primary)] tracking-[0.25em] uppercase font-headline">PEMINDAI QR PRESENSI</span>
-              <h3 className="text-xl font-black text-[var(--theme-text)] font-headline tracking-tighter leading-tight">
-                {selectedEvent?.Judul}
-              </h3>
-              <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] tracking-wider">Arahkan kamera mahasiswa ke kode QR di bawah ini</p>
-            </div>
+        <DialogContent className="max-w-md p-0 overflow-hidden border border-border shadow-2xl rounded-2xl bg-surface animate-in zoom-in-95 duration-200">
+          <DialogHeader className="p-8 pb-5 bg-slate-50/50 border-b border-border text-center">
+            <span className="text-[9px] font-black text-slate-400 tracking-[0.25em] uppercase font-headline">PEMINDAI QR PRESENSI</span>
+            <DialogTitle className="text-xl font-black text-slate-900 font-headline tracking-tighter leading-tight mt-1">
+              {selectedEvent?.Judul}
+            </DialogTitle>
+            <DialogDescription className="text-[10px] font-bold text-slate-450 tracking-wider">Arahkan kamera mahasiswa ke kode QR di bawah ini</DialogDescription>
+          </DialogHeader>
 
+          <div className="p-8 flex flex-col items-center gap-6 relative">
             {/* Elegant QR display with high-tech laser beam animation effect */}
-            <div className="size-72 p-6 bg-[var(--theme-bg)] rounded-2xl border-4 border-border/50 flex items-center justify-center relative overflow-hidden shadow-inner group">
+            <div className="size-72 p-6 bg-slate-50 rounded-2xl border-4 border-slate-200 flex items-center justify-center relative overflow-hidden shadow-inner group">
               <img src={qrUrl} alt="QR Code Absensi" className="size-full object-contain relative z-10 transition-transform duration-500 group-hover:scale-105" />
 
               {/* Animated laser scan beam line */}
@@ -475,13 +475,13 @@ export default function AbsensiKegiatan() {
                 <span className="material-symbols-outlined text-[var(--theme-primary)] animate-pulse" style={{ fontSize: '18px' }}>verified_user</span>
                 <div className="text-left space-y-0.5">
                   <p className="text-[9px] font-black text-[var(--theme-primary)] tracking-widest uppercase leading-none">Security Encryption Active</p>
-                  <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] leading-none">Sistem memvalidasi NIM dan waktu secara real-time</p>
+                  <p className="text-[10px] font-bold text-slate-450 leading-none">Sistem memvalidasi NIM dan waktu secara real-time</p>
                 </div>
               </div>
 
               <Button
                 onClick={() => setIsQrOpen(false)}
-                className="w-full h-12 rounded-2xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary)]/90 text-white font-black text-[10px] tracking-[0.2em] uppercase active:scale-95 transition-all shadow-lg border-none"
+                className="w-full h-12 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black text-[10px] tracking-[0.2em] uppercase active:scale-95 transition-all shadow-lg border-none"
               >
                 TUTUP SCANNER
               </Button>

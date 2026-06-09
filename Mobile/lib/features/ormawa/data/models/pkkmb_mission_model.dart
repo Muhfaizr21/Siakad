@@ -19,23 +19,24 @@ class PKKMBMissionModel extends PKKMBMission {
     IconData icon = Icons.assignment_rounded;
     Color color = Colors.blue;
 
-    if (json['type'] == 'PDF') {
+    final String rawType = json['tipe'] ?? json['type'] ?? 'PDF';
+    if (rawType == 'PDF') {
       icon = Icons.picture_as_pdf_rounded;
       color = const Color(0xFF2563EB);
-    } else if (json['type'] == 'Quiz') {
+    } else if (rawType == 'Quiz' || rawType == 'Kuis') {
       icon = Icons.quiz_rounded;
       color = const Color(0xFFF59E0B);
-    } else if (json['type'] == 'Video') {
+    } else if (rawType == 'Video') {
       icon = Icons.play_circle_fill_rounded;
       color = const Color(0xFF9333EA);
     }
 
     return PKKMBMissionModel(
-      id: json['id'],
-      title: json['title'],
-      desc: json['desc'],
-      stage: json['stage'],
-      type: json['type'],
+      id: json['id']?.toString() ?? '',
+      title: json['judul'] ?? json['title'] ?? '',
+      desc: json['deskripsi'] ?? json['desc'] ?? '',
+      stage: json['tahap'] ?? json['stage'] ?? 'Materi',
+      type: json['tipe'] ?? json['type'] ?? 'PDF',
       icon: icon,
       color: color,
       isActive: json['isActive'] ?? true,

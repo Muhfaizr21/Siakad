@@ -195,25 +195,25 @@ export default function PsychologistBookings() {
         </Card>
 
       {/* ── Detail Modal ─────────────────────────────────────────── */}
-      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="w-[95vw] sm:w-[90vw] md:max-w-2xl p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white animate-in slide-in-from-bottom-4 duration-300">
-          <DialogHeader className="p-6 sm:p-8 pb-4 sm:pb-6 border-b border-neutral-100 relative overflow-hidden bg-neutral-50/50">
+      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen} maxWidth="max-w-2xl">
+        <DialogContent>
+          <DialogHeader className="relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-5 text-bku-primary"><span className="material-symbols-outlined rotate-12" style={{ fontSize: '100px' }} >calendar_month</span></div>
             <div className="relative z-10 space-y-1">
               <div className="flex items-center gap-2 mb-2">
                 <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
-                  <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >visibility</span>
+                  <span className="material-symbols-outlined text-[12px]" >visibility</span>
                 </div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-bku-primary">
-                  Detail Booking Sesi
-                </span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-bku-primary font-jakarta">Detail Booking Sesi</span>
               </div>
-              <DialogTitle className="text-xl sm:text-2xl font-bold font-jakarta tracking-tight text-neutral-900 uppercase">
+              <DialogTitle className="text-xl sm:text-2xl font-black font-jakarta tracking-tight text-slate-800 uppercase">
                 Informasi Booking Konseling
               </DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm font-medium text-slate-500 font-inter">Detail reservasi sesi bimbingan konseling.</DialogDescription>
             </div>
           </DialogHeader>
 
-          <div className="p-6 sm:p-8 space-y-6 max-h-[70vh] overflow-y-auto font-jakarta">
+          <div className="p-6 md:p-8 space-y-6 max-h-[50vh] overflow-y-auto no-scrollbar font-jakarta">
             {detailItem && (
               <>
                 {/* Mahasiswa Info Section */}
@@ -273,7 +273,7 @@ export default function PsychologistBookings() {
                     </div>
                     <div>
                       <span className="text-[10px] text-neutral-400 font-bold block">Mode Konseling</span>
-                      <Badge className="px-2 py-0.5 mt-1 rounded text-[9px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700">
+                      <Badge className="px-2 py-0.5 mt-1 rounded text-[9px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 font-jakarta">
                         {detailItem.mode || 'Tatap Muka'}
                       </Badge>
                     </div>
@@ -312,10 +312,14 @@ export default function PsychologistBookings() {
             )}
           </div>
 
-          <DialogFooter className="p-6 border-t border-neutral-100 bg-neutral-50/50">
-            <Button onClick={() => setIsDetailOpen(false)} className="h-10 px-5 rounded-xl font-bold bg-neutral-800 text-white hover:bg-neutral-900">
+          <DialogFooter>
+            <button
+              type="button"
+              onClick={() => setIsDetailOpen(false)}
+              className="flex-1 sm:flex-initial h-12 px-6 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-jakarta cursor-pointer"
+            >
               Tutup Detail
-            </Button>
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:bkuhub_mobile/core/theme/app_colors.dart';
+import 'package:provider/provider.dart';
+import 'package:bkuhub_mobile/core/providers/theme_provider.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 
 enum AppBarVariant { student, ormawa, secondary, psychologist, nakes }
@@ -51,7 +52,7 @@ class BkuAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top;
-    final List<Color> gradientColors = _getGradientColors();
+    final List<Color> gradientColors = _getGradientColors(context);
 
     // Jalur 1: FIXED APP BAR (Untuk Halaman Selain Dashboard)
     if (!isExpandable) {
@@ -417,18 +418,20 @@ class BkuAppBar extends StatelessWidget {
   );
 }
 
-  List<Color> _getGradientColors() {
+  List<Color> _getGradientColors(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+
     switch (variant) {
       case AppBarVariant.student:
-        return [const Color(0xFF00164E), AppColors.primary, AppColors.primaryContainer];
+        return themeProvider.primaryGradient;
       case AppBarVariant.ormawa:
-        return [const Color(0xFF00164E), AppColors.primary, AppColors.primaryContainer];
+        return themeProvider.primaryGradient;
       case AppBarVariant.secondary:
-        return [AppColors.secondary, const Color(0xFFB48A00), AppColors.secondaryFixedDim];
+        return themeProvider.secondaryGradient;
       case AppBarVariant.psychologist:
-        return [const Color(0xFF001A54), const Color(0xFF002068), const Color(0xFF003399)];
+        return themeProvider.primaryGradient;
       case AppBarVariant.nakes:
-        return [const Color(0xFF001A4D), const Color(0xFF003A6E), const Color(0xFF005B8A)];
+        return themeProvider.primaryGradient;
     }
   }
 }
@@ -451,7 +454,7 @@ class BkuStaticAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<Color> gradientColors = _getGradientColors();
+    final List<Color> gradientColors = _getGradientColors(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -506,18 +509,20 @@ class BkuStaticAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  List<Color> _getGradientColors() {
+  List<Color> _getGradientColors(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+
     switch (variant) {
       case AppBarVariant.student:
-        return [const Color(0xFF00164E), AppColors.primary];
+        return themeProvider.primaryGradient;
       case AppBarVariant.ormawa:
-        return [const Color(0xFF00164E), AppColors.primary];
+        return themeProvider.primaryGradient;
       case AppBarVariant.secondary:
-        return [AppColors.secondary, const Color(0xFFB48A00)];
+        return themeProvider.secondaryGradient;
       case AppBarVariant.psychologist:
-        return [const Color(0xFF001A54), const Color(0xFF002068)];
+        return themeProvider.primaryGradient;
       case AppBarVariant.nakes:
-        return [const Color(0xFF001A4D), const Color(0xFF003A6E)];
+        return themeProvider.primaryGradient;
     }
   }
 

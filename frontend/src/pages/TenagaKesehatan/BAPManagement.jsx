@@ -4,6 +4,7 @@ import { bapService } from '../../services/api';
 import toast from 'react-hot-toast';
 import { PageContent } from '@/components/ui/page';
 import { DashboardHero } from '@/components/ui/dashboard';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
 
 // Auto-injected Material Symbol fallbacks
 const DocumentIcon = ({ size, className, ...props }) => (
@@ -28,12 +29,12 @@ const CheckCircle = ({ size, className, ...props }) => (
 // Status badge
 const StatusBadge = ({ status }) => {
   const config = {
-    'DRAFT': { label: 'Draft', bg: 'bg-slate-100', text: 'text-slate-700' },
-    'FINAL': { label: 'Final', bg: 'bg-emerald-100', text: 'text-emerald-700' },
+    'DRAFT': { label: 'Draft', bg: 'bg-[var(--theme-text-subtle)]/10', text: 'text-[var(--theme-text-muted)]', border: 'border-transparent' },
+    'FINAL': { label: 'Final', bg: 'bg-[var(--theme-success-light)]', text: 'text-[var(--theme-success)]', border: 'border-[var(--theme-success-light)]' },
   };
   const c = config[status] || config['DRAFT'];
   return (
-    <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold ${c.bg} ${c.text}`}>
+    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${c.bg} ${c.text} ${c.border}`}>
       {c.label}
     </span>
   );
@@ -366,270 +367,234 @@ export default function BAPManagement() {
         </div>
       </div>
 
-      {/* Create/Edit Modal */}
-      <AnimatePresence>
-        {isModalOpen && (
-          <>
-            <div
-              className="fixed inset-0 bg-black/50 z-40"
-              onClick={() => setIsModalOpen(false)}
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="fixed inset-0 z-50 flex items-center justify-center p-4"
-            >
-              <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-                <div className="p-6 border-b border-slate-200">
-                  <h2 className="text-lg font-bold text-slate-800">
-                    {isEditMode ? 'Edit BAP' : 'Buat BAP Baru'}
-                  </h2>
-                </div>
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen} maxWidth="max-w-lg">
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {isEditMode ? 'Edit BAP' : 'Buat BAP Baru'}
+            </DialogTitle>
+          </DialogHeader>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-600 mb-1">Nama Kegiatan *</label>
-                    <input
-                      type="text"
-                      name="nama_kegiatan"
-                      value={form.nama_kegiatan}
-                      onChange={handleInputChange}
-                      placeholder="Contoh: PKKMB 2026"
-                      className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none"
-                      required
-                    />
-                  </div>
+          <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-[var(--theme-text-muted)] uppercase mb-1">Nama Kegiatan *</label>
+              <input
+                type="text"
+                name="nama_kegiatan"
+                value={form.nama_kegiatan}
+                onChange={handleInputChange}
+                placeholder="Contoh: PKKMB 2026"
+                className="w-full h-10 px-3 border border-[var(--theme-border)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors"
+                required
+              />
+            </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-slate-600 mb-1">Tanggal *</label>
-                      <input
-                        type="date"
-                        name="tanggal_pelaksanaan"
-                        value={form.tanggal_pelaksanaan}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-slate-600 mb-1">Tempat</label>
-                      <input
-                        type="text"
-                        name="tempat"
-                        value={form.tempat}
-                        onChange={handleInputChange}
-                        placeholder="Contoh: Aula Utama"
-                        className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-slate-600 mb-1">Waktu Mulai</label>
-                      <input
-                        type="time"
-                        name="waktu_mulai"
-                        value={form.waktu_mulai}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-slate-600 mb-1">Waktu Selesai</label>
-                      <input
-                        type="time"
-                        name="waktu_selesai"
-                        value={form.waktu_selesai}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-slate-600 mb-1">Jumlah Peserta</label>
-                      <input
-                        type="number"
-                        name="jumlah_peserta"
-                        value={form.jumlah_peserta}
-                        onChange={handleInputChange}
-                        min="0"
-                        className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-slate-600 mb-1">Diperiksa</label>
-                      <input
-                        type="number"
-                        name="jumlah_diperiksa"
-                        value={form.jumlah_diperiksa}
-                        onChange={handleInputChange}
-                        min="0"
-                        className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-slate-600 mb-1">Status</label>
-                      <select
-                        name="status"
-                        value={form.status}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none"
-                      >
-                        <option value="DRAFT">Draft</option>
-                        <option value="FINAL">Final</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-emerald-600 mb-1">Layak</label>
-                      <input
-                        type="number"
-                        name="total_layak"
-                        value={form.total_layak}
-                        onChange={handleInputChange}
-                        min="0"
-                        className="w-full px-3 py-2.5 border border-emerald-300 rounded-lg text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-amber-600 mb-1">Pantauan</label>
-                      <input
-                        type="number"
-                        name="total_pantauan"
-                        value={form.total_pantauan}
-                        onChange={handleInputChange}
-                        min="0"
-                        className="w-full px-3 py-2.5 border border-amber-300 rounded-lg text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-red-600 mb-1">Tidak Layak</label>
-                      <input
-                        type="number"
-                        name="total_tidak_layak"
-                        value={form.total_tidak_layak}
-                        onChange={handleInputChange}
-                        min="0"
-                        className="w-full px-3 py-2.5 border border-red-300 rounded-lg text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3 pt-4">
-                    <button
-                      type="button"
-                      onClick={() => setIsModalOpen(false)}
-                      className="flex-1 py-2.5 border border-slate-300 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-colors"
-                    >
-                      Batal
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={submitting}
-                      className="flex-1 py-2.5 bg-teal-500 text-white font-bold rounded-xl hover:bg-teal-600 transition-colors disabled:opacity-50"
-                    >
-                      {submitting ? 'Menyimpan...' : 'Simpan'}
-                    </button>
-                  </div>
-                </form>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-[var(--theme-text-muted)] uppercase mb-1">Tanggal *</label>
+                <input
+                  type="date"
+                  name="tanggal_pelaksanaan"
+                  value={form.tanggal_pelaksanaan}
+                  onChange={handleInputChange}
+                  className="w-full h-10 px-3 border border-[var(--theme-border)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors"
+                  required
+                />
               </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+              <div>
+                <label className="block text-xs font-semibold text-[var(--theme-text-muted)] uppercase mb-1">Tempat</label>
+                <input
+                  type="text"
+                  name="tempat"
+                  value={form.tempat}
+                  onChange={handleInputChange}
+                  placeholder="Contoh: Aula Utama"
+                  className="w-full h-10 px-3 border border-[var(--theme-border)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors"
+                />
+              </div>
+            </div>
 
-      {/* Detail Modal */}
-      <AnimatePresence>
-        {isDetailModalOpen && selectedBAP && (
-          <>
-            <div
-              className="fixed inset-0 bg-black/50 z-40"
-              onClick={() => setIsDetailModalOpen(false)}
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="fixed inset-0 z-50 flex items-center justify-center p-4"
-            >
-              <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-                <div className="p-6 border-b border-slate-200">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-bold text-slate-800">Detail BAP</h2>
-                    <button
-                      onClick={() => setIsDetailModalOpen(false)}
-                      className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                    >
-                      <span className="material-symbols-outlined">close</span>
-                    </button>
-                  </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-[var(--theme-text-muted)] uppercase mb-1">Waktu Mulai</label>
+                <input
+                  type="time"
+                  name="waktu_mulai"
+                  value={form.waktu_mulai}
+                  onChange={handleInputChange}
+                  className="w-full h-10 px-3 border border-[var(--theme-border)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-[var(--theme-text-muted)] uppercase mb-1">Waktu Selesai</label>
+                <input
+                  type="time"
+                  name="waktu_selesai"
+                  value={form.waktu_selesai}
+                  onChange={handleInputChange}
+                  className="w-full h-10 px-3 border border-[var(--theme-border)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-[var(--theme-text-muted)] uppercase mb-1">Jumlah Peserta</label>
+                <input
+                  type="number"
+                  name="jumlah_peserta"
+                  value={form.jumlah_peserta}
+                  onChange={handleInputChange}
+                  min="0"
+                  className="w-full h-10 px-3 border border-[var(--theme-border)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-[var(--theme-text-muted)] uppercase mb-1">Diperiksa</label>
+                <input
+                  type="number"
+                  name="jumlah_diperiksa"
+                  value={form.jumlah_diperiksa}
+                  onChange={handleInputChange}
+                  min="0"
+                  className="w-full h-10 px-3 border border-[var(--theme-border)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-[var(--theme-text-muted)] uppercase mb-1">Status</label>
+                <select
+                  name="status"
+                  value={form.status}
+                  onChange={handleInputChange}
+                  className="w-full h-10 px-3 border border-[var(--theme-border)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors cursor-pointer"
+                >
+                  <option value="DRAFT">Draft</option>
+                  <option value="FINAL">Final</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-[var(--theme-success)] uppercase mb-1">Layak</label>
+                <input
+                  type="number"
+                  name="total_layak"
+                  value={form.total_layak}
+                  onChange={handleInputChange}
+                  min="0"
+                  className="w-full h-10 px-3 border border-[var(--theme-success)]/40 rounded-xl text-sm focus:border-[var(--theme-success)] focus:ring-2 focus:ring-[var(--theme-success-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-[var(--theme-warning)] uppercase mb-1">Pantauan</label>
+                <input
+                  type="number"
+                  name="total_pantauan"
+                  value={form.total_pantauan}
+                  onChange={handleInputChange}
+                  min="0"
+                  className="w-full h-10 px-3 border border-[var(--theme-warning)]/40 rounded-xl text-sm focus:border-[var(--theme-warning)] focus:ring-2 focus:ring-[var(--theme-warning-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-[var(--theme-error)] uppercase mb-1">Tidak Layak</label>
+                <input
+                  type="number"
+                  name="total_tidak_layak"
+                  value={form.total_tidak_layak}
+                  onChange={handleInputChange}
+                  min="0"
+                  className="w-full h-10 px-3 border border-[var(--theme-error)]/40 rounded-xl text-sm focus:border-[var(--theme-error)] focus:ring-2 focus:ring-[var(--theme-error-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors"
+                />
+              </div>
+            </div>
+
+            <DialogFooter className="flex gap-3 pt-4">
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="flex-1 h-10 border border-[var(--theme-border)] text-[var(--theme-text)] font-semibold rounded-xl hover:bg-[var(--theme-bg)] transition-colors cursor-pointer text-xs uppercase tracking-wider"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="flex-1 h-10 bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white font-semibold rounded-xl transition-colors disabled:opacity-50 cursor-pointer text-xs uppercase tracking-wider"
+              >
+                {submitting ? 'Menyimpan...' : 'Simpan'}
+              </button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen} maxWidth="max-w-lg">
+        {selectedBAP && (
+          <DialogContent className="max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <div className="flex items-center justify-between">
+                <DialogTitle>Detail BAP</DialogTitle>
+              </div>
+            </DialogHeader>
+
+            <div className="p-6 space-y-4 text-[var(--theme-text)]">
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-lg">{selectedBAP.nama_kegiatan}</h3>
+                <StatusBadge status={selectedBAP.status} />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-2xl p-3">
+                  <p className="text-[10px] text-[var(--theme-text-muted)] uppercase tracking-wider">Tanggal</p>
+                  <p className="font-semibold text-sm">{formatDate(selectedBAP.tanggal_pelaksanaan)}</p>
                 </div>
-
-                <div className="p-6 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-bold text-slate-800">{selectedBAP.nama_kegiatan}</h3>
-                    <StatusBadge status={selectedBAP.status} />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-slate-50 rounded-lg p-3">
-                      <p className="text-[10px] text-slate-500 uppercase">Tanggal</p>
-                      <p className="font-semibold text-sm">{formatDate(selectedBAP.tanggal_pelaksanaan)}</p>
-                    </div>
-                    <div className="bg-slate-50 rounded-lg p-3">
-                      <p className="text-[10px] text-slate-500 uppercase">Waktu</p>
-                      <p className="font-semibold text-sm">{selectedBAP.waktu_mulai || '—'} - {selectedBAP.waktu_selesai || '—'}</p>
-                    </div>
-                    <div className="bg-slate-50 rounded-lg p-3 col-span-2">
-                      <p className="text-[10px] text-slate-500 uppercase">Tempat</p>
-                      <p className="font-semibold text-sm">{selectedBAP.tempat || '—'}</p>
-                    </div>
-                  </div>
-
-                  <div className="border-t border-slate-200 pt-4">
-                    <h4 className="text-xs font-bold text-slate-500 uppercase mb-3">Statistik</h4>
-                    <div className="grid grid-cols-4 gap-2">
-                      <div className="bg-slate-50 rounded-lg p-2 text-center">
-                        <p className="text-lg font-bold text-slate-700">{selectedBAP.jumlah_peserta || 0}</p>
-                        <p className="text-[10px] text-slate-500">Peserta</p>
-                      </div>
-                      <div className="bg-blue-50 rounded-lg p-2 text-center">
-                        <p className="text-lg font-bold text-blue-700">{selectedBAP.jumlah_diperiksa || 0}</p>
-                        <p className="text-[10px] text-blue-600">Diperiksa</p>
-                      </div>
-                      <div className="bg-emerald-50 rounded-lg p-2 text-center">
-                        <p className="text-lg font-bold text-emerald-700">{selectedBAP.total_layak || 0}</p>
-                        <p className="text-[10px] text-emerald-600">Layak</p>
-                      </div>
-                      <div className="bg-amber-50 rounded-lg p-2 text-center">
-                        <p className="text-lg font-bold text-amber-700">{selectedBAP.total_pantauan || 0}</p>
-                        <p className="text-[10px] text-amber-600">Pantauan</p>
-                      </div>
-                    </div>
-                  </div>
+                <div className="bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-2xl p-3">
+                  <p className="text-[10px] text-[var(--theme-text-muted)] uppercase tracking-wider">Waktu</p>
+                  <p className="font-semibold text-sm">{selectedBAP.waktu_mulai || '—'} - {selectedBAP.waktu_selesai || '—'}</p>
                 </div>
-
-                <div className="p-6 border-t border-slate-200">
-                  <button
-                    onClick={() => handleDownloadPDF(selectedBAP)}
-                    className="w-full flex items-center justify-center gap-2 py-3 bg-teal-500 text-white font-bold rounded-xl hover:bg-teal-600 transition-colors"
-                  >
-                    <DownloadIcon size={18} />
-                    Download PDF
-                  </button>
+                <div className="bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-2xl p-3 col-span-2">
+                  <p className="text-[10px] text-[var(--theme-text-muted)] uppercase tracking-wider">Tempat</p>
+                  <p className="font-semibold text-sm">{selectedBAP.tempat || '—'}</p>
                 </div>
               </div>
-            </motion.div>
-          </>
+
+              <div className="border-t border-[var(--theme-border-muted)] pt-4">
+                <h4 className="text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-3">Statistik Pemeriksaan</h4>
+                <div className="grid grid-cols-4 gap-2">
+                  <div className="bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl p-2 text-center">
+                    <p className="text-lg font-bold">{selectedBAP.jumlah_peserta || 0}</p>
+                    <p className="text-[10px] text-[var(--theme-text-muted)]">Peserta</p>
+                  </div>
+                  <div className="bg-[var(--theme-info-light)] rounded-xl p-2 text-center text-[var(--theme-info)]">
+                    <p className="text-lg font-bold">{selectedBAP.jumlah_diperiksa || 0}</p>
+                    <p className="text-[10px] text-[var(--theme-info)]/80">Diperiksa</p>
+                  </div>
+                  <div className="bg-[var(--theme-success-light)] rounded-xl p-2 text-center text-[var(--theme-success)]">
+                    <p className="text-lg font-bold">{selectedBAP.total_layak || 0}</p>
+                    <p className="text-[10px] text-[var(--theme-success)]/80">Layak</p>
+                  </div>
+                  <div className="bg-[var(--theme-warning-light)] rounded-xl p-2 text-center text-[var(--theme-warning)]">
+                    <p className="text-lg font-bold">{selectedBAP.total_pantauan || 0}</p>
+                    <p className="text-[10px] text-[var(--theme-warning)]/80">Pantauan</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter className="p-6">
+              <button
+                onClick={() => handleDownloadPDF(selectedBAP)}
+                className="w-full h-10 flex items-center justify-center gap-2 bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white font-semibold rounded-xl transition-all cursor-pointer text-xs uppercase tracking-wider"
+              >
+                <DownloadIcon size={18} />
+                Download PDF
+              </button>
+            </DialogFooter>
+          </DialogContent>
         )}
-      </AnimatePresence>
+      </Dialog>
     </PageContent>
   );
 }

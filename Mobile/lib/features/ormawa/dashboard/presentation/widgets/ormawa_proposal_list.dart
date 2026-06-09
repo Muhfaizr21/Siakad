@@ -7,6 +7,7 @@ import 'package:bkuhub_mobile/core/providers/ormawa_provider.dart';
 
 import 'package:intl/intl.dart';
 import 'package:bkuhub_mobile/features/ormawa/proposal/presentation/pages/ormawa_proposal_detail_screen.dart';
+import 'package:bkuhub_mobile/core/widgets/unified_card.dart';
 
 class OrmawaProposalList extends StatelessWidget {
   const OrmawaProposalList({super.key});
@@ -46,31 +47,20 @@ class OrmawaProposalList extends StatelessWidget {
 
         return FadeInAnimation(
           delay: 0.9 + (index * 0.1),
-          child: Container(
+          child: UnifiedCard(
             margin: const EdgeInsets.only(bottom: 16),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withAlpha(5),
-                  blurRadius: 15,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
+            borderRadius: 24.0,
             child: Column(
               children: [
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(10),
+                      padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withAlpha(10),
-                        borderRadius: BorderRadius.circular(14),
+                        color: AppColors.primary.withAlpha(15),
+                        shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.description_rounded, color: AppColors.primary, size: 24),
+                      child: const Icon(Icons.description_outlined, color: AppColors.primary, size: 22),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -79,10 +69,13 @@ class OrmawaProposalList extends StatelessWidget {
                         children: [
                           Text(
                             proposal.title,
-                            style: AppTextStyles.bodyLg.copyWith(
-                              fontWeight: FontWeight.w900,
+                            style: AppTextStyles.bodyMd.copyWith(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
                               color: const Color(0xFF1E293B),
                             ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 2),
                           Text(
@@ -104,18 +97,16 @@ class OrmawaProposalList extends StatelessWidget {
                       child: Text(
                         proposal.status.toUpperCase(),
                         style: AppTextStyles.labelSm.copyWith(
-                          color: statusColor,
-                          fontSize: 8,
+                          color: statusColor.withOpacity(0.9),
+                          fontSize: 9,
                           fontWeight: FontWeight.w900,
+                          letterSpacing: 0.5,
                         ),
                       ),
                     ),
                   ],
                 ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 12),
-                  child: Divider(color: Color(0xFFF1F5F9), height: 1),
-                ),
+                const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -144,12 +135,12 @@ class OrmawaProposalList extends StatelessWidget {
                             'Lihat Detail',
                             style: AppTextStyles.labelSm.copyWith(
                               color: AppColors.primary,
-                              fontWeight: FontWeight.w900,
-                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 11,
                             ),
                           ),
-                          const SizedBox(width: 4),
-                          const Icon(Icons.chevron_right_rounded, color: AppColors.primary, size: 16),
+                          const SizedBox(width: 2),
+                          const Icon(Icons.arrow_forward_rounded, color: AppColors.primary, size: 14),
                         ],
                       ),
                     ),

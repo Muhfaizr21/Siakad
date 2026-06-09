@@ -174,3 +174,41 @@ func HapusKegiatanPkkmb(c *fiber.Ctx) error {
 	}
 	return c.JSON(fiber.Map{"status": "success", "message": "Kegiatan berhasil dihapus"})
 }
+
+// --- MATERI / MODUL (MISSIONS) CRUD ORMAWA ---
+
+func AmbilDaftarMateriPkkmb(c *fiber.Ctx) error {
+	var m []models.PkkmbMateri
+	config.DB.Order("id asc").Find(&m)
+	return c.JSON(fiber.Map{"status": "success", "data": m})
+}
+
+func TambahMateriPkkmb(c *fiber.Ctx) error {
+	var m models.PkkmbMateri
+	if err := c.BodyParser(&m); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Gagal memproses data materi"})
+	}
+	config.DB.Create(&m)
+	return c.Status(201).JSON(fiber.Map{"status": "success", "data": m})
+}
+
+func UpdateMateriPkkmb(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var m models.PkkmbMateri
+	if err := config.DB.First(&m, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Materi tidak ditemukan"})
+	}
+	if err := c.BodyParser(&m); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Format data materi tidak valid"})
+	}
+	config.DB.Save(&m)
+	return c.JSON(fiber.Map{"status": "success", "data": m, "message": "Materi berhasil diperbarui"})
+}
+
+func HapusMateriPkkmb(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if err := config.DB.Delete(&models.PkkmbMateri{}, id).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menghapus materi"})
+	}
+	return c.JSON(fiber.Map{"status": "success", "message": "Materi berhasil dihapus"})
+}

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"math"
 	"siakad-backend/models"
@@ -79,6 +80,29 @@ func SeedThemeSettings(db *gorm.DB) {
 			// === BORDER ===
 			ColorBorder:      "#E2E8F0",
 			ColorBorderMuted: "#F1F5F9",
+
+			// === MOBILE-SPECIFIC COLORS ===
+			MobileColorPrimary:          "#002068",
+			MobileColorPrimaryContainer:  "#003399",
+			MobileColorSecondary:        "#745B00",
+			MobileColorSecondaryContainer: "#FDD355",
+			MobileColorBackground:       "#FBF9F8",
+			MobileColorSurface:          "#FFFFFF",
+			MobileColorOnSurface:        "#1B1C1C",
+			MobileColorOnSurfaceVariant: "#444653",
+			MobileColorOutline:          "#747684",
+			MobileColorOutlineVariant:   "#C4C5D5",
+
+			// === MOBILE GRADIENTS ===
+			MobileGradientStart:  "#00164E",
+			MobileGradientMiddle: "#002068",
+			MobileGradientEnd:    "#003399",
+
+			MobileGradientSecondaryStart:  "#745B00",
+			MobileGradientSecondaryMiddle: "#B48A00",
+			MobileGradientSecondaryEnd:    "#FDD355",
+				// === THEME VERSION ===
+				ThemeVersion: "1",
 		}
 		if err := db.Create(&theme).Error; err != nil {
 			log.Println("[Theme Seeder] Error:", err)
@@ -194,5 +218,52 @@ func AddColumnSidebarMutedColor(db *gorm.DB) {
 			ADD COLUMN sidebar_text_muted_color VARCHAR(9) DEFAULT '#94A3B8'
 		`)
 		log.Println("[Theme Migration] Column added successfully.")
+	}
+}
+
+// MigrateMobileThemeColumns - Add mobile-specific theme columns if not exists
+func MigrateMobileThemeColumns(db *gorm.DB) {
+	mobileColumns := []struct {
+		name    string
+		colType string
+		defaultVal string
+	}{
+		{"mobile_color_primary", "VARCHAR(9)", "'#002068'"},
+		{"mobile_color_primary_container", "VARCHAR(9)", "'#003399'"},
+		{"mobile_color_secondary", "VARCHAR(9)", "'#745B00'"},
+		{"mobile_color_secondary_container", "VARCHAR(9)", "'#FDD355'"},
+		{"mobile_color_background", "VARCHAR(9)", "'#FBF9F8'"},
+		{"mobile_color_surface", "VARCHAR(9)", "'#FFFFFF'"},
+		{"mobile_color_on_surface", "VARCHAR(9)", "'#1B1C1C'"},
+		{"mobile_color_on_surface_variant", "VARCHAR(9)", "'#444653'"},
+		{"mobile_color_outline", "VARCHAR(9)", "'#747684'"},
+		{"mobile_color_outline_variant", "VARCHAR(9)", "'#C4C5D5'"},
+		{"mobile_gradient_start", "VARCHAR(9)", "'#00164E'"},
+		{"mobile_gradient_middle", "VARCHAR(9)", "'#002068'"},
+		{"mobile_gradient_end", "VARCHAR(9)", "'#003399'"},
+		{"mobile_gradient_secondary_start", "VARCHAR(9)", "'#745B00'"},
+		{"mobile_gradient_secondary_middle", "VARCHAR(9)", "'#B48A00'"},
+		{"mobile_gradient_secondary_end", "VARCHAR(9)", "'#FDD355'"},
+		{"mobile_logo_url", "VARCHAR(500)", "''"},
+		{"mobile_splash_logo_url", "VARCHAR(500)", "''"},
+	}
+
+	for _, col := range mobileColumns {
+		var count int64
+		db.Raw(`
+			SELECT COUNT(*) FROM information_schema.columns
+			WHERE table_schema = 'public'
+			AND table_name = 'theme_settings'
+			AND column_name = ?
+		`, col.name).Scan(&count)
+
+		if count == 0 {
+			log.Printf("[Theme Migration] Adding column: %s\n", col.name)
+			db.Exec(fmt.Sprintf(`
+				ALTER TABLE public.theme_settings
+				ADD COLUMN %s %s DEFAULT %s
+			`, col.name, col.colType, col.defaultVal))
+			log.Printf("[Theme Migration] Column %s added successfully.\n", col.name)
+		}
 	}
 }

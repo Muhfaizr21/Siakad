@@ -1,10 +1,10 @@
 "use client"
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { DataTable } from '@/components/ui/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/Dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
@@ -22,8 +22,133 @@ const API_ROLES  = `${API_BASE_URL}/faculty/prodi-roles`
 const API_PRODI  = `${API_BASE_URL}/faculty/majors`
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
+/*  SearchableSelect — A styled, searchable dropdown option list               */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+function SearchableSelect({ value, onChange, options, placeholder, searchPlaceholder = "Cari...", required = false, direction = "down" }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const containerRef = useRef(null);
+
+  // Close dropdown when user clicks outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
+
+  const selectedOption = options.find(opt => String(opt.value) === String(value));
+
+  const filteredOptions = options.filter(opt =>
+    (opt.label || "").toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div className="relative w-full" ref={containerRef}>
+      {/* Invisible input to maintain native HTML5 validation constraints */}
+      <input
+        type="text"
+        tabIndex={-1}
+        className="sr-only absolute inset-x-0 bottom-0 h-0 w-full opacity-0 pointer-events-none"
+        required={required}
+        value={value || ""}
+        onChange={() => {}}
+      />
+
+      {/* Select Trigger */}
+      <div
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full h-10 px-3 border border-[var(--theme-border)] rounded-xl text-sm bg-[var(--theme-surface)] text-[var(--theme-text)] flex items-center justify-between cursor-pointer transition-colors focus-within:border-[var(--theme-primary)] focus-within:ring-2 focus-within:ring-[var(--theme-primary-light)] font-medium"
+      >
+        <span className={selectedOption ? "text-[var(--theme-text)]" : "text-[var(--theme-text-subtle)]"}>
+          {selectedOption ? selectedOption.label : placeholder}
+        </span>
+        <span
+          className="material-symbols-outlined text-[18px] text-[var(--theme-text-subtle)] transition-transform duration-200"
+          style={{ transform: isOpen ? 'rotate(180deg)' : 'none' }}
+        >
+          keyboard_arrow_down
+        </span>
+      </div>
+
+      {/* Styled Popover list */}
+      {isOpen && (
+        <div className={`absolute z-[100] bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl shadow-xl overflow-hidden flex flex-col animate-in fade-in duration-150 md:left-full md:top-0 md:bottom-auto md:ml-4 md:mt-0 md:w-80 md:slide-in-from-left-2 ${
+          direction === "up" 
+            ? "max-md:left-0 max-md:w-full max-md:bottom-full max-md:mb-1.5 max-md:slide-in-from-bottom-1" 
+            : "max-md:left-0 max-md:w-full max-md:mt-1.5 max-md:slide-in-from-top-1"
+        }`}>
+          {/* Search bar */}
+          <div className="p-2 border-b border-[var(--theme-border-muted)] bg-[var(--theme-bg)]/30 flex items-center gap-1.5">
+            <span className="material-symbols-outlined text-[16px] text-[var(--theme-text-subtle)] ml-1 shrink-0">search</span>
+            <input
+              type="text"
+              placeholder={searchPlaceholder}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full h-8 bg-transparent text-xs outline-none text-[var(--theme-text)] placeholder-[var(--theme-text-subtle)] font-medium"
+              autoFocus
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                className="p-1 rounded-full hover:bg-[var(--theme-text-subtle)]/10 text-[var(--theme-text-subtle)] hover:text-[var(--theme-text)] flex items-center justify-center shrink-0"
+              >
+                <span className="material-symbols-outlined text-[12px]">close</span>
+              </button>
+            )}
+          </div>
+
+          {/* Options Wrapper */}
+          <div className="max-h-48 overflow-y-auto no-scrollbar py-1">
+            {filteredOptions.length === 0 ? (
+              <div className="px-3 py-3 text-xs text-[var(--theme-text-subtle)] text-center font-medium">
+                Tidak ada hasil ditemukan
+              </div>
+            ) : (
+              filteredOptions.map((opt) => {
+                const isSelected = String(opt.value) === String(value);
+                return (
+                  <div
+                    key={opt.value}
+                    onClick={() => {
+                      onChange(opt.value);
+                      setIsOpen(false);
+                      setSearch("");
+                    }}
+                    className={`px-3 py-2 text-xs cursor-pointer font-medium transition-colors flex items-center justify-between ${
+                      isSelected
+                        ? "bg-[var(--theme-primary-light)] text-[var(--theme-primary)] font-semibold"
+                        : "text-[var(--theme-text)] hover:bg-[var(--theme-bg)]"
+                    }`}
+                  >
+                    <span>{opt.label}</span>
+                    {isSelected && (
+                      <span className="material-symbols-outlined text-[14px] text-[var(--theme-primary)] font-bold">check</span>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
 /*  ProdiUsers — Manage prodi_admin accounts under the current faculty       */
 /* ═══════════════════════════════════════════════════════════════════════════ */
+
 
 export default function ProdiUsers() {
   // ── state ──
@@ -254,7 +379,7 @@ export default function ProdiUsers() {
           actions={
             <Button
               onClick={() => { setForm(emptyForm); setIsCreateOpen(true) }}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg shadow-blue-200/50 text-sm px-5 py-2.5 rounded-xl font-semibold flex items-center gap-2 transition-all hover:scale-[1.02]"
+              className="bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white shadow-lg shadow-[var(--theme-primary-light)] text-sm px-5 h-10 rounded-xl font-semibold flex items-center gap-2 transition-all hover:scale-[1.02]"
             >
               <span className="material-symbols-outlined" style={{ fontSize: 18 }}>person_add</span>
               Tambah Akun
@@ -326,169 +451,177 @@ export default function ProdiUsers() {
       </Card>
 
       {/* ═══ CREATE MODAL ═══ */}
-      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="sm:max-w-lg rounded-2xl">
+      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen} maxWidth="max-w-lg">
+        <DialogContent className="!overflow-visible">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold flex items-center gap-2">
-              <span className="material-symbols-outlined text-blue-600" style={{ fontSize: 22 }}>person_add</span>
-              Tambah Akun Prodi Admin
-            </DialogTitle>
-            <DialogDescription className="text-sm text-neutral-500">
-              Buat akun baru untuk administrator program studi.
-            </DialogDescription>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)] shrink-0">
+                <span className="material-symbols-outlined text-[20px]">person_add</span>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-0.5">
+                  Tambah Akun
+                </p>
+                <DialogTitle>Tambah Akun Prodi Admin</DialogTitle>
+                <DialogDescription>Buat akun baru untuk administrator program studi.</DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
-          <form onSubmit={handleCreate} className="space-y-4 mt-2">
+          <form onSubmit={handleCreate} className="p-6 space-y-4 text-[var(--theme-text)]">
             <div className="space-y-1.5">
-              <Label className="text-sm font-semibold text-neutral-700">Email</Label>
-              <Input
+              <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Email</label>
+              <input
                 type="email"
                 placeholder="admin.prodi@bku.ac.id"
                 value={form.email}
                 onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
                 required
-                className="rounded-xl"
+                className="w-full h-10 px-3 border border-[var(--theme-border)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors font-medium"
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-sm font-semibold text-neutral-700">Password</Label>
-              <Input
+              <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Password</label>
+              <input
                 type="password"
                 placeholder="Minimal 6 karakter"
                 value={form.password}
                 onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
                 required
-                className="rounded-xl"
+                className="w-full h-10 px-3 border border-[var(--theme-border)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors font-medium"
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-sm font-semibold text-neutral-700">Program Studi</Label>
-              <select
+              <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Program Studi</label>
+              <SearchableSelect
                 value={form.program_studi_id}
-                onChange={e => setForm(f => ({ ...f, program_studi_id: e.target.value }))}
+                onChange={val => setForm(f => ({ ...f, program_studi_id: val }))}
+                options={prodis.map(p => ({
+                  value: p.id || p.ID,
+                  label: p.nama || p.Nama || p.name
+                }))}
+                placeholder="— Pilih Program Studi —"
+                searchPlaceholder="Cari program studi..."
                 required
-                className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              >
-                <option value="">— Pilih Program Studi —</option>
-                {prodis.map(p => (
-                  <option key={p.id || p.ID} value={p.id || p.ID}>
-                    {p.nama || p.Nama || p.name}
-                  </option>
-                ))}
-              </select>
+                direction="up"
+              />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-sm font-semibold text-neutral-700">Role / Jabatan</Label>
-              <select
+              <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Role / Jabatan</label>
+              <SearchableSelect
                 value={form.ormawa_assign}
-                onChange={e => setForm(f => ({ ...f, ormawa_assign: e.target.value }))}
+                onChange={val => setForm(f => ({ ...f, ormawa_assign: val }))}
+                options={roles.map(r => ({
+                  value: r.nama || r.Nama,
+                  label: r.nama || r.Nama
+                }))}
+                placeholder="— Pilih Role —"
+                searchPlaceholder="Cari role..."
                 required
-                className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              >
-                <option value="">— Pilih Role —</option>
-                {roles.map(r => (
-                  <option key={r.id || r.ID} value={r.nama || r.Nama}>
-                    {r.nama || r.Nama}
-                  </option>
-                ))}
-              </select>
-              <p className="text-[11px] text-neutral-400 mt-1">
-                Role dibuat di halaman <span className="font-semibold text-blue-500">Role & Akses (RBAC)</span>
+                direction="up"
+              />
+              <p className="text-[10px] text-[var(--theme-text-subtle)] font-medium mt-1 leading-normal">
+                Role dibuat di halaman <span className="font-semibold text-[var(--theme-primary)]">Role & Akses (RBAC)</span>
               </p>
             </div>
-            <div className="flex justify-end gap-2 pt-3 border-t">
-              <Button type="button" variant="ghost" onClick={() => setIsCreateOpen(false)} className="rounded-xl">
+
+            <DialogFooter className="pt-4 flex items-center justify-end gap-2">
+              <Button type="button" variant="ghost" onClick={() => setIsCreateOpen(false)} className="h-10 rounded-xl px-4 font-semibold">
                 Batal
               </Button>
               <Button
                 type="submit"
                 disabled={submitting}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl px-6 font-semibold shadow-lg shadow-blue-200/40"
+                className="bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white h-10 rounded-xl px-6 font-semibold shadow-lg shadow-blue-200/40 border-none transition-all"
               >
                 {submitting ? 'Menyimpan...' : 'Simpan Akun'}
               </Button>
-            </div>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
       {/* ═══ EDIT MODAL ═══ */}
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="sm:max-w-lg rounded-2xl">
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen} maxWidth="max-w-lg">
+        <DialogContent className="!overflow-visible">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold flex items-center gap-2">
-              <span className="material-symbols-outlined text-amber-600" style={{ fontSize: 22 }}>edit</span>
-              Edit Akun Prodi Admin
-            </DialogTitle>
-            <DialogDescription className="text-sm text-neutral-500">
-              Perbarui informasi akun <strong>{selected?.email}</strong>
-            </DialogDescription>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[var(--theme-warning-light)] flex items-center justify-center text-[var(--theme-warning)] shrink-0">
+                <span className="material-symbols-outlined text-[20px]">edit</span>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-0.5">
+                  Edit Akun
+                </p>
+                <DialogTitle>Edit Akun Prodi Admin</DialogTitle>
+                <DialogDescription>Perbarui informasi akun {selected?.email}</DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
-          <form onSubmit={handleEdit} className="space-y-4 mt-2">
+          <form onSubmit={handleEdit} className="p-6 space-y-4 text-[var(--theme-text)]">
             <div className="space-y-1.5">
-              <Label className="text-sm font-semibold text-neutral-700">Email</Label>
-              <Input
+              <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Email</label>
+              <input
                 type="email"
                 value={form.email}
                 onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
                 required
-                className="rounded-xl"
+                className="w-full h-10 px-3 border border-[var(--theme-border)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors font-medium"
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-sm font-semibold text-neutral-700">Password Baru</Label>
-              <Input
+              <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Password Baru</label>
+              <input
                 type="password"
                 placeholder="Kosongkan jika tidak ingin mengubah"
                 value={form.password}
                 onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-                className="rounded-xl"
+                className="w-full h-10 px-3 border border-[var(--theme-border)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors font-medium"
               />
-              <p className="text-[11px] text-neutral-400">Biarkan kosong untuk mempertahankan password lama</p>
+              <p className="text-[10px] text-[var(--theme-text-subtle)] font-medium mt-1 leading-normal">Biarkan kosong untuk mempertahankan password lama</p>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-sm font-semibold text-neutral-700">Program Studi</Label>
-              <select
+              <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Program Studi</label>
+              <SearchableSelect
                 value={form.program_studi_id}
-                onChange={e => setForm(f => ({ ...f, program_studi_id: e.target.value }))}
+                onChange={val => setForm(f => ({ ...f, program_studi_id: val }))}
+                options={prodis.map(p => ({
+                  value: p.id || p.ID,
+                  label: p.nama || p.Nama || p.name
+                }))}
+                placeholder="— Pilih Program Studi —"
+                searchPlaceholder="Cari program studi..."
                 required
-                className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              >
-                <option value="">— Pilih Program Studi —</option>
-                {prodis.map(p => (
-                  <option key={p.id || p.ID} value={p.id || p.ID}>
-                    {p.nama || p.Nama || p.name}
-                  </option>
-                ))}
-              </select>
+                direction="up"
+              />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-sm font-semibold text-neutral-700">Role / Jabatan</Label>
-              <select
+              <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Role / Jabatan</label>
+              <SearchableSelect
                 value={form.ormawa_assign}
-                onChange={e => setForm(f => ({ ...f, ormawa_assign: e.target.value }))}
+                onChange={val => setForm(f => ({ ...f, ormawa_assign: val }))}
+                options={roles.map(r => ({
+                  value: r.nama || r.Nama,
+                  label: r.nama || r.Nama
+                }))}
+                placeholder="— Pilih Role —"
+                searchPlaceholder="Cari role..."
                 required
-                className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              >
-                <option value="">— Pilih Role —</option>
-                {roles.map(r => (
-                  <option key={r.id || r.ID} value={r.nama || r.Nama}>
-                    {r.nama || r.Nama}
-                  </option>
-                ))}
-              </select>
+                direction="up"
+              />
             </div>
-            <div className="flex justify-end gap-2 pt-3 border-t">
-              <Button type="button" variant="ghost" onClick={() => setIsEditOpen(false)} className="rounded-xl">
+
+            <DialogFooter className="pt-4 flex items-center justify-end gap-2">
+              <Button type="button" variant="ghost" onClick={() => setIsEditOpen(false)} className="h-10 rounded-xl px-4 font-semibold">
                 Batal
               </Button>
               <Button
                 type="submit"
                 disabled={submitting}
-                className="bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl px-6 font-semibold shadow-lg shadow-amber-200/40"
+                className="bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white h-10 rounded-xl px-6 font-semibold shadow-lg shadow-amber-200/40 border-none transition-all"
               >
                 {submitting ? 'Menyimpan...' : 'Perbarui Akun'}
               </Button>
-            </div>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>

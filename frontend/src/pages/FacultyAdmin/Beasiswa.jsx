@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/Button"
 import { StatCard } from '@/components/ui/StatCard'
 import { PageContent } from '@/components/ui/page'
 import { DashboardHero } from '@/components/ui/dashboard'
+import Dialog, { DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/Dialog"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Download = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>download</span>;
@@ -60,11 +61,11 @@ const formatCurrency = (val) => {
 
 
 const APP_STATUS = {
-  diterima: { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500', label: 'Diterima (Final)' },
-  ditolak: { cls: 'bg-rose-50 text-rose-700 border-rose-200', dot: 'bg-rose-500', label: 'Ditolak (Final)' },
-  proses: { cls: 'bg-amber-50 text-amber-700 border-amber-200', dot: 'bg-amber-500', label: 'Proses' },
-  'disetujui fakultas': { cls: 'bg-blue-50 text-blue-700 border-blue-200', dot: 'bg-blue-500', label: 'Disetujui Fakultas' },
-  'ditolak fakultas': { cls: 'bg-rose-50 text-rose-700 border-rose-100', dot: 'bg-rose-400', label: 'Ditolak Fakultas' },
+  diterima: { cls: 'bg-[var(--theme-success-light)] text-[var(--theme-success)] border-[var(--theme-success)]/10', dot: 'bg-[var(--theme-success)]', label: 'Diterima (Final)' },
+  ditolak: { cls: 'bg-[var(--theme-error-light)] text-[var(--theme-error)] border-[var(--theme-error)]/10', dot: 'bg-[var(--theme-error)]', label: 'Ditolak (Final)' },
+  proses: { cls: 'bg-[var(--theme-warning-light)] text-[var(--theme-warning)] border-[var(--theme-warning)]/10', dot: 'bg-[var(--theme-warning)]', label: 'Proses' },
+  'disetujui fakultas': { cls: 'bg-[var(--theme-info-light)] text-[var(--theme-info)] border-[var(--theme-info)]/10', dot: 'bg-[var(--theme-info)]', label: 'Disetujui Fakultas' },
+  'ditolak fakultas': { cls: 'bg-[var(--theme-error-light)] text-[var(--theme-error)] border-[var(--theme-error)]/10', dot: 'bg-[var(--theme-error)]', label: 'Ditolak Fakultas' },
 }
 const getAppStatus = (v = '') => {
   const norm = (v || 'proses').toLowerCase();
@@ -114,25 +115,25 @@ const renderAttachment = (url, label) => {
 
   const isImage = fullUrl.match(/\.(jpeg|jpg|gif|png)$/i) != null;
   return (
-    <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex flex-col gap-2 shadow-sm mb-2">
+    <div className="bg-[var(--theme-bg)] p-3 rounded-2xl border border-[var(--theme-border-muted)] flex flex-col gap-2 shadow-sm mb-2">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <span className="material-symbols-outlined text-rose-500" style={{ fontSize: 20 }}>
+          <span className="material-symbols-outlined text-[var(--theme-error)]" style={{ fontSize: 20 }}>
             {isImage ? 'image' : 'description'}
           </span>
           <div className="text-left">
-            <p className="text-xs font-bold text-slate-700 truncate max-w-[200px]">
+            <p className="text-xs font-bold text-[var(--theme-text)] truncate max-w-[200px]">
               {label}
             </p>
-            <p className="text-[9px] text-slate-400">Klik untuk melihat file</p>
+            <p className="text-[9px] text-[var(--theme-text-muted)]">Klik untuk melihat file</p>
           </div>
         </div>
-        <a href={fullUrl} target="_blank" rel="noreferrer" className="text-primary hover:bg-blue-50 p-1.5 rounded-lg transition-colors">
+        <a href={fullUrl} target="_blank" rel="noreferrer" className="text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)] p-1.5 rounded-lg transition-colors">
           <span className="material-symbols-outlined" style={{ fontSize: 16 }}>open_in_new</span>
         </a>
       </div>
       {isImage && (
-        <a href={fullUrl} target="_blank" rel="noreferrer" className="mt-1 block rounded-xl overflow-hidden border border-slate-200 hover:opacity-90 transition-opacity">
+        <a href={fullUrl} target="_blank" rel="noreferrer" className="mt-1 block rounded-xl overflow-hidden border border-[var(--theme-border)] hover:opacity-90 transition-opacity">
           <img src={fullUrl} alt={label} className="w-full h-auto object-cover max-h-48" />
         </a>
       )}
@@ -982,62 +983,55 @@ export default function FacultyScholarship() {
       {previewApp && (() => {
         const st = getAppStatus(previewApp.Status);
         return (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
-            onClick={() => setPreviewApp(null)}>
-            <div className="relative w-full max-w-md glass-card rounded-2xl shadow-none border border-slate-200/60 flex flex-col overflow-hidden max-h-[90vh]"
-              onClick={e => e.stopPropagation()}>
+          <Dialog open={!!previewApp} onOpenChange={(open) => !open && setPreviewApp(null)} maxWidth="max-w-md">
+            <DialogContent className="max-w-md p-0 overflow-hidden border border-[var(--theme-border)] shadow-2xl rounded-2xl bg-[var(--theme-surface)] flex flex-col max-h-[90vh]">
               {/* Header */}
-              <div className="relative bg-gradient-to-br from-bku-primary via-[#00308F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
-                <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
-                <button onClick={() => setPreviewApp(null)}
-                  className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
-                  <span className="material-symbols-outlined text-white" style={{ fontSize: '15px' }} >close</span>
-                </button>
+              <DialogHeader className="shrink-0 relative bg-[var(--theme-bg)]/50 p-6 pb-5 border-b border-[var(--theme-border-muted)]">
                 <div className="relative z-10 flex items-center gap-4">
-                  <StudentAvatar src={previewApp.Mahasiswa?.Foto} name={previewApp.Mahasiswa?.Nama} className="w-14 h-14 rounded-2xl shadow-xl ring-2 ring-white/20" />
+                  <StudentAvatar src={previewApp.Mahasiswa?.Foto} name={previewApp.Mahasiswa?.Nama} className="w-14 h-14 rounded-2xl shadow-inner ring-2 ring-[var(--theme-border)]" />
                   <div className="min-w-0">
-                    <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Detail Pendaftaran</p>
-                    <h2 className="text-base font-extrabold font-headline leading-tight truncate text-white">{previewApp.Mahasiswa?.Nama}</h2>
-                    <p className="text-xs text-blue-200 font-medium mt-0.5">{previewApp.Mahasiswa?.NIM}</p>
+                    <p className="text-[9px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-[0.25em] mb-1">Detail Pendaftaran</p>
+                    <DialogTitle className="text-base font-bold font-headline leading-tight truncate text-[var(--theme-text)]">{previewApp.Mahasiswa?.Nama}</DialogTitle>
+                    <DialogDescription className="text-xs text-[var(--theme-text-muted)] mt-0.5">{previewApp.Mahasiswa?.NIM}</DialogDescription>
                   </div>
                 </div>
-              </div>
+              </DialogHeader>
 
               {/* Content */}
               <div className="p-6 space-y-4 overflow-y-auto flex-1 font-inter">
                 {/* Scholarship Program */}
                 <div className="space-y-1">
-                  <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">PROGRAM BEASISWA</span>
-                  <p className="text-xs font-black text-slate-800 bg-slate-50 p-3.5 rounded-2xl border border-slate-100/50">
+                  <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">PROGRAM BEASISWA</span>
+                  <p className="text-xs font-semibold text-[var(--theme-text)] bg-[var(--theme-bg)] p-3.5 rounded-2xl border border-[var(--theme-border-muted)]">
                     {previewApp.Beasiswa?.Nama}
                   </p>
                 </div>
 
                 {/* Tanggal Daftar - Full Width */}
-                <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 flex-shrink-0">
+                <div className="bg-[var(--theme-bg)] p-3.5 rounded-2xl border border-[var(--theme-border-muted)] flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-[var(--theme-info-light)] flex items-center justify-center text-[var(--theme-info)] flex-shrink-0">
                     <span className="material-symbols-outlined" style={{ fontSize: 16 }}>calendar_add_on</span>
                   </div>
                   <div>
-                    <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">TANGGAL & WAKTU DAFTAR</span>
-                    <span className="text-xs font-black text-slate-700">
-                      {previewApp.CreatedAt || previewApp.created_at ? formatDateTime(previewApp.CreatedAt || previewApp.created_at) : '—'}
+                    <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-0.5">TANGGAL & WAKTU DAFTAR</span>
+                    <span className="text-xs font-semibold text-[var(--theme-text)]">
+                      {formatDateTime(previewApp.CreatedAt || previewApp.created_at)}
                     </span>
                   </div>
                 </div>
 
                 {/* Status Seleksi - Full Width */}
-                <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 flex items-center gap-3">
+                <div className="bg-[var(--theme-bg)] p-3.5 rounded-2xl border border-[var(--theme-border-muted)] flex items-center gap-3">
                   <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0",
-                    previewApp.Status === 'diterima' ? 'bg-emerald-50 text-emerald-600' :
-                      previewApp.Status === 'ditolak' ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600')}>
+                    previewApp.Status === 'diterima' ? 'bg-[var(--theme-success-light)] text-[var(--theme-success)]' :
+                      previewApp.Status === 'ditolak' ? 'bg-[var(--theme-error-light)] text-[var(--theme-error)]' : 'bg-[var(--theme-warning-light)] text-[var(--theme-warning)]')}>
                     <span className="material-symbols-outlined" style={{ fontSize: 16 }}>verified</span>
                   </div>
                   <div>
-                    <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">STATUS SELEKSI</span>
-                    <span className={cn('inline-flex items-center text-[10px] font-black uppercase tracking-wider',
-                      previewApp.Status === 'diterima' ? 'text-emerald-600' :
-                        previewApp.Status === 'ditolak' ? 'text-rose-600' : 'text-amber-600')}>
+                    <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-0.5">STATUS SELEKSI</span>
+                    <span className={cn('inline-flex items-center text-[10px] font-semibold uppercase tracking-wider',
+                      previewApp.Status === 'diterima' ? 'text-[var(--theme-success)]' :
+                        previewApp.Status === 'ditolak' ? 'text-[var(--theme-error)]' : 'text-[var(--theme-warning)]')}>
                       {st.label}
                     </span>
                   </div>
@@ -1045,10 +1039,10 @@ export default function FacultyScholarship() {
 
                 {/* Submitted Files */}
                 <div className="space-y-1.5">
-                  <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">BERKAS PENDAFTARAN</span>
+                  <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">BERKAS PENDAFTARAN</span>
                   {!previewApp.FileURL && !previewApp.KtmKtpURL && !previewApp.TranskripURL && !previewApp.SertifikatURL ? (
-                    <div className="bg-slate-50/50 p-4 rounded-2xl border border-dashed border-slate-200 text-center">
-                      <p className="text-xs text-slate-400 italic">Tidak ada berkas yang dilampirkan</p>
+                    <div className="bg-[var(--theme-bg)]/50 p-4 rounded-2xl border border-dashed border-[var(--theme-border)] text-center">
+                      <p className="text-xs text-[var(--theme-text-subtle)] italic">Tidak ada berkas yang dilampirkan</p>
                     </div>
                   ) : (
                     <div className="flex flex-col gap-1">
@@ -1074,19 +1068,19 @@ export default function FacultyScholarship() {
                   if (Object.keys(answers).length === 0) return null;
                   return (
                     <div className="space-y-1.5 text-left">
-                      <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">JAWABAN PERSYARATAN KUSTOM</span>
+                      <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">JAWABAN PERSYARATAN KUSTOM</span>
                       <div className="space-y-2">
                         {Object.entries(answers).map(([label, value]) => {
                           const isFile = typeof value === 'string' && (value.startsWith('/uploads/') || value.startsWith('http') || value.includes('/api/scholarship/upload-custom-file'));
                           return (
-                            <div key={label} className="bg-slate-50 p-3 rounded-2xl border border-slate-100/50">
-                              <span className="block text-[9px] font-bold text-slate-400 uppercase">{label}</span>
+                            <div key={label} className="bg-[var(--theme-bg)] p-3 rounded-2xl border border-[var(--theme-border-muted)]">
+                              <span className="block text-[9px] font-bold text-[var(--theme-text-muted)] uppercase">{label}</span>
                               {isFile ? (
                                 <div className="mt-1">
                                   {renderAttachment(value, label)}
                                 </div>
                               ) : (
-                                <p className="text-xs font-bold text-slate-800 mt-1 whitespace-pre-line">
+                                <p className="text-xs font-semibold text-[var(--theme-text)] mt-1 whitespace-pre-line">
                                   {Array.isArray(value) ? value.join(', ') : String(value)}
                                 </p>
                               )}
@@ -1100,37 +1094,37 @@ export default function FacultyScholarship() {
 
                 {/* Motivasi */}
                 <div className="space-y-1.5">
-                  <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">MOTIVASI / MOTIVATION LETTER</span>
-                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100/50">
+                  <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">MOTIVASI / MOTIVATION LETTER</span>
+                  <div className="bg-[var(--theme-bg)] p-4 rounded-2xl border border-[var(--theme-border-muted)]">
                     {previewApp.Motivasi ? (
                       <div
-                        className="text-xs text-slate-700 leading-relaxed prose prose-sm max-w-none"
+                        className="text-xs text-[var(--theme-text)] leading-relaxed prose prose-sm max-w-none"
                         dangerouslySetInnerHTML={{ __html: previewApp.Motivasi }}
                       />
                     ) : (
-                      <p className="text-xs text-slate-400 italic">Tidak ada motivasi yang diinputkan</p>
+                      <p className="text-xs text-[var(--theme-text-subtle)] italic">Tidak ada motivasi yang diinputkan</p>
                     )}
                   </div>
                 </div>
 
                 {/* Reviewer Notes */}
                 <div className="space-y-1.5">
-                  <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">CATATAN REVIEWER</span>
-                  <p className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3.5 rounded-2xl border border-slate-100/50">
+                  <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">CATATAN REVIEWER</span>
+                  <p className="text-xs text-[var(--theme-text)] leading-relaxed bg-[var(--theme-bg)] p-3.5 rounded-2xl border border-[var(--theme-border-muted)]">
                     {previewApp.Catatan || 'Belum ada catatan dari reviewer.'}
                   </p>
                 </div>
               </div>
 
               {/* Footer */}
-              <div className="px-5 py-4 border-t border-slate-200/60 bg-transparent flex gap-3 flex-shrink-0">
+              <DialogFooter className="px-5 py-4 border-t border-[var(--theme-border-muted)] bg-transparent flex justify-end gap-3 flex-shrink-0">
                 <button onClick={() => setPreviewApp(null)}
-                  className="flex-1 h-11 rounded-xl bg-primary hover:bg-bku-hover text-xs font-bold text-white uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-md active:scale-95">
+                  className="w-full h-10 px-6 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-xs font-semibold text-white uppercase tracking-wider transition-all active:scale-95 shadow-md cursor-pointer">
                   Tutup Detail
                 </button>
-              </div>
-            </div>
-          </div>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         );
       })()}
 
@@ -1143,33 +1137,26 @@ export default function FacultyScholarship() {
         const pct = current >= capacity ? 100 : Math.min(99, Math.floor((current / capacity) * 100));
         const first5Apps = programApps.slice(0, 5);
         return (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
-            onClick={() => setSelectedProgram(null)}>
-            <div className="relative w-full max-w-md glass-card rounded-2xl shadow-none border border-slate-200/60 flex flex-col overflow-hidden max-h-[90vh]"
-              onClick={e => e.stopPropagation()}>
+          <Dialog open={!!selectedProgram} onOpenChange={(open) => !open && setSelectedProgram(null)} maxWidth="max-w-md">
+            <DialogContent className="max-w-md p-0 overflow-hidden border border-[var(--theme-border)] shadow-2xl rounded-2xl bg-[var(--theme-surface)] flex flex-col max-h-[90vh]">
               {/* Header */}
-              <div className="relative bg-gradient-to-br from-bku-primary via-[#00308F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
-                <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
-                <button onClick={() => setSelectedProgram(null)}
-                  className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
-                  <span className="material-symbols-outlined text-white" style={{ fontSize: '15px' }} >close</span>
-                </button>
+              <DialogHeader className="shrink-0 relative bg-[var(--theme-bg)]/50 p-6 pb-5 border-b border-[var(--theme-border-muted)]">
                 <div className="flex items-center gap-3">
                   <div className="min-w-0">
-                    <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Detail Program Beasiswa</p>
-                    <h2 className="text-base font-extrabold font-headline leading-tight text-white">{selectedProgram.Nama}</h2>
-                    <p className="text-xs text-blue-200 font-medium mt-0.5">{selectedProgram.Penyelenggara}</p>
+                    <p className="text-[9px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-[0.25em] mb-1">Detail Program Beasiswa</p>
+                    <DialogTitle className="text-base font-bold font-headline leading-tight text-[var(--theme-text)]">{selectedProgram.Nama}</DialogTitle>
+                    <DialogDescription className="text-xs text-[var(--theme-text-muted)] mt-0.5">{selectedProgram.Penyelenggara}</DialogDescription>
                   </div>
                 </div>
-              </div>
+              </DialogHeader>
 
               {/* Content */}
               <div className="p-6 space-y-4 overflow-y-auto flex-1 font-inter">
                 {/* Deskripsi */}
                 {selectedProgram.Deskripsi && (
                   <div className="space-y-1">
-                    <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">DESKRIPSI PROGRAM</span>
-                    <p className="text-xs text-slate-600 leading-relaxed bg-slate-50/60 p-3.5 rounded-2xl border border-slate-100/50">
+                    <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">DESKRIPSI PROGRAM</span>
+                    <p className="text-xs text-[var(--theme-text-muted)] leading-relaxed bg-[var(--theme-bg)]/60 p-3.5 rounded-2xl border border-[var(--theme-border-muted)]">
                       {selectedProgram.Deskripsi}
                     </p>
                   </div>
@@ -1188,22 +1175,22 @@ export default function FacultyScholarship() {
                   if (!Array.isArray(fields) || fields.length === 0) return null;
                   return (
                     <div className="space-y-1">
-                      <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">PERSYARATAN TAMBAHAN (KUSTOM)</span>
-                      <div className="bg-slate-50/60 p-3.5 rounded-2xl border border-slate-100/50 space-y-2 font-inter">
+                      <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">PERSYARATAN TAMBAHAN (KUSTOM)</span>
+                      <div className="bg-[var(--theme-bg)]/60 p-3.5 rounded-2xl border border-[var(--theme-border-muted)] space-y-2 font-inter">
                         {fields.map((f, i) => (
-                          <div key={i} className="flex justify-between items-start text-xs border-b border-slate-100 last:border-0 pb-1.5 last:pb-0">
+                          <div key={i} className="flex justify-between items-start text-xs border-b border-[var(--theme-border-muted)] last:border-0 pb-1.5 last:pb-0">
                             <div className="min-w-0 pr-2 text-left">
-                              <span className="font-bold text-slate-700 block">{f.label}</span>
+                              <span className="font-bold text-[var(--theme-text)] block">{f.label}</span>
                               {f.options && (
-                                <span className="text-[9px] text-slate-400 block mt-0.5">Opsi: {f.options}</span>
+                                <span className="text-[9px] text-[var(--theme-text-muted)] block mt-0.5">Opsi: {f.options}</span>
                               )}
                             </div>
                             <div className="flex flex-col items-end gap-1 shrink-0">
-                              <span className="font-semibold text-[9px] px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded">
+                              <span className="font-semibold text-[9px] px-1.5 py-0.5 bg-[var(--theme-info-light)] text-[var(--theme-info)] rounded">
                                 {f.type}
                               </span>
                               {f.required && (
-                                <span className="font-bold text-[8px] px-1 bg-rose-50 text-rose-600 rounded">
+                                <span className="font-bold text-[8px] px-1 bg-[var(--theme-error-light)] text-[var(--theme-error)] rounded">
                                   Wajib
                                 </span>
                               )}
@@ -1216,13 +1203,13 @@ export default function FacultyScholarship() {
                 })()}
 
                 {/* Tanggal & Waktu Dibuat - Full Width */}
-                <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 flex-shrink-0">
+                <div className="bg-[var(--theme-bg)] p-3.5 rounded-2xl border border-[var(--theme-border-muted)] flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-[var(--theme-info-light)] flex items-center justify-center text-[var(--theme-info)] flex-shrink-0">
                     <span className="material-symbols-outlined" style={{ fontSize: 16 }}>calendar_add_on</span>
                   </div>
                   <div>
-                    <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">TANGGAL & WAKTU DIBUAT</span>
-                    <span className="text-xs font-black text-slate-700">
+                    <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-0.5">TANGGAL & WAKTU DIBUAT</span>
+                    <span className="text-xs font-semibold text-[var(--theme-text)]">
                       {selectedProgram.CreatedAt || selectedProgram.created_at ? formatDateTime(selectedProgram.CreatedAt || selectedProgram.created_at) : '—'}
                     </span>
                   </div>
@@ -1230,41 +1217,41 @@ export default function FacultyScholarship() {
 
                 {/* Deadline & IPK Requirement - Side by Side (grid-cols-2) */}
                 <div className="grid grid-cols-2 gap-3.5">
-                  <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600 flex-shrink-0">
+                  <div className="bg-[var(--theme-bg)] p-3 rounded-2xl border border-[var(--theme-border-muted)] flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-[var(--theme-error-light)] flex items-center justify-center text-[var(--theme-error)] flex-shrink-0">
                       <span className="material-symbols-outlined" style={{ fontSize: 16 }}>event_busy</span>
                     </div>
                     <div>
-                      <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">DEADLINE</span>
-                      <span className="text-xs font-black text-rose-600">
+                      <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-0.5">DEADLINE</span>
+                      <span className="text-xs font-semibold text-[var(--theme-error)]">
                         {selectedProgram.Deadline ? formatDate(selectedProgram.Deadline) : '—'}
                       </span>
                     </div>
                   </div>
-                  <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 flex-shrink-0">
+                  <div className="bg-[var(--theme-bg)] p-3 rounded-2xl border border-[var(--theme-border-muted)] flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-[var(--theme-warning-light)] flex items-center justify-center text-[var(--theme-warning)] flex-shrink-0">
                       <span className="material-symbols-outlined" style={{ fontSize: 16 }}>star</span>
                     </div>
                     <div>
-                      <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">MINIMAL IPK</span>
-                      <span className="text-xs font-black text-slate-700">{selectedProgram.MinIPK || '3.00'}</span>
+                      <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-0.5">MINIMAL IPK</span>
+                      <span className="text-xs font-semibold text-[var(--theme-text)]">{selectedProgram.MinIPK || '3.00'}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Capacity - Full Width */}
-                <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 flex flex-col justify-between">
+                <div className="bg-[var(--theme-bg)] p-3.5 rounded-2xl border border-[var(--theme-border-muted)] flex flex-col justify-between">
                   <div className="flex justify-between items-center">
-                    <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider">KAPASITAS & KETERISIAN</span>
-                    <span className="text-xs font-black text-slate-700">{current} / {selectedProgram.Kuota || 0} Mahasiswa</span>
+                    <span className="text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">KAPASITAS & KETERISIAN</span>
+                    <span className="text-xs font-semibold text-[var(--theme-text)]">{current} / {selectedProgram.Kuota || 0} Mahasiswa</span>
                   </div>
-                  <div className="w-full h-1.5 bg-slate-200/80 rounded-full overflow-hidden mt-2.5">
+                  <div className="w-full h-1.5 bg-[var(--theme-border-muted)] rounded-full overflow-hidden mt-2.5">
                     <div
                       className={cn(
                         "h-full rounded-full transition-all duration-500",
                         pct > 90
-                          ? "bg-rose-500"
-                          : "bg-gradient-to-r from-primary to-blue-400"
+                          ? "bg-[var(--theme-error)]"
+                          : "bg-gradient-to-r from-[var(--theme-primary)] to-[var(--theme-info)]"
                       )}
                       style={{ width: `${pct}%` }}
                     />
@@ -1273,13 +1260,13 @@ export default function FacultyScholarship() {
 
                 {/* Anggaran - Full Width */}
                 {selectedProgram.Anggaran > 0 && (
-                  <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 flex-shrink-0">
+                  <div className="bg-[var(--theme-bg)] p-3.5 rounded-2xl border border-[var(--theme-border-muted)] flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-[var(--theme-success-light)] flex items-center justify-center text-[var(--theme-success)] flex-shrink-0">
                       <span className="material-symbols-outlined" style={{ fontSize: 16 }}>payments</span>
                     </div>
                     <div>
-                      <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">TOTAL ANGGARAN</span>
-                      <span className="text-xs font-black text-emerald-600">
+                      <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-0.5">TOTAL ANGGARAN</span>
+                      <span className="text-xs font-semibold text-[var(--theme-success)]">
                         Rp {new Intl.NumberFormat('id-ID').format(selectedProgram.Anggaran)}
                       </span>
                     </div>
@@ -1288,27 +1275,27 @@ export default function FacultyScholarship() {
 
                 {/* Applicants List */}
                 <div>
-                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider mb-3 flex items-center justify-between">
+                  <h3 className="text-xs font-bold text-[var(--theme-text)] uppercase tracking-wider mb-3 flex items-center justify-between">
                     <span>Pendaftar ({programApps.length})</span>
-                    <span className="text-[10px] text-slate-400 lowercase font-medium">menampilkan {first5Apps.length} pendaftar pertama</span>
+                    <span className="text-[10px] text-[var(--theme-text-muted)] lowercase font-medium">menampilkan {first5Apps.length} pendaftar pertama</span>
                   </h3>
 
                   {first5Apps.length === 0 ? (
-                    <div className="bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 py-8 px-4 text-center">
-                      <span className="material-symbols-outlined text-slate-300 mb-2" style={{ fontSize: 24 }}>group</span>
-                      <p className="text-xs text-slate-400 font-medium">Belum ada mahasiswa yang mendaftar program ini.</p>
+                    <div className="bg-[var(--theme-bg)]/50 rounded-2xl border border-dashed border-[var(--theme-border)] py-8 px-4 text-center">
+                      <span className="material-symbols-outlined text-[var(--theme-text-subtle)] mb-2" style={{ fontSize: 24 }}>group</span>
+                      <p className="text-xs text-[var(--theme-text-muted)] font-medium">Belum ada mahasiswa yang mendaftar program ini.</p>
                     </div>
                   ) : (
                     <div className="space-y-2.5">
                       {first5Apps.map(app => {
                         const st = getAppStatus(app.Status);
                         return (
-                          <div key={app.ID} className="flex items-center justify-between p-3 rounded-2xl border border-slate-100 hover:bg-slate-50/50 transition-colors">
+                          <div key={app.ID} className="flex items-center justify-between p-3 rounded-2xl border border-[var(--theme-border-muted)] hover:bg-[var(--theme-bg)]/50 transition-colors">
                             <div className="flex items-center gap-3">
                               <StudentAvatar src={app.Mahasiswa?.Foto} name={app.Mahasiswa?.Nama} className="w-8 h-8 rounded-lg" />
                               <div className="min-w-0">
-                                <p className="font-bold text-xs text-slate-800 truncate">{app.Mahasiswa?.Nama || '—'}</p>
-                                <p className="text-[10px] text-slate-400 font-semibold">{app.Mahasiswa?.NIM || '—'}</p>
+                                <p className="font-bold text-xs text-[var(--theme-text)] truncate">{app.Mahasiswa?.Nama || '—'}</p>
+                                <p className="text-[10px] text-[var(--theme-text-muted)] font-semibold">{app.Mahasiswa?.NIM || '—'}</p>
                               </div>
                             </div>
                             <span className={cn('inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[9px] font-bold border uppercase tracking-wider', st.cls)}>
@@ -1323,9 +1310,9 @@ export default function FacultyScholarship() {
               </div>
 
               {/* Footer */}
-              <div className="px-5 py-4 border-t border-slate-200/60 bg-transparent flex gap-3 flex-shrink-0">
+              <DialogFooter className="px-5 py-4 border-t border-[var(--theme-border-muted)] bg-transparent flex gap-3 flex-shrink-0 sm:flex-row sm:justify-stretch sm:space-x-0">
                 <button onClick={() => setSelectedProgram(null)}
-                  className="flex-1 h-11 rounded-xl border border-slate-200/60 bg-white text-xs font-bold text-slate-600 uppercase tracking-widest hover:bg-slate-50 transition-all">
+                  className="flex-1 h-10 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] text-xs font-semibold text-[var(--theme-text)] uppercase tracking-wider hover:bg-[var(--theme-bg)] transition-all cursor-pointer">
                   Tutup
                 </button>
                 <button
@@ -1334,13 +1321,13 @@ export default function FacultyScholarship() {
                     setActiveTab('applications');
                     setSelectedProgram(null);
                   }}
-                  className="flex-1 h-11 rounded-xl bg-primary hover:bg-bku-hover text-xs font-bold text-white uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-md active:scale-95">
+                  className="flex-1 h-10 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-xs font-semibold text-white uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 cursor-pointer">
                   <span className="material-symbols-outlined" style={{ fontSize: 16 }}>visibility</span>
                   Lihat Selengkapnya
                 </button>
-              </div>
-            </div>
-          </div>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         );
       })()}
     </PageContent>

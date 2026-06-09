@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/Dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
@@ -698,18 +698,18 @@ export default function ProdiRBAC() {
       )}
 
       {/* ── Role Identity Dialog (Simplified) ── */}
-      <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen} maxWidth="max-w-xl w-[95vw] sm:w-full">
-        <DialogContent className="flex flex-col h-full max-h-[85vh] rounded-2xl overflow-hidden p-0 bg-white shadow-2xl">
-          <DialogHeader className="p-6 pb-4 md:p-8 md:pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative shrink-0 z-10">
+      <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
+        <DialogContent className="max-w-xl p-0 overflow-hidden border border-border shadow-2xl rounded-2xl bg-surface animate-in zoom-in-95 duration-200">
+          <DialogHeader className="p-8 pb-5 bg-slate-50/50 border-b border-border relative">
             <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-              <span className="material-symbols-outlined size-24 rotate-12 text-bku-primary">badge</span>
+              <span className="material-symbols-outlined size-24 rotate-12 text-slate-800">badge</span>
             </div>
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-1.5">
-                <div className="size-8 rounded-xl bg-bku-primary/10 flex items-center justify-center text-bku-primary">
+                <div className="size-8 rounded-xl bg-slate-105 flex items-center justify-center text-slate-600">
                   <span className="material-symbols-outlined stroke-[3px]" style={{ fontSize: '16px' }}>add</span>
                 </div>
-                <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-bku-primary/5 text-bku-primary border-none rounded-md">ROLE IDENTITY</Badge>
+                <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-slate-200 text-slate-700 border-none rounded-md">ROLE IDENTITY</Badge>
               </div>
               <DialogTitle className="text-lg md:text-xl font-black font-headline tracking-tighter text-slate-900">
                 {isEditMode ? 'Edit Identitas Role Prodi' : 'Buat Identitas Role Baru'}
@@ -720,8 +720,8 @@ export default function ProdiRBAC() {
             </div>
           </DialogHeader>
 
-          <form onSubmit={handleSaveRoleInfo} className="flex flex-col flex-1 min-h-0 overflow-hidden">
-            <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-5 custom-scrollbar min-h-0">
+          <form onSubmit={handleSaveRoleInfo} className="flex flex-col">
+            <div className="p-8 pt-5 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar">
               <div className="space-y-5">
                 {/* Nama Role */}
                 <div className="space-y-1.5">
@@ -749,19 +749,19 @@ export default function ProdiRBAC() {
             </div>
 
             {/* Dialog Footer Actions */}
-            <footer className="flex flex-col md:flex-row items-center justify-end gap-3 p-6 pt-4 border-t border-slate-100 bg-slate-50/50 shrink-0 relative z-10">
+            <DialogFooter className="flex flex-col md:flex-row items-center justify-end gap-3 p-8 pt-4 border-t border-slate-100 bg-slate-50/30">
               <Button 
                 type="button" 
                 variant="ghost" 
                 onClick={() => setIsCrudOpen(false)} 
-                className="w-full md:w-auto text-[10px] font-black tracking-widest text-slate-500 hover:text-slate-900 px-8 h-11 rounded-xl hover:bg-slate-100 active:scale-95 transition-all shadow-none border-none cursor-pointer font-headline uppercase"
+                className="w-full md:w-auto text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-11 rounded-xl active:scale-95 transition-all shadow-none border-none cursor-pointer font-headline uppercase"
               >
                 BATAL
               </Button>
               <Button 
                 type="submit" 
                 disabled={isSubmitting} 
-                className="w-full md:w-auto h-11 px-8 rounded-xl bg-bku-primary hover:bg-bku-primary/90 text-white shadow-xl shadow-blue-900/20 transition-all active:scale-95 flex items-center justify-center gap-2 border-none cursor-pointer font-black text-[10px]"
+                className="w-full md:w-auto h-11 px-8 rounded-xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2 border-none cursor-pointer font-black text-[10px]"
               >
                 {isSubmitting ? (
                   <span className="material-symbols-outlined animate-spin size-4" style={{ fontSize: '15px' }}>sync</span>
@@ -772,7 +772,7 @@ export default function ProdiRBAC() {
                   SIMPAN IDENTITAS
                 </span>
               </Button>
-            </footer>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>

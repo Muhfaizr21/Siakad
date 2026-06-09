@@ -1,6 +1,7 @@
 import React from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import ThemeColors from './ThemeColors';
+import ThemeMobileColors from './ThemeMobileColors';
 import ThemeTypography from './ThemeTypography';
 import ThemeBranding from './ThemeBranding';
 import ThemeComponents from './ThemeComponents';
@@ -10,7 +11,8 @@ import { PageContent } from '@/components/ui/page';
 import { DashboardHero } from '@/components/ui/dashboard';
 
 const TABS = [
-  { key: 'colors', label: 'Warna', icon: 'palette' },
+  { key: 'colors', label: 'Warna Web', icon: 'palette' },
+  { key: 'mobile', label: 'Warna Mobile', icon: 'phone_android' },
   { key: 'typography', label: 'Tipografi', icon: 'text_fields' },
   { key: 'branding', label: 'Branding', icon: 'image' },
   { key: 'components', label: 'Komponen', icon: 'widgets' },
@@ -31,6 +33,8 @@ export default function ThemeCustomizer() {
     switch (activeTab) {
       case 'colors':
         return <ThemeColors />;
+      case 'mobile':
+        return <ThemeMobileColors />;
       case 'typography':
         return <ThemeTypography />;
       case 'branding':

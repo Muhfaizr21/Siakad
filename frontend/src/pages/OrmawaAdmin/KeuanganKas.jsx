@@ -598,112 +598,113 @@ export default function KeuanganKas() {
         </CardContent>
       </Card>
 
-      {/* ── CRUD Dialog Form ────────────────────────────────────────── */}
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
         <DialogContent className="max-w-lg p-0 overflow-hidden border border-border shadow-2xl rounded-2xl bg-surface animate-in zoom-in-95 duration-200">
-          <DialogHeader className="p-8 pb-6 bg-[var(--theme-bg)] border-b border-border relative overflow-hidden">
+          <DialogHeader className="p-8 pb-6 bg-slate-50/50 border-b border-border relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
               <span className="material-symbols-outlined size-24 rotate-12 text-[var(--theme-primary)]">account_balance_wallet</span>
             </div>
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-2">
-                <div className="size-8 rounded-xl bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)]">
+                <div className="size-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600">
                   <span className="material-symbols-outlined stroke-[3px]" style={{ fontSize: '16px' }}>payments</span>
                 </div>
-                <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-[var(--theme-primary-light)] text-[var(--theme-primary)] border-none rounded-md">MUTASI KAS</Badge>
+                <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-slate-200 text-slate-700 border-none rounded-md">MUTASI KAS</Badge>
               </div>
-              <DialogTitle className="text-xl font-black font-headline tracking-tighter text-[var(--theme-text)]">Catat Transaksi Baru</DialogTitle>
-              <DialogDescription className="text-xs font-semibold text-[var(--theme-text-muted)] mt-1">Dokumentasikan arus masuk atau keluar kas dengan akurat.</DialogDescription>
+              <DialogTitle className="text-xl font-black font-headline tracking-tighter text-slate-900">Catat Transaksi Baru</DialogTitle>
+              <DialogDescription className="text-xs font-semibold text-slate-400 mt-1">Dokumentasikan arus masuk atau keluar kas dengan akurat.</DialogDescription>
             </div>
           </DialogHeader>
 
-          <form onSubmit={handleSave} className="p-8 pt-6 space-y-5">
-            {/* Keterangan */}
-            <div className="space-y-2">
-              <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Keterangan Transaksi</Label>
-              <Input
-                required
-                value={form.Deskripsi}
-                onChange={e => setForm({ ...form, Deskripsi: e.target.value })}
-                placeholder="Misal: Pembelian ATK / Sponsor Kegiatan"
-                className="h-12 rounded-2xl border-border bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm"
-              />
-            </div>
-
-            {/* Kategori / Proker */}
-            <div className="space-y-2">
-              <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Kategori / Program Kerja</Label>
-              <Input
-                value={form.Kategori}
-                onChange={e => setForm({ ...form, Kategori: e.target.value })}
-                placeholder="Misal: PKKMB, Seminar, Lapangan, dll"
-                className="h-12 rounded-2xl border-border bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm"
-              />
-            </div>
-
-            {/* Tipe & Sumber Dana Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <form onSubmit={handleSave} className="flex flex-col">
+            <div className="p-8 pt-6 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar">
+              {/* Keterangan */}
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Jenis Mutasi</Label>
-                <SelectField
-                  value={form.Tipe}
-                  onValueChange={val => setForm({ ...form, Tipe: val })}
-                >
-                  <SelectOption value="pemasukan">▲ Pemasukan (Masuk)</SelectOption>
-                  <SelectOption value="pengeluaran">▼ Pengeluaran (Keluar)</SelectOption>
-                </SelectField>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Sumber Dana</Label>
-                <SelectField
-                  value={form.Sumber}
-                  onValueChange={val => setForm({ ...form, Sumber: val })}
-                >
-                  <SelectOption value="organisasi">💼 Kas Mandiri Organisasi</SelectOption>
-                  <SelectOption value="kampus">🏛️ Pagu Kampus (Duit Kampus)</SelectOption>
-                </SelectField>
-              </div>
-            </div>
-
-            {/* Nominal & Tanggal Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Jumlah Nominal</Label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">Rp</span>
-                  <Input
-                    required
-                    type="number"
-                    value={form.Nominal}
-                    onChange={e => setForm({ ...form, Nominal: e.target.value })}
-                    placeholder="0"
-                    className="h-12 pl-10 rounded-2xl border-border bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm"
-                  />
-                </div>
-
-                {form.Nominal && (
-                  <p className="text-[11px] font-bold text-emerald-600 mt-1.5 flex items-center gap-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
-                    <span className="material-symbols-outlined text-emerald-500" style={{ fontSize: '14px' }}>payments</span>
-                    Format: <span className="underline decoration-dotted font-black tracking-tight">{formatRp(Number(form.Nominal))}</span>
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Tanggal Transaksi</Label>
+                <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Keterangan Transaksi</Label>
                 <Input
                   required
-                  type="date"
-                  value={form.Tanggal}
-                  onChange={e => setForm({ ...form, Tanggal: e.target.value })}
+                  value={form.Deskripsi}
+                  onChange={e => setForm({ ...form, Deskripsi: e.target.value })}
+                  placeholder="Misal: Pembelian ATK / Sponsor Kegiatan"
                   className="h-12 rounded-2xl border-border bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm"
                 />
+              </div>
+
+              {/* Kategori / Proker */}
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Kategori / Program Kerja</Label>
+                <Input
+                  value={form.Kategori}
+                  onChange={e => setForm({ ...form, Kategori: e.target.value })}
+                  placeholder="Misal: PKKMB, Seminar, Lapangan, dll"
+                  className="h-12 rounded-2xl border-border bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm"
+                />
+              </div>
+
+              {/* Tipe & Sumber Dana Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Jenis Mutasi</Label>
+                  <SelectField
+                    value={form.Tipe}
+                    onValueChange={val => setForm({ ...form, Tipe: val })}
+                  >
+                    <SelectOption value="pemasukan">▲ Pemasukan (Masuk)</SelectOption>
+                    <SelectOption value="pengeluaran">▼ Pengeluaran (Keluar)</SelectOption>
+                  </SelectField>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Sumber Dana</Label>
+                  <SelectField
+                    value={form.Sumber}
+                    onValueChange={val => setForm({ ...form, Sumber: val })}
+                  >
+                    <SelectOption value="organisasi">💼 Kas Mandiri Organisasi</SelectOption>
+                    <SelectOption value="kampus">🏛️ Pagu Kampus (Duit Kampus)</SelectOption>
+                  </SelectField>
+                </div>
+              </div>
+
+              {/* Nominal & Tanggal Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Jumlah Nominal</Label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">Rp</span>
+                    <Input
+                      required
+                      type="number"
+                      value={form.Nominal}
+                      onChange={e => setForm({ ...form, Nominal: e.target.value })}
+                      placeholder="0"
+                      className="h-12 pl-10 rounded-2xl border-border bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm"
+                    />
+                  </div>
+
+                  {form.Nominal && (
+                    <p className="text-[11px] font-bold text-emerald-600 mt-1.5 flex items-center gap-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                      <span className="material-symbols-outlined text-emerald-500" style={{ fontSize: '14px' }}>payments</span>
+                      Format: <span className="underline decoration-dotted font-black tracking-tight">{formatRp(Number(form.Nominal))}</span>
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Tanggal Transaksi</Label>
+                  <Input
+                    required
+                    type="date"
+                    value={form.Tanggal}
+                    onChange={e => setForm({ ...form, Tanggal: e.target.value })}
+                    className="h-12 rounded-2xl border-border bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm"
+                  />
+                </div>
               </div>
             </div>
 
             {/* Dialog Footer Actions */}
-            <DialogFooter className="mt-6 pt-6 flex flex-col md:flex-row items-center justify-end gap-3 border-t border-slate-100 -mx-8 px-8 bg-slate-50/30 pb-0">
+            <DialogFooter className="p-8 pt-6 border-t border-slate-100 flex flex-col md:flex-row items-center justify-end gap-3 bg-slate-50/30">
               <Button
                 type="button"
                 variant="ghost"

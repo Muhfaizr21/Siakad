@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:bkuhub_mobile/core/theme/app_colors.dart';
+import 'package:provider/provider.dart';
+import 'package:bkuhub_mobile/core/providers/theme_provider.dart';
 
 class CustomBottomNavBar extends StatefulWidget {
   final int currentIndex;
@@ -51,6 +52,8 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> with SingleTick
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+
     return Container(
       height: 85,
       color: Colors.transparent, // Transparan agar bisa extend body
@@ -82,11 +85,11 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> with SingleTick
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  _buildNavItem(0, Icons.grid_view_rounded, 'Home'),
-                  _buildNavItem(1, Icons.auto_awesome_rounded, 'Kencana'),
-                  _buildNavItem(2, Icons.emoji_events_rounded, 'Prestasi'),
-                  _buildNavItem(3, Icons.school_rounded, 'Beasiswa'),
-                  _buildNavItem(4, Icons.person_rounded, 'Profil'),
+                  _buildNavItem(0, Icons.grid_view_rounded, 'Home', themeProvider),
+                  _buildNavItem(1, Icons.auto_awesome_rounded, 'Kencana', themeProvider),
+                  _buildNavItem(2, Icons.emoji_events_rounded, 'Prestasi', themeProvider),
+                  _buildNavItem(3, Icons.school_rounded, 'Beasiswa', themeProvider),
+                  _buildNavItem(4, Icons.person_rounded, 'Profil', themeProvider),
                 ],
               ),
             ),
@@ -96,7 +99,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> with SingleTick
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, String label) {
+  Widget _buildNavItem(int index, IconData icon, String label, ThemeProvider themeProvider) {
     final isSelected = widget.currentIndex == index;
 
     return GestureDetector(
@@ -118,20 +121,20 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> with SingleTick
                   if (isSelected)
                     ScaleTransition(
                       scale: _scaleAnimation,
-                      child: _buildIconBox(icon, isSelected),
+                      child: _buildIconBox(icon, isSelected, themeProvider),
                     )
                   else
-                    _buildIconBox(icon, isSelected),
-                  
+                    _buildIconBox(icon, isSelected, themeProvider),
+
                   if (isSelected)
                     Padding(
                       padding: const EdgeInsets.only(top: 6),
                       child: Text(
                         label,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
+                          color: themeProvider.primary,
                         ),
                       ),
                     ),
@@ -145,16 +148,16 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> with SingleTick
     );
   }
 
-  Widget _buildIconBox(IconData icon, bool isSelected) {
+  Widget _buildIconBox(IconData icon, bool isSelected, ThemeProvider themeProvider) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isSelected ? AppColors.primary : Colors.transparent,
+        color: isSelected ? themeProvider.primary : Colors.transparent,
         shape: BoxShape.circle,
         boxShadow: isSelected
             ? [
                 BoxShadow(
-                  color: AppColors.primary.withAlpha(60),
+                  color: themeProvider.primary.withAlpha(60),
                   blurRadius: 15,
                   offset: const Offset(0, 5),
                 )
@@ -163,7 +166,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> with SingleTick
       ),
       child: Icon(
         icon,
-        color: isSelected ? Colors.white : AppColors.outline.withAlpha(150),
+        color: isSelected ? Colors.white : themeProvider.outline.withAlpha(150),
         size: 24,
       ),
     );

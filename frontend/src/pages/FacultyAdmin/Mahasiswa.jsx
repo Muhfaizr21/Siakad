@@ -10,6 +10,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Button } from "@/components/ui/Button"
 import { PageContent } from "@/components/ui/page/PageContent"
 import { DashboardHero } from "@/components/ui/dashboard/DashboardHero"
+import Dialog, { DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/Dialog"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const RefreshCw = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>sync</span>;
@@ -43,12 +44,12 @@ const Heart = ({ size, className, ...props }) => <span className={`material-symb
 
 
 const STATUS_STYLES = {
-  'Aktif': { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500' },
-  'active': { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500' },
-  'Lulus': { cls: 'bg-sky-50 text-sky-700 border-sky-200', dot: 'bg-sky-500' },
-  'Cuti': { cls: 'bg-amber-50 text-amber-700 border-amber-200', dot: 'bg-amber-500' },
-  'leave': { cls: 'bg-amber-50 text-amber-700 border-amber-200', dot: 'bg-amber-500' },
-  'Non-Aktif': { cls: 'bg-rose-50 text-rose-700 border-rose-200', dot: 'bg-rose-500' },
+  'Aktif': { cls: 'bg-[var(--theme-success-light)] text-[var(--theme-success)] border-[var(--theme-success)]/10', dot: 'bg-[var(--theme-success)]' },
+  'active': { cls: 'bg-[var(--theme-success-light)] text-[var(--theme-success)] border-[var(--theme-success)]/10', dot: 'bg-[var(--theme-success)]' },
+  'Lulus': { cls: 'bg-[var(--theme-info-light)] text-[var(--theme-info)] border-[var(--theme-info)]/10', dot: 'bg-[var(--theme-info)]' },
+  'Cuti': { cls: 'bg-[var(--theme-warning-light)] text-[var(--theme-warning)] border-[var(--theme-warning)]/10', dot: 'bg-[var(--theme-warning)]' },
+  'leave': { cls: 'bg-[var(--theme-warning-light)] text-[var(--theme-warning)] border-[var(--theme-warning)]/10', dot: 'bg-[var(--theme-warning)]' },
+  'Non-Aktif': { cls: 'bg-[var(--theme-error-light)] text-[var(--theme-error)] border-[var(--theme-error)]/10', dot: 'bg-[var(--theme-error)]' },
 }
 
 const AVATAR_COLORS = [
@@ -733,88 +734,73 @@ export default function MahasiswaPage() {
         </div>
 
       {/* ── Detail Modal ── */}
-      {selected && (
-        <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
-          onClick={() => setSelected(null)}
-        >
-          <div
-            className="relative w-full max-w-xl glass-card rounded-2xl shadow-none border border-slate-200/60 flex flex-col overflow-hidden max-h-[90vh]"
-            onClick={e => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="relative bg-gradient-to-br from-bku-primary via-[#00308F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
-              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
-              <div className="absolute -bottom-6 right-16 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
-              <button onClick={() => setSelected(null)}
-                className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
-                <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span>
-              </button>
-              <div className="relative z-10 flex items-center gap-4 mb-5">
-                <StudentAvatar src={selected.Foto} name={selected.Nama} className="w-14 h-14 rounded-2xl shadow-xl ring-2 ring-white/20" />
-                <div className="min-w-0">
-                  <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Profil Mahasiswa</p>
-                  <h2 className="text-lg font-extrabold font-headline leading-tight truncate text-white">{selected.Nama}</h2>
-                  <p className="text-xs text-blue-200 font-medium mt-0.5">{selected.ProgramStudi}</p>
-                </div>
-              </div>
-              <div className="relative z-10 flex flex-wrap gap-2">
-                <span className="flex items-center gap-1.5 bg-white/10 border border-white/20 px-3 py-1.5 rounded-xl text-[10px] font-bold text-white font-mono tracking-wider">
-                  NIM {selected.NIM}
-                </span>
-                <span className="flex items-center gap-1.5 bg-white/10 border border-white/20 px-3 py-1.5 rounded-xl text-[10px] font-bold text-white uppercase tracking-wider">
-                  <Award size={10} /> Angkatan {selected.TahunMasuk}
-                </span>
-                <span className={cn(
-                  'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider',
-                  selected.StatusAkun === 'Lulus' ? 'bg-sky-400/20 border border-sky-300/30 text-sky-200' :
-                    selected.StatusAkun === 'Cuti' ? 'bg-amber-400/20 border border-amber-300/30 text-amber-200' :
-                      'bg-emerald-400/20 border border-emerald-300/30 text-emerald-200'
-                )}>
-                  <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
-                  {selected.StatusAkun}
-                </span>
+      <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)} maxWidth="max-w-xl">
+        <DialogContent className="max-w-xl p-0 overflow-hidden border border-[var(--theme-border)] shadow-2xl rounded-2xl bg-[var(--theme-surface)] flex flex-col max-h-[90vh]">
+          {/* Header */}
+          <DialogHeader className="shrink-0 relative bg-[var(--theme-bg)]/50 p-6 pb-5 border-b border-[var(--theme-border-muted)]">
+            <div className="relative z-10 flex items-center gap-4 mb-4">
+              <StudentAvatar src={selected?.Foto} name={selected?.Nama} className="w-14 h-14 rounded-2xl shadow-inner ring-2 ring-[var(--theme-border)]" />
+              <div className="min-w-0">
+                <p className="text-[9px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-[0.25em] mb-1">Profil Mahasiswa</p>
+                <DialogTitle className="text-base font-bold font-headline leading-tight truncate text-[var(--theme-text)]">{selected?.Nama}</DialogTitle>
+                <DialogDescription className="text-xs text-[var(--theme-text-muted)] mt-0.5">{selected?.ProgramStudi}</DialogDescription>
               </div>
             </div>
-
-            {/* Body */}
-            <div className="flex-1 overflow-y-auto">
-              {/* Akademik */}
-              <SectionBlock icon={BookOpen} title="Informasi Akademik">
-                <InfoCard icon={Building2} label="Program Studi" value={selected.ProgramStudi} accent="border-l-blue-400" />
-                <InfoCard icon={Layers} label="Semester" value={selected.SemesterSekarang ? `Semester ${selected.SemesterSekarang}` : '—'} accent="border-l-indigo-400" />
-                <InfoCard icon={UserCheck} label="Dosen PA / Wali" value={selected.DosenPA} accent="border-l-violet-400" />
-                <InfoCard icon={Award} label="Jalur Masuk" value={selected.JalurMasuk} accent="border-l-amber-400" />
-              </SectionBlock>
-
-              {/* Biodata */}
-              <SectionBlock icon={FileText} title="Biodata & Kontak">
-                <InfoCard icon={Calendar} label="Tempat, Tgl Lahir" value={`${selected.TempatLahir}, ${formatDate(selected.TanggalLahir)}`} accent="border-l-rose-400" />
-                <InfoCard icon={Phone} label="No. HP / WhatsApp" value={selected.NoHP} accent="border-l-emerald-400" />
-                <InfoCard icon={Mail} label="Email Institusi" value={selected.Email} accent="border-l-sky-400" mono />
-                <InfoCard icon={MapPin} label="Alamat" value={selected.Alamat} accent="border-l-slate-400" />
-              </SectionBlock>
-
-              {/* Orang Tua */}
-              <SectionBlock icon={Heart} title="Data Orang Tua" last>
-                <InfoCard icon={Users} label="Nama Ayah" value={selected.NamaAyah} accent="border-l-blue-400" />
-                <InfoCard icon={Users} label="Nama Ibu" value={selected.NamaIbu} accent="border-l-pink-400" />
-                <InfoCard icon={Award} label="Pekerjaan" value={selected.PekerjaanOrtu} accent="border-l-amber-400" />
-                <InfoCard icon={FileText} label="Penghasilan" value={selected.PenghasilanOrtu ? `Rp ${Number(selected.PenghasilanOrtu).toLocaleString('id-ID')}` : '—'} accent="border-l-emerald-400" />
-              </SectionBlock>
+            <div className="relative z-10 flex flex-wrap gap-2">
+              <span className="flex items-center gap-1.5 bg-[var(--theme-primary-light)] border border-[var(--theme-primary)]/10 px-3 py-1 rounded-full text-[10px] font-semibold text-[var(--theme-primary)] font-mono tracking-wider">
+                NIM {selected?.NIM}
+              </span>
+              <span className="flex items-center gap-1.5 bg-[var(--theme-primary-light)] border border-[var(--theme-primary)]/10 px-3 py-1 rounded-full text-[10px] font-semibold text-[var(--theme-primary)] uppercase tracking-wider">
+                <Award size={10} /> Angkatan {selected?.TahunMasuk}
+              </span>
+              {selected?.StatusAkun && (() => {
+                const st = STATUS_STYLES[selected.StatusAkun] || STATUS_STYLES['Non-Aktif']
+                return (
+                  <span className={cn('flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-semibold border uppercase tracking-wider', st.cls)}>
+                    <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', st.dot)} />
+                    {selected.StatusAkun}
+                  </span>
+                )
+              })()}
             </div>
+          </DialogHeader>
 
-            {/* Footer */}
-            <div className="px-5 py-4 border-t border-slate-200/60 bg-transparent flex gap-3 flex-shrink-0">
-              <button onClick={() => setSelected(null)}
-                className="flex-1 h-11 rounded-xl border border-slate-200/60 bg-white text-xs font-bold text-slate-600 uppercase tracking-widest hover:bg-slate-50 transition-all active:scale-95">
-                Tutup
-              </button>
+          {/* Body */}
+          <div className="flex-1 overflow-y-auto">
+            {/* Akademik */}
+            <SectionBlock icon={BookOpen} title="Informasi Akademik">
+              <InfoCard icon={Building2} label="Program Studi" value={selected?.ProgramStudi} accent="border-l-[var(--theme-info)]" />
+              <InfoCard icon={Layers} label="Semester" value={selected?.SemesterSekarang ? `Semester ${selected.SemesterSekarang}` : '—'} accent="border-l-[var(--theme-primary)]" />
+              <InfoCard icon={UserCheck} label="Dosen PA / Wali" value={selected?.DosenPA} accent="border-l-[var(--theme-success)]" />
+              <InfoCard icon={Award} label="Jalur Masuk" value={selected?.JalurMasuk} accent="border-l-[var(--theme-warning)]" />
+            </SectionBlock>
 
-            </div>
+            {/* Biodata */}
+            <SectionBlock icon={FileText} title="Biodata & Kontak">
+              <InfoCard icon={Calendar} label="Tempat, Tgl Lahir" value={selected ? `${selected.TempatLahir}, ${formatDate(selected.TanggalLahir)}` : ''} accent="border-l-[var(--theme-error)]" />
+              <InfoCard icon={Phone} label="No. HP / WhatsApp" value={selected?.NoHP} accent="border-l-[var(--theme-success)]" />
+              <InfoCard icon={Mail} label="Email Institusi" value={selected?.Email} accent="border-l-[var(--theme-info)]" mono />
+              <InfoCard icon={MapPin} label="Alamat" value={selected?.Alamat} accent="border-l-[var(--theme-text-subtle)]" />
+            </SectionBlock>
+
+            {/* Orang Tua */}
+            <SectionBlock icon={Heart} title="Data Orang Tua" last>
+              <InfoCard icon={Users} label="Nama Ayah" value={selected?.NamaAyah} accent="border-l-[var(--theme-info)]" />
+              <InfoCard icon={Users} label="Nama Ibu" value={selected?.NamaIbu} accent="border-l-[var(--theme-error)]" />
+              <InfoCard icon={Award} label="Pekerjaan" value={selected?.PekerjaanOrtu} accent="border-l-[var(--theme-warning)]" />
+              <InfoCard icon={FileText} label="Penghasilan" value={selected?.PenghasilanOrtu ? `Rp ${Number(selected.PenghasilanOrtu).toLocaleString('id-ID')}` : '—'} accent="border-l-[var(--theme-success)]" />
+            </SectionBlock>
           </div>
-        </div>
-      )}
+
+          {/* Footer */}
+          <DialogFooter className="px-5 py-4 border-t border-[var(--theme-border-muted)] bg-transparent flex justify-end gap-3 flex-shrink-0">
+            <button onClick={() => setSelected(null)}
+              className="w-full sm:w-auto h-10 px-6 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] text-xs font-semibold text-[var(--theme-text)] uppercase tracking-wider hover:bg-[var(--theme-bg)] transition-all cursor-pointer">
+              Tutup
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </PageContent>
   )
 }
@@ -822,29 +808,29 @@ export default function MahasiswaPage() {
 function SectionBlock({ icon, title, children, last = false }) {
   const IconComponent = icon
   return (
-    <div className={cn('p-5', !last && 'border-b border-slate-100')}>
+    <div className={cn('p-5', !last && 'border-b border-[var(--theme-border-muted)]')}>
       <div className="flex items-center gap-2 mb-3">
-        <div className="w-5 h-5 rounded-md bg-[#eef4ff] flex items-center justify-center">
-          <IconComponent size={11} className="text-primary" />
+        <div className="w-5 h-5 rounded-md bg-[var(--theme-primary-light)] flex items-center justify-center">
+          <IconComponent size={11} className="text-[var(--theme-primary)]" />
         </div>
-        <h3 className="text-[10px] font-black font-headline uppercase tracking-[0.18em]" style={{ color: 'var(--theme-h3)' }}>{title}</h3>
+        <h3 className="text-[10px] font-bold font-headline uppercase tracking-[0.18em] text-[var(--theme-text)]">{title}</h3>
       </div>
       <div className="space-y-1">{children}</div>
     </div>
   )
 }
 
-function InfoCard({ icon, label, value, accent = 'border-l-slate-300', mono = false }) {
+function InfoCard({ icon, label, value, accent = 'border-l-[var(--theme-text-subtle)]', mono = false }) {
   const IconComponent = icon
   const empty = !value || value === '—'
   return (
-    <div className={cn('flex items-center gap-3 p-3 rounded-xl bg-slate-50/50 border border-slate-100 border-l-4 hover:bg-white hover:border-slate-200/60 transition-all', accent)}>
-      <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center text-primary shadow-sm border border-slate-100 flex-shrink-0">
+    <div className={cn('flex items-center gap-3 p-3 rounded-xl bg-[var(--theme-bg)]/50 border border-[var(--theme-border-muted)] border-l-4 hover:bg-[var(--theme-surface)] hover:border-[var(--theme-border)] transition-all', accent)}>
+      <div className="w-7 h-7 bg-[var(--theme-surface)] rounded-lg flex items-center justify-center text-[var(--theme-primary)] shadow-sm border border-[var(--theme-border-muted)] flex-shrink-0">
         <IconComponent size={13} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-0.5">{label}</p>
-        <p className={cn('text-sm font-semibold text-slate-900 truncate', mono && 'font-mono text-xs', empty && 'text-[#c4c4c4] italic text-xs')}>
+        <p className="text-[9px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-[0.15em] mb-0.5">{label}</p>
+        <p className={cn('text-sm font-semibold text-[var(--theme-text)] truncate', mono && 'font-mono text-xs', empty && 'text-[var(--theme-text-subtle)] italic text-xs')}>
           {empty ? 'Belum diisi' : value}
         </p>
       </div>

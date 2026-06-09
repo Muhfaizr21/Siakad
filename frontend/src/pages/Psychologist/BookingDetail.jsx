@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { psychologistService } from '../../services/api';
+import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
 
 const Mail = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>mail</span>;
 const Phone = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>phone</span>;
@@ -291,45 +292,44 @@ export default function BookingDetail() {
       </div>
 
       {/* Zoom / Meeting Link Modal */}
-      {showLinkModal && (
-        <div className="fixed inset-0 z-[9999] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-8 py-6 bg-gradient-to-br from-primary to-blue-700 text-white relative overflow-hidden">
-              <div className="absolute -right-10 -top-10 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
-              <h3 className="text-xl font-black uppercase tracking-tight font-headline relative z-10">Konfirmasi Sesi Online</h3>
-              <p className="text-xs text-blue-100 mt-2 relative z-10 font-medium">Harap masukkan link Zoom atau Google Meet untuk mahasiswa.</p>
-            </div>
-            <div className="p-8 space-y-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Link Meeting</label>
-                <input
-                  type="text"
-                  placeholder="https://zoom.us/j/... atau https://meet.google.com/..."
-                  value={meetingLink}
-                  onChange={(e) => setMeetingLink(e.target.value)}
-                  className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
-                />
-              </div>
-              <div className="flex gap-4 pt-2">
-                <button
-                  type="button"
-                  onClick={() => { setShowLinkModal(false); }}
-                  className="flex-1 h-12 rounded-2xl border border-slate-200 text-xs font-black uppercase tracking-widest text-slate-500 hover:bg-slate-50 transition-colors"
-                >
-                  Batal
-                </button>
-                <button
-                  type="button"
-                  onClick={submitConfirmWithLink}
-                  className="flex-1 h-12 rounded-2xl bg-primary text-white text-xs font-black uppercase tracking-widest hover:bg-primary/90 transition-all shadow-md shadow-primary/20"
-                >
-                  Konfirmasi
-                </button>
-              </div>
-            </div>
+      <Dialog open={showLinkModal} onOpenChange={setShowLinkModal} maxWidth="max-w-md">
+        <DialogHeader className="bg-slate-50/50 border-b border-slate-100 flex-shrink-0 relative">
+          <div className="pr-8">
+            <DialogTitle>Konfirmasi Sesi Online</DialogTitle>
+            <DialogDescription className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">
+              Harap masukkan link Zoom atau Google Meet untuk mahasiswa.
+            </DialogDescription>
+          </div>
+        </DialogHeader>
+        <div className="p-6 md:p-8 space-y-6">
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Link Meeting</label>
+            <input
+              type="text"
+              placeholder="https://zoom.us/j/... atau https://meet.google.com/..."
+              value={meetingLink}
+              onChange={(e) => setMeetingLink(e.target.value)}
+              className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
+            />
           </div>
         </div>
-      )}
+        <DialogFooter className="bg-slate-50/20 border-t border-slate-100/60">
+          <button
+            type="button"
+            onClick={() => { setShowLinkModal(false); }}
+            className="flex-1 sm:flex-initial px-5 py-3 border border-slate-200 text-xs font-black uppercase tracking-widest text-slate-500 hover:bg-slate-50 transition-colors rounded-xl"
+          >
+            Batal
+          </button>
+          <button
+            type="button"
+            onClick={submitConfirmWithLink}
+            className="flex-1 sm:flex-initial px-8 py-3 bg-primary text-white text-xs font-black uppercase tracking-widest hover:bg-primary/90 transition-all shadow-md shadow-primary/20 rounded-xl"
+          >
+            Konfirmasi
+          </button>
+        </DialogFooter>
+      </Dialog>
     </div>
   );
 }

@@ -8,6 +8,7 @@ import { API_BASE_URL, fetchWithAuth } from '../../services/api'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/Select"
 import { Button } from "@/components/ui/Button"
 import { PageContent } from '@/components/ui/page'
+import Dialog, { DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "@/components/ui/Dialog"
 import { DashboardHero } from '@/components/ui/dashboard'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
@@ -35,9 +36,9 @@ const AVATAR_COLORS = ['from-blue-400 to-indigo-500','from-emerald-400 to-teal-5
 const getInitials = (n='') => n.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase()||'?'
 
 const LUL_STATUS = {
-  Lulus: {cls:'bg-emerald-50 text-emerald-700 border-emerald-200', dot:'bg-emerald-500'},
-  Proses:{cls:'bg-amber-50 text-amber-700 border-amber-200',       dot:'bg-amber-500'},
-  Gagal: {cls:'bg-rose-50 text-rose-700 border-rose-200',          dot:'bg-rose-500'},
+  Lulus: {cls:'bg-[var(--theme-success-light)] text-[var(--theme-success)] border-[var(--theme-success)]/20', dot:'bg-[var(--theme-success)]'},
+  Proses:{cls:'bg-[var(--theme-warning-light)] text-[var(--theme-warning)] border-[var(--theme-warning)]/20', dot:'bg-[var(--theme-warning)]'},
+  Gagal: {cls:'bg-[var(--theme-error-light)] text-[var(--theme-error)] border-[var(--theme-error)]/20', dot:'bg-[var(--theme-error)]'},
 }
 const getLulus = (v='') => LUL_STATUS[v] || LUL_STATUS.Proses
 
@@ -613,9 +614,9 @@ export default function FacultyPkkmb() {
                       </td>
                       <td className="px-5 py-3.5 font-black text-sm text-slate-900 tabular-nums">{row.nilai?.toFixed(1)||'0.0'}</td>
                       <td className="px-5 py-3.5">
-                        <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider whitespace-nowrap',
-                          row.status==='Optimal'?'bg-emerald-50 text-emerald-700 border-emerald-200':'bg-amber-50 text-amber-700 border-amber-200')}>
-                          <span className={cn('w-1.5 h-1.5 rounded-full shrink-0',row.status==='Optimal'?'bg-emerald-500':'bg-amber-500')}/>{row.status}
+                        <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold border uppercase tracking-wider whitespace-nowrap',
+                          row.status==='Optimal'?'bg-[var(--theme-success-light)] text-[var(--theme-success)] border-[var(--theme-success)]/20':'bg-[var(--theme-warning-light)] text-[var(--theme-warning)] border-[var(--theme-warning)]/20')}>
+                          <span className={cn('w-1.5 h-1.5 rounded-full shrink-0',row.status==='Optimal'?'bg-[var(--theme-success)]':'bg-[var(--theme-warning)]')}/>{row.status}
                         </span>
                       </td>
                     </tr>
@@ -686,7 +687,7 @@ export default function FacultyPkkmb() {
                         <td className="px-5 py-3.5 font-black text-sm text-slate-900 tabular-nums">{row.attendanceRate||0}%</td>
                         <td className="px-5 py-3.5 font-black text-sm text-primary tabular-nums">{row.Nilai||0}</td>
                         <td className="px-5 py-3.5">
-                          <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider whitespace-nowrap',st.cls)}>
+                          <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold border uppercase tracking-wider whitespace-nowrap',st.cls)}>
                             <span className={cn('w-1.5 h-1.5 rounded-full shrink-0',st.dot)}/>{row.StatusKelulusan||'Proses'}
                           </span>
                         </td>
@@ -777,112 +778,121 @@ export default function FacultyPkkmb() {
         </div>
 
       {/* Detail Modal */}
-      {selected && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4" onClick={()=>setSelected(null)}>
-          <div className="relative w-full max-w-md glass-card rounded-2xl shadow-none border border-slate-200/60 flex flex-col overflow-hidden max-h-[90vh]" onClick={e=>e.stopPropagation()}>
-            <div className="relative bg-gradient-to-br from-bku-primary to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
-              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none"/>
-              <button onClick={()=>setSelected(null)} className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span></button>
-              <div className="relative z-10 flex items-center gap-4">
-                <StudentAvatar src={getFullUrl(selected.Mahasiswa?.FotoURL || selected.Mahasiswa?.foto_url || selected.Mahasiswa?.Foto || selected.Mahasiswa?.Pengguna?.Foto)} name={selected.Mahasiswa?.Nama} className="w-14 h-14 rounded-2xl shadow-xl ring-2 ring-white/20" />
-                <div className="min-w-0">
-                  <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Peserta PKKMB</p>
-                  <h2 className="text-base font-extrabold font-headline leading-tight text-white">{selected.Mahasiswa?.Nama}</h2>
-                  <p className="text-xs text-blue-200 font-medium mt-0.5">{selected.Mahasiswa?.NIM} · {selected.Mahasiswa?.ProgramStudi?.Nama||'—'}</p>
-                </div>
-              </div>
-            </div>
-            <div className="flex-1 overflow-y-auto p-5 space-y-3">
-              {[
-                {icon:Activity,      label:'Kehadiran',       value:`${selected.attendanceRate||0}%`},
-                {icon:GraduationCap, label:'Nilai Akhir',     value: selected.Nilai||0},
-                {icon:CheckCircle,   label:'Status Kelulusan',value: selected.StatusKelulusan||'Proses'},
-              ].map(r=>(
-                <div key={r.label} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50/50 border border-slate-100 hover:bg-white transition-all">
-                  <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center text-primary shadow-sm border border-slate-100 flex-shrink-0"><r.icon size={13}/></div>
-                  <div className="flex-1">
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em]">{r.label}</p>
-                    <p className="text-sm font-semibold text-slate-900">{r.value}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="px-5 py-4 border-t border-slate-200/60 bg-transparent flex-shrink-0">
-              <button onClick={()=>setSelected(null)} className="w-full h-11 rounded-xl bg-primary hover:bg-bku-hover text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95">Tutup</button>
+      <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)} maxWidth="max-w-md">
+        <DialogHeader className="pb-4">
+          <div className="flex items-center gap-4">
+            <StudentAvatar 
+              src={getFullUrl(selected?.Mahasiswa?.FotoURL || selected?.Mahasiswa?.foto_url || selected?.Mahasiswa?.Foto || selected?.Mahasiswa?.Pengguna?.Foto)} 
+              name={selected?.Mahasiswa?.Nama} 
+              className="w-14 h-14 rounded-2xl shadow-xl ring-2 ring-white/20" 
+            />
+            <div className="min-w-0">
+              <DialogTitle className="text-base font-extrabold font-headline leading-tight">{selected?.Mahasiswa?.Nama}</DialogTitle>
+              <DialogDescription className="text-xs text-[var(--theme-text-muted)] font-medium mt-0.5">
+                {selected?.Mahasiswa?.NIM} · {selected?.Mahasiswa?.ProgramStudi?.Nama||'—'}
+              </DialogDescription>
             </div>
           </div>
-        </div>
-      )}
+        </DialogHeader>
+        <DialogContent className="p-6 space-y-3 overflow-y-auto max-h-[50vh]">
+          {selected && [
+            {icon:Activity,      label:'Kehadiran',       value:`${selected.attendanceRate||0}%`},
+            {icon:GraduationCap, label:'Nilai Akhir',     value: selected.Nilai||0},
+            {icon:CheckCircle,   label:'Status Kelulusan',value: selected.StatusKelulusan||'Proses'},
+          ].map(r=>(
+            <div key={r.label} className="flex items-center gap-3 p-3 rounded-xl bg-[var(--theme-bg)]/50 border border-[var(--theme-border)] hover:bg-white hover:shadow-sm transition-all">
+              <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center text-[var(--theme-primary)] shadow-sm border border-[var(--theme-border)] flex-shrink-0"><r.icon size={13}/></div>
+              <div className="flex-1">
+                <p className="text-[9px] font-bold text-[var(--theme-text-muted)] uppercase tracking-[0.15em]">{r.label}</p>
+                <p className="text-sm font-semibold text-[var(--theme-text)]">{r.value}</p>
+              </div>
+            </div>
+          ))}
+        </DialogContent>
+        <DialogFooter>
+          <button 
+            onClick={()=>setSelected(null)} 
+            className="w-full h-10 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95"
+          >
+            Tutup
+          </button>
+        </DialogFooter>
+      </Dialog>
 
       {/* Stats Detail Modal */}
-      {statsDetail && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4" onClick={()=>setStatsDetail(null)}>
-          <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[85vh]" onClick={e=>e.stopPropagation()}>
-            <div className="relative bg-gradient-to-br from-[#00236F] to-[#003db5] pt-6 pb-6 px-6 overflow-hidden flex-shrink-0">
-              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none"/>
-              <button onClick={()=>setStatsDetail(null)} className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors"><span className="material-symbols-outlined text-white" style={{ fontSize: '15px' }} >close</span></button>
-              <div className="relative z-10">
-                <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Rincian Data</p>
-                <h2 className="text-lg font-extrabold text-white leading-tight">{statsDetail.label}</h2>
-                <p className="text-xs text-blue-200 font-medium mt-1">Menampilkan {filteredStatsDetailList.length} mahasiswa dari total {statsDetail.list.length} entri</p>
-              </div>
-            </div>
-            <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex-shrink-0">
-              <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '15px' }} >search</span>
-                <input type="text" placeholder="Cari nama, NIM, atau prodi..." value={statsSearch} onChange={e=>setStatsSearch(e.target.value)}
-                  className="pl-9 pr-4 h-10 w-full rounded-xl border border-slate-200/60 focus:outline-none focus:border-primary text-sm bg-white placeholder-slate-400 font-semibold"/>
-              </div>
-            </div>
-            <div className="flex-1 overflow-y-auto p-4 space-y-2">
-              {filteredStatsDetailList.length === 0 ? (
-                <div className="py-12 flex flex-col items-center justify-center text-center gap-3">
-                  <div className="w-12 h-12 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400"><span className="material-symbols-outlined" style={{ fontSize: '22px' }} >group</span></div>
-                  <div>
-                    <p className="font-bold text-sm text-slate-800">Tidak ada hasil cocok</p>
-                    <p className="text-xs text-slate-400 max-w-xs mt-0.5">Coba kata kunci pencarian lain atau data sedang kosong.</p>
-                  </div>
-                </div>
-              ) : (
-                filteredStatsDetailList.map((row, i) => (
-                  <div key={row.ID||i} className="p-3 bg-slate-50/50 border border-slate-100/70 rounded-2xl hover:bg-white hover:border-slate-200 transition-all flex items-center justify-between gap-3 shadow-sm">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <StudentAvatar src={getFullUrl(row.Mahasiswa?.FotoURL || row.Mahasiswa?.foto_url || row.Mahasiswa?.Foto || row.Mahasiswa?.Pengguna?.Foto)} name={row.Mahasiswa?.Nama} className="w-9 h-9 rounded-xl" />
-                      <div className="min-w-0">
-                        <p className="font-bold text-sm text-slate-900 leading-tight truncate">{row.Mahasiswa?.Nama||'—'}</p>
-                        <p className="text-[10px] text-slate-400 font-semibold mt-0.5">{row.Mahasiswa?.NIM||'—'} · {row.Mahasiswa?.ProgramStudi?.Nama||'—'}</p>
-                      </div>
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      {statsDetail.key === 'totalSertifikat' && row.Mahasiswa?.PkkmbSertifikat ? (
-                        <div className="flex flex-col items-end">
-                          <span className="inline-flex items-center gap-1 bg-emerald-50 border border-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded-lg text-[9px] uppercase tracking-wider">
-                            <span className="material-symbols-outlined" style={{ fontSize: '10px' }} >check_circle</span>
-                            Tersedia
-                          </span>
-                          {row.Mahasiswa?.PkkmbSertifikat?.FileURL && (
-                            <a href={getFullUrl(row.Mahasiswa.PkkmbSertifikat.FileURL)} target="_blank" rel="noreferrer" className="text-[10px] text-primary font-bold hover:underline mt-1 flex items-center gap-0.5">
-                              <span className="material-symbols-outlined" style={{ fontSize: '10px' }} >download</span> Download
-                            </a>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-end">
-                          <span className="text-xs font-black text-slate-800 tabular-nums">Nilai: {row.Nilai||0}</span>
-                          <span className="text-[9px] font-bold text-slate-400 mt-0.5">Hadir: {row.attendanceRate||0}%</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-            <div className="px-5 py-4 border-t border-slate-100 bg-slate-50/50 flex-shrink-0">
-              <button onClick={()=>setStatsDetail(null)} className="w-full h-11 rounded-xl bg-primary hover:bg-[#001a52] text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-sm">Tutup</button>
-            </div>
+      <Dialog open={!!statsDetail} onOpenChange={(open) => !open && setStatsDetail(null)} maxWidth="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{statsDetail?.label}</DialogTitle>
+          <DialogDescription>
+            Menampilkan {filteredStatsDetailList.length} mahasiswa dari total {statsDetail?.list?.length || 0} entri
+          </DialogDescription>
+        </DialogHeader>
+        <div className="p-4 border-b border-[var(--theme-border-muted)] bg-[var(--theme-bg)]/50 flex-shrink-0">
+          <div className="relative">
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--theme-text-subtle)]" style={{ fontSize: '15px' }} >search</span>
+            <input 
+              type="text" 
+              placeholder="Cari nama, NIM, atau prodi..." 
+              value={statsSearch} 
+              onChange={e=>setStatsSearch(e.target.value)}
+              className="pl-9 pr-4 h-10 w-full rounded-xl border border-[var(--theme-border)] focus:outline-none focus:border-primary text-sm bg-white placeholder-[var(--theme-text-subtle)] font-semibold text-[var(--theme-text)] focus:ring-2 focus:ring-[var(--theme-primary-light)]"
+            />
           </div>
         </div>
-      )}
+        <DialogContent className="flex-1 overflow-y-auto p-4 space-y-2 max-h-[50vh]">
+          {filteredStatsDetailList.length === 0 ? (
+            <div className="py-12 flex flex-col items-center justify-center text-center gap-3">
+              <div className="w-12 h-12 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-2xl flex items-center justify-center text-[var(--theme-text-subtle)]">
+                <span className="material-symbols-outlined" style={{ fontSize: '22px' }} >group</span>
+              </div>
+              <div>
+                <p className="font-bold text-sm text-[var(--theme-text)]">Tidak ada hasil cocok</p>
+                <p className="text-xs text-[var(--theme-text-muted)] max-w-xs mt-0.5">Coba kata kunci pencarian lain atau data sedang kosong.</p>
+              </div>
+            </div>
+          ) : (
+            filteredStatsDetailList.map((row, i) => (
+              <div key={row.ID||i} className="p-3 bg-[var(--theme-bg)]/50 border border-[var(--theme-border)] rounded-2xl hover:bg-white hover:border-[var(--theme-primary-hover)]/30 hover:shadow-sm transition-all flex items-center justify-between gap-3 shadow-none">
+                <div className="flex items-center gap-3 min-w-0">
+                  <StudentAvatar src={getFullUrl(row.Mahasiswa?.FotoURL || row.Mahasiswa?.foto_url || row.Mahasiswa?.Foto || row.Mahasiswa?.Pengguna?.Foto)} name={row.Mahasiswa?.Nama} className="w-9 h-9 rounded-xl" />
+                  <div className="min-w-0">
+                    <p className="font-bold text-sm text-[var(--theme-text)] leading-tight truncate">{row.Mahasiswa?.Nama||'—'}</p>
+                    <p className="text-[10px] text-[var(--theme-text-muted)] font-semibold mt-0.5">{row.Mahasiswa?.NIM||'—'} · {row.Mahasiswa?.ProgramStudi?.Nama||'—'}</p>
+                  </div>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  {statsDetail?.key === 'totalSertifikat' && row.Mahasiswa?.PkkmbSertifikat ? (
+                    <div className="flex flex-col items-end">
+                      <span className="inline-flex items-center gap-1 bg-[var(--theme-success-light)] border border-[var(--theme-success)]/20 text-[var(--theme-success)] font-semibold px-2 py-0.5 rounded-lg text-[9px] uppercase tracking-wider">
+                        <span className="material-symbols-outlined" style={{ fontSize: '10px' }} >check_circle</span>
+                        Tersedia
+                      </span>
+                      {row.Mahasiswa?.PkkmbSertifikat?.FileURL && (
+                        <a href={getFullUrl(row.Mahasiswa.PkkmbSertifikat.FileURL)} target="_blank" rel="noreferrer" className="text-[10px] text-[var(--theme-primary)] font-semibold hover:underline mt-1 flex items-center gap-0.5">
+                          <span className="material-symbols-outlined" style={{ fontSize: '10px' }} >download</span> Download
+                        </a>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-end">
+                      <span className="text-xs font-bold text-[var(--theme-text)] tabular-nums">Nilai: {row.Nilai||0}</span>
+                      <span className="text-[9px] font-semibold text-[var(--theme-text-muted)] mt-0.5">Hadir: {row.attendanceRate||0}%</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+        </DialogContent>
+        <DialogFooter>
+          <button 
+            onClick={()=>setStatsDetail(null)} 
+            className="w-full h-10 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95"
+          >
+            Tutup
+          </button>
+        </DialogFooter>
+      </Dialog>
     </PageContent>
   )
 }

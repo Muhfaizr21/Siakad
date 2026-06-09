@@ -7,6 +7,10 @@ import 'package:bkuhub_mobile/core/providers/ormawa_provider.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_agenda.dart';
 import 'package:intl/intl.dart';
 
+// Unified Core Widgets
+import 'package:bkuhub_mobile/core/widgets/unified_section_header.dart';
+import 'package:bkuhub_mobile/core/widgets/unified_card.dart';
+
 // Modular Widgets
 import 'package:bkuhub_mobile/features/ormawa/dashboard/presentation/widgets/ormawa_quick_stats.dart';
 import 'package:bkuhub_mobile/features/ormawa/dashboard/presentation/widgets/ormawa_service_grid.dart';
@@ -35,7 +39,7 @@ class _OrmawaDashboardScreenState extends State<OrmawaDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8FAFC),
       body: RefreshIndicator(
         onRefresh: () async {
           await context.read<OrmawaProvider>().refreshData();
@@ -70,33 +74,39 @@ class _OrmawaDashboardScreenState extends State<OrmawaDashboardScreen> {
                   const SizedBox(height: 24),
                   const OrmawaQuickStats(),
                   const SizedBox(height: 32),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: _buildSectionTitle('Layanan Administrasi'),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    child: UnifiedSectionHeader(title: 'Layanan Administrasi'),
                   ),
                   const SizedBox(height: 10),
                   const OrmawaServiceGrid(),
                   const SizedBox(height: 32),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: _buildSectionHeader('Proposal Terbaru', () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const OrmawaProposalScreen()),
-                      );
-                    }),
+                    child: UnifiedSectionHeader(
+                      title: 'Proposal Terbaru',
+                      onSeeAll: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const OrmawaProposalScreen()),
+                        );
+                      },
+                    ),
                   ),
                   const SizedBox(height: 16),
                   const OrmawaProposalList(),
                   const SizedBox(height: 32),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: _buildSectionHeader('Agenda Kegiatan', () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const OrmawaKalenderScreen()),
-                      );
-                    }),
+                    child: UnifiedSectionHeader(
+                      title: 'Agenda Kegiatan',
+                      onSeeAll: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const OrmawaKalenderScreen()),
+                        );
+                      },
+                    ),
                   ),
                   const SizedBox(height: 16),
                   Padding(
@@ -122,45 +132,11 @@ class _OrmawaDashboardScreenState extends State<OrmawaDashboardScreen> {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: AppTextStyles.titleLg.copyWith(
-        fontSize: 18,
-        fontWeight: FontWeight.w900,
-        color: AppColors.neutral700,  // Section header — bold, readable
-      ),
-    );
-  }
-
-  Widget _buildSectionHeader(String title, VoidCallback onTap) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          title,
-          style: AppTextStyles.labelSm.copyWith(
-            fontWeight: FontWeight.w900,
-            color: AppColors.neutral500,  // Overline — muted, uppercase
-            letterSpacing: 1.1,
-          ),
-        ),
-        GestureDetector(
-          onTap: onTap,
-          child: Text(
-            'LIHAT SEMUA',
-            style: AppTextStyles.labelSm.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+  // Removed local section header methods
 
   Widget _buildAgendaCard(OrmawaAgenda agenda) {
-    return GestureDetector(
+    return UnifiedCard(
+      margin: const EdgeInsets.only(bottom: 12),
       onTap: () {
         Navigator.push(
           context,
@@ -169,23 +145,16 @@ class _OrmawaDashboardScreenState extends State<OrmawaDashboardScreen> {
           ),
         );
       },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceContainerLow,  // Light card — subtle contrast
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.neutral200),
-        ),
-        child: Row(
+      child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.primary.withAlpha(10),
+                color: AppColors.primary.withAlpha(15),
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.event_available_rounded, color: AppColors.primary, size: 20),
+              child: const Icon(Icons.event_outlined, color: AppColors.primary, size: 22),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -194,7 +163,12 @@ class _OrmawaDashboardScreenState extends State<OrmawaDashboardScreen> {
                 children: [
                   Text(
                     agenda.title,
-                    style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.w900),
+                    style: AppTextStyles.bodyMd.copyWith(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   Text(
                     '${DateFormat('dd MMM').format(agenda.date)} • ${DateFormat('HH:mm').format(agenda.date)} - ${DateFormat('HH:mm').format(agenda.endDate)}',
@@ -204,31 +178,28 @@ class _OrmawaDashboardScreenState extends State<OrmawaDashboardScreen> {
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: AppColors.primary.withAlpha(20),
-                borderRadius: BorderRadius.circular(8),
+                color: AppColors.primary.withAlpha(15),
+                borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
                 agenda.status,
-                style: AppTextStyles.labelSm.copyWith(color: AppColors.primary, fontSize: 8, fontWeight: FontWeight.w900),
+                style: AppTextStyles.labelSm.copyWith(
+                  color: AppColors.primary.withOpacity(0.9), 
+                  fontSize: 10, 
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                ),
               ),
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildEmptyState(String message) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.neutral200),
-      ),
+    return UnifiedCard(
       child: Column(
         children: [
           Icon(Icons.event_note_rounded, color: AppColors.neutral400, size: 40),

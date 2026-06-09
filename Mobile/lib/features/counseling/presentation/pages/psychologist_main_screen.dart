@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/pages/psychologist_dashboard_screen.dart';
-import 'package:bkuhub_mobile/features/counseling/presentation/widgets/counseling_bottom_nav_bar.dart';
+import 'package:bkuhub_mobile/core/widgets/unified_bottom_nav_bar.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/pages/patient_list_screen.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/pages/psychologist_bookings_screen.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/pages/psychologist_settings_screen.dart';
@@ -40,7 +40,7 @@ class _PsychologistMainScreenState extends State<PsychologistMainScreen> {
         index: _selectedIndex,
         children: _pages,
       ),
-      bottomNavigationBar: CounselingBottomNavBar(
+      bottomNavigationBar: UnifiedBottomNavBar.psychologist(
         currentIndex: _selectedIndex,
         onTap: (index) => setState(() => _selectedIndex = index),
       ),

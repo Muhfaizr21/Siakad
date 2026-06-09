@@ -11,6 +11,8 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Button } from "@/components/ui/Button"
 import { PageContent } from '@/components/ui/page'
 import { DashboardHero } from '@/components/ui/dashboard'
+import { Badge } from "@/components/ui/Badge"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/Dialog"
 import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
@@ -115,6 +117,7 @@ export default function FacultyPrestasi() {
   const [verifyStatus, setVerifyStatus] = useState("verified")
   const [verifyCatatan, setVerifyCatatan] = useState("")
   const [verifyDanaDisetujui, setVerifyDanaDisetujui] = useState("")
+  const [verifyPoin, setVerifyPoin] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const getKopImage = (facName) => {
@@ -306,6 +309,7 @@ export default function FacultyPrestasi() {
     const isFunding = (row.Tipe || row.tipe) === "Pengajuan Dana"
     setVerifyCatatan(status === "verified" ? (isFunding ? "Pengajuan dana disetujui." : "Prestasi tervalidasi oleh Fakultas.") : "Berkas tidak sesuai kriteria.")
     setVerifyDanaDisetujui(isFunding ? String(row.DanaDiajukan || row.dana_diajukan || 0) : "")
+    setVerifyPoin(isFunding ? "" : String(row.Poin || row.poin || 0))
     setIsVerifyOpen(true)
   }
 
@@ -318,7 +322,7 @@ export default function FacultyPrestasi() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           Status: verifyStatus === 'verified' ? 'Diverifikasi' : 'Ditolak',
-          Poin: 0,
+          Poin: Number(verifyPoin) || 0,
           Catatan: verifyCatatan,
           DanaDisetujui: Number(verifyDanaDisetujui) || 0
         })
@@ -870,246 +874,290 @@ export default function FacultyPrestasi() {
         </div>
 
       {/* Detail Modal */}
-      {selected && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
-          onClick={() => setSelected(null)}>
-          <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh]"
-            onClick={e => e.stopPropagation()}>
-            {/* Header */}
-            <div className="relative bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
-              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
-              <button onClick={() => setSelected(null)}
-                className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
-                <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span>
-              </button>
-              <div className="relative z-10 flex items-center gap-4 mb-5">
-                <StudentAvatar src={getFullUrl(selected.Mahasiswa?.FotoURL || selected.Mahasiswa?.foto_url || selected.Mahasiswa?.Foto || selected.Mahasiswa?.Pengguna?.Foto)} name={selected.Mahasiswa?.Nama} className="w-14 h-14 rounded-2xl shadow-xl ring-2 ring-white/20" />
-                <div className="min-w-0">
-                  <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">
-                    {selected.Tipe === 'Pengajuan Dana' ? 'Pengajuan Dana Lomba' : 'Pengajuan Prestasi'}
-                  </p>
-                  <h2 className="text-base font-extrabold text-white leading-tight line-clamp-2">{selected.NamaKegiatan}</h2>
-                  <p className="text-xs text-blue-200 font-medium mt-0.5">{selected.Mahasiswa?.Nama} · {selected.Mahasiswa?.NIM}</p>
-                </div>
-              </div>
-              <div className="relative z-10 flex flex-wrap gap-2">
-                {selected.Kategori && <span className="flex items-center gap-1.5 bg-white/10 border border-white/20 px-3 py-1.5 rounded-xl text-[10px] font-bold text-white uppercase tracking-wider"><Award size={10} />{selected.Kategori}</span>}
-                {selected.Tingkat && <span className="flex items-center gap-1.5 bg-white/10 border border-white/20 px-3 py-1.5 rounded-xl text-[10px] font-bold text-white uppercase tracking-wider"><Star size={10} />{selected.Tingkat}</span>}
-                <span className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider',
-                  ['verified', 'terverifikasi', 'disetujui', 'diverifikasi'].includes((selected.Status || '').toLowerCase())
-                    ? 'bg-emerald-400/20 border border-emerald-300/30 text-emerald-200'
-                    : (selected.Status || '').toLowerCase().includes('tolak') || (selected.Status || '').toLowerCase() === 'rejected'
-                      ? 'bg-rose-400/20 border border-rose-300/30 text-rose-200'
-                      : 'bg-amber-400/20 border border-amber-300/30 text-amber-200'
-                )}>
-                  <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
-                  {getStatus(selected.Status).label}
-                </span>
-              </div>
+      <Dialog open={!!selected && !isVerifyOpen} onOpenChange={(open) => !open && setSelected(null)} maxWidth="max-w-lg">
+        <DialogContent className="max-w-lg p-0 overflow-hidden border border-border shadow-2xl rounded-2xl bg-surface animate-in zoom-in-95 duration-200">
+          <DialogHeader className="p-8 pb-5 bg-slate-50/50 border-b border-border relative">
+            <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
+              <span className="material-symbols-outlined size-24 rotate-12 text-slate-800">emoji_events</span>
             </div>
-
-            {/* Body */}
-            <div className="flex-1 overflow-y-auto p-5 space-y-4">
-              {/* Ditolak alert */}
-              {(selected.Status || '').toLowerCase().includes('tolak') || (selected.Status || '').toLowerCase() === 'rejected' ? (
-                <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 flex items-start gap-3">
-                  <span className="material-symbols-outlined text-rose-600 flex-shrink-0 mt-0.5" style={{ fontSize: '16px' }} >close</span>
-                  <div>
-                    <p className="font-bold text-rose-700 text-sm">Pengajuan Ditolak</p>
-                    <p className="text-rose-600 text-xs mt-0.5">{selected.CatatanVerifikator || 'Berkas tidak sesuai kriteria.'}</p>
-                  </div>
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-1.5">
+                <div className="size-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600">
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>emoji_events</span>
                 </div>
-              ) : null}
-
-              {/* Info Grid */}
-              <div className="space-y-1">
-                {[
-                  { icon: GraduationCap, label: 'Program Studi', value: selected.Mahasiswa?.ProgramStudi?.Nama },
-                  { icon: Award, label: 'Kategori', value: selected.Kategori },
-                  { icon: Star, label: 'Tingkat', value: selected.Tingkat },
-                  selected.Tipe === 'Pengajuan Dana' ? null : { icon: Trophy, label: 'Peringkat', value: selected.Peringkat },
-                  { icon: Calendar, label: 'Tanggal', value: formatDate(selected.CreatedAt) },
-                ].filter(Boolean).map(r => (
-                  <div key={r.label} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50/50 border border-slate-100 hover:bg-white transition-all">
-                    <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center text-primary shadow-sm border border-slate-100 flex-shrink-0">
-                      <r.icon size={13} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em]">{r.label}</p>
-                      <p className="text-sm font-semibold text-slate-900 truncate">{r.value || '—'}</p>
-                    </div>
-                  </div>
-                ))}
+                <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-slate-200 text-slate-700 border-none rounded-md">
+                  {selected?.Tipe === 'Pengajuan Dana' ? 'DANA LOMBA' : 'PRESTASI MAHASISWA'}
+                </Badge>
               </div>
+              <DialogTitle className="text-lg md:text-xl font-black font-headline tracking-tighter text-slate-900 line-clamp-2">
+                {selected?.NamaKegiatan}
+              </DialogTitle>
+              <DialogDescription className="text-[11px] font-semibold text-slate-400 mt-0.5">
+                {selected?.Mahasiswa?.Nama} · {selected?.Mahasiswa?.NIM}
+              </DialogDescription>
+            </div>
+          </DialogHeader>
 
-              {/* Dana Info */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {selected.Tipe === 'Pengajuan Dana' ? (
-                  <>
-                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
-                      <p className="text-[9px] font-black text-slate-400 uppercase">Dana Diajukan</p>
-                      <p className="text-xs font-extrabold text-amber-600 mt-0.5">Rp {(selected.DanaDiajukan || 0).toLocaleString('id-ID')}</p>
-                    </div>
-                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
-                      <p className="text-[9px] font-black text-slate-400 uppercase">Dana Disetujui</p>
-                      <p className="text-xs font-extrabold text-emerald-600 mt-0.5">Rp {(selected.DanaDisetujui || 0).toLocaleString('id-ID')}</p>
-                    </div>
-                  </>
-                ) : null}
-              </div>
-
-              {/* SIMKATMAWA Info */}
-              {selected.SimkatmawaId && (
-                <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex items-start gap-3 mt-4">
-                  <span className="material-symbols-outlined text-blue-600 flex-shrink-0 mt-0.5" style={{ fontSize: '16px' }} >cloud_sync</span>
-                  <div>
-                    <p className="font-bold text-blue-700 text-sm">Disinkronkan ke SIMKATMAWA</p>
-                    <p className="text-blue-600 text-xs mt-0.5 mb-2">ID Simkatmawa: {selected.SimkatmawaId}</p>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold text-blue-700">Status:</span>
-                      <select 
-                        className="bg-white border border-blue-200 text-blue-700 text-xs font-bold rounded-lg px-2 py-1 outline-none cursor-pointer hover:border-blue-300 transition-colors"
-                        value={selected.SimkatmawaStatus || "Sukses"}
-                        onChange={async (e) => {
-                          const newStatus = e.target.value;
-                          try {
-                            await api.put(`/faculty/achievements/${selected.ID || selected.id}/simkatmawa-status`, { simkatmawa_status: newStatus });
-                            toast.success("Status SIMKATMAWA diperbarui! ✅");
-                            fetchData();
-                            setSelected({...selected, SimkatmawaStatus: newStatus});
-                          } catch(err) {
-                            toast.error("Gagal update status");
-                          }
-                        }}
-                      >
-                        <option value="Sukses">Sukses Terkirim (Menunggu)</option>
-                        <option value="Diterima SIMKATMAWA">Diterima SIMKATMAWA</option>
-                        <option value="Ditolak SIMKATMAWA">Ditolak SIMKATMAWA</option>
-                      </select>
-                    </div>
-                  </div>
+          {/* Body */}
+          <div className="p-8 pt-5 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar">
+            {selected && (
+              <>
+                {/* Status Badges */}
+                <div className="flex flex-wrap gap-2">
+                  {selected.Kategori && (
+                    <span className="inline-flex items-center gap-1.5 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-xl text-[10px] font-bold text-slate-600 uppercase tracking-wider">
+                      <Award size={10} />
+                      {selected.Kategori}
+                    </span>
+                  )}
+                  {selected.Tingkat && (
+                    <span className="inline-flex items-center gap-1.5 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-xl text-[10px] font-bold text-slate-600 uppercase tracking-wider">
+                      <Star size={10} />
+                      {selected.Tingkat}
+                    </span>
+                  )}
+                  <span className={cn('inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider border',
+                    ['verified', 'terverifikasi', 'disetujui', 'diverifikasi'].includes((selected.Status || '').toLowerCase())
+                      ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                      : (selected.Status || '').toLowerCase().includes('tolak') || (selected.Status || '').toLowerCase() === 'rejected'
+                        ? 'bg-rose-50 border-rose-200 text-rose-700'
+                        : 'bg-amber-50 border-amber-200 text-amber-700'
+                  )}>
+                    <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+                    {getStatus(selected.Status).label}
+                  </span>
                 </div>
-              )}
 
-              {/* Bukti */}
-              <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2">
-                  {selected.Tipe === 'Pengajuan Dana' ? 'Proposal / Dokumen Pendukung' : 'Bukti / Sertifikat'}
-                </p>
-                {selected.BuktiURL ? (
-                  <a href={`${API_BASE_URL.replace('/api', '')}${selected.BuktiURL}`} target="_blank" rel="noreferrer"
-                    className="flex items-center gap-3 p-3 rounded-xl border border-slate-200/60 hover:bg-[#eef4ff] hover:border-primary transition-all">
-                    <div className="w-9 h-9 bg-[#eef4ff] rounded-xl flex items-center justify-center text-primary flex-shrink-0"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >description</span></div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-primary text-sm">
-                        {selected.Tipe === 'Pengajuan Dana' ? 'Lihat Proposal / Dokumen' : 'Lihat Dokumen Sertifikat'}
-                      </p>
-                      <p className="text-xs text-slate-400 truncate">{selected.BuktiURL}</p>
+                {/* Ditolak alert */}
+                {((selected.Status || '').toLowerCase().includes('tolak') || (selected.Status || '').toLowerCase() === 'rejected') && (
+                  <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 flex items-start gap-3">
+                    <span className="material-symbols-outlined text-rose-600 flex-shrink-0 mt-0.5" style={{ fontSize: '16px' }} >close</span>
+                    <div>
+                      <p className="font-bold text-rose-700 text-sm">Pengajuan Ditolak</p>
+                      <p className="text-rose-600 text-xs mt-0.5">{selected.CatatanVerifikator || 'Berkas tidak sesuai kriteria.'}</p>
                     </div>
-                    <ExternalLink size={14} className="text-primary/40 flex-shrink-0" />
-                  </a>
-                ) : (
-                  <div className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 bg-slate-50/50">
-                    <div className="w-9 h-9 bg-slate-50 rounded-xl flex items-center justify-center text-[#c4c4c4] flex-shrink-0"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >description</span></div>
-                    <p className="text-sm text-[#c4c4c4] font-medium italic">Belum ada lampiran diunggah.</p>
                   </div>
                 )}
-              </div>
-            </div>
 
-            {/* Footer */}
-            <div className="px-5 py-4 border-t border-slate-100 bg-slate-50/50 flex gap-3 flex-shrink-0">
-              <button onClick={() => setSelected(null)}
-                className="w-full h-11 rounded-xl border border-slate-200/60 bg-white text-xs font-bold text-slate-600 uppercase tracking-widest hover:bg-slate-50 transition-all">
-                Tutup
-              </button>
-              {(selected.Status || '').toLowerCase() === 'menunggu' && (
-                <>
-                  <button onClick={() => handleOpenVerify(selected, 'rejected')} disabled={isSubmitting}
-                    className="flex-1 h-11 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-rose-600/20 disabled:opacity-60 flex items-center justify-center gap-2">
-                    Tolak
-                  </button>
-                  <button onClick={() => handleOpenVerify(selected, 'verified')} disabled={isSubmitting}
-                    className="flex-1 h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-emerald-600/20 disabled:opacity-60 flex items-center justify-center gap-2">
-                    Validasi
-                  </button>
-                </>
-              )}
-              {['diverifikasi', 'valid', 'disetujui', 'verified'].includes((selected.Status || '').toLowerCase()) && !selected.SimkatmawaId && (
-                 <button onClick={(e) => handleSyncSimkatmawa(e, selected.ID || selected.id)} disabled={isSubmitting}
-                   className="flex-1 h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-blue-600/20 disabled:opacity-60 flex items-center justify-center gap-2">
-                   <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>sync</span> Kirim ke SIMKATMAWA
-                 </button>
-              )}
-            </div>
+                {/* SIMKATMAWA Info */}
+                {selected.SimkatmawaId && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex items-start gap-3">
+                    <span className="material-symbols-outlined text-blue-600 flex-shrink-0 mt-0.5" style={{ fontSize: '16px' }} >cloud_sync</span>
+                    <div>
+                      <p className="font-bold text-blue-700 text-sm">Disinkronkan ke SIMKATMAWA</p>
+                      <p className="text-blue-600 text-xs mt-0.5 mb-2">ID Simkatmawa: {selected.SimkatmawaId}</p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-blue-700">Status:</span>
+                        <select 
+                          className="bg-white border border-blue-200 text-blue-700 text-xs font-bold rounded-lg px-2 py-1 outline-none cursor-pointer hover:border-blue-300 transition-colors"
+                          value={selected.SimkatmawaStatus || "Sukses"}
+                          onChange={async (e) => {
+                            const newStatus = e.target.value;
+                            try {
+                              await api.put(`/faculty/achievements/${selected.ID || selected.id}/simkatmawa-status`, { simkatmawa_status: newStatus });
+                              toast.success("Status SIMKATMAWA diperbarui! ✅");
+                              fetchData();
+                              setSelected({...selected, SimkatmawaStatus: newStatus});
+                            } catch(err) {
+                              toast.error("Gagal update status");
+                            }
+                          }}
+                        >
+                          <option value="Sukses">Sukses Terkirim (Menunggu)</option>
+                          <option value="Diterima SIMKATMAWA">Diterima SIMKATMAWA</option>
+                          <option value="Ditolak SIMKATMAWA">Ditolak SIMKATMAWA</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Info Grid */}
+                <div className="space-y-2">
+                  {[
+                    { icon: GraduationCap, label: 'Program Studi', value: selected.Mahasiswa?.ProgramStudi?.Nama },
+                    { icon: Award, label: 'Kategori', value: selected.Kategori },
+                    { icon: Star, label: 'Tingkat', value: selected.Tingkat },
+                    selected.Tipe === 'Pengajuan Dana' ? null : { icon: Trophy, label: 'Peringkat', value: selected.Peringkat },
+                    { icon: Calendar, label: 'Tanggal', value: formatDate(selected.CreatedAt) },
+                    selected.Tipe === 'Pengajuan Dana' ? { icon: CheckCircle2, label: 'Dana Diajukan', value: `Rp ${(selected.DanaDiajukan || 0).toLocaleString('id-ID')}` } : { icon: CheckCircle2, label: 'Poin Didapat', value: selected.Poin != null ? `${selected.Poin} Poin` : '—' },
+                    selected.Tipe === 'Pengajuan Dana' && selected.DanaDisetujui > 0 ? { icon: CheckCircle2, label: 'Dana Disetujui', value: `Rp ${selected.DanaDisetujui.toLocaleString('id-ID')}` } : null,
+                  ].filter(Boolean).map(r => (
+                    <div key={r.label} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50/50 border border-slate-100 hover:bg-white transition-all">
+                      <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center text-primary shadow-sm border border-slate-100 flex-shrink-0">
+                        <r.icon size={13} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em]">{r.label}</p>
+                        <p className="text-sm font-semibold text-slate-900 truncate">{r.value || '—'}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Bukti */}
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2">
+                    {selected.Tipe === 'Pengajuan Dana' ? 'Proposal / Dokumen Pendukung' : 'Bukti / Sertifikat'}
+                  </p>
+                  {selected.BuktiURL ? (
+                    <a href={`${API_BASE_URL.replace('/api', '')}${selected.BuktiURL}`} target="_blank" rel="noreferrer"
+                      className="flex items-center gap-3 p-3 rounded-xl border border-slate-200/60 hover:bg-[#eef4ff] hover:border-primary transition-all">
+                      <div className="w-9 h-9 bg-[#eef4ff] rounded-xl flex items-center justify-center text-primary flex-shrink-0"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >description</span></div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-primary text-sm">
+                          {selected.Tipe === 'Pengajuan Dana' ? 'Lihat Proposal / Dokumen' : 'Lihat Dokumen Sertifikat'}
+                        </p>
+                        <p className="text-xs text-slate-400 truncate">{selected.BuktiURL}</p>
+                      </div>
+                      <ExternalLink size={14} className="text-primary/40 flex-shrink-0" />
+                    </a>
+                  ) : (
+                    <div className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 bg-slate-50/50">
+                      <div className="w-9 h-9 bg-slate-50 rounded-xl flex items-center justify-center text-[#c4c4c4] flex-shrink-0"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >description</span></div>
+                      <p className="text-sm text-[#c4c4c4] font-medium italic">Belum ada lampiran diunggah.</p>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
           </div>
-        </div>
-      )}
+
+          {/* Footer */}
+          <DialogFooter className="flex flex-col md:flex-row items-center justify-end gap-3 p-8 pt-4 border-t border-slate-100 bg-slate-50/30">
+            <Button onClick={() => setSelected(null)} variant="ghost"
+              className="w-full md:w-auto text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-11 rounded-xl active:scale-95 transition-all shadow-none border-none cursor-pointer font-headline uppercase">
+              Tutup
+            </Button>
+            {selected && (selected.Status || '').toLowerCase() === 'menunggu' && (
+              <>
+                <Button onClick={() => handleOpenVerify(selected, 'rejected')} disabled={isSubmitting} variant="outline"
+                  className="w-full md:w-auto h-11 px-8 rounded-xl border-rose-200 text-rose-600 hover:bg-rose-50 text-[10px] font-black tracking-widest uppercase cursor-pointer">
+                  Tolak
+                </Button>
+                <Button onClick={() => handleOpenVerify(selected, 'verified')} disabled={isSubmitting}
+                  className="w-full md:w-auto h-11 px-8 rounded-xl bg-primary hover:bg-primary/95 text-white text-[10px] font-black tracking-widest uppercase cursor-pointer">
+                  Validasi
+                </Button>
+              </>
+            )}
+            {selected && ['diverifikasi', 'valid', 'disetujui', 'verified'].includes((selected.Status || '').toLowerCase()) && !selected.SimkatmawaId && (
+              <Button onClick={(e) => handleSyncSimkatmawa(e, selected.ID || selected.id)} disabled={isSubmitting}
+                className="w-full md:w-auto h-11 px-8 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black tracking-widest uppercase cursor-pointer flex items-center justify-center gap-2 border-none">
+                <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>sync</span> Kirim ke SIMKATMAWA
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Verification Action Dialog */}
-      {isVerifyOpen && selected && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
-          <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 flex flex-col font-body">
-            <div className="flex justify-between items-center pb-4 border-b border-slate-100">
-              <h2 className="text-lg font-bold text-slate-900">
+      <Dialog open={isVerifyOpen && !!selected} onOpenChange={setIsVerifyOpen} maxWidth="max-w-md">
+        <DialogContent className="max-w-md p-0 overflow-hidden border border-border shadow-2xl rounded-2xl bg-surface animate-in zoom-in-95 duration-200">
+          <DialogHeader className="p-8 pb-5 bg-slate-50/50 border-b border-border relative">
+            <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
+              <span className="material-symbols-outlined size-24 rotate-12 text-slate-800">
+                {verifyStatus === "verified" ? "check_circle" : "cancel"}
+              </span>
+            </div>
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-1.5">
+                <div className={cn("size-8 rounded-xl flex items-center justify-center", 
+                  verifyStatus === "verified" ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
+                )}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+                    {verifyStatus === "verified" ? "check_circle" : "close"}
+                  </span>
+                </div>
+                <Badge className={cn("text-[9px] font-black tracking-widest px-2.5 py-0.5 border-none rounded-md",
+                  verifyStatus === "verified" ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
+                )}>
+                  {verifyStatus === "verified" ? "APPROVE" : "REJECT"}
+                </Badge>
+              </div>
+              <DialogTitle className="text-lg md:text-xl font-black font-headline tracking-tighter text-slate-900">
                 {verifyStatus === "verified" ? "Setujui Pengajuan" : "Tolak Pengajuan"}
-              </h2>
-              <button onClick={() => setIsVerifyOpen(false)} className="text-slate-400 hover:text-slate-600">
-                <span className="material-symbols-outlined">close</span>
-              </button>
+              </DialogTitle>
+              <DialogDescription className="text-[11px] font-semibold text-slate-400 mt-0.5">
+                Tuliskan catatan verifikasi hasil peninjauan berkas mahasiswa.
+              </DialogDescription>
+            </div>
+          </DialogHeader>
+
+          <form onSubmit={handleVerifySubmit} className="flex flex-col">
+            <div className="p-8 pt-5 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar">
+              <div className="space-y-4">
+                <div className="flex flex-col gap-1.5 text-left">
+                  <label className="text-[10px] font-semibold text-[var(--theme-text-muted)] tracking-[0.2em] ml-1 uppercase font-headline">Catatan Verifikator</label>
+                  <textarea
+                    placeholder="Masukkan catatan..."
+                    value={verifyCatatan}
+                    onChange={(e) => setVerifyCatatan(e.target.value)}
+                    className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3 text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none min-h-[90px] transition-colors resize-none font-semibold"
+                    required
+                  />
+                </div>
+
+                {selected && ((selected.Tipe || selected.tipe) === "Pengajuan Dana" ? (
+                  verifyStatus === "verified" && (
+                    <div className="flex flex-col gap-1.5 text-left">
+                      <label className="text-[10px] font-semibold text-[var(--theme-text-muted)] tracking-[0.2em] ml-1 uppercase font-headline">Dana yang Disetujui (Rp)</label>
+                      <input
+                        type="number"
+                        value={verifyDanaDisetujui}
+                        onChange={(e) => setVerifyDanaDisetujui(e.target.value)}
+                        className="h-10 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] px-3 text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors font-semibold"
+                        placeholder="Cth: 1200000"
+                        required
+                      />
+                    </div>
+                  )
+                ) : (
+                  verifyStatus === "verified" && (
+                    <div className="flex flex-col gap-1.5 text-left">
+                      <label className="text-[10px] font-semibold text-[var(--theme-text-muted)] tracking-[0.2em] ml-1 uppercase font-headline">Poin SKPI Didapat</label>
+                      <input
+                        type="number"
+                        value={verifyPoin}
+                        onChange={(e) => setVerifyPoin(e.target.value)}
+                        className="h-10 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] px-3 text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors font-semibold"
+                        required
+                      />
+                    </div>
+                  )
+                ))}
+              </div>
             </div>
 
-            <form onSubmit={handleVerifySubmit} className="space-y-4 mt-4">
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Catatan Verifikator</label>
-                <textarea
-                  placeholder="Masukkan catatan..."
-                  value={verifyCatatan}
-                  onChange={(e) => setVerifyCatatan(e.target.value)}
-                  className="rounded-xl border border-slate-200 focus:border-primary shadow-none text-sm p-3 w-full bg-slate-50/50 focus:bg-white min-h-[90px] outline-none"
-                  required
-                />
-              </div>
-
-              {selected.Tipe === "Pengajuan Dana" && (
-                verifyStatus === "verified" && (
-                  <div className="space-y-1.5">
-                    <label htmlFor="verify_dana" className="text-xs font-bold uppercase tracking-widest text-slate-500">Dana yang Disetujui (Rp)</label>
-                    <input
-                      id="verify_dana"
-                      type="number"
-                      value={verifyDanaDisetujui}
-                      onChange={(e) => setVerifyDanaDisetujui(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-semibold transition-all"
-                      placeholder="Cth: 1200000"
-                      required
-                    />
-                  </div>
-                )
-              )}
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsVerifyOpen(false)}
-                  className="flex-1 h-10 rounded-xl border border-slate-200 text-xs font-bold uppercase tracking-widest text-slate-500 hover:bg-slate-50"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className={cn("flex-1 h-10 rounded-xl text-xs font-bold uppercase tracking-widest text-white border-none",
-                    verifyStatus === "verified" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-[#dc2626] hover:bg-[#b91c1c]"
-                  )}
-                >
-                  {isSubmitting ? "Menyimpan..." : (verifyStatus === "verified" ? "Validasi" : "Tolak")}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+            <DialogFooter className="flex flex-col md:flex-row items-center justify-end gap-3">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setIsVerifyOpen(false)}
+                className="w-full md:w-auto text-xs font-semibold px-6 h-10 rounded-xl active:scale-95 transition-all text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] border-none cursor-pointer uppercase tracking-wider"
+              >
+                Batal
+              </Button>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className={cn("w-full md:w-auto h-10 px-6 rounded-xl text-white transition-all active:scale-95 flex items-center justify-center gap-2 border-none cursor-pointer text-xs font-semibold uppercase",
+                  verifyStatus === "verified" ? "bg-[var(--theme-success)] hover:bg-[var(--theme-success)]/90" : "bg-[var(--theme-error)] hover:bg-[var(--theme-error)]/90"
+                )}
+              >
+                {isSubmitting ? (
+                  <span className="material-symbols-outlined animate-spin size-4" style={{ fontSize: '15px' }}>sync</span>
+                ) : (
+                  <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>save</span>
+                )}
+                <span>
+                  {verifyStatus === "verified" ? "Validasi" : "Tolak"}
+                </span>
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </PageContent>
   )
 }

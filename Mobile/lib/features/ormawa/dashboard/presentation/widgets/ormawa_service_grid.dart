@@ -20,7 +20,6 @@ import 'package:bkuhub_mobile/features/ormawa/notifications/presentation/pages/o
 import 'package:bkuhub_mobile/features/ormawa/settings/presentation/pages/ormawa_settings_screen.dart';
 import 'package:bkuhub_mobile/features/ormawa/struktur/presentation/pages/ormawa_struktur_screen.dart';
 import 'package:bkuhub_mobile/features/ormawa/rbac/presentation/pages/ormawa_role_screen.dart';
-import 'package:bkuhub_mobile/features/ormawa/notifications/presentation/pages/ormawa_notification_screen.dart';
 
 class OrmawaServiceGrid extends StatelessWidget {
   const OrmawaServiceGrid({super.key});
@@ -37,62 +36,203 @@ class OrmawaServiceGrid extends StatelessWidget {
         mainAxisSpacing: 10,
         crossAxisSpacing: 0,
         childAspectRatio: 1.0,
-        children: [
+        children: const [
           _ServiceIcon(
             title: 'Proposal',
-            icon: Icons.description_rounded,
+            icon: Icons.assignment_rounded,
             color: Colors.blue,
             delay: 0.5,
-            target: const OrmawaProposalScreen(),
-          ),
-          _ServiceIcon(
-            title: 'Keuangan',
-            icon: Icons.payments_rounded,
-            color: Colors.green,
-            delay: 0.55,
-            target: const OrmawaFinanceScreen(),
-          ),
-          _ServiceIcon(
-            title: 'Absensi',
-            icon: Icons.qr_code_scanner_rounded,
-            color: Colors.teal,
-            delay: 0.6,
-            target: const OrmawaAbsensiScreen(),
-          ),
-          _ServiceIcon(
-            title: 'PKKMB',
-            icon: Icons.auto_awesome_rounded,
-            color: Colors.orange,
-            delay: 0.65,
-            target: const OrmawaPKKMBScreen(),
+            target: OrmawaProposalScreen(),
           ),
           _ServiceIcon(
             title: 'Anggota',
             icon: Icons.groups_rounded,
             color: Colors.purple,
-            delay: 0.7,
-            target: const OrmawaAnggotaScreen(),
+            delay: 0.55,
+            target: OrmawaAnggotaScreen(),
+          ),
+          _ServiceIcon(
+            title: 'Keuangan',
+            icon: Icons.account_balance_wallet_rounded,
+            color: Colors.green,
+            delay: 0.6,
+            target: OrmawaFinanceScreen(),
+          ),
+          _ServiceIcon(
+            title: 'Absensi',
+            icon: Icons.qr_code_scanner_rounded,
+            color: Colors.teal,
+            delay: 0.65,
+            target: OrmawaAbsensiScreen(),
           ),
           _ServiceIcon(
             title: 'Kalender',
             icon: Icons.event_rounded,
-            color: Colors.orange,
-            delay: 0.75,
-            target: const OrmawaKalenderScreen(),
+            color: Colors.indigo,
+            delay: 0.7,
+            target: OrmawaKalenderScreen(),
           ),
           _ServiceIcon(
-            title: 'Laporan',
-            icon: Icons.assignment_rounded,
+            title: 'LPJ',
+            icon: Icons.description_rounded,
             color: Colors.red,
-            delay: 0.8,
-            target: const OrmawaLaporanScreen(),
+            delay: 0.75,
+            target: OrmawaLaporanScreen(),
           ),
           _ServiceIcon(
-            title: 'Lainnya',
-            icon: Icons.grid_view_rounded,
+            title: 'Pengumuman',
+            icon: Icons.campaign_rounded,
+            color: Colors.purple,
+            delay: 0.8,
+            target: OrmawaPengumumanScreen(),
+          ),
+          _ServiceIcon(
+            title: 'Lainy',
+            icon: Icons.menu_rounded,
             color: Colors.blueGrey,
             delay: 0.85,
             isMore: true,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Modal content untuk Menu Lainnya - bisa di-reuse di MainScreen
+class OrmawaServiceGridModal extends StatelessWidget {
+  const OrmawaServiceGridModal({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          width: 40,
+          height: 4,
+          decoration: BoxDecoration(
+            color: Colors.grey[300],
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(height: 32),
+        Text(
+          'Lainy',
+          style: AppTextStyles.titleLg.copyWith(
+            color: AppColors.primary,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        const SizedBox(height: 24),
+        Expanded(
+          child: GridView.count(
+            crossAxisCount: 4,
+            mainAxisSpacing: 24,
+            crossAxisSpacing: 0,
+            childAspectRatio: 0.85,
+            children: [
+              _ModalServiceIcon(
+                title: 'Struktur',
+                icon: Icons.account_tree_rounded,
+                color: Colors.indigo,
+                target: const OrmawaStrukturScreen(),
+              ),
+              _ModalServiceIcon(
+                title: 'Aspirasi',
+                icon: Icons.chat_bubble_outline_rounded,
+                color: Colors.pink,
+                target: const OrmawaAspirasiScreen(),
+              ),
+              _ModalServiceIcon(
+                title: 'Notifikasi',
+                icon: Icons.notifications_rounded,
+                color: Colors.amber,
+                target: const OrmawaNotificationsScreen(),
+              ),
+              _ModalServiceIcon(
+                title: 'Manaj. Staf',
+                icon: Icons.person_add_alt_1_rounded,
+                color: Colors.blue,
+                target: const OrmawaStaffScreen(),
+              ),
+              _ModalServiceIcon(
+                title: 'Hak Akses',
+                icon: Icons.admin_panel_settings_rounded,
+                color: Colors.blueGrey,
+                target: const OrmawaRoleScreen(),
+              ),
+              _ModalServiceIcon(
+                title: 'Pengaturan',
+                icon: Icons.settings_rounded,
+                color: Colors.grey,
+                target: const OrmawaSettingsScreen(),
+              ),
+              _ModalServiceIcon(
+                title: 'Keluar',
+                icon: Icons.logout_rounded,
+                color: Colors.red,
+                onTap: () {
+                  // Handle logout
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ModalServiceIcon extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final Color color;
+  final Widget? target;
+  final VoidCallback? onTap;
+
+  const _ModalServiceIcon({
+    required this.title,
+    required this.icon,
+    required this.color,
+    this.target,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        if (onTap != null) {
+          onTap!();
+        } else if (target != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => target!),
+          );
+        }
+      },
+      child: Column(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: color.withAlpha(15),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(icon, color: color, size: 26),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            title,
+            style: AppTextStyles.labelSm.copyWith(
+              color: AppColors.neutral600,
+              fontWeight: FontWeight.bold,
+              fontSize: 10,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
@@ -147,7 +287,7 @@ class _ServiceIcon extends StatelessWidget {
             Text(
               title,
               style: AppTextStyles.labelSm.copyWith(
-                color: AppColors.neutral600,  // Muted gray — not competing with primary
+                color: AppColors.neutral600,
                 fontWeight: FontWeight.bold,
                 fontSize: 10,
               ),
@@ -170,150 +310,7 @@ class _ServiceIcon extends StatelessWidget {
           borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
         ),
         padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 32),
-            Text(
-              'Semua Layanan Admin',
-              style: AppTextStyles.titleLg.copyWith(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            const SizedBox(height: 24),
-            Expanded(
-              child: GridView.count(
-                crossAxisCount: 4,
-                mainAxisSpacing: 24,
-                crossAxisSpacing: 0,
-                childAspectRatio: 0.85,
-                children: [
-                  _ServiceIcon(
-                    title: 'Proposal',
-                    icon: Icons.description_rounded,
-                    color: Colors.blue,
-                    delay: 0,
-                    target: const OrmawaProposalScreen(),
-                  ),
-                  _ServiceIcon(
-                    title: 'Keuangan',
-                    icon: Icons.payments_rounded,
-                    color: Colors.green,
-                    delay: 0,
-                    target: const OrmawaFinanceScreen(),
-                  ),
-                  _ServiceIcon(
-                    title: 'Absensi',
-                    icon: Icons.qr_code_scanner_rounded,
-                    color: Colors.teal,
-                    delay: 0,
-                    target: const OrmawaAbsensiScreen(),
-                  ),
-                  _ServiceIcon(
-                    title: 'Laporan',
-                    icon: Icons.assignment_rounded,
-                    color: Colors.red,
-                    delay: 0,
-                    target: const OrmawaLaporanScreen(),
-                  ),
-                  _ServiceIcon(
-                    title: 'Anggota',
-                    icon: Icons.groups_rounded,
-                    color: Colors.purple,
-                    delay: 0,
-                    target: const OrmawaAnggotaScreen(),
-                  ),
-                  _ServiceIcon(
-                    title: 'Struktur',
-                    icon: Icons.account_tree_rounded,
-                    color: Colors.indigo,
-                    delay: 0,
-                    target: const OrmawaStrukturScreen(),
-                  ),
-                  _ServiceIcon(
-                    title: 'Notifikasi',
-                    icon: Icons.notifications_active_rounded,
-                    color: Colors.blueGrey,
-                    delay: 0,
-                    target: const OrmawaNotificationScreen(),
-                  ),
-                  if (context.watch<OrmawaProvider>().hasPermission('MANAJEMEN_ANGGOTA'))
-                    _ServiceIcon(
-                      title: 'Manaj. Staf',
-                      icon: Icons.person_add_alt_1_rounded,
-                      color: Colors.blue,
-                      delay: 0,
-                      target: const OrmawaStaffScreen(),
-                    ),
-                  if (context.watch<OrmawaProvider>().hasPermission('ADMIN_PANEL'))
-                    _ServiceIcon(
-                      title: 'Hak Akses',
-                      icon: Icons.admin_panel_settings_rounded,
-                      color: Colors.blueGrey,
-                      delay: 0,
-                      target: const OrmawaRoleScreen(),
-                    ),
-                  _ServiceIcon(
-                    title: 'Kalender',
-                    icon: Icons.event_rounded,
-                    color: Colors.orange,
-                    delay: 0,
-                    target: const OrmawaKalenderScreen(),
-                  ),
-                  _ServiceIcon(
-                    title: 'Pengumuman',
-                    icon: Icons.campaign_rounded,
-                    color: Colors.purple,
-                    delay: 0,
-                    target: const OrmawaPengumumanScreen(),
-                  ),
-                  _ServiceIcon(
-                    title: 'Aspirasi',
-                    icon: Icons.campaign_rounded,
-                    color: Colors.pink,
-                    delay: 0,
-                    target: const OrmawaAspirasiScreen(),
-                  ),
-                  _ServiceIcon(
-                    title: 'PKKMB',
-                    icon: Icons.auto_awesome_rounded,
-                    color: Colors.orange,
-                    delay: 0,
-                    target: const OrmawaPKKMBScreen(),
-                  ),
-                  _ServiceIcon(
-                    title: 'Notifikasi',
-                    icon: Icons.notifications_rounded,
-                    color: Colors.amber,
-                    delay: 0,
-                    target: const OrmawaNotificationsScreen(),
-                  ),
-                  _ServiceIcon(
-                    title: 'Pengaturan',
-                    icon: Icons.settings_rounded,
-                    color: Colors.grey,
-                    delay: 0,
-                    target: const OrmawaSettingsScreen(),
-                  ),
-                  _ServiceIcon(
-                    title: 'Keluar',
-                    icon: Icons.logout_rounded,
-                    color: Colors.red,
-                    delay: 0,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+        child: const OrmawaServiceGridModal(),
       ),
     );
   }

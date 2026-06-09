@@ -9,6 +9,7 @@ import { API_BASE_URL } from '../../services/api'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/Select"
 import { Button } from "@/components/ui/Button"
 import { DeleteConfirmModal } from "@/components/ui/DeleteConfirmModal"
+import Dialog, { DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "@/components/ui/Dialog"
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import { PageContent } from '@/components/ui/page'
 import { DashboardHero } from '@/components/ui/dashboard'
@@ -463,162 +464,234 @@ export default function FacultyOrganisasi() {
         </div>
 
       {/* Form Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4" onClick={() => setModal(false)}>
-          <div className="relative w-full max-w-lg glass-card rounded-2xl shadow-none border border-slate-200/60 flex flex-col overflow-hidden max-h-[90vh]" onClick={e => e.stopPropagation()}>
-            <div className="relative bg-gradient-to-br from-bku-primary to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
-              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
-              <button onClick={() => setModal(false)} className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span></button>
-              <div className="relative z-10">
-                <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">{editingOrg ? 'Edit Organisasi' : 'Registrasi Baru'}</p>
-                <h2 className="text-xl font-extrabold font-headline text-white">{editingOrg ? 'Update Data ORMAWA' : 'Tambah Organisasi'}</h2>
+      <Dialog open={showModal} onOpenChange={setModal} maxWidth="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{editingOrg ? 'Update Data ORMAWA' : 'Tambah Organisasi'}</DialogTitle>
+          <DialogDescription>{editingOrg ? 'Edit Organisasi' : 'Registrasi Baru'}</DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+          <DialogContent className="space-y-4 p-6 overflow-y-auto max-h-[60vh]">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Kode Akronim</label>
+                <input 
+                  value={formData.kode_org} 
+                  onChange={e => set('kode_org', e.target.value.toUpperCase())} 
+                  placeholder="BEM-FT" 
+                  required 
+                  className="h-10 w-full rounded-xl border border-[var(--theme-border)] bg-white px-3 text-sm text-[var(--theme-text)] uppercase placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors" 
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Kategori</label>
+                <Select value={formData.kategori} onValueChange={val => set('kategori', val)}>
+                  <SelectTrigger className="h-10 w-full rounded-xl border border-[var(--theme-border)] bg-white px-3 text-sm text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border border-[var(--theme-border)] shadow-md bg-white">
+                    {['BEM', 'Himpunan', 'UKM', 'Komunitas', 'Lainnya'].map(v => (
+                      <SelectItem key={v} value={v} className="rounded-lg text-sm py-1.5 focus:bg-[var(--theme-primary-light)] focus:text-[var(--theme-primary)]">
+                        {v}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-            <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
-              <div className="flex-1 overflow-y-auto p-5 space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Kode Akronim</label>
-                    <input value={formData.kode_org} onChange={e => set('kode_org', e.target.value.toUpperCase())} placeholder="BEM-FT" required className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-black uppercase text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all" /></div>
-                  <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Kategori</label>
-                    <select value={formData.kategori} onChange={e => set('kategori', e.target.value)} className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 focus:outline-none focus:border-primary appearance-none">
-                      {['BEM', 'Himpunan', 'UKM', 'Komunitas', 'Lainnya'].map(v => <option key={v} value={v}>{v}</option>)}
-                    </select></div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  {isSuperAdmin && (
-                    <div className="col-span-2 relative">
-                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Pilih Fakultas</label>
-                      <div className="relative">
+            
+            {isSuperAdmin && (
+              <div className="relative">
+                <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Pilih Fakultas</label>
+                <div className="relative">
+                  <div 
+                    className="w-full h-10 px-3 rounded-xl border border-[var(--theme-border)] bg-white text-sm text-[var(--theme-text)] flex items-center justify-between cursor-pointer focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none"
+                    onClick={() => setIsFakultasDropdownOpen(!isFakultasDropdownOpen)}
+                  >
+                    <span className={`truncate ${!formData.fakultas_id ? 'text-[var(--theme-text-subtle)]' : ''}`}>{fakultasSearch || '-- Tingkat Universitas --'}</span>
+                    <span className="material-symbols-outlined text-[var(--theme-text-subtle)]">expand_more</span>
+                  </div>
+                  
+                  {isFakultasDropdownOpen && (
+                    <div className="absolute z-50 mt-1 w-full bg-white border border-[var(--theme-border)] rounded-xl shadow-lg max-h-60 overflow-y-auto overflow-x-hidden">
+                      <div className="sticky top-0 bg-white p-2 border-b border-[var(--theme-border-muted)]">
+                        <input 
+                          type="text" 
+                          placeholder="Cari fakultas..." 
+                          value={fakultasSearch === '-- Tingkat Universitas --' ? '' : fakultasSearch}
+                          onChange={e => setFakultasSearch(e.target.value)}
+                          className="w-full h-9 px-3 rounded-lg bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm focus:outline-none focus:border-[var(--theme-primary)]"
+                          onClick={e => e.stopPropagation()}
+                        />
+                      </div>
+                      <div className="p-1">
                         <div 
-                          className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 flex items-center justify-between cursor-pointer"
-                          onClick={() => setIsFakultasDropdownOpen(!isFakultasDropdownOpen)}
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => {
+                            set('fakultas_id', '')
+                            setFakultasSearch('-- Tingkat Universitas --')
+                            setIsFakultasDropdownOpen(false)
+                          }}
+                          className={`px-3 py-2 text-sm rounded-lg cursor-pointer hover:bg-[var(--theme-primary-light)] hover:text-[var(--theme-primary)] ${!formData.fakultas_id ? 'bg-[var(--theme-primary-light)] text-[var(--theme-primary)] font-semibold' : 'text-[var(--theme-text)]'}`}
                         >
-                          <span className={`truncate ${!formData.fakultas_id ? 'text-slate-500' : ''}`}>{fakultasSearch || '-- Tingkat Universitas --'}</span>
-                          <span className="material-symbols-outlined text-slate-400">expand_more</span>
+                          -- Tingkat Universitas --
                         </div>
-                        
-                        {isFakultasDropdownOpen && (
-                          <div className="absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-y-auto overflow-x-hidden">
-                            <div className="sticky top-0 bg-white p-2 border-b border-slate-100">
-                              <input 
-                                type="text" 
-                                placeholder="Cari fakultas..." 
-                                value={fakultasSearch === '-- Tingkat Universitas --' ? '' : fakultasSearch}
-                                onChange={e => setFakultasSearch(e.target.value)}
-                                className="w-full h-9 px-3 rounded-lg bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:border-primary"
-                                onClick={e => e.stopPropagation()}
-                              />
+                        {filteredFaculties.length === 0 ? (
+                          <div className="px-3 py-2 text-sm text-[var(--theme-text-muted)] text-center">Tidak ada fakultas ditemukan</div>
+                        ) : (
+                          filteredFaculties.map(f => (
+                            <div 
+                              key={f.id || f.ID}
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => {
+                                set('fakultas_id', f.id || f.ID)
+                                setFakultasSearch(f.nama || f.Nama)
+                                setIsFakultasDropdownOpen(false)
+                              }}
+                              className={`px-3 py-2 text-sm rounded-lg cursor-pointer hover:bg-[var(--theme-primary-light)] hover:text-[var(--theme-primary)] ${parseInt(formData.fakultas_id) === (f.id || f.ID) ? 'bg-[var(--theme-primary-light)] text-[var(--theme-primary)] font-semibold' : 'text-[var(--theme-text)]'}`}
+                            >
+                              {f.nama || f.Nama}
                             </div>
-                            <div className="p-1">
-                              <div 
-                                onMouseDown={(e) => e.preventDefault()}
-                                onClick={() => {
-                                  set('fakultas_id', '')
-                                  setFakultasSearch('-- Tingkat Universitas --')
-                                  setIsFakultasDropdownOpen(false)
-                                }}
-                                className={`px-3 py-2 text-sm rounded-lg cursor-pointer hover:bg-slate-50 ${!formData.fakultas_id ? 'bg-primary/10 text-primary font-bold' : 'text-slate-700'}`}
-                              >
-                                -- Tingkat Universitas --
-                              </div>
-                              {filteredFaculties.length === 0 ? (
-                                <div className="px-3 py-2 text-sm text-slate-400 text-center">Tidak ada fakultas ditemukan</div>
-                              ) : (
-                                filteredFaculties.map(f => (
-                                  <div 
-                                    key={f.id || f.ID}
-                                    onMouseDown={(e) => e.preventDefault()}
-                                    onClick={() => {
-                                      set('fakultas_id', f.id || f.ID)
-                                      setFakultasSearch(f.nama || f.Nama)
-                                      setIsFakultasDropdownOpen(false)
-                                    }}
-                                    className={`px-3 py-2 text-sm rounded-lg cursor-pointer hover:bg-slate-50 ${parseInt(formData.fakultas_id) === (f.id || f.ID) ? 'bg-primary/10 text-primary font-bold' : 'text-slate-700'}`}
-                                  >
-                                    {f.nama || f.Nama}
-                                  </div>
-                                ))
-                              )}
-                            </div>
-                          </div>
+                          ))
                         )}
                       </div>
                     </div>
                   )}
                 </div>
-                <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Nama Panjang Organisasi</label>
-                  <input value={formData.nama_org} onChange={e => set('nama_org', e.target.value)} placeholder="Nama resmi organisasi..." required className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all" /></div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="relative">
-                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Nama Ketua Umum</label>
-                    <div className="relative">
-                      <div 
-                        className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 flex items-center justify-between cursor-pointer"
-                        onClick={() => setIsStudentDropdownOpen(!isStudentDropdownOpen)}
-                      >
-                        <span className={`truncate ${!formData.ketua_nama ? 'text-slate-500' : ''}`}>{formData.ketua_nama || '-- Pilih Mahasiswa --'}</span>
-                        <span className="material-symbols-outlined text-slate-400">expand_more</span>
-                      </div>
-                      
-                      {isStudentDropdownOpen && (
-                        <div className="absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-y-auto overflow-x-hidden">
-                          <div className="sticky top-0 bg-white p-2 border-b border-slate-100">
-                            <input 
-                              type="text" 
-                              placeholder="Cari nama atau NIM..." 
-                              value={studentSearch}
-                              onChange={e => setStudentSearch(e.target.value)}
-                              className="w-full h-9 px-3 rounded-lg bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:border-primary"
-                              onClick={e => e.stopPropagation()}
-                            />
-                          </div>
-                          <div className="p-1">
-                            {filteredStudents.length === 0 ? (
-                              <div className="px-3 py-2 text-sm text-slate-400 text-center">Tidak ada mahasiswa ditemukan</div>
-                            ) : (
-                              filteredStudents.slice(0, 50).map(s => (
-                                <div 
-                                  key={s.ID}
-                                  onClick={() => {
-                                    set('ketua_nama', s.Nama)
-                                    setIsStudentDropdownOpen(false)
-                                    setStudentSearch('')
-                                  }}
-                                  className={`px-3 py-2 text-sm rounded-lg cursor-pointer hover:bg-slate-50 ${formData.ketua_nama === s.Nama ? 'bg-primary/10 text-primary font-bold' : 'text-slate-700'}`}
-                                >
-                                  {s.Nama} <span className="text-slate-400 ml-1">({s.NIM})</span>
-                                </div>
-                              ))
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
+              </div>
+            )}
+            
+            <div>
+              <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Nama Panjang Organisasi</label>
+              <input 
+                value={formData.nama_org} 
+                onChange={e => set('nama_org', e.target.value)} 
+                placeholder="Nama resmi organisasi..." 
+                required 
+                className="h-10 w-full rounded-xl border border-[var(--theme-border)] bg-white px-3 text-sm text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors" 
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="relative">
+                <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Nama Ketua Umum</label>
+                <div className="relative">
+                  <div 
+                    className="w-full h-10 px-3 rounded-xl border border-[var(--theme-border)] bg-white text-sm text-[var(--theme-text)] flex items-center justify-between cursor-pointer"
+                    onClick={() => setIsStudentDropdownOpen(!isStudentDropdownOpen)}
+                  >
+                    <span className={`truncate ${!formData.ketua_nama ? 'text-[var(--theme-text-subtle)]' : ''}`}>{formData.ketua_nama || '-- Pilih Mahasiswa --'}</span>
+                    <span className="material-symbols-outlined text-[var(--theme-text-subtle)]">expand_more</span>
                   </div>
-                  <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Jumlah Anggota</label>
-                    <input type="number" value={formData.jumlah_anggota} onChange={e => set('jumlah_anggota', parseInt(e.target.value) || 0)} className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-black text-center text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all" /></div>
+                  
+                  {isStudentDropdownOpen && (
+                    <div className="absolute z-50 mt-1 w-full bg-white border border-[var(--theme-border)] rounded-xl shadow-lg max-h-60 overflow-y-auto overflow-x-hidden">
+                      <div className="sticky top-0 bg-white p-2 border-b border-[var(--theme-border-muted)]">
+                        <input 
+                          type="text" 
+                          placeholder="Cari nama atau NIM..." 
+                          value={studentSearch}
+                          onChange={e => setStudentSearch(e.target.value)}
+                          className="w-full h-9 px-3 rounded-lg bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm focus:outline-none focus:border-[var(--theme-primary)]"
+                          onClick={e => e.stopPropagation()}
+                        />
+                      </div>
+                      <div className="p-1">
+                        {filteredStudents.length === 0 ? (
+                          <div className="px-3 py-2 text-sm text-[var(--theme-text-muted)] text-center">Tidak ada mahasiswa ditemukan</div>
+                        ) : (
+                          filteredStudents.slice(0, 50).map(s => (
+                            <div 
+                              key={s.ID}
+                              onClick={() => {
+                                set('ketua_nama', s.Nama)
+                                setIsStudentDropdownOpen(false)
+                                setStudentSearch('')
+                              }}
+                              className={`px-3 py-2 text-sm rounded-lg cursor-pointer hover:bg-[var(--theme-primary-light)] hover:text-[var(--theme-primary)] ${formData.ketua_nama === s.Nama ? 'bg-[var(--theme-primary-light)] text-[var(--theme-primary)] font-semibold' : 'text-[var(--theme-text)]'}`}
+                            >
+                              {s.Nama} <span className="text-[var(--theme-text-muted)] ml-1">({s.NIM})</span>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Status</label>
-                    <select value={formData.status} onChange={e => set('status', e.target.value)} className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 focus:outline-none focus:border-primary appearance-none">
-                      {['Aktif', 'Nonaktif', 'Pembekuan'].map(v => <option key={v} value={v}>{v}</option>)}
-                    </select></div>
-                  <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Email Resmi</label>
-                    <input type="email" value={formData.email} onChange={e => set('email', e.target.value)} placeholder="info@ormawa.com" className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all" /></div>
-                </div>
-                <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">{editingOrg ? 'Password (kosongkan jika tidak diubah)' : 'Password Akun Admin'}</label>
-                  <input type="password" value={formData.password} onChange={e => set('password', e.target.value)} placeholder="Password login admin ormawa..." required={!editingOrg} className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all" /></div>
               </div>
-              <div className="px-5 py-4 border-t border-slate-200/60 bg-transparent flex gap-3 flex-shrink-0">
-                <button type="button" onClick={() => setModal(false)} className="flex-1 h-11 rounded-xl border border-slate-200/60 bg-white text-xs font-bold text-slate-600 uppercase tracking-widest hover:bg-slate-50 transition-all">Batal</button>
-                <button type="submit" disabled={isSubmitting} className="flex-1 h-11 rounded-xl bg-primary hover:bg-bku-hover text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-bku-primary/20 disabled:opacity-60 flex items-center justify-center gap-2">
-                  {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >save</span>} {editingOrg ? 'Update Data' : 'Simpan Data'}
-                </button>
+              <div>
+                <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Jumlah Anggota</label>
+                <input 
+                  type="number" 
+                  value={formData.jumlah_anggota} 
+                  onChange={e => set('jumlah_anggota', parseInt(e.target.value) || 0)} 
+                  className="h-10 w-full rounded-xl border border-[var(--theme-border)] bg-white px-3 text-sm text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors" 
+                />
               </div>
-            </form>
-          </div>
-        </div>
-      )}
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Status</label>
+                <Select value={formData.status} onValueChange={val => set('status', val)}>
+                  <SelectTrigger className="h-10 w-full rounded-xl border border-[var(--theme-border)] bg-white px-3 text-sm text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border border-[var(--theme-border)] shadow-md bg-white">
+                    {['Aktif', 'Nonaktif', 'Pembekuan'].map(v => (
+                      <SelectItem key={v} value={v} className="rounded-lg text-sm py-1.5 focus:bg-[var(--theme-primary-light)] focus:text-[var(--theme-primary)]">
+                        {v}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Email Resmi</label>
+                <input 
+                  type="email" 
+                  value={formData.email} 
+                  onChange={e => set('email', e.target.value)} 
+                  placeholder="info@ormawa.com" 
+                  className="h-10 w-full rounded-xl border border-[var(--theme-border)] bg-white px-3 text-sm text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors" 
+                />
+              </div>
+            </div>
+            
+            <div>
+              <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">{editingOrg ? 'Password (kosongkan jika tidak diubah)' : 'Password Akun Admin'}</label>
+              <input 
+                type="password" 
+                value={formData.password} 
+                onChange={e => set('password', e.target.value)} 
+                placeholder="Password login admin ormawa..." 
+                required={!editingOrg} 
+                className="h-10 w-full rounded-xl border border-[var(--theme-border)] bg-white px-3 text-sm text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors" 
+              />
+            </div>
+          </DialogContent>
+          <DialogFooter>
+            <button 
+              type="button" 
+              onClick={() => setModal(false)} 
+              className="h-10 px-4 rounded-xl border border-[var(--theme-border)] text-sm font-semibold text-[var(--theme-text)] hover:bg-[var(--theme-bg)] transition-colors"
+            >
+              Batal
+            </button>
+            <button 
+              type="submit" 
+              disabled={isSubmitting} 
+              className="h-10 px-4 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-sm font-semibold transition-all active:scale-95 disabled:opacity-60 flex items-center justify-center gap-2"
+            >
+              {isSubmitting ? (
+                <span className="material-symbols-outlined animate-spin text-[14px]">sync</span>
+              ) : (
+                <span className="material-symbols-outlined text-[14px]">save</span>
+              )}{' '}
+              {editingOrg ? 'Update Data' : 'Simpan Data'}
+            </button>
+          </DialogFooter>
+        </form>
+      </Dialog>
 
       {/* Delete Confirm */}
       <DeleteConfirmModal

@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import { PageContent } from '@/components/ui/page'
 import { DashboardHero } from '@/components/ui/dashboard'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Filter = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>filter_alt</span>;
@@ -779,78 +780,67 @@ const AspirationControl = () => {
         </Card>
 
       {/* ── Global Aspiration Audit Dialog Popup Modal ───────────────── */}
-      {selected && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4 transition-all duration-300"
-          onClick={() => setSelected(null)}>
-          <div className="relative w-full max-w-5xl bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh] animate-scale-up"
-            onClick={e => e.stopPropagation()}>
-            
+      <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)} maxWidth="max-w-5xl">
+        {selected && (
+          <DialogContent className="max-h-[90vh] overflow-y-auto flex flex-col p-0">
             {/* Modal Header */}
-            <div className="relative bg-gradient-to-br from-slate-800 via-slate-700 to-slate-600 pt-6 pb-6 px-8 overflow-hidden flex-shrink-0 flex items-center justify-between">
-              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none"/>
-              
+            <DialogHeader className="shrink-0 flex items-center justify-between flex-row">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-white shrink-0">
+                <div className="w-12 h-12 bg-[var(--theme-primary-light)] rounded-2xl flex items-center justify-center text-[var(--theme-primary)] shrink-0">
                   <span className="material-symbols-outlined" style={{ fontSize: '24px' }} >security</span>
                 </div>
                 <div>
-                  <div className="flex items-center gap-2 text-[10px] font-black text-white/50 uppercase tracking-[0.25em]">
+                  <div className="flex items-center gap-2 text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">
                     <span>Incident Audit Manager</span>
                     <span>·</span>
-                    <span className="text-amber-400">#ASP-{selected.ID?.toString().padStart(4, '0')}</span>
+                    <span className="text-[var(--theme-secondary)]">#ASP-{selected.ID?.toString().padStart(4, '0')}</span>
                   </div>
-                  <h2 className="text-lg font-black font-headline leading-tight uppercase truncate max-w-[500px] mt-0.5 text-white">
+                  <DialogTitle className="text-base font-bold font-headline leading-tight mt-0.5 text-[var(--theme-text)]">
                     {selected.Judul || selected.Subjek}
-                  </h2>
+                  </DialogTitle>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                <Badge className={cn(
-                  'px-3.5 py-1.5 rounded-xl border text-[9px] font-extrabold uppercase tracking-widest shadow-sm',
-                  selected.Status === 'Selesai' ? 'bg-emerald-500/20 border-emerald-400/30 text-emerald-200' :
-                  selected.Status === 'Proses' ? 'bg-blue-500/20 border-blue-400/30 text-blue-200' :
-                  'bg-amber-500/20 border-amber-400/30 text-amber-200'
+              <div className="flex items-center gap-3 pr-10">
+                <span className={cn(
+                  'px-3.5 py-1 py-1 rounded-full border text-[9px] font-semibold uppercase tracking-widest shadow-sm',
+                  selected.Status?.toLowerCase() === 'selesai' ? 'bg-[var(--theme-success-light)] border-[var(--theme-success)]/30 text-[var(--theme-success)]' :
+                  selected.Status?.toLowerCase() === 'proses' ? 'bg-[var(--theme-info-light)] border-[var(--theme-info)]/30 text-[var(--theme-info)]' :
+                  'bg-[var(--theme-warning-light)] border-[var(--theme-warning)]/30 text-[var(--theme-warning)]'
                 )}>
                   Status: {selected.Status || 'OPEN'}
-                </Badge>
-                
-                <button onClick={() => setSelected(null)}
-                  className="w-9 h-9 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-all active:scale-95 text-white">
-                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >close</span>
-                </button>
+                </span>
               </div>
-            </div>
+            </DialogHeader>
 
             {/* Modal Body */}
-            <div className="flex-1 overflow-y-auto p-8 grid grid-cols-1 lg:grid-cols-5 gap-8 custom-scrollbar">
-              
+            <div className="flex-1 overflow-y-auto p-8 grid grid-cols-1 lg:grid-cols-5 gap-8">
               {/* Left Column: Reporter Profile, Content Subjek & Attachments */}
               <div className="lg:col-span-3 space-y-6">
                 
                 {/* Reporter Profile Block */}
-                <div className="p-6 rounded-2xl bg-neutral-50/50 border border-neutral-100 shadow-sm flex flex-col md:flex-row gap-5 items-start">
-                  <StudentAvatar src={selected.Mahasiswa?.Foto} name={selected.Mahasiswa?.Nama} className="w-16 h-16 rounded-2xl shadow-md ring-4 ring-neutral-100 shrink-0" />
+                <div className="p-6 rounded-2xl bg-[var(--theme-bg)] border border-[var(--theme-border)] shadow-none flex flex-col md:flex-row gap-5 items-start">
+                  <StudentAvatar src={selected.Mahasiswa?.Foto} name={selected.Mahasiswa?.Nama} className="w-16 h-16 rounded-2xl shadow-md ring-4 ring-[var(--theme-border-muted)] shrink-0" />
                   
                   <div className="flex-1 space-y-3 w-full">
-                    <div className="flex items-center justify-between border-b border-neutral-100 pb-2">
-                      <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">Identitas Pelapor</span>
-                      <Badge variant="outline" className="text-[8px] font-black text-neutral-400 uppercase tracking-widest border-neutral-200 px-2 py-0.5">Verified Mahasiswa</Badge>
+                    <div className="flex items-center justify-between border-b border-[var(--theme-border-muted)] pb-2">
+                      <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Identitas Pelapor</span>
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[8px] font-bold border border-[var(--theme-border)] text-[var(--theme-text-muted)] bg-[var(--theme-bg)] uppercase tracking-wider">Verified Mahasiswa</span>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-3 text-xs">
+                    <div className="grid grid-cols-2 gap-3 text-xs text-[var(--theme-text)]">
                       <div>
-                        <p className="text-[9px] font-black text-neutral-400 uppercase tracking-widest">Nama Lengkap</p>
-                        <p className="font-bold text-neutral-800 truncate">{selected.Mahasiswa?.Nama}</p>
+                        <p className="text-[9px] font-semibold text-[var(--theme-text-subtle)] uppercase tracking-wider">Nama Lengkap</p>
+                        <p className="font-bold truncate">{selected.Mahasiswa?.Nama}</p>
                       </div>
                       <div>
-                        <p className="text-[9px] font-black text-neutral-400 uppercase tracking-widest">NIM / Identifier</p>
-                        <p className="font-mono font-bold text-neutral-800">{selected.Mahasiswa?.NIM}</p>
+                        <p className="text-[9px] font-semibold text-[var(--theme-text-subtle)] uppercase tracking-wider">NIM / Identifier</p>
+                        <p className="font-mono font-bold">{selected.Mahasiswa?.NIM}</p>
                       </div>
                       <div className="col-span-2">
-                        <p className="text-[9px] font-black text-neutral-400 uppercase tracking-widest">Fakultas / Node asal</p>
-                        <p className="font-bold text-neutral-700 uppercase flex items-center gap-1.5 mt-0.5">
-                          <span className="material-symbols-outlined text-[14px] text-primary/60">business</span>
+                        <p className="text-[9px] font-semibold text-[var(--theme-text-subtle)] uppercase tracking-wider">Fakultas / Node asal</p>
+                        <p className="font-bold uppercase flex items-center gap-1.5 mt-0.5">
+                          <span className="material-symbols-outlined text-[14px] text-[var(--theme-primary)]">business</span>
                           {selected.Mahasiswa?.Fakultas?.Nama || 'Institusional'}
                         </p>
                       </div>
@@ -860,14 +850,14 @@ const AspirationControl = () => {
 
                 {/* Substantive Content */}
                 <div className="space-y-3">
-                  <h4 className="text-[11px] font-black font-headline uppercase tracking-widest flex items-center gap-2" style={{ color: 'var(--theme-h4)' }}>
-                    <span className="material-symbols-outlined text-primary text-[16px]">chat</span> Substansi Aspirasi
+                  <h4 className="text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 text-[var(--theme-text-muted)]">
+                    <span className="material-symbols-outlined text-[var(--theme-primary)] text-[16px]">chat</span> Substansi Aspirasi
                   </h4>
-                  <div className="p-6 rounded-2xl bg-neutral-50 border border-neutral-100 relative overflow-hidden group">
+                  <div className="p-6 rounded-2xl bg-[var(--theme-bg)] border border-[var(--theme-border)] relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
                       <span className="material-symbols-outlined text-[80px]" >chat</span>
                     </div>
-                    <p className="text-sm text-neutral-600 font-medium leading-relaxed font-inter relative z-10 whitespace-pre-wrap">
+                    <p className="text-sm text-[var(--theme-text-muted)] font-medium leading-relaxed font-body relative z-10 whitespace-pre-wrap">
                       "{selected.Isi || 'Tidak ada deskripsi konten.'}"
                     </p>
                   </div>
@@ -875,13 +865,13 @@ const AspirationControl = () => {
 
                 {/* Visual Proof Section */}
                 <div className="space-y-3">
-                  <h4 className="text-[11px] font-black font-headline uppercase tracking-widest flex items-center gap-2" style={{ color: 'var(--theme-h4)' }}>
-                    <span className="material-symbols-outlined text-primary text-[16px]">image</span> Bukti Lampiran Visual
+                  <h4 className="text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 text-[var(--theme-text-muted)]">
+                    <span className="material-symbols-outlined text-[var(--theme-primary)] text-[16px]">image</span> Bukti Lampiran Visual
                   </h4>
                   
                   {selected.BuktiURL ? (
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
-                      <div className="md:col-span-5 relative aspect-video rounded-xl overflow-hidden border border-neutral-200 shadow-md group">
+                      <div className="md:col-span-5 relative aspect-video rounded-xl overflow-hidden border border-[var(--theme-border)] shadow-md group">
                         <img 
                           src={getCleanImageUrl(selected.BuktiURL)} 
                           alt="Bukti Aspirasi" 
@@ -892,24 +882,24 @@ const AspirationControl = () => {
                             href={getCleanImageUrl(selected.BuktiURL)} 
                             target="_blank" 
                             rel="noreferrer"
-                            className="px-4 py-2 bg-white text-neutral-900 rounded-lg font-bold text-[10px] uppercase tracking-widest shadow-xl flex items-center gap-1.5 hover:bg-primary hover:text-white transition-all active:scale-95"
+                            className="px-4 py-2 bg-[var(--theme-surface)] text-[var(--theme-text)] rounded-lg font-bold text-[10px] uppercase tracking-widest shadow-xl flex items-center gap-1.5 hover:bg-[var(--theme-primary)] hover:text-white transition-all active:scale-95"
                           >
                             <span className="material-symbols-outlined text-[13px]">open_in_new</span> Full View
                           </a>
                         </div>
                       </div>
                       
-                      <div className="md:col-span-7 p-4 rounded-xl bg-neutral-50 border border-dashed border-neutral-200 flex flex-col justify-center gap-1.5">
-                        <p className="text-xs font-bold text-neutral-900 font-jakarta">Berkas Lampiran Laporan</p>
-                        <p className="text-[11px] text-neutral-500 font-medium leading-relaxed">
+                      <div className="md:col-span-7 p-4 rounded-xl bg-[var(--theme-bg)] border border-dashed border-[var(--theme-border)] flex flex-col justify-center gap-1.5">
+                        <p className="text-xs font-bold text-[var(--theme-text)]">Berkas Lampiran Laporan</p>
+                        <p className="text-[11px] text-[var(--theme-text-muted)] font-medium leading-relaxed">
                           Lampiran pendukung telah disertakan oleh mahasiswa. Silakan periksa gambar secara detail untuk proses pembuktian data laporan.
                         </p>
                       </div>
                     </div>
                   ) : (
-                    <div className="p-8 rounded-xl border border-dashed border-neutral-100 flex flex-col items-center justify-center gap-2 text-neutral-300 bg-neutral-50/20">
+                    <div className="p-8 rounded-xl border border-dashed border-[var(--theme-border)] flex flex-col items-center justify-center gap-2 text-[var(--theme-text-subtle)] bg-[var(--theme-bg)]/20">
                       <span className="material-symbols-outlined text-[30px]" >image</span>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Tidak ada bukti lampiran gambar</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--theme-text-subtle)]">Tidak ada bukti lampiran gambar</p>
                     </div>
                   )}
                 </div>
@@ -920,24 +910,24 @@ const AspirationControl = () => {
               <div className="lg:col-span-2 space-y-6">
                 
                 {/* Governance Card */}
-                <div className="p-6 rounded-2xl bg-[#fafafa] border border-neutral-200/80 shadow-sm space-y-6">
+                <div className="p-6 rounded-2xl bg-[var(--theme-bg)] border border-[var(--theme-border)] space-y-6">
                   
                   {/* Status Selection Buttons */}
                   <div className="space-y-3">
-                    <Label className="text-[10px] font-black text-neutral-400 uppercase tracking-widest ml-0.5">Ubah Status Resolusi</Label>
+                    <Label className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider ml-0.5">Ubah Status Resolusi</Label>
                     <div className="grid grid-cols-2 gap-2.5">
                       {[
-                        { val: 'proses', label: 'On Process', icon: 'schedule', active: 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-100' },
-                        { val: 'Selesai', label: 'Resolved', icon: 'check_circle', active: 'bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-100' },
-                        { val: 'Ditinjau', label: 'Review', icon: 'show_chart', active: 'bg-amber-600 text-white border-amber-600 shadow-md shadow-amber-100' },
-                        { val: 'Ditolak', label: 'Rejected', icon: 'close', active: 'bg-rose-600 text-white border-rose-600 shadow-md shadow-rose-100' },
+                        { val: 'proses', label: 'On Process', icon: 'schedule', active: 'bg-[var(--theme-info)] text-white border-[var(--theme-info)]' },
+                        { val: 'Selesai', label: 'Resolved', icon: 'check_circle', active: 'bg-[var(--theme-success)] text-white border-[var(--theme-success)]' },
+                        { val: 'Ditinjau', label: 'Review', icon: 'show_chart', active: 'bg-[var(--theme-warning)] text-white border-[var(--theme-warning)]' },
+                        { val: 'Ditolak', label: 'Rejected', icon: 'close', active: 'bg-[var(--theme-error)] text-white border-[var(--theme-error)]' },
                       ].map(s => (
                         <button 
                           key={s.val} 
                           type="button"
                           onClick={() => setForm({ ...form, status: s.val })}
                           className={cn(
-                            'h-12 rounded-xl flex items-center justify-center gap-1.5 border border-neutral-200/80 bg-white font-bold uppercase tracking-widest text-[9px] hover:bg-neutral-50 hover:text-neutral-900 transition-all duration-300',
+                            'h-10 rounded-xl flex items-center justify-center gap-1.5 border border-[var(--theme-border)] bg-[var(--theme-surface)] font-bold uppercase tracking-widest text-[9px] text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg)] hover:text-[var(--theme-text)] transition-all duration-300 cursor-pointer',
                             form.status?.toLowerCase() === s.val.toLowerCase() && s.active
                           )}
                         >
@@ -950,21 +940,21 @@ const AspirationControl = () => {
 
                   {/* Response Textarea */}
                   <div className="space-y-3">
-                    <Label className="text-[10px] font-black text-neutral-400 uppercase tracking-widest ml-0.5">Tanggapan Resmi Universitas</Label>
+                    <Label className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider ml-0.5">Tanggapan Resmi Universitas</Label>
                     <textarea 
                       value={form.respon}
                       onChange={e => setForm({ ...form, respon: e.target.value })}
                       placeholder="Tuliskan respon resmi, klarifikasi, atau solusi yang diajukan institusi..."
-                      className="w-full min-h-[140px] rounded-xl border border-neutral-200 bg-white p-4 font-medium text-xs font-inter focus:ring-2 focus:ring-primary/10 transition-all outline-none resize-none"
+                      className="w-full min-h-[140px] rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] p-4 font-medium text-xs font-body text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none resize-none transition-all"
                     />
                   </div>
 
                   {/* Warning SLA Card */}
-                  <div className="p-4 rounded-xl bg-amber-50/60 border border-amber-100 flex items-start gap-3">
-                    <span className="material-symbols-outlined text-amber-600 shrink-0" style={{ fontSize: '16px' }} >error</span>
+                  <div className="p-4 rounded-xl bg-[var(--theme-warning-light)] border border-[var(--theme-warning)]/30 flex items-start gap-3">
+                    <span className="material-symbols-outlined text-[var(--theme-warning)] shrink-0" style={{ fontSize: '16px' }} >error</span>
                     <div className="space-y-0.5">
-                      <p className="text-[9px] font-black text-amber-700 uppercase tracking-widest">SLA Resolution Limit</p>
-                      <p className="text-[10px] text-amber-600 font-semibold leading-normal">
+                      <p className="text-[9px] font-bold text-[var(--theme-warning)] uppercase tracking-wider">SLA Resolution Limit</p>
+                      <p className="text-[10px] text-[var(--theme-warning)]/90 font-semibold leading-normal">
                         Batas penanganan standar adalah 3x24 jam sejak tiket dibuat. Harap berikan resolusi secara objektif dan akurat.
                       </p>
                     </div>
@@ -977,18 +967,18 @@ const AspirationControl = () => {
             </div>
 
             {/* Modal Footer */}
-            <div className="px-8 py-5 border-t border-neutral-100 bg-neutral-50 flex items-center justify-end gap-3 flex-shrink-0">
+            <DialogFooter className="px-8 py-5 flex items-center justify-end gap-3 shrink-0">
               <Button 
                 variant="outline"
                 onClick={() => setSelected(null)}
-                className="h-11 px-6 rounded-xl border-neutral-200 text-neutral-600 text-[10px] font-bold uppercase tracking-widest hover:bg-neutral-100 active:scale-95 transition-all"
+                className="h-10 px-6 rounded-xl border border-[var(--theme-border)] text-[var(--theme-text-muted)] text-[10px] font-bold uppercase tracking-wider hover:bg-[var(--theme-bg)] active:scale-95 transition-all"
               >
                 Close Audit
               </Button>
               <Button 
                 onClick={handleSubmitResolution}
                 disabled={isSubmitting}
-                className="h-11 px-6 rounded-xl bg-neutral-900 text-white hover:bg-primary font-black text-[10px] uppercase tracking-widest shadow-lg shadow-neutral-900/10 active:scale-95 transition-all gap-1.5"
+                className="h-10 px-6 rounded-xl bg-[var(--theme-primary)] text-white hover:bg-[var(--theme-primary-hover)] font-bold text-[10px] uppercase tracking-wider active:scale-95 transition-all gap-1.5 flex items-center"
               >
                 {isSubmitting ? (
                   <span className="material-symbols-outlined animate-spin" style={{ fontSize: '15px' }} >sync</span>
@@ -997,11 +987,10 @@ const AspirationControl = () => {
                 )}
                 Save & Commit Resolution
               </Button>
-            </div>
-
-          </div>
-        </div>
-      )}
+            </DialogFooter>
+          </DialogContent>
+        )}
+      </Dialog>
 
     </PageContent>
   )

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { UI } from '../../constants/designSystem';
 import { psychologistService } from '../../services/api';
+import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const ArrowLeft = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>arrow_back</span>;
@@ -398,289 +399,284 @@ export default function PatientMedicalRecord() {
         </div>
 
         {/* --- ADD SESSION MODAL --- */}
-        {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setIsModalOpen(false)}></div>
-            
-            <div className="w-full max-w-4xl rounded-2xl shadow-2xl relative z-10 overflow-hidden animate-in zoom-in-95 duration-300 border flex flex-col max-h-[90vh]" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
-               <div className="bg-primary p-5 text-white flex justify-between items-center shrink-0">
-                  <div>
-                    <h3 className="text-sm font-black uppercase tracking-tight font-headline">Tambah Sesi Baru (Asesmen & Rekomendasi)</h3>
-                    <p className="text-[10px] text-white/70 font-bold uppercase tracking-widest mt-0.5">{bookingId ? `Terhubung ke booking #${bookingId}` : 'Form Asesmen dan Rekomendasi Hasil Konseling'}</p>
-                  </div>
-                  <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-white/10 rounded-xl transition-colors">
-                    <span className="material-symbols-outlined text-xl shrink-0" >close</span>
-                  </button>
-               </div>
-
-               <form onSubmit={handleAddRecord} className="p-4 overflow-y-auto flex-1 space-y-5">
-                  {/* Data Diri Mahasiswa Section */}
-                  <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4">
-                     <h4 className="text-[10px] font-black text-[#00236F] uppercase tracking-widest mb-3 flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[14px] shrink-0">badge</span> Data Diri Mahasiswa (Auto-Populated)
-                     </h4>
-                     <div className="grid grid-cols-2 md:grid-cols-4 gap-x-5 gap-y-3 text-[10px] font-medium text-slate-600">
-                        <div>
-                           <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-0.5">Nama Klien</p>
-                           <p className="font-bold text-slate-900">{patient.name || '-'}</p>
-                        </div>
-                        <div>
-                           <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-0.5">NPM / NIM</p>
-                           <p className="font-bold text-slate-900">{patient.nim || '-'}</p>
-                        </div>
-                        <div>
-                           <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-0.5">Semester</p>
-                           <p className="font-bold text-slate-900">{patient.semester || '-'}</p>
-                        </div>
-                        <div>
-                           <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-0.5">IPK</p>
-                           <p className="font-bold text-slate-900">{patient.ipk !== undefined ? patient.ipk : '-'}</p>
-                        </div>
-                        <div>
-                           <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-0.5">Program Studi</p>
-                           <p className="font-bold text-slate-900">{patient.program_studi || '-'}</p>
-                        </div>
-                        <div>
-                           <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-0.5">Dosen Wali</p>
-                           <p className="font-bold text-slate-900">{patient.dosen_pa || '-'}</p>
-                        </div>
-                        <div>
-                           <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-0.5">Jenis Kelamin</p>
-                           <p className="font-bold text-slate-900">{patient.jenis_kelamin || '-'}</p>
-                        </div>
-                        <div>
-                           <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-0.5">Tempat, Tanggal Lahir</p>
-                           <p className="font-bold text-slate-900">
-                              {patient.tempat_lahir || '-'}{patient.tanggal_lahir && patient.tanggal_lahir !== '-' ? `, ${(() => {
-                                 try {
-                                    const d = new Date(patient.tanggal_lahir);
-                                    if (isNaN(d.getTime())) return patient.tanggal_lahir;
-                                    return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-                                 } catch {
-                                    return patient.tanggal_lahir;
-                                 }
-                              })()}` : ''}
-                           </p>
-                        </div>
-                     </div>
-                  </div>
-
-                  {/* Section 1: Informasi Asesmen */}
-                  <div className="space-y-4">
-                     <h4 className="text-[10px] font-black text-primary uppercase tracking-widest border-b border-slate-100 pb-2">I. Informasi Asesmen</h4>
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                           <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Tujuan Pemeriksaan</label>
-                           <input 
-                             required
-                             value={newRecord.tujuan_pemeriksaan}
-                             onChange={(e) => setNewRecord({...newRecord, tujuan_pemeriksaan: e.target.value})}
-                             className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-2.5 text-[11px] font-bold focus:ring-2 focus:ring-primary/20 transition-all outline-none"
-                             placeholder="Misal: Evaluasi Layanan Konseling Akademik"
-                           />
-                        </div>
-                        <div>
-                           <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Tanggal Asesmen</label>
-                           <input 
-                             required
-                             type="date"
-                             value={newRecord.tanggal_asesmen}
-                             onChange={(e) => setNewRecord({...newRecord, tanggal_asesmen: e.target.value})}
-                             className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-2.5 text-[11px] font-bold focus:ring-2 focus:ring-primary/20 transition-all outline-none"
-                           />
-                        </div>
-                     </div>
-
-                     <div>
-                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Riwayat Keluhan</label>
-                        <textarea 
-                          required
-                          value={newRecord.riwayat_keluhan}
-                          onChange={(e) => setNewRecord({...newRecord, riwayat_keluhan: e.target.value})}
-                          className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-2.5 text-[11px] font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none h-16 resize-none"
-                          placeholder="Deskripsikan riwayat keluhan pasien..."
-                        />
-                     </div>
-
-                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                           <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Aspek Kognitif</label>
-                           <textarea 
-                             required
-                             value={newRecord.aspek_kognitif}
-                             onChange={(e) => setNewRecord({...newRecord, aspek_kognitif: e.target.value})}
-                             className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-2.5 text-[11px] font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none h-20 resize-none"
-                             placeholder="Observasi aspek kognitif..."
-                           />
-                        </div>
-                        <div>
-                           <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Aspek Emosional</label>
-                           <textarea 
-                             required
-                             value={newRecord.aspek_emosional}
-                             onChange={(e) => setNewRecord({...newRecord, aspek_emosional: e.target.value})}
-                             className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-2.5 text-[11px] font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none h-20 resize-none"
-                             placeholder="Observasi aspek emosional..."
-                           />
-                        </div>
-                        <div>
-                           <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Aspek Perilaku</label>
-                           <textarea 
-                             required
-                             value={newRecord.aspek_perilaku}
-                             onChange={(e) => setNewRecord({...newRecord, aspek_perilaku: e.target.value})}
-                             className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-2.5 text-[11px] font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none h-20 resize-none"
-                             placeholder="Observasi aspek perilaku..."
-                           />
-                        </div>
-                     </div>
-                  </div>
-
-                  {/* Section 2: Rekomendasi Layanan */}
-                  <div className="space-y-4">
-                     <h4 className="text-[10px] font-black text-primary uppercase tracking-widest border-b border-slate-100 pb-2">II. Rekomendasi Layanan</h4>
-                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                           <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Rekomendasi Mahasiswa</label>
-                           <textarea 
-                             required
-                             value={newRecord.rekomendasi_mahasiswa}
-                             onChange={(e) => setNewRecord({...newRecord, rekomendasi_mahasiswa: e.target.value})}
-                             className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-2.5 text-[11px] font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none h-20 resize-none"
-                             placeholder="Rekomendasi bagi mahasiswa..."
-                           />
-                        </div>
-                        <div>
-                           <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Rekomendasi Program Studi</label>
-                           <textarea 
-                             required
-                             value={newRecord.rekomendasi_prodi}
-                             onChange={(e) => setNewRecord({...newRecord, rekomendasi_prodi: e.target.value})}
-                             className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-2.5 text-[11px] font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none h-20 resize-none"
-                             placeholder="Rekomendasi bagi Prodi..."
-                           />
-                        </div>
-                        <div>
-                           <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Rekomendasi Orang Tua/Wali</label>
-                           <textarea 
-                             required
-                             value={newRecord.rekomendasi_orang_tua}
-                             onChange={(e) => setNewRecord({...newRecord, rekomendasi_orang_tua: e.target.value})}
-                             className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-2.5 text-[11px] font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none h-20 resize-none"
-                             placeholder="Rekomendasi bagi Orang tua..."
-                           />
-                        </div>
-                     </div>
-                  </div>
-
-                  {/* Section 3: Tindak Lanjut & Kesimpulan */}
-                  <div className="space-y-6">
-                     <h4 className="text-[10px] font-black text-primary uppercase tracking-widest border-b border-slate-100 pb-2">III. Tindak Lanjut & Kesimpulan</h4>
-                     
-                     <div className="grid grid-cols-1 md:grid-cols-3 gap-5 bg-slate-50 border border-slate-200/60 rounded-2xl p-4">
-                        <div className="flex flex-col gap-2">
-                           <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">1. Sesi Tuntas <span className="text-rose-500">*</span></label>
-                           <div className="flex gap-2">
-                              <button type="button" onClick={() => setNewRecord({ ...newRecord, tindak_lanjut_tuntas: true })} className={`flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${newRecord.tindak_lanjut_tuntas === true ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20' : 'bg-white text-slate-400 border border-slate-200 hover:border-emerald-300 hover:text-emerald-600'}`}>Ya</button>
-                              <button type="button" onClick={() => setNewRecord({ ...newRecord, tindak_lanjut_tuntas: false })} className={`flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${newRecord.tindak_lanjut_tuntas === false ? 'bg-rose-500 text-white shadow-md shadow-rose-500/20' : 'bg-white text-slate-400 border border-slate-200 hover:border-rose-300 hover:text-rose-500'}`}>Tidak</button>
-                           </div>
-                           {newRecord.tindak_lanjut_tuntas === true && <p className="text-[9px] text-emerald-600 font-bold ml-1">⚠ Booking akan dikunci setelah disimpan</p>}
-                        </div>
-
-                        <div className="flex flex-col gap-2">
-                           <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">2. Konseling Lanjutan</label>
-                           <div className="flex gap-2">
-                              <button type="button" onClick={() => setNewRecord({ ...newRecord, tindak_lanjut_lanjutan: true })} className={`flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${newRecord.tindak_lanjut_lanjutan === true ? 'bg-primary text-white shadow-md shadow-primary/20' : 'bg-white text-slate-400 border border-slate-200 hover:border-primary/40 hover:text-primary'}`}>Ya</button>
-                              <button type="button" onClick={() => setNewRecord({ ...newRecord, tindak_lanjut_lanjutan: false })} className={`flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${newRecord.tindak_lanjut_lanjutan === false ? 'bg-rose-500 text-white shadow-md shadow-rose-500/20' : 'bg-white text-slate-400 border border-slate-200 hover:border-rose-300 hover:text-rose-500'}`}>Tidak</button>
-                           </div>
-                        </div>
-
-                        <div className="flex flex-col gap-2">
-                           <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">3. Rujuk Klinis</label>
-                           <div className="flex gap-2">
-                              <button type="button" onClick={() => setNewRecord({ ...newRecord, tindak_lanjut_rujuk: true })} className={`flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${newRecord.tindak_lanjut_rujuk === true ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20' : 'bg-white text-slate-400 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600'}`}>Ya</button>
-                              <button type="button" onClick={() => setNewRecord({ ...newRecord, tindak_lanjut_rujuk: false })} className={`flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${newRecord.tindak_lanjut_rujuk === false ? 'bg-rose-500 text-white shadow-md shadow-rose-500/20' : 'bg-white text-slate-400 border border-slate-200 hover:border-rose-300 hover:text-rose-500'}`}>Tidak</button>
-                           </div>
-                           {newRecord.tindak_lanjut_rujuk === true && <p className="text-[9px] text-indigo-600 font-bold ml-1">→ Surat rujukan otomatis dibuat & dikirim ke Referral</p>}
-                        </div>
-                     </div>
-
-                     {newRecord.tindak_lanjut_rujuk && (
-                       <div className="grid grid-cols-1 md:grid-cols-3 gap-5 bg-primary/5 border border-primary/10 rounded-3xl p-5 animate-in fade-in slide-in-from-top-1 duration-200">
-                         <div className="flex flex-col gap-1.5">
-                           <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Tipe Rujukan</label>
-                           <select
-                             value={newRecord.rujukan_tipe}
-                             onChange={(e) => setNewRecord({ ...newRecord, rujukan_tipe: e.target.value })}
-                             className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-xs font-bold focus:ring-2 focus:ring-primary/20 transition-all outline-none"
-                           >
-                             <option value="Medis">Rujukan Medis</option>
-                             <option value="Akademik">Rujukan Akademik</option>
-                           </select>
-                         </div>
-                         <div className="flex flex-col gap-1.5">
-                           <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Pihak / Instansi Tujuan</label>
-                           <input
-                             required
-                             type="text"
-                             value={newRecord.rujukan_pihak_tujuan}
-                             onChange={(e) => setNewRecord({ ...newRecord, rujukan_pihak_tujuan: e.target.value })}
-                             className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-xs font-bold focus:ring-2 focus:ring-primary/20 transition-all outline-none"
-                             placeholder="Misal: RS Pusat, Dekan FT"
-                           />
-                         </div>
-                         <div className="flex flex-col gap-1.5">
-                           <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Email Tujuan</label>
-                           <input
-                             required
-                             type="email"
-                             value={newRecord.rujukan_email_tujuan}
-                             onChange={(e) => setNewRecord({ ...newRecord, rujukan_email_tujuan: e.target.value })}
-                             className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-xs font-bold focus:ring-2 focus:ring-primary/20 transition-all outline-none"
-                             placeholder="email@tujuan.com"
-                           />
-                         </div>
-                       </div>
-                     )}
-
-                     <div>
-                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Kesimpulan</label>
-                        <textarea 
-                          required
-                          value={newRecord.kesimpulan}
-                          onChange={(e) => setNewRecord({...newRecord, kesimpulan: e.target.value})}
-                          className="w-full bg-slate-50 border border-slate-200/60 rounded-2xl px-5 py-3 text-xs font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none h-20 resize-none"
-                          placeholder="Tulis kesimpulan umum asesmen konseling..."
-                        />
-                     </div>
-
-                     <div>
-                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Status Mood / Kondisi Emosional Saat Sesi</label>
-                        <div className="flex flex-wrap gap-2">
-                           {['Stabil', 'Cemas', 'Depresi', 'Netral', 'Membaik'].map((m) => (
-                             <button
-                               type="button"
-                               key={m}
-                               onClick={() => setNewRecord({...newRecord, mood: m})}
-                               className={`px-4 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${newRecord.mood === m ? 'bg-primary text-white shadow-md shadow-primary/20' : 'bg-slate-50 text-slate-400 border border-slate-100 hover:bg-slate-100'}`}
-                             >
-                               {m}
-                             </button>
-                           ))}
-                        </div>
-                     </div>
-                  </div>
-
-                  <div className="pt-6 border-t border-slate-100 flex gap-3 sticky bottom-0 bg-white">
-                     <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 bg-slate-50 text-slate-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all">Batal</button>
-                     <button type="submit" className="flex-2 bg-primary text-white px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center justify-center gap-2 hover:bg-primary/90 transition-all">
-                        <span className="material-symbols-outlined text-base shrink-0" >save</span> Simpan Catatan Asesmen
-                     </button>
-                  </div>
-               </form>
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen} maxWidth="max-w-4xl">
+          <DialogHeader className="bg-slate-50/50 border-b border-slate-100 flex-shrink-0 relative">
+            <div className="pr-8">
+              <DialogTitle>Tambah Sesi Baru (Asesmen & Rekomendasi)</DialogTitle>
+              <DialogDescription className="text-[10px] font-bold uppercase tracking-widest mt-1 text-slate-400">
+                {bookingId ? `Terhubung ke booking #${bookingId}` : 'Form Asesmen dan Rekomendasi Hasil Konseling'}
+              </DialogDescription>
             </div>
-          </div>
-        )}
+          </DialogHeader>
+
+          <form onSubmit={handleAddRecord} className="flex flex-col">
+            <div className="p-6 md:p-8 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar">
+              {/* Data Diri Mahasiswa Section */}
+              <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4">
+                 <h4 className="text-[10px] font-black text-[#00236F] uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[14px] shrink-0">badge</span> Data Diri Mahasiswa (Auto-Populated)
+                 </h4>
+                 <div className="grid grid-cols-2 md:grid-cols-4 gap-x-5 gap-y-3 text-[10px] font-medium text-slate-600">
+                    <div>
+                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-0.5">Nama Klien</p>
+                       <p className="font-bold text-slate-900">{patient.name || '-'}</p>
+                    </div>
+                    <div>
+                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-0.5">NPM / NIM</p>
+                       <p className="font-bold text-slate-900">{patient.nim || '-'}</p>
+                    </div>
+                    <div>
+                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-0.5">Semester</p>
+                       <p className="font-bold text-slate-900">{patient.semester || '-'}</p>
+                    </div>
+                    <div>
+                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-0.5">IPK</p>
+                       <p className="font-bold text-slate-900">{patient.ipk !== undefined ? patient.ipk : '-'}</p>
+                    </div>
+                    <div>
+                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-0.5">Program Studi</p>
+                       <p className="font-bold text-slate-900">{patient.program_studi || '-'}</p>
+                    </div>
+                    <div>
+                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-0.5">Dosen Wali</p>
+                       <p className="font-bold text-slate-900">{patient.dosen_pa || '-'}</p>
+                    </div>
+                    <div>
+                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-0.5">Jenis Kelamin</p>
+                       <p className="font-bold text-slate-900">{patient.jenis_kelamin || '-'}</p>
+                    </div>
+                    <div>
+                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-0.5">Tempat, Tanggal Lahir</p>
+                       <p className="font-bold text-slate-900">
+                          {patient.tempat_lahir || '-'}{patient.tanggal_lahir && patient.tanggal_lahir !== '-' ? `, ${(() => {
+                             try {
+                                const d = new Date(patient.tanggal_lahir);
+                                if (isNaN(d.getTime())) return patient.tanggal_lahir;
+                                return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+                             } catch {
+                                return patient.tanggal_lahir;
+                             }
+                          })()}` : ''}
+                       </p>
+                    </div>
+                 </div>
+              </div>
+
+              {/* Section 1: Informasi Asesmen */}
+              <div className="space-y-4">
+                 <h4 className="text-[10px] font-black text-primary uppercase tracking-widest border-b border-slate-100 pb-2">I. Informasi Asesmen</h4>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                       <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Tujuan Pemeriksaan</label>
+                       <input 
+                         required
+                         value={newRecord.tujuan_pemeriksaan}
+                         onChange={(e) => setNewRecord({...newRecord, tujuan_pemeriksaan: e.target.value})}
+                         className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-2.5 text-[11px] font-bold focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                         placeholder="Misal: Evaluasi Layanan Konseling Akademik"
+                       />
+                    </div>
+                    <div>
+                       <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Tanggal Asesmen</label>
+                       <input 
+                         required
+                         type="date"
+                         value={newRecord.tanggal_asesmen}
+                         onChange={(e) => setNewRecord({...newRecord, tanggal_asesmen: e.target.value})}
+                         className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-2.5 text-[11px] font-bold focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                       />
+                    </div>
+                 </div>
+
+                 <div>
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Riwayat Keluhan</label>
+                    <textarea 
+                      required
+                      value={newRecord.riwayat_keluhan}
+                      onChange={(e) => setNewRecord({...newRecord, riwayat_keluhan: e.target.value})}
+                      className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-2.5 text-[11px] font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none h-16 resize-none"
+                      placeholder="Deskripsikan riwayat keluhan pasien..."
+                    />
+                 </div>
+
+                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                       <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Aspek Kognitif</label>
+                       <textarea 
+                         required
+                         value={newRecord.aspek_kognitif}
+                         onChange={(e) => setNewRecord({...newRecord, aspek_kognitif: e.target.value})}
+                         className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-2.5 text-[11px] font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none h-20 resize-none"
+                         placeholder="Observasi aspek kognitif..."
+                       />
+                    </div>
+                    <div>
+                       <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Aspek Emosional</label>
+                       <textarea 
+                         required
+                         value={newRecord.aspek_emosional}
+                         onChange={(e) => setNewRecord({...newRecord, aspek_emosional: e.target.value})}
+                         className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-2.5 text-[11px] font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none h-20 resize-none"
+                         placeholder="Observasi aspek emosional..."
+                       />
+                    </div>
+                    <div>
+                       <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Aspek Perilaku</label>
+                       <textarea 
+                         required
+                         value={newRecord.aspek_perilaku}
+                         onChange={(e) => setNewRecord({...newRecord, aspek_perilaku: e.target.value})}
+                         className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-2.5 text-[11px] font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none h-20 resize-none"
+                         placeholder="Observasi aspek perilaku..."
+                       />
+                    </div>
+                 </div>
+              </div>
+
+              {/* Section 2: Rekomendasi Layanan */}
+              <div className="space-y-4">
+                 <h4 className="text-[10px] font-black text-primary uppercase tracking-widest border-b border-slate-100 pb-2">II. Rekomendasi Layanan</h4>
+                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                       <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Rekomendasi Mahasiswa</label>
+                       <textarea 
+                         required
+                         value={newRecord.rekomendasi_mahasiswa}
+                         onChange={(e) => setNewRecord({...newRecord, rekomendasi_mahasiswa: e.target.value})}
+                         className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-2.5 text-[11px] font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none h-20 resize-none"
+                         placeholder="Rekomendasi bagi mahasiswa..."
+                       />
+                    </div>
+                    <div>
+                       <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Rekomendasi Program Studi</label>
+                       <textarea 
+                         required
+                         value={newRecord.rekomendasi_prodi}
+                         onChange={(e) => setNewRecord({...newRecord, rekomendasi_prodi: e.target.value})}
+                         className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-2.5 text-[11px] font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none h-20 resize-none"
+                         placeholder="Rekomendasi bagi Prodi..."
+                       />
+                    </div>
+                    <div>
+                       <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Rekomendasi Orang Tua/Wali</label>
+                       <textarea 
+                         required
+                         value={newRecord.rekomendasi_orang_tua}
+                         onChange={(e) => setNewRecord({...newRecord, rekomendasi_orang_tua: e.target.value})}
+                         className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-2.5 text-[11px] font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none h-20 resize-none"
+                         placeholder="Rekomendasi bagi Orang tua..."
+                       />
+                    </div>
+                 </div>
+              </div>
+
+              {/* Section 3: Tindak Lanjut & Kesimpulan */}
+              <div className="space-y-6">
+                 <h4 className="text-[10px] font-black text-primary uppercase tracking-widest border-b border-slate-100 pb-2">III. Tindak Lanjut & Kesimpulan</h4>
+                 
+                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5 bg-slate-50 border border-slate-200/60 rounded-2xl p-4">
+                    <div className="flex flex-col gap-2">
+                       <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">1. Sesi Tuntas <span className="text-rose-500">*</span></label>
+                       <div className="flex gap-2">
+                          <button type="button" onClick={() => setNewRecord({ ...newRecord, tindak_lanjut_tuntas: true })} className={`flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${newRecord.tindak_lanjut_tuntas === true ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20' : 'bg-white text-slate-400 border border-slate-200 hover:border-emerald-300 hover:text-emerald-600'}`}>Ya</button>
+                          <button type="button" onClick={() => setNewRecord({ ...newRecord, tindak_lanjut_tuntas: false })} className={`flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${newRecord.tindak_lanjut_tuntas === false ? 'bg-rose-500 text-white shadow-md shadow-rose-500/20' : 'bg-white text-slate-400 border border-slate-200 hover:border-rose-300 hover:text-rose-500'}`}>Tidak</button>
+                       </div>
+                       {newRecord.tindak_lanjut_tuntas === true && <p className="text-[9px] text-emerald-600 font-bold ml-1">⚠ Booking akan dikunci setelah disimpan</p>}
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                       <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">2. Konseling Lanjutan</label>
+                       <div className="flex gap-2">
+                          <button type="button" onClick={() => setNewRecord({ ...newRecord, tindak_lanjut_lanjutan: true })} className={`flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${newRecord.tindak_lanjut_lanjutan === true ? 'bg-primary text-white shadow-md shadow-primary/20' : 'bg-white text-slate-400 border border-slate-200 hover:border-primary/40 hover:text-primary'}`}>Ya</button>
+                          <button type="button" onClick={() => setNewRecord({ ...newRecord, tindak_lanjut_lanjutan: false })} className={`flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${newRecord.tindak_lanjut_lanjutan === false ? 'bg-rose-500 text-white shadow-md shadow-rose-500/20' : 'bg-white text-slate-400 border border-slate-200 hover:border-rose-300 hover:text-rose-500'}`}>Tidak</button>
+                       </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                       <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">3. Rujuk Klinis</label>
+                       <div className="flex gap-2">
+                          <button type="button" onClick={() => setNewRecord({ ...newRecord, tindak_lanjut_rujuk: true })} className={`flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${newRecord.tindak_lanjut_rujuk === true ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20' : 'bg-white text-slate-400 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600'}`}>Ya</button>
+                          <button type="button" onClick={() => setNewRecord({ ...newRecord, tindak_lanjut_rujuk: false })} className={`flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${newRecord.tindak_lanjut_rujuk === false ? 'bg-rose-500 text-white shadow-md shadow-rose-500/20' : 'bg-white text-slate-400 border border-slate-200 hover:border-rose-300 hover:text-rose-500'}`}>Tidak</button>
+                       </div>
+                       {newRecord.tindak_lanjut_rujuk === true && <p className="text-[9px] text-indigo-600 font-bold ml-1">→ Surat rujukan otomatis dibuat & dikirim ke Referral</p>}
+                    </div>
+                 </div>
+
+                 {newRecord.tindak_lanjut_rujuk && (
+                   <div className="grid grid-cols-1 md:grid-cols-3 gap-5 bg-primary/5 border border-primary/10 rounded-3xl p-5 animate-in fade-in slide-in-from-top-1 duration-200">
+                     <div className="flex flex-col gap-1.5">
+                       <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Tipe Rujukan</label>
+                       <select
+                         value={newRecord.rujukan_tipe}
+                         onChange={(e) => setNewRecord({ ...newRecord, rujukan_tipe: e.target.value })}
+                         className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-xs font-bold focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                       >
+                         <option value="Medis">Rujukan Medis</option>
+                         <option value="Akademik">Rujukan Akademik</option>
+                       </select>
+                     </div>
+                     <div className="flex flex-col gap-1.5">
+                       <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Pihak / Instansi Tujuan</label>
+                       <input
+                         required
+                         type="text"
+                         value={newRecord.rujukan_pihak_tujuan}
+                         onChange={(e) => setNewRecord({ ...newRecord, rujukan_pihak_tujuan: e.target.value })}
+                         className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-xs font-bold focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                         placeholder="Misal: RS Pusat, Dekan FT"
+                       />
+                     </div>
+                     <div className="flex flex-col gap-1.5">
+                       <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Email Tujuan</label>
+                       <input
+                         required
+                         type="email"
+                         value={newRecord.rujukan_email_tujuan}
+                         onChange={(e) => setNewRecord({ ...newRecord, rujukan_email_tujuan: e.target.value })}
+                         className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-xs font-bold focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                         placeholder="email@tujuan.com"
+                       />
+                     </div>
+                   </div>
+                 )}
+
+                 <div>
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Kesimpulan</label>
+                    <textarea 
+                      required
+                      value={newRecord.kesimpulan}
+                      onChange={(e) => setNewRecord({...newRecord, kesimpulan: e.target.value})}
+                      className="w-full bg-slate-50 border border-slate-200/60 rounded-2xl px-5 py-3 text-xs font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none h-20 resize-none"
+                      placeholder="Tulis kesimpulan umum asesmen konseling..."
+                    />
+                 </div>
+
+                 <div>
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Status Mood / Kondisi Emosional Saat Sesi</label>
+                    <div className="flex flex-wrap gap-2">
+                       {['Stabil', 'Cemas', 'Depresi', 'Netral', 'Membaik'].map((m) => (
+                         <button
+                           type="button"
+                           key={m}
+                           onClick={() => setNewRecord({...newRecord, mood: m})}
+                           className={`px-4 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${newRecord.mood === m ? 'bg-primary text-white shadow-md shadow-primary/20' : 'bg-slate-50 text-slate-400 border border-slate-100 hover:bg-slate-100'}`}
+                         >
+                           {m}
+                         </button>
+                       ))}
+                    </div>
+                 </div>
+              </div>
+            </div>
+
+            <DialogFooter className="bg-slate-50/20 border-t border-slate-100/60">
+               <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 sm:flex-initial px-5 py-3 border border-slate-200 text-slate-500 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all">Batal</button>
+               <button type="submit" className="flex-2 sm:flex-initial bg-primary text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center justify-center gap-2 hover:bg-primary/90 transition-all">
+                  <span className="material-symbols-outlined text-base shrink-0" >save</span> Simpan Catatan Asesmen
+               </button>
+            </DialogFooter>
+          </form>
+        </Dialog>
 
       </>
   );

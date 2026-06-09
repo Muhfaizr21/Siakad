@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
 import { insuranceService } from '../../services/api';
 import toast from 'react-hot-toast';
 import StudentPageHeader from './components/StudentPageHeader';
@@ -573,142 +574,128 @@ export default function InsurancePage() {
       </AnimatePresence>
 
       {/* DETAIL MODAL */}
-      <AnimatePresence>
-        {selectedClaim && (
-          <div className="fixed inset-0 z-50 bg-[#171717]/60 backdrop-blur-sm flex items-center justify-center p-4">
-            <motion.div 
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-surface w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
-            >
-              {/* Modal Header */}
-              <div className="relative h-24 bg-gradient-to-r from-[var(--theme-primary)] to-[var(--theme-primary-hover)] p-6 flex items-center text-white">
-                <button 
-                  onClick={() => setSelectedClaim(null)} 
-                  className="absolute top-6 right-6 text-white/50 hover:text-white transition-colors"
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>close</span>
-                </button>
-                <div>
-                  <h2 className="text-xl font-black font-headline">Detail Klaim Asuransi</h2>
-                  <p className="text-[10px] text-white/60 font-black uppercase tracking-[0.2em] mt-1">ID Pengajuan: #{selectedClaim.id}</p>
+      <Dialog open={!!selectedClaim} onOpenChange={() => setSelectedClaim(null)} maxWidth="max-w-2xl">
+        <DialogContent>
+          <DialogHeader>
+            <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
+              <span className="material-symbols-outlined text-8xl text-slate-900">health_and_safety</span>
+            </div>
+            <div className="text-left relative z-10">
+              <p className="text-xs font-semibold text-text-muted uppercase tracking-wider">Detail Klaim Asuransi</p>
+              <DialogTitle className="text-xl font-extrabold mt-1 text-[#171717] leading-tight">ID Pengajuan: #{selectedClaim?.id}</DialogTitle>
+            </div>
+          </DialogHeader>
+
+          {selectedClaim && (
+            <div className="p-8 overflow-y-auto max-h-[50vh] no-scrollbar space-y-6 text-sm">
+              {/* Stats Summary Block */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="p-3 bg-background rounded-xl border border-border">
+                  <p className="text-[9px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-1">Provider</p>
+                  <span className="font-black text-xs text-[var(--theme-primary)]">
+                    {PROVIDER_OPTIONS.find(p => p.value === selectedClaim.jenis_provider)?.label.split(' (')[0] || selectedClaim.jenis_provider}
+                  </span>
+                </div>
+                <div className="p-3 bg-background rounded-xl border border-border">
+                  <p className="text-[9px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-1">Tgl Kejadian</p>
+                  <p className="text-xs font-black text-[var(--theme-text)]">{formatDate(selectedClaim.tanggal_kejadian)}</p>
+                </div>
+                <div className="p-3 bg-background rounded-xl border border-border">
+                  <p className="text-[9px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-1">Estimasi Biaya</p>
+                  <p className="text-xs font-black text-[var(--theme-text)]">{formatCurrency(selectedClaim.estimasi_biaya)}</p>
+                </div>
+                <div className="p-3 bg-background rounded-xl border border-border">
+                  <p className="text-[9px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-1">Fasilitas Kesehatan</p>
+                  <p className="text-xs font-black text-[var(--theme-text)] truncate">{selectedClaim.lokasi_faskes || '—'}</p>
                 </div>
               </div>
 
-              {/* Modal Content */}
-              <div className="p-6 md:p-8 overflow-y-auto flex-1 space-y-6 custom-scrollbar text-sm">
-                
-                {/* Stats Summary Block */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="p-3 bg-background rounded-xl border border-border">
-                    <p className="text-[9px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-1">Provider</p>
-                    <span className="font-black text-xs text-[var(--theme-primary)]">
-                      {PROVIDER_OPTIONS.find(p => p.value === selectedClaim.jenis_provider)?.label.split(' (')[0] || selectedClaim.jenis_provider}
-                    </span>
-                  </div>
-                  <div className="p-3 bg-background rounded-xl border border-border">
-                    <p className="text-[9px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-1">Tgl Kejadian</p>
-                    <p className="text-xs font-black text-[var(--theme-text)]">{formatDate(selectedClaim.tanggal_kejadian)}</p>
-                  </div>
-                  <div className="p-3 bg-background rounded-xl border border-border">
-                    <p className="text-[9px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-1">Estimasi Biaya</p>
-                    <p className="text-xs font-black text-[var(--theme-text)]">{formatCurrency(selectedClaim.estimasi_biaya)}</p>
-                  </div>
-                  <div className="p-3 bg-background rounded-xl border border-border">
-                    <p className="text-[9px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-1">Fasilitas Kesehatan</p>
-                    <p className="text-xs font-black text-[var(--theme-text)] truncate">{selectedClaim.lokasi_faskes || '—'}</p>
-                  </div>
+              {/* Progress/Status Info */}
+              <div className="p-4 bg-background rounded-xl border border-border space-y-3">
+                <h4 className="flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-[var(--theme-text-muted)]">
+                  <Clock size={16} className="text-[var(--theme-primary)]" /> Status Pengajuan
+                </h4>
+                <div className="flex items-center gap-3">
+                  <StatusBadge status={selectedClaim.status} />
+                  <span className="text-xs text-[var(--theme-text-muted)] font-bold">
+                    {selectedClaim.status === 'PENDING_VERIFICATION' && 'Menunggu proses verifikasi awal oleh Tenaga Kesehatan.'}
+                    {selectedClaim.status === 'APPROVED_TK' && 'Telah disetujui Tenaga Kesehatan. Pengajuan sedang diteruskan untuk persetujuan final.'}
+                    {selectedClaim.status === 'APPROVED_FINAL' && 'Persetujuan akhir selesai. Seluruh proses klaim asuransi telah disetujui.'}
+                    {selectedClaim.status === 'REJECTED' && 'Pengajuan ditolak. Silakan lihat catatan alasan penolakan.'}
+                  </span>
                 </div>
+              </div>
 
-                {/* Progress/Status Info */}
-                <div className="p-4 bg-background rounded-xl border border-border space-y-3">
-                  <h4 className="flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-[var(--theme-text-muted)]">
-                    <Clock size={16} className="text-[var(--theme-primary)]" /> Status Pengajuan
-                  </h4>
-                  <div className="flex items-center gap-3">
-                    <StatusBadge status={selectedClaim.status} />
-                    <span className="text-xs text-[var(--theme-text-muted)] font-bold">
-                      {selectedClaim.status === 'PENDING_VERIFICATION' && 'Menunggu proses verifikasi awal oleh Tenaga Kesehatan.'}
-                      {selectedClaim.status === 'APPROVED_TK' && 'Telah disetujui Tenaga Kesehatan. Pengajuan sedang diteruskan untuk persetujuan final.'}
-                      {selectedClaim.status === 'APPROVED_FINAL' && 'Persetujuan akhir selesai. Seluruh proses klaim asuransi telah disetujui.'}
-                      {selectedClaim.status === 'REJECTED' && 'Pengajuan ditolak. Silakan lihat catatan alasan penolakan.'}
-                    </span>
-                  </div>
+              {/* Catatan Review (Jika ada) */}
+              {selectedClaim.catatan_review && (
+                <div className={`p-5 rounded-xl border ${
+                  selectedClaim.status === 'REJECTED' 
+                    ? 'bg-[var(--theme-error)]/10 border-[var(--theme-error)]/20 text-[var(--theme-error)]' 
+                    : 'bg-[var(--theme-primary)]/10 border-[var(--theme-primary)]/20 text-[var(--theme-primary)]'
+                }`}>
+                  <h4 className="font-black text-xs uppercase tracking-wider mb-2">Catatan Reviewer Kesehatan:</h4>
+                  <p className="font-semibold text-xs leading-relaxed">"{selectedClaim.catatan_review}"</p>
                 </div>
+              )}
 
-                {/* Catatan Review (Jika ada) */}
-                {selectedClaim.catatan_review && (
-                  <div className={`p-5 rounded-xl border ${
-                    selectedClaim.status === 'REJECTED' 
-                      ? 'bg-[var(--theme-error)]/10 border-[var(--theme-error)]/20 text-[var(--theme-error)]' 
-                      : 'bg-[var(--theme-primary)]/10 border-[var(--theme-primary)]/20 text-[var(--theme-primary)]'
-                  }`}>
-                    <h4 className="font-black text-xs uppercase tracking-wider mb-2">Catatan Reviewer Kesehatan:</h4>
-                    <p className="font-semibold text-xs leading-relaxed">"{selectedClaim.catatan_review}"</p>
-                  </div>
-                )}
-
-                {/* Deskripsi Kronologi */}
-                <div>
-                  <h4 className="text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-2">Kronologis Kejadian Medis</h4>
-                  <div className="bg-background p-5 rounded-xl border border-border leading-relaxed font-medium text-[var(--theme-text)]">
-                    {selectedClaim.deskripsi || '—'}
-                  </div>
+              {/* Deskripsi Kronologi */}
+              <div>
+                <h4 className="text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-2">Kronologis Kejadian Medis</h4>
+                <div className="bg-background p-5 rounded-xl border border-border leading-relaxed font-medium text-[var(--theme-text)]">
+                  {selectedClaim.deskripsi || '—'}
                 </div>
+              </div>
 
-                {/* Berkas Pendukung */}
-                <div>
-                  <h4 className="text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-2">Berkas Dokumen Terlampir</h4>
-                  {selectedClaim.file_url ? (
-                    <div className="flex justify-between items-center bg-background p-4 rounded-xl border border-border group hover:border-[var(--theme-primary)] transition-all">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-lg bg-[var(--theme-primary)]/10 text-[var(--theme-primary)] flex items-center justify-center shrink-0">
-                          <DocumentIcon size={18} />
-                        </div>
-                        <div>
-                          <p className="font-black text-xs text-slate-800 truncate max-w-xs">{selectedClaim.nama_file || 'Dokumen_Pendukung.pdf'}</p>
-                          <p className="text-[9px] text-[var(--theme-text-muted)] font-bold uppercase tracking-wider">Berkas Tambahan Mahasiswa</p>
-                        </div>
+              {/* Berkas Pendukung */}
+              <div>
+                <h4 className="text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-2">Berkas Dokumen Terlampir</h4>
+                {selectedClaim.file_url ? (
+                  <div className="flex justify-between items-center bg-background p-4 rounded-xl border border-border group hover:border-[var(--theme-primary)] transition-all">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-lg bg-[var(--theme-primary)]/10 text-[var(--theme-primary)] flex items-center justify-center shrink-0">
+                        <DocumentIcon size={18} />
                       </div>
-                      <a
-                        href={selectedClaim.file_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-3 py-1.5 bg-surface border border-border rounded-lg text-xs font-black text-[var(--theme-text)] hover:text-[var(--theme-primary)] hover:border-[var(--theme-primary)] transition-all flex items-center gap-1 shadow-sm"
-                      >
-                        <span className="material-symbols-outlined text-sm">visibility</span> Lihat
-                      </a>
+                      <div>
+                        <p className="font-black text-xs text-slate-800 truncate max-w-xs">{selectedClaim.nama_file || 'Dokumen_Pendukung.pdf'}</p>
+                        <p className="text-[9px] text-[var(--theme-text-muted)] font-bold uppercase tracking-wider">Berkas Tambahan Mahasiswa</p>
+                      </div>
                     </div>
-                  ) : (
-                    <p className="text-xs text-[var(--theme-text-muted)] font-semibold italic">Tidak ada berkas dokumen pendukung yang dilampirkan.</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Modal Footer */}
-              <div className="p-6 border-t border-[var(--theme-border-muted)] flex gap-3 bg-background">
-                <button 
-                  onClick={() => setSelectedClaim(null)}
-                  className="flex-1 py-3.5 rounded-xl font-black text-xs md:text-sm border border-border text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] transition-all bg-surface"
-                >
-                  Tutup
-                </button>
-                {selectedClaim.surat_pengantar_url && (
-                  <a 
-                    href={selectedClaim.surat_pengantar_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 py-3.5 rounded-xl font-black text-xs md:text-sm bg-[var(--theme-primary)] text-white hover:bg-[var(--theme-primary-hover)] text-center flex items-center justify-center gap-1.5 shadow-xl shadow-[var(--theme-primary)]/10 transition-all hover:scale-[1.01]"
-                  >
-                    <DownloadIcon size={16} /> Unduh Surat Pengantar
-                  </a>
+                    <a
+                      href={selectedClaim.file_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-1.5 bg-surface border border-border rounded-lg text-xs font-black text-[var(--theme-text)] hover:text-[var(--theme-primary)] hover:border-[var(--theme-primary)] transition-all flex items-center gap-1 shadow-sm"
+                    >
+                      <span className="material-symbols-outlined text-sm">visibility</span> Lihat
+                    </a>
+                  </div>
+                ) : (
+                  <p className="text-xs text-[var(--theme-text-muted)] font-semibold italic">Tidak ada berkas dokumen pendukung yang dilampirkan.</p>
                 )}
               </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+            </div>
+          )}
+
+          <DialogFooter className="flex gap-3 bg-slate-50/30 p-8 border-t border-slate-100">
+            <button 
+              onClick={() => setSelectedClaim(null)}
+              className="flex-1 py-3.5 rounded-xl font-black text-xs md:text-sm border border-border text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] transition-all bg-surface active:scale-95 cursor-pointer"
+            >
+              Tutup
+            </button>
+            {selectedClaim?.surat_pengantar_url && (
+              <a 
+                href={selectedClaim.surat_pengantar_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 py-3.5 rounded-xl font-black text-xs md:text-sm bg-[var(--theme-primary)] text-white hover:bg-[var(--theme-primary-hover)] text-center flex items-center justify-center gap-1.5 shadow-xl shadow-[var(--theme-primary)]/10 transition-all hover:scale-[1.01] active:scale-95"
+              >
+                <DownloadIcon size={16} /> Unduh Surat Pengantar
+              </a>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

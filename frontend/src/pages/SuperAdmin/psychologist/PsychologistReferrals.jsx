@@ -377,22 +377,22 @@ export default function PsychologistReferrals() {
       </Dialog>
 
       {/* ── Detail Modal ─────────────────────────────────────────── */}
-      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="w-[95vw] sm:w-[90vw] md:max-w-2xl p-0 overflow-hidden border border-[var(--theme-border)] shadow-2xl rounded-2xl bg-[var(--theme-surface)] font-body animate-in slide-in-from-bottom-8 duration-300">
+      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen} maxWidth="max-w-2xl">
+        <DialogContent>
           
           {/* Header */}
-          <div className="px-6 py-5 border-b border-[var(--theme-border-muted)] relative overflow-hidden bg-gradient-to-br from-[var(--theme-primary-light)]/20 via-[var(--theme-surface)] to-[var(--theme-bg)]">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--theme-primary)]/5 rounded-full blur-2xl -mr-6 -mt-6"></div>
+          <DialogHeader className="relative overflow-hidden bg-gradient-to-br from-[var(--theme-primary-light)]/20 via-[var(--theme-surface)] to-[var(--theme-bg)] p-6 md:p-8 border-b border-[var(--theme-border-muted)] text-left">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--theme-primary)]/5 rounded-full blur-2xl -mr-6 -mt-6 pointer-events-none"></div>
             <div className="relative z-10 flex items-center gap-2 mb-1">
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest bg-[var(--theme-primary)] text-white">
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[8px] font-semibold uppercase tracking-widest bg-[var(--theme-primary)] text-white">
                 Rujukan Klinis
               </span>
-              <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">&bull; Tinjauan SuperAdmin</span>
+              <span className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">&bull; Tinjauan SuperAdmin</span>
             </div>
             <DialogTitle className="text-base font-bold text-[var(--theme-text)] uppercase font-headline tracking-tight">
               Detail Surat Rujukan
             </DialogTitle>
-          </div>
+          </DialogHeader>
 
           {/* Body */}
           <div className="px-6 py-5 space-y-6 max-h-[60vh] overflow-y-auto leading-relaxed scrollbar-thin">
@@ -567,16 +567,17 @@ export default function PsychologistReferrals() {
           </div>
 
           {/* Footer */}
-          <div className="px-6 py-4 border-t border-[var(--theme-border-muted)] flex justify-end bg-[var(--theme-bg)]">
+          <DialogFooter>
             <Button 
               onClick={() => setIsDetailOpen(false)} 
-              className="h-10 px-6 rounded-xl font-bold bg-[var(--theme-primary)] text-white hover:bg-[var(--theme-primary-hover)] border-none shadow-sm active:scale-98 transition-all"
+              className="h-10 px-6 rounded-xl font-semibold bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white border-none shadow-sm active:scale-98 transition-all cursor-pointer text-sm"
             >
               Tutup Rincian
             </Button>
-          </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </PageContent>
   )
 }
+

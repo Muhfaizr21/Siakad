@@ -9,6 +9,8 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Button } from "@/components/ui/Button"
 import { PageContent } from '@/components/ui/page'
 import { DashboardHero } from '@/components/ui/dashboard'
+import { Badge } from "@/components/ui/Badge"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/Dialog"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Reply = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>reply</span>;
@@ -504,230 +506,204 @@ const FacultyAspirationManagement = () => {
         </div>
 
       {/* ── Global Aspiration Audit Dialog Popup Modal (Faculty Admin) ── */}
-      {selected && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4 transition-all duration-300"
-          onClick={() => setSelected(null)}>
-          <div className="relative w-full max-w-5xl glass-card rounded-2xl shadow-none border border-slate-200/60 flex flex-col overflow-hidden max-h-[90vh] animate-scale-up"
-            onClick={e => e.stopPropagation()}>
-            
-            {/* Modal Header */}
-            <div className="relative bg-gradient-to-br from-bku-primary via-[#0b338f] to-[#1242bd] pt-6 pb-6 px-8 overflow-hidden flex-shrink-0 flex items-center justify-between">
-              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none"/>
-              
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-white shrink-0">
-                  <span className="material-symbols-outlined" style={{ fontSize: '24px' }} >security</span>
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 text-[10px] font-black text-white/50 uppercase tracking-[0.25em]">
-                    <span>Faculty Audit Panel</span>
-                    <span>·</span>
-                    <span className="text-amber-400">#ASP-{selected.ID?.toString().padStart(4, '0')}</span>
-                  </div>
-                  <h2 className="text-lg font-black text-white leading-tight font-headline uppercase truncate max-w-[500px] mt-0.5">
-                    {selected.Judul}
-                  </h2>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <span className={cn(
-                  'px-3.5 py-1.5 rounded-xl border text-[9px] font-extrabold uppercase tracking-widest shadow-sm border-none',
-                  selected.Status === 'Disetujui Fakultas' ? 'bg-emerald-500/20 text-emerald-200' :
-                  selected.Status === 'Ditolak Fakultas' ? 'bg-rose-500/20 text-rose-200' :
-                  selected.Status === 'Proses' ? 'bg-blue-500/20 text-blue-200' :
-                  'bg-amber-500/20 text-amber-200'
-                )}>
-                  Status: {selected.Status || 'Terbuka'}
-                </span>
-                
-                <button onClick={() => setSelected(null)}
-                  className="w-9 h-9 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-all active:scale-95 text-white">
-                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >close</span>
-                </button>
-              </div>
+      <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)} maxWidth="max-w-5xl">
+        <DialogContent className="max-w-5xl p-0 overflow-hidden border border-border shadow-2xl rounded-2xl bg-surface animate-in zoom-in-95 duration-200">
+          <DialogHeader className="p-8 pb-5 bg-slate-50/50 border-b border-border relative">
+            <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
+              <span className="material-symbols-outlined size-24 rotate-12 text-slate-800">security</span>
             </div>
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-1.5">
+                <div className="size-8 rounded-xl bg-slate-105 flex items-center justify-center text-slate-600">
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>security</span>
+                </div>
+                <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-slate-200 text-slate-700 border-none rounded-md">
+                  FACULTY AUDIT PANEL · #ASP-{selected?.ID?.toString().padStart(4, '0')}
+                </Badge>
+              </div>
+              <DialogTitle className="text-lg md:text-xl font-black font-headline tracking-tighter text-slate-900 truncate max-w-[500px]">
+                {selected?.Judul}
+              </DialogTitle>
+              <DialogDescription className="text-[11px] font-semibold text-slate-400 mt-0.5">
+                Status: {selected?.Status || 'Terbuka'}
+              </DialogDescription>
+            </div>
+          </DialogHeader>
 
-            {/* Modal Body */}
-            <div className="flex-1 overflow-y-auto p-8 grid grid-cols-1 lg:grid-cols-5 gap-8 custom-scrollbar">
-              
-              {/* Left Column: Reporter Profile, Content Subjek & Attachments */}
-              <div className="lg:col-span-3 space-y-6">
-                
-                {/* Reporter Profile Block */}
-                <div className="p-6 rounded-2xl bg-slate-50/50 border border-slate-100 shadow-sm flex flex-col md:flex-row gap-5 items-start">
-                  <StudentAvatar src={selected.Mahasiswa?.Foto} name={selected.Mahasiswa?.Nama} className="w-16 h-16 rounded-2xl shadow-md ring-4 ring-neutral-100 shrink-0" />
-                  
-                  <div className="flex-1 space-y-3 w-full">
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Identitas Pelapor</span>
-                      <span className="inline-block text-[8px] font-black text-primary bg-[#eef4ff] px-2 py-0.5 rounded-md">Verified Mahasiswa</span>
-                    </div>
+          {/* Modal Body */}
+          <div className="p-8 pt-5 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar">
+            {selected && (
+              <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                {/* Left Column: Reporter Profile, Content Subjek & Attachments */}
+                <div className="lg:col-span-3 space-y-6">
+                  {/* Reporter Profile Block */}
+                  <div className="p-6 rounded-2xl bg-slate-50/50 border border-slate-100 shadow-sm flex flex-col md:flex-row gap-5 items-start">
+                    <StudentAvatar src={selected.Mahasiswa?.Foto} name={selected.Mahasiswa?.Nama} className="w-16 h-16 rounded-2xl shadow-md ring-4 ring-neutral-100 shrink-0" />
                     
-                    <div className="grid grid-cols-2 gap-3 text-xs">
-                      <div>
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Nama Lengkap</p>
-                        <p className="font-bold text-slate-800 truncate">{selected.Mahasiswa?.Nama}</p>
-                      </div>
-                      <div>
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">NIM / Identifier</p>
-                        <p className="font-mono font-bold text-slate-800">{selected.Mahasiswa?.NIM}</p>
-                      </div>
-                      <div className="col-span-2">
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Program Studi / Node asal</p>
-                        <p className="font-bold text-slate-700 uppercase flex items-center gap-1.5 mt-0.5">
-                          <span className="material-symbols-outlined text-[14px] text-primary/60">business</span>
-                          {selected.Mahasiswa?.ProgramStudi?.Nama || 'Institusional'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Substantive Content */}
-                <div className="space-y-3">
-                  <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                    <span className="material-symbols-outlined text-primary text-[16px]">chat</span> Substansi Aspirasi
-                  </h4>
-                  <div className="p-6 rounded-2xl bg-slate-50/50 border border-slate-100 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                      <span className="material-symbols-outlined text-[80px]" >chat</span>
-                    </div>
-                    <p className="text-sm text-slate-600 font-medium leading-relaxed font-inter relative z-10 whitespace-pre-wrap">
-                      "{selected.Isi || 'Tidak ada deskripsi konten.'}"
-                    </p>
-                  </div>
-                </div>
-
-                {/* Visual Proof Section */}
-                <div className="space-y-3">
-                  <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                    <span className="material-symbols-outlined text-primary text-[16px]">image</span> Bukti Lampiran Visual
-                  </h4>
-                  
-                  {selected.BuktiURL ? (
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
-                      <div className="md:col-span-5 relative aspect-video rounded-xl overflow-hidden border border-slate-200 shadow-md group">
-                        <img 
-                          src={getFullUrl(selected.BuktiURL)} 
-                          alt="Bukti Aspirasi" 
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                        />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <a 
-                            href={getFullUrl(selected.BuktiURL)} 
-                            target="_blank" 
-                            rel="noreferrer"
-                            className="px-4 py-2 bg-white text-neutral-900 rounded-lg font-bold text-[10px] uppercase tracking-widest shadow-xl flex items-center gap-1.5 hover:bg-primary hover:text-white transition-all active:scale-95"
-                          >
-                            <span className="material-symbols-outlined text-[13px]">open_in_new</span> Full View
-                          </a>
-                        </div>
+                    <div className="flex-1 space-y-3 w-full">
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Identitas Pelapor</span>
+                        <span className="inline-block text-[8px] font-black text-primary bg-[#eef4ff] px-2 py-0.5 rounded-md">Verified Mahasiswa</span>
                       </div>
                       
-                      <div className="md:col-span-7 p-4 rounded-xl bg-slate-50 border border-dashed border-slate-200 flex flex-col justify-center gap-1.5">
-                        <p className="text-xs font-bold text-slate-900 font-jakarta">Berkas Lampiran Laporan</p>
-                        <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
-                          Lampiran pendukung telah disertakan oleh mahasiswa. Silakan periksa gambar secara detail untuk proses pembuktian data laporan.
-                        </p>
+                      <div className="grid grid-cols-2 gap-3 text-xs">
+                        <div>
+                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Nama Lengkap</p>
+                          <p className="font-bold text-slate-800 truncate">{selected.Mahasiswa?.Nama}</p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">NIM / Identifier</p>
+                          <p className="font-mono font-bold text-slate-800">{selected.Mahasiswa?.NIM}</p>
+                        </div>
+                        <div className="col-span-2">
+                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Program Studi / Node asal</p>
+                          <p className="font-bold text-slate-700 uppercase flex items-center gap-1.5 mt-0.5">
+                            <span className="material-symbols-outlined text-[14px] text-primary/60">business</span>
+                            {selected.Mahasiswa?.ProgramStudi?.Nama || 'Institusional'}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  ) : (
-                    <div className="p-8 rounded-xl border border-dashed border-slate-100 flex flex-col items-center justify-center gap-2 text-slate-300 bg-slate-50/20">
-                      <span className="material-symbols-outlined text-[30px]" >image</span>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Tidak ada bukti lampiran gambar</p>
-                    </div>
-                  )}
-                </div>
-
-              </div>
-
-              {/* Right Column: Governance Panel, Resolution Response Form */}
-              <div className="lg:col-span-2 space-y-6">
-                
-                {/* Governance Card */}
-                <div className="p-6 rounded-2xl bg-slate-50/50 border border-slate-200 shadow-sm space-y-6">
-                  
-                  {/* Status Selection Buttons */}
-                  <div className="space-y-3">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-0.5">Ubah Status Penanganan</p>
-                    <div className="grid grid-cols-2 gap-2.5">
-                      {[
-                        { val: 'proses', label: 'Proses', icon: 'schedule', active: 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-100' },
-                        { val: 'klarifikasi', label: 'Klarifikasi', icon: 'chat', active: 'bg-amber-600 text-white border-amber-600 shadow-md shadow-amber-100' },
-                        { val: 'selesai', label: 'Setujui & Teruskan', icon: 'check_circle', active: 'bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-100' },
-                        { val: 'ditolak', label: 'Tolak', icon: 'close', active: 'bg-rose-600 text-white border-rose-600 shadow-md shadow-rose-100' },
-                      ].map(s => (
-                        <button 
-                          key={s.val} 
-                          type="button"
-                          onClick={() => setForm({ ...form, status: s.val })}
-                          className={cn(
-                            'h-12 rounded-xl flex items-center justify-center gap-1.5 border border-slate-200 bg-white font-bold uppercase tracking-widest text-[9px] hover:bg-slate-50 hover:text-slate-900 transition-all duration-300',
-                            form.status === s.val && s.active
-                          )}
-                        >
-                          <span className="material-symbols-outlined" style={{ fontSize: '13px' }} >{s.icon}</span>
-                          {s.label}
-                        </button>
-                      ))}
-                    </div>
                   </div>
 
-                  {/* Response Textarea */}
+                  {/* Substantive Content */}
                   <div className="space-y-3">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-0.5">Tanggapan Resmi Fakultas</p>
-                    <textarea 
-                      value={form.respon}
-                      onChange={e => setForm({ ...form, respon: e.target.value })}
-                      placeholder="Tuliskan tanggapan resmi fakultas yang informatif dan solutif..."
-                      className="w-full min-h-[140px] rounded-xl border border-slate-200 bg-white p-4 font-medium text-xs font-inter focus:ring-2 focus:ring-primary/10 transition-all outline-none resize-none"
-                    />
-                  </div>
-
-                  {/* Warning SLA Card */}
-                  <div className="p-4 rounded-xl bg-amber-50/60 border border-amber-100 flex items-start gap-3">
-                    <span className="material-symbols-outlined text-amber-600 shrink-0" style={{ fontSize: '16px' }} >error</span>
-                    <div className="space-y-0.5">
-                      <p className="text-[9px] font-black text-amber-700 uppercase tracking-widest">SLA Resolution Limit</p>
-                      <p className="text-[10px] text-amber-600 font-semibold leading-normal">
-                        Proses persetujuan (Setujui & Teruskan) akan meneruskan tiket aspirasi ke Super Admin di tingkat Universitas untuk resolusi akhir.
+                    <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                      <span className="material-symbols-outlined text-primary text-[16px]">chat</span> Substansi Aspirasi
+                    </h4>
+                    <div className="p-6 rounded-2xl bg-slate-50/50 border border-slate-100 relative overflow-hidden group">
+                      <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                        <span className="material-symbols-outlined text-[80px]" >chat</span>
+                      </div>
+                      <p className="text-sm text-slate-600 font-medium leading-relaxed font-inter relative z-10 whitespace-pre-wrap">
+                        "{selected.Isi || 'Tidak ada deskripsi konten.'}"
                       </p>
                     </div>
                   </div>
 
+                  {/* Visual Proof Section */}
+                  <div className="space-y-3">
+                    <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                      <span className="material-symbols-outlined text-primary text-[16px]">image</span> Bukti Lampiran Visual
+                    </h4>
+                    
+                    {selected.BuktiURL ? (
+                      <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
+                        <div className="md:col-span-5 relative aspect-video rounded-xl overflow-hidden border border-slate-200 shadow-md group">
+                          <img 
+                            src={getFullUrl(selected.BuktiURL)} 
+                            alt="Bukti Aspirasi" 
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                          />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <a 
+                              href={getFullUrl(selected.BuktiURL)} 
+                              target="_blank" 
+                              rel="noreferrer"
+                              className="px-4 py-2 bg-white text-neutral-900 rounded-lg font-bold text-[10px] uppercase tracking-widest shadow-xl flex items-center gap-1.5 hover:bg-primary hover:text-white transition-all active:scale-95"
+                            >
+                              <span className="material-symbols-outlined text-[13px]">open_in_new</span> Full View
+                            </a>
+                          </div>
+                        </div>
+                        
+                        <div className="md:col-span-7 p-4 rounded-xl bg-slate-50 border border-dashed border-slate-200 flex flex-col justify-center gap-1.5">
+                          <p className="text-xs font-bold text-slate-900 font-jakarta">Berkas Lampiran Laporan</p>
+                          <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+                            Lampiran pendukung telah disertakan oleh mahasiswa. Silakan periksa gambar secara detail untuk proses pembuktian data laporan.
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-8 rounded-xl border border-dashed border-slate-100 flex flex-col items-center justify-center gap-2 text-slate-300 bg-slate-50/20">
+                        <span className="material-symbols-outlined text-[30px]" >image</span>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Tidak ada bukti lampiran gambar</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
+                {/* Right Column: Governance Panel, Resolution Response Form */}
+                <div className="lg:col-span-2 space-y-6">
+                  {/* Governance Card */}
+                  <div className="p-6 rounded-2xl bg-slate-50/50 border border-slate-200 shadow-sm space-y-6">
+                    {/* Status Selection Buttons */}
+                    <div className="space-y-3">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-0.5">Ubah Status Penanganan</p>
+                      <div className="grid grid-cols-2 gap-2.5">
+                        {[
+                          { val: 'proses', label: 'Proses', icon: 'schedule', active: 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-100' },
+                          { val: 'klarifikasi', label: 'Klarifikasi', icon: 'chat', active: 'bg-amber-600 text-white border-amber-600 shadow-md shadow-amber-100' },
+                          { val: 'selesai', label: 'Setujui & Teruskan', icon: 'check_circle', active: 'bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-100' },
+                          { val: 'ditolak', label: 'Tolak', icon: 'close', active: 'bg-rose-600 text-white border-rose-600 shadow-md shadow-rose-100' },
+                        ].map(s => (
+                          <button 
+                            key={s.val} 
+                            type="button"
+                            onClick={() => setForm({ ...form, status: s.val })}
+                            className={cn(
+                              'h-12 rounded-xl flex items-center justify-center gap-1.5 border border-slate-200 bg-white font-bold uppercase tracking-widest text-[9px] hover:bg-slate-50 hover:text-slate-900 transition-all duration-300',
+                              form.status === s.val && s.active
+                            )}
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: '13px' }} >{s.icon}</span>
+                            {s.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Response Textarea */}
+                    <div className="space-y-3">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-0.5">Tanggapan Resmi Fakultas</p>
+                      <textarea 
+                        value={form.respon}
+                        onChange={e => setForm({ ...form, respon: e.target.value })}
+                        placeholder="Tuliskan tanggapan resmi fakultas yang informatif dan solutif..."
+                        className="w-full min-h-[140px] rounded-xl border border-slate-200 bg-white p-4 font-medium text-xs font-inter focus:ring-2 focus:ring-primary/10 transition-all outline-none resize-none font-bold text-xs"
+                      />
+                    </div>
+
+                    {/* Warning SLA Card */}
+                    <div className="p-4 rounded-xl bg-amber-50/60 border border-amber-100 flex items-start gap-3">
+                      <span className="material-symbols-outlined text-amber-600 shrink-0" style={{ fontSize: '16px' }} >error</span>
+                      <div className="space-y-0.5">
+                        <p className="text-[9px] font-black text-amber-700 uppercase tracking-widest">SLA Resolution Limit</p>
+                        <p className="text-[10px] text-amber-600 font-semibold leading-normal">
+                          Proses persetujuan (Setujui & Teruskan) akan meneruskan tiket aspirasi ke Super Admin di tingkat Universitas untuk resolusi akhir.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-
-            </div>
-
-            {/* Modal Footer */}
-            <div className="px-8 py-5 border-t border-slate-200/60 bg-transparent flex items-center justify-end gap-3 flex-shrink-0">
-              <Button 
-                variant="outline"
-                onClick={() => setSelected(null)}
-                className="h-11 px-6 rounded-xl border-slate-200 bg-white text-slate-600 text-[10px] font-bold uppercase tracking-widest hover:bg-slate-100 active:scale-95 transition-all"
-              >
-                Tutup
-              </Button>
-              <Button 
-                onClick={() => handleUpdateStatus(form.status)}
-                disabled={isSubmitting || !form.status}
-                className="h-11 px-6 rounded-xl bg-primary hover:bg-bku-hover text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-bku-primary/20 active:scale-95 transition-all gap-1.5"
-              >
-                {isSubmitting ? (
-                  <span className="material-symbols-outlined animate-spin" style={{ fontSize: '15px' }} >sync</span>
-                ) : (
-                  <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >save</span>
-                )}
-                Simpan Tanggapan
-              </Button>
-            </div>
-
+            )}
           </div>
-        </div>
-      )}
+
+          {/* Modal Footer */}
+          <DialogFooter className="flex flex-col md:flex-row items-center justify-end gap-3 p-8 pt-4 border-t border-slate-100 bg-slate-50/30">
+            <Button 
+              variant="ghost"
+              onClick={() => setSelected(null)}
+              className="w-full md:w-auto text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-11 rounded-xl active:scale-95 transition-all shadow-none border-none cursor-pointer font-headline uppercase"
+            >
+              Tutup
+            </Button>
+            <Button 
+              onClick={() => handleUpdateStatus(form.status)}
+              disabled={isSubmitting || !form.status}
+              className="w-full md:w-auto h-11 px-8 rounded-xl bg-primary hover:bg-bku-hover text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-bku-primary/20 active:scale-95 transition-all gap-1.5 cursor-pointer"
+            >
+              {isSubmitting ? (
+                <span className="material-symbols-outlined animate-spin" style={{ fontSize: '15px' }} >sync</span>
+              ) : (
+                <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >save</span>
+              )}
+              Simpan Tanggapan
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
     </PageContent>
   )

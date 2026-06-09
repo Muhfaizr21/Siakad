@@ -502,223 +502,241 @@ export default function ProposalPipeline() {
         </PageCard>
 
       {/* ── Detail Dialog ─────────────────────────────────────────── */}
-      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen} maxWidth="max-w-[95vw] md:max-w-4xl lg:max-w-5xl">
-        <DialogContent className="w-full max-h-[85vh] p-0 overflow-hidden border-none shadow-2xl rounded-3xl glass-card bg-white/95 flex flex-col">
+      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen} maxWidth="max-w-4xl">
+        <DialogContent>
           {selected && (
             <>
-              <div className="p-6 md:p-10 bg-slate-900 relative overflow-hidden shrink-0">
-                <div className="absolute inset-0 bg-gradient-to-br from-bku-primary/30 to-transparent pointer-events-none" />
-                <div className="relative z-10 space-y-3 md:space-y-4">
-                  <div className="flex items-center gap-2 md:gap-3 flex-wrap">
-                    <Badge className="font-black font-headline text-[9px] md:text-[10px] px-2 md:px-3 py-1 bg-white/10 text-white border-none shadow-none uppercase tracking-widest">#PRP-{selected.id || selected.ID}</Badge>
-                    <div className="hidden md:block size-1 rounded-full bg-white/20" />
-                    <span className="text-[9px] md:text-[10px] font-bold text-slate-300 uppercase tracking-widest">{selected.Fakultas?.Nama || 'Institusi'}</span>
+              <DialogHeader className="relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-8 opacity-5 text-bku-primary"><span className="material-symbols-outlined rotate-12" style={{ fontSize: '100px' }} >account_balance_wallet</span></div>
+                <div className="relative z-10 space-y-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
+                      <span className="material-symbols-outlined text-[12px]" >visibility</span>
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-bku-primary font-headline">Detail Proposal Kegiatan</span>
                   </div>
-                  <h2 className="text-xl md:text-3xl font-black font-headline tracking-tight leading-tight uppercase max-w-2xl text-white">{selected.Judul}</h2>
-                  <div className="flex items-center gap-2 text-slate-300 font-bold text-[10px] md:text-[11px] uppercase tracking-widest">
-                    <Building2 size={14} className="text-bku-primary shrink-0" />
-                    <span className="truncate">{selected.Ormawa?.Nama || 'Unit Mahasiswa Pengaju'}</span>
-                  </div>
+                  <DialogTitle className="text-xl sm:text-2xl font-black font-headline tracking-tight text-slate-800 uppercase">
+                    {selected.Judul}
+                  </DialogTitle>
+                  <DialogDescription className="text-xs sm:text-sm font-medium text-slate-500 font-inter">
+                    Pengaju: {selected.Ormawa?.Nama || 'Unit Mahasiswa'} | {selected.Fakultas?.Nama || 'Institusi'}
+                  </DialogDescription>
                 </div>
-                <span className="material-symbols-outlined absolute -bottom-8 -right-8 text-white/5 rotate-12 pointer-events-none" style={{ fontSize: '100px' }} >security</span>
-              </div>
+              </DialogHeader>
               
-              <div className="flex-1 overflow-y-auto no-scrollbar">
-                <div className="px-6 py-6 md:px-8 md:py-8 space-y-6 md:space-y-8">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="glass-card bg-white/50 p-5 rounded-2xl border border-slate-200/60 shadow-none space-y-2">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Proyeksi Anggaran</p>
-                        <p className="text-2xl font-black text-slate-800 font-headline tabular-nums">{formatRp(selected.Anggaran)}</p>
-                    </div>
-                    <div className="glass-card bg-white/50 p-5 rounded-2xl border border-slate-200/60 shadow-none space-y-2 flex flex-col justify-center">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Rekening Ormawa</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="material-symbols-outlined text-slate-400" style={{fontSize: '18px'}}>account_balance</span>
-                          <p className="text-sm font-bold text-slate-700 break-all">{selected.Ormawa?.rekening || selected.Ormawa?.Rekening || 'Belum diatur'}</p>
-                        </div>
-                    </div>
-                    <div className="glass-card bg-white/50 p-5 rounded-2xl border border-slate-200/60 shadow-none space-y-2 flex flex-col items-start justify-center">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Status Validasi</p>
-                        <Badge className={cn('px-3 py-1 rounded-lg border-none shadow-none text-[9px] font-black uppercase tracking-widest font-headline mt-1', STATUS_CFG[selected.Status]?.cls)}>
-                            {STATUS_CFG[selected.Status]?.label || selected.Status}
-                        </Badge>
-                    </div>
-                 </div>
-
-                 {/* 5W1H Analysis */}
-                 <div className="space-y-6">
-                   <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest border-b border-slate-200 pb-2 flex items-center gap-2">
-                     <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '18px' }}>analytics</span> Analisis 5W + 1H
-                   </h3>
-
-                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-10 gap-y-10">
-                     {/* WHAT */}
-                     <div className="space-y-3">
-                       <div className="flex items-center gap-2">
-                         <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200 border-none px-2 shadow-none font-bold">WHAT</Badge>
-                         <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Apa Kegiatan Ini?</span>
-                       </div>
-                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pl-4 border-l-2 border-blue-100">
-                         <div>
-                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jenis Kegiatan</p>
-                           <p className="text-sm font-semibold text-slate-700">{selected.Jenis || '-'}</p>
-                         </div>
-                         <div>
-                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Bentuk Kegiatan</p>
-                           <p className="text-sm font-semibold text-slate-700">{selected.bentuk_kegiatan || selected.BentukKegiatan || '-'}</p>
-                         </div>
-                         <div className="sm:col-span-2">
-                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ringkasan / Deskripsi Singkat</p>
-                           <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap mt-1">
-                             {selected.Deskripsi || selected.deskripsi || '-'}
-                           </div>
-                         </div>
-                       </div>
-                     </div>
-
-                     {/* WHY */}
-                     <div className="space-y-3">
-                       <div className="flex items-center gap-2">
-                         <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-200 border-none px-2 shadow-none font-bold">WHY</Badge>
-                         <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Mengapa Diadakan?</span>
-                       </div>
-                       <div className="space-y-4 pl-4 border-l-2 border-purple-100">
-                         <div>
-                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Latar Belakang</p>
-                           <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap mt-1">
-                             {selected.latar_belakang || selected.LatarBelakang || '-'}
-                           </div>
-                         </div>
-                         <div>
-                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tujuan Kegiatan</p>
-                           <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap mt-1">
-                             {selected.tujuan_kegiatan || selected.TujuanKegiatan || '-'}
-                           </div>
-                         </div>
-                       </div>
-                     </div>
-
-                     {/* WHO */}
-                     <div className="space-y-3">
-                       <div className="flex items-center gap-2">
-                         <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border-none px-2 shadow-none font-bold">WHO</Badge>
-                         <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Siapa yang Terlibat?</span>
-                       </div>
-                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pl-4 border-l-2 border-emerald-100">
-                         <div className="sm:col-span-2">
-                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sasaran / Target Peserta</p>
-                           <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap mt-1">
-                             {selected.sasaran_kegiatan || selected.SasaranKegiatan || '-'}
-                           </div>
-                         </div>
-                         <div>
-                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Penanggung Jawab</p>
-                           <p className="text-sm font-semibold text-slate-700">{selected.pj_kegiatan || selected.PJKegiatan || '-'}</p>
-                         </div>
-                         <div>
-                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mitra / Kolaborator</p>
-                           <p className="text-sm font-semibold text-slate-700">{selected.mitra || selected.Mitra || '-'}</p>
-                         </div>
-                       </div>
-                     </div>
-
-                     {/* WHEN & WHERE */}
-                     <div className="space-y-3">
-                       <div className="flex items-center gap-2">
-                         <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-200 border-none px-2 shadow-none font-bold">WHEN &amp; WHERE</Badge>
-                         <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Kapan &amp; Dimana?</span>
-                       </div>
-                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pl-4 border-l-2 border-amber-100">
-                         <div>
-                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tanggal Kegiatan</p>
-                           <p className="text-sm font-semibold text-slate-700">
-                             {selected.TanggalKegiatan ? new Date(selected.TanggalKegiatan).toLocaleDateString('id-ID', { dateStyle: 'long' }) : '-'}
-                           </p>
-                         </div>
-                         <div className="sm:col-span-2">
-                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jadwal &amp; Tempat Pelaksanaan</p>
-                           <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap mt-1">
-                             {selected.jadwal_pelaksanaan || selected.JadwalPelaksanaan || '-'}
-                           </div>
-                         </div>
-                       </div>
-                     </div>
-
-                     {/* HOW */}
-                     <div className="space-y-3 lg:col-span-2">
-                       <div className="flex items-center gap-2">
-                         <Badge className="bg-rose-100 text-rose-700 hover:bg-rose-200 border-none px-2 shadow-none font-bold">HOW</Badge>
-                         <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Bagaimana Pelaksanaannya?</span>
-                       </div>
-                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pl-4 border-l-2 border-rose-100">
-                         <div>
-                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Indikator Keberhasilan</p>
-                           <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap mt-1">
-                             {selected.indikator_keberhasilan || selected.IndikatorKeberhasilan || '-'}
-                           </div>
-                         </div>
-                         <div>
-                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sumber Dana Utama</p>
-                           <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap mt-1">
-                             {selected.sumber_dana || selected.SumberDana || '-'}
-                           </div>
-                         </div>
-                       </div>
-                     </div>
-                   </div>
-                 </div>
-
-                 {/* Link Lampiran / Berkas */}
-                 {(selected.file_url || selected.FileURL) && (
-                    <div className="space-y-2">
-                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Lampiran Dokumen</p>
-                       <a href={selected.file_url || selected.FileURL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 bg-bku-primary/10 text-bku-primary px-4 py-3 rounded-xl font-bold text-sm hover:bg-bku-primary/20 transition-colors">
-                          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>download</span> Unduh/Lihat Dokumen Proposal
-                       </a>
-                    </div>
-                 )}
-
-                 {selected.Catatan && (
-                    <div className="bg-rose-50/50 border border-rose-100 p-6 rounded-2xl space-y-3">
-                        <div className="text-[10px] font-black text-rose-500 uppercase tracking-widest font-headline flex items-center gap-2">
-                            <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >error</span> Catatan / Revisi Sebelumnya
-                        </div>
-                        <div className="text-sm font-medium text-rose-700 leading-relaxed font-inter whitespace-pre-wrap">{selected.Catatan}</div>
-                    </div>
-                 )}
-
-                  <div className="pt-8 border-t border-slate-200/40 space-y-4">
-                     {isPendingUniv(selected) && (
-                       <div className="flex items-center gap-3 bg-slate-50 rounded-2xl p-4 border border-slate-200/60">
-                         <span className="material-symbols-outlined text-slate-400" style={{ fontSize: '18px' }}>timer</span>
-                         <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest shrink-0">Tenggat LPJ:</span>
-                         <input type="number" min={1} max={365}
-                           value={tenggatHari}
-                           onChange={e => setTenggatHari(parseInt(e.target.value) || 14)}
-                           className="w-20 h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-black text-center text-slate-800 focus:outline-none focus:border-primary" />
-                         <span className="text-[10px] font-bold text-slate-500">hari setelah disahkan</span>
-                       </div>
-                     )}
-                     {selected.Status === 'diajukan' && isUnivLevelOrmawa(selected) && (
-                       <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-2">
-                         <span className="material-symbols-outlined text-amber-500" style={{ fontSize: '16px' }}>info</span>
-                         <span className="text-[10px] font-bold text-amber-700">Ormawa Universitas (BEM/UKM/MPM) — Bypass persetujuan Fakultas</span>
-                       </div>
-                     )}
-                     <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2">
-                       <Button variant="outline" onClick={() => setIsDetailOpen(false)} className="w-full sm:w-auto h-11 px-8 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-500 font-headline shadow-none cursor-pointer border-slate-200 hover:bg-slate-100">Tutup</Button>
-                       {isPendingUniv(selected) && (
-                         <>
-                           <Button onClick={() => setIsRejectOpen(true)} className="w-full sm:w-auto h-11 px-6 rounded-xl bg-white text-rose-500 border border-rose-200 font-black font-headline text-[10px] uppercase tracking-widest hover:bg-rose-50 transition-all shadow-none cursor-pointer">Kembalikan</Button>
-                           <Button onClick={() => handleApprove(selected.id || selected.ID)} disabled={isSubmitting} className="w-full sm:w-auto h-11 px-8 rounded-xl bg-slate-800 text-white font-black font-headline text-[10px] uppercase tracking-widest hover:bg-slate-900 shadow-none transition-all active:scale-95 group cursor-pointer border-none">
-                             {isSubmitting ? <span className="material-symbols-outlined animate-spin mr-2" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined mr-2" style={{ fontSize: '14px' }} >security</span>} Sahkan Proposal
-                           </Button>
-                         </>
-                       )}
-                     </div>
-                   </div>
+              <div className="p-6 md:p-8 space-y-6 max-h-[50vh] overflow-y-auto no-scrollbar font-inter">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="glass-card bg-white/50 p-5 rounded-2xl border border-slate-200/60 shadow-none space-y-2">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Proyeksi Anggaran</p>
+                      <p className="text-2xl font-black text-slate-800 font-headline tabular-nums">{formatRp(selected.Anggaran)}</p>
+                  </div>
+                  <div className="glass-card bg-white/50 p-5 rounded-2xl border border-slate-200/60 shadow-none space-y-2 flex flex-col justify-center">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Rekening Ormawa</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="material-symbols-outlined text-slate-400" style={{fontSize: '18px'}}>account_balance</span>
+                        <p className="text-sm font-bold text-slate-700 break-all">{selected.Ormawa?.rekening || selected.Ormawa?.Rekening || 'Belum diatur'}</p>
+                      </div>
+                  </div>
+                  <div className="glass-card bg-white/50 p-5 rounded-2xl border border-slate-200/60 shadow-none space-y-2 flex flex-col items-start justify-center">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Status Validasi</p>
+                      <Badge className={cn('px-3 py-1 rounded-lg border-none shadow-none text-[9px] font-black uppercase tracking-widest font-headline mt-1', STATUS_CFG[selected.Status]?.cls)}>
+                          {STATUS_CFG[selected.Status]?.label || selected.Status}
+                      </Badge>
+                  </div>
                 </div>
+
+                {/* 5W1H Analysis */}
+                <div className="space-y-6">
+                  <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest border-b border-slate-200 pb-2 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '18px' }}>analytics</span> Analisis 5W + 1H
+                  </h3>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-10 gap-y-10">
+                    {/* WHAT */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200 border-none px-2 shadow-none font-bold">WHAT</Badge>
+                        <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Apa Kegiatan Ini?</span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pl-4 border-l-2 border-blue-100">
+                        <div>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jenis Kegiatan</p>
+                          <p className="text-sm font-semibold text-slate-700">{selected.Jenis || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Bentuk Kegiatan</p>
+                          <p className="text-sm font-semibold text-slate-700">{selected.bentuk_kegiatan || selected.BentukKegiatan || '-'}</p>
+                        </div>
+                        <div className="sm:col-span-2">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ringkasan / Deskripsi Singkat</p>
+                          <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap mt-1">
+                            {selected.Deskripsi || selected.deskripsi || '-'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* WHY */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-200 border-none px-2 shadow-none font-bold">WHY</Badge>
+                        <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Mengapa Diadakan?</span>
+                      </div>
+                      <div className="space-y-4 pl-4 border-l-2 border-purple-100">
+                        <div>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Latar Belakang</p>
+                          <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap mt-1">
+                            {selected.latar_belakang || selected.LatarBelakang || '-'}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tujuan Kegiatan</p>
+                          <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap mt-1">
+                            {selected.tujuan_kegiatan || selected.TujuanKegiatan || '-'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* WHO */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border-none px-2 shadow-none font-bold">WHO</Badge>
+                        <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Siapa yang Terlibat?</span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pl-4 border-l-2 border-emerald-100">
+                        <div className="sm:col-span-2">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sasaran / Target Peserta</p>
+                          <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap mt-1">
+                            {selected.sasaran_kegiatan || selected.SasaranKegiatan || '-'}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Penanggung Jawab</p>
+                          <p className="text-sm font-semibold text-slate-700">{selected.pj_kegiatan || selected.PJKegiatan || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mitra / Kolaborator</p>
+                          <p className="text-sm font-semibold text-slate-700">{selected.mitra || selected.Mitra || '-'}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* WHEN & WHERE */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-200 border-none px-2 shadow-none font-bold">WHEN &amp; WHERE</Badge>
+                        <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Kapan &amp; Dimana?</span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pl-4 border-l-2 border-amber-100">
+                        <div>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tanggal Kegiatan</p>
+                          <p className="text-sm font-semibold text-slate-700">
+                            {selected.TanggalKegiatan ? new Date(selected.TanggalKegiatan).toLocaleDateString('id-ID', { dateStyle: 'long' }) : '-'}
+                          </p>
+                        </div>
+                        <div className="sm:col-span-2">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jadwal &amp; Tempat Pelaksanaan</p>
+                          <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap mt-1">
+                            {selected.jadwal_pelaksanaan || selected.JadwalPelaksanaan || '-'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* HOW */}
+                    <div className="space-y-3 lg:col-span-2">
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-rose-100 text-rose-700 hover:bg-rose-200 border-none px-2 shadow-none font-bold">HOW</Badge>
+                        <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Bagaimana Pelaksanaannya?</span>
+                      </div>
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pl-4 border-l-2 border-rose-100">
+                        <div>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Indikator Keberhasilan</p>
+                          <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap mt-1">
+                            {selected.indikator_keberhasilan || selected.IndikatorKeberhasilan || '-'}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sumber Dana Utama</p>
+                          <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap mt-1">
+                            {selected.sumber_dana || selected.SumberDana || '-'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Link Lampiran / Berkas */}
+                {(selected.file_url || selected.FileURL) && (
+                   <div className="space-y-2">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Lampiran Dokumen</p>
+                      <a href={selected.file_url || selected.FileURL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 bg-bku-primary/10 text-bku-primary px-4 py-3 rounded-xl font-bold text-sm hover:bg-bku-primary/20 transition-colors">
+                         <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>download</span> Unduh/Lihat Dokumen Proposal
+                      </a>
+                   </div>
+                )}
+
+                {selected.Catatan && (
+                   <div className="bg-rose-50/50 border border-rose-100 p-6 rounded-2xl space-y-3">
+                       <div className="text-[10px] font-black text-rose-500 uppercase tracking-widest font-headline flex items-center gap-2">
+                           <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >error</span> Catatan / Revisi Sebelumnya
+                       </div>
+                       <div className="text-sm font-medium text-rose-700 leading-relaxed font-inter whitespace-pre-wrap">{selected.Catatan}</div>
+                   </div>
+                )}
+
+                {selected.Status === 'diajukan' && isUnivLevelOrmawa(selected) && (
+                  <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-2">
+                    <span className="material-symbols-outlined text-amber-500" style={{ fontSize: '16px' }}>info</span>
+                    <span className="text-[10px] font-bold text-amber-700">Ormawa Universitas (BEM/UKM/MPM) — Bypass persetujuan Fakultas</span>
+                  </div>
+                )}
               </div>
+
+              <DialogFooter>
+                {isPendingUniv(selected) && (
+                  <div className="flex items-center gap-3 bg-slate-50/50 rounded-xl p-2 border border-slate-200/60 mr-auto w-full sm:w-auto mb-4 sm:mb-0">
+                    <span className="material-symbols-outlined text-slate-400" style={{ fontSize: '18px' }}>timer</span>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest shrink-0">Tenggat LPJ:</span>
+                    <input type="number" min={1} max={365}
+                      value={tenggatHari}
+                      onChange={e => setTenggatHari(parseInt(e.target.value) || 14)}
+                      className="w-16 h-8 rounded-lg border border-slate-200 bg-white px-2 text-xs font-black text-center text-slate-800 focus:outline-none focus:border-primary" />
+                    <span className="text-[10px] font-bold text-slate-500">hari setelah disahkan</span>
+                  </div>
+                )}
+                <div className="flex gap-3 w-full sm:w-auto justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setIsDetailOpen(false)}
+                    className="h-12 px-6 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-body cursor-pointer"
+                  >
+                    Tutup
+                  </button>
+                  {isPendingUniv(selected) && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setIsRejectOpen(true)}
+                        className="h-12 px-6 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 cursor-pointer"
+                      >
+                        Kembalikan
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleApprove(selected.id || selected.ID)}
+                        disabled={isSubmitting}
+                        className="h-12 px-8 bg-neutral-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2 font-body cursor-pointer border-none"
+                      >
+                        {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >security</span>}
+                        <span>Sahkan Proposal</span>
+                      </button>
+                    </>
+                  )}
+                </div>
+              </DialogFooter>
             </>
           )}
         </DialogContent>
@@ -726,25 +744,45 @@ export default function ProposalPipeline() {
 
       {/* ── Reject Reason Dialog ──────────────────────────────────── */}
       <Dialog open={isRejectOpen} onOpenChange={setIsRejectOpen} maxWidth="max-w-md">
-        <DialogContent className="w-full p-0 overflow-hidden border-none shadow-2xl rounded-3xl glass-card bg-white/95">
-          <DialogHeader className="p-8 pb-6 border-b border-slate-200/40 relative overflow-hidden">
-            <div className="size-12 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600 mb-4 border border-rose-100 shadow-none"><span className="material-symbols-outlined" style={{ fontSize: '24px' }} >close</span></div>
-            <DialogTitle className="text-2xl font-black font-headline tracking-tight text-slate-800 uppercase">Tolak Proposal</DialogTitle>
-            <DialogDescription className="text-[11px] font-medium text-slate-400 mt-1 uppercase tracking-widest">Berikan alasan formal penangguhan anggaran.</DialogDescription>
+        <DialogContent>
+          <DialogHeader className="relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-5 text-rose-600"><span className="material-symbols-outlined rotate-12" style={{ fontSize: '100px' }} >error</span></div>
+            <div className="relative z-10 space-y-1">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="size-6 rounded bg-rose-50 flex items-center justify-center text-rose-600">
+                  <span className="material-symbols-outlined text-[12px]" >close</span>
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-rose-600 font-headline">Tolak Proposal</span>
+              </div>
+              <DialogTitle className="text-xl sm:text-2xl font-black font-headline tracking-tight text-slate-800 uppercase">Tolak Proposal</DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm font-medium text-slate-500 font-inter">Berikan alasan formal penangguhan anggaran.</DialogDescription>
+            </div>
           </DialogHeader>
-          <div className="p-8 space-y-6">
-            <div className="space-y-3">
+          <div className="p-6 md:p-8 space-y-6">
+            <div className="space-y-2">
               <Label className="text-[10px] font-black text-slate-500 font-headline uppercase tracking-widest ml-1">Justifikasi Penolakan</Label>
               <Textarea required value={rejectNote} onChange={e => setRejectNote(e.target.value)} placeholder="Tuliskan alasan penolakan atau instruksi revisi..."
-                className="min-h-[120px] rounded-2xl border-slate-200 bg-white/60 focus:bg-white focus:ring-bku-primary/20 p-4 font-medium text-sm font-inter transition-all" />
-            </div>
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={() => setIsRejectOpen(false)} className="flex-1 h-12 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-500 font-headline shadow-none border-slate-200 hover:bg-slate-100 cursor-pointer">Batal</Button>
-              <Button onClick={handleReject} disabled={isSubmitting || !rejectNote.trim()} className="flex-1 h-12 rounded-xl bg-rose-600 text-white font-black font-headline text-[10px] uppercase tracking-widest shadow-none hover:bg-rose-700 transition-all active:scale-95 border-none cursor-pointer">
-                {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : 'Konfirmasi Tolak'}
-              </Button>
+                className="min-h-[120px] rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white p-4 font-medium text-sm font-inter transition-all" />
             </div>
           </div>
+          <DialogFooter>
+            <button
+              type="button"
+              onClick={() => setIsRejectOpen(false)}
+              className="flex-1 sm:flex-initial h-12 px-6 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-body cursor-pointer"
+            >
+              Batal
+            </button>
+            <button
+              type="button"
+              onClick={handleReject}
+              disabled={isSubmitting || !rejectNote.trim()}
+              className="flex-1 sm:flex-initial h-12 px-8 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2 font-body cursor-pointer border-none"
+            >
+              {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >save</span>}
+              <span>Konfirmasi Tolak</span>
+            </button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </PageContent>

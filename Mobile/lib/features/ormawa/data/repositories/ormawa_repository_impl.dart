@@ -9,6 +9,7 @@ import 'package:bkuhub_mobile/features/ormawa/domain/entities/banding_appeal.dar
 import 'package:bkuhub_mobile/features/ormawa/data/models/ormawa_member_model.dart';
 import 'package:bkuhub_mobile/features/ormawa/data/models/ormawa_proposal_model.dart';
 import 'package:bkuhub_mobile/features/ormawa/data/models/ormawa_agenda_model.dart';
+import 'package:bkuhub_mobile/features/ormawa/data/models/pkkmb_mission_model.dart';
 import 'package:bkuhub_mobile/features/ormawa/data/models/ormawa_attendance_model.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_attendance.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_finance.dart';
@@ -116,21 +117,20 @@ class OrmawaRepositoryImpl implements OrmawaRepository {
     }
   }
 
-  final List<PKKMBMission> _pkkmbMissions = [
-    PKKMBMission(
-      id: '1',
-      title: 'Aturan & Tata Tertib',
-      desc: 'Materi PDF Wajib Baca bagi seluruh peserta.',
-      stage: 'Pra-PKKMB',
-      type: 'PDF',
-      icon: Icons.picture_as_pdf_rounded,
-      color: const Color(0xFF2563EB),
-      participantCount: 10160,
-    ),
-  ];
-
   @override
-  Future<List<PKKMBMission>> getPKKMBMissions() async => _pkkmbMissions;
+  Future<List<PKKMBMission>> getPKKMBMissions() async {
+    try {
+      final response = await _apiClient.client.get('/ormawa/kencana/materi');
+      if (response.data['status'] == 'success') {
+        final List data = response.data['data'] ?? [];
+        return data.map<PKKMBMission>((json) => PKKMBMissionModel.fromJson(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error getting pkkmb missions (materi): $e');
+      return [];
+    }
+  }
 
   @override
   Future<List<BandingAppeal>> getAppeals() async {
@@ -215,10 +215,30 @@ class OrmawaRepositoryImpl implements OrmawaRepository {
   }
 
   @override
-  Future<void> addPKKMBMission(PKKMBMission mission) async {}
+  Future<void> addPKKMBMission(PKKMBMission mission) async {
+    try {
+      final payload = {
+        'judul': mission.title,
+        'deskripsi': mission.desc,
+        'tipe': mission.type,
+      };
+      await _apiClient.client.post('/ormawa/kencana/materi', data: payload);
+    } catch (e) {
+      debugPrint('Error adding pkkmb mission: $e');
+      rethrow;
+    }
+  }
 
   @override
-  Future<void> togglePKKMBMissionStatus(String id) async {}
+  Future<void> togglePKKMBMissionStatus(String id) async {
+    // Optional: implement status toggle if supported by backend, or just map to delete for now
+    try {
+      await _apiClient.client.delete('/ormawa/kencana/materi/$id');
+    } catch (e) {
+      debugPrint('Error toggling/deleting pkkmb mission: $e');
+      rethrow;
+    }
+  }
 
   @override
   Future<void> addAgenda(String ormawaId, Map<String, dynamic> data) async {

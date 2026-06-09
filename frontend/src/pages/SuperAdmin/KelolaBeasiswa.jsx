@@ -151,134 +151,126 @@ const ReviewModal = ({ selectedApp, onClose, onSubmit, isSubmitting }) => {
     }
   }, [selectedApp]);
 
-  if (!selectedApp) return null;
-
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
-      onClick={onClose}>
-      <div className="relative w-[95vw] sm:w-[90vw] md:max-w-md bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh]"
-        onClick={e => e.stopPropagation()}>
-        
-        {/* Header */}
-        <div className="relative bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
-          <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
-          <button type="button" onClick={onClose}
-            className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
-            <span className="material-symbols-outlined text-white" style={{ fontSize: '15px' }} >close</span>
-          </button>
-          <div className="relative z-10 flex items-center gap-4">
-            <StudentAvatar src={selectedApp.Mahasiswa?.Foto || selectedApp.Mahasiswa?.foto_url} name={selectedApp.MahasiswaNama} className="w-14 h-14 rounded-2xl shadow-xl ring-2 ring-white/20" />
+    <Dialog open={!!selectedApp} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <div className="flex items-center gap-4">
+            <StudentAvatar src={selectedApp?.Mahasiswa?.Foto || selectedApp?.Mahasiswa?.foto_url} name={selectedApp?.MahasiswaNama} className="w-12 h-12 rounded-xl shadow-sm border border-[var(--theme-border)]" />
             <div className="min-w-0">
-              <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Review Pendaftaran</p>
-              <h2 className="text-base font-extrabold text-white leading-tight truncate">{selectedApp.MahasiswaNama}</h2>
-              <p className="text-xs text-blue-200 font-medium mt-0.5">{selectedApp.MahasiswaNIM}</p>
+              <span className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">Review Pendaftaran</span>
+              <DialogTitle className="text-base font-bold text-[var(--theme-text)] mt-0.5 leading-tight truncate">{selectedApp?.MahasiswaNama}</DialogTitle>
+              <p className="text-xs text-[var(--theme-text-muted)] font-medium mt-0.5">{selectedApp?.MahasiswaNIM}</p>
             </div>
           </div>
-        </div>
+        </DialogHeader>
 
-        {/* Content */}
-        <div className="p-6 space-y-5 overflow-y-auto flex-1 font-body">
-          {/* Scholarship Program */}
-          <div className="space-y-1">
-            <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">PROGRAM BEASISWA</span>
-            <p className="text-xs font-black text-slate-800 bg-slate-50 p-3.5 rounded-2xl border border-slate-100/50">
-              {selectedApp.BeasiswaNama}
-            </p>
-          </div>
-
-          {/* Berkas Lampiran */}
-          {(selectedApp.FileURL || selectedApp.KtmKtpURL || selectedApp.TranskripURL || selectedApp.SertifikatURL) && (
-            <div>
-              <label className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider mb-2">BERKAS PENDAFTARAN</label>
-              <div className="flex flex-col gap-1">
-                {renderAttachment(selectedApp.FileURL, "Berkas Utama")}
-                {renderAttachment(selectedApp.KtmKtpURL, "KTM / KTP")}
-                {renderAttachment(selectedApp.TranskripURL, "Transkrip Nilai")}
-                {renderAttachment(selectedApp.SertifikatURL, "Sertifikat Pendukung")}
+        {selectedApp && (
+          <>
+            <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto font-body">
+              {/* Scholarship Program */}
+              <div className="space-y-1">
+                <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">PROGRAM BEASISWA</span>
+                <p className="text-xs font-semibold text-[var(--theme-text)] bg-[var(--theme-bg)] p-3 rounded-xl border border-[var(--theme-border)]">
+                  {selectedApp.BeasiswaNama}
+                </p>
               </div>
-            </div>
-          )}
 
-          {/* Custom Answers */}
-          {(() => {
-            const rawAnswers = selectedApp.custom_answers || selectedApp.CustomAnswers;
-            if (!rawAnswers) return null;
-            let answers = {};
-            try {
-              answers = typeof rawAnswers === 'string' ? JSON.parse(rawAnswers) : rawAnswers;
-            } catch (e) {
-              console.error(e);
-              return null;
-            }
-            if (Object.keys(answers).length === 0) return null;
-            return (
-              <div className="space-y-3 border-t border-slate-100 pt-3">
-                <label className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">PERSYARATAN KUSTOM (JAWABAN)</label>
-                <div className="space-y-2.5">
-                  {Object.entries(answers).map(([label, value]) => {
-                    const isFile = typeof value === 'string' && (value.startsWith('/uploads/') || value.startsWith('http') || value.includes('/api/scholarship/upload-custom-file'));
-                    return (
-                      <div key={label} className="bg-slate-50 p-3 rounded-2xl border border-slate-100/50 text-left">
-                        <span className="block text-[9px] font-bold text-slate-400 uppercase">{label}</span>
-                        {isFile ? (
-                          <div className="mt-1">
-                            {renderAttachment(value, label)}
-                          </div>
-                        ) : (
-                          <p className="text-xs font-bold text-slate-800 mt-1 whitespace-pre-line">
-                            {Array.isArray(value) ? value.join(', ') : String(value)}
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })}
+              {/* Berkas Lampiran */}
+              {(selectedApp.FileURL || selectedApp.KtmKtpURL || selectedApp.TranskripURL || selectedApp.SertifikatURL) && (
+                <div>
+                  <label className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-2">BERKAS PENDAFTARAN</label>
+                  <div className="flex flex-col gap-1">
+                    {renderAttachment(selectedApp.FileURL, "Berkas Utama")}
+                    {renderAttachment(selectedApp.KtmKtpURL, "KTM / KTP")}
+                    {renderAttachment(selectedApp.TranskripURL, "Transkrip Nilai")}
+                    {renderAttachment(selectedApp.SertifikatURL, "Sertifikat Pendukung")}
+                  </div>
                 </div>
+              )}
+
+              {/* Custom Answers */}
+              {(() => {
+                const rawAnswers = selectedApp.custom_answers || selectedApp.CustomAnswers;
+                if (!rawAnswers) return null;
+                let answers = {};
+                try {
+                  answers = typeof rawAnswers === 'string' ? JSON.parse(rawAnswers) : rawAnswers;
+                } catch (e) {
+                  console.error(e);
+                  return null;
+                }
+                if (Object.keys(answers).length === 0) return null;
+                return (
+                  <div className="space-y-3 border-t border-[var(--theme-border-muted)] pt-3">
+                    <label className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">PERSYARATAN KUSTOM (JAWABAN)</label>
+                    <div className="space-y-2.5">
+                      {Object.entries(answers).map(([label, value]) => {
+                        const isFile = typeof value === 'string' && (value.startsWith('/uploads/') || value.startsWith('http') || value.includes('/api/scholarship/upload-custom-file'));
+                        return (
+                          <div key={label} className="bg-[var(--theme-bg)] p-3 rounded-xl border border-[var(--theme-border)] text-left">
+                            <span className="block text-[9px] font-bold text-[var(--theme-text-muted)] uppercase">{label}</span>
+                            {isFile ? (
+                              <div className="mt-1">
+                                {renderAttachment(value, label)}
+                              </div>
+                            ) : (
+                              <p className="text-xs font-semibold text-[var(--theme-text)] mt-1 whitespace-pre-line">
+                                {Array.isArray(value) ? value.join(', ') : String(value)}
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Status Options */}
+              <div className="space-y-2">
+                <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">TAHAP SELEKSI / KEPUTUSAN</span>
+                <Select value={status} onValueChange={setStatus}>
+                  <SelectTrigger className="w-full h-10 rounded-xl border-[var(--theme-border)] bg-white text-xs">
+                    <SelectValue placeholder="Pilih Tahap Seleksi" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border border-[var(--theme-border)] shadow-md bg-white">
+                    <SelectItem value="dikirim" className="rounded-lg text-xs py-1.5 focus:bg-[var(--theme-primary-light)] focus:text-[var(--theme-primary)]">1. Pengajuan Dikirim</SelectItem>
+                    <SelectItem value="seleksi_berkas" className="rounded-lg text-xs py-1.5 focus:bg-[var(--theme-primary-light)] focus:text-[var(--theme-primary)]">2. Seleksi Berkas</SelectItem>
+                    <SelectItem value="evaluasi" className="rounded-lg text-xs py-1.5 focus:bg-[var(--theme-primary-light)] focus:text-[var(--theme-primary)]">3. Evaluasi & Wawancara</SelectItem>
+                    <SelectItem value="review" className="rounded-lg text-xs py-1.5 focus:bg-[var(--theme-primary-light)] focus:text-[var(--theme-primary)]">4. Review Akhir</SelectItem>
+                    <SelectItem value="penetapan" className="rounded-lg text-xs py-1.5 focus:bg-[var(--theme-primary-light)] focus:text-[var(--theme-primary)]">5. Penetapan Pemenang</SelectItem>
+                    <SelectItem value="Diterima" className="rounded-lg text-xs py-1.5 focus:bg-[var(--theme-primary-light)] focus:text-[var(--theme-primary)]">6. Hasil Akhir: Diterima</SelectItem>
+                    <SelectItem value="Ditolak" className="rounded-lg text-xs py-1.5 focus:bg-[var(--theme-primary-light)] focus:text-[var(--theme-primary)]">6. Hasil Akhir: Ditolak</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-            );
-          })()}
 
-          {/* Status Options */}
-          <div className="space-y-2">
-            <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">TAHAP SELEKSI / KEPUTUSAN</span>
-            <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="w-full h-11 rounded-xl border-[#e5e5e5] bg-[#fafafa]">
-                <SelectValue placeholder="Pilih Tahap Seleksi" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="dikirim">1. Pengajuan Dikirim</SelectItem>
-                <SelectItem value="seleksi_berkas">2. Seleksi Berkas</SelectItem>
-                <SelectItem value="evaluasi">3. Evaluasi & Wawancara</SelectItem>
-                <SelectItem value="review">4. Review Akhir</SelectItem>
-                <SelectItem value="penetapan">5. Penetapan Pemenang</SelectItem>
-                <SelectItem value="Diterima">6. Hasil Akhir: Diterima</SelectItem>
-                <SelectItem value="Ditolak">6. Hasil Akhir: Ditolak</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+              {/* Catatan */}
+              <div className="space-y-1">
+                <label className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-2">CATATAN REVIEWER</label>
+                <textarea value={catatan} onChange={e => setCatatan(e.target.value)} rows={3}
+                  placeholder="Berikan alasan keputusan atau catatan perbaikan..."
+                  className="w-full px-4 py-3 rounded-xl border border-[var(--theme-border)] bg-white focus:outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] text-xs text-[var(--theme-text)] transition-all resize-none shadow-sm placeholder:text-[var(--theme-text-subtle)]" />
+              </div>
+            </div>
 
-          {/* Catatan */}
-          <div>
-            <label className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider mb-2">CATATAN REVIEWER</label>
-            <textarea value={catatan} onChange={e => setCatatan(e.target.value)} rows={4}
-              placeholder="Berikan alasan keputusan atau catatan perbaikan..."
-              className="w-full px-4 py-3 rounded-xl border border-[#e5e5e5] bg-[#fafafa] focus:outline-none focus:border-primary focus:bg-white text-sm text-[#171717] transition-all resize-none" />
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="px-5 py-4 border-t border-[#f0f0f0] bg-[#fafafa] flex gap-3 flex-shrink-0">
-          <button type="button" onClick={onClose}
-            className="flex-1 h-11 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold text-[#525252] uppercase tracking-widest hover:bg-[#f5f5f5] transition-all">
-            Batal
-          </button>
-          <button type="button" onClick={() => onSubmit(status, catatan)} disabled={isSubmitting}
-            className="flex-1 h-11 rounded-xl bg-[#00236F] hover:bg-[#001a52] text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-[#00236F]/20 disabled:opacity-60 flex items-center justify-center gap-2">
-            {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >save</span>}
-            Simpan Keputusan
-          </button>
-        </div>
-      </div>
-    </div>
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-[var(--theme-border-muted)] bg-[var(--theme-bg)]/20 flex gap-3">
+              <button type="button" onClick={onClose}
+                className="flex-1 h-10 rounded-xl border border-[var(--theme-border)] bg-white text-xs font-bold text-[var(--theme-text-muted)] uppercase tracking-wider hover:bg-[var(--theme-bg)] transition-all">
+                Batal
+              </button>
+              <button type="button" onClick={() => onSubmit(status, catatan)} disabled={isSubmitting}
+                className="flex-1 h-10 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-xs font-bold uppercase tracking-wider transition-all active:scale-[0.98] shadow-sm disabled:opacity-50 flex items-center justify-center gap-2">
+                {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >save</span>}
+                Simpan
+              </button>
+            </div>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 };
 
@@ -2173,33 +2165,25 @@ export default function KelolaBeasiswa() {
         const first5Apps = programApps.slice(0, 5);
 
         return (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
-            onClick={() => setSelectedProgram(null)}>
-            <div className="relative w-[95vw] sm:w-[90vw] md:max-w-md bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh]"
-              onClick={e => e.stopPropagation()}>
-              {/* Header */}
-              <div className="relative bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
-                <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
-                <button onClick={() => setSelectedProgram(null)}
-                  className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
-                  <span className="material-symbols-outlined text-white" style={{ fontSize: '15px' }} >close</span>
-                </button>
+          <Dialog open={!!selectedProgram} onOpenChange={(open) => !open && setSelectedProgram(null)}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
                 <div className="flex items-center gap-3">
                   <div className="min-w-0">
-                    <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Detail Program Beasiswa</p>
-                    <h2 className="text-base font-extrabold text-white leading-tight">{selectedProgram.Nama}</h2>
-                    <p className="text-xs text-blue-200 font-medium mt-0.5">{selectedProgram.Penyelenggara}</p>
+                    <span className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">Detail Program Beasiswa</span>
+                    <DialogTitle className="text-base font-bold text-[var(--theme-text)] mt-0.5">{selectedProgram.Nama}</DialogTitle>
+                    <p className="text-xs text-[var(--theme-text-muted)] font-medium mt-0.5">{selectedProgram.Penyelenggara}</p>
                   </div>
                 </div>
-              </div>
+              </DialogHeader>
 
               {/* Content */}
-              <div className="p-6 space-y-4 overflow-y-auto flex-1 font-body">
+              <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto font-body">
                 {/* Deskripsi */}
                 {selectedProgram.Deskripsi && (
                   <div className="space-y-1">
-                    <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">DESKRIPSI PROGRAM</span>
-                    <p className="text-xs text-slate-600 leading-relaxed bg-slate-50/60 p-3.5 rounded-2xl border border-slate-100/50">
+                    <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">DESKRIPSI PROGRAM</span>
+                    <p className="text-xs text-[var(--theme-text-muted)] leading-relaxed bg-[var(--theme-bg)] p-3 rounded-xl border border-[var(--theme-border)]">
                       {selectedProgram.Deskripsi}
                     </p>
                   </div>
@@ -2208,8 +2192,8 @@ export default function KelolaBeasiswa() {
                 {/* Persyaratan */}
                 {(selectedProgram.Persyaratan || selectedProgram.persyaratan) && (
                   <div className="space-y-1">
-                    <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">PERSYARATAN</span>
-                    <div className="text-xs text-slate-600 leading-relaxed bg-slate-50/60 p-3.5 rounded-2xl border border-slate-100/50 whitespace-pre-line font-body">
+                    <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">PERSYARATAN</span>
+                    <div className="text-xs text-[var(--theme-text-muted)] leading-relaxed bg-[var(--theme-bg)] p-3 rounded-xl border border-[var(--theme-border)] whitespace-pre-line">
                       {selectedProgram.Persyaratan || selectedProgram.persyaratan}
                     </div>
                   </div>
@@ -2217,31 +2201,31 @@ export default function KelolaBeasiswa() {
 
                 {/* Ketentuan Berkas */}
                 <div className="space-y-1">
-                  <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">KETENTUAN BERKAS</span>
-                  <div className="bg-slate-50/60 p-3.5 rounded-2xl border border-slate-100/50 flex flex-col gap-1.5 font-body">
+                  <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">KETENTUAN BERKAS</span>
+                  <div className="bg-[var(--theme-bg)] p-3.5 rounded-xl border border-[var(--theme-border)] flex flex-col gap-1.5 font-body">
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-slate-500 font-medium">KTM & KTP</span>
+                      <span className="text-[var(--theme-text-muted)] font-medium">KTM & KTP</span>
                       <span className={cn("font-bold px-2 py-0.5 rounded text-[9px] uppercase tracking-wide", 
-                        (selectedProgram.FileKtm || selectedProgram.file_ktm || 'wajib') === 'wajib' ? 'bg-rose-50 text-rose-600 border border-rose-100' :
-                        (selectedProgram.FileKtm || selectedProgram.file_ktm || 'wajib') === 'opsional' ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-slate-100 text-slate-500'
+                        (selectedProgram.FileKtm || selectedProgram.file_ktm || 'wajib') === 'wajib' ? 'bg-[var(--theme-error-light)] text-[var(--theme-error)] border border-[var(--theme-error)]/20' :
+                        (selectedProgram.FileKtm || selectedProgram.file_ktm || 'wajib') === 'opsional' ? 'bg-[var(--theme-warning-light)] text-[var(--theme-warning)] border border-[var(--theme-warning)]/20' : 'bg-slate-100 text-slate-500'
                       )}>
                         {selectedProgram.FileKtm || selectedProgram.file_ktm || 'wajib'}
                       </span>
                     </div>
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-slate-500 font-medium">Transkrip Nilai</span>
+                      <span className="text-[var(--theme-text-muted)] font-medium">Transkrip Nilai</span>
                       <span className={cn("font-bold px-2 py-0.5 rounded text-[9px] uppercase tracking-wide", 
-                        (selectedProgram.FileTranskrip || selectedProgram.file_transkrip || 'wajib') === 'wajib' ? 'bg-rose-50 text-rose-600 border border-rose-100' :
-                        (selectedProgram.FileTranskrip || selectedProgram.file_transkrip || 'wajib') === 'opsional' ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-slate-100 text-slate-500'
+                        (selectedProgram.FileTranskrip || selectedProgram.file_transkrip || 'wajib') === 'wajib' ? 'bg-[var(--theme-error-light)] text-[var(--theme-error)] border border-[var(--theme-error)]/20' :
+                        (selectedProgram.FileTranskrip || selectedProgram.file_transkrip || 'wajib') === 'opsional' ? 'bg-[var(--theme-warning-light)] text-[var(--theme-warning)] border border-[var(--theme-warning)]/20' : 'bg-slate-100 text-slate-500'
                       )}>
                         {selectedProgram.FileTranskrip || selectedProgram.file_transkrip || 'wajib'}
                       </span>
                     </div>
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-slate-500 font-medium">Sertifikat Pendukung</span>
+                      <span className="text-[var(--theme-text-muted)] font-medium">Sertifikat Pendukung</span>
                       <span className={cn("font-bold px-2 py-0.5 rounded text-[9px] uppercase tracking-wide", 
-                        (selectedProgram.FileSertifikat || selectedProgram.file_sertifikat || 'opsional') === 'wajib' ? 'bg-rose-50 text-rose-600 border border-rose-100' :
-                        (selectedProgram.FileSertifikat || selectedProgram.file_sertifikat || 'opsional') === 'opsional' ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-slate-100 text-slate-500'
+                        (selectedProgram.FileSertifikat || selectedProgram.file_sertifikat || 'opsional') === 'wajib' ? 'bg-[var(--theme-error-light)] text-[var(--theme-error)] border border-[var(--theme-error)]/20' :
+                        (selectedProgram.FileSertifikat || selectedProgram.file_sertifikat || 'opsional') === 'opsional' ? 'bg-[var(--theme-warning-light)] text-[var(--theme-warning)] border border-[var(--theme-warning)]/20' : 'bg-slate-100 text-slate-500'
                       )}>
                         {selectedProgram.FileSertifikat || selectedProgram.file_sertifikat || 'opsional'}
                       </span>
@@ -2262,22 +2246,22 @@ export default function KelolaBeasiswa() {
                   if (!Array.isArray(fields) || fields.length === 0) return null;
                   return (
                     <div className="space-y-1">
-                      <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">PERSYARATAN TAMBAHAN (KUSTOM)</span>
-                      <div className="bg-slate-50/60 p-3.5 rounded-2xl border border-slate-100/50 space-y-2 font-body">
+                      <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">PERSYARATAN TAMBAHAN (KUSTOM)</span>
+                      <div className="bg-[var(--theme-bg)] p-3.5 rounded-xl border border-[var(--theme-border)] space-y-2 font-body">
                         {fields.map((f, i) => (
-                          <div key={i} className="flex justify-between items-start text-xs border-b border-slate-100 last:border-0 pb-1.5 last:pb-0">
+                          <div key={i} className="flex justify-between items-start text-xs border-b border-[var(--theme-border-muted)] last:border-0 pb-1.5 last:pb-0">
                             <div className="min-w-0 pr-2 text-left">
-                              <span className="font-bold text-slate-700 block">{f.label}</span>
+                              <span className="font-bold text-[var(--theme-text)] block">{f.label}</span>
                               {f.options && (
-                                <span className="text-[9px] text-slate-400 block mt-0.5">Opsi: {f.options}</span>
+                                <span className="text-[9px] text-[var(--theme-text-muted)] block mt-0.5">Opsi: {f.options}</span>
                               )}
                             </div>
                             <div className="flex flex-col items-end gap-1 shrink-0">
-                              <span className="font-semibold text-[9px] px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded">
+                              <span className="font-semibold text-[9px] px-1.5 py-0.5 bg-[var(--theme-primary-light)] text-[var(--theme-primary)] rounded">
                                 {f.type}
                               </span>
                               {f.required && (
-                                <span className="font-bold text-[8px] px-1 bg-rose-50 text-rose-600 rounded">
+                                <span className="font-bold text-[8px] px-1 bg-[var(--theme-error-light)] text-[var(--theme-error)] rounded">
                                   Wajib
                                 </span>
                               )}
@@ -2289,71 +2273,71 @@ export default function KelolaBeasiswa() {
                   );
                 })()}
 
-                {/* Tanggal & Waktu Dibuat - Full Width */}
-                <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 flex-shrink-0">
+                {/* Tanggal & Waktu Dibuat */}
+                <div className="bg-[var(--theme-bg)] p-3 rounded-xl border border-[var(--theme-border)] flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)] flex-shrink-0">
                     <span className="material-symbols-outlined" style={{ fontSize: 16 }}>calendar_add_on</span>
                   </div>
                   <div>
-                    <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">TANGGAL & WAKTU DIBUAT</span>
-                    <span className="text-xs font-black text-slate-700">
+                    <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-0.5">TANGGAL & WAKTU DIBUAT</span>
+                    <span className="text-xs font-semibold text-[var(--theme-text)]">
                       {selectedProgram.created_at || selectedProgram.CreatedAt ? formatDateTime(selectedProgram.created_at || selectedProgram.CreatedAt) : '—'}
                     </span>
                   </div>
                 </div>
 
-                {/* Deadline & IPK Requirement - Side by Side (grid-cols-2) */}
-                <div className="grid grid-cols-2 gap-3.5">
-                  <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600 flex-shrink-0">
+                {/* Deadline & IPK Requirement */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-[var(--theme-bg)] p-3 rounded-xl border border-[var(--theme-border)] flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-[var(--theme-error-light)] flex items-center justify-center text-[var(--theme-error)] flex-shrink-0">
                       <span className="material-symbols-outlined" style={{ fontSize: 16 }}>event_busy</span>
                     </div>
                     <div>
-                      <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">DEADLINE</span>
-                      <span className="text-xs font-black text-rose-600">
+                      <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-0.5">DEADLINE</span>
+                      <span className="text-xs font-semibold text-[var(--theme-error)]">
                         {selectedProgram.Deadline ? formatDate(selectedProgram.Deadline) : '—'}
                       </span>
                     </div>
                   </div>
-                  <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 flex-shrink-0">
+                  <div className="bg-[var(--theme-bg)] p-3 rounded-xl border border-[var(--theme-border)] flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-[var(--theme-warning-light)] flex items-center justify-center text-[var(--theme-warning)] flex-shrink-0">
                       <span className="material-symbols-outlined" style={{ fontSize: 16 }}>star</span>
                     </div>
                     <div>
-                      <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">MINIMAL IPK</span>
-                      <span className="text-xs font-black text-slate-700">{selectedProgram.IPKMin || '3.00'}</span>
+                      <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-0.5">MINIMAL IPK</span>
+                      <span className="text-xs font-semibold text-[var(--theme-text)]">{selectedProgram.IPKMin || '3.00'}</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Capacity - Full Width */}
-                <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 flex flex-col justify-between">
+                {/* Capacity */}
+                <div className="bg-[var(--theme-bg)] p-3 rounded-xl border border-[var(--theme-border)] flex flex-col justify-between">
                   <div className="flex justify-between items-center">
-                    <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider">KAPASITAS & KETERISIAN</span>
-                    <span className="text-xs font-black text-slate-700">{current} / {selectedProgram.Kuota || 0} Mahasiswa</span>
+                    <span className="text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">KAPASITAS & KETERISIAN</span>
+                    <span className="text-xs font-semibold text-[var(--theme-text)]">{current} / {selectedProgram.Kuota || 0} Mahasiswa</span>
                   </div>
-                  <div className="w-full h-1.5 bg-slate-200/80 rounded-full overflow-hidden mt-2.5">
+                  <div className="w-full h-1.5 bg-[var(--theme-border-muted)] rounded-full overflow-hidden mt-2">
                     <div
                       className={cn(
                         "h-full rounded-full transition-all duration-500",
                         pct > 90 
-                          ? "bg-rose-500" 
-                          : "bg-gradient-to-r from-primary to-blue-400"
+                          ? "bg-[var(--theme-error)]" 
+                          : "bg-[var(--theme-primary)]"
                       )}
                       style={{ width: `${pct}%` }}
                     />
                   </div>
                 </div>
 
-                {/* Anggaran - Full Width */}
+                {/* Anggaran */}
                 {selectedProgram.Anggaran > 0 && (
-                  <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 flex-shrink-0">
+                  <div className="bg-[var(--theme-bg)] p-3 rounded-xl border border-[var(--theme-border)] flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-[var(--theme-success-light)] flex items-center justify-center text-[var(--theme-success)] flex-shrink-0">
                       <span className="material-symbols-outlined" style={{ fontSize: 16 }}>payments</span>
                     </div>
                     <div>
-                      <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">TOTAL ANGGARAN</span>
-                      <span className="text-xs font-black text-emerald-600">
+                      <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-0.5">TOTAL ANGGARAN</span>
+                      <span className="text-xs font-semibold text-[var(--theme-success)]">
                         Rp {new Intl.NumberFormat('id-ID').format(selectedProgram.Anggaran)}
                       </span>
                     </div>
@@ -2361,30 +2345,30 @@ export default function KelolaBeasiswa() {
                 )}
 
                 {/* Applicants List */}
-                <div>
-                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider mb-3 flex items-center justify-between">
+                <div className="space-y-2">
+                  <h3 className="text-xs font-semibold text-[var(--theme-text)] uppercase tracking-wider flex items-center justify-between">
                     <span>Pendaftar Terkini</span>
-                    <span className="text-[10px] text-slate-400 font-bold lowercase">({programApps.length} pendaftar)</span>
+                    <span className="text-[10px] text-[var(--theme-text-muted)] lowercase">({programApps.length} pendaftar)</span>
                   </h3>
 
                   {first5Apps.length === 0 ? (
-                    <div className="bg-slate-50/40 p-6 rounded-2xl border border-dashed border-slate-200 text-center">
-                      <p className="text-xs text-slate-400 italic">Belum ada mahasiswa mendaftar program ini</p>
+                    <div className="bg-[var(--theme-bg)] p-6 rounded-xl border border-dashed border-[var(--theme-border)] text-center">
+                      <p className="text-xs text-[var(--theme-text-subtle)] italic">Belum ada mahasiswa mendaftar program ini</p>
                     </div>
                   ) : (
                     <div className="space-y-2">
                       {first5Apps.map((a) => {
                         const st = getAppStatus(a.Status);
                         return (
-                          <div key={a.ID || a.id} className="flex items-center justify-between p-2.5 bg-white border border-slate-100 rounded-xl hover:border-slate-200/80 transition-colors shadow-sm">
+                          <div key={a.ID || a.id} className="flex items-center justify-between p-2.5 bg-white border border-[var(--theme-border-muted)] rounded-xl hover:border-[var(--theme-border)] transition-colors shadow-sm">
                             <div className="flex items-center gap-2.5 min-w-0">
                               <StudentAvatar src={a.Mahasiswa?.Foto || a.Mahasiswa?.foto_url} name={a.MahasiswaNama} className="w-8 h-8 rounded-lg" />
                               <div className="min-w-0">
-                                <p className="text-xs font-bold text-slate-800 truncate">{a.MahasiswaNama}</p>
-                                <p className="text-[9px] font-medium text-slate-400 mt-0.5">{a.MahasiswaNIM}</p>
+                                <p className="text-xs font-semibold text-[var(--theme-text)] truncate">{a.MahasiswaNama}</p>
+                                <p className="text-[9px] font-medium text-[var(--theme-text-muted)] mt-0.5">{a.MahasiswaNIM}</p>
                               </div>
                             </div>
-                            <span className={cn('text-[8px] font-extrabold uppercase tracking-wider px-2 py-0.5 border rounded-md flex-shrink-0', st.cls)}>
+                            <span className={cn('text-[8px] font-semibold uppercase tracking-wider px-2 py-0.5 border rounded-md flex-shrink-0', st.cls)}>
                               {st.label}
                             </span>
                           </div>
@@ -2398,7 +2382,7 @@ export default function KelolaBeasiswa() {
                             setSelectedProgram(null);
                             setAppFilters({ BeasiswaNama: selectedProgram.Nama });
                           }}
-                          className="w-full py-2.5 border border-dashed border-[#00236F]/30 hover:border-[#00236F]/60 rounded-xl text-[10px] font-bold text-[#00236F] hover:bg-[#eef4ff] uppercase tracking-wider flex items-center justify-center gap-1 transition-all"
+                          className="w-full py-2.5 border border-dashed border-[var(--theme-primary)]/30 hover:border-[var(--theme-primary)]/60 rounded-xl text-[10px] font-semibold text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)] uppercase tracking-wider flex items-center justify-center gap-1 transition-all"
                         >
                           Lihat Selengkapnya <span className="material-symbols-outlined" style={{ fontSize: 13 }}>chevron_right</span>
                         </button>
@@ -2409,14 +2393,14 @@ export default function KelolaBeasiswa() {
               </div>
 
               {/* Footer */}
-              <div className="px-5 py-4 border-t border-[#f0f0f0] bg-[#fafafa] flex gap-3 flex-shrink-0">
+              <div className="px-6 py-4 border-t border-[var(--theme-border-muted)] bg-[var(--theme-bg)]/20 flex gap-3">
                 <button onClick={() => setSelectedProgram(null)}
-                  className="flex-1 h-11 rounded-xl bg-[#00236F] hover:bg-[#001f5c] text-xs font-bold text-white uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-md active:scale-95">
+                  className="flex-1 h-10 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-xs font-bold text-white uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95">
                   Tutup Detail
                 </button>
               </div>
-            </div>
-          </div>
+            </DialogContent>
+          </Dialog>
         );
       })()}
 
@@ -2429,81 +2413,70 @@ export default function KelolaBeasiswa() {
       />
 
       {/* Bulk Review Modal */}
-      {isBulkOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
-          onClick={() => setIsBulkOpen(false)}>
-          <div className="relative w-[95vw] sm:w-[90vw] md:max-w-md bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh]"
-            onClick={e => e.stopPropagation()}>
-            
-            {/* Header */}
-            <div className="relative bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
-              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
-              <button onClick={() => setIsBulkOpen(false)}
-                className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
-                <span className="material-symbols-outlined text-white" style={{ fontSize: '15px' }} >close</span>
-              </button>
-              <div className="relative z-10 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-white">
-                  <span className="material-symbols-outlined" style={{ fontSize: 28 }}>group</span>
-                </div>
-                <div>
-                  <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Aksi Masal</p>
-                  <h2 className="text-base font-extrabold text-white leading-tight">Review {selectedAppIds.length} Pendaftar</h2>
-                </div>
+      <Dialog open={isBulkOpen} onOpenChange={setIsBulkOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)]">
+                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>group</span>
               </div>
-            </div>
-
-            {/* Content */}
-            <div className="p-6 space-y-5 overflow-y-auto flex-1 font-body">
-              <div className="space-y-2">
-                <label className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">TAHAP SELEKSI MASSAL</label>
-                <Select value={bulkStatus} onValueChange={setBulkStatus}>
-                  <SelectTrigger className="w-full h-11 rounded-xl border-[#e5e5e5] bg-[#fafafa]">
-                    <SelectValue placeholder="Pilih Tahap Seleksi Massal" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="dikirim">1. Pengajuan Dikirim</SelectItem>
-                    <SelectItem value="seleksi_berkas">2. Seleksi Berkas</SelectItem>
-                    <SelectItem value="evaluasi">3. Evaluasi & Wawancara</SelectItem>
-                    <SelectItem value="review">4. Review Akhir</SelectItem>
-                    <SelectItem value="penetapan">5. Penetapan Pemenang</SelectItem>
-                    <SelectItem value="Diterima">6. Hasil Akhir: Diterima</SelectItem>
-                    <SelectItem value="Ditolak">6. Hasil Akhir: Ditolak</SelectItem>
-                  </SelectContent>
-                </Select>
-                <span className="text-[10px] font-bold text-slate-400 block mt-1">Status {selectedAppIds.length} mahasiswa terpilih akan diset secara serentak.</span>
-              </div>
-
               <div>
-                <label className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider mb-2">CATATAN REVIEW MASSAL</label>
-                <textarea 
-                  value={bulkCatatan} 
-                  onChange={e => setBulkCatatan(e.target.value)} 
-                  rows={4}
-                  placeholder="Masukkan catatan keputusan massal di sini (berlaku untuk semua mahasiswa terpilih)..."
-                  className="w-full px-4 py-3 rounded-xl border border-[#e5e5e5] bg-[#fafafa] focus:outline-none focus:border-primary focus:bg-white text-sm text-[#171717] transition-all resize-none" 
-                />
+                <span className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">Aksi Masal</span>
+                <DialogTitle className="text-base font-bold text-[var(--theme-text)] mt-0.5">Review {selectedAppIds.length} Pendaftar</DialogTitle>
               </div>
             </div>
+          </DialogHeader>
 
-            {/* Footer */}
-            <div className="px-5 py-4 border-t border-[#f0f0f0] bg-[#fafafa] flex gap-3 flex-shrink-0">
-              <button type="button" onClick={() => setIsBulkOpen(false)}
-                className="flex-1 h-11 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold text-[#525252] uppercase tracking-widest hover:bg-[#f5f5f5] transition-all">
-                Batal
-              </button>
-              <button 
-                type="button" 
-                onClick={handleBulkAppUpdate}
-                disabled={isSubmitting}
-                className="flex-1 h-11 rounded-xl bg-[#00236F] hover:bg-[#001f5c] text-xs font-bold text-white uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 disabled:opacity-50"
-              >
-                {isSubmitting ? 'Menyimpan...' : 'Simpan Keputusan'}
-              </button>
+          {/* Content */}
+          <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto font-body">
+            <div className="space-y-2">
+              <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">TAHAP SELEKSI MASSAL</span>
+              <Select value={bulkStatus} onValueChange={setBulkStatus}>
+                <SelectTrigger className="w-full h-10 rounded-xl border-[var(--theme-border)] bg-white text-xs">
+                  <SelectValue placeholder="Pilih Tahap Seleksi Massal" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border border-[var(--theme-border)] shadow-md bg-white">
+                  <SelectItem value="dikirim" className="rounded-lg text-xs py-1.5 focus:bg-[var(--theme-primary-light)] focus:text-[var(--theme-primary)]">1. Pengajuan Dikirim</SelectItem>
+                  <SelectItem value="seleksi_berkas" className="rounded-lg text-xs py-1.5 focus:bg-[var(--theme-primary-light)] focus:text-[var(--theme-primary)]">2. Seleksi Berkas</SelectItem>
+                  <SelectItem value="evaluasi" className="rounded-lg text-xs py-1.5 focus:bg-[var(--theme-primary-light)] focus:text-[var(--theme-primary)]">3. Evaluasi & Wawancara</SelectItem>
+                  <SelectItem value="review" className="rounded-lg text-xs py-1.5 focus:bg-[var(--theme-primary-light)] focus:text-[var(--theme-primary)]">4. Review Akhir</SelectItem>
+                  <SelectItem value="penetapan" className="rounded-lg text-xs py-1.5 focus:bg-[var(--theme-primary-light)] focus:text-[var(--theme-primary)]">5. Penetapan Pemenang</SelectItem>
+                  <SelectItem value="Diterima" className="rounded-lg text-xs py-1.5 focus:bg-[var(--theme-primary-light)] focus:text-[var(--theme-primary)]">6. Hasil Akhir: Diterima</SelectItem>
+                  <SelectItem value="Ditolak" className="rounded-lg text-xs py-1.5 focus:bg-[var(--theme-primary-light)] focus:text-[var(--theme-primary)]">6. Hasil Akhir: Ditolak</SelectItem>
+                </SelectContent>
+              </Select>
+              <span className="text-[10px] font-semibold text-[var(--theme-text-subtle)] block mt-1">Status {selectedAppIds.length} mahasiswa terpilih akan diset secara serentak.</span>
+            </div>
+
+            <div className="space-y-1">
+              <label className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-2">CATATAN REVIEW MASSAL</label>
+              <textarea 
+                value={bulkCatatan} 
+                onChange={e => setBulkCatatan(e.target.value)} 
+                rows={3}
+                placeholder="Masukkan catatan keputusan massal di sini (berlaku untuk semua mahasiswa terpilih)..."
+                className="w-full px-4 py-3 rounded-xl border border-[var(--theme-border)] bg-white focus:outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] text-xs text-[var(--theme-text)] transition-all resize-none shadow-sm placeholder:text-[var(--theme-text-subtle)]" 
+              />
             </div>
           </div>
-        </div>
-      )}
+
+          {/* Footer */}
+          <div className="px-6 py-4 border-t border-[var(--theme-border-muted)] bg-[var(--theme-bg)]/20 flex gap-3">
+            <button type="button" onClick={() => setIsBulkOpen(false)}
+              className="flex-1 h-10 rounded-xl border border-[var(--theme-border)] bg-white text-xs font-bold text-[var(--theme-text-muted)] uppercase tracking-wider hover:bg-[var(--theme-bg)] transition-all">
+              Batal
+            </button>
+            <button 
+              type="button" 
+              onClick={handleBulkAppUpdate}
+              disabled={isSubmitting}
+              className="flex-1 h-10 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-xs font-bold text-white uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95 disabled:opacity-50"
+            >
+              {isSubmitting ? 'Menyimpan...' : 'Simpan Keputusan'}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Floating Bulk Action Bar */}
       {selectedAppIds.length > 0 && (
@@ -2561,63 +2534,54 @@ export default function KelolaBeasiswa() {
       {previewApp && (() => {
         const st = getAppStatus(previewApp.Status);
         return (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
-            onClick={() => setPreviewApp(null)}>
-            <div className="relative w-[95vw] sm:w-[90vw] md:max-w-md bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh]"
-              onClick={e => e.stopPropagation()}>
-              
-              {/* Header */}
-              <div className="relative bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
-                <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
-                <button onClick={() => setPreviewApp(null)}
-                  className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
-                  <span className="material-symbols-outlined text-white" style={{ fontSize: '15px' }} >close</span>
-                </button>
-                <div className="relative z-10 flex items-center gap-4">
-                  <StudentAvatar src={previewApp.Mahasiswa?.Foto || previewApp.Mahasiswa?.foto_url} name={previewApp.MahasiswaNama} className="w-14 h-14 rounded-2xl shadow-xl ring-2 ring-white/20" />
+          <Dialog open={!!previewApp} onOpenChange={(open) => !open && setPreviewApp(null)}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <div className="flex items-center gap-4">
+                  <StudentAvatar src={previewApp.Mahasiswa?.Foto || previewApp.Mahasiswa?.foto_url} name={previewApp.MahasiswaNama} className="w-12 h-12 rounded-xl shadow-sm border border-[var(--theme-border)]" />
                   <div className="min-w-0">
-                    <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Detail Pendaftaran</p>
-                    <h2 className="text-base font-extrabold text-white leading-tight truncate">{previewApp.MahasiswaNama}</h2>
-                    <p className="text-xs text-blue-200 font-medium mt-0.5">{previewApp.MahasiswaNIM}</p>
+                    <span className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">Detail Pendaftaran</span>
+                    <DialogTitle className="text-base font-bold text-[var(--theme-text)] mt-0.5 leading-tight truncate">{previewApp.MahasiswaNama}</DialogTitle>
+                    <p className="text-xs text-[var(--theme-text-muted)] font-medium mt-0.5">{previewApp.MahasiswaNIM}</p>
                   </div>
                 </div>
-              </div>
+              </DialogHeader>
 
               {/* Content */}
-              <div className="p-6 space-y-4 overflow-y-auto flex-1 font-body">
+              <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto font-body">
                 {/* Scholarship Program */}
                 <div className="space-y-1">
-                  <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">PROGRAM BEASISWA</span>
-                  <p className="text-xs font-black text-slate-800 bg-slate-50 p-3.5 rounded-2xl border border-slate-100/50">
+                  <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">PROGRAM BEASISWA</span>
+                  <p className="text-xs font-semibold text-[var(--theme-text)] bg-[var(--theme-bg)] p-3.5 rounded-xl border border-[var(--theme-border)]">
                     {previewApp.BeasiswaNama}
                   </p>
                 </div>
 
                 {/* Tanggal Daftar - Full Width */}
-                <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 flex-shrink-0">
+                <div className="bg-[var(--theme-bg)] p-3 rounded-xl border border-[var(--theme-border)] flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)] flex-shrink-0">
                     <span className="material-symbols-outlined" style={{ fontSize: 16 }}>calendar_add_on</span>
                   </div>
                   <div>
-                    <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">TANGGAL & WAKTU DAFTAR</span>
-                    <span className="text-xs font-black text-slate-700">
+                    <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-0.5">TANGGAL & WAKTU DAFTAR</span>
+                    <span className="text-xs font-semibold text-[var(--theme-text)]">
                       {previewApp.created_at || previewApp.CreatedAt ? formatDateTime(previewApp.created_at || previewApp.CreatedAt) : '—'}
                     </span>
                   </div>
                 </div>
 
                 {/* Status Seleksi - Full Width */}
-                <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 flex items-center gap-3">
+                <div className="bg-[var(--theme-bg)] p-3 rounded-xl border border-[var(--theme-border)] flex items-center gap-3">
                   <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0", 
-                    previewApp.Status === 'Diterima' || previewApp.Status === 'Disetujui' ? 'bg-emerald-50 text-emerald-600' : 
-                    previewApp.Status === 'Ditolak' ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600')}>
+                    previewApp.Status === 'Diterima' || previewApp.Status === 'Disetujui' ? 'bg-[var(--theme-success-light)] text-[var(--theme-success)]' : 
+                    previewApp.Status === 'Ditolak' ? 'bg-[var(--theme-error-light)] text-[var(--theme-error)]' : 'bg-[var(--theme-warning-light)] text-[var(--theme-warning)]')}>
                     <span className="material-symbols-outlined" style={{ fontSize: 16 }}>verified</span>
                   </div>
                   <div>
-                    <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">STATUS SELEKSI</span>
-                    <span className={cn('inline-flex items-center text-[10px] font-black uppercase tracking-wider', 
-                      previewApp.Status === 'Diterima' || previewApp.Status === 'Disetujui' ? 'text-emerald-600' : 
-                      previewApp.Status === 'Ditolak' ? 'text-rose-600' : 'text-amber-600')}>
+                    <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-0.5">STATUS SELEKSI</span>
+                    <span className={cn('inline-flex items-center text-[10px] font-bold uppercase tracking-wider', 
+                      previewApp.Status === 'Diterima' || previewApp.Status === 'Disetujui' ? 'text-[var(--theme-success)]' : 
+                      previewApp.Status === 'Ditolak' ? 'text-[var(--theme-error)]' : 'text-[var(--theme-warning)]')}>
                       {st.label}
                     </span>
                   </div>
@@ -2625,10 +2589,10 @@ export default function KelolaBeasiswa() {
 
                 {/* Submitted Files */}
                 <div className="space-y-1.5">
-                  <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">BERKAS PENDAFTARAN</span>
+                  <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">BERKAS PENDAFTARAN</span>
                   {!previewApp.FileURL && !previewApp.KtmKtpURL && !previewApp.TranskripURL && !previewApp.SertifikatURL ? (
-                    <div className="bg-slate-50/50 p-4 rounded-2xl border border-dashed border-slate-200 text-center">
-                      <p className="text-xs text-slate-400 italic">Tidak ada berkas yang dilampirkan</p>
+                    <div className="bg-[var(--theme-bg)] p-4 rounded-xl border border-dashed border-[var(--theme-border)] text-center">
+                      <p className="text-xs text-[var(--theme-text-subtle)] italic">Tidak ada berkas yang dilampirkan</p>
                     </div>
                   ) : (
                     <div className="flex flex-col gap-1">
@@ -2654,19 +2618,19 @@ export default function KelolaBeasiswa() {
                   if (Object.keys(answers).length === 0) return null;
                   return (
                     <div className="space-y-1.5">
-                      <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">JAWABAN PERSYARATAN KUSTOM</span>
+                      <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">JAWABAN PERSYARATAN KUSTOM</span>
                       <div className="space-y-2">
                         {Object.entries(answers).map(([label, value]) => {
                           const isFile = typeof value === 'string' && (value.startsWith('/uploads/') || value.startsWith('http') || value.includes('/api/scholarship/upload-custom-file'));
                           return (
-                            <div key={label} className="bg-slate-50 p-3 rounded-2xl border border-slate-100/50 text-left">
-                              <span className="block text-[9px] font-bold text-slate-400 uppercase">{label}</span>
+                            <div key={label} className="bg-[var(--theme-bg)] p-3 rounded-xl border border-[var(--theme-border)] text-left">
+                              <span className="block text-[9px] font-bold text-[var(--theme-text-muted)] uppercase">{label}</span>
                               {isFile ? (
                                 <div className="mt-1">
                                   {renderAttachment(value, label)}
                                 </div>
                               ) : (
-                                <p className="text-xs font-bold text-slate-800 mt-1 whitespace-pre-line">
+                                <p className="text-xs font-semibold text-[var(--theme-text)] mt-1 whitespace-pre-line">
                                   {Array.isArray(value) ? value.join(', ') : String(value)}
                                 </p>
                               )}
@@ -2680,37 +2644,37 @@ export default function KelolaBeasiswa() {
 
                 {/* Motivasi */}
                 <div className="space-y-1.5">
-                  <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">MOTIVASI / MOTIVATION LETTER</span>
-                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100/50">
+                  <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">MOTIVASI / MOTIVATION LETTER</span>
+                  <div className="bg-[var(--theme-bg)] p-4 rounded-xl border border-[var(--theme-border)]">
                     {previewApp.Motivasi ? (
                       <div 
-                        className="text-xs text-slate-700 leading-relaxed prose prose-sm max-w-none break-words"
+                        className="text-xs text-[var(--theme-text)] leading-relaxed prose prose-sm max-w-none break-words"
                         dangerouslySetInnerHTML={{ __html: previewApp.Motivasi }}
                       />
                     ) : (
-                      <p className="text-xs text-slate-400 italic">Tidak ada motivasi yang diinputkan</p>
+                      <p className="text-xs text-[var(--theme-text-subtle)] italic">Tidak ada motivasi yang diinputkan</p>
                     )}
                   </div>
                 </div>
 
                 {/* Reviewer Notes */}
                 <div className="space-y-1.5">
-                  <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">CATATAN REVIEWER</span>
-                  <p className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3.5 rounded-2xl border border-slate-100/50">
+                  <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">CATATAN REVIEWER</span>
+                  <p className="text-xs text-[var(--theme-text-muted)] leading-relaxed bg-[var(--theme-bg)] p-3 rounded-xl border border-[var(--theme-border)]">
                     {previewApp.Catatan || previewApp.catatan || 'Belum ada catatan dari reviewer.'}
                   </p>
                 </div>
               </div>
 
               {/* Footer */}
-              <div className="px-5 py-4 border-t border-[#f0f0f0] bg-[#fafafa] flex gap-3 flex-shrink-0">
+              <div className="px-6 py-4 border-t border-[var(--theme-border-muted)] bg-[var(--theme-bg)]/20 flex gap-3">
                 <button onClick={() => setPreviewApp(null)}
-                  className="flex-1 h-11 rounded-xl bg-[#00236F] hover:bg-[#001f5c] text-xs font-bold text-white uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-md active:scale-95">
+                  className="flex-1 h-10 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-xs font-bold text-white uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95">
                   Tutup Detail
                 </button>
               </div>
-            </div>
-          </div>
+            </DialogContent>
+          </Dialog>
         );
       })()}
     </PageContent>

@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/Button"
 import { PageContent } from "@/components/ui/page"
 import { DashboardHero } from "@/components/ui/dashboard"
 import { DataTable } from "@/components/ui/DataTable"
+import { Dialog, DialogHeader, DialogTitle } from '@/components/ui/Dialog'
+
 import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 
 // Auto-injected Material Symbol fallbacks
@@ -422,64 +424,60 @@ export default function PsychologistDashboard() {
         </div>
       </PageContent>
 
-      {/* Split-Screen Review Modal */}
-      {selected && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4" onClick={()=>setSelected(null)}>
-          <div className="relative w-full max-w-7xl bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden h-[90vh]" onClick={e=>e.stopPropagation()}>
+      <Dialog open={!!selected} onOpenChange={() => setSelected(null)} maxWidth="max-w-7xl" className="h-[90vh] flex flex-col overflow-hidden">
+        {selected && (
+          <>
             {/* Header */}
-            <div className="relative bg-gradient-to-br from-[#00236F] to-[#003db5] py-4 px-6 overflow-hidden flex-shrink-0 flex items-center justify-between">
-              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none"/>
+            <DialogHeader className="relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--theme-primary)]/5 rounded-full blur-2xl -mr-6 -mt-6 pointer-events-none"></div>
               <div className="relative z-10">
-                <span className="text-[9px] font-black text-white/60 uppercase tracking-[0.25em]">Detail Sesi Konseling</span>
-                <h2 className="text-base font-extrabold text-white leading-tight line-clamp-1 mt-0.5">{selected.name} - {selected.issue}</h2>
+                <span className="text-[9px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-[0.25em]">Detail Sesi Konseling</span>
+                <DialogTitle className="text-base font-bold text-[var(--theme-text)] leading-tight line-clamp-1 mt-0.5">{selected.name} - {selected.issue}</DialogTitle>
               </div>
-              <button onClick={()=>setSelected(null)} className="relative z-50 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center text-white transition-colors">
-                <span className="material-symbols-outlined text-[16px]">close</span>
-              </button>
-            </div>
+            </DialogHeader>
 
             {/* Split Screen Workspace */}
-            <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0 bg-slate-50">
+            <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0 bg-[var(--theme-bg)]">
               
               {/* Left Pane (50%): Student Profile & Request */}
-              <div className="flex-1 lg:w-1/2 flex flex-col overflow-y-auto border-r border-slate-200/80 bg-white p-6 space-y-6">
+              <div className="flex-1 lg:w-1/2 flex flex-col overflow-y-auto border-r border-[var(--theme-border-muted)] bg-[var(--theme-surface)] p-6 space-y-6 no-scrollbar">
                 <div>
-                  <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-2 mb-4">
-                    <span className="material-symbols-outlined text-primary">account_circle</span> Identitas Pasien
+                  <h3 className="text-sm font-semibold text-[var(--theme-text)] uppercase tracking-wider flex items-center gap-2 mb-4">
+                    <span className="material-symbols-outlined text-[var(--theme-primary)]">account_circle</span> Identitas Pasien
                   </h3>
-                  <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 grid grid-cols-2 gap-4">
+                  <div className="bg-[var(--theme-bg)] border border-[var(--theme-border-muted)] rounded-2xl p-4 grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Nama Lengkap</p>
-                      <p className="font-bold text-xs text-slate-900">{selected.name}</p>
+                      <p className="text-[9px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-widest leading-none mb-1.5">Nama Lengkap</p>
+                      <p className="font-semibold text-xs text-[var(--theme-text)]">{selected.name}</p>
                     </div>
                     <div>
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">NIM</p>
-                      <p className="font-bold text-xs text-slate-900">{selected.nim}</p>
+                      <p className="text-[9px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-widest leading-none mb-1.5">NIM</p>
+                      <p className="font-semibold text-xs text-[var(--theme-text)]">{selected.nim}</p>
                     </div>
                     <div>
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Program Studi / Fakultas</p>
-                      <p className="font-bold text-xs text-slate-900">{selected.prodi} ({selected.faculty})</p>
+                      <p className="text-[9px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-widest leading-none mb-1.5">Program Studi / Fakultas</p>
+                      <p className="font-semibold text-xs text-[var(--theme-text)]">{selected.prodi} ({selected.faculty})</p>
                     </div>
                     <div>
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Semester</p>
-                      <p className="font-bold text-xs text-slate-900">Semester {selected.semester}</p>
+                      <p className="text-[9px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-widest leading-none mb-1.5">Semester</p>
+                      <p className="font-semibold text-xs text-[var(--theme-text)]">Semester {selected.semester}</p>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-2 mb-4">
-                    <span className="material-symbols-outlined text-amber-500">assignment_late</span> Detail Keluhan Utama
+                  <h3 className="text-sm font-semibold text-[var(--theme-text)] uppercase tracking-wider flex items-center gap-2 mb-4">
+                    <span className="material-symbols-outlined text-[var(--theme-secondary)]">assignment_late</span> Detail Keluhan Utama
                   </h3>
-                  <div className="bg-amber-50/50 border border-amber-100 rounded-2xl p-4 space-y-3">
+                  <div className="bg-[var(--theme-secondary-light)]/20 border border-[var(--theme-secondary)]/20 rounded-2xl p-4 space-y-3">
                     <div>
-                      <p className="text-[9px] font-black text-amber-700/80 uppercase tracking-widest leading-none mb-1.5">Kategori / Topik</p>
-                      <p className="font-bold text-xs text-amber-900">{selected.issue}</p>
+                      <p className="text-[9px] font-semibold text-[var(--theme-secondary)] uppercase tracking-widest leading-none mb-1.5">Kategori / Topik</p>
+                      <p className="font-semibold text-xs text-[var(--theme-text)]">{selected.issue}</p>
                     </div>
-                    <div className="w-full h-px bg-amber-200/50 my-2"/>
+                    <div className="w-full h-px bg-[var(--theme-secondary)]/25 my-2"/>
                     <div>
-                      <p className="text-[9px] font-black text-amber-700/80 uppercase tracking-widest leading-none mb-1.5">Deskripsi Lengkap (Self-Report)</p>
-                      <p className="text-xs text-amber-900/90 font-medium leading-relaxed italic border-l-2 border-amber-300 pl-3">
+                      <p className="text-[9px] font-semibold text-[var(--theme-secondary)] uppercase tracking-widest leading-none mb-1.5">Deskripsi Lengkap (Self-Report)</p>
+                      <p className="text-xs text-[var(--theme-text)] font-medium leading-relaxed italic border-l-2 border-[var(--theme-secondary)] pl-3">
                         "{selected.note || 'Tidak ada detail spesifik yang diisi mahasiswa.'}"
                       </p>
                     </div>
@@ -488,59 +486,59 @@ export default function PsychologistDashboard() {
               </div>
 
               {/* Right Pane (50%): Actions & Decision */}
-              <div className="lg:w-1/2 flex flex-col overflow-y-auto bg-slate-50 min-h-0">
+              <div className="lg:w-1/2 flex flex-col overflow-y-auto bg-[var(--theme-bg)] min-h-0 no-scrollbar">
                 <div className="p-6 space-y-6">
                   {/* Jadwal Panel */}
-                  <div className="bg-white border border-slate-200/80 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+                  <div className="bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-2xl p-4 flex items-center justify-between shadow-sm">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
+                      <div className="w-10 h-10 bg-[var(--theme-primary-light)]/20 text-[var(--theme-primary)] rounded-xl flex items-center justify-center">
                         <span className="material-symbols-outlined">event</span>
                       </div>
                       <div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Jadwal Sesi</p>
-                        <p className="font-bold text-sm text-slate-900">{selected.date_full}</p>
+                        <p className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-widest mb-0.5">Jadwal Sesi</p>
+                        <p className="font-semibold text-sm text-[var(--theme-text)]">{selected.date_full}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Pukul</p>
-                      <p className="font-black text-sm text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-100 inline-block">{selected.time}</p>
+                      <p className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-widest mb-0.5">Pukul</p>
+                      <p className="font-semibold text-sm text-[var(--theme-primary)] bg-[var(--theme-primary-light)]/20 px-2 py-0.5 rounded-lg border border-[var(--theme-primary)]/20 inline-block">{selected.time}</p>
                     </div>
                   </div>
 
                   {selected.mode === 'Online' && (
                     <div>
-                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2">Tautan Video Conference (Google Meet/Zoom)</label>
+                      <label className="block text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-[0.18em] mb-2">Tautan Video Conference (Google Meet/Zoom)</label>
                       <input
                         type="url"
                         value={linkMeeting}
                         onChange={e=>setLinkMeeting(e.target.value)}
                         placeholder="https://meet.google.com/xxx-xxxx-xxx"
-                        className="w-full px-4 py-3 rounded-2xl border border-slate-200/80 bg-white focus:outline-none focus:border-primary text-xs font-semibold text-slate-900 transition-all shadow-sm"
+                        className="h-10 w-full px-3 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] focus:outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] text-xs font-semibold text-[var(--theme-text)] transition-colors outline-none"
                       />
                     </div>
                   )}
 
                   <div>
-                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2">Catatan Tambahan (Khusus Psikolog)</label>
+                    <label className="block text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-[0.18em] mb-2">Catatan Tambahan (Khusus Psikolog)</label>
                     <textarea
                       value={catatan}
                       onChange={e=>setCatatan(e.target.value)}
                       rows={4}
                       placeholder="Masukkan catatan pendahuluan, pesan untuk pasien jika ditolak, atau ringkasan pasca-sesi jika telah selesai..."
-                      className="w-full px-4 py-3 rounded-2xl border border-slate-200/80 bg-white focus:outline-none focus:border-primary text-xs font-semibold text-slate-900 transition-all resize-none shadow-sm"
+                      className="w-full p-3 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] focus:outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] text-xs font-semibold text-[var(--theme-text)] transition-colors resize-none outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2">Pilih Tindakan & Perbarui Status</label>
+                    <label className="block text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-[0.18em] mb-2">Pilih Tindakan & Perbarui Status</label>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       {[
-                        {s:'Dikonfirmasi', label:'Konfirmasi', icon:CheckCircle2, cls:'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-600/10'},
-                        {s:'Selesai',      label:'Sesi Selesai',icon:ShieldCheck, cls:'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/10'},
-                        {s:'Ditolak',      label:'Tolak / Batal',icon:XCircle,     cls:'bg-rose-600 hover:bg-rose-700 shadow-rose-600/10'},
+                        {s:'Dikonfirmasi', label:'Konfirmasi', icon:CheckCircle2, cls:'bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)]'},
+                        {s:'Selesai',      label:'Sesi Selesai',icon:ShieldCheck, cls:'bg-[var(--theme-success)] hover:bg-[var(--theme-success)]/90'},
+                        {s:'Ditolak',      label:'Tolak / Batal',icon:XCircle,     cls:'bg-[var(--theme-error)] hover:bg-[var(--theme-error)]/90'},
                       ].map(opt=>(
                         <button key={opt.s} onClick={()=>handleUpdateStatus(opt.s)} disabled={isSubmitting || selected.status === opt.s || (selected.status === 'Selesai')}
-                          className={cn('flex flex-col items-center justify-center gap-1.5 h-16 rounded-xl text-white text-[10px] font-bold uppercase tracking-wider transition-all active:scale-[0.97] shadow-lg disabled:opacity-50', opt.cls)}>
+                          className={cn('flex flex-col items-center justify-center gap-1 h-14 rounded-xl text-white text-[10px] font-semibold uppercase tracking-wider transition-all active:scale-[0.97] border-none cursor-pointer disabled:opacity-50', opt.cls)}>
                           {isSubmitting ? (
                             <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }}>sync</span>
                           ) : (
@@ -551,15 +549,15 @@ export default function PsychologistDashboard() {
                       ))}
                     </div>
                     {selected.status === 'Selesai' && (
-                      <p className="text-[10px] font-bold text-rose-500 mt-2 text-center">Sesi yang sudah diselesaikan tidak dapat diubah statusnya dari halaman ini. Gunakan fitur Rekam Medis untuk mengisi catatan lanjutan.</p>
+                      <p className="text-[10px] font-semibold text-[var(--theme-error)] mt-2 text-center">Sesi yang sudah diselesaikan tidak dapat diubah statusnya dari halaman ini. Gunakan fitur Rekam Medis untuk mengisi catatan lanjutan.</p>
                     )}
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Dialog>
     </div>
   )
 }

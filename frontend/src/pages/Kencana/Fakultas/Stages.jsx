@@ -16,6 +16,7 @@ import useAuthStore from '../../../store/useAuthStore';
 import Mentors from '../Admin/Mentors';
 import Groups from '../Admin/Groups';
 import { DashboardHero } from '@/components/ui/dashboard';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
 
 const badgeClass = {
   not_open: 'bg-slate-100 text-slate-500',
@@ -462,151 +463,125 @@ const Stages = () => {
         </div>
       )}
 
-      {showStageModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowStageModal(false)}>
-          <div className="relative w-full max-w-lg glass-card rounded-2xl shadow-2xl border border-slate-200/60 flex flex-col overflow-hidden max-h-[90vh]" onClick={e => e.stopPropagation()}>
-            {/* Header */}
-            <div className="relative bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] pt-6 pb-6 px-6 overflow-hidden flex-shrink-0 text-left">
-              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
-              <div className="absolute -bottom-6 right-16 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
-              <button type="button" onClick={() => setShowStageModal(false)}
-                className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
-                <span className="material-symbols-outlined text-white" style={{ fontSize: '15px' }}>close</span>
-              </button>
-              <div className="relative z-10 flex items-center gap-4">
-                <div className="min-w-0">
-                  <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">
-                    {activeStage ? 'Edit Tahap' : 'Tambah Tahap'}
-                  </p>
-                  <h2 className="text-base font-extrabold font-headline leading-tight text-white">
-                    {activeStage ? 'Edit Tahap Fakultas' : 'Tambah Tahap Fakultas'}
-                  </h2>
-                  <p className="text-xs text-blue-200 font-medium mt-0.5">
-                    {activeStage ? 'Perbarui detail tahapan orientasi fakultas' : 'Tambahkan tahapan orientasi baru'}
-                  </p>
-                </div>
+      {/* Stage Modal */}
+      <Dialog open={showStageModal} onOpenChange={setShowStageModal}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <span className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">
+              {activeStage ? 'Edit Tahap' : 'Tambah Tahap'}
+            </span>
+            <DialogTitle className="text-base font-bold text-[var(--theme-text)] mt-0.5">
+              {activeStage ? 'Edit Tahap Fakultas' : 'Tambah Tahap Fakultas'}
+            </DialogTitle>
+            <DialogDescription className="text-xs text-[var(--theme-text-muted)] mt-0.5">
+              {activeStage ? 'Perbarui detail tahapan orientasi fakultas' : 'Tambahkan tahapan orientasi baru'}
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={saveStage} className="p-6 space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">Nama Tahap</label>
+              <input required value={stageForm.name} onChange={e => setStageForm({ ...stageForm, name: e.target.value })} placeholder="Nama tahap (cth: Pembekalan)" className="w-full px-4 py-3 rounded-xl bg-[var(--theme-bg)] border border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] text-sm font-semibold transition-all placeholder:text-[var(--theme-text-subtle)]" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">Deskripsi</label>
+              <textarea rows="2" value={stageForm.description} onChange={e => setStageForm({ ...stageForm, description: e.target.value })} placeholder="Deskripsi tahapan..." className="w-full px-4 py-3 rounded-xl bg-[var(--theme-bg)] border border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] text-sm font-semibold transition-all resize-none placeholder:text-[var(--theme-text-subtle)]" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">Tanggal Mulai</label>
+                <input type="date" value={stageForm.start_date} onChange={e => setStageForm({ ...stageForm, start_date: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-[var(--theme-bg)] border border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] text-sm font-semibold transition-all" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">Tanggal Selesai</label>
+                <input type="date" value={stageForm.end_date} onChange={e => setStageForm({ ...stageForm, end_date: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-[var(--theme-bg)] border border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] text-sm font-semibold transition-all" />
               </div>
             </div>
-            {/* Form */}
-            <form onSubmit={saveStage} className="p-6 space-y-4 overflow-y-auto flex-1 font-body text-left">
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Nama Tahap</label>
-                <input required value={stageForm.name} onChange={e => setStageForm({ ...stageForm, name: e.target.value })} placeholder="Nama tahap (cth: Pembekalan)" className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-semibold transition-all" />
+                <label className="text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">Status</label>
+                <select value={stageForm.status} onChange={e => setStageForm({ ...stageForm, status: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-[var(--theme-bg)] border border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] text-sm font-semibold transition-all text-[var(--theme-text)]">
+                  <option value="locked">Terkunci</option>
+                  <option value="active">Aktif</option>
+                  <option value="completed">Selesai</option>
+                </select>
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Deskripsi</label>
-                <textarea rows="2" value={stageForm.description} onChange={e => setStageForm({ ...stageForm, description: e.target.value })} placeholder="Deskripsi tahapan..." className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-semibold transition-all resize-none" />
+                <label className="text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">Publikasikan</label>
+                <label className="flex items-center gap-2.5 px-4 h-[46px] rounded-xl bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm font-semibold cursor-pointer hover:bg-[var(--theme-border-muted)] transition-colors text-[var(--theme-text)]">
+                  <input type="checkbox" checked={stageForm.is_published} onChange={e => setStageForm({ ...stageForm, is_published: e.target.checked })} className="rounded text-[var(--theme-primary)] focus:ring-[var(--theme-primary-light)] w-4 h-4" />
+                  <span>Publish</span>
+                </label>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tanggal Mulai</label>
-                  <input type="date" value={stageForm.start_date} onChange={e => setStageForm({ ...stageForm, start_date: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-semibold transition-all" />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tanggal Selesai</label>
-                  <input type="date" value={stageForm.end_date} onChange={e => setStageForm({ ...stageForm, end_date: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-semibold transition-all" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Status</label>
-                  <select value={stageForm.status} onChange={e => setStageForm({ ...stageForm, status: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-semibold transition-all">
-                    <option value="locked">Terkunci</option>
-                    <option value="active">Aktif</option>
-                    <option value="completed">Selesai</option>
-                  </select>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Publikasikan</label>
-                  <label className="flex items-center gap-2.5 px-4 h-[46px] rounded-xl bg-slate-50 border border-slate-200 text-sm font-bold cursor-pointer hover:bg-slate-100/50 transition-colors">
-                    <input type="checkbox" checked={stageForm.is_published} onChange={e => setStageForm({ ...stageForm, is_published: e.target.checked })} className="rounded text-primary focus:ring-primary/20 w-4 h-4" />
-                    <span>Publish</span>
-                  </label>
-                </div>
-              </div>
-              <div className="flex justify-end gap-3 pt-5 border-t border-slate-100 flex-shrink-0">
-                <button type="button" onClick={() => setShowStageModal(false)} className="px-5 py-3 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-500 hover:bg-slate-100 transition-colors">Batal</button>
-                <button type="submit" className="px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider bg-primary hover:bg-primary/95 text-white shadow-md active:scale-95 transition-all flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[16px]">save</span> Simpan
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+            </div>
+            <div className="flex justify-end gap-3 pt-5 border-t border-[var(--theme-border-muted)]">
+              <button type="button" onClick={() => setShowStageModal(false)} className="h-10 px-5 rounded-xl text-xs font-bold uppercase tracking-wider text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg)] transition-colors border border-[var(--theme-border)]">Batal</button>
+              <button type="submit" className="h-10 px-6 rounded-xl text-xs font-bold uppercase tracking-wider bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white shadow-sm active:scale-95 transition-all flex items-center gap-2">
+                <span className="material-symbols-outlined text-[16px]">save</span> Simpan
+              </button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
-      {showSessionModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowSessionModal(false)}>
-          <div className="relative w-full max-w-lg glass-card rounded-2xl shadow-2xl border border-slate-200/60 flex flex-col overflow-hidden max-h-[90vh]" onClick={e => e.stopPropagation()}>
-            {/* Header */}
-            <div className="relative bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] pt-6 pb-6 px-6 overflow-hidden flex-shrink-0 text-left">
-              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
-              <div className="absolute -bottom-6 right-16 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
-              <button type="button" onClick={() => setShowSessionModal(false)}
-                className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
-                <span className="material-symbols-outlined text-white" style={{ fontSize: '15px' }}>close</span>
-              </button>
-              <div className="relative z-10 flex items-center gap-4">
-                <div className="min-w-0">
-                  <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">
-                    Sesi Kencana
-                  </p>
-                  <h2 className="text-base font-extrabold font-headline leading-tight text-white">
-                    Tambah Sesi Fakultas
-                  </h2>
-                  <p className="text-xs text-blue-200 font-medium mt-0.5">
-                    Buat sesi pembelajaran baru untuk orientasi mahasiswa
-                  </p>
-                </div>
+      {/* Session Modal */}
+      <Dialog open={showSessionModal} onOpenChange={setShowSessionModal}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <span className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">
+              Sesi Kencana
+            </span>
+            <DialogTitle className="text-base font-bold text-[var(--theme-text)] mt-0.5">
+              Tambah Sesi Fakultas
+            </DialogTitle>
+            <DialogDescription className="text-xs text-[var(--theme-text-muted)] mt-0.5">
+              Buat sesi pembelajaran baru untuk orientasi mahasiswa
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={saveSession} className="p-6 space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">Judul Sesi</label>
+              <input required value={sessionForm.title} onChange={e => setSessionForm({ ...sessionForm, title: e.target.value })} placeholder="Judul sesi (cth: Perkenalan Prodi)" className="w-full px-4 py-3 rounded-xl bg-[var(--theme-bg)] border border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] text-sm font-semibold transition-all placeholder:text-[var(--theme-text-subtle)]" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">Deskripsi</label>
+              <textarea rows="2" value={sessionForm.description} onChange={e => setSessionForm({ ...sessionForm, description: e.target.value })} placeholder="Deskripsi sesi..." className="w-full px-4 py-3 rounded-xl bg-[var(--theme-bg)] border border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] text-sm font-semibold transition-all resize-none placeholder:text-[var(--theme-text-subtle)]" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">Tanggal Mulai</label>
+                <input type="date" value={sessionForm.start_date} onChange={e => setSessionForm({ ...sessionForm, start_date: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-[var(--theme-bg)] border border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] text-sm font-semibold transition-all" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">Tanggal Selesai</label>
+                <input type="date" value={sessionForm.end_date} onChange={e => setSessionForm({ ...sessionForm, end_date: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-[var(--theme-bg)] border border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] text-sm font-semibold transition-all" />
               </div>
             </div>
-            {/* Form */}
-            <form onSubmit={saveSession} className="p-6 space-y-4 overflow-y-auto flex-1 font-body text-left">
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Judul Sesi</label>
-                <input required value={sessionForm.title} onChange={e => setSessionForm({ ...sessionForm, title: e.target.value })} placeholder="Judul sesi (cth: Perkenalan Prodi)" className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-semibold transition-all" />
+                <label className="text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">Status</label>
+                <select value={sessionForm.status} onChange={e => setSessionForm({ ...sessionForm, status: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-[var(--theme-bg)] border border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] text-sm font-semibold transition-all text-[var(--theme-text)]">
+                  <option value="locked">Terkunci</option>
+                  <option value="active">Aktif</option>
+                  <option value="published">Published</option>
+                </select>
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Deskripsi</label>
-                <textarea rows="2" value={sessionForm.description} onChange={e => setSessionForm({ ...sessionForm, description: e.target.value })} placeholder="Deskripsi sesi..." className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-semibold transition-all resize-none" />
+                <label className="text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">Publikasikan</label>
+                <label className="flex items-center gap-2.5 px-4 h-[46px] rounded-xl bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm font-semibold cursor-pointer hover:bg-[var(--theme-border-muted)] transition-colors text-[var(--theme-text)]">
+                  <input type="checkbox" checked={sessionForm.is_published} onChange={e => setSessionForm({ ...sessionForm, is_published: e.target.checked })} className="rounded text-[var(--theme-primary)] focus:ring-[var(--theme-primary-light)] w-4 h-4" />
+                  <span>Publish</span>
+                </label>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tanggal Mulai</label>
-                  <input type="date" value={sessionForm.start_date} onChange={e => setSessionForm({ ...sessionForm, start_date: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-semibold transition-all" />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tanggal Selesai</label>
-                  <input type="date" value={sessionForm.end_date} onChange={e => setSessionForm({ ...sessionForm, end_date: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-semibold transition-all" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Status</label>
-                  <select value={sessionForm.status} onChange={e => setSessionForm({ ...sessionForm, status: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-semibold transition-all">
-                    <option value="locked">Terkunci</option>
-                    <option value="active">Aktif</option>
-                    <option value="published">Published</option>
-                  </select>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Publikasikan</label>
-                  <label className="flex items-center gap-2.5 px-4 h-[46px] rounded-xl bg-slate-50 border border-slate-200 text-sm font-bold cursor-pointer hover:bg-slate-100/50 transition-colors">
-                    <input type="checkbox" checked={sessionForm.is_published} onChange={e => setSessionForm({ ...sessionForm, is_published: e.target.checked })} className="rounded text-primary focus:ring-primary/20 w-4 h-4" />
-                    <span>Publish</span>
-                  </label>
-                </div>
-              </div>
-              <div className="flex justify-end gap-3 pt-5 border-t border-slate-100 flex-shrink-0">
-                <button type="button" onClick={() => setShowSessionModal(false)} className="px-5 py-3 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-500 hover:bg-slate-100 transition-colors">Batal</button>
-                <button type="submit" className="px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider bg-primary hover:bg-primary/95 text-white shadow-md active:scale-95 transition-all flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[16px]">save</span> Simpan
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+            </div>
+            <div className="flex justify-end gap-3 pt-5 border-t border-[var(--theme-border-muted)]">
+              <button type="button" onClick={() => setShowSessionModal(false)} className="h-10 px-5 rounded-xl text-xs font-bold uppercase tracking-wider text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg)] transition-colors border border-[var(--theme-border)]">Batal</button>
+              <button type="submit" className="h-10 px-6 rounded-xl text-xs font-bold uppercase tracking-wider bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white shadow-sm active:scale-95 transition-all flex items-center gap-2">
+                <span className="material-symbols-outlined text-[16px]">save</span> Simpan
+              </button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

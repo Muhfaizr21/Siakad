@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:bkuhub_mobile/core/theme/app_colors.dart';
+import 'package:provider/provider.dart';
+import 'package:bkuhub_mobile/core/providers/theme_provider.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 
 class PremiumAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -18,10 +19,12 @@ class PremiumAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.vertical(
+      decoration: BoxDecoration(
+        color: themeProvider.primary,
+        borderRadius: const BorderRadius.vertical(
           bottom: Radius.circular(32),
         ),
       ),

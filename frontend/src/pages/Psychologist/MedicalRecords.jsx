@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { psychologistService } from '../../services/api';
 import { DataTable } from '@/components/ui/DataTable';
+import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
+
 
 export default function MedicalRecords() {
   const [medicalRecords, setMedicalRecords] = useState([]);
@@ -396,29 +398,17 @@ export default function MedicalRecords() {
       </div>
 
       {/* Detail Modal */}
-      {isDetailOpen && detailItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div 
-            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300" 
-            onClick={() => setIsDetailOpen(false)}
-          ></div>
-          
-          <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl relative z-10 overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-100 max-h-[90vh] flex flex-col">
-            <div className="p-5 text-white flex justify-between items-center relative overflow-hidden shrink-0" style={{ backgroundColor: 'var(--theme-primary)' }}>
-              <div className="absolute -top-12 -right-12 w-24 h-24 bg-white/5 rounded-full blur-xl pointer-events-none" />
-              <div className="relative z-10">
-                <h3 className="text-sm font-black uppercase tracking-tight font-headline">Detail Rekam Medis</h3>
-                <p className="text-[10px] text-white/70 font-bold uppercase tracking-widest mt-0.5">Catatan Sesi & Diagnosis Pasien</p>
+      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen} maxWidth="max-w-2xl">
+        {detailItem && (
+          <>
+            <DialogHeader className="bg-slate-50/50 border-b border-slate-100 flex-shrink-0 relative">
+              <div className="pr-8">
+                <DialogTitle>Detail Rekam Medis</DialogTitle>
+                <DialogDescription className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Catatan Sesi & Diagnosis Pasien</DialogDescription>
               </div>
-              <button 
-                onClick={() => setIsDetailOpen(false)} 
-                className="p-2 hover:bg-white/10 rounded-xl transition-colors relative z-10"
-              >
-                <span className="material-symbols-outlined text-base shrink-0">close</span>
-              </button>
-            </div>
+            </DialogHeader>
 
-            <div className="p-6 space-y-6 overflow-y-auto">
+            <div className="p-6 md:p-8 space-y-6 overflow-y-auto max-h-[50vh] no-scrollbar">
               
               {/* Patient Identitas */}
               <div className="bg-slate-50 border border-slate-200/50 rounded-2xl p-4 space-y-3">
@@ -496,17 +486,17 @@ export default function MedicalRecords() {
               </div>
             </div>
 
-            <div className="p-4 border-t border-slate-100 bg-slate-50/50 flex justify-end shrink-0">
+            <DialogFooter className="bg-slate-50/20 border-t border-slate-100/60 shrink-0">
               <button 
                 onClick={() => setIsDetailOpen(false)} 
                 className="px-6 py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-colors"
               >
                 Tutup Detail
               </button>
-            </div>
-          </div>
-        </div>
-      )}
+            </DialogFooter>
+          </>
+        )}
+      </Dialog>
     </>
   );
 }

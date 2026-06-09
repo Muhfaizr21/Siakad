@@ -943,31 +943,33 @@ export default function KelolaOrganisasi() {
           />
         </CardContent>
       </PageCard>
-      {/* ── Detail Modal (Glassmorphic Dialog) ────────────────────── */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-2xl p-0 overflow-hidden border border-slate-200/60 shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md font-inter">
+        <DialogContent className="max-w-2xl">
           {selected && (
             <div className="flex flex-col">
-              <div className="p-10 bg-bku-primary relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
-                <div className="relative z-10 space-y-4">
-                  <Badge className="font-bold text-[10px] px-3 py-1 bg-white/10 text-white border-white/20 uppercase tracking-widest font-headline">{selected.Singkatan}</Badge>
-                  <h2 className="text-3xl font-black font-headline tracking-tight leading-tight uppercase text-white">{selected.Nama}</h2>
-                  <div className="flex items-center gap-6 pt-2">
-                    <div className="flex items-center gap-2 text-white/70">
-                      <span className="material-symbols-outlined text-white" style={{ fontSize: '14px' }} >mail</span>
-                      <span className="text-xs font-medium font-inter">{selected.Email || 'No official email'}</span>
+              <DialogHeader className="relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-8 opacity-[0.03] text-primary"><span className="material-symbols-outlined" style={{ fontSize: '120px' }}>business</span></div>
+                <div className="relative z-10 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Badge className="font-bold text-[10px] px-2.5 py-0.5 bg-primary/10 text-primary border-primary/20 uppercase tracking-widest font-headline">{selected.Singkatan}</Badge>
+                  </div>
+                  <DialogTitle className="text-2xl font-bold font-jakarta tracking-tight text-neutral-900 uppercase leading-none">
+                    {selected.Nama}
+                  </DialogTitle>
+                  <div className="flex items-center gap-4 text-neutral-500 pt-1">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold">
+                      <span className="material-symbols-outlined text-[14px]" >mail</span>
+                      <span className="font-inter">{selected.Email || 'No official email'}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-white/70">
-                      <Phone size={14} className="text-white" />
-                      <span className="text-xs font-medium font-inter">{selected.Phone || 'No contact'}</span>
+                    <div className="flex items-center gap-1.5 text-xs font-semibold">
+                      <Phone size={12} className="text-neutral-500" />
+                      <span className="font-inter">{selected.Phone || 'No contact'}</span>
                     </div>
                   </div>
                 </div>
-                <Building size={120} className="absolute -bottom-8 -right-8 text-white/5 rotate-12 pointer-events-none" />
-              </div>
+              </DialogHeader>
 
-              <div className="max-h-[60vh] overflow-y-auto no-scrollbar">
+              <div className="max-h-[50vh] overflow-y-auto no-scrollbar">
                 <div className="px-10 py-10 space-y-8">
                   <div className="grid grid-cols-2 gap-5 bg-slate-50/50 p-5 rounded-2xl border border-slate-200/60">
                     <div className="flex flex-col gap-1 leading-none">
@@ -1019,22 +1021,22 @@ export default function KelolaOrganisasi() {
                     </div>
                   </div>
 
-                  <div className="pt-6 flex justify-end gap-3 border-t border-slate-100">
+                  <DialogFooter>
                     <button
                       type="button"
                       onClick={() => setIsDetailOpen(false)}
-                      className="h-11 px-8 bg-white/50 hover:bg-slate-100 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-headline cursor-pointer"
+                      className="h-11 px-8 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-headline cursor-pointer"
                     >
                       Tutup
                     </button>
                     <button
                       type="button"
                       onClick={() => { setIsDetailOpen(false); handleOpenEdit(selected) }}
-                      className="h-11 px-8 bg-bku-primary hover:bg-bku-hover text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md shadow-bku-primary/5 font-headline cursor-pointer border-none"
+                      className="h-11 px-8 bg-neutral-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md font-headline cursor-pointer border-none"
                     >
                       Edit Unit
                     </button>
-                  </div>
+                  </DialogFooter>
                 </div>
               </div>
             </div>
@@ -1042,10 +1044,9 @@ export default function KelolaOrganisasi() {
         </DialogContent>
       </Dialog>
 
-      {/* ── CRUD Modal (Glassmorphic Form) ───────────────────────── */}
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden border border-slate-200/60 shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md font-inter">
-          <DialogHeader className="p-8 pb-6 border-b border-slate-100 relative overflow-hidden">
+        <DialogContent className="max-w-xl">
+          <DialogHeader className="relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-5 text-bku-primary"><Building size={100} /></div>
             <div className="relative z-10 space-y-1">
               <div className="flex items-center gap-2 mb-2">
@@ -1061,8 +1062,8 @@ export default function KelolaOrganisasi() {
             </div>
           </DialogHeader>
 
-          <form onSubmit={handleSave} className="p-8 pt-6 space-y-5 max-h-[70vh] overflow-y-auto no-scrollbar font-inter">
-            <div className="space-y-5">
+          <form onSubmit={handleSave}>
+            <div className="p-6 md:p-8 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar font-inter">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="md:col-span-2 space-y-2">
                   <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest font-headline ml-1">Nama Organisasi</Label>
@@ -1100,65 +1101,62 @@ export default function KelolaOrganisasi() {
                   <textarea value={form.Misi} onChange={e => setForm({ ...form, Misi: e.target.value })} placeholder="Langkah strategis..." className="w-full min-h-[100px] px-3 py-2 bg-slate-50/70 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-bku-primary/20 focus:border-bku-primary outline-none transition-all duration-200 font-medium" />
                 </div>
               </div>
-
-              <div className="pt-6 flex flex-row gap-3 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setIsCrudOpen(false)}
-                  className="flex-1 h-12 bg-white/50 hover:bg-slate-100 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-headline cursor-pointer"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="flex-1 h-12 bg-bku-primary hover:bg-bku-hover text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md shadow-bku-primary/5 flex items-center justify-center gap-2 font-headline disabled:opacity-50 cursor-pointer border-none"
-                >
-                  {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >save</span>}
-                  <span>Simpan Unit</span>
-                </button>
-              </div>
             </div>
+
+            <DialogFooter>
+              <button
+                type="button"
+                onClick={() => setIsCrudOpen(false)}
+                className="flex-1 h-12 bg-white hover:bg-slate-55 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-headline cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex-1 h-12 bg-neutral-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2 font-headline disabled:opacity-50 cursor-pointer border-none"
+              >
+                {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >save</span>}
+                <span>Simpan Unit</span>
+              </button>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
-      {/* ── LPJ Detail Modal (Glassmorphic Dialog) ────────────────── */}
       <Dialog open={isLpjDetailOpen} onOpenChange={setIsLpjDetailOpen}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden border border-slate-200/60 shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md font-inter animate-in fade-in zoom-in-95 duration-200">
+        <DialogContent className="max-w-xl">
           {selectedLpj && (
             <div className="flex flex-col">
-              {/* Header */}
-              <div className="p-8 bg-slate-900 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-bku-primary/30 to-transparent pointer-events-none" />
-                <div className="relative z-10 space-y-3">
+              <DialogHeader className="relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-8 opacity-[0.03] text-primary"><span className="material-symbols-outlined" style={{ fontSize: '100px' }}>description</span></div>
+                <div className="relative z-10 space-y-2">
                   <div className="flex items-center justify-between">
-                    <Badge className="font-bold text-[9px] px-2.5 py-0.5 bg-white/10 text-white border-white/20 uppercase tracking-widest font-headline">
+                    <Badge className="font-bold text-[9px] px-2.5 py-0.5 bg-primary/10 text-primary border-primary/25 uppercase tracking-widest font-headline">
                       {selectedLpj.ormawaSingkatan || 'LPJ'}
                     </Badge>
                     <Badge className={cn(
                       "font-black uppercase tracking-widest text-[8px] leading-none px-2 py-0.5 rounded-md",
-                      selectedLpj.status === 'Pending' ? "bg-amber-500 text-white border-none" :
-                        selectedLpj.status === 'Approved' ? "bg-emerald-500 text-white border-none" :
-                          selectedLpj.status === 'Overdue' ? "bg-rose-500 text-white border-none" :
-                            "bg-slate-500 text-white border-none"
+                      selectedLpj.status === 'Pending' ? "bg-amber-50 text-amber-600 border border-amber-100" :
+                        selectedLpj.status === 'Approved' ? "bg-emerald-50 text-emerald-600 border border-emerald-100" :
+                          selectedLpj.status === 'Overdue' ? "bg-rose-50 text-rose-600 border border-rose-100" :
+                            "bg-slate-50 text-slate-500 border border-slate-100"
                     )}>
                       {selectedLpj.status === 'Pending' ? 'REVIEW' :
                         selectedLpj.status === 'Approved' ? 'DISETUJUI' :
                           selectedLpj.status === 'Overdue' ? 'TERLAMBAT' : 'PERINGATAN'}
                     </Badge>
                   </div>
-                  <h3 className="text-base font-bold text-white font-jakarta tracking-tight leading-tight uppercase">
+                  <DialogTitle className="text-xl font-bold font-jakarta tracking-tight text-neutral-900 uppercase">
                     {selectedLpj.title}
-                  </h3>
-                  <p className="text-white/60 text-[9px] font-medium font-inter mt-1.5 leading-none">
+                  </DialogTitle>
+                  <DialogDescription className="text-xs font-semibold text-neutral-400 italic">
                     Diajukan oleh {selectedLpj.ormawaName}
-                  </p>
+                  </DialogDescription>
                 </div>
-                <span className="material-symbols-outlined absolute -bottom-6 -right-6 text-white/5 rotate-12 pointer-events-none" style={{ fontSize: '100px' }}>description</span>
-              </div>
+              </DialogHeader>
 
-              <div className="max-h-[60vh] overflow-y-auto no-scrollbar text-slate-600">
+              <div className="max-h-[50vh] overflow-y-auto no-scrollbar text-slate-600">
                 <div className="px-8 py-8 space-y-6">
                   {/* Stats grid */}
                   <div className="grid grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200/60">
@@ -1238,12 +1236,11 @@ export default function KelolaOrganisasi() {
                   </div>
                 </div>
 
-                {/* Footer Quick Actions */}
-                <div className="pt-6 border-t border-slate-100 flex justify-end gap-3 font-inter">
+                <DialogFooter>
                   <button
                     type="button"
                     onClick={() => setIsLpjDetailOpen(false)}
-                    className="h-11 px-6 bg-white/50 hover:bg-slate-100 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-headline cursor-pointer"
+                    className="h-11 px-6 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-headline cursor-pointer"
                   >
                     Tutup
                   </button>
@@ -1282,8 +1279,7 @@ export default function KelolaOrganisasi() {
                       <AlertTriangle size={12} /> Kirim Peringatan
                     </button>
                   )}
-                </div>
-
+                </DialogFooter>
               </div>
             </div>
           )}

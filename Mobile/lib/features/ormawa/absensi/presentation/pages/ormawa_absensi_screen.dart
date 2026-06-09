@@ -8,7 +8,12 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class OrmawaAbsensiScreen extends StatefulWidget {
-  const OrmawaAbsensiScreen({super.key});
+  final bool showBackButton;
+
+  const OrmawaAbsensiScreen({
+    super.key,
+    this.showBackButton = true,
+  });
 
   @override
   State<OrmawaAbsensiScreen> createState() => _OrmawaAbsensiScreenState();
@@ -26,7 +31,7 @@ class _OrmawaAbsensiScreenState extends State<OrmawaAbsensiScreen> {
             title: 'MANAJEMEN PRESENSI',
             subtitle: 'PRESENSI & KEHADIRAN',
             expandedHeight: 160.0,
-            showBackButton: true,
+            showBackButton: widget.showBackButton,
             isExpandable: false,
           ),
           Consumer<OrmawaProvider>(

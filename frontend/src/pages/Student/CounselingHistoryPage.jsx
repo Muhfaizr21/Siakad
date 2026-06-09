@@ -26,6 +26,7 @@ const REFERRAL_STATUS_CONFIG = {
 };
 
 import { PageContent, PageHeader } from '@/components/ui/page';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
 import { NotifListSkeleton } from '@/components/ui/SkeletonGroups';
 import EmptyState from '@/components/ui/EmptyState';
 
@@ -785,38 +786,29 @@ export default function CounselingHistoryPage() {
 
       {/* ── RESCHEDULE MODAL ── */}
       {rescheduleItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-3xl bg-white shadow-2xl overflow-hidden">
+        <Dialog open={!!rescheduleItem} onOpenChange={(open) => !open && setRescheduleItem(null)} maxWidth="max-w-md">
+          <DialogContent>
             {/* Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white/20">
-                    <span className="material-symbols-outlined text-white" style={{ fontSize: '20px' }}>event_repeat</span>
-                  </div>
-                  <div>
-                    <h2 className="text-base font-extrabold text-white">Jadwalkan Ulang</h2>
-                    <p className="text-[11px] text-blue-100">Ubah tanggal & waktu sesi konseling</p>
-                  </div>
+            <DialogHeader>
+              <div className="flex items-center gap-3 text-left">
+                <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[var(--theme-primary-light)] text-[var(--theme-primary)] shrink-0">
+                  <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '20px' }}>event_repeat</span>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setRescheduleItem(null)}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
-                </button>
+                <div>
+                  <DialogTitle>Jadwalkan Ulang</DialogTitle>
+                  <DialogDescription className="text-xs text-[var(--theme-text-muted)] font-semibold mt-0.5">Ubah tanggal & waktu sesi konseling</DialogDescription>
+                </div>
               </div>
-            </div>
+            </DialogHeader>
 
-            <div className="p-6 space-y-4">
+            <div className="p-8 overflow-y-auto max-h-[50vh] no-scrollbar space-y-4 text-left bg-white">
               {/* Booking info */}
               <div className="rounded-2xl border border-neutral-100 bg-neutral-50 p-4">
                 <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">Booking Saat Ini</p>
                 <p className="mt-1 text-sm font-extrabold text-neutral-900">
                   {rescheduleItem.nama_konselor}
                 </p>
-                <p className="mt-0.5 text-xs text-neutral-500">
+                <p className="mt-0.5 text-xs text-neutral-500 font-semibold">
                   {formatLongDate(rescheduleItem.tanggal)} • {rescheduleItem.jam_mulai}
                   {rescheduleItem.jam_selesai ? ` - ${rescheduleItem.jam_selesai}` : ''}
                 </p>
@@ -865,42 +857,42 @@ export default function CounselingHistoryPage() {
               {/* Warning */}
               <div className="flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 p-3">
                 <span className="material-symbols-outlined text-amber-500 mt-0.5 shrink-0" style={{ fontSize: '16px' }}>info</span>
-                <p className="text-[11px] leading-relaxed text-amber-800">
+                <p className="text-[11px] leading-relaxed text-amber-800 font-semibold">
                   Setelah reschedule, status booking akan kembali ke <strong>Menunggu</strong> dan psikolog perlu mengonfirmasi ulang jadwal baru.
                 </p>
               </div>
-
-              {/* Actions */}
-              <div className="flex gap-3 pt-1">
-                <button
-                  type="button"
-                  onClick={() => setRescheduleItem(null)}
-                  className="flex-1 rounded-xl border border-neutral-200 bg-white py-2.5 text-sm font-bold text-neutral-600 transition-all hover:bg-neutral-50"
-                >
-                  Batal
-                </button>
-                <button
-                  type="button"
-                  onClick={handleReschedule}
-                  disabled={rescheduleMutation.isPending}
-                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:shadow-md disabled:opacity-60"
-                >
-                  {rescheduleMutation.isPending ? (
-                    <>
-                      <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }}>progress_activity</span>
-                      Menyimpan...
-                    </>
-                  ) : (
-                    <>
-                      <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>check</span>
-                      Simpan Jadwal Baru
-                    </>
-                  )}
-                </button>
-              </div>
             </div>
-          </div>
-        </div>
+
+            {/* Actions */}
+            <DialogFooter className="p-8 border-t border-slate-100/60 bg-slate-50/20 shrink-0 flex gap-3">
+              <button
+                type="button"
+                onClick={() => setRescheduleItem(null)}
+                className="flex-1 rounded-xl border border-neutral-200 bg-white py-3 text-xs font-black text-neutral-600 transition-all hover:bg-neutral-50 cursor-pointer uppercase tracking-wider"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleReschedule}
+                disabled={rescheduleMutation.isPending}
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[var(--theme-primary)] py-3 text-xs font-black text-white shadow-sm transition-all hover:shadow-md disabled:opacity-60 cursor-pointer uppercase tracking-wider border-none"
+              >
+                {rescheduleMutation.isPending ? (
+                  <>
+                    <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }}>progress_activity</span>
+                    Menyimpan...
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>check</span>
+                    Simpan Jadwal Ulang
+                  </>
+                )}
+              </button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       )}
     </PageContent>
   );

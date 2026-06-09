@@ -9,6 +9,9 @@ import {
 } from '../../queries/useStudentVoiceQuery';
 import { PageContent, PageHeader } from '@/components/ui/page';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
 import toast from 'react-hot-toast';
 import { Link, NavLink } from 'react-router-dom';
 
@@ -307,177 +310,182 @@ function CreateAspirasiModal({ onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <motion.div 
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        onClick={onClose}
-        className="absolute inset-0 bg-[var(--theme-primary)]/45 backdrop-blur-sm"
-      />
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.9, y: 30 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.9, y: 30 }}
-        className="relative bg-surface border border-border w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
-      >
-        <div className="p-5 md:p-6 border-b border-border flex items-center justify-between">
-          <div>
-            <h3 className="text-xl md:text-2xl font-black font-headline tracking-tight text-bku-text">Sampaikan Aspirasimu</h3>
-            <p className="text-sm font-bold text-text-muted uppercase mt-1">Gunakan kata-kata yang bijak & membangun</p>
+    <Dialog open={true} onOpenChange={onClose} maxWidth="max-w-3xl">
+      <DialogContent className="max-w-3xl p-0 overflow-hidden border border-border shadow-2xl rounded-2xl bg-surface animate-in zoom-in-95 duration-200">
+        <DialogHeader className="p-8 pb-5 bg-slate-50/50 border-b border-border relative">
+          <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
+            <span className="material-symbols-outlined size-24 rotate-12 text-slate-800">chat</span>
           </div>
-          <button onClick={onClose} className="p-2.5 bg-background border border-border rounded-xl text-text-muted hover:text-[var(--theme-primary)]"><span className="material-symbols-outlined" style={{ fontSize: '20px' }} >close</span></button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-5 md:p-6 overflow-y-auto custom-scrollbar space-y-6">
-          {/* Category Selector */}
-          <div className="space-y-3">
-            <label className="text-xs font-black text-bku-text uppercase tracking-widest ml-1">Pilih Kategori</label>
-            <div className="flex flex-wrap gap-3">
-              {categories.map((cat) => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => setFormData({ ...formData, kategori: cat.id })}
-                  className={`px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-wide transition-all border ${
-                    formData.kategori === cat.id 
-                    ? 'border-[var(--theme-primary)] bg-primary/10 text-primary shadow-sm' 
-                    : 'border-border text-text-muted hover:border-[var(--theme-primary)] hover:text-[var(--theme-primary)]'
-                  }`}
-                >
-                  {cat.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Tujuan Selector */}
-          <div className="space-y-3">
-            <label className="text-xs font-black text-bku-text uppercase tracking-widest ml-1">Tujuan Aspirasi</label>
-            <select
-              value={formData.tujuan}
-              onChange={(e) => setFormData({ ...formData, tujuan: e.target.value })}
-              className="w-full px-4 py-3 bg-background border border-border text-bku-text rounded-xl font-bold text-sm focus:outline-none focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-[var(--theme-primary)]/10 transition-all outline-none"
-            >
-              <option value="Fakultas">Fakultas</option>
-              <option value="Universitas">Universitas</option>
-              <option value="Prodi">Program Studi (Prodi)</option>
-              <option value="Ormawa">Organisasi Mahasiswa (Ormawa)</option>
-            </select>
-          </div>
-
-          <div className="space-y-6">
-            {/* Judul */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-black text-bku-text uppercase tracking-widest ml-1">Judul / Ringkasan</label>
-                <span className={`text-[10px] font-black uppercase ${formData.judul.length > 150 ? 'text-error' : 'text-text-muted'}`}>
-                  {formData.judul.length} / 150
-                </span>
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-1.5">
+              <div className="size-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600">
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>chat</span>
               </div>
-              <input 
-                type="text" 
-                placeholder="Tuliskan inti dari aspirasimu..."
-                className="w-full px-4 py-3 bg-background border border-border text-bku-text rounded-xl font-bold text-base focus:outline-none focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-[var(--theme-primary)]/10 transition-all"
-                value={formData.judul}
-                onChange={(e) => setFormData({ ...formData, judul: e.target.value })}
-                required
-              />
+              <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-slate-200 text-slate-700 border-none rounded-md">ASPIRASI BARU</Badge>
             </div>
+            <DialogTitle className="text-lg md:text-xl font-black font-headline tracking-tighter text-slate-900">
+              Sampaikan Aspirasimu
+            </DialogTitle>
+            <DialogDescription className="text-[11px] font-semibold text-slate-400 mt-0.5">
+              Gunakan kata-kata yang bijak & membangun untuk BKU yang lebih baik.
+            </DialogDescription>
+          </div>
+        </DialogHeader>
 
-            {/* Isi */}
+        <form onSubmit={handleSubmit} className="flex flex-col">
+          <div className="p-8 pt-5 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar">
+            {/* Category Selector */}
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-black text-bku-text uppercase tracking-widest ml-1">Detail Aspirasi Lengkap</label>
-                <span className={`text-[10px] font-black uppercase ${formData.isi.length < 50 && formData.isi.length > 0 ? 'text-primary' : 'text-text-muted'}`}>
-                  {formData.isi.length < 50 ? `Kurang ${50 - formData.isi.length} karakter` : 'Minimal 50 terpenuhi ✓'}
-                </span>
+              <label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Pilih Kategori</label>
+              <div className="flex flex-wrap gap-2.5">
+                {categories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, kategori: cat.id })}
+                    className={`px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-wide transition-all border ${
+                      formData.kategori === cat.id 
+                      ? 'border-[var(--theme-primary)] bg-primary/10 text-primary shadow-sm' 
+                      : 'border-slate-200 text-slate-500 hover:border-primary/30 hover:text-slate-900'
+                    }`}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
               </div>
-              <textarea 
-                rows={6}
-                placeholder="Ceritakan secara detail aspirasi, saran, atau keluhan kamu..."
-                className="w-full px-4 py-3 bg-background border border-border text-bku-text rounded-xl font-medium text-sm md:text-base focus:outline-none focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-[var(--theme-primary)]/10 transition-all resize-none"
-                value={formData.isi}
-                onChange={(e) => setFormData({ ...formData, isi: e.target.value })}
-                required
-              />
             </div>
 
-            {/* Upload & Anonim Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div className="space-y-3">
-                <label className="text-xs font-black text-bku-text uppercase tracking-widest ml-1">Unggah Lampiran (Opsional)</label>
-                <div className="relative group/upload">
-                  <input 
-                    type="file" 
-                    onChange={(e) => setFormData({ ...formData, lampiran: e.target.files[0] })}
-                    className="absolute inset-0 opacity-0 cursor-pointer z-10"
-                    accept=".pdf,.jpg,.jpeg,.png"
-                  />
-                  <div className="flex items-center justify-between px-4 py-3 bg-background border border-dashed border-border rounded-xl group-hover/upload:border-[var(--theme-primary)] transition-all">
-                    <span className="text-sm font-bold text-text-muted truncate">
-                      {formData.lampiran ? formData.lampiran.name : 'Pilih File (Max 5MB)'}
-                    </span>
-                    <span className="material-symbols-outlined text-text-muted group-hover/upload:text-[var(--theme-primary)]" style={{ fontSize: '18px' }} >upload</span>
+            {/* Tujuan Selector */}
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Tujuan Aspirasi</label>
+              <select
+                value={formData.tujuan}
+                onChange={(e) => setFormData({ ...formData, tujuan: e.target.value })}
+                className="w-full px-4 py-3 bg-slate-50/50 border border-slate-200 text-slate-700 font-bold text-xs rounded-xl focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
+              >
+                <option value="Fakultas">Fakultas</option>
+                <option value="Universitas">Universitas</option>
+                <option value="Prodi">Program Studi (Prodi)</option>
+                <option value="Ormawa">Organisasi Mahasiswa (Ormawa)</option>
+              </select>
+            </div>
+
+            <div className="space-y-4">
+              {/* Judul */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Judul / Ringkasan</label>
+                  <span className={`text-[10px] font-black uppercase ${formData.judul.length > 150 ? 'text-red-500' : 'text-slate-400'}`}>
+                    {formData.judul.length} / 150
+                  </span>
+                </div>
+                <input 
+                  type="text" 
+                  placeholder="Tuliskan inti dari aspirasimu..."
+                  className="w-full px-4 py-3 bg-slate-50/50 border border-slate-200 text-slate-700 rounded-xl font-bold text-xs focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all font-bold text-xs"
+                  value={formData.judul}
+                  onChange={(e) => setFormData({ ...formData, judul: e.target.value })}
+                  required
+                />
+              </div>
+
+              {/* Isi */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Detail Aspirasi Lengkap</label>
+                  <span className={`text-[10px] font-black uppercase ${formData.isi.length < 50 && formData.isi.length > 0 ? 'text-primary' : 'text-slate-400'}`}>
+                    {formData.isi.length < 50 ? `Kurang ${50 - formData.isi.length} karakter` : 'Minimal 50 terpenuhi ✓'}
+                  </span>
+                </div>
+                <textarea 
+                  rows={4}
+                  placeholder="Ceritakan secara detail aspirasi, saran, atau keluhan kamu..."
+                  className="w-full px-4 py-3 bg-slate-50/50 border border-slate-200 text-slate-700 rounded-xl font-medium text-xs focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all resize-none font-bold text-xs"
+                  value={formData.isi}
+                  onChange={(e) => setFormData({ ...formData, isi: e.target.value })}
+                  required
+                />
+              </div>
+
+              {/* Upload & Anonim Row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Unggah Lampiran (Opsional)</label>
+                  <div className="relative group/upload">
+                    <input 
+                      type="file" 
+                      onChange={(e) => setFormData({ ...formData, lampiran: e.target.files[0] })}
+                      className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                    />
+                    <div className="flex items-center justify-between px-4 py-3 bg-slate-50/50 border border-dashed border-slate-200 rounded-xl group-hover/upload:border-primary transition-all">
+                      <span className="text-xs font-bold text-slate-500 truncate">
+                        {formData.lampiran ? formData.lampiran.name : 'Pilih File (Max 5MB)'}
+                      </span>
+                      <span className="material-symbols-outlined text-slate-400 group-hover/upload:text-primary" style={{ fontSize: '18px' }} >upload</span>
+                    </div>
                   </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Status Pengiriman</label>
+                  <button 
+                    type="button"
+                    onClick={() => setFormData({ ...formData, is_anonim: !formData.is_anonim })}
+                    className={`flex items-center justify-between w-full px-4 py-2.5 rounded-xl border transition-all ${
+                      formData.is_anonim ? 'bg-primary border-primary text-white' : 'bg-slate-50/50 border-slate-200 text-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className={`p-1.5 rounded-xl ${formData.is_anonim ? 'bg-white/20' : 'bg-white border border-slate-100 shadow-sm'}`}>
+                        <User size={14} className={formData.is_anonim ? 'text-white' : 'text-slate-400'} />
+                      </div>
+                      <span className="text-xs font-black uppercase tracking-wide">Kirim Anonim?</span>
+                    </div>
+                    <div className={`w-8 h-4 rounded-full relative transition-all ${formData.is_anonim ? 'bg-white/30' : 'bg-slate-200'}`}>
+                      <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${formData.is_anonim ? 'left-4.5' : 'left-0.5'}`} />
+                    </div>
+                  </button>
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <label className="text-xs font-black text-bku-text uppercase tracking-widest ml-1">Status Pengiriman</label>
-                <button 
-                  type="button"
-                  onClick={() => setFormData({ ...formData, is_anonim: !formData.is_anonim })}
-                  className={`flex items-center justify-between w-full px-4 py-3 rounded-xl border transition-all ${
-                    formData.is_anonim ? 'bg-[var(--theme-primary)] border-[var(--theme-primary)] text-white' : 'bg-background border-border text-bku-text'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-xl ${formData.is_anonim ? 'bg-white/20' : 'bg-surface shadow-sm'}`}>
-                      <User size={18} className={formData.is_anonim ? 'text-white' : 'text-text-muted'} />
-                    </div>
-                    <span className="text-sm font-black uppercase tracking-wide">Kirim Anonim?</span>
-                  </div>
-                  <div className={`w-10 h-5 rounded-full relative transition-all ${formData.is_anonim ? 'bg-primary/50' : 'bg-border'}`}>
-                    <div className={`absolute top-1 w-3 h-3 bg-surface rounded-full transition-all ${formData.is_anonim ? 'left-6' : 'left-1'}`} />
-                  </div>
-                </button>
-              </div>
+              {formData.is_anonim && (
+                <div className="p-4 bg-primary/10 border border-primary/20 rounded-xl flex gap-3">
+                  <span className="material-symbols-outlined text-primary shrink-0" style={{ fontSize: '18px' }}>security</span>
+                  <p className="text-[9px] font-bold text-primary leading-relaxed uppercase">
+                    Data pengirim akan disembunyikan dari pihak Admin Fakultas/Universitas, namun tetap tercatat secara internal demi keamanan sistem. Tindak lanjut yang memerlukan konfirmasi langsung mungkin tidak dapat diproses jika Anda anonim.
+                  </p>
+                </div>
+              )}
             </div>
-
-            {formData.is_anonim && (
-              <motion.div 
-                initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
-                className="p-4 bg-primary/10 border border-primary/20 rounded-xl flex gap-3"
-              >
-                <span className="material-symbols-outlined text-primary shrink-0" style={{ fontSize: '18px' }}>security</span>
-                <p className="text-[10px] font-bold text-primary leading-relaxed uppercase">
-                  Data pengirim akan disembunyikan dari pihak Admin Fakultas/Universitas, namun tetap tercatat secara internal demi keamanan sistem. Tindak lanjut yang memerlukan konfirmasi langsung mungkin tidak dapat diproses jika Anda anonim.
-                </p>
-              </motion.div>
-            )}
           </div>
 
-          <div className="flex items-center gap-3 pt-2">
-            <button 
+          <DialogFooter className="flex flex-col md:flex-row items-center justify-end gap-3 p-8 pt-4 border-t border-slate-100 bg-slate-50/30">
+            <Button 
               type="button" 
+              variant="ghost" 
               onClick={onClose}
-              className="flex-1 py-3 bg-surface border border-border text-text-muted font-black rounded-xl hover:bg-background hover:text-[var(--theme-primary)] hover:border-[var(--theme-primary)] transition-all uppercase tracking-wide text-xs"
+              className="w-full md:w-auto text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-11 rounded-xl active:scale-95 transition-all shadow-none border-none cursor-pointer font-headline uppercase"
             >
               Batal
-            </button>
-            <button 
+            </Button>
+            <Button 
               type="submit"
               disabled={createMutation.isPending || formData.judul === '' || formData.isi.length < 50}
-              className="flex-[2] py-3 bg-[var(--theme-primary)] text-white font-black rounded-xl hover:opacity-90 transition-all shadow-md shadow-[var(--theme-primary)]/20 text-sm uppercase tracking-wide flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
+              className="w-full md:w-auto h-11 px-8 rounded-xl bg-primary text-white hover:bg-primary/95 shadow-xl shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2 border-none cursor-pointer font-black text-[10px]"
             >
               {createMutation.isPending ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span className="material-symbols-outlined animate-spin size-4" style={{ fontSize: '15px' }}>sync</span>
               ) : (
-                <>Kirim Aspirasi <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >check_circle</span></>
+                <>
+                  <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>send</span>
+                  <span className="text-[10px] font-black tracking-widest uppercase">Kirim Aspirasi</span>
+                </>
               )}
-            </button>
-          </div>
+            </Button>
+          </DialogFooter>
         </form>
-      </motion.div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

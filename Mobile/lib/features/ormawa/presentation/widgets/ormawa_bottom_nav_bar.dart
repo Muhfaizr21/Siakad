@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:bkuhub_mobile/core/theme/app_colors.dart';
+import 'package:provider/provider.dart';
+import 'package:bkuhub_mobile/core/providers/theme_provider.dart';
 
 class OrmawaBottomNavBar extends StatefulWidget {
   final int currentIndex;
@@ -51,6 +52,8 @@ class _OrmawaBottomNavBarState extends State<OrmawaBottomNavBar> with SingleTick
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+
     return Container(
       height: 85,
       color: Colors.transparent,
@@ -80,11 +83,11 @@ class _OrmawaBottomNavBarState extends State<OrmawaBottomNavBar> with SingleTick
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  _buildNavItem(0, Icons.grid_view_rounded, 'Dashboard'),
-                  _buildNavItem(1, Icons.assignment_rounded, 'Proposal'),
-                  _buildNavItem(2, Icons.auto_awesome_rounded, 'PKKMB'),
-                  _buildNavItem(3, Icons.account_balance_wallet_rounded, 'Keuangan'),
-                  _buildNavItem(4, Icons.settings_rounded, 'Pengaturan'),
+                  _buildNavItem(0, Icons.grid_view_rounded, 'Dashboard', themeProvider),
+                  _buildNavItem(1, Icons.assignment_rounded, 'Proposal', themeProvider),
+                  _buildNavItem(2, Icons.qr_code_scanner_rounded, 'Absensi', themeProvider),
+                  _buildNavItem(3, Icons.account_balance_wallet_rounded, 'Keuangan', themeProvider),
+                  _buildNavItem(4, Icons.menu_rounded, 'Menu Lainnya', themeProvider),
                 ],
               ),
             ),
@@ -94,7 +97,7 @@ class _OrmawaBottomNavBarState extends State<OrmawaBottomNavBar> with SingleTick
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, String label) {
+  Widget _buildNavItem(int index, IconData icon, String label, ThemeProvider themeProvider) {
     final isSelected = widget.currentIndex == index;
 
     return Expanded(
@@ -115,20 +118,20 @@ class _OrmawaBottomNavBarState extends State<OrmawaBottomNavBar> with SingleTick
                   if (isSelected)
                     ScaleTransition(
                       scale: _scaleAnimation,
-                      child: _buildIconBox(icon, isSelected),
+                      child: _buildIconBox(icon, isSelected, themeProvider),
                     )
                   else
-                    _buildIconBox(icon, isSelected),
-                  
+                    _buildIconBox(icon, isSelected, themeProvider),
+
                   if (isSelected)
                     Padding(
                       padding: const EdgeInsets.only(top: 6),
                       child: Text(
                         label,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
+                          color: themeProvider.primary,
                         ),
                       ),
                     ),
@@ -142,16 +145,16 @@ class _OrmawaBottomNavBarState extends State<OrmawaBottomNavBar> with SingleTick
     );
   }
 
-  Widget _buildIconBox(IconData icon, bool isSelected) {
+  Widget _buildIconBox(IconData icon, bool isSelected, ThemeProvider themeProvider) {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: isSelected ? AppColors.primary : Colors.transparent,
+        color: isSelected ? themeProvider.primary : Colors.transparent,
         shape: BoxShape.circle,
         boxShadow: isSelected
             ? [
                 BoxShadow(
-                  color: AppColors.primary.withAlpha(60),
+                  color: themeProvider.primary.withAlpha(60),
                   blurRadius: 15,
                   offset: const Offset(0, 5),
                 )
@@ -160,7 +163,7 @@ class _OrmawaBottomNavBarState extends State<OrmawaBottomNavBar> with SingleTick
       ),
       child: Icon(
         icon,
-        color: isSelected ? Colors.white : AppColors.outline.withAlpha(150),
+        color: isSelected ? Colors.white : themeProvider.outline.withAlpha(150),
         size: 24,
       ),
     );

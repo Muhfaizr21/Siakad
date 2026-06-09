@@ -100,6 +100,11 @@ func SetupOrmawaRoutes(app *fiber.App) {
 	api.Put("/kencana/kegiatan/:id", ormawa.UpdateKegiatanPkkmb)
 	api.Delete("/kencana/kegiatan/:id", ormawa.HapusKegiatanPkkmb)
 
+	api.Get("/kencana/materi", ormawa.AmbilDaftarMateriPkkmb)
+	api.Post("/kencana/materi", ormawa.TambahMateriPkkmb)
+	api.Put("/kencana/materi/:id", ormawa.UpdateMateriPkkmb)
+	api.Delete("/kencana/materi/:id", ormawa.HapusMateriPkkmb)
+
 	api.Get("/kencana/kuis", ormawa.AmbilDaftarKuis)
 	api.Post("/kencana/kuis", ormawa.TambahKuis)
 	api.Put("/kencana/kuis/:id", ormawa.UpdateKuis)

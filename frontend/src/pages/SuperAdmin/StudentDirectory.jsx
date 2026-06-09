@@ -1,10 +1,10 @@
 "use client"
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { DataTable } from '@/components/ui/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/Dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
@@ -22,6 +22,134 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 import { PageContent, PageCard } from '@/components/ui/page'
 import { DashboardHero, DashboardStatGrid, DashboardStatCard } from '@/components/ui/dashboard'
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/*  SearchableSelect — A styled, searchable dropdown option list               */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+function SearchableSelect({ value, onChange, options, placeholder, searchPlaceholder = "Cari...", required = false, direction = "down" }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const containerRef = useRef(null);
+
+  // Close dropdown when user clicks outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
+
+  const selectedOption = options.find(opt => String(opt.value) === String(value));
+
+  const filteredOptions = options.filter(opt =>
+    (opt.label || "").toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div className="relative w-full" ref={containerRef}>
+      {/* Invisible input to maintain native HTML5 validation constraints */}
+      <input
+        type="text"
+        tabIndex={-1}
+        className="sr-only absolute inset-x-0 bottom-0 h-0 w-full opacity-0 pointer-events-none"
+        required={required}
+        value={value || ""}
+        onChange={() => {}}
+      />
+
+      {/* Select Trigger */}
+      <div
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full h-11 px-3 border rounded-xl text-sm flex items-center justify-between cursor-pointer transition-colors font-semibold font-body ${
+          isOpen
+            ? "border-bku-primary bg-white text-slate-800"
+            : "border-slate-200 bg-slate-50/30 text-slate-700"
+        }`}
+      >
+        <span className={selectedOption ? "text-slate-800" : "text-slate-400"}>
+          {selectedOption ? selectedOption.label : placeholder}
+        </span>
+        <span
+          className="material-symbols-outlined text-[18px] text-slate-400 transition-transform duration-200"
+          style={{ transform: isOpen ? 'rotate(180deg)' : 'none' }}
+        >
+          keyboard_arrow_down
+        </span>
+      </div>
+
+      {/* Styled Popover list */}
+      {isOpen && (
+        <div className={`absolute z-[100] left-0 w-full bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in duration-150 ${
+          direction === "up" 
+            ? "bottom-full mb-1.5 slide-in-from-bottom-1" 
+            : "top-full mt-1.5 slide-in-from-top-1"
+        }`}>
+          {/* Search bar */}
+          <div className="p-2 border-b border-slate-100 bg-slate-50/30 flex items-center gap-1.5">
+            <span className="material-symbols-outlined text-[16px] text-slate-400 ml-1 shrink-0">search</span>
+            <input
+              type="text"
+              placeholder={searchPlaceholder}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full h-8 bg-transparent text-xs outline-none text-slate-800 placeholder-slate-400 font-semibold font-body"
+              autoFocus
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                className="p-1 rounded-full hover:bg-slate-100 text-slate-450 hover:text-slate-800 flex items-center justify-center shrink-0"
+              >
+                <span className="material-symbols-outlined text-[12px]">close</span>
+              </button>
+            )}
+          </div>
+
+          {/* Options Wrapper */}
+          <div className="max-h-48 overflow-y-auto no-scrollbar py-1">
+            {filteredOptions.length === 0 ? (
+              <div className="px-3 py-3 text-xs text-slate-400 text-center font-semibold font-body">
+                Tidak ada hasil ditemukan
+              </div>
+            ) : (
+              filteredOptions.map((opt) => {
+                const isSelected = String(opt.value) === String(value);
+                return (
+                  <div
+                    key={opt.value}
+                    onClick={() => {
+                      onChange(opt.value);
+                      setIsOpen(false);
+                      setSearch("");
+                    }}
+                    className={`px-3 py-2.5 text-xs cursor-pointer font-semibold font-body transition-colors flex items-center justify-between ${
+                      isSelected
+                        ? "bg-blue-50 text-blue-600 font-bold"
+                        : "text-slate-700 hover:bg-slate-50"
+                    }`}
+                  >
+                    <span>{opt.label}</span>
+                    {isSelected && (
+                      <span className="material-symbols-outlined text-[14px] text-blue-600 font-bold">check</span>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -74,7 +202,7 @@ function StudentAvatar({ src, name, className = "w-9 h-9 rounded-xl" }) {
   return (
     <div className={cn("relative bg-slate-50 flex items-center justify-center shrink-0 border border-slate-200/40 shadow-inner overflow-hidden", className)}>
       {(!loaded || error || hasNoImage) && (
-        <span className="material-symbols-outlined text-slate-400/80 block select-none leading-none absolute animate-in fade-in" style={{ fontSize: className.includes('w-28') ? '56px' : className.includes('w-14') ? '28px' : '20px' }}>
+        <span className="material-symbols-outlined text-slate-400/80 block select-none leading-none absolute animate-in fade-in" style={{ fontSize: className.includes('w-28') ? '56px' : className.includes('w-20') ? '40px' : className.includes('w-14') ? '28px' : '20px' }}>
           person
         </span>
       )}
@@ -840,44 +968,44 @@ export default function StudentDirectory() {
       </Tabs>
 
       {/* ── Detail Profile Modal ─────────────────────────────────── */}
-      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="w-[95vw] sm:w-[90vw] md:max-w-4xl p-0 overflow-hidden border border-slate-200/60 shadow-2xl rounded-2xl bg-white/95 backdrop-blur-xl animate-in zoom-in-95 duration-300">
-          <DialogTitle className="sr-only">Profil Mahasiswa</DialogTitle>
-          <DialogDescription className="sr-only">Informasi lengkap biodata mahasiswa</DialogDescription>
+      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen} maxWidth="max-w-4xl">
+        <DialogContent>
           {selected && (
             <div className="flex flex-col">
-              {/* Profile Header Pattern */}
-              <div className="h-24 sm:h-32 bg-slate-900 relative overflow-hidden shrink-0">
-                <div className="absolute inset-0 bg-gradient-to-br from-bku-primary/30 to-transparent" />
-                <div className="absolute top-0 right-0 p-8 opacity-[0.03] text-white"><span className="material-symbols-outlined rotate-12" style={{ fontSize: '140px' }} >school</span></div>
-                <div className="absolute bottom-3 right-4 sm:bottom-4 sm:right-6 flex items-center gap-2">
-                  <Badge className={cn("px-3 py-1 rounded-lg border-none text-[9px] font-black uppercase tracking-widest font-body", STATUS_STYLES[selected.StatusAkun] || STATUS_STYLES.DEFAULT)}>
-                    {selected.StatusAkun}
-                  </Badge>
-                </div>
-              </div>
-
-              {/* Profile Content Section */}
-              <div className="px-6 sm:px-10 relative">
-                <div className="relative -mt-10 sm:-mt-12 mb-6 flex flex-col sm:flex-row items-center sm:items-end gap-4 sm:gap-6 text-center sm:text-left">
-                  <StudentAvatar
-                    src={getCleanImageUrl(selected.FotoURL || selected.foto_url || selected.Foto || selected.Pengguna?.Foto || selected.foto || selected.pengguna?.foto)}
-                    name={selected.Nama}
-                    className="w-20 h-20 sm:w-28 sm:h-28 rounded-2xl border-[4px] sm:border-[6px] border-white shadow-2xl bg-white"
-                  />
-                  <div className="pb-1 sm:pb-2 space-y-1">
-                    <h2 className="text-xl sm:text-2xl font-black font-body tracking-tight leading-none text-slate-800">{selected.Nama}</h2>
-                    <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-slate-400">
-                      <span className="text-[10px] sm:text-[11px] font-black tracking-[0.2em] uppercase font-body">{selected.NIM}</span>
-                      <div className="hidden sm:block size-1 bg-slate-200 rounded-full" />
-                      <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest italic font-body">{selected.ProgramStudi?.Nama}</span>
+              <DialogHeader className="px-6 py-5 md:px-8 md:py-6 border-b border-slate-100">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 w-full text-center sm:text-left pr-6">
+                  <div className="flex flex-col sm:flex-row items-center gap-4">
+                    <StudentAvatar
+                      src={getCleanImageUrl(selected.FotoURL || selected.foto_url || selected.Foto || selected.Pengguna?.Foto || selected.foto || selected.pengguna?.foto)}
+                      name={selected.Nama}
+                      className="w-16 h-16 rounded-2xl border border-slate-200/60 shadow-sm bg-slate-50"
+                    />
+                    <div className="space-y-1">
+                      <DialogTitle className="text-lg sm:text-xl font-bold text-slate-800">
+                        {selected.Nama ? selected.Nama.toUpperCase() : '—'}
+                      </DialogTitle>
+                      <DialogDescription className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-1.5 text-xs text-slate-400">
+                        <span className="font-bold tracking-wider text-slate-500 font-body">{selected.NIM}</span>
+                        <div className="hidden sm:block w-1.5 h-1.5 rounded-full bg-slate-200" />
+                        <span className="font-bold uppercase tracking-wider text-slate-500 font-body">{selected.ProgramStudi?.Nama || selected.ProgramStudi?.nama || '—'}</span>
+                      </DialogDescription>
                     </div>
                   </div>
+                  
+                  <div className="shrink-0 flex items-center gap-2">
+                    <Badge className={cn("px-3 py-1 rounded-lg border-none text-[10px] font-bold uppercase tracking-widest font-body", STATUS_STYLES[selected.StatusAkun] || STATUS_STYLES.DEFAULT)}>
+                      {selected.StatusAkun}
+                    </Badge>
+                  </div>
                 </div>
+              </DialogHeader>
+
+              {/* Profile Content Section */}
+              <div className="px-6 sm:px-10 py-6 relative">
 
                 {/* Tabs Implementation */}
                 <Tabs value={activeTab} onValueChange={(val) => { setActiveTab(val); fetchTabContext(val, selected.id || selected.ID) }} className="w-full">
-                  <TabsList className="w-full flex border-b border-slate-200 bg-slate-50/50 p-1 rounded-none justify-start overflow-x-auto gap-2">
+                  <TabsList className="w-full flex border-b border-slate-200 bg-slate-50/50 p-1 rounded-none justify-start overflow-x-auto gap-2 no-scrollbar">
                     <TabsTrigger value="profile" className="px-4 py-2 text-xs font-bold font-body uppercase tracking-wider gap-1.5 cursor-pointer">
                       <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>person</span>
                       Profile
@@ -900,55 +1028,55 @@ export default function StudentDirectory() {
                     </TabsTrigger>
                   </TabsList>
 
-                  <div className="py-6 max-h-[50vh] overflow-y-auto">
+                  <div className="py-6 max-h-[50vh] overflow-y-auto no-scrollbar">
                     <TabsContent value="profile" className="space-y-6">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         <div className="space-y-4">
                           <div className="group">
-                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 font-body">Institutional Location</p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 font-body">Institutional Location</p>
                             <div className="flex items-start gap-3">
                               <div className="size-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-bku-primary transition-colors"><Building2 size={14} /></div>
-                              <p className="text-[13px] font-black font-body text-slate-700 leading-snug">{selected.Fakultas?.Nama || '—'}</p>
+                              <p className="text-[13px] font-semibold font-body text-slate-700 leading-snug">{selected.Fakultas?.Nama || '—'}</p>
                             </div>
                           </div>
                           <div className="group">
-                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 font-body">Academic Cycle</p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 font-body">Academic Cycle</p>
                             <div className="flex items-start gap-3">
                               <div className="size-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-bku-primary transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '14px' }} >schedule</span></div>
-                              <p className="text-[13px] font-black font-body text-slate-700 leading-snug">Semester {selected.StatusAkun === 'Lulus' ? 'Complete' : selected.SemesterSekarang} <span className="text-slate-400 mx-1">•</span> Batch {selected.TahunMasuk}</p>
+                              <p className="text-[13px] font-semibold font-body text-slate-700 leading-snug">Semester {selected.StatusAkun === 'Lulus' ? 'Complete' : selected.SemesterSekarang} <span className="text-slate-400 mx-1">•</span> Batch {selected.TahunMasuk}</p>
                             </div>
                           </div>
                           <div className="group">
-                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 font-body">Academic Advisor (PA)</p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 font-body">Academic Advisor (PA)</p>
                             <div className="flex items-start gap-3">
                               <div className="size-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-bku-primary transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '14px' }} >local_library</span></div>
-                              <p className="text-[13px] font-black font-body text-slate-700 leading-snug">{selected.DosenPA?.Nama || 'Advisor unassigned'}</p>
+                              <p className="text-[13px] font-semibold font-body text-slate-700 leading-snug">{selected.DosenPA?.Nama || 'Advisor unassigned'}</p>
                             </div>
                           </div>
                         </div>
 
                         <div className="space-y-4">
                           <div className="group">
-                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 font-body">Digital Identity</p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 font-body">Digital Identity</p>
                             <div className="flex items-start gap-3">
                               <div className="size-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-bku-primary transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '14px' }} >mail</span></div>
-                              <p className="text-[13px] font-black font-body text-slate-700 leading-snug lowercase">{selected.EmailKampus || selected.Pengguna?.Email || '—'}</p>
+                              <p className="text-[13px] font-semibold font-body text-slate-700 leading-snug lowercase">{selected.EmailKampus || selected.Pengguna?.Email || '—'}</p>
                             </div>
                           </div>
                           <div className="group">
-                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 font-body">Residence</p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 font-body">Residence</p>
                             <div className="flex items-start gap-3">
                               <div className="size-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-bku-primary transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '14px' }} >location_on</span></div>
-                              <p className="text-[13px] font-black font-body text-slate-700 leading-snug italic">{selected.Alamat || 'Residence unassigned'}</p>
+                              <p className="text-[13px] font-semibold font-body text-slate-700 leading-snug italic">{selected.Alamat || 'Residence unassigned'}</p>
                             </div>
                           </div>
                           <div className="group">
-                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 font-body">Parent / Guardian</p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 font-body">Parent / Guardian</p>
                             <div className="flex items-start gap-3">
                               <div className="size-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-bku-primary transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '14px' }} >family_restroom</span></div>
-                              <p className="text-[13px] font-black font-body text-slate-700 leading-snug">
+                              <p className="text-[13px] font-semibold font-body text-slate-700 leading-snug">
                                 {selected.NamaOrangTua || '—'}
-                                {selected.TeleponOrangTua && <span className="text-slate-400 font-medium block text-[11px] mt-0.5">{selected.TeleponOrangTua}</span>}
+                                {selected.TeleponOrangTua && <span className="text-slate-400 font-semibold block text-[11px] mt-0.5">{selected.TeleponOrangTua}</span>}
                               </p>
                             </div>
                           </div>
@@ -1269,22 +1397,32 @@ export default function StudentDirectory() {
               </div>
 
               {/* Footer Controls */}
-              <footer className="p-6 sm:p-8 border-t border-slate-200/40 bg-white/40 flex flex-col-reverse sm:flex-row justify-end gap-3">
-                <Button variant="ghost" onClick={() => setIsDetailOpen(false)} className="w-full sm:w-auto h-12 px-6 rounded-xl text-[10px] font-black font-body uppercase tracking-widest text-slate-400 hover:bg-slate-100 transition-all cursor-pointer">Dismiss</Button>
-                <Button onClick={() => { setIsDetailOpen(false); handleOpenEdit(selected) }} className="w-full sm:w-auto h-12 px-8 rounded-xl bg-slate-800 text-white text-[10px] font-black font-body uppercase tracking-widest hover:bg-bku-primary shadow-none transition-all active:scale-95 border-none flex items-center justify-center gap-2 cursor-pointer font-body">
+              <DialogFooter>
+                <button
+                  type="button"
+                  onClick={() => setIsDetailOpen(false)}
+                  className="flex-1 sm:flex-initial h-12 px-6 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-body cursor-pointer"
+                >
+                  Dismiss
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setIsDetailOpen(false); handleOpenEdit(selected) }}
+                  className="flex-1 sm:flex-initial h-12 px-8 bg-neutral-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2 font-body cursor-pointer border-none"
+                >
                   <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >edit</span>
-                  Modify Profile
-                </Button>
-              </footer>
+                  <span>Modify Profile</span>
+                </button>
+              </DialogFooter>
             </div>
           )}
         </DialogContent>
       </Dialog>
 
       {/* ── CRUD Modal ───────────────────────────────────────────── */}
-      <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
-        <DialogContent className="w-[95vw] sm:w-[90vw] md:max-w-xl p-0 overflow-hidden border border-slate-200/60 shadow-2xl rounded-2xl bg-white/95 backdrop-blur-xl animate-in slide-in-from-bottom-4 duration-300">
-          <DialogHeader className="p-6 sm:p-8 pb-4 sm:pb-6 border-b border-slate-200/40 relative overflow-hidden bg-white/40">
+      <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen} maxWidth="max-w-xl">
+        <DialogContent className="!overflow-visible">
+          <DialogHeader className="px-6 py-5 md:px-8 md:py-6 relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-[0.03] text-bku-primary"><UserIcon size={140} /></div>
             <div className="relative z-10 space-y-1">
               <div className="flex items-center gap-2 mb-2">
@@ -1302,92 +1440,112 @@ export default function StudentDirectory() {
             </div>
           </DialogHeader>
 
-          <form onSubmit={handleSave} className="p-6 sm:p-8 space-y-5 max-h-[60vh] sm:max-h-[65vh] overflow-y-auto">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-              <div className="space-y-1.5">
-                <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">NIM / Student ID</Label>
-                <Input required value={form.NIM} onChange={e => setForm({ ...form, NIM: e.target.value })} placeholder="BKU..." className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-body" />
+          <form onSubmit={handleSave}>
+            <div className="px-6 py-5 md:px-8 md:py-6 space-y-4 font-body">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">NIM / Student ID</Label>
+                  <Input required value={form.NIM} onChange={e => setForm({ ...form, NIM: e.target.value })} placeholder="BKU..." className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-body" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">Full Legal Name</Label>
+                  <Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Full name..." className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-body" />
+                </div>
               </div>
-              <div className="space-y-1.5">
-                <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">Full Legal Name</Label>
-                <Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Full name..." className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-body" />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                <div className="space-y-1.5 sm:col-span-1">
+                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">Academic Email</Label>
+                  <Input required type="email" value={form.EmailKampus} onChange={e => setForm({ ...form, EmailKampus: e.target.value })} placeholder="id@bku.ac.id" className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-body" />
+                </div>
+                <div className="space-y-1.5 sm:col-span-1">
+                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">
+                    {isEditMode ? 'New Password (Optional)' : 'Account Password'}
+                  </Label>
+                  <Input
+                    required={!isEditMode}
+                    type="password"
+                    value={form.password}
+                    onChange={e => setForm({ ...form, password: e.target.value })}
+                    placeholder={isEditMode ? "Leave blank to keep current..." : "Set password..."}
+                    className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-body"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">Faculty Branch</Label>
+                  <SearchableSelect
+                    value={String(form.FakultasID)}
+                    onChange={v => setForm({ ...form, FakultasID: v, ProgramStudiID: '' })}
+                    options={faculties.map(f => ({
+                      value: String(f.id || f.ID),
+                      label: f.Nama || f.nama
+                    }))}
+                    placeholder="Pilih Fakultas"
+                    searchPlaceholder="Cari fakultas..."
+                    required
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">Academic Program</Label>
+                  <SearchableSelect
+                    value={String(form.ProgramStudiID)}
+                    onChange={v => setForm({ ...form, ProgramStudiID: v })}
+                    options={prodi.filter(p => !form.FakultasID || parseInt(p.FakultasID) === parseInt(form.FakultasID)).map(p => ({
+                      value: String(p.id || p.ID),
+                      label: p.Nama || p.nama
+                    }))}
+                    placeholder="Pilih Prodi"
+                    searchPlaceholder="Cari prodi..."
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">Account Status</Label>
+                  <Select value={form.StatusAkun} onValueChange={v => setForm({ ...form, StatusAkun: v })}>
+                    <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-slate-50/30 font-semibold text-slate-700 text-sm font-body"><SelectValue /></SelectTrigger>
+                    <SelectContent className="rounded-xl shadow-2xl border-slate-100">
+                      {['Aktif', 'Cuti', 'Lulus', 'Nonaktif'].map(s => <SelectItem key={s} value={s} className="text-xs font-semibold text-slate-700 font-body">{s}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">Current Semester</Label>
+                  <Input type="number" min={1} max={14} value={form.SemesterSekarang} onChange={e => setForm({ ...form, SemesterSekarang: e.target.value })} className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-850 focus:border-bku-primary font-body" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                <div className="space-y-1.5 sm:col-span-1">
+                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">Admission Batch (Year)</Label>
+                  <Input type="number" value={form.TahunMasuk} onChange={e => setForm({ ...form, TahunMasuk: e.target.value })} className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-850 focus:border-bku-primary font-body" />
+                </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-              <div className="space-y-1.5 sm:col-span-1">
-                <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">Academic Email</Label>
-                <Input required type="email" value={form.EmailKampus} onChange={e => setForm({ ...form, EmailKampus: e.target.value })} placeholder="id@bku.ac.id" className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-body" />
-              </div>
-              <div className="space-y-1.5 sm:col-span-1">
-                <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">
-                  {isEditMode ? 'New Password (Optional)' : 'Account Password'}
-                </Label>
-                <Input
-                  required={!isEditMode}
-                  type="password"
-                  value={form.password}
-                  onChange={e => setForm({ ...form, password: e.target.value })}
-                  placeholder={isEditMode ? "Leave blank to keep current..." : "Set password..."}
-                  className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-body"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-              <div className="space-y-1.5">
-                <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">Faculty Branch</Label>
-                <Select value={String(form.FakultasID)} onValueChange={v => setForm({ ...form, FakultasID: v, ProgramStudiID: '' })}>
-                  <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-slate-50/30 font-semibold text-slate-700 text-sm font-body"><SelectValue placeholder="Pilih Fakultas" /></SelectTrigger>
-                  <SelectContent className="rounded-xl shadow-2xl border-slate-100">
-                    {faculties.map(f => <SelectItem key={f.id || f.ID} value={String(f.id || f.ID)} className="text-xs font-semibold text-slate-700 font-body">{f.Nama}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">Academic Program</Label>
-                <Select value={String(form.ProgramStudiID)} onValueChange={v => setForm({ ...form, ProgramStudiID: v })}>
-                  <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-slate-50/30 font-semibold text-slate-700 text-sm font-body"><SelectValue placeholder="Pilih Prodi" /></SelectTrigger>
-                  <SelectContent className="rounded-xl shadow-2xl border-slate-100">
-                    {prodi.filter(p => !form.FakultasID || parseInt(p.FakultasID) === parseInt(form.FakultasID)).map(p => (
-                      <SelectItem key={p.id || p.ID} value={String(p.id || p.ID)} className="text-xs font-semibold text-slate-700 font-body">{p.Nama}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-              <div className="space-y-1.5">
-                <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">Account Status</Label>
-                <Select value={form.StatusAkun} onValueChange={v => setForm({ ...form, StatusAkun: v })}>
-                  <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-slate-50/30 font-semibold text-slate-700 text-sm font-body"><SelectValue /></SelectTrigger>
-                  <SelectContent className="rounded-xl shadow-2xl border-slate-100">
-                    {['Aktif', 'Cuti', 'Lulus', 'Nonaktif'].map(s => <SelectItem key={s} value={s} className="text-xs font-semibold text-slate-700 font-body">{s}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">Current Semester</Label>
-                <Input type="number" min={1} max={14} value={form.SemesterSekarang} onChange={e => setForm({ ...form, SemesterSekarang: e.target.value })} className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-850 focus:border-bku-primary font-body" />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-              <div className="space-y-1.5 sm:col-span-1">
-                <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">Admission Batch (Year)</Label>
-                <Input type="number" value={form.TahunMasuk} onChange={e => setForm({ ...form, TahunMasuk: e.target.value })} className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-850 focus:border-bku-primary font-body" />
-              </div>
-            </div>
+            <DialogFooter className="rounded-b-2xl px-6 py-5 md:px-8 md:py-6">
+              <button
+                type="button"
+                onClick={() => setIsCrudOpen(false)}
+                className="flex-1 h-12 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-body cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex-1 h-12 bg-neutral-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2 font-body disabled:opacity-50 cursor-pointer border-none"
+              >
+                {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >save</span>}
+                <span>{isEditMode ? 'Simpan Perubahan' : 'Daftarkan Mahasiswa'}</span>
+              </button>
+            </DialogFooter>
           </form>
-
-          <footer className="p-6 sm:p-8 border-t border-slate-200/40 bg-white/40 flex flex-col-reverse sm:flex-row justify-end gap-3">
-            <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="w-full sm:w-auto h-12 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-400 font-body hover:bg-slate-100 transition-all cursor-pointer">Batal</Button>
-            <Button onClick={handleSave} disabled={isSubmitting} className="w-full sm:w-auto h-12 px-8 rounded-xl bg-slate-900 text-white hover:bg-bku-primary shadow-none transition-all active:scale-95 border-none flex items-center justify-center gap-2 cursor-pointer font-body">
-              {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '15px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >save</span>}
-              <span className="text-xs font-bold uppercase tracking-wider">{isEditMode ? 'Simpan Perubahan' : 'Daftarkan Mahasiswa'}</span>
-            </Button>
-          </footer>
         </DialogContent>
       </Dialog>
 

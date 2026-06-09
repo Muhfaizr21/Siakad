@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
 
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -998,16 +999,8 @@ function InputModal({ onClose, onSubmit, isLoading }) {
   const bpStat  = getBPStatus(formData.sistolik, formData.diastolik);
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        onClick={onClose} className="absolute inset-0 bg-[var(--theme-primary)]/50 backdrop-blur-sm" />
-
-      <motion.div
-        initial={{ opacity: 0, scale: 0.96, y: 20 }}
-        animate={{ opacity: 1, scale: 1,    y: 0  }}
-        exit={{   opacity: 0, scale: 0.94,  y: 20 }}
-        className="relative bg-surface w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh]"
-      >
+    <Dialog open={true} onOpenChange={onClose} maxWidth="max-w-4xl">
+      <DialogContent className="flex flex-col md:flex-row overflow-hidden p-0">
         {/* Sidebar */}
         <div className="w-full md:w-64 bg-[var(--theme-primary)] p-6 flex flex-col justify-between text-white shrink-0">
           <div>
@@ -1063,7 +1056,7 @@ function InputModal({ onClose, onSubmit, isLoading }) {
         </div>
 
         {/* Form */}
-        <div className="flex-1 p-6 overflow-y-auto bg-surface flex flex-col justify-between max-h-[90vh]">
+        <div className="flex-1 p-6 max-h-[75vh] overflow-y-auto no-scrollbar bg-surface flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-5 border-b border-border pb-3">
               <div>
@@ -1341,8 +1334,8 @@ function InputModal({ onClose, onSubmit, isLoading }) {
             </button>
           </div>
         </div>
-      </motion.div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -1371,32 +1364,18 @@ function InputField({ label, unit, value, onChange, icon, placeholder, isOptiona
 function DetailModal({ record, isLoading, onClose }) {
   if (isLoading || !record) {
     return (
-      <div className="fixed inset-0 z-110 flex items-center justify-center p-4">
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          onClick={onClose} className="absolute inset-0 bg-[var(--theme-primary)]/50 backdrop-blur-sm" />
-
-        <motion.div
-          initial={{ opacity: 0, scale: 0.96, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.94, y: 20 }}
-          className="relative bg-surface w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden p-5"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-bold text-[var(--theme-text)]">Memuat rekam medis...</h2>
-            <button
-              onClick={onClose}
-              className="w-8 h-8 rounded-xl bg-[var(--theme-bg)] border border-border flex items-center justify-center text-[var(--theme-text-muted)] hover:text-[var(--theme-primary)] transition-all"
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >close</span>
-            </button>
+      <Dialog open={true} onOpenChange={onClose} maxWidth="max-w-lg">
+        <DialogContent className="p-8 space-y-4">
+          <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3 text-left">
+            <DialogTitle className="text-base font-bold text-[var(--theme-text)]">Memuat rekam medis...</DialogTitle>
           </div>
           <div className="space-y-3">
             <Skeleton className="h-12 w-full rounded-xl" />
             <Skeleton className="h-20 w-full rounded-xl" />
             <Skeleton className="h-12 w-full rounded-xl" />
           </div>
-        </motion.div>
-      </div>
+        </DialogContent>
+      </Dialog>
     );
   }
 
@@ -1414,38 +1393,28 @@ function DetailModal({ record, isLoading, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        onClick={onClose} className="absolute inset-0 bg-[var(--theme-primary)]/50 backdrop-blur-sm" />
-
-      <motion.div
-        initial={{ opacity: 0, scale: 0.96, y: 20 }}
-        animate={{ opacity: 1, scale: 1,    y: 0  }}
-        exit={{   opacity: 0, scale: 0.94,  y: 20 }}
-        className="relative bg-surface w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
-      >
-        {/* Header */}
-        <div className={`px-6 py-4 ${bmiCat.bg} border-b ${bmiCat.border} shrink-0`}>
-          <div className="flex items-center justify-between mb-3">
-            <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-surface border shadow-sm ${bmiCat.color}`}>
-              BMI: {bmiCat.label}
-            </span>
-            <button
-              onClick={onClose}
-              className="w-8 h-8 rounded-xl bg-surface/70 flex items-center justify-center text-[var(--theme-text-muted)] hover:text-[var(--theme-primary)] transition-all"
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >close</span>
-            </button>
+    <Dialog open={true} onOpenChange={onClose} maxWidth="max-w-xl">
+      <DialogContent>
+        <DialogHeader>
+          <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
+            <span className="material-symbols-outlined text-8xl text-slate-900">medical_services</span>
           </div>
-          <h2 className="text-lg font-black text-[var(--theme-text)] tracking-tight">Laporan Rekam Medis</h2>
-          <p className="text-xs text-[var(--theme-text-muted)] flex items-center gap-1.5 mt-0.5 font-semibold">
-            <span className="material-symbols-outlined text-[var(--theme-primary)] font-bold" style={{ fontSize: '12px' }} >calendar_month</span>
-            {fmt(record.tanggal_periksa, { day: 'numeric', month: 'long', year: 'numeric' })}
-          </p>
-        </div>
+          <div className="text-left relative z-10">
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${bmiCat.color} ${bmiCat.bg} border ${bmiCat.border}`}>
+                BMI: {bmiCat.label}
+              </span>
+            </div>
+            <DialogTitle className="text-lg font-black text-[var(--theme-text)] tracking-tight">Laporan Rekam Medis</DialogTitle>
+            <DialogDescription className="text-xs text-[var(--theme-text-muted)] flex items-center gap-1.5 mt-1 font-semibold">
+              <span className="material-symbols-outlined text-[var(--theme-primary)] font-bold animate-pulse" style={{ fontSize: '12px' }} >calendar_month</span>
+              {fmt(record.tanggal_periksa, { day: 'numeric', month: 'long', year: 'numeric' })}
+            </DialogDescription>
+          </div>
+        </DialogHeader>
 
         {/* Body */}
-        <div className="p-6 overflow-y-auto space-y-5">
+        <div className="p-8 overflow-y-auto max-h-[50vh] no-scrollbar space-y-5 text-left">
           {/* Physical Metrics Grid */}
           <div>
             <h4 className="text-[10px] font-black font-headline uppercase tracking-wider mb-2.5" style={{ color: 'var(--theme-h4)' }}>Indikator Utama</h4>
@@ -1466,7 +1435,7 @@ function DetailModal({ record, isLoading, onClose }) {
           </div>
 
           {/* Gula Darah & Golongan Darah */}
-          {(record.gula_darah > 0 || record.golongan_darah) && (
+          {(record.gula_darah > 0 || (record.golongan_darah && record.golongan_darah !== '-')) && (
             <div className="grid grid-cols-2 gap-3">
               {record.gula_darah > 0 && (
                 <div className="bg-[var(--theme-bg)] rounded-2xl p-3.5 border border-border flex items-center gap-3">
@@ -1501,7 +1470,7 @@ function DetailModal({ record, isLoading, onClose }) {
                 <p className="text-[10px] font-black text-teal-700 uppercase tracking-wider flex items-center gap-1.5 pb-1.5 border-b border-teal-100/30">
                   <span className="material-symbols-outlined font-bold" style={{ fontSize: '14px' }}>sports_gymnastics</span> Gaya Hidup (Self-report)
                 </p>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-3 text-left">
                   <div className="flex flex-col">
                     <span className="text-[9px] text-[var(--theme-text-muted)] font-extrabold uppercase">Jam Tidur</span>
                     <span className="text-xs font-bold text-[var(--theme-text)]">{parsedNotes.jam_tidur} Jam / Hari</span>
@@ -1514,7 +1483,7 @@ function DetailModal({ record, isLoading, onClose }) {
                     <span className="text-[9px] text-[var(--theme-text-muted)] font-extrabold uppercase">Konsumsi Air</span>
                     <span className="text-xs font-bold text-[var(--theme-text)]">{parsedNotes.konsumsi_air} Liter</span>
                   </div>
-                  <div className="flex flex-col">
+                  <div className="flex flex-col text-left">
                     <span className="text-[9px] text-[var(--theme-text-muted)] font-extrabold uppercase">Apakah Merokok</span>
                     <span className="text-xs font-bold text-[var(--theme-text)]">{parsedNotes.merokok}</span>
                   </div>
@@ -1522,11 +1491,11 @@ function DetailModal({ record, isLoading, onClose }) {
               </div>
 
               {/* Mental Category */}
-              <div className="bg-purple-50/20 border border-purple-100/50 rounded-2xl p-4 space-y-3">
+              <div className="bg-purple-50/20 border border-purple-100/50 rounded-2xl p-4 space-y-3 text-left">
                 <p className="text-[10px] font-black text-purple-700 uppercase tracking-wider flex items-center gap-1.5 pb-1.5 border-b border-purple-100/30">
                   <span className="material-symbols-outlined font-bold" style={{ fontSize: '14px' }}>psychology</span> Kondisi Mental (Self-report)
                 </p>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-3 text-left">
                   <div className="flex flex-col">
                     <span className="text-[9px] text-[var(--theme-text-muted)] font-extrabold uppercase">Tingkat Stres</span>
                     <span className="text-xs font-bold text-purple-700">{parsedNotes.tingkat_stres || 0} / 10</span>
@@ -1544,7 +1513,7 @@ function DetailModal({ record, isLoading, onClose }) {
 
               {/* Symptoms Category */}
               {parsedNotes.daftar_keluhan && parsedNotes.daftar_keluhan.length > 0 && (
-                <div className="bg-rose-50/20 border border-rose-100/50 rounded-2xl p-4 space-y-2.5">
+                <div className="bg-rose-50/20 border border-rose-100/50 rounded-2xl p-4 space-y-2.5 text-left">
                   <p className="text-[10px] font-black text-rose-700 uppercase tracking-wider flex items-center gap-1.5">
                     <span className="material-symbols-outlined font-bold" style={{ fontSize: '14px' }}>healing</span> Keluhan Fisik
                   </p>
@@ -1562,7 +1531,7 @@ function DetailModal({ record, isLoading, onClose }) {
 
           {/* Standard notes if standard text */}
           {!parsedNotes && record.keluhan && (
-            <div className="p-3.5 bg-[var(--theme-bg)] rounded-2xl border border-border">
+            <div className="p-3.5 bg-[var(--theme-bg)] rounded-2xl border border-border text-left">
               <p className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider flex items-center gap-1.5 mb-2">
                 <span className="material-symbols-outlined font-bold text-[var(--theme-primary)]" style={{ fontSize: '14px' }}>bookmark</span> Keluhan
               </p>
@@ -1571,7 +1540,7 @@ function DetailModal({ record, isLoading, onClose }) {
           )}
 
           {parsedNotes && parsedNotes.catatan_tambahan && (
-            <div className="p-3.5 bg-[var(--theme-bg)] rounded-2xl border border-border">
+            <div className="p-3.5 bg-[var(--theme-bg)] rounded-2xl border border-border text-left">
               <p className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider flex items-center gap-1.5 mb-2">
                 <span className="material-symbols-outlined font-bold text-[var(--theme-primary)]" style={{ fontSize: '14px' }}>bookmark</span> Catatan Tambahan
               </p>
@@ -1580,7 +1549,7 @@ function DetailModal({ record, isLoading, onClose }) {
           )}
 
           {record.catatan_medis && (
-            <div className="p-3.5 bg-blue-50 rounded-2xl border border-blue-100">
+            <div className="p-3.5 bg-blue-50 rounded-2xl border border-blue-100 text-left">
               <p className="text-[10px] font-bold text-blue-500 uppercase tracking-wider flex items-center gap-1.5 mb-2">
                 <span className="material-symbols-outlined font-bold text-blue-500" style={{ fontSize: '14px' }} >error</span> Analisis & Saran Medis
               </p>
@@ -1590,7 +1559,7 @@ function DetailModal({ record, isLoading, onClose }) {
 
           {/* Source and status banner */}
           <div className="flex items-center justify-between p-4 bg-[var(--theme-primary)] rounded-2xl text-white">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 text-left">
               <div className="w-9 h-9 rounded-xl bg-surface/10 flex items-center justify-center">
                 <span className="material-symbols-outlined text-blue-200" style={{ fontSize: '16px' }}>admin_panel_settings</span>
               </div>
@@ -1608,7 +1577,7 @@ function DetailModal({ record, isLoading, onClose }) {
           </div>
         </div>
 
-        <div className="p-6 border-t border-border shrink-0 bg-surface flex flex-col sm:flex-row gap-3">
+        <DialogFooter className="flex flex-col sm:flex-row gap-3 p-8 border-t border-slate-100/60 bg-slate-50/20 shrink-0">
           <NavLink
             to="/student/insurance"
             state={{
@@ -1616,19 +1585,19 @@ function DetailModal({ record, isLoading, onClose }) {
               deskripsi: `Klaim biaya pemeriksaan kesehatan (${record.jenis_pemeriksaan}) pada tanggal ${fmt(record.tanggal_periksa, { day: 'numeric', month: 'long', year: 'numeric' })}. Catatan: ${record.catatan_medis || record.catatan || 'Pemeriksaan rutin.'}`
             }}
             onClick={onClose}
-            className="flex-1 py-3 bg-emerald-500 text-white text-xs font-black rounded-xl hover:bg-emerald-600 transition-all uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/20"
+            className="flex-1 py-3 bg-emerald-500 text-white text-xs font-black rounded-xl hover:bg-emerald-600 transition-all uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/20 text-center border-none cursor-pointer"
           >
             <span className="material-symbols-outlined text-[16px]">health_and_safety</span> Ajukan Asuransi
           </NavLink>
           <button
             onClick={onClose}
-            className="py-3 px-6 bg-[var(--theme-bg)] border border-border text-[var(--theme-text-muted)] text-xs font-black rounded-xl hover:bg-[var(--theme-bg)] transition-all uppercase tracking-wider"
+            className="py-3 px-6 bg-[var(--theme-bg)] border border-border text-[var(--theme-text-muted)] text-xs font-black rounded-xl hover:bg-[var(--theme-bg)] transition-all uppercase tracking-wider cursor-pointer"
           >
             Tutup
           </button>
-        </div>
-      </motion.div>
-    </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -1668,38 +1637,23 @@ function SuccessFeedbackModal({ data, onClose }) {
   const needsCounseling = stressLevel >= 7 || currentRecord.bmi >= 30;
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
-      <motion.div 
-        initial={{ opacity: 0 }} 
-        animate={{ opacity: 1 }} 
-        exit={{ opacity: 0 }}
-        onClick={onClose} 
-        className="absolute inset-0 bg-[var(--theme-primary)]/60 backdrop-blur-md" 
-      />
-
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 30 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.92, y: 30 }}
-        className="relative bg-surface w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden border border-border flex flex-col max-h-[90vh]"
-      >
+    <Dialog open={true} onOpenChange={onClose} maxWidth="max-w-lg">
+      <DialogContent>
         {/* Top Header Card */}
-        <div className="bg-[var(--theme-primary)] p-6 text-white text-center relative overflow-hidden shrink-0">
+        <DialogHeader className="bg-[var(--theme-primary)] text-center relative overflow-hidden shrink-0">
           <div className="absolute top-0 right-0 w-32 h-32 bg-surface/5 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-500/20 rounded-full blur-2xl pointer-events-none" />
           
           <div className="relative z-10 flex flex-col items-center">
-            
-            
-            <h2 className="text-xl font-extrabold font-headline leading-tight">Data Kesehatan Disimpan!</h2>
-            <p className="text-xs text-blue-200 mt-1 max-w-xs leading-relaxed">
+            <DialogTitle className="text-xl font-extrabold font-headline leading-tight text-white">Data Kesehatan Disimpan!</DialogTitle>
+            <DialogDescription className="text-xs text-blue-200 mt-1 max-w-xs leading-relaxed font-semibold">
               Hasil analisis otomatis parameter kebugaran dan gaya hidup kamu.
-            </p>
+            </DialogDescription>
           </div>
-        </div>
+        </DialogHeader>
 
         {/* Modal Scrollable Body */}
-        <div className="p-6 overflow-y-auto space-y-5 flex-1 scrollbar-thin">
+        <div className="p-8 overflow-y-auto max-h-[50vh] no-scrollbar space-y-5 text-left bg-white">
           {/* Radial Score Gauge & Interpretation Card */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center bg-[var(--theme-bg)] p-4 rounded-2xl border border-border">
             {/* SVG Radial Score */}
@@ -1734,7 +1688,7 @@ function SuccessFeedbackModal({ data, onClose }) {
                 <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '15px' }}>psychology</span>
                 <span className="text-xs font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Interpretasi</span>
               </div>
-              <p className="text-xs text-[var(--theme-text-muted)] font-medium leading-relaxed">
+              <p className="text-xs text-[var(--theme-text-muted)] font-semibold leading-relaxed">
                 {score >= 85 
                   ? "Sangat Baik! Tubuh dan gaya hidup kamu menunjukkan konsistensi prima. Teruskan habit ini!" 
                   : score >= 70 
@@ -1758,7 +1712,7 @@ function SuccessFeedbackModal({ data, onClose }) {
                 </span>
                 <div>
                   <p className="text-xs font-bold uppercase tracking-wider mb-1">Perbandingan Kesehatan</p>
-                  <p className="text-xs font-semibold leading-relaxed leading-normal">{delta.message}</p>
+                  <p className="text-xs font-semibold leading-relaxed">{delta.message}</p>
                 </div>
               </div>
             </div>
@@ -1811,16 +1765,16 @@ function SuccessFeedbackModal({ data, onClose }) {
         </div>
 
         {/* Footer Actions */}
-        <div className="p-5 border-t border-border bg-[var(--theme-bg)] shrink-0 flex gap-3">
+        <DialogFooter className="p-8 border-t border-slate-100/60 bg-slate-50/20 shrink-0">
           <button
             onClick={onClose}
-            className="w-full py-3 bg-[var(--theme-primary)] text-white text-xs font-bold rounded-xl hover:bg-[var(--theme-primary-dark)] transition-all shadow-md shadow-bku-primary/10 flex items-center justify-center gap-1.5"
+            className="w-full py-3 bg-[var(--theme-primary)] text-white text-xs font-bold rounded-xl hover:bg-[var(--theme-primary-dark)] transition-all shadow-md shadow-bku-primary/10 flex items-center justify-center gap-1.5 cursor-pointer border-none"
           >
             <span className="material-symbols-outlined text-sm font-bold">check</span> Paham, Tutup
           </button>
-        </div>
-      </motion.div>
-    </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -1866,34 +1820,16 @@ function BookingModal({
   const availableSchedules = schedules.filter(s => s.sisa_kuota > 0);
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-    >
-      <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.95, opacity: 0 }}
-        className="bg-surface rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
-      >
+    <Dialog open={true} onOpenChange={onClose} maxWidth="max-w-2xl">
+      <DialogContent>
         {/* Header */}
-        <div className="p-5 border-b border-border flex items-center justify-between shrink-0">
-          <div>
-            <h3 className="text-lg font-bold text-[var(--theme-text)]">Ambil Antrian Klinik Kesehatan</h3>
-            <p className="text-xs text-[var(--theme-text-muted)] mt-0.5">Pilih jadwal yang tersedia</p>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-9 h-9 rounded-xl bg-[var(--theme-bg)] border border-border flex items-center justify-center text-[var(--theme-text-muted)] hover:text-[var(--theme-text-muted)] hover:border-border transition-all"
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
-          </button>
-        </div>
+        <DialogHeader>
+          <DialogTitle>Ambil Antrian Klinik Kesehatan</DialogTitle>
+          <DialogDescription>Pilih jadwal yang tersedia</DialogDescription>
+        </DialogHeader>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-5">
+        <div className="overflow-y-auto p-8 space-y-5 max-h-[50vh] no-scrollbar text-left bg-white">
           {/* My Bookings Section */}
           {myBookings && myBookings.length > 0 && (
             <div>
@@ -1905,7 +1841,7 @@ function BookingModal({
                 {myBookings.slice(0, 3).map((booking) => (
                   <div key={booking.id} className="bg-[var(--theme-bg)] rounded-xl p-3 border border-border">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 text-left">
                         <div className="w-10 h-10 rounded-lg bg-surface border border-border flex items-center justify-center">
                           <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '18px' }}>calendar_month</span>
                         </div>
@@ -1921,7 +1857,7 @@ function BookingModal({
                         {(booking.status === 'Menunggu Konfirmasi' || booking.status === 'Dikonfirmasi') && (
                           <button
                             onClick={() => onCancel(booking.id)}
-                            className="text-[10px] font-bold text-red-500 hover:underline"
+                            className="text-[10px] font-bold text-red-500 hover:underline cursor-pointer bg-transparent border-none"
                           >
                             Batal
                           </button>
@@ -1960,7 +1896,7 @@ function BookingModal({
                     <button
                       key={schedule.id}
                       onClick={() => setSelectedSchedule(schedule)}
-                      className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
+                      className={`w-full text-left p-4 rounded-xl border-2 transition-all cursor-pointer ${
                         isSelected
                           ? 'border-[var(--theme-primary)] bg-[var(--theme-primary)]/5'
                           : 'border-border bg-surface hover:border-border'
@@ -2016,24 +1952,24 @@ function BookingModal({
                 onChange={(e) => setBookingKeluhan(e.target.value)}
                 placeholder="Jelaskan keluhan atau kebutuhan kesehatan Anda..."
                 rows={3}
-                className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-bku-primary/20 resize-none"
+                className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-bku-primary/20 resize-none font-semibold text-[var(--theme-text)] bg-[var(--theme-bg)]"
               />
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="p-5 border-t border-border bg-[var(--theme-bg)] shrink-0 flex gap-3">
+        <DialogFooter className="p-8 border-t border-slate-100/60 bg-slate-50/20 shrink-0 flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 py-3 border border-border text-[var(--theme-text-muted)] text-sm font-bold rounded-xl hover:bg-[var(--theme-bg)] transition-all"
+            className="flex-1 py-3 border border-border text-[var(--theme-text-muted)] text-xs font-black rounded-xl hover:bg-[var(--theme-bg)] transition-all uppercase tracking-wider cursor-pointer bg-white"
           >
             Batal
           </button>
           <button
             onClick={onSubmit}
             disabled={!selectedSchedule || !bookingKeluhan.trim() || isSubmitting}
-            className="flex-1 py-3 bg-[var(--theme-primary)] text-white text-sm font-bold rounded-xl hover:bg-[var(--theme-primary-dark)] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="flex-1 py-3 bg-[var(--theme-primary)] text-white text-xs font-black rounded-xl hover:bg-[var(--theme-primary-dark)] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 uppercase tracking-wider cursor-pointer border-none shadow-md shadow-[var(--theme-primary)]/20"
           >
             {isSubmitting ? (
               <>
@@ -2047,9 +1983,9 @@ function BookingModal({
               </>
             )}
           </button>
-        </div>
-      </motion.div>
-    </motion.div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

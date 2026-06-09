@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { UI } from '../../constants/designSystem';
 import { psychologistService } from '../../services/api';
+import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Brain = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>psychology</span>;
@@ -250,68 +251,60 @@ export default function AssessmentManagement() {
       </div>
 
       {/* --- ADD ASSESSMENT MODAL --- */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setIsModalOpen(false)}></div>
-
-          <div className="w-full max-w-lg rounded-2xl shadow-2xl relative z-10 overflow-hidden animate-in zoom-in-95 duration-300 border" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
-            <div className="bg-primary p-5 text-white flex justify-between items-center relative overflow-hidden">
-              <div className="absolute -top-12 -right-12 w-24 h-24 bg-white/5 rounded-full blur-xl pointer-events-none" />
-              <div className="relative z-10">
-                <h3 className="text-sm font-black uppercase tracking-tight font-headline">Asesmen Baru</h3>
-                <p className="text-[10px] text-white/70 font-bold uppercase tracking-widest mt-0.5">Konfigurasi Instrumen Tes</p>
-              </div>
-              <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-white/10 rounded-xl transition-colors relative z-10">
-                <span className="material-symbols-outlined text-lg shrink-0">close</span>
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateAssessment} className="p-5 space-y-6">
-              <div className="space-y-4">
-                <div>
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Nama Instrumen</label>
-                  <input
-                    required
-                    value={newAssessment.nama}
-                    onChange={(e) => setNewAssessment({ ...newAssessment, nama: e.target.value })}
-                    className="w-full border rounded-2xl px-5 py-3.5 text-xs font-bold placeholder-slate-400 focus:outline-none focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-primary/5 transition-all outline-none"
-                    style={{ backgroundColor: 'var(--theme-bg)', borderColor: 'var(--theme-border)', color: 'var(--theme-text)' }}
-                    placeholder="Contoh: Tes Kecemasan DASS-21"
-                  />
-                </div>
-                <div>
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Kategori</label>
-                  <select
-                    value={newAssessment.kategori}
-                    onChange={(e) => setNewAssessment({ ...newAssessment, kategori: e.target.value })}
-                    className="w-full border rounded-2xl px-5 py-3.5 text-xs font-bold focus:outline-none focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-primary/5 transition-all outline-none cursor-pointer"
-                    style={{ backgroundColor: 'var(--theme-bg)', borderColor: 'var(--theme-border)', color: 'var(--theme-text)' }}
-                  >
-                    {categories.map(c => <option key={c.name}>{c.name}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Deskripsi Singkat</label>
-                  <textarea
-                    value={newAssessment.deskripsi}
-                    onChange={(e) => setNewAssessment({ ...newAssessment, deskripsi: e.target.value })}
-                    className="w-full border rounded-2xl px-5 py-3.5 text-xs font-medium placeholder-slate-400 focus:outline-none focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-primary/5 transition-all outline-none h-24 resize-none"
-                    style={{ backgroundColor: 'var(--theme-bg)', borderColor: 'var(--theme-border)', color: 'var(--theme-text)' }}
-                    placeholder="Jelaskan tujuan dan fungsi tes ini secara singkat..."
-                  />
-                </div>
-              </div>
-
-              <div className="pt-4 flex gap-3">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 border hover:bg-slate-100 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all" style={{ borderColor: 'var(--theme-border)', color: 'var(--theme-text-muted)' }}>Batal</button>
-                <button type="submit" className="flex-2 bg-primary text-white px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center justify-center gap-2 hover:bg-primary/95 transition-all">
-                  <span className="material-symbols-outlined text-base shrink-0">save</span> Publikasikan Tes
-                </button>
-              </div>
-            </form>
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen} maxWidth="max-w-lg">
+        <DialogHeader className="bg-slate-50/50 border-b border-slate-100 flex-shrink-0 relative">
+          <div className="pr-8">
+            <DialogTitle>Asesmen Baru</DialogTitle>
+            <DialogDescription className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Konfigurasi Instrumen Tes</DialogDescription>
           </div>
-        </div>
-      )}
+        </DialogHeader>
+
+        <form onSubmit={handleCreateAssessment} className="flex flex-col">
+          <div className="p-6 md:p-8 space-y-6 max-h-[50vh] overflow-y-auto no-scrollbar">
+            <div className="space-y-4">
+              <div>
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Nama Instrumen</label>
+                <input
+                  required
+                  value={newAssessment.nama}
+                  onChange={(e) => setNewAssessment({ ...newAssessment, nama: e.target.value })}
+                  className="w-full border rounded-2xl px-5 py-3.5 text-xs font-bold placeholder-slate-400 focus:outline-none focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-primary/5 transition-all outline-none"
+                  style={{ backgroundColor: 'var(--theme-bg)', borderColor: 'var(--theme-border)', color: 'var(--theme-text)' }}
+                  placeholder="Contoh: Tes Kecemasan DASS-21"
+                />
+              </div>
+              <div>
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Kategori</label>
+                <select
+                  value={newAssessment.kategori}
+                  onChange={(e) => setNewAssessment({ ...newAssessment, kategori: e.target.value })}
+                  className="w-full border rounded-2xl px-5 py-3.5 text-xs font-bold focus:outline-none focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-primary/5 transition-all outline-none cursor-pointer"
+                  style={{ backgroundColor: 'var(--theme-bg)', borderColor: 'var(--theme-border)', color: 'var(--theme-text)' }}
+                >
+                  {categories.map(c => <option key={c.name}>{c.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Deskripsi Singkat</label>
+                <textarea
+                  value={newAssessment.deskripsi}
+                  onChange={(e) => setNewAssessment({ ...newAssessment, deskripsi: e.target.value })}
+                  className="w-full border rounded-2xl px-5 py-3.5 text-xs font-medium placeholder-slate-400 focus:outline-none focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-primary/5 transition-all outline-none h-24 resize-none"
+                  style={{ backgroundColor: 'var(--theme-bg)', borderColor: 'var(--theme-border)', color: 'var(--theme-text)' }}
+                  placeholder="Jelaskan tujuan dan fungsi tes ini secara singkat..."
+                />
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="bg-slate-50/20 border-t border-slate-100/60 shrink-0">
+            <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 sm:flex-initial px-5 py-3 border hover:bg-slate-100 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all" style={{ borderColor: 'var(--theme-border)', color: 'var(--theme-text-muted)' }}>Batal</button>
+            <button type="submit" className="flex-2 sm:flex-initial bg-primary text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center justify-center gap-2 hover:bg-primary/95 transition-all">
+              <span className="material-symbols-outlined text-base shrink-0">save</span> Publikasikan Tes
+            </button>
+          </DialogFooter>
+        </form>
+      </Dialog>
     </>
   );
 }

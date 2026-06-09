@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { PageContent, PageHeader } from '@/components/ui/page';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
 import { 
   useOrganisasiListQuery,
   useOrmawaListQuery,
@@ -674,607 +675,610 @@ export default function OrganisasiPage() {
         )}
       </div>
 
-      {selectedOrg && (
-        <div className="fixed inset-0 z-50 bg-[var(--theme-primary)]/45 backdrop-blur-sm flex items-center justify-center p-4 print:hidden">
-          <div className="w-full max-w-4xl max-h-[90vh] bg-surface rounded-2xl overflow-hidden border border-border shadow-2xl flex flex-col">
-            <div className="bg-primary text-white p-6 md:p-7 flex items-start justify-between gap-4">
-              <div>
-                <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">Detail Organisasi</p>
-                <h3 className="text-xl md:text-2xl font-extrabold mt-1 leading-tight">{selectedOrg.NamaOrganisasi}</h3>
-                <p className="text-sm text-white/80 mt-1">{selectedOrg.Jabatan} • {selectedOrg.Tipe}</p>
-              </div>
-              <button
-                onClick={() => setSelectedOrg(null)}
-                className="p-2 rounded-xl bg-surface/10 hover:bg-surface/20 transition-colors"
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >close</span>
-              </button>
+      {/* Detail Modal */}
+      <Dialog open={!!selectedOrg} onOpenChange={() => setSelectedOrg(null)} maxWidth="max-w-4xl">
+        <DialogContent>
+          <DialogHeader>
+            <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
+              <span className="material-symbols-outlined text-8xl text-slate-900">group</span>
             </div>
-
-            <div className="px-6 pt-4 border-b border-border-muted flex gap-2 overflow-x-auto">
-              {[
-                { key: 'ringkasan', label: 'Ringkasan', icon: ClipboardList },
-                { key: 'prestasi', label: 'Prestasi', icon: Award },
-                { key: 'verifikasi', label: 'Status & Verifikasi', icon: Shield },
-              ].map((tab) => {
-                const Icon = tab.icon;
-                const isActive = activeTab === tab.key;
-                return (
-                  <button
-                    key={tab.key}
-                    onClick={() => setActiveTab(tab.key)}
-                    className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-t-xl text-xs font-bold whitespace-nowrap border-b-2 transition-colors ${
-                      isActive ? 'text-primary border-[var(--theme-primary)] bg-[var(--theme-primary-light)]' : 'text-text-muted border-transparent hover:text-bku-text'
-                    }`}
-                  >
-                    <Icon size={14} /> {tab.label}
-                  </button>
-                );
-              })}
+            <div className="text-left relative z-10">
+              <p className="text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">Detail Organisasi</p>
+              <DialogTitle className="text-xl md:text-2xl font-extrabold mt-1 text-[var(--theme-text)] leading-tight">
+                {selectedOrg?.NamaOrganisasi}
+              </DialogTitle>
+              <DialogDescription className="text-sm text-[var(--theme-text-muted)] mt-1">
+                {selectedOrg?.Jabatan} • {selectedOrg?.Tipe}
+              </DialogDescription>
             </div>
+          </DialogHeader>
 
-            <div className="p-6 overflow-y-auto">
-              {activeTab === 'ringkasan' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <DetailItem label="Nama Organisasi" value={selectedOrg.NamaOrganisasi} />
-                  <DetailItem label="Jenis" value={selectedOrg.Tipe} />
-                  <DetailItem label="Jabatan" value={selectedOrg.Jabatan} />
-                  <DetailItem label="Periode" value={`${selectedOrg.PeriodeMulai} - ${selectedOrg.PeriodeSelesai || 'Sekarang'}`} />
-                  <DetailItem label="Deskripsi Kegiatan" value={selectedOrg.DeskripsiKegiatan || '-'} full />
-                  <DetailItem label="Apresiasi" value={selectedOrg.Apresiasi || '-'} full />
-                </div>
-              )}
-
-              {activeTab === 'prestasi' && (
-                <div className="space-y-3">
-                  {currentAchievements.length > 0 ? currentAchievements.map((p) => (
-                    <div key={p.id || p.ID} className="rounded-2xl border border-warning/20 bg-warning/10 p-4">
-                      <p className="font-bold text-warning text-sm">{p.NamaKegiatan || '-'}</p>
-                      <p className="text-xs text-warning mt-1">{p.Tingkat || '-'} • {p.Peringkat || '-'}</p>
-                    </div>
-                  )) : (
-                    <EmptyState
-                      size="sm"
-                      icon="emoji_events"
-                      title="Belum Ada Prestasi"
-                      description="Prestasi yang terkait organisasi ini belum tersedia."
-                      iconBgClass="bg-[#fff7ed]"
-                      iconBorderClass="border-[#fed7aa]"
-                    />
-                  )}
-                </div>
-              )}
-
-              {activeTab === 'verifikasi' && (
-                <div className="space-y-4">
-                  <div className="rounded-2xl border border-border p-4 bg-background">
-                    <p className="text-xs text-text-muted">Status Keanggotaan</p>
-                    <p className="text-base font-bold text-bku-text mt-1">{selectedOrg.PeriodeSelesai ? 'Selesai/Purna' : 'Aktif'}</p>
-                  </div>
-                  <div className="rounded-2xl border border-border p-4 bg-background">
-                    <p className="text-xs text-text-muted">Status Verifikasi</p>
-                    <p className="text-base font-bold mt-1 text-bku-text">{selectedOrg.StatusVerifikasi || 'Menunggu'}</p>
-                  </div>
-                </div>
-              )}
-            </div>
+          <div className="px-8 pt-4 border-b border-[var(--theme-border-muted)] flex gap-2 overflow-x-auto bg-[var(--theme-bg)]/20">
+            {[
+              { key: 'ringkasan', label: 'Ringkasan', icon: ClipboardList },
+              { key: 'prestasi', label: 'Prestasi', icon: Award },
+              { key: 'verifikasi', label: 'Status & Verifikasi', icon: Shield },
+            ].map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-t-xl text-xs font-semibold whitespace-nowrap border-b-2 transition-colors ${
+                    isActive ? 'text-[var(--theme-primary)] border-[var(--theme-primary)] bg-[var(--theme-primary-light)]/20' : 'text-[var(--theme-text-muted)] border-transparent hover:text-[var(--theme-text)]'
+                  }`}
+                >
+                  <Icon size={14} /> {tab.label}
+                </button>
+              );
+            })}
           </div>
-        </div>
-      )}
+
+          <div className="p-8 overflow-y-auto max-h-[50vh] no-scrollbar">
+            {selectedOrg && activeTab === 'ringkasan' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <DetailItem label="Nama Organisasi" value={selectedOrg.NamaOrganisasi} />
+                <DetailItem label="Jenis" value={selectedOrg.Tipe} />
+                <DetailItem label="Jabatan" value={selectedOrg.Jabatan} />
+                <DetailItem label="Periode" value={`${selectedOrg.PeriodeMulai} - ${selectedOrg.PeriodeSelesai || 'Sekarang'}`} />
+                <DetailItem label="Deskripsi Kegiatan" value={selectedOrg.DeskripsiKegiatan || '-'} full />
+                <DetailItem label="Apresiasi" value={selectedOrg.Apresiasi || '-'} full />
+              </div>
+            )}
+
+            {selectedOrg && activeTab === 'prestasi' && (
+              <div className="space-y-3">
+                {currentAchievements.length > 0 ? currentAchievements.map((p) => (
+                  <div key={p.id || p.ID} className="rounded-2xl border border-warning/20 bg-warning/10 p-4">
+                    <p className="font-semibold text-warning text-sm">{p.NamaKegiatan || '-'}</p>
+                    <p className="text-xs text-warning mt-1">{p.Tingkat || '-'} • {p.Peringkat || '-'}</p>
+                  </div>
+                )) : (
+                  <EmptyState
+                    size="sm"
+                    icon="emoji_events"
+                    title="Belum Ada Prestasi"
+                    description="Prestasi yang terkait organisasi ini belum tersedia."
+                    iconBgClass="bg-[#fff7ed]"
+                    iconBorderClass="border-[#fed7aa]"
+                  />
+                )}
+              </div>
+            )}
+
+            {selectedOrg && activeTab === 'verifikasi' && (
+              <div className="space-y-4">
+                <div className="rounded-2xl border border-[var(--theme-border)] p-4 bg-[var(--theme-bg)]">
+                  <p className="text-xs text-[var(--theme-text-muted)]">Status Keanggotaan</p>
+                  <p className="text-base font-semibold text-[var(--theme-text)] mt-1">{selectedOrg.PeriodeSelesai ? 'Selesai/Purna' : 'Aktif'}</p>
+                </div>
+                <div className="rounded-2xl border border-[var(--theme-border)] p-4 bg-[var(--theme-bg)]">
+                  <p className="text-xs text-[var(--theme-text-muted)]">Status Verifikasi</p>
+                  <p className="text-base font-semibold mt-1 text-[var(--theme-text)]">{selectedOrg.StatusVerifikasi || 'Menunggu'}</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <button
+              onClick={() => setSelectedOrg(null)}
+              className="w-full md:w-auto h-10 px-6 rounded-xl font-semibold text-xs text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] active:scale-95 transition-all shadow-none border border-[var(--theme-border)] bg-transparent cursor-pointer uppercase tracking-wider"
+            >
+              Tutup
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Registration Modal */}
-      {selectedDaftarOrg && (() => {
-        const studentIPK = profile?.IPK || 0;
-        const minIPK = selectedDaftarOrg.min_ipk || selectedDaftarOrg.MinIPK || 0;
-        const isGPAEligible = minIPK === 0 || studentIPK >= minIPK;
-        const fallbackDivisions = ["Umum", "Humas / Media", "PSDM / Keanggotaan", "Acara / Pelaksana Kegiatan", "Kreatif & Desain", "Logistik & Operasional"];
-        const divisionsOptions = divisionsList && divisionsList.length > 0
-          ? divisionsList.map(d => d.Nama || d.nama)
-          : fallbackDivisions;
+      <Dialog open={!!selectedDaftarOrg} onOpenChange={closeDaftarModal} maxWidth="max-w-xl">
+        <DialogContent>
+          {selectedDaftarOrg && (() => {
+            const studentIPK = profile?.IPK || 0;
+            const minIPK = selectedDaftarOrg.min_ipk || selectedDaftarOrg.MinIPK || 0;
+            const isGPAEligible = minIPK === 0 || studentIPK >= minIPK;
+            const fallbackDivisions = ["Umum", "Humas / Media", "PSDM / Keanggotaan", "Acara / Pelaksana Kegiatan", "Kreatif & Desain", "Logistik & Operasional"];
+            const divisionsOptions = divisionsList && divisionsList.length > 0
+              ? divisionsList.map(d => d.Nama || d.nama)
+              : fallbackDivisions;
 
-        return (
-          <div className="fixed inset-0 z-50 bg-[var(--theme-primary)]/45 backdrop-blur-sm flex items-center justify-center p-4 print:hidden">
-            <div className="w-full max-w-xl bg-surface rounded-2xl overflow-hidden border border-border shadow-2xl flex flex-col animate-in fade-in-50 zoom-in-95 duration-200">
-              <div className="bg-primary text-white p-5 flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">Formulir Rekrutmen Anggota</p>
-                  <h3 className="text-lg font-extrabold mt-1">{selectedDaftarOrg.Nama || selectedDaftarOrg.nama}</h3>
-                </div>
-                <button
-                  onClick={closeDaftarModal}
-                  className="p-2 rounded-xl bg-surface/10 hover:bg-surface/20 transition-colors"
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >close</span>
-                </button>
-              </div>
+            return (
+              <>
+                <DialogHeader>
+                  <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
+                    <span className="material-symbols-outlined text-8xl text-slate-900">assignment</span>
+                  </div>
+                  <div className="text-left relative z-10">
+                    <p className="text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">Formulir Rekrutmen Anggota</p>
+                    <DialogTitle className="text-lg font-extrabold mt-1 text-[var(--theme-text)]">
+                      {selectedDaftarOrg.Nama || selectedDaftarOrg.nama}
+                    </DialogTitle>
+                  </div>
+                </DialogHeader>
 
-              <form onSubmit={handleRegisterSubmit} className="flex flex-col">
-                <div className="p-6 space-y-5 max-h-[60vh] overflow-y-auto custom-scrollbar">
-                  {/* Requirements & Dates Section */}
-                  {(selectedDaftarOrg.recruitment_requirements || minIPK > 0) && (
-                    <div className="space-y-2">
-                      <label className="text-xs font-black text-bku-text uppercase tracking-widest block flex items-center gap-1.5">
-                        <span className="material-symbols-outlined text-warning" style={{ fontSize: 16 }}>assignment_late</span>
-                        Persyaratan Pendaftaran & Kriteria
-                      </label>
-                      <div className="p-4 bg-warning/10 border border-warning/20 rounded-2xl text-xs font-semibold text-warning leading-relaxed space-y-2">
-                        {selectedDaftarOrg.recruitment_requirements && (
-                          <div className="whitespace-pre-wrap font-body">
-                            {selectedDaftarOrg.recruitment_requirements}
-                          </div>
-                        )}
-                        {minIPK > 0 && (
-                          <div className="flex items-center gap-1.5 text-warning font-bold border-t border-warning/10 pt-2 mt-2">
-                            <span className="material-symbols-outlined text-warning" style={{ fontSize: 14 }}>school</span>
-                            <span>IPK Minimal: {minIPK.toFixed(2)}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedDaftarOrg.recruitment_start && selectedDaftarOrg.recruitment_end && (
-                    <div className="text-[11px] font-bold text-text-muted flex items-center gap-1.5 bg-background border border-border p-2.5 rounded-xl">
-                      <span className="material-symbols-outlined text-text-muted" style={{ fontSize: 14 }}>calendar_month</span>
-                      <span>
-                        Periode: {new Date(selectedDaftarOrg.recruitment_start).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} s.d. {new Date(selectedDaftarOrg.recruitment_end).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Section 1: Profil Pendaftar (Verified) */}
-                  <div className="bg-background border border-border rounded-2xl p-4 space-y-3">
-                    <div className="flex items-center justify-between border-b border-border/80 pb-2">
-                      <h4 className="text-[11px] font-black text-bku-text uppercase tracking-wider flex items-center gap-1">
-                        <span className="material-symbols-outlined text-primary" style={{ fontSize: 14 }}>verified_user</span>
-                        Profil Pendaftar (SIAKAD Verified)
-                      </h4>
-                      <span className="px-2 py-0.5 rounded bg-success/10 text-success text-[9px] font-bold uppercase tracking-wider">Auto-filled</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3 text-xs">
-                      <div>
-                        <span className="text-text-muted font-medium">Nama Lengkap</span>
-                        <p className="font-extrabold text-bku-text mt-0.5">{profile?.Nama || '-'}</p>
-                      </div>
-                      <div>
-                        <span className="text-text-muted font-medium">NIM</span>
-                        <p className="font-extrabold text-bku-text mt-0.5">{profile?.NIM || '-'}</p>
-                      </div>
-                      <div className="col-span-2">
-                        <span className="text-text-muted font-medium">Program Studi</span>
-                        <p className="font-extrabold text-bku-text mt-0.5">{profile?.ProgramStudi?.Nama || '-'}</p>
-                      </div>
-                      <div className="col-span-2 border-t border-border/60 pt-2 flex items-center justify-between">
-                        <div>
-                          <span className="text-text-muted font-medium block">Indeks Prestasi Kumulatif (IPK)</span>
-                          <span className="font-black text-sm text-bku-text">{studentIPK.toFixed(2)}</span>
-                        </div>
-                        <div>
-                          {minIPK > 0 ? (
-                            isGPAEligible ? (
-                              <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-success/10 text-success border border-success/20">
-                                <span className="material-symbols-outlined" style={{ fontSize: 12 }}>check_circle</span> Memenuhi Syarat
-                              </span>
-                            ) : (
-                              <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-error/10 text-error border border-error/20">
-                                <span className="material-symbols-outlined" style={{ fontSize: 12 }}>cancel</span> IPK Kurang (Min: {minIPK.toFixed(2)})
-                              </span>
-                            )
-                          ) : (
-                            <span className="text-[10px] font-bold text-text-muted bg-[#f5f5f5] px-2 py-1 rounded border border-border">Tidak Ada Syarat IPK</span>
+                <form onSubmit={handleRegisterSubmit} className="flex flex-col">
+                  <div className="p-8 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar">
+                    {/* Requirements & Dates Section */}
+                    {(selectedDaftarOrg.recruitment_requirements || minIPK > 0) && (
+                      <div className="space-y-2">
+                        <label className="text-xs font-semibold text-[var(--theme-text)] uppercase tracking-widest block flex items-center gap-1.5">
+                          <span className="material-symbols-outlined text-warning" style={{ fontSize: 16 }}>assignment_late</span>
+                          Persyaratan Pendaftaran & Kriteria
+                        </label>
+                        <div className="p-4 bg-warning/10 border border-warning/20 rounded-2xl text-xs font-semibold text-warning leading-relaxed space-y-2">
+                          {selectedDaftarOrg.recruitment_requirements && (
+                            <div className="whitespace-pre-wrap font-body">
+                              {selectedDaftarOrg.recruitment_requirements}
+                            </div>
+                          )}
+                          {minIPK > 0 && (
+                            <div className="flex items-center gap-1.5 text-warning font-bold border-t border-warning/10 pt-2 mt-2">
+                              <span className="material-symbols-outlined text-warning" style={{ fontSize: 14 }}>school</span>
+                              <span>IPK Minimal: {minIPK.toFixed(2)}</span>
+                            </div>
                           )}
                         </div>
                       </div>
-                    </div>
-                  </div>
+                    )}
 
-                  {/* Warning Alert for IPK restriction */}
-                  {!isGPAEligible && (
-                    <div className="p-4 bg-error/10 border border-error/20 text-error text-xs font-semibold rounded-2xl flex gap-3 leading-relaxed">
-                      <span className="material-symbols-outlined shrink-0 text-error animate-bounce" style={{ fontSize: 18 }}>warning</span>
-                      <span>Maaf, Anda tidak dapat mendaftar ke Ormawa ini karena IPK Anda ({studentIPK.toFixed(2)}) berada di bawah standar minimum yang ditentukan ({minIPK.toFixed(2)}).</span>
-                    </div>
-                  )}
-
-                  {/* Section 2: Pilihan Divisi */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-xs font-black text-bku-text uppercase tracking-widest block">Divisi Pilihan 1 <span className="text-error">*</span></label>
-                      <select
-                        value={divisiPilihan}
-                        onChange={(e) => setDivisiPilihan(e.target.value)}
-                        className="w-full px-4 py-3 bg-background border border-border rounded-xl font-bold text-sm focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
-                        required
-                        disabled={!isGPAEligible}
-                      >
-                        <option value="" disabled>-- Pilih Divisi Utama --</option>
-                        {divisionsOptions.map((div, i) => (
-                          <option key={i} value={div}>{div}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-xs font-black text-bku-text uppercase tracking-widest block">Divisi Pilihan 2 <span className="text-text-muted text-[10px] font-normal">(Opsional)</span></label>
-                      <select
-                        value={divisiPilihanDua}
-                        onChange={(e) => setDivisiPilihanDua(e.target.value)}
-                        className="w-full px-4 py-3 bg-background border border-border rounded-xl font-bold text-sm focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
-                        disabled={!isGPAEligible}
-                      >
-                        <option value="">-- Tidak Memilih --</option>
-                        {divisionsOptions.filter(d => d !== divisiPilihan).map((div, i) => (
-                          <option key={i} value={div}>{div}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Section 3: Dynamic Custom Fields from Ormawa */}
-                  {recruitmentFields.length > 0 ? (
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2 border-b border-border pb-2">
-                        <span className="material-symbols-outlined text-primary" style={{ fontSize: 15 }}>dynamic_form</span>
-                        <h4 className="text-[11px] font-black text-bku-text uppercase tracking-wider">Pertanyaan Tambahan dari Ormawa</h4>
+                    {selectedDaftarOrg.recruitment_start && selectedDaftarOrg.recruitment_end && (
+                      <div className="text-[11px] font-semibold text-[var(--theme-text-muted)] flex items-center gap-1.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] p-2.5 rounded-xl">
+                        <span className="material-symbols-outlined text-[var(--theme-text-muted)]" style={{ fontSize: 14 }}>calendar_month</span>
+                        <span>
+                          Periode: {new Date(selectedDaftarOrg.recruitment_start).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} s.d. {new Date(selectedDaftarOrg.recruitment_end).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </span>
                       </div>
-                      {recruitmentFields.map((field) => {
-                        const fieldId = field.id || field.ID;
-                        const options = field.options ? field.options.split(',').map(o => o.trim()).filter(Boolean) : [];
-                        const answer = customAnswers[String(fieldId)];
-                        return (
-                          <div key={fieldId} className="space-y-1.5">
-                            <label className="text-xs font-black text-bku-text uppercase tracking-widest block">
-                              {field.label}
-                              {field.required && <span className="text-error ml-1">*</span>}
-                            </label>
+                    )}
 
-                            {/* Text */}
-                            {field.type === 'text' && (
-                              <input
-                                type="text"
-                                placeholder={field.label}
-                                value={answer || ''}
-                                onChange={e => handleCustomAnswer(fieldId, e.target.value)}
-                                required={field.required}
-                                disabled={!isGPAEligible}
-                                className="w-full px-4 py-3 bg-background border border-border rounded-xl font-bold text-sm focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
-                              />
-                            )}
-
-                            {/* Paragraph / Long Text */}
-                            {field.type === 'paragraph' && (
-                              <textarea
-                                placeholder={field.label}
-                                value={answer || ''}
-                                onChange={e => handleCustomAnswer(fieldId, e.target.value)}
-                                required={field.required}
-                                disabled={!isGPAEligible}
-                                rows={4}
-                                className="w-full px-4 py-3 bg-background border border-border rounded-xl font-bold text-sm focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none resize-none"
-                              />
-                            )}
-
-                            {/* Select Dropdown */}
-                            {field.type === 'select' && (
-                              <select
-                                value={answer || ''}
-                                onChange={e => handleCustomAnswer(fieldId, e.target.value)}
-                                required={field.required}
-                                disabled={!isGPAEligible}
-                                className="w-full px-4 py-3 bg-background border border-border rounded-xl font-bold text-sm focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
-                              >
-                                <option value="">-- Pilih --</option>
-                                {options.map((opt, i) => (
-                                  <option key={i} value={opt}>{opt}</option>
-                                ))}
-                              </select>
-                            )}
-
-                            {/* Checkboxes (multi-select) */}
-                            {field.type === 'checkbox' && (
-                              <div className="space-y-2">
-                                {options.map((opt, i) => {
-                                  const checkedValues = Array.isArray(answer) ? answer : (answer ? [answer] : []);
-                                  const isChecked = checkedValues.includes(opt);
-                                  return (
-                                    <label key={i} className="flex items-center gap-2.5 cursor-pointer group">
-                                      <input
-                                        type="checkbox"
-                                        checked={isChecked}
-                                        disabled={!isGPAEligible}
-                                        onChange={() => {
-                                          const next = isChecked
-                                            ? checkedValues.filter(v => v !== opt)
-                                            : [...checkedValues, opt];
-                                          handleCustomAnswer(fieldId, next);
-                                        }}
-                                        className="w-4 h-4 rounded border-border accent-primary"
-                                      />
-                                      <span className="text-sm font-semibold text-bku-text">{opt}</span>
-                                    </label>
-                                  );
-                                })}
-                              </div>
-                            )}
-
-                            {/* File Upload (PDF/Image) */}
-                            {field.type === 'file' && (
-                              <div className="space-y-2">
-                                <div className="flex items-center gap-3">
-                                  <label
-                                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-xs font-bold cursor-pointer transition-all ${
-                                      !isGPAEligible
-                                        ? 'bg-[#f5f5f5] text-text-muted border-border cursor-not-allowed'
-                                        : 'bg-primary/10 border-primary/20 text-[#0B4FAE] hover:bg-[#D9E7FF]'
-                                    }`}
-                                  >
-                                    <span className="material-symbols-outlined" style={{ fontSize: 16 }}>upload_file</span>
-                                    {fileUploading[fieldId] ? 'Mengunggah...' : 'Pilih File (PDF/Gambar, maks 5 MB)'}
-                                    <input
-                                      type="file"
-                                      accept=".pdf,image/*"
-                                      disabled={!isGPAEligible || fileUploading[fieldId]}
-                                      onChange={e => handleFileUpload(fieldId, e.target.files?.[0])}
-                                      className="hidden"
-                                    />
-                                  </label>
-                                  {fileUploading[fieldId] && (
-                                    <span className="text-xs text-text-muted animate-pulse">Mengunggah...</span>
-                                  )}
-                                </div>
-                                {answer && (
-                                  <a
-                                    href={answer}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="flex items-center gap-1.5 text-xs text-[#0B4FAE] font-semibold hover:underline"
-                                  >
-                                    <span className="material-symbols-outlined" style={{ fontSize: 13 }}>attach_file</span>
-                                    File terlampir — klik untuk pratinjau
-                                  </a>
-                                )}
-                              </div>
+                    {/* Section 1: Profil Pendaftar (Verified) */}
+                    <div className="bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-2xl p-4 space-y-3">
+                      <div className="flex items-center justify-between border-b border-[var(--theme-border)] pb-2">
+                        <h4 className="text-[11px] font-semibold text-[var(--theme-text)] uppercase tracking-wider flex items-center gap-1">
+                          <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: 14 }}>verified_user</span>
+                          Profil Pendaftar (SIAKAD Verified)
+                        </h4>
+                        <span className="px-2 py-0.5 rounded bg-[var(--theme-success-light)]/20 text-[var(--theme-success)] text-[9px] font-semibold uppercase tracking-wider">Auto-filled</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3 text-xs">
+                        <div>
+                          <span className="text-[var(--theme-text-muted)] font-medium">Nama Lengkap</span>
+                          <p className="font-semibold text-[var(--theme-text)] mt-0.5">{profile?.Nama || '-'}</p>
+                        </div>
+                        <div>
+                          <span className="text-[var(--theme-text-muted)] font-medium">NIM</span>
+                          <p className="font-semibold text-[var(--theme-text)] mt-0.5">{profile?.NIM || '-'}</p>
+                        </div>
+                        <div className="col-span-2">
+                          <span className="text-[var(--theme-text-muted)] font-medium">Program Studi</span>
+                          <p className="font-semibold text-[var(--theme-text)] mt-0.5">{profile?.ProgramStudi?.Nama || '-'}</p>
+                        </div>
+                        <div className="col-span-2 border-t border-[var(--theme-border)] pt-2 flex items-center justify-between">
+                          <div>
+                            <span className="text-[var(--theme-text-muted)] font-medium block">Indeks Prestasi Kumulatif (IPK)</span>
+                            <span className="font-semibold text-sm text-[var(--theme-text)]">{studentIPK.toFixed(2)}</span>
+                          </div>
+                          <div>
+                            {minIPK > 0 ? (
+                              isGPAEligible ? (
+                                <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-[var(--theme-success-light)]/20 text-[var(--theme-success)] border border-[var(--theme-success)]/20">
+                                  <span className="material-symbols-outlined" style={{ fontSize: 12 }}>check_circle</span> Memenuhi Syarat
+                                </span>
+                              ) : (
+                                <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-[var(--theme-error-light)]/20 text-[var(--theme-error)] border border-[var(--theme-error)]/20">
+                                  <span className="material-symbols-outlined" style={{ fontSize: 12 }}>cancel</span> IPK Kurang (Min: {minIPK.toFixed(2)})
+                                </span>
+                              )
+                            ) : (
+                              <span className="text-[10px] font-semibold text-[var(--theme-text-muted)] bg-[var(--theme-bg)] px-2.5 py-1 rounded border border-[var(--theme-border)]">Tidak Ada Syarat IPK</span>
                             )}
                           </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    /* Fallback form for Ormawa that has no custom fields set */
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <label className="text-xs font-black text-bku-text uppercase tracking-widest block">Alasan &amp; Motivasi Bergabung <span className="text-error">*</span></label>
-                        <textarea
-                          placeholder="Tuliskan alasan singkat mengapa Anda tertarik bergabung dengan divisi yang dipilih..."
-                          value={alasan}
-                          onChange={(e) => setAlasan(e.target.value)}
-                          className="w-full h-28 px-4 py-3 bg-background border border-border rounded-xl font-bold text-sm focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none resize-none"
-                          required
-                          disabled={!isGPAEligible}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-xs font-black text-bku-text uppercase tracking-widest block">Tautan CV / Portfolio (Google Drive, dll) <span className="text-error">*</span></label>
-                        <input
-                          type="url"
-                          placeholder="Contoh: https://drive.google.com/..."
-                          value={cvUrl}
-                          onChange={(e) => setCvUrl(e.target.value)}
-                          className="w-full px-4 py-3 bg-background border border-border rounded-xl font-bold text-sm focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
-                          required
-                          disabled={!isGPAEligible}
-                        />
-                        <span className="text-[10px] font-bold text-text-muted block">Pastikan pengaturan berbagi link adalah "Siapa saja yang memiliki link dapat melihat".</span>
+                        </div>
                       </div>
                     </div>
-                  )}
 
-                  <div className="p-4 bg-primary/10 border border-primary/20 rounded-xl flex gap-3 text-xs text-[#0B4FAE] font-medium leading-relaxed">
-                    <span className="material-symbols-outlined shrink-0" style={{ fontSize: 16 }}>info</span>
-                    <span>Formulir ini akan ditinjau secara resmi oleh Pengurus Ormawa. Status pendaftaran dapat dipantau di tab "Status Pendaftaran".</span>
+                    {/* Warning Alert for IPK restriction */}
+                    {!isGPAEligible && (
+                      <div className="p-4 bg-[var(--theme-error-light)]/20 border border-[var(--theme-error)]/20 text-[var(--theme-error)] text-xs font-semibold rounded-2xl flex gap-3 leading-relaxed">
+                        <span className="material-symbols-outlined shrink-0 text-[var(--theme-error)] animate-bounce" style={{ fontSize: 18 }}>warning</span>
+                        <span>Maaf, Anda tidak dapat mendaftar ke Ormawa ini karena IPK Anda ({studentIPK.toFixed(2)}) berada di bawah standar minimum yang ditentukan ({minIPK.toFixed(2)}).</span>
+                      </div>
+                    )}
+
+                    {/* Section 2: Pilihan Divisi */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+                      <div className="space-y-2">
+                        <label className="text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-widest block">Divisi Pilihan 1 <span className="text-[var(--theme-error)]">*</span></label>
+                        <select
+                          value={divisiPilihan}
+                          onChange={(e) => setDivisiPilihan(e.target.value)}
+                          className="h-10 w-full px-3 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl font-semibold text-xs text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors outline-none"
+                          required
+                          disabled={!isGPAEligible}
+                        >
+                          <option value="" disabled>-- Pilih Divisi Utama --</option>
+                          {divisionsOptions.map((div, i) => (
+                            <option key={i} value={div}>{div}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-widest block">Divisi Pilihan 2 <span className="text-[var(--theme-text-muted)] text-[10px] font-normal">(Opsional)</span></label>
+                        <select
+                          value={divisiPilihanDua}
+                          onChange={(e) => setDivisiPilihanDua(e.target.value)}
+                          className="h-10 w-full px-3 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl font-semibold text-xs text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors outline-none"
+                          disabled={!isGPAEligible}
+                        >
+                          <option value="">-- Tidak Memilih --</option>
+                          {divisionsOptions.filter(d => d !== divisiPilihan).map((div, i) => (
+                            <option key={i} value={div}>{div}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Section 3: Dynamic Custom Fields from Ormawa */}
+                    {recruitmentFields.length > 0 ? (
+                      <div className="space-y-4 text-left">
+                        <div className="flex items-center gap-2 border-b border-[var(--theme-border)] pb-2">
+                          <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: 15 }}>dynamic_form</span>
+                          <h4 className="text-[11px] font-semibold text-[var(--theme-text)] uppercase tracking-wider">Pertanyaan Tambahan dari Ormawa</h4>
+                        </div>
+                        {recruitmentFields.map((field) => {
+                          const fieldId = field.id || field.ID;
+                          const options = field.options ? field.options.split(',').map(o => o.trim()).filter(Boolean) : [];
+                          const answer = customAnswers[String(fieldId)];
+                          return (
+                            <div key={fieldId} className="space-y-1.5">
+                              <label className="text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-widest block">
+                                {field.label}
+                                {field.required && <span className="text-[var(--theme-error)] ml-1">*</span>}
+                              </label>
+
+                              {/* Text */}
+                              {field.type === 'text' && (
+                                <input
+                                  type="text"
+                                  placeholder={field.label}
+                                  value={answer || ''}
+                                  onChange={e => handleCustomAnswer(fieldId, e.target.value)}
+                                  required={field.required}
+                                  disabled={!isGPAEligible}
+                                  className="h-10 w-full px-3 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl font-semibold text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors outline-none"
+                                />
+                              )}
+
+                              {/* Paragraph / Long Text */}
+                              {field.type === 'paragraph' && (
+                                <textarea
+                                  placeholder={field.label}
+                                  value={answer || ''}
+                                  onChange={e => handleCustomAnswer(fieldId, e.target.value)}
+                                  required={field.required}
+                                  disabled={!isGPAEligible}
+                                  rows={4}
+                                  className="w-full p-3 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl font-semibold text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors resize-none animate-in duration-200"
+                                />
+                              )}
+
+                              {/* Select Dropdown */}
+                              {field.type === 'select' && (
+                                <select
+                                  value={answer || ''}
+                                  onChange={e => handleCustomAnswer(fieldId, e.target.value)}
+                                  required={field.required}
+                                  disabled={!isGPAEligible}
+                                  className="h-10 w-full px-3 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl font-semibold text-xs text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors outline-none"
+                                >
+                                  <option value="">-- Pilih --</option>
+                                  {options.map((opt, i) => (
+                                    <option key={i} value={opt}>{opt}</option>
+                                  ))}
+                                </select>
+                              )}
+
+                              {/* Checkboxes (multi-select) */}
+                              {field.type === 'checkbox' && (
+                                <div className="space-y-2">
+                                  {options.map((opt, i) => {
+                                    const checkedValues = Array.isArray(answer) ? answer : (answer ? [answer] : []);
+                                    const isChecked = checkedValues.includes(opt);
+                                    return (
+                                      <label key={i} className="flex items-center gap-2.5 cursor-pointer group">
+                                        <input
+                                          type="checkbox"
+                                          checked={isChecked}
+                                          disabled={!isGPAEligible}
+                                          onChange={() => {
+                                            const next = isChecked
+                                              ? checkedValues.filter(v => v !== opt)
+                                              : [...checkedValues, opt];
+                                            handleCustomAnswer(fieldId, next);
+                                          }}
+                                          className="w-4 h-4 rounded border-[var(--theme-border)] accent-[var(--theme-primary)]"
+                                        />
+                                        <span className="text-xs font-semibold text-[var(--theme-text)]">{opt}</span>
+                                      </label>
+                                    );
+                                  })}
+                                </div>
+                              )}
+
+                              {/* File Upload (PDF/Image) */}
+                              {field.type === 'file' && (
+                                <div className="space-y-2">
+                                  <div className="flex items-center gap-3">
+                                    <label
+                                      className={`flex items-center gap-2 px-4 h-10 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
+                                        !isGPAEligible
+                                          ? 'bg-[var(--theme-bg)] text-[var(--theme-text-muted)] border-[var(--theme-border)] cursor-not-allowed'
+                                          : 'bg-[var(--theme-primary-light)]/20 border-[var(--theme-primary)]/20 text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)]/30'
+                                      }`}
+                                    >
+                                      <span className="material-symbols-outlined" style={{ fontSize: 16 }}>upload_file</span>
+                                      {fileUploading[fieldId] ? 'Mengunggah...' : 'Pilih File (PDF/Gambar, maks 5 MB)'}
+                                      <input
+                                        type="file"
+                                        accept=".pdf,image/*"
+                                        disabled={!isGPAEligible || fileUploading[fieldId]}
+                                        onChange={e => handleFileUpload(fieldId, e.target.files?.[0])}
+                                        className="hidden"
+                                      />
+                                    </label>
+                                    {fileUploading[fieldId] && (
+                                      <span className="text-xs text-[var(--theme-text-muted)] animate-pulse">Mengunggah...</span>
+                                    )}
+                                  </div>
+                                  {answer && (
+                                    <a
+                                      href={answer}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="flex items-center gap-1.5 text-xs text-[var(--theme-primary)] font-semibold hover:underline"
+                                    >
+                                      <span className="material-symbols-outlined" style={{ fontSize: 13 }}>attach_file</span>
+                                      File terlampir — klik untuk pratinjau
+                                    </a>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      /* Fallback form for Ormawa that has no custom fields set */
+                      <div className="space-y-4 text-left">
+                        <div className="space-y-2">
+                          <label className="text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-widest block">Alasan &amp; Motivasi Bergabung <span className="text-[var(--theme-error)]">*</span></label>
+                          <textarea
+                            placeholder="Tuliskan alasan singkat mengapa Anda tertarik bergabung dengan divisi yang dipilih..."
+                            value={alasan}
+                            onChange={(e) => setAlasan(e.target.value)}
+                            className="w-full h-28 p-3 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl font-semibold text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors resize-none"
+                            required
+                            disabled={!isGPAEligible}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-widest block">Tautan CV / Portfolio (Google Drive, dll) <span className="text-[var(--theme-error)]">*</span></label>
+                          <input
+                            type="url"
+                            placeholder="Contoh: https://drive.google.com/..."
+                            value={cvUrl}
+                            onChange={(e) => setCvUrl(e.target.value)}
+                            className="h-10 w-full px-3 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl font-semibold text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors outline-none"
+                            required
+                            disabled={!isGPAEligible}
+                          />
+                          <span className="text-[10px] font-semibold text-[var(--theme-text-muted)] block">Pastikan pengaturan berbagi link adalah "Siapa saja yang memiliki link dapat melihat".</span>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="p-4 bg-[var(--theme-primary-light)]/20 border border-[var(--theme-primary)]/20 rounded-xl flex gap-3 text-xs text-[var(--theme-primary)] font-medium leading-relaxed">
+                      <span className="material-symbols-outlined shrink-0" style={{ fontSize: 16 }}>info</span>
+                      <span>Formulir ini akan ditinjau secara resmi oleh Pengurus Ormawa. Status pendaftaran dapat dipantau di tab "Status Pendaftaran".</span>
+                    </div>
                   </div>
-                </div>
 
-                {/* Action Buttons */}
-                <div className="flex gap-3 p-6 border-t border-border bg-surface shrink-0">
-                  <button
-                    type="button"
-                    onClick={closeDaftarModal}
-                    className="flex-1 py-3 bg-surface border border-border text-text-muted font-black rounded-xl hover:bg-background transition-all uppercase tracking-wide text-xs active:scale-95"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={daftarMutation.isPending || !isGPAEligible}
-                    className={`flex-1 py-3 font-black rounded-xl transition-all text-xs uppercase tracking-wide flex items-center justify-center gap-1.5 active:scale-95 text-white ${
-                      !isGPAEligible 
-                        ? 'bg-[#e5e5e5] text-text-muted cursor-not-allowed border border-[#d4d4d4]' 
-                        : 'bg-primary hover:opacity-90'
-                    }`}
-                  >
-                    {daftarMutation.isPending ? 'Mengirim...' : 'Kirim Pendaftaran'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        );
-      })()}
+                  {/* Action Buttons */}
+                  <DialogFooter className="flex gap-3 shrink-0">
+                    <button
+                      type="button"
+                      onClick={closeDaftarModal}
+                      className="flex-1 h-10 bg-[var(--theme-surface)] border border-[var(--theme-border)] text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] font-semibold rounded-xl transition-all uppercase tracking-wide text-xs active:scale-95 cursor-pointer"
+                    >
+                      Batal
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={daftarMutation.isPending || !isGPAEligible}
+                      className={`flex-1 h-10 font-semibold rounded-xl transition-all text-xs uppercase tracking-wide flex items-center justify-center gap-1.5 active:scale-95 text-white border-none cursor-pointer ${
+                        !isGPAEligible 
+                          ? 'bg-[var(--theme-text-subtle)] text-white/50 cursor-not-allowed' 
+                          : 'bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)]'
+                      }`}
+                    >
+                      {daftarMutation.isPending ? 'Mengirim...' : 'Kirim Pendaftaran'}
+                    </button>
+                  </DialogFooter>
+                </form>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
 
       {/* Certificate Print Preview Modal */}
-      {printCertData && (
-        <div className="fixed inset-0 z-50 bg-[var(--theme-primary)]/45 backdrop-blur-sm flex items-center justify-center p-4 print:p-0 print:bg-white overflow-hidden">
-          <div className="w-full max-w-4xl max-h-[90vh] bg-surface rounded-2xl overflow-hidden border border-border shadow-2xl flex flex-col print:shadow-none print:border-none print:w-full print:max-w-none print:h-full print:rounded-none">
-            {/* Modal Header (Hidden on Print) */}
-            <div className="bg-[var(--theme-primary)] text-white p-5 flex items-center justify-between print:hidden shrink-0">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined">badge</span>
-                <span className="font-black text-sm uppercase tracking-wider">Cetak Sertifikat Keaktifan Organisasi</span>
+      <Dialog open={!!printCertData} onOpenChange={() => setPrintCertData(null)} maxWidth="max-w-4xl">
+        <DialogContent className="print:shadow-none print:border-none print:w-full print:max-w-none print:h-full print:rounded-none">
+          {printCertData && (
+            <>
+              {/* Modal Header (Hidden on Print) */}
+              <div className="bg-[var(--theme-primary)] text-white p-5 flex items-center justify-between print:hidden shrink-0">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined">badge</span>
+                  <span className="font-semibold text-sm uppercase tracking-wider">Cetak Sertifikat Keaktifan Organisasi</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={triggerPrint}
+                    className="h-10 px-4 bg-[var(--theme-success)] hover:bg-[var(--theme-success)]/90 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors border-none cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: 16 }}>print</span> Cetak Sekarang
+                  </button>
+                </div>
               </div>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={triggerPrint}
-                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors animate-pulse"
+
+              {/* Certificate Print Area */}
+              <div className="p-6 md:p-10 flex-1 flex justify-start lg:justify-center bg-gray-50 print:bg-white print:p-0 overflow-auto">
+                <div
+                  id="certificate-print-area"
+                  className="w-[842px] h-[595px] bg-surface border-[16px] border-double border-warning/30 p-8 relative flex flex-col justify-between shadow-lg print:shadow-none print:border-double print:m-0 shrink-0"
+                  style={{
+                    backgroundImage: 'radial-gradient(circle, #fff 60%, #fffbeb 100%)',
+                  }}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>print</span> Cetak Sekarang
-                </button>
-                <button
-                  onClick={() => setPrintCertData(null)}
-                  className="p-2 rounded-xl bg-surface/10 hover:bg-surface/20 transition-colors"
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>close</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Certificate Print Area */}
-            <div className="p-6 md:p-10 flex-1 flex justify-start lg:justify-center bg-gray-50 print:bg-white print:p-0 overflow-auto">
-              <div
-                id="certificate-print-area"
-                className="w-[842px] h-[595px] bg-surface border-[16px] border-double border-warning/30 p-8 relative flex flex-col justify-between shadow-lg print:shadow-none print:border-double print:m-0 shrink-0"
-                style={{
-                  backgroundImage: 'radial-gradient(circle, #fff 60%, #fffbeb 100%)',
-                }}
-              >
-                {/* Certificate Background watermark */}
-                <div className="absolute inset-0 opacity-[0.03] pointer-events-none flex items-center justify-center">
-                  <span className="material-symbols-outlined text-[350px] text-primary">group</span>
-                </div>
-
-                {/* Certificate Inner Border */}
-                <div className="absolute inset-2 border border-warning/30/50 pointer-events-none"></div>
-
-                {/* Top Section */}
-                <div className="text-center relative z-10">
-                  <div className="flex justify-center items-center gap-3 mb-2">
-                    <span className="material-symbols-outlined text-4xl text-primary">school</span>
-                    <div className="text-left">
-                      <h2 className="text-lg font-black tracking-widest text-primary leading-none">UNIVERSITAS BHAKTI KENCANA</h2>
-                      <p className="text-[9px] font-bold tracking-widest text-text-muted mt-0.5 uppercase">Lembaga Kemahasiswaan & Hubungan Alumni</p>
-                    </div>
-                  </div>
-                  <div className="h-[2px] w-48 bg-warning mx-auto my-3"></div>
-                  <h1 className="text-3xl font-serif font-black text-primary uppercase tracking-wide">Sertifikat Penghargaan</h1>
-                  <p className="text-[10px] font-bold text-warning uppercase tracking-widest mt-1">Nomor: BKU-CERT/ORG/{printCertData.id || printCertData.ID}/{new Date().getFullYear()}</p>
-                </div>
-
-                {/* Body Section */}
-                <div className="text-center my-6 relative z-10 px-8">
-                  <p className="text-xs text-text-muted font-semibold italic">Sertifikat ini diberikan dengan penuh apresiasi kepada:</p>
-                  <h3 className="text-2xl font-serif font-black text-primary mt-3 border-b border-border pb-2 inline-block px-12">
-                    {profile?.Nama || 'NAMA MAHASISWA'}
-                  </h3>
-                  <p className="text-xs font-bold text-text-muted mt-1.5">NIM: {profile?.NIM || 'NIM MAHASISWA'}</p>
-
-                  <p className="text-xs text-text-muted leading-relaxed max-w-xl mx-auto mt-5">
-                    Atas dedikasi, kontribusi, dan keaktifannya sebagai <strong className="text-bku-text">{printCertData.Jabatan}</strong> dalam organisasi <strong className="text-primary">{printCertData.NamaOrganisasi}</strong> periode <strong className="text-bku-text">{printCertData.PeriodeMulai} - {printCertData.PeriodeSelesai || 'Sekarang'}</strong>.
-                  </p>
-                </div>
-
-                {/* Footer Section (Signatures) */}
-                <div className="flex justify-between items-end px-10 relative z-10 mt-auto">
-                  <div className="text-center w-48">
-                    <p className="text-[9px] font-bold text-text-muted uppercase mb-1">Ketua Umum {printCertData.NamaOrganisasi}</p>
-                    <div className="h-10 flex items-center justify-center">
-                      <span className="font-serif text-[11px] italic text-text-muted">Tanda Tangan Digital</span>
-                    </div>
-                    <div className="h-[1px] bg-[#a3a3a3] w-full mt-2"></div>
-                    <p className="text-[10px] font-extrabold text-bku-text mt-1">Ketua {printCertData.NamaOrganisasi}</p>
+                  {/* Certificate Background watermark */}
+                  <div className="absolute inset-0 opacity-[0.03] pointer-events-none flex items-center justify-center">
+                    <span className="material-symbols-outlined text-[350px] text-primary">group</span>
                   </div>
 
-                  {/* Stamp or verification badge */}
-                  <div className="flex flex-col items-center justify-center border-2 border-dashed border-warning/30/50 rounded-full w-20 h-20 bg-warning/5 backdrop-blur-sm shadow-inner">
-                    <span className="material-symbols-outlined text-warning text-2xl">verified</span>
-                    <span className="text-[6px] font-black text-warning tracking-tighter uppercase mt-0.5">BKU Hub</span>
-                    <span className="text-[6px] font-black text-warning tracking-tighter uppercase">Verified</span>
+                  {/* Certificate Inner Border */}
+                  <div className="absolute inset-2 border border-warning/30/50 pointer-events-none"></div>
+
+                  {/* Top Section */}
+                  <div className="text-center relative z-10">
+                    <div className="flex justify-center items-center gap-3 mb-2">
+                      <span className="material-symbols-outlined text-4xl text-primary">school</span>
+                      <div className="text-left">
+                        <h2 className="text-lg font-black tracking-widest text-primary leading-none">UNIVERSITAS BHAKTI KENCANA</h2>
+                        <p className="text-[9px] font-bold tracking-widest text-text-muted mt-0.5 uppercase">Lembaga Kemahasiswaan & Hubungan Alumni</p>
+                      </div>
+                    </div>
+                    <div className="h-[2px] w-48 bg-warning mx-auto my-3"></div>
+                    <h1 className="text-3xl font-serif font-black text-primary uppercase tracking-wide">Sertifikat Penghargaan</h1>
+                    <p className="text-[10px] font-bold text-warning uppercase tracking-widest mt-1">Nomor: BKU-CERT/ORG/{printCertData.id || printCertData.ID}/{new Date().getFullYear()}</p>
                   </div>
 
-                  <div className="text-center w-48">
-                    <p className="text-[9px] font-bold text-text-muted uppercase mb-1">Rektor Universitas Bhakti Kencana</p>
-                    <div className="h-10 flex items-center justify-center">
-                      <span className="font-serif text-[11px] italic text-text-muted">Tanda Tangan Digital</span>
+                  {/* Body Section */}
+                  <div className="text-center my-6 relative z-10 px-8">
+                    <p className="text-xs text-text-muted font-semibold italic">Sertifikat ini diberikan dengan penuh apresiasi kepada:</p>
+                    <h3 className="text-2xl font-serif font-black text-primary mt-3 border-b border-border pb-2 inline-block px-12">
+                      {profile?.Nama || 'NAMA MAHASISWA'}
+                    </h3>
+                    <p className="text-xs font-bold text-text-muted mt-1.5">NIM: {profile?.NIM || 'NIM MAHASISWA'}</p>
+
+                    <p className="text-xs text-text-muted leading-relaxed max-w-xl mx-auto mt-5">
+                      Atas dedikasi, kontribusi, dan keaktifannya sebagai <strong className="text-bku-text">{printCertData.Jabatan}</strong> dalam organisasi <strong className="text-primary">{printCertData.NamaOrganisasi}</strong> periode <strong className="text-bku-text">{printCertData.PeriodeMulai} - {printCertData.PeriodeSelesai || 'Sekarang'}</strong>.
+                    </p>
+                  </div>
+
+                  {/* Footer Section (Signatures) */}
+                  <div className="flex justify-between items-end px-10 relative z-10 mt-auto">
+                    <div className="text-center w-48">
+                      <p className="text-[9px] font-bold text-text-muted uppercase mb-1">Ketua Umum {printCertData.NamaOrganisasi}</p>
+                      <div className="h-10 flex items-center justify-center">
+                        <span className="font-serif text-[11px] italic text-text-muted">Tanda Tangan Digital</span>
+                      </div>
+                      <div className="h-[1px] bg-[#a3a3a3] w-full mt-2"></div>
+                      <p className="text-[10px] font-extrabold text-bku-text mt-1">Ketua {printCertData.NamaOrganisasi}</p>
                     </div>
-                    <div className="h-[1px] bg-[#a3a3a3] w-full mt-2"></div>
-                    <p className="text-[10px] font-extrabold text-bku-text mt-1">Dr. Rektor Universitas</p>
+
+                    {/* Stamp or verification badge */}
+                    <div className="flex flex-col items-center justify-center border-2 border-dashed border-warning/30/50 rounded-full w-20 h-20 bg-warning/5 backdrop-blur-sm shadow-inner">
+                      <span className="material-symbols-outlined text-warning text-2xl">verified</span>
+                      <span className="text-[6px] font-black text-warning tracking-tighter uppercase mt-0.5">BKU Hub</span>
+                      <span className="text-[6px] font-black text-warning tracking-tighter uppercase">Verified</span>
+                    </div>
+
+                    <div className="text-center w-48">
+                      <p className="text-[9px] font-bold text-text-muted uppercase mb-1">Rektor Universitas Bhakti Kencana</p>
+                      <div className="h-10 flex items-center justify-center">
+                        <span className="font-serif text-[11px] italic text-text-muted">Tanda Tangan Digital</span>
+                      </div>
+                      <div className="h-[1px] bg-[#a3a3a3] w-full mt-2"></div>
+                      <p className="text-[10px] font-extrabold text-bku-text mt-1">Dr. Rektor Universitas</p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-            
-            <style>{`
-              @page {
-                size: landscape;
-                margin: 0;
-              }
-              @media print {
-                body * {
-                  visibility: hidden !important;
+              
+              <style>{`
+                @page {
+                  size: landscape;
+                  margin: 0;
                 }
-                #certificate-print-area, #certificate-print-area * {
-                  visibility: visible !important;
+                @media print {
+                  body * {
+                    visibility: hidden !important;
+                  }
+                  #certificate-print-area, #certificate-print-area * {
+                    visibility: visible !important;
+                  }
+                  #certificate-print-area {
+                    position: absolute !important;
+                    left: 50% !important;
+                    top: 50% !important;
+                    transform: translate(-50%, -50%) !important;
+                    width: 842px !important;
+                    height: 595px !important;
+                    margin: 0 !important;
+                    padding: 32px !important;
+                    box-shadow: none !important;
+                    border: 16px double #b45309 !important;
+                    background-color: white !important;
+                    box-sizing: border-box !important;
+                  }
                 }
-                #certificate-print-area {
-                  position: absolute !important;
-                  left: 50% !important;
-                  top: 50% !important;
-                  transform: translate(-50%, -50%) !important;
-                  width: 842px !important;
-                  height: 595px !important;
-                  margin: 0 !important;
-                  padding: 32px !important;
-                  box-shadow: none !important;
-                  border: 16px double #b45309 !important;
-                  background-color: white !important;
-                  box-sizing: border-box !important;
-                }
-              }
-            `}</style>
-          </div>
-        </div>
-      )}
+              `}</style>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Portfolio Add/Edit Modal */}
-      {isPortModalOpen && (
-        <div className="fixed inset-0 z-50 bg-[var(--theme-primary)]/45 backdrop-blur-sm flex items-center justify-center p-4 print:hidden animate-in fade-in duration-200">
-          <div className="w-full max-w-lg bg-surface rounded-2xl overflow-hidden border border-border shadow-2xl flex flex-col animate-in fade-in-50 zoom-in-95 duration-200">
-            <div className="bg-primary text-white p-5 flex items-start justify-between gap-4">
-              <div>
-                <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">
-                  {editingPort ? 'Ubah Riwayat Organisasi' : 'Tambah Riwayat Organisasi'}
-                </p>
-                <h3 className="text-lg font-extrabold mt-1">
-                  {editingPort ? 'Edit Data Keorganisasian' : 'Laporkan Keaktifan Organisasi'}
-                </h3>
-              </div>
-              <button
-                onClick={() => { setIsPortModalOpen(false); setEditingPort(null); }}
-                className="p-2 rounded-xl bg-surface/10 hover:bg-surface/20 transition-colors"
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >close</span>
-              </button>
+      <Dialog open={isPortModalOpen} onOpenChange={(open) => { if(!open) { setIsPortModalOpen(false); setEditingPort(null); } }} maxWidth="max-w-lg">
+        <DialogContent>
+          <DialogHeader>
+            <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
+              <span className="material-symbols-outlined text-8xl text-slate-900">edit_note</span>
             </div>
+            <div className="text-left relative z-10">
+              <p className="text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">
+                {editingPort ? 'Ubah Riwayat Organisasi' : 'Tambah Riwayat Organisasi'}
+              </p>
+              <DialogTitle className="text-lg font-extrabold mt-1 text-[var(--theme-text)]">
+                {editingPort ? 'Edit Data Keorganisasian' : 'Laporkan Keaktifan Organisasi'}
+              </DialogTitle>
+            </div>
+          </DialogHeader>
 
-            <form onSubmit={handlePortFormSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+          <form onSubmit={handlePortFormSubmit} className="flex flex-col">
+            <div className="p-8 space-y-4 max-h-[50vh] overflow-y-auto no-scrollbar">
               <div className="space-y-1">
-                <label className="text-xs font-black text-bku-text uppercase tracking-widest block">Nama Organisasi <span className="text-red-500">*</span></label>
+                <label className="text-[10px] font-semibold text-[var(--theme-text-muted)] tracking-[0.2em] uppercase block text-left">Nama Organisasi <span className="text-red-500">*</span></label>
                 <input
                   type="text"
                   placeholder="Contoh: Himpunan Mahasiswa Informatika"
                   value={portForm.nama_organisasi}
                   onChange={(e) => setPortForm({ ...portForm, nama_organisasi: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-background border border-border rounded-xl font-semibold text-sm focus:outline-none focus:border-[var(--theme-primary)] transition-all outline-none"
+                  className="h-10 w-full px-3 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl font-semibold text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors outline-none text-left"
                   required
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 text-left">
                 <div className="space-y-1">
-                  <label className="text-xs font-black text-bku-text uppercase tracking-widest block">Tipe Organisasi <span className="text-red-500">*</span></label>
+                  <label className="text-[10px] font-semibold text-[var(--theme-text-muted)] tracking-[0.2em] uppercase block">Tipe Organisasi <span className="text-red-500">*</span></label>
                   <select
                     value={portForm.tipe}
                     onChange={(e) => setPortForm({ ...portForm, tipe: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl font-semibold text-sm focus:outline-none focus:border-[var(--theme-primary)] transition-all outline-none text-bku-text"
+                    className="h-10 w-full px-3 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl font-semibold text-xs text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors outline-none"
                     required
                   >
                     <option value="UKM">UKM</option>
@@ -1287,93 +1291,93 @@ export default function OrganisasiPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-black text-bku-text uppercase tracking-widest block">Jabatan <span className="text-red-500">*</span></label>
+                  <label className="text-[10px] font-semibold text-[var(--theme-text-muted)] tracking-[0.2em] uppercase block">Jabatan <span className="text-red-500">*</span></label>
                   <input
                     type="text"
                     placeholder="Contoh: Ketua, Anggota"
                     value={portForm.jabatan}
                     onChange={(e) => setPortForm({ ...portForm, jabatan: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl font-semibold text-sm focus:outline-none focus:border-[var(--theme-primary)] transition-all outline-none"
+                    className="h-10 w-full px-3 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl font-semibold text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors outline-none"
                     required
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 text-left">
                 <div className="space-y-1">
-                  <label className="text-xs font-black text-bku-text uppercase tracking-widest block">Tahun Mulai <span className="text-red-500">*</span></label>
+                  <label className="text-[10px] font-semibold text-[var(--theme-text-muted)] tracking-[0.2em] uppercase block">Tahun Mulai <span className="text-red-500">*</span></label>
                   <input
                     type="number"
                     placeholder="Contoh: 2025"
                     value={portForm.periode_mulai}
                     onChange={(e) => setPortForm({ ...portForm, periode_mulai: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl font-semibold text-sm focus:outline-none focus:border-[var(--theme-primary)] transition-all outline-none"
+                    className="h-10 w-full px-3 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl font-semibold text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors outline-none"
                     required
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-black text-bku-text uppercase tracking-widest block">Tahun Selesai (Kosongkan jika aktif)</label>
+                  <label className="text-[10px] font-semibold text-[var(--theme-text-muted)] tracking-[0.2em] uppercase block">Tahun Selesai (Kosongkan jika aktif)</label>
                   <input
                     type="number"
                     placeholder="Contoh: 2026"
                     value={portForm.periode_selesai}
                     onChange={(e) => setPortForm({ ...portForm, periode_selesai: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl font-semibold text-sm focus:outline-none focus:border-[var(--theme-primary)] transition-all outline-none"
+                    className="h-10 w-full px-3 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl font-semibold text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors outline-none"
                   />
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-black text-bku-text uppercase tracking-widest block">Deskripsi Kegiatan</label>
+              <div className="space-y-1 text-left">
+                <label className="text-[10px] font-semibold text-[var(--theme-text-muted)] tracking-[0.2em] uppercase block">Deskripsi Kegiatan</label>
                 <textarea
                   placeholder="Deskripsikan kontribusi atau peran Anda..."
                   value={portForm.deskripsi_kegiatan}
                   onChange={(e) => setPortForm({ ...portForm, deskripsi_kegiatan: e.target.value })}
-                  className="w-full px-4 py-2 bg-background border border-border rounded-xl font-semibold text-sm focus:outline-none focus:border-[var(--theme-primary)] transition-all outline-none h-20 resize-none"
+                  className="w-full p-3 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl font-semibold text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors resize-none h-20"
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-black text-bku-text uppercase tracking-widest block">Apresiasi/Penghargaan (Opsional)</label>
+              <div className="space-y-1 text-left">
+                <label className="text-[10px] font-semibold text-[var(--theme-text-muted)] tracking-[0.2em] uppercase block">Apresiasi/Penghargaan (Opsional)</label>
                 <input
                   type="text"
                   placeholder="Contoh: Anggota Terbaik Periode 2025"
                   value={portForm.apresiasi}
                   onChange={(e) => setPortForm({ ...portForm, apresiasi: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-background border border-border rounded-xl font-semibold text-sm focus:outline-none focus:border-[var(--theme-primary)] transition-all outline-none"
+                  className="h-10 w-full px-3 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl font-semibold text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors outline-none"
                 />
               </div>
+            </div>
 
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => { setIsPortModalOpen(false); setEditingPort(null); }}
-                  className="flex-1 py-2.5 bg-surface border border-border text-text-muted font-black rounded-xl hover:bg-background transition-all uppercase tracking-wide text-xs"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  disabled={createMutation.isPending || updateMutation.isPending}
-                  className="flex-1 py-2.5 bg-[var(--theme-primary)] text-white font-black rounded-xl hover:bg-[var(--theme-primary-hover)] transition-all text-xs uppercase tracking-wide flex items-center justify-center gap-1.5"
-                >
-                  {createMutation.isPending || updateMutation.isPending ? 'Menyimpan...' : 'Simpan Riwayat'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+            <DialogFooter className="flex gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={() => { setIsPortModalOpen(false); setEditingPort(null); }}
+                className="flex-1 h-10 bg-[var(--theme-surface)] border border-[var(--theme-border)] text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] font-semibold rounded-xl transition-all uppercase tracking-wide text-xs active:scale-95 cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                disabled={createMutation.isPending || updateMutation.isPending}
+                className="flex-1 h-10 bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white font-semibold rounded-xl transition-all text-xs uppercase tracking-wide flex items-center justify-center gap-1.5 active:scale-95 border-none cursor-pointer"
+              >
+                {createMutation.isPending || updateMutation.isPending ? 'Menyimpan...' : 'Simpan Riwayat'}
+              </button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </PageContent>
   );
 }
 
 function DetailItem({ label, value, full = false }) {
   return (
-    <div className={`rounded-2xl border border-border p-4 bg-background ${full ? 'md:col-span-2' : ''}`}>
-      <p className="text-xs text-text-muted">{label}</p>
-      <p className="text-sm font-semibold text-bku-text mt-1 whitespace-pre-wrap">{value || '-'}</p>
+    <div className={`rounded-2xl border border-[var(--theme-border)] p-4 bg-[var(--theme-bg)] ${full ? 'md:col-span-2' : ''}`}>
+      <p className="text-xs text-[var(--theme-text-muted)] text-left">{label}</p>
+      <p className="text-sm font-semibold text-[var(--theme-text)] mt-1 whitespace-pre-wrap text-left">{value || '-'}</p>
     </div>
   );
 }

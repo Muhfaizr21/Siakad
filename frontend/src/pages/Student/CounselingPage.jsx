@@ -6,6 +6,7 @@ import {
   useBookingMutation, 
 } from '../../queries/useCounselingQuery';
 import { PageContent, PageHeader } from '@/components/ui/page';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
 import { CardGridSkeleton } from '@/components/ui/SkeletonGroups';
 import EmptyState from '@/components/ui/EmptyState';
 import { toast, Toaster } from 'react-hot-toast';
@@ -328,152 +329,147 @@ export default function CounselingPage() {
         </div>
 
         {/* ── BOOKING MODAL ── */}
-        {selectedSlot && (
-          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-surface w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-
-              {/* Modal Header */}
-              <div className="bg-[var(--theme-primary)] px-7 py-6 relative flex-shrink-0">
-                <button onClick={() => setSelectedSlot(null)} className="absolute top-5 right-5 text-white/40 hover:text-white transition-colors">
-                  <span className="material-symbols-outlined" style={{ fontSize: '22px' }} >close</span>
-                </button>
-                <div className="flex items-center gap-2 mb-1">
-                  <Sparkles size={14} className="text-white/60" />
-                  <span className="text-white/60 text-xs font-semibold uppercase tracking-wider">Daftar Antrean Konseling</span>
-                </div>
-                <h2 className="text-xl font-extrabold font-headline text-white">{selectedSlot.NamaKonselor}</h2>
-                <p className="text-white/50 text-sm mt-0.5 flex items-center gap-1.5">
-                  <span className="material-symbols-outlined" style={{ fontSize: '13px' }} >security</span> Sesi dilindungi protokol kerahasiaan
-                </p>
+        <Dialog open={!!selectedSlot} onOpenChange={(open) => !open && setSelectedSlot(null)} maxWidth="max-w-lg">
+          <DialogContent>
+            {/* Modal Header */}
+            <DialogHeader>
+              <div className="flex items-center gap-2 mb-1">
+                <Sparkles size={14} className="text-[var(--theme-primary)]" />
+                <span className="text-[var(--theme-text-muted)] text-xs font-bold uppercase tracking-wider">Daftar Antrean Konseling</span>
               </div>
+              <DialogTitle>{selectedSlot?.NamaKonselor}</DialogTitle>
+              <DialogDescription className="text-xs text-[var(--theme-text-muted)] flex items-center gap-1.5 mt-1 font-semibold">
+                <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '13px' }} >security</span> Sesi dilindungi protokol kerahasiaan
+              </DialogDescription>
+            </DialogHeader>
 
-              {/* Scrollable Content */}
-              <div className="overflow-y-auto flex-1">
-                {/* Slot Summary */}
-                <div className="px-7 pt-5">
-                  <div className="bg-neutral-50 border border-border rounded-2xl p-4 flex items-center justify-between gap-4">
-                    <div>
-                      <span className={`text-[10px] font-bold uppercase tracking-wide ${(TIPE_CONFIG[selectedSlot.Tipe === 'Personal' || selectedSlot.Tipe === 'Karir' ? 'Psikologi' : selectedSlot.Tipe] ?? TIPE_CONFIG.Akademik).text}`}>
-                        {selectedSlot.Tipe === 'Personal' || selectedSlot.Tipe === 'Karir' ? 'Psikologi' : selectedSlot.Tipe}
-                      </span>
-                      <p className="text-sm font-bold text-neutral-700 mt-0.5">
-                        {selectedSlot.JamMulai} – {selectedSlot.JamSelesai} WIB
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[10px] text-neutral-400 font-medium">Tanggal</p>
-                      <p className="text-sm font-bold text-neutral-700">{new Date(selectedSlot.Tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Form */}
-                <div className="px-7 py-5 space-y-5">
+            {/* Scrollable Content */}
+            <div className="overflow-y-auto p-8 space-y-5 max-h-[50vh] no-scrollbar text-left bg-white">
+              {/* Slot Summary */}
+              {selectedSlot && (
+                <div className="bg-neutral-50 border border-border rounded-2xl p-4 flex items-center justify-between gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-neutral-600 uppercase tracking-wider mb-2">
-                      Metode Konseling <span className="text-red-400">*</span>
-                    </label>
-                    <div className="grid grid-cols-2 gap-3 mb-4">
-                      {[
-                        { value: 'Tatap Muka', label: 'Tatap Muka (Offline)', desc: 'Konseling langsung di ruang BK', icon: 'groups' },
-                        { value: 'Online', label: 'Online (Zoom)', desc: 'Konseling daring via video call', icon: 'videocam' }
-                      ].map((opt) => (
-                        <button
-                          key={opt.value}
-                          type="button"
-                          onClick={() => setMode(opt.value)}
-                          className={`flex items-start gap-2.5 p-3 rounded-2xl border text-left transition-all ${
-                            mode === opt.value
-                              ? 'border-[var(--theme-primary)] bg-blue-50/20 ring-2 ring-[#00236F]/5'
-                              : 'border-border hover:border-border bg-white'
-                          }`}
-                        >
-                          <span className={`material-symbols-outlined text-[18px] mt-0.5 shrink-0 ${mode === opt.value ? 'text-[var(--theme-primary)]' : 'text-neutral-400'}`}>
-                            {opt.icon}
-                          </span>
-                          <div>
-                            <p className={`text-xs font-bold ${mode === opt.value ? 'text-[var(--theme-primary)]' : 'text-neutral-700'}`}>
-                              {opt.label}
-                            </p>
-                            <p className="text-[9px] text-neutral-400 mt-0.5 leading-snug">
-                              {opt.desc}
-                            </p>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-neutral-600 uppercase tracking-wider mb-2">
-                      Kategori Masalah / Topik <span className="text-red-400">*</span>
-                    </label>
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      {['Akademik', 'Psikologi'].map((cat) => (
-                        <button
-                          key={cat}
-                          type="button"
-                          onClick={() => setTopik(cat)}
-                          className={`px-3 py-2 rounded-xl border text-xs font-bold transition-all ${
-                            topik === cat
-                              ? 'border-[var(--theme-primary)] bg-blue-50/20 text-[var(--theme-primary)] ring-2 ring-[#00236F]/5'
-                              : 'border-border hover:border-border bg-white text-neutral-600'
-                          }`}
-                        >
-                          {cat}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-neutral-600 uppercase tracking-wider mb-2">
-                      Topik Pembahasan <span className="text-red-400">*</span>
-                    </label>
-                    <textarea
-                      value={keluhan}
-                      onChange={(e) => setKeluhan(e.target.value)}
-                      rows={4}
-                      className="w-full bg-neutral-50 border border-border rounded-2xl px-4 py-3 text-sm text-neutral-700 focus:outline-none focus:border-[var(--theme-primary)] focus:bg-white transition-all resize-none placeholder:text-neutral-300"
-                      placeholder="Contoh: Saya merasa kesulitan mengatur waktu belajar dan merasa cemas menjelang ujian..."
-                    />
-                    <p className="text-[10px] text-neutral-400 font-medium mt-1">
-                      {keluhan.length}/20 karakter minimum
+                    <span className={`text-[10px] font-bold uppercase tracking-wide ${(TIPE_CONFIG[selectedSlot.Tipe === 'Personal' || selectedSlot.Tipe === 'Karir' ? 'Psikologi' : selectedSlot.Tipe] ?? TIPE_CONFIG.Akademik).text}`}>
+                      {selectedSlot.Tipe === 'Personal' || selectedSlot.Tipe === 'Karir' ? 'Psikologi' : selectedSlot.Tipe}
+                    </span>
+                    <p className="text-sm font-bold text-neutral-700 mt-0.5">
+                      {selectedSlot.JamMulai} – {selectedSlot.JamSelesai} WIB
                     </p>
                   </div>
-
-                  <label className="flex gap-3 p-4 bg-blue-50 border border-blue-100 rounded-2xl cursor-pointer hover:bg-blue-50/80 transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={privacyAgreed}
-                      onChange={(e) => setPrivacyAgreed(e.target.checked)}
-                      className="w-4 h-4 mt-0.5 rounded border-blue-200 text-[var(--theme-primary)] focus:ring-[#00236F] shrink-0 cursor-pointer"
-                    />
-                    <span className="text-xs font-semibold text-blue-800 leading-relaxed">
-                      Saya memahami bahwa sesi ini bersifat rahasia, sukarela, dan data saya hanya dapat diakses oleh konselor terkait.
-                    </span>
-                  </label>
-
-                  <div className="flex gap-3 pt-1">
-                    <button
-                      onClick={() => setSelectedSlot(null)}
-                      className="flex-1 py-3 rounded-2xl border border-border text-neutral-500 text-sm font-bold hover:bg-neutral-50 transition-colors"
-                    >
-                      Batal
-                    </button>
-                    <button
-                      onClick={handleBooking}
-                      disabled={bookingMutation.isPending}
-                      className="flex-1 py-3 rounded-xl bg-[var(--theme-primary)] text-white text-sm font-bold hover:bg-[var(--theme-primary-hover)] disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20"
-                    >
-                      {bookingMutation.isPending ? 'Memproses...' : <><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >check_circle</span> Konfirmasi</>}
-                    </button>
+                  <div className="text-right">
+                    <p className="text-[10px] text-neutral-400 font-medium">Tanggal</p>
+                    <p className="text-sm font-bold text-neutral-700">{new Date(selectedSlot.Tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
                   </div>
                 </div>
+              )}
+
+              {/* Form */}
+              <div className="space-y-5">
+                <div>
+                  <label className="block text-xs font-bold text-neutral-600 uppercase tracking-wider mb-2">
+                    Metode Konseling <span className="text-red-400">*</span>
+                  </label>
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    {[
+                      { value: 'Tatap Muka', label: 'Tatap Muka (Offline)', desc: 'Konseling langsung di ruang BK', icon: 'groups' },
+                      { value: 'Online', label: 'Online (Zoom)', desc: 'Konseling daring via video call', icon: 'videocam' }
+                    ].map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => setMode(opt.value)}
+                        className={`flex items-start gap-2.5 p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                          mode === opt.value
+                            ? 'border-[var(--theme-primary)] bg-blue-50/20 ring-2 ring-[#00236F]/5'
+                            : 'border-border hover:border-border bg-white text-[var(--theme-text)]'
+                        }`}
+                      >
+                        <span className={`material-symbols-outlined text-[18px] mt-0.5 shrink-0 ${mode === opt.value ? 'text-[var(--theme-primary)]' : 'text-neutral-400'}`}>
+                          {opt.icon}
+                        </span>
+                        <div>
+                          <p className={`text-xs font-bold ${mode === opt.value ? 'text-[var(--theme-primary)]' : 'text-neutral-700'}`}>
+                            {opt.label}
+                          </p>
+                          <p className="text-[9px] text-neutral-400 mt-0.5 leading-snug">
+                            {opt.desc}
+                          </p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-neutral-600 uppercase tracking-wider mb-2">
+                    Kategori Masalah / Topik <span className="text-red-400">*</span>
+                  </label>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {['Akademik', 'Psikologi'].map((cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setTopik(cat)}
+                        className={`px-3 py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                          topik === cat
+                            ? 'border-[var(--theme-primary)] bg-blue-50/20 text-[var(--theme-primary)] ring-2 ring-[#00236F]/5'
+                            : 'border-border hover:border-border bg-white text-neutral-600'
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-neutral-600 uppercase tracking-wider mb-2">
+                    Topik Pembahasan <span className="text-red-400">*</span>
+                  </label>
+                  <textarea
+                    value={keluhan}
+                    onChange={(e) => setKeluhan(e.target.value)}
+                    rows={4}
+                    className="w-full bg-neutral-50 border border-border rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-[var(--theme-primary)] focus:bg-white transition-all resize-none placeholder:text-neutral-300 font-semibold text-[var(--theme-text)] bg-[var(--theme-bg)]"
+                    placeholder="Contoh: Saya merasa kesulitan mengatur waktu belajar dan merasa cemas menjelang ujian..."
+                  />
+                  <p className="text-[10px] text-neutral-400 font-semibold mt-1">
+                    {keluhan.length}/20 karakter minimum
+                  </p>
+                </div>
+
+                <label className="flex gap-3 p-4 bg-blue-50 border border-blue-100 rounded-2xl cursor-pointer hover:bg-blue-50/80 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={privacyAgreed}
+                    onChange={(e) => setPrivacyAgreed(e.target.checked)}
+                    className="w-4 h-4 mt-0.5 rounded border-blue-200 text-[var(--theme-primary)] focus:ring-[#00236F] shrink-0 cursor-pointer"
+                  />
+                  <span className="text-xs font-semibold text-blue-800 leading-relaxed">
+                    Saya memahami bahwa sesi ini bersifat rahasia, sukarela, dan data saya hanya dapat diakses oleh konselor terkait.
+                  </span>
+                </label>
               </div>
             </div>
-          </div>
-        )}
+
+            {/* Footer */}
+            <DialogFooter className="p-8 border-t border-slate-100/60 bg-slate-50/20 shrink-0 flex gap-3">
+              <button
+                onClick={() => setSelectedSlot(null)}
+                className="flex-1 py-3 rounded-2xl border border-border text-neutral-500 text-xs font-black hover:bg-neutral-50 transition-colors cursor-pointer bg-white uppercase tracking-wider"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleBooking}
+                disabled={bookingMutation.isPending}
+                className="flex-1 py-3 rounded-xl bg-[var(--theme-primary)] text-white text-xs font-black hover:bg-[var(--theme-primary-hover)] disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20 cursor-pointer border-none uppercase tracking-wider"
+              >
+                {bookingMutation.isPending ? 'Memproses...' : <><span className="material-symbols-outlined text-sm" >check_circle</span> Konfirmasi</>}
+              </button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
       </div>
     </PageContent>

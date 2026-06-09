@@ -281,6 +281,15 @@ func UpdateTheme(c *fiber.Ctx) error {
 		"color_primary", "color_secondary", "color_accent",
 		"color_background", "color_surface",
 		"sidebar_bg_color", "sidebar_text_color", "sidebar_text_muted_color",
+		// === MOBILE-SPECIFIC COLORS ===
+		"mobile_color_primary", "mobile_color_primary_container",
+		"mobile_color_secondary", "mobile_color_secondary_container",
+		"mobile_color_background", "mobile_color_surface",
+		"mobile_color_on_surface", "mobile_color_on_surface_variant",
+		"mobile_color_outline", "mobile_color_outline_variant",
+		// === MOBILE GRADIENTS ===
+		"mobile_gradient_start", "mobile_gradient_middle", "mobile_gradient_end",
+		"mobile_gradient_secondary_start", "mobile_gradient_secondary_middle", "mobile_gradient_secondary_end",
 	}
 
 	for _, field := range baseColorFields {
@@ -321,6 +330,27 @@ func UpdateTheme(c *fiber.Ctx) error {
 		"sidebar_bg_color":         &theme.SidebarBgColor,
 		"sidebar_text_color":       &theme.SidebarTextColor,
 		"sidebar_text_muted_color": &theme.SidebarTextMutedColor,
+		// === MOBILE-SPECIFIC COLORS ===
+		"mobile_color_primary":           &theme.MobileColorPrimary,
+		"mobile_color_primary_container":  &theme.MobileColorPrimaryContainer,
+		"mobile_color_secondary":          &theme.MobileColorSecondary,
+		"mobile_color_secondary_container": &theme.MobileColorSecondaryContainer,
+		"mobile_color_background":         &theme.MobileColorBackground,
+		"mobile_color_surface":            &theme.MobileColorSurface,
+		"mobile_color_on_surface":         &theme.MobileColorOnSurface,
+		"mobile_color_on_surface_variant": &theme.MobileColorOnSurfaceVariant,
+		"mobile_color_outline":            &theme.MobileColorOutline,
+		"mobile_color_outline_variant":    &theme.MobileColorOutlineVariant,
+		// === MOBILE GRADIENTS ===
+		"mobile_gradient_start":   &theme.MobileGradientStart,
+		"mobile_gradient_middle":  &theme.MobileGradientMiddle,
+		"mobile_gradient_end":     &theme.MobileGradientEnd,
+		"mobile_gradient_secondary_start":  &theme.MobileGradientSecondaryStart,
+		"mobile_gradient_secondary_middle": &theme.MobileGradientSecondaryMiddle,
+		"mobile_gradient_secondary_end":    &theme.MobileGradientSecondaryEnd,
+		// === MOBILE BRANDING ===
+		"mobile_logo_url":       &theme.MobileLogoURL,
+		"mobile_splash_logo_url": &theme.MobileSplashLogoURL,
 	}
 
 	for key, fieldPtr := range allowedFields {
@@ -384,6 +414,16 @@ func UpdateTheme(c *fiber.Ctx) error {
 	theme.LandingColorH2 = "#FFFFFF"
 	theme.LandingColorH3 = "#E2E8F0"
 	theme.LandingColorH4 = "#94A3B8"
+
+	// Increment theme version untuk trigger mobile refresh
+	currentVersion := theme.ThemeVersion
+	if currentVersion == "" {
+		theme.ThemeVersion = "2"
+	} else {
+		var v int
+		fmt.Sscanf(currentVersion, "%d", &v)
+		theme.ThemeVersion = fmt.Sprintf("%d", v+1)
+	}
 
 	if err := config.DB.Save(&theme).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

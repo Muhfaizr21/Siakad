@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:bkuhub_mobile/core/theme/app_colors.dart';
+import 'package:provider/provider.dart';
+import 'package:bkuhub_mobile/core/providers/theme_provider.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 
 class StudentAppBar extends StatelessWidget {
@@ -23,6 +24,8 @@ class StudentAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top;
+    final themeProvider = context.watch<ThemeProvider>();
+    final gradientColors = themeProvider.primaryGradient;
 
     return SliverAppBar(
       expandedHeight: expandedHeight,
@@ -55,15 +58,11 @@ class StudentAppBar extends StatelessWidget {
           final bool isCollapsed = percentage <= 0.1;
 
           return Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFF00164E), // Deep dark blue
-                  AppColors.primary, // Main brand blue
-                  AppColors.primaryContainer, // Vibrant blue
-                ],
+                colors: gradientColors,
               ),
             ),
             child: FlexibleSpaceBar(
@@ -113,7 +112,7 @@ class StudentAppBar extends StatelessWidget {
                       ),
                     ),
                   ),
-                  
+
                   // Content
                   Positioned.fill(
                     child: Padding(

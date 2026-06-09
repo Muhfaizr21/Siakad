@@ -1,6 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { PageContent, PageHeader } from '@/components/ui/page';
 import { useNavigate, NavLink } from 'react-router-dom';
+import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
 import { 
   useScholarshipKatalogQuery, 
   useScholarshipRiwayatQuery, 
@@ -183,44 +186,45 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[60] bg-[var(--theme-text)]/80 backdrop-blur-md flex items-center justify-center p-4">
-      <motion.div 
-        initial={{ y: 50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        className="bg-surface w-full max-w-4xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
-      >
-        {/* Header */}
-        <div className="p-8 border-b border-[var(--theme-border-muted)] flex justify-between items-center bg-[var(--theme-bg)]">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="bg-[var(--theme-primary)] text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">Langkah {step} dari {totalSteps}</span>
-              <h2 className="text-2xl font-black font-headline">Pendaftaran Beasiswa</h2>
-            </div>
-            <p className="text-sm font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">{scholarshipNama}</p>
+    <Dialog open={true} onOpenChange={onClose} maxWidth="max-w-4xl">
+      <DialogContent className="max-w-4xl p-0 overflow-hidden border border-border shadow-2xl rounded-2xl bg-surface animate-in zoom-in-95 duration-200">
+        <DialogHeader className="p-8 pb-5 bg-slate-50/50 border-b border-border relative">
+          <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
+            <span className="material-symbols-outlined size-24 rotate-12 text-slate-800">workspace_premium</span>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-surface rounded-full transition-colors border border-transparent hover:border-border">
-            <span className="material-symbols-outlined text-[var(--theme-text-muted)]" style={{ fontSize: '24px' }} >close</span>
-          </button>
-        </div>
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-1.5">
+              <span className="bg-primary text-white text-[10px] font-black px-2.5 py-0.5 rounded-md uppercase tracking-widest">Langkah {step} dari {totalSteps}</span>
+              <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-slate-200 text-slate-700 border-none rounded-md">PENDAFTARAN BEASISWA</Badge>
+            </div>
+            <DialogTitle className="text-lg md:text-xl font-black font-headline tracking-tighter text-slate-900">
+              Pendaftaran Beasiswa
+            </DialogTitle>
+            <DialogDescription className="text-[11px] font-semibold text-slate-400 mt-0.5 uppercase tracking-wider">
+              {scholarshipNama}
+            </DialogDescription>
+          </div>
+        </DialogHeader>
 
         {/* Progress Bar */}
-        <div className="h-1.5 bg-[var(--theme-border-muted)] w-full flex">
+        <div className="h-1.5 bg-slate-100 w-full flex">
           {Array.from({ length: totalSteps }).map((_, i) => (
-            <div key={i} className={`flex-1 transition-all duration-500 ${step >= (i + 1) ? 'bg-[var(--theme-primary)]' : 'bg-transparent'}`} />
+            <div key={i} className={`flex-1 transition-all duration-500 ${step >= (i + 1) ? 'bg-primary' : 'bg-transparent'}`} />
           ))}
         </div>
 
-        <div className="p-8 overflow-y-auto flex-1 custom-scrollbar">
+        {/* Body */}
+        <div className="p-8 pt-5 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar">
           {/* STEP 1: DATA PENGAJUAN */}
           {step === 1 && (
             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
               <div>
-                <label className="block text-xs font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-2">Pernyataan Motivasi / Motivation Letter *</label>
+                <label className="block text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline mb-2">Pernyataan Motivasi / Motivation Letter *</label>
                 <textarea 
                   value={motivasi}
                   onChange={(e) => setMotivasi(e.target.value)}
                   placeholder="Jelaskan kenapa kamu layak menerima beasiswa ini... (min. 150 karakter)"
-                  className="w-full h-48 p-5 rounded-xl border border-border focus:border-[var(--theme-primary)] outline-none text-sm leading-relaxed resize-none shadow-inner bg-[var(--theme-bg)] transition-all"
+                  className="w-full h-40 p-5 rounded-xl border border-slate-200 focus:border-primary outline-none text-xs leading-relaxed resize-none shadow-inner bg-slate-50/50 focus:bg-white transition-all font-bold text-xs"
                 />
                 <div className="flex justify-between mt-2">
                   <p className={`text-[10px] font-bold ${motivasi.length < 150 ? 'text-red-500' : 'text-green-600'}`}>
@@ -240,23 +244,23 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
                 { key: 'sertifikat', label: 'Sertifikat Pendukung' + (fileSertifikatRule === 'opsional' ? ' (Opsional)' : ''), required: fileSertifikatRule === 'wajib', rule: fileSertifikatRule }
               ].filter(item => item.rule !== 'tidak').map(item => (
                 <div key={item.key} className="relative">
-                  <label className="block text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-2">
+                  <label className="block text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline mb-2">
                     {item.label} {item.required && <span className="text-red-500">*</span>}
                   </label>
                   <div 
                     onClick={() => fileInputRefs.current[item.key].click()}
                     className={`p-4 rounded-xl border-2 border-dashed cursor-pointer transition-all flex items-center gap-4 ${
-                      files[item.key] ? 'border-[#16a34a] bg-green-50' : 'border-border hover:border-[var(--theme-primary)] bg-[var(--theme-bg)]'
+                      files[item.key] ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 hover:border-primary bg-slate-50/50'
                     }`}
                   >
-                    <div className={`p-2 rounded-xl ${files[item.key] ? 'bg-green-600 text-white' : 'bg-white text-[var(--theme-text-muted)]'}`}>
+                    <div className={`p-2 rounded-xl ${files[item.key] ? 'bg-emerald-600 text-white' : 'bg-white border border-slate-100 shadow-sm text-slate-400'}`}>
                       {files[item.key] ? <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >assignment_turned_in</span> : <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >upload</span>}
                     </div>
                     <div className="flex-1 overflow-hidden">
-                      <p className="text-sm font-bold truncate">{files[item.key] ? files[item.key].name : `Pilih Berkas`}</p>
-                      <p className="text-[10px] text-[var(--theme-text-muted)] font-medium uppercase tracking-tighter">PDF/JPG (Max. 5MB)</p>
+                      <p className="text-xs font-black truncate">{files[item.key] ? files[item.key].name : `Pilih Berkas`}</p>
+                      <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">PDF/JPG (Max. 5MB)</p>
                     </div>
-                    {files[item.key] && <span className="material-symbols-outlined text-[#16a34a]" style={{ fontSize: 16 }}>check</span>}
+                    {files[item.key] && <span className="material-symbols-outlined text-emerald-600" style={{ fontSize: 16 }}>check</span>}
                   </div>
                   <input 
                     type="file" 
@@ -272,10 +276,10 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
           {/* STEP 3: PERSYARATAN KUSTOM (Google Form style) */}
           {hasCustomFields && step === 3 && (
             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
-              <div className="bg-[var(--theme-bg)] p-6 rounded-2xl border border-border space-y-5 text-left">
+              <div className="bg-slate-50/50 p-6 rounded-2xl border border-slate-200 space-y-5 text-left">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="material-symbols-outlined text-[var(--theme-primary)]">description</span>
-                  <h4 className="font-black text-[var(--theme-primary)] uppercase tracking-wider text-xs">Form Persyaratan Tambahan</h4>
+                  <span className="material-symbols-outlined text-primary">description</span>
+                  <h4 className="font-black text-primary uppercase tracking-wider text-xs">Form Persyaratan Tambahan</h4>
                 </div>
                 
                 {customFields.map((field, idx) => {
@@ -286,7 +290,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
                   
                   return (
                     <div key={idx} className="space-y-2">
-                      <label className="block text-xs font-black text-slate-500 uppercase tracking-wider">
+                      <label className="block text-[10px] font-black text-slate-500 uppercase tracking-wider">
                         {label} {required && <span className="text-rose-500">*</span>}
                       </label>
                       
@@ -297,7 +301,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
                           value={customAnswers[label] || ''}
                           onChange={(e) => setCustomAnswers(prev => ({ ...prev, [label]: e.target.value }))}
                           placeholder="Masukkan jawaban..."
-                          className="w-full h-10 px-4 rounded-xl border border-border focus:border-[var(--theme-primary)] outline-none text-sm bg-white"
+                          className="w-full h-10 px-4 rounded-xl border border-slate-200 focus:border-primary outline-none text-xs bg-white font-bold"
                         />
                       )}
                       
@@ -307,7 +311,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
                           value={customAnswers[label] || ''}
                           onChange={(e) => setCustomAnswers(prev => ({ ...prev, [label]: e.target.value }))}
                           placeholder="Masukkan jawaban panjang..."
-                          className="w-full h-28 p-4 rounded-xl border border-border focus:border-[var(--theme-primary)] outline-none text-sm bg-white resize-none"
+                          className="w-full h-24 p-4 rounded-xl border border-slate-200 focus:border-primary outline-none text-xs bg-white resize-none font-bold"
                         />
                       )}
                       
@@ -316,7 +320,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
                           required={required}
                           value={customAnswers[label] || ''}
                           onChange={(e) => setCustomAnswers(prev => ({ ...prev, [label]: e.target.value }))}
-                          className="w-full h-10 px-3 rounded-xl border border-border focus:border-[var(--theme-primary)] outline-none text-sm bg-white"
+                          className="w-full h-10 px-3 rounded-xl border border-slate-200 focus:border-primary outline-none text-xs bg-white font-bold"
                         >
                           <option value="">-- Pilih opsi --</option>
                           {options.map((opt, i) => (
@@ -326,7 +330,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
                       )}
                       
                       {type === 'checkbox' && (
-                        <div className="space-y-2 bg-surface p-4 rounded-xl border border-border">
+                        <div className="space-y-2 bg-white p-4 rounded-xl border border-slate-200">
                           {options.map((opt, i) => {
                             const currentList = Array.isArray(customAnswers[label]) ? customAnswers[label] : [];
                             const checked = currentList.includes(opt);
@@ -341,7 +345,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
                                       : currentList.filter(x => x !== opt);
                                     setCustomAnswers(prev => ({ ...prev, [label]: nextList }));
                                   }}
-                                  className="rounded text-[var(--theme-primary)] focus:ring-[var(--theme-primary)] size-4"
+                                  className="rounded text-primary focus:ring-primary size-4"
                                 />
                                 <span className="text-xs font-bold text-slate-700">{opt}</span>
                               </label>
@@ -355,17 +359,17 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
                           <div
                             onClick={() => fileInputRefs.current[`custom-${idx}`].click()}
                             className={`p-4 rounded-xl border-2 border-dashed cursor-pointer transition-all flex items-center gap-4 ${
-                              customAnswers[label] ? 'border-[#16a34a] bg-green-50' : 'border-border hover:border-[var(--theme-primary)] bg-white'
+                              customAnswers[label] ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 hover:border-primary bg-white'
                             }`}
                           >
-                            <div className={`p-2 rounded-xl ${customAnswers[label] ? 'bg-green-600 text-white' : 'bg-slate-100 text-[var(--theme-text-muted)]'}`}>
+                            <div className={`p-2 rounded-xl ${customAnswers[label] ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-400'}`}>
                               {customAnswers[label] ? <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >assignment_turned_in</span> : <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >upload</span>}
                             </div>
                             <div className="flex-1 overflow-hidden">
-                              <p className="text-sm font-bold truncate">
+                              <p className="text-xs font-bold truncate">
                                 {customAnswers[label] ? 'Berkas berhasil diunggah' : 'Pilih Berkas'}
                               </p>
-                              <p className="text-[10px] text-[var(--theme-text-muted)] font-medium uppercase tracking-tighter">PDF/JPG (Max. 5MB)</p>
+                              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">PDF/JPG (Max. 5MB)</p>
                             </div>
                             {customAnswers[label] && (
                               <a 
@@ -373,7 +377,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
                                 target="_blank" 
                                 rel="noreferrer" 
                                 onClick={e => e.stopPropagation()}
-                                className="text-[var(--theme-primary)] hover:underline text-xs font-bold"
+                                className="text-primary hover:underline text-xs font-bold"
                               >
                                 Lihat File
                               </a>
@@ -397,15 +401,15 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
           {/* STEP 3 or 4: KONFIRMASI */}
           {((!hasCustomFields && step === 3) || (hasCustomFields && step === 4)) && (
             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
-              <div className="bg-[var(--theme-primary-light)] p-6 rounded-xl border border-[var(--theme-primary-light)] text-left">
-                <h4 className="font-black text-[var(--theme-primary)] mb-4 flex items-center gap-2 tracking-wide"><Sparkles size={18} /> Ringkasan Pengajuan</h4>
+              <div className="bg-primary/5 p-6 rounded-xl border border-primary/10 text-left">
+                <h4 className="font-black text-primary mb-4 flex items-center gap-2 tracking-wide"><Sparkles size={18} /> Ringkasan Pengajuan</h4>
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
-                    <span className="text-[var(--theme-text-muted)] font-bold">Beasiswa</span>
-                    <span className="font-black text-[var(--theme-text)]">{scholarshipNama}</span>
+                    <span className="text-slate-400 font-bold">Beasiswa</span>
+                    <span className="font-black text-slate-800">{scholarshipNama}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-[var(--theme-text-muted)] font-bold">Berkas Terunggah</span>
+                    <span className="text-slate-400 font-bold">Berkas Terunggah</span>
                     <div className="flex flex-col items-end gap-1">
                       {fileKtmRule !== 'tidak' && files['ktm_ktp'] && <span className="text-xs font-black text-green-600">✓ KTM & KTP</span>}
                       {fileTranskripRule !== 'tidak' && files['transkrip'] && <span className="text-xs font-black text-green-600">✓ Transkrip Nilai</span>}
@@ -415,26 +419,26 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
                   </div>
                   {hasCustomFields && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-[var(--theme-text-muted)] font-bold">Syarat Kustom</span>
+                      <span className="text-slate-400 font-bold">Syarat Kustom</span>
                       <span className="text-xs font-black text-green-600">✓ Terisi ({Object.keys(customAnswers).length} jawaban)</span>
                     </div>
                   )}
-                  <div className="pt-3 border-t border-[var(--theme-primary-light)]">
-                    <p className="text-[10px] font-black text-[var(--theme-primary)] uppercase tracking-widest mb-1">Motivasi Preview</p>
-                    <p className="text-sm text-[var(--theme-text)] font-medium line-clamp-3 italic opacity-70">"{motivasi}"</p>
+                  <div className="pt-3 border-t border-primary/10">
+                    <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Motivasi Preview</p>
+                    <p className="text-xs text-slate-600 font-medium line-clamp-3 italic opacity-70">"{motivasi}"</p>
                   </div>
                 </div>
               </div>
 
-              <label className="flex items-start gap-4 p-5 bg-[var(--theme-bg)] rounded-xl border border-border cursor-pointer group text-left">
+              <label className="flex items-start gap-4 p-5 bg-slate-50/50 rounded-xl border border-slate-200 cursor-pointer group text-left">
                 <input 
                   type="checkbox" 
                   checked={agreed} 
                   onChange={(e) => setAgreed(e.target.checked)}
-                  className="mt-1 w-5 h-5 rounded border-[#d4d4d4] text-[var(--theme-primary)] focus:ring-[var(--theme-primary)] transition-all" 
+                  className="mt-1 w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary transition-all cursor-pointer" 
                 />
-                <span className="text-xs font-bold text-[var(--theme-text-muted)] leading-relaxed uppercase tracking-tight group-hover:text-[var(--theme-text)]">
-                  Saya menyatakan bahwa seluruh data dan dokumen yang saya kirimkan adalah benar, asli, dan dapat dipertanggungjawabkan di hadapan verifikator beasiswa BKU.
+                <span className="text-[10px] font-black text-slate-400 leading-relaxed uppercase tracking-tight group-hover:text-slate-700">
+                  Saya menyatakan bahwa seluruh data and dokumen yang saya kirimkan adalah benar, asli, dan dapat dipertanggungjawabkan di hadapan verifikator beasiswa BKU.
                 </span>
               </label>
             </motion.div>
@@ -442,38 +446,46 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
         </div>
 
         {/* Footer */}
-        <div className="p-8 border-t border-[var(--theme-border-muted)] flex justify-between items-center bg-[var(--theme-bg)]">
+        <DialogFooter className="flex flex-col md:flex-row items-center justify-between gap-3 p-8 pt-4 border-t border-slate-100 bg-slate-50/30">
           {step > 1 ? (
-            <button 
+            <Button 
               onClick={() => setStep(s => s - 1)}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] transition-all"
+              variant="ghost"
+              className="w-full md:w-auto text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-6 h-11 rounded-xl active:scale-95 transition-all shadow-none border-none cursor-pointer font-headline uppercase"
             >
-              <ArrowLeft size={18} /> Sebelumnya
-            </button>
+              Sebelumnya
+            </Button>
           ) : (
             <div />
           )}
 
           {step < totalSteps ? (
-            <button 
+            <Button 
               disabled={isNextDisabled()}
               onClick={() => setStep(s => s + 1)}
-              className="flex items-center gap-2 px-8 py-3.5 rounded-xl font-black bg-[var(--theme-primary)] text-white hover:bg-[var(--theme-primary-hover)] transition-all shadow-xl shadow-[var(--theme-primary)]/20 disabled:opacity-30"
+              className="w-full md:w-auto h-11 px-8 rounded-xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2 border-none cursor-pointer font-black text-[10px]"
             >
-              Lanjutkan <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >arrow_forward</span>
-            </button>
+              Lanjutkan <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >arrow_forward</span>
+            </Button>
           ) : (
-            <button 
+            <Button 
               disabled={!agreed || daftarMutation.isPending}
               onClick={handleSubmit}
-              className="flex items-center gap-2 px-10 py-3.5 rounded-xl font-black bg-[var(--theme-primary)] text-white hover:bg-[var(--theme-primary-hover)] transition-all shadow-xl shadow-[var(--theme-primary)]/20 disabled:opacity-50"
+              className="w-full md:w-auto h-11 px-8 rounded-xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2 border-none cursor-pointer font-black text-[10px]"
             >
-              {daftarMutation.isPending ? <><span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }} >sync</span> Mengirim...</> : <><span className="material-symbols-outlined" style={{ fontSize: 18 }}>check</span> Kirim Pengajuan</>}
-            </button>
+              {daftarMutation.isPending ? (
+                <span className="material-symbols-outlined animate-spin size-4" style={{ fontSize: '15px' }}>sync</span>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>send</span>
+                  <span className="text-[10px] font-black tracking-widest uppercase">Kirim Pengajuan</span>
+                </>
+              )}
+            </Button>
           )}
-        </div>
-      </motion.div>
-    </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -816,64 +828,70 @@ export default function ScholarshipPage() {
       )}
 
       {/* DETAIL MODAL (Quick View) */}
-      <AnimatePresence>
-        {selectedSch && (() => {
-          const schName = selectedSch.nama || selectedSch.Nama || '';
-          const schOrg = selectedSch.penyelenggara || selectedSch.Penyelenggara || '';
-          const schVal = selectedSch.nilai_bantuan || selectedSch.NilaiBantuan || 5000000;
-          const schQuota = selectedSch.kuota || selectedSch.Kuota || '-';
-          const schIpk = selectedSch.ipk_min || selectedSch.IPKMin || 0;
-          const schDeadline = selectedSch.deadline || selectedSch.Deadline;
-          const schDesc = selectedSch.deskripsi || selectedSch.Deskripsi || '';
-          
-          return (
-            <div className="fixed inset-0 z-50 bg-[var(--theme-text)]/60 backdrop-blur-sm flex items-center justify-center p-4">
-              <motion.div 
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.95, opacity: 0 }}
-                className="bg-surface w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
-              >
-                <div className="relative h-24 bg-gradient-to-r from-[var(--theme-primary)] to-[var(--theme-primary-hover)] p-5 flex items-center">
-                   <button onClick={() => setSelectedSch(null)} className="absolute top-6 right-6 text-white/50 hover:text-white transition-colors">
-                     <span className="material-symbols-outlined" style={{ fontSize: '24px' }} >close</span>
-                   </button>
-                   <div>
-                      <h2 className="text-2xl font-black text-white pr-10">{schName}</h2>
-                      <p className="text-[10px] text-white/50 font-black uppercase tracking-[0.3em] mt-1">{schOrg}</p>
-                   </div>
-                </div>
-                
-                <div className="p-8 overflow-y-auto flex-1 custom-scrollbar">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                    <div className="p-3.5 bg-[var(--theme-bg)] rounded-xl border border-border">
-                      <p className="text-[9px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-1">Nilai Bantuan</p>
-                      <p className="text-sm font-black text-[var(--theme-primary)]">{formatRupiah(schVal)}</p>
+      <Dialog open={!!selectedSch} onOpenChange={(open) => !open && setSelectedSch(null)} maxWidth="max-w-2xl">
+        <DialogContent className="max-w-2xl p-0 overflow-hidden border border-border shadow-2xl rounded-2xl bg-surface animate-in zoom-in-95 duration-200">
+          {selectedSch && (() => {
+            const schName = selectedSch.nama || selectedSch.Nama || '';
+            const schOrg = selectedSch.penyelenggara || selectedSch.Penyelenggara || '';
+            const schVal = selectedSch.nilai_bantuan || selectedSch.NilaiBantuan || 5000000;
+            const schQuota = selectedSch.kuota || selectedSch.Kuota || '-';
+            const schIpk = selectedSch.ipk_min || selectedSch.IPKMin || 0;
+            const schDeadline = selectedSch.deadline || selectedSch.Deadline;
+            const schDesc = selectedSch.deskripsi || selectedSch.Deskripsi || '';
+            
+            return (
+              <>
+                <DialogHeader className="p-8 pb-5 bg-slate-50/50 border-b border-border relative">
+                  <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
+                    <span className="material-symbols-outlined size-24 rotate-12 text-slate-800">workspace_premium</span>
+                  </div>
+                  <div className="relative z-10">
+                    <div className="flex items-center gap-3 mb-1.5">
+                      <div className="size-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600">
+                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>workspace_premium</span>
+                      </div>
+                      <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-slate-200 text-slate-700 border-none rounded-md">DETAIL BEASISWA</Badge>
                     </div>
-                    <div className="p-3.5 bg-[var(--theme-bg)] rounded-xl border border-border">
-                      <p className="text-[9px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-1">Kuota Sisa</p>
-                      <p className="text-sm font-black text-[var(--theme-text)]">{schQuota} <span className="text-[10px] text-[var(--theme-text-muted)]">Org</span></p>
+                    <DialogTitle className="text-lg md:text-xl font-black font-headline tracking-tighter text-slate-900 pr-10">
+                      {schName}
+                    </DialogTitle>
+                    <DialogDescription className="text-[11px] font-semibold text-slate-400 mt-0.5 uppercase tracking-wider">
+                      {schOrg}
+                    </DialogDescription>
+                  </div>
+                </DialogHeader>
+
+                {/* Body */}
+                <div className="p-8 pt-5 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                    <div className="p-3.5 bg-slate-50/50 rounded-xl border border-slate-200">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Nilai Bantuan</p>
+                      <p className="text-sm font-black text-primary">{formatRupiah(schVal)}</p>
                     </div>
-                    <div className="p-3.5 bg-[var(--theme-bg)] rounded-xl border border-border">
-                      <p className="text-[9px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-1">Min. IPK</p>
-                      <p className="text-sm font-black text-[var(--theme-text)]">{schIpk.toFixed(2)}</p>
+                    <div className="p-3.5 bg-slate-50/50 rounded-xl border border-slate-200">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Kuota Sisa</p>
+                      <p className="text-sm font-black text-slate-700">{schQuota} <span className="text-[10px] text-slate-400">Org</span></p>
                     </div>
-                    <div className={`p-3.5 rounded-xl border ${getDaysLeft(schDeadline) < 7 ? 'bg-red-50 border-red-200' : 'bg-[var(--theme-bg)] border-border'}`}>
-                      <p className={`text-[9px] font-black uppercase tracking-widest mb-1 ${getDaysLeft(schDeadline) < 7 ? 'text-red-500' : 'text-[var(--theme-text-muted)]'}`}>Deadline</p>
-                      <p className={`text-sm font-black ${getDaysLeft(schDeadline) < 7 ? 'text-red-600' : 'text-[var(--theme-text)]'}`}>{new Date(schDeadline).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</p>
+                    <div className="p-3.5 bg-slate-50/50 rounded-xl border border-slate-200">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Min. IPK</p>
+                      <p className="text-sm font-black text-slate-700">{schIpk.toFixed(2)}</p>
+                    </div>
+                    <div className={`p-3.5 rounded-xl border ${getDaysLeft(schDeadline) < 7 ? 'bg-red-50 border-red-200' : 'bg-slate-50/50 border-slate-200'}`}>
+                      <p className={`text-[9px] font-black uppercase tracking-widest mb-1 ${getDaysLeft(schDeadline) < 7 ? 'text-red-500' : 'text-slate-400'}`}>Deadline</p>
+                      <p className={`text-sm font-black ${getDaysLeft(schDeadline) < 7 ? 'text-red-600' : 'text-slate-700'}`}>{new Date(schDeadline).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</p>
                     </div>
                   </div>
 
                   <div className="space-y-6">
                     <div>
-                      <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest mb-3"><span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: 16 }}>info</span> Deskripsi Program</h4>
-                      <p className="text-sm text-[var(--theme-text-muted)] font-medium leading-relaxed">{schDesc}</p>
+                      <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest mb-3"><span className="material-symbols-outlined text-primary" style={{ fontSize: 16 }}>info</span> Deskripsi Program</h4>
+                      <p className="text-xs text-slate-500 font-medium leading-relaxed">{schDesc}</p>
                     </div>
 
                     <div>
-                      <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest mb-3"><span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '16px' }} >description</span> Persyaratan</h4>
-                      <div className="bg-[var(--theme-bg)] p-6 rounded-xl border border-border">
-                         <pre className="text-sm text-[var(--theme-text-muted)] font-medium whitespace-pre-line font-body leading-relaxed">
+                      <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest mb-3"><span className="material-symbols-outlined text-primary" style={{ fontSize: '16px' }} >description</span> Persyaratan</h4>
+                      <div className="bg-slate-50/50 p-6 rounded-xl border border-slate-200">
+                         <pre className="text-xs text-slate-500 font-medium whitespace-pre-line font-body leading-relaxed">
                            {selectedSch.persyaratan || selectedSch.Persyaratan || 'Tidak ada persyaratan khusus.'}
                          </pre>
                       </div>
@@ -893,20 +911,20 @@ export default function ScholarshipPage() {
                       return (
                         <div>
                           <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest mb-3">
-                            <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '16px' }}>assignment</span> 
+                            <span className="material-symbols-outlined text-primary" style={{ fontSize: '16px' }}>assignment</span> 
                             Persyaratan Tambahan
                           </h4>
-                          <div className="bg-[var(--theme-bg)] p-5 rounded-xl border border-border space-y-3">
+                          <div className="bg-slate-50/50 p-5 rounded-xl border border-slate-200 space-y-3">
                             {fields.map((f, i) => (
-                              <div key={i} className="flex justify-between items-start text-xs border-b border-border/50 last:border-0 pb-2.5 last:pb-0">
+                              <div key={i} className="flex justify-between items-start text-xs border-b border-slate-200/50 last:border-0 pb-2.5 last:pb-0">
                                 <div className="min-w-0 pr-2 text-left">
                                   <span className="font-bold text-slate-700 block">{f.label}</span>
                                   {f.options && (
-                                    <span className="text-[9px] text-[var(--theme-text-muted)] block mt-1">Pilihan: {f.options}</span>
+                                    <span className="text-[9px] text-slate-400 block mt-1">Pilihan: {f.options}</span>
                                   )}
                                 </div>
                                 <div className="flex flex-col items-end gap-1 shrink-0">
-                                  <span className="font-black text-[9px] px-2 py-0.5 bg-[var(--theme-primary-light)] text-[var(--theme-primary)] rounded-md uppercase tracking-wider">
+                                  <span className="font-black text-[9px] px-2 py-0.5 bg-primary/10 text-primary rounded-md uppercase tracking-wider">
                                     {f.type}
                                   </span>
                                   {f.required && (
@@ -922,41 +940,43 @@ export default function ScholarshipPage() {
                       );
                     })()}
 
-                  <div>
-                     <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest mb-3"><Sparkles size={16} className="text-[var(--theme-primary)]" /> Tahapan Seleksi</h4>
-                     <div className="flex items-center justify-between px-2 py-4">
-                        {['Daftar', 'Berkas', 'Evaluasi', 'Review', 'Penetapan', 'Hasil'].map((s, i) => (
-                           <div key={s} className="flex flex-col items-center gap-2">
-                              <div className={`w-3 h-3 rounded-full ${i === 0 ? 'bg-[var(--theme-primary)]' : 'bg-[var(--theme-border)]'}`} />
-                              <span className={`text-[8px] font-black uppercase tracking-tighter ${i === 0 ? 'text-[var(--theme-text)]' : 'text-[var(--theme-text-muted)]'}`}>{s}</span>
-                           </div>
-                        ))}
-                     </div>
+                    <div>
+                       <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest mb-3"><Sparkles size={16} className="text-primary" /> Tahapan Seleksi</h4>
+                       <div className="flex items-center justify-between px-2 py-4">
+                          {['Daftar', 'Berkas', 'Evaluasi', 'Review', 'Penetapan', 'Hasil'].map((s, i) => (
+                             <div key={s} className="flex flex-col items-center gap-2">
+                                <div className={`w-3 h-3 rounded-full ${i === 0 ? 'bg-primary' : 'bg-slate-200'}`} />
+                                <span className={`text-[8px] font-black uppercase tracking-tighter ${i === 0 ? 'text-slate-700' : 'text-slate-400'}`}>{s}</span>
+                             </div>
+                          ))}
+                       </div>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="p-8 border-t border-[var(--theme-border-muted)] flex gap-4 bg-[var(--theme-bg)]">
-                 <button 
-                   onClick={() => setSelectedSch(null)}
-                   className="flex-1 py-4 rounded-xl font-black text-sm border border-border text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] transition-all"
-                 >
-                   Tutup
-                 </button>
-                 {user?.role !== 'super_admin' && (
-                   <button 
-                     onClick={() => setShowApplyModal(true)}
-                     className="flex-1 py-4 rounded-xl font-black text-sm bg-[var(--theme-primary)] text-white hover:bg-[var(--theme-primary-hover)] shadow-xl shadow-[var(--theme-primary)]/20 transition-all hover:scale-[1.02]"
+                {/* Footer */}
+                <DialogFooter className="flex flex-col md:flex-row items-center justify-end gap-3 p-8 pt-4 border-t border-slate-100 bg-slate-50/30">
+                   <Button 
+                     onClick={() => setSelectedSch(null)}
+                     variant="ghost"
+                     className="w-full md:w-auto text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-11 rounded-xl active:scale-95 transition-all shadow-none border-none cursor-pointer font-headline uppercase"
                    >
-                     Daftar Sekarang
-                   </button>
-                 )}
-              </div>
-            </motion.div>
-          </div>
-          );
-        })()}
-      </AnimatePresence>
+                     Tutup
+                   </Button>
+                   {user?.role !== 'super_admin' && (
+                     <Button 
+                       onClick={() => setShowApplyModal(true)}
+                       className="w-full md:w-auto h-11 px-8 rounded-xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2 border-none cursor-pointer font-black text-[10px]"
+                     >
+                       Daftar Sekarang
+                     </Button>
+                   )}
+                </DialogFooter>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
 
       {/* APPLICATION WIZARD */}
       <AnimatePresence>

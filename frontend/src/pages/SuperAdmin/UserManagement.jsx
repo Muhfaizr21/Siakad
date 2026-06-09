@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { DataTable } from '@/components/ui/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/Dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
@@ -1748,11 +1748,11 @@ export default function UserManagement() {
           </section>
         )}
       {/* ── Create User Modal ───────────────────────────────────── */}
-      <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen} maxWidth="max-w-xl w-[95vw] sm:w-full">
-        <DialogContent className="flex flex-col h-full max-h-[85vh] rounded-2xl overflow-hidden p-0">
-          <DialogHeader className="p-5 pb-4 md:p-8 md:pb-6 border-b border-slate-100 relative overflow-hidden bg-slate-50/40 shrink-0">
+      <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen} maxWidth="max-w-xl">
+        <DialogContent>
+          <DialogHeader className="relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-[0.05] text-bku-primary pointer-events-none"><span className="material-symbols-outlined" style={{ fontSize: '100px' }} >manage_accounts</span></div>
-            <div className="relative z-10 space-y-1 pr-6">
+            <div className="relative z-10 space-y-1">
               <div className="flex items-center gap-2 mb-2">
                 <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
                   <span className="material-symbols-outlined font-black text-[12px]">add</span>
@@ -1764,8 +1764,8 @@ export default function UserManagement() {
             </div>
           </DialogHeader>
 
-          <form onSubmit={handleCreate} className="flex flex-col flex-1 min-h-0 overflow-hidden">
-            <div className="p-5 md:p-8 space-y-6 overflow-y-auto flex-1 min-h-0 custom-scrollbar">
+          <form onSubmit={handleCreate}>
+            <div className="p-6 md:p-8 space-y-6 max-h-[50vh] overflow-y-auto no-scrollbar font-inter">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                  <div className="space-y-2">
                    <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Identity Handle (Email)</Label>
@@ -1937,37 +1937,46 @@ export default function UserManagement() {
               )}
             </div>
 
-            <footer className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between pt-4 md:pt-6 border-t border-slate-100 bg-slate-50/50 p-5 md:p-8 gap-3 shrink-0">
-               <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="h-12 px-8 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-all font-headline shadow-none border-none cursor-pointer w-full sm:w-auto">Abort</Button>
-               <Button type="submit" disabled={isSubmitting} className="h-12 px-8 rounded-xl bg-bku-primary text-white hover:bg-bku-primary/90 shadow-lg shadow-bku-primary/15 transition-all active:scale-95 border-none flex items-center justify-center gap-3 font-headline cursor-pointer w-full sm:w-auto">
-                  {isSubmitting ? (
-                    <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }} >sync</span>
-                  ) : (
-                    <span className="material-symbols-outlined font-black" style={{ fontSize: '16px' }} >save</span>
-                  )}
-                  <span className="text-[10px] font-black uppercase tracking-widest">Commit New Account</span>
-               </Button>
-            </footer>
+            <DialogFooter>
+              <button
+                type="button"
+                onClick={() => setIsCrudOpen(false)}
+                className="flex-1 h-12 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-headline cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex-1 h-12 bg-neutral-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2 font-headline disabled:opacity-50 cursor-pointer border-none"
+              >
+                {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >save</span>}
+                <span>Commit New Account</span>
+              </button>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
       {/* ── Update Role Modal ────────────────────────────────────── */}
-      <Dialog open={isRoleOpen} onOpenChange={setIsRoleOpen} maxWidth="max-w-md w-[95vw] sm:w-full">
-        <DialogContent className="flex flex-col h-full max-h-[85vh] rounded-2xl overflow-hidden p-0 bg-white">
-          <DialogTitle className="sr-only">Update Role</DialogTitle>
-          <DialogHeader className="p-8 pb-6 border-b border-slate-100 bg-slate-50/40 shrink-0 relative z-10">
-            <div className="flex items-center gap-4">
-              <div className="size-12 rounded-2xl bg-bku-primary text-white flex items-center justify-center shadow-xl shadow-bku-primary/20">
-                <KeyRound size={20} strokeWidth={2.5} />
+      <Dialog open={isRoleOpen} onOpenChange={setIsRoleOpen} maxWidth="max-w-md">
+        <DialogContent>
+          <DialogHeader className="relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-[0.05] text-bku-primary pointer-events-none">
+              <span className="material-symbols-outlined font-black" style={{ fontSize: '100px' }}>key</span>
+            </div>
+            <div className="relative z-10 space-y-1">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
+                  <span className="material-symbols-outlined font-black text-[12px]">security</span>
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-bku-primary/70 font-headline">Privilege Node</span>
               </div>
-              <div>
-                <h2 className="text-lg font-black font-headline tracking-tight leading-none" style={{ color: 'var(--theme-h2)' }}>Modify Otoritas</h2>
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.15em] mt-1.5 font-headline">Override account privilege nodes.</p>
-              </div>
+              <DialogTitle className="text-xl font-bold font-jakarta tracking-tight text-slate-800 uppercase leading-none">Modify Otoritas</DialogTitle>
+              <DialogDescription className="text-xs font-semibold text-slate-400 mt-1.5">Override account privilege nodes.</DialogDescription>
             </div>
           </DialogHeader>
-          <div className="p-8 space-y-6 overflow-y-auto flex-1 min-h-0 custom-scrollbar">
+          <div className="p-6 md:p-8 space-y-6 max-h-[50vh] overflow-y-auto no-scrollbar font-inter">
              <div className="space-y-6 px-1">
                <div className="p-5 rounded-2xl bg-slate-50/60 border border-slate-200/50 flex items-center justify-between group">
                 <div className="space-y-1">
@@ -2121,17 +2130,24 @@ export default function UserManagement() {
              </div>
           </div>
 
-          <footer className="flex gap-4 p-8 pt-6 border-t border-slate-100 bg-slate-50/50 shrink-0 relative z-10">
-             <Button variant="ghost" onClick={() => setIsRoleOpen(false)} className="flex-1 h-12 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-all font-headline shadow-none border-none cursor-pointer">Abort</Button>
-             <Button onClick={handleUpdateRole} disabled={isSubmitting} className="flex-[2] h-12 rounded-xl bg-bku-primary text-white hover:bg-bku-primary/90 shadow-lg shadow-bku-primary/15 transition-all active:scale-95 border-none flex items-center justify-center gap-2 font-headline cursor-pointer font-black text-[10px]">
-               {isSubmitting ? (
-                 <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span>
-               ) : (
-                 <span className="material-symbols-outlined font-black" style={{ fontSize: '14px' }} >security</span>
-               )} 
-               Commit Authority
-             </Button>
-          </footer>
+          <DialogFooter>
+            <button
+              type="button"
+              onClick={() => setIsRoleOpen(false)}
+              className="flex-1 h-12 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-headline cursor-pointer"
+            >
+              Batal
+            </button>
+            <button
+              type="button"
+              onClick={handleUpdateRole}
+              disabled={isSubmitting}
+              className="flex-[2] h-12 bg-neutral-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2 font-headline disabled:opacity-50 cursor-pointer border-none"
+            >
+              {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>security</span>}
+              <span>Commit Authority</span>
+            </button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
@@ -2145,23 +2161,26 @@ export default function UserManagement() {
       />
 
       {/* ── Create Custom Role Modal ────────────────────────────── */}
-      <Dialog open={isNewRoleOpen} onOpenChange={setIsNewRoleOpen} maxWidth="max-w-md w-[95vw] sm:w-full">
-        <DialogContent className="flex flex-col h-full max-h-[85vh] rounded-2xl overflow-hidden p-0 bg-white">
-          <DialogTitle className="sr-only">Add New Role</DialogTitle>
-          <DialogHeader className="p-8 pb-6 border-b border-slate-100 bg-slate-50/40 shrink-0 relative z-10">
-            <div className="flex items-center gap-3">
-              <div className="size-10 rounded-xl bg-amber-400 text-slate-900 flex items-center justify-center shadow-lg shadow-amber-400/20">
-                <span className="material-symbols-outlined font-black" style={{ fontSize: '20px' }}>shield_person</span>
+      <Dialog open={isNewRoleOpen} onOpenChange={setIsNewRoleOpen} maxWidth="max-w-md">
+        <DialogContent>
+          <DialogHeader className="relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-[0.05] text-bku-primary pointer-events-none">
+              <span className="material-symbols-outlined font-black" style={{ fontSize: '100px' }}>shield_person</span>
+            </div>
+            <div className="relative z-10 space-y-1">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
+                  {newRoleForm.isEdit ? <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >edit</span> : <span className="material-symbols-outlined" style={{ fontSize: '12px' }} strokeWidth={3}>add</span>}
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-bku-primary/70 font-headline">Dynamic Privilege Node</span>
               </div>
-              <div>
-                <h3 className="text-lg font-black font-headline tracking-tight leading-none" style={{ color: 'var(--theme-h3)' }}>{newRoleForm.isEdit ? 'Update Custom Role' : 'Create Custom Role'}</h3>
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.15em] mt-1.5 font-headline">{newRoleForm.isEdit ? 'Perbarui informasi peran khusus ini' : 'Release dynamic privilege identity node'}</p>
-              </div>
+              <DialogTitle className="text-xl font-bold font-jakarta tracking-tight text-slate-800 uppercase leading-none">{newRoleForm.isEdit ? 'Update Custom Role' : 'Create Custom Role'}</DialogTitle>
+              <DialogDescription className="text-xs font-semibold text-slate-400 mt-1.5">{newRoleForm.isEdit ? 'Perbarui informasi peran khusus ini' : 'Release dynamic privilege identity node'}</DialogDescription>
             </div>
           </DialogHeader>
           
-          <form onSubmit={handleCreateCustomRole} className="flex flex-col flex-1 min-h-0 overflow-hidden">
-            <div className="p-8 space-y-6 overflow-y-auto flex-1 min-h-0 custom-scrollbar">
+          <form onSubmit={handleCreateCustomRole}>
+            <div className="p-6 md:p-8 space-y-6 max-h-[50vh] overflow-y-auto no-scrollbar font-inter">
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Role Identity Name</Label>
@@ -2207,13 +2226,23 @@ export default function UserManagement() {
               </div>
             </div>
 
-            <footer className="flex gap-4 p-8 pt-6 border-t border-slate-100 bg-slate-50/50 shrink-0 relative z-10">
-              <Button type="button" variant="ghost" onClick={() => setIsNewRoleOpen(false)} className="flex-1 h-12 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-all font-headline shadow-none border-none cursor-pointer">Abort</Button>
-              <Button type="submit" disabled={isSubmitting} className="flex-[2] h-12 rounded-xl bg-bku-primary text-white hover:bg-bku-primary/90 shadow-lg shadow-bku-primary/15 transition-all active:scale-95 border-none flex items-center justify-center gap-2 font-headline cursor-pointer font-black text-[10px]">
-                <span className="material-symbols-outlined font-black" style={{ fontSize: '14px' }}>save</span>
-                {isSubmitting ? 'Menyimpan...' : (newRoleForm.isEdit ? 'Update Role' : 'Save Custom Role')}
-              </Button>
-            </footer>
+            <DialogFooter>
+              <button
+                type="button"
+                onClick={() => setIsNewRoleOpen(false)}
+                className="flex-1 h-12 bg-white hover:bg-slate-55 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-headline cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex-[2] h-12 bg-neutral-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2 font-headline disabled:opacity-50 cursor-pointer border-none"
+              >
+                {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>save</span>}
+                <span>{newRoleForm.isEdit ? 'Update Role' : 'Save Custom Role'}</span>
+              </button>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/providers/student_provider.dart';
 import 'package:bkuhub_mobile/core/providers/scholarship_provider.dart';
 import 'package:bkuhub_mobile/core/providers/achievement_provider.dart';
+import 'package:bkuhub_mobile/core/providers/theme_provider.dart';
 
 import 'package:bkuhub_mobile/core/routes/app_routes.dart';
 import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
@@ -53,6 +53,7 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => ThemeProvider()..loadTheme()),
         ChangeNotifierProvider(create: (_) => NavigationProvider()),
         ChangeNotifierProvider(create: (_) => StudentProvider(repository: studentRepository)),
         ChangeNotifierProvider(create: (_) => ScholarshipProvider()),
@@ -79,6 +80,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Watch theme provider for dynamic colors
+    final themeProvider = context.watch<ThemeProvider>();
+
     return MaterialApp.router(
       title: 'BKU Hub',
       debugShowCheckedModeBanner: false,
@@ -86,11 +90,19 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.primary,
-          primary: AppColors.primary,
-          surface: AppColors.surface,
+          seedColor: themeProvider.primary,
+          primary: themeProvider.primary,
+          secondary: themeProvider.secondary,
+          surface: themeProvider.surface,
+          error: themeProvider.colorError,
         ),
-        scaffoldBackgroundColor: AppColors.background,
+        scaffoldBackgroundColor: themeProvider.background,
+        // Override AppBar theme with dynamic primary color
+        appBarTheme: AppBarTheme(
+          backgroundColor: themeProvider.primary,
+          foregroundColor: Colors.white,
+          elevation: 0,
+        ),
       ),
     );
   }

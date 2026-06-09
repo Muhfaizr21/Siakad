@@ -363,81 +363,74 @@ export default function JadwalKegiatan() {
 
       {/* Detail Modal */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-3xl p-0 overflow-hidden border border-border shadow-2xl rounded-2xl bg-[var(--theme-surface)]">
+        <DialogContent className="max-w-3xl p-0 overflow-hidden border border-border shadow-2xl rounded-2xl bg-surface animate-in zoom-in-95 duration-200">
           {selected && (
             <div className="flex flex-col">
               {/* Header */}
-              <div
-                className="p-8 text-white relative overflow-hidden"
-                style={{ background: 'linear-gradient(160deg, var(--theme-primary) 0%, color-mix(in srgb, var(--theme-primary) 70%, var(--theme-secondary) 30%) 100%)' }}
-              >
-                <div className="absolute inset-0 opacity-[0.05]"
-                  style={{
-                    backgroundImage: `radial-gradient(circle at 10% 20%, white 1px, transparent 1px)`,
-                    backgroundSize: '20px 20px'
-                  }}
-                />
-                <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full blur-2xl opacity-20" style={{ backgroundColor: 'var(--theme-secondary)' }} />
+              <DialogHeader className="p-8 pb-6 bg-slate-50/50 border-b border-border relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
+                  <span className="material-symbols-outlined size-24 text-slate-800">calendar_today</span>
+                </div>
                 <div className="relative z-10">
                   <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1">
-                      <span className="text-[9px] font-black tracking-[0.2em] uppercase font-headline text-[var(--theme-secondary-light)]">Detail Agenda</span>
-                      <h2 className="text-xl md:text-2xl font-black text-white font-headline tracking-tight uppercase leading-snug">{selected.Judul}</h2>
+                      <span className="text-[9px] font-black tracking-[0.2em] uppercase font-headline text-slate-400">Detail Agenda</span>
+                      <DialogTitle className="text-xl md:text-2xl font-black text-slate-955 font-headline tracking-tight uppercase leading-snug">{selected.Judul}</DialogTitle>
                     </div>
-                    <Badge className={cn('font-black text-[9px] tracking-wider uppercase px-2.5 py-1 border shrink-0 flex items-center gap-1 shadow-sm border-none', STATUS_CFG[selected.Status]?.cls || 'bg-[var(--theme-bg)] text-[var(--theme-text-subtle)]')}>
+                    <Badge className={cn('font-black text-[9px] tracking-wider uppercase px-2.5 py-1 border shrink-0 flex items-center gap-1 shadow-sm border-none', STATUS_CFG[selected.Status]?.cls || 'bg-slate-50 text-slate-650')}>
                       <span className="material-symbols-outlined normal-case text-[10px]">{STATUS_CFG[selected.Status]?.icon || 'info'}</span>
                       <span>{STATUS_CFG[selected.Status]?.label || 'Terjadwal'}</span>
                     </Badge>
                   </div>
                 </div>
-              </div>
+              </DialogHeader>
 
               {/* Quick Info Grid */}
-              <div className="p-8 space-y-6 max-h-[65vh] overflow-y-auto custom-scrollbar">
+              <div className="p-8 space-y-6 max-h-[50vh] overflow-y-auto no-scrollbar">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-[var(--theme-bg)] border border-border/40 rounded-2xl p-4 flex items-center gap-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-[var(--theme-primary-light)] text-[var(--theme-primary)] flex items-center justify-center border border-[var(--theme-primary)]/20 shrink-0 shadow-sm">
+                  <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center gap-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center border border-slate-200 shrink-0 shadow-sm">
                       <span className="material-symbols-outlined normal-case" style={{ fontSize: '20px' }}>calendar_today</span>
                     </div>
                     <div className="min-w-0">
-                      <p className="text-[8px] font-black text-[var(--theme-text-subtle)] tracking-wider uppercase">Mulai Pelaksanaan</p>
-                      <p className="text-xs font-black text-[var(--theme-text)] font-headline mt-0.5">
+                      <p className="text-[8px] font-black text-slate-450 tracking-wider uppercase">Mulai Pelaksanaan</p>
+                      <p className="text-xs font-black text-slate-800 font-headline mt-0.5">
                         {selected.TanggalMulai ? new Date(selected.TanggalMulai).toLocaleDateString('id-ID', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }) : '—'}
                       </p>
                     </div>
                   </div>
 
-                  <div className="bg-[var(--theme-bg)] border border-border/40 rounded-2xl p-4 flex items-center gap-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-[var(--theme-info-light)] text-[var(--theme-info)] flex items-center justify-center border border-[var(--theme-info)]/20 shrink-0 shadow-sm">
+                  <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center gap-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center border border-slate-200 shrink-0 shadow-sm">
                       <span className="material-symbols-outlined normal-case" style={{ fontSize: '20px' }}>event_available</span>
                     </div>
                     <div className="min-w-0">
-                      <p className="text-[8px] font-black text-[var(--theme-text-subtle)] tracking-wider uppercase">Selesai Pelaksanaan</p>
-                      <p className="text-xs font-black text-[var(--theme-text)] font-headline mt-0.5">
+                      <p className="text-[8px] font-black text-slate-450 tracking-wider uppercase">Selesai Pelaksanaan</p>
+                      <p className="text-xs font-black text-slate-800 font-headline mt-0.5">
                         {selected.TanggalSelesai ? new Date(selected.TanggalSelesai).toLocaleDateString('id-ID', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }) : '—'}
                       </p>
                     </div>
                   </div>
 
-                  <div className="bg-[var(--theme-bg)] border border-border/40 rounded-2xl p-4 flex items-center gap-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-[var(--theme-warning-light)] text-[var(--theme-warning)] flex items-center justify-center border border-[var(--theme-warning)]/20 shrink-0 shadow-sm">
+                  <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center gap-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center border border-slate-200 shrink-0 shadow-sm">
                       <span className="material-symbols-outlined normal-case" style={{ fontSize: '20px' }}>location_on</span>
                     </div>
                     <div className="min-w-0">
-                      <p className="text-[8px] font-black text-[var(--theme-text-subtle)] tracking-wider uppercase">Lokasi Kegiatan</p>
-                      <p className="text-xs font-black text-[var(--theme-text)] font-headline mt-0.5">
+                      <p className="text-[8px] font-black text-slate-450 tracking-wider uppercase">Lokasi Kegiatan</p>
+                      <p className="text-xs font-black text-slate-800 font-headline mt-0.5">
                         {selected.Lokasi || 'Belum ditentukan'}
                       </p>
                     </div>
                   </div>
 
-                  <div className="bg-[var(--theme-bg)] border border-border/40 rounded-2xl p-4 flex items-center gap-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-[var(--theme-success-light)] text-[var(--theme-success)] flex items-center justify-center border border-[var(--theme-success)]/20 shrink-0 shadow-sm">
+                  <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center gap-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-650 flex items-center justify-center border border-slate-200 shrink-0 shadow-sm">
                       <span className="material-symbols-outlined normal-case" style={{ fontSize: '20px' }}>payments</span>
                     </div>
                     <div className="min-w-0">
-                      <p className="text-[8px] font-black text-[var(--theme-text-subtle)] tracking-wider uppercase">Estimasi Dana</p>
-                      <p className="text-xs font-black text-[var(--theme-success)] font-headline mt-0.5">
+                      <p className="text-[8px] font-black text-slate-450 tracking-wider uppercase">Estimasi Dana</p>
+                      <p className="text-xs font-black text-emerald-600 font-headline mt-0.5">
                         {selected.EstimasiDana || selected.estimasi_dana ? formatRp(selected.EstimasiDana || selected.estimasi_dana) : '—'}
                       </p>
                     </div>
@@ -445,94 +438,95 @@ export default function JadwalKegiatan() {
                 </div>
 
                 {/* Detail Fields Grid */}
-                <div className="bg-[var(--theme-bg)] border border-border/60 rounded-2xl p-6 space-y-4">
-                  <h3 className="text-xs font-black text-[var(--theme-text)] uppercase tracking-widest font-headline">Informasi Detail Kegiatan</h3>
+                <div className="bg-slate-50 border border-slate-100 rounded-2xl p-6 space-y-4">
+                  <h3 className="text-xs font-black text-slate-700 uppercase tracking-widest font-headline">Informasi Detail Kegiatan</h3>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-medium text-[var(--theme-text-subtle)]">
-                    <div className="bg-[var(--theme-surface)] p-3 rounded-xl border border-border/40 space-y-1">
-                      <p className="text-[9px] font-black text-[var(--theme-text-subtle)] uppercase tracking-wider">Landasan Kegiatan</p>
-                      <p className="font-bold text-[var(--theme-text)]">{selected.LandasanKegiatan || selected.landasan_kegiatan || "—"}</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-medium text-slate-500">
+                    <div className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Landasan Kegiatan</p>
+                      <p className="font-bold text-slate-700">{selected.LandasanKegiatan || selected.landasan_kegiatan || "—"}</p>
                     </div>
-                    <div className="bg-[var(--theme-surface)] p-3 rounded-xl border border-border/40 space-y-1">
-                      <p className="text-[9px] font-black text-[var(--theme-text-subtle)] uppercase tracking-wider">Bentuk Kegiatan</p>
-                      <p className="font-bold text-[var(--theme-text)]">{selected.BentukKegiatan || selected.bentuk_kegiatan || "—"}</p>
+                    <div className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Bentuk Kegiatan</p>
+                      <p className="font-bold text-slate-700">{selected.BentukKegiatan || selected.bentuk_kegiatan || "—"}</p>
                     </div>
-                    <div className="bg-[var(--theme-surface)] p-3 rounded-xl border border-border/40 space-y-1">
-                      <p className="text-[9px] font-black text-[var(--theme-text-subtle)] uppercase tracking-wider">Mitra Kerja</p>
-                      <p className="font-bold text-[var(--theme-text)]">{selected.Mitra || selected.mitra || "—"}</p>
+                    <div className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Mitra Kerja</p>
+                      <p className="font-bold text-slate-700">{selected.Mitra || selected.mitra || "—"}</p>
                     </div>
-                    <div className="bg-[var(--theme-surface)] p-3 rounded-xl border border-border/40 space-y-1">
-                      <p className="text-[9px] font-black text-[var(--theme-text-subtle)] uppercase tracking-wider">PJ Kegiatan</p>
-                      <p className="font-bold text-[var(--theme-text)]">{selected.PJKegiatan || selected.pj_kegiatan || "—"}</p>
+                    <div className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">PJ Kegiatan</p>
+                      <p className="font-bold text-slate-700">{selected.PJKegiatan || selected.pj_kegiatan || "—"}</p>
                     </div>
-                    <div className="bg-[var(--theme-surface)] p-3 rounded-xl border border-border/40 space-y-1">
-                      <p className="text-[9px] font-black text-[var(--theme-text-subtle)] uppercase tracking-wider">Jadwal Pelaksanaan</p>
-                      <p className="font-bold text-[var(--theme-text)]">{selected.JadwalPelaksanaan || selected.jadwal_pelaksanaan || "—"}</p>
+                    <div className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Jadwal Pelaksanaan</p>
+                      <p className="font-bold text-slate-700">{selected.JadwalPelaksanaan || selected.jadwal_pelaksanaan || "—"}</p>
                     </div>
-                    <div className="bg-[var(--theme-surface)] p-3 rounded-xl border border-border/40 space-y-1">
-                      <p className="text-[9px] font-black text-[var(--theme-text-subtle)] uppercase tracking-wider">Sasaran Kegiatan</p>
-                      <p className="font-bold text-[var(--theme-text)]">{selected.SasaranKegiatan || selected.sasaran_kegiatan || "—"}</p>
+                    <div className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Sasaran Kegiatan</p>
+                      <p className="font-bold text-slate-700">{selected.SasaranKegiatan || selected.sasaran_kegiatan || "—"}</p>
                     </div>
-                    <div className="bg-[var(--theme-surface)] p-3 rounded-xl border border-border/40 space-y-1">
-                      <p className="text-[9px] font-black text-[var(--theme-text-subtle)] uppercase tracking-wider">Sumber Dana</p>
-                      <p className="font-bold text-[var(--theme-text)]">{selected.SumberDana || selected.sumber_dana || "—"}</p>
+                    <div className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Sumber Dana</p>
+                      <p className="font-bold text-slate-700">{selected.SumberDana || selected.sumber_dana || "—"}</p>
                     </div>
-                    <div className="bg-[var(--theme-surface)] p-3 rounded-xl border border-border/40 space-y-1">
-                      <p className="text-[9px] font-black text-[var(--theme-text-subtle)] uppercase tracking-wider">Indikator Keberhasilan</p>
-                      <p className="font-bold text-[var(--theme-text)]">{selected.IndikatorKeberhasilan || selected.indikator_keberhasilan || "—"}</p>
+                    <div className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Indikator Keberhasilan</p>
+                      <p className="font-bold text-slate-700">{selected.IndikatorKeberhasilan || selected.indikator_keberhasilan || "—"}</p>
                     </div>
                   </div>
 
-                  <div className="bg-[var(--theme-surface)] p-4 rounded-xl border border-border/40 space-y-1.5 text-xs text-[var(--theme-text-subtle)]">
-                    <p className="text-[9px] font-black text-[var(--theme-text-subtle)] uppercase tracking-wider">Latar Belakang</p>
-                    <p className="font-medium leading-relaxed whitespace-pre-line text-[var(--theme-text)]">{selected.LatarBelakang || selected.latar_belakang || "—"}</p>
+                  <div className="bg-white p-4 rounded-xl border border-slate-100 space-y-1.5 text-xs text-slate-500">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Latar Belakang</p>
+                    <p className="font-medium leading-relaxed whitespace-pre-line text-slate-700">{selected.LatarBelakang || selected.latar_belakang || "—"}</p>
                   </div>
 
-                  <div className="bg-[var(--theme-surface)] p-4 rounded-xl border border-border/40 space-y-1.5 text-xs text-[var(--theme-text-subtle)]">
-                    <p className="text-[9px] font-black text-[var(--theme-text-subtle)] uppercase tracking-wider">Tujuan Kegiatan</p>
-                    <p className="font-medium leading-relaxed whitespace-pre-line text-[var(--theme-text)]">{selected.TujuanKegiatan || selected.tujuan_kegiatan || "—"}</p>
+                  <div className="bg-white p-4 rounded-xl border border-slate-100 space-y-1.5 text-xs text-slate-500">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Tujuan Kegiatan</p>
+                    <p className="font-medium leading-relaxed whitespace-pre-line text-slate-700">{selected.TujuanKegiatan || selected.tujuan_kegiatan || "—"}</p>
                   </div>
 
-                  <div className="bg-[var(--theme-surface)] p-4 rounded-xl border border-border/40 space-y-1.5 text-xs text-[var(--theme-text-subtle)]">
-                    <p className="text-[9px] font-black text-[var(--theme-text-subtle)] uppercase tracking-wider">Deskripsi Kegiatan</p>
-                    <p className="font-medium leading-relaxed whitespace-pre-line text-[var(--theme-text)]">{selected.Deskripsi || selected.deskripsi || "—"}</p>
+                  <div className="bg-white p-4 rounded-xl border border-slate-100 space-y-1.5 text-xs text-slate-500">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Deskripsi Kegiatan</p>
+                    <p className="font-medium leading-relaxed whitespace-pre-line text-slate-700">{selected.Deskripsi || selected.deskripsi || "—"}</p>
                   </div>
-                </div>
-
-                {/* Footer Buttons */}
-                <div className="flex justify-end gap-3 pt-4 border-t border-border/40 -mx-8 px-8 bg-[var(--theme-bg)]/20">
-                  <Button variant="ghost" onClick={() => setIsDetailOpen(false)} className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.15em] px-6 h-11 rounded-2xl hover:bg-[var(--theme-bg)] uppercase transition-all duration-150">
-                    Tutup
-                  </Button>
-                  <Button onClick={() => { setIsDetailOpen(false); handleOpenEdit(selected) }} className="text-[10px] font-black tracking-[0.15em] h-11 px-8 rounded-2xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary)]/90 text-white shadow-lg shadow-[var(--theme-primary)]/20 uppercase transition-all duration-150 active:scale-95 flex items-center gap-1.5">
-                    <span className="material-symbols-outlined normal-case text-[14px]">edit</span> Edit Agenda
-                  </Button>
                 </div>
               </div>
+
+              {/* Footer Buttons */}
+              <DialogFooter className="p-8 pt-6 border-t border-slate-100 flex justify-end gap-3 bg-slate-50/30">
+                <Button variant="ghost" onClick={() => setIsDetailOpen(false)} className="text-[10px] font-black text-slate-400 tracking-[0.15em] px-6 h-11 rounded-2xl hover:bg-slate-150 uppercase transition-all duration-150">
+                  Tutup
+                </Button>
+                <Button onClick={() => { setIsDetailOpen(false); handleOpenEdit(selected) }} className="text-[10px] font-black tracking-[0.15em] h-11 px-8 rounded-2xl bg-primary hover:bg-primary/90 text-white shadow-lg active:scale-95 transition-all flex items-center gap-1.5 border-none">
+                  <span className="material-symbols-outlined normal-case text-[14px]">edit</span> Edit Agenda
+                </Button>
+              </DialogFooter>
             </div>
           )}
         </DialogContent>
       </Dialog>
 
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
-        <DialogContent className="max-w-4xl p-0 overflow-hidden border border-border shadow-2xl rounded-2xl bg-[var(--theme-surface)]">
-          <DialogHeader className="p-8 pb-5 bg-gradient-to-br from-[var(--theme-bg)] to-[var(--theme-surface)] border-b border-border/40 relative overflow-hidden">
+        <DialogContent className="max-w-4xl p-0 overflow-hidden border border-border shadow-2xl rounded-2xl bg-surface animate-in zoom-in-95 duration-200">
+          <DialogHeader className="p-8 pb-5 bg-slate-50/50 border-b border-border relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
               <span className="material-symbols-outlined size-24 rotate-12">calendar_month</span>
             </div>
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-2">
-                <div className="size-9 rounded-2xl bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)] shadow-inner">
+                <div className="size-9 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-650 shadow-inner">
                   {isEditMode ? <span className="material-symbols-outlined normal-case text-[18px]">edit</span> : <span className="material-symbols-outlined normal-case text-[18px] stroke-[2px]">add</span>}
                 </div>
-                <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-[var(--theme-primary-light)]/50 text-[var(--theme-primary)] border-none uppercase">Event Registry</Badge>
+                <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-slate-200 text-slate-700 border-none uppercase">Event Registry</Badge>
               </div>
-              <DialogTitle className="text-xl md:text-2xl font-black font-headline tracking-tight text-[var(--theme-text)] leading-none">{isEditMode ? 'EDIT KEGIATAN' : 'JADWALKAN KEGIATAN'}</DialogTitle>
-              <DialogDescription className="text-[10px] md:text-xs font-medium text-[var(--theme-text-subtle)] mt-1.5">Tambahkan agenda dan jadwal pelaksanaan kegiatan resmi organisasi.</DialogDescription>
+              <DialogTitle className="text-xl md:text-2xl font-black font-headline tracking-tight text-slate-900 leading-none">{isEditMode ? 'EDIT KEGIATAN' : 'JADWALKAN KEGIATAN'}</DialogTitle>
+              <DialogDescription className="text-[10px] md:text-xs font-medium text-slate-400 mt-1.5">Tambahkan agenda dan jadwal pelaksanaan kegiatan resmi organisasi.</DialogDescription>
             </div>
           </DialogHeader>
 
-          <form onSubmit={handleSave} className="p-8 pt-5 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
+          <form onSubmit={handleSave} className="flex flex-col">
+            <div className="p-8 pt-5 space-y-4 max-h-[50vh] overflow-y-auto no-scrollbar">
             <div className="space-y-2">
               <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase">Nama Kegiatan</Label>
               <Input
@@ -718,12 +712,13 @@ export default function JadwalKegiatan() {
                 className="min-h-[80px] rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white p-4 font-medium text-xs leading-relaxed font-headline"
               />
             </div>
+            </div>
 
-            <DialogFooter className="mt-6 pt-5 flex flex-col md:flex-row items-center justify-end gap-3 border-t border-border/40 -mx-8 px-8 bg-[var(--theme-bg)]/30">
-              <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="w-full md:w-auto text-[10px] font-black tracking-widest text-[var(--theme-text-subtle)] hover:text-[var(--theme-text)] px-8 h-12 rounded-2xl uppercase transition-all duration-150">
+            <DialogFooter className="p-8 pt-5 flex flex-col md:flex-row items-center justify-end gap-3 border-t border-slate-100 bg-slate-50/30">
+              <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="w-full md:w-auto text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl uppercase transition-all duration-150">
                 Batalkan
               </Button>
-              <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto h-12 px-10 rounded-2xl bg-[var(--theme-primary)] text-white hover:bg-[var(--theme-primary)]/90 shadow-xl shadow-[var(--theme-primary)]/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-1.5">
+              <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto h-12 px-10 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-1.5 border-none">
                 {isSubmitting ? (
                   <span className="material-symbols-outlined normal-case animate-spin text-[16px]">sync</span>
                 ) : (

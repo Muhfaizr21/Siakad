@@ -541,107 +541,109 @@ export default function KelolaProdi() {
 
       </PageCard>
 
-      {/* ── CRUD Modal ───────────────────────────────────────────── */}
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
-        <DialogContent className="max-w-lg p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white">
-          <DialogHeader className="p-5 md:p-8 pb-5 border-b border-[#f0f0f0]">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-7 h-7 rounded-lg bg-[#eef4ff] flex items-center justify-center text-bku-primary">
-                {isEditMode ? <span className="material-symbols-outlined" style={{ fontSize: '13px' }} >edit</span> : <span className="material-symbols-outlined" style={{ fontSize: '13px' }} strokeWidth={3}>add</span>}
+        <DialogContent className="max-w-lg">
+          <DialogHeader className="relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-[0.03] text-primary"><span className="material-symbols-outlined" style={{ fontSize: '120px' }}>school</span></div>
+            <div className="relative z-10 space-y-1">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="size-6 rounded bg-primary/10 flex items-center justify-center text-primary">
+                  {isEditMode ? <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >edit</span> : <span className="material-symbols-outlined" style={{ fontSize: '12px' }} strokeWidth={3}>add</span>}
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-primary/60">Program Configuration</span>
               </div>
-              <span className="text-xs font-bold text-bku-primary tracking-wide">
-                {isEditMode ? 'Edit Program Studi' : 'Tambah Program Studi'}
-              </span>
+              <DialogTitle className="text-2xl font-bold font-jakarta tracking-tight text-neutral-900">
+                {isEditMode ? 'Ubah Data Prodi' : 'Registrasi Prodi Baru'}
+              </DialogTitle>
+              <DialogDescription className="text-sm font-medium text-neutral-400 italic">
+                Isi data program studi dan pilih fakultas yang menaunginya.
+              </DialogDescription>
             </div>
-            <DialogTitle className="text-xl font-bold font-jakarta tracking-tight text-[#171717]">
-              {isEditMode ? 'Ubah Data Prodi' : 'Registrasi Prodi Baru'}
-            </DialogTitle>
-            <DialogDescription className="text-sm text-[#737373] mt-1">
-              Isi data program studi dan pilih fakultas yang menaunginya.
-            </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSave} className="p-5 md:p-8 space-y-5 md:space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-[#525252] font-jakarta">Nama Program Studi</Label>
-                <Input
-                  required
-                  value={form.Nama}
-                  onChange={e => setForm(prev => ({ ...prev, Nama: e.target.value }))}
-                  placeholder="Contoh: Farmasi"
-                  className="h-10 rounded-xl border-[#e5e5e5] bg-[#fafafa] focus:bg-white text-sm font-jakarta"
-                />
+          <form onSubmit={handleSave}>
+            <div className="p-6 md:p-8 space-y-5 md:space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-[#525252] font-jakarta">Nama Program Studi</Label>
+                  <Input
+                    required
+                    value={form.Nama}
+                    onChange={e => setForm(prev => ({ ...prev, Nama: e.target.value }))}
+                    placeholder="Contoh: Farmasi"
+                    className="h-10 rounded-xl border-[#e5e5e5] bg-[#fafafa] focus:bg-white text-sm font-jakarta"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-[#525252] font-jakarta">Kode Prodi</Label>
+                  <Input
+                    required
+                    value={form.Kode}
+                    onChange={e => setForm(prev => ({ ...prev, Kode: e.target.value }))}
+                    placeholder="Contoh: FM"
+                    className="h-10 rounded-xl border-[#e5e5e5] bg-[#fafafa] focus:bg-white text-sm font-jakarta uppercase"
+                  />
+                </div>
               </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-[#525252] font-jakarta">Kode Prodi</Label>
-                <Input
-                  required
-                  value={form.Kode}
-                  onChange={e => setForm(prev => ({ ...prev, Kode: e.target.value }))}
-                  placeholder="Contoh: FM"
-                  className="h-10 rounded-xl border-[#e5e5e5] bg-[#fafafa] focus:bg-white text-sm font-jakarta uppercase"
-                />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-[#525252] font-jakarta">Jenjang Pendidikan</Label>
+                  <Select value={form.Jenjang} onValueChange={v => setForm(prev => ({ ...prev, Jenjang: v }))}>
+                    <SelectTrigger className="h-10 rounded-xl border-[#e5e5e5] bg-[#fafafa] text-sm font-jakarta">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl shadow-xl border-[#e5e5e5]">
+                      {JENJANG_OPTIONS.map(j => <SelectItem key={j} value={j} className="text-sm">{j}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-[#525252] font-jakarta">Fakultas Naungan</Label>
+                  <Select
+                    value={form.FakultasID}
+                    onValueChange={v => setForm(prev => ({ ...prev, FakultasID: v }))}
+                  >
+                    <SelectTrigger className="h-10 rounded-xl border-[#e5e5e5] bg-[#fafafa] text-sm font-jakarta">
+                      <SelectValue placeholder="Pilih Fakultas" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl shadow-xl border-[#e5e5e5]">
+                      {faculties.filter(f => f && (f.id || f.ID)).length > 0 ? (
+                        faculties.filter(f => f && (f.id || f.ID)).map((f) => (
+                          <SelectItem key={f.id || f.ID} value={String(f.id || f.ID)} className="text-sm">
+                            {f.Nama || f.nama || '—'}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <div className="py-6 px-2 text-center">
+                          <p className="text-[10px] font-semibold text-[#a3a3a3] uppercase tracking-wider mb-1">Tidak Ada Data</p>
+                          <p className="text-[11px] text-[#737373]">Fakultas belum tersedia</p>
+                        </div>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-[#525252] font-jakarta">Jenjang Pendidikan</Label>
-                <Select value={form.Jenjang} onValueChange={v => setForm(prev => ({ ...prev, Jenjang: v }))}>
-                  <SelectTrigger className="h-10 rounded-xl border-[#e5e5e5] bg-[#fafafa] text-sm font-jakarta">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl shadow-xl border-[#e5e5e5]">
-                    {JENJANG_OPTIONS.map(j => <SelectItem key={j} value={j} className="text-sm">{j}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-[#525252] font-jakarta">Fakultas Naungan</Label>
-                <Select
-                  value={form.FakultasID}
-                  onValueChange={v => setForm(prev => ({ ...prev, FakultasID: v }))}
-                >
-                  <SelectTrigger className="h-10 rounded-xl border-[#e5e5e5] bg-[#fafafa] text-sm font-jakarta">
-                    <SelectValue placeholder="Pilih Fakultas" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl shadow-xl border-[#e5e5e5]">
-                    {faculties.filter(f => f && (f.id || f.ID)).length > 0 ? (
-                      faculties.filter(f => f && (f.id || f.ID)).map((f) => (
-                        <SelectItem key={f.id || f.ID} value={String(f.id || f.ID)} className="text-sm">
-                          {f.Nama || f.nama || '—'}
-                        </SelectItem>
-                      ))
-                    ) : (
-                      <div className="py-6 px-2 text-center">
-                        <p className="text-[10px] font-semibold text-[#a3a3a3] uppercase tracking-wider mb-1">Tidak Ada Data</p>
-                        <p className="text-[11px] text-[#737373]">Fakultas belum tersedia</p>
-                      </div>
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="pt-5 flex flex-col-reverse sm:flex-row gap-3 border-t border-[#f0f0f0]">
+            <DialogFooter>
               <Button
                 type="button"
                 variant="ghost"
                 onClick={() => setIsCrudOpen(false)}
-                className="flex-1 h-11 rounded-xl text-sm font-semibold text-[#737373] hover:bg-[#f5f5f5] hover:text-[#171717] border border-[#e5e5e5] w-full sm:w-auto"
+                className="flex-1 h-12 md:h-14 rounded-xl text-[10px] font-bold uppercase tracking-widest text-neutral-400 hover:bg-neutral-50 transition-all"
               >
                 Batal
               </Button>
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-[2] h-11 rounded-xl bg-bku-primary text-white hover:bg-[#003399] shadow-md transition-all active:scale-95 border-none gap-2 w-full sm:w-auto flex items-center justify-center"
+                className="flex-[2] h-12 md:h-14 rounded-xl bg-neutral-900 text-white hover:bg-primary shadow-xl shadow-neutral-900/10 transition-all active:scale-95 border-none flex items-center justify-center gap-3"
               >
-                {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '15px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >save</span>}
-                <span className="text-sm font-semibold">{isEditMode ? 'Perbarui Prodi' : 'Simpan Prodi'}</span>
+                {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >save</span>}
+                <span className="text-[10px] font-bold uppercase tracking-widest">{isEditMode ? 'Perbarui Prodi' : 'Simpan Prodi'}</span>
               </Button>
-            </div>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>

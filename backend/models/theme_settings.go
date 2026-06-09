@@ -67,6 +67,35 @@ type ThemeSettings struct {
 	ColorBorder       string `gorm:"size:9;default:'#E2E8F0'" json:"color_border"`
 	ColorBorderMuted string `gorm:"size:9;default:'#F1F5F9'" json:"color_border_muted"`
 
+	// === MOBILE-SPECIFIC COLORS ===
+	MobileColorPrimary          string `gorm:"size:9;default:'#002068'" json:"mobile_color_primary"`
+	MobileColorPrimaryContainer string `gorm:"size:9;default:'#003399'" json:"mobile_color_primary_container"`
+	MobileColorSecondary        string `gorm:"size:9;default:'#745B00'" json:"mobile_color_secondary"`
+	MobileColorSecondaryContainer string `gorm:"size:9;default:'#FDD355'" json:"mobile_color_secondary_container"`
+	MobileColorBackground       string `gorm:"size:9;default:'#FBF9F8'" json:"mobile_color_background"`
+	MobileColorSurface          string `gorm:"size:9;default:'#FFFFFF'" json:"mobile_color_surface"`
+	MobileColorOnSurface        string `gorm:"size:9;default:'#1B1C1C'" json:"mobile_color_on_surface"`
+	MobileColorOnSurfaceVariant string `gorm:"size:9;default:'#444653'" json:"mobile_color_on_surface_variant"`
+	MobileColorOutline          string `gorm:"size:9;default:'#747684'" json:"mobile_color_outline"`
+	MobileColorOutlineVariant   string `gorm:"size:9;default:'#C4C5D5'" json:"mobile_color_outline_variant"`
+
+	// Mobile Gradients (untuk AppBar & Header)
+	MobileGradientStart  string `gorm:"size:9;default:'#00164E'" json:"mobile_gradient_start"`
+	MobileGradientMiddle string `gorm:"size:9;default:'#002068'" json:"mobile_gradient_middle"`
+	MobileGradientEnd    string `gorm:"size:9;default:'#003399'" json:"mobile_gradient_end"`
+
+	// Mobile Secondary Gradient (untuk variant secondary)
+	MobileGradientSecondaryStart  string `gorm:"size:9;default:'#745B00'" json:"mobile_gradient_secondary_start"`
+	MobileGradientSecondaryMiddle string `gorm:"size:9;default:'#B48A00'" json:"mobile_gradient_secondary_middle"`
+	MobileGradientSecondaryEnd    string `gorm:"size:9;default:'#FDD355'" json:"mobile_gradient_secondary_end"`
+
+	// Mobile Branding
+	MobileLogoURL        string `gorm:"size:500" json:"mobile_logo_url"`
+	MobileSplashLogoURL  string `gorm:"size:500" json:"mobile_splash_logo_url"`
+
+	// Theme Version (untuk sync mobile)
+	ThemeVersion     string `gorm:"size:50;default:'1'" json:"theme_version"`
+
 	// Meta
 	UpdatedByID *uint `gorm:"index" json:"updated_by_id"`
 }

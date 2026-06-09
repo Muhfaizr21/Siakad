@@ -289,9 +289,9 @@ export default function LecturerDirectory() {
         </PageCard>
 
       {/* ── CRUD Modal ───────────────────────────────────────────── */}
-      <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden border border-slate-200/60 shadow-2xl rounded-2xl bg-white/95 backdrop-blur-xl">
-          <DialogHeader className="p-8 pb-6 border-b border-slate-200/40 relative overflow-hidden bg-white/40">
+      <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen} maxWidth="max-w-xl">
+        <DialogContent>
+          <DialogHeader className="relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-5 text-bku-primary"><span className="material-symbols-outlined" style={{ fontSize: '100px' }} >school</span></div>
             <div className="relative z-10 space-y-1">
               <div className="flex items-center gap-2 mb-2">
@@ -307,60 +307,72 @@ export default function LecturerDirectory() {
             </div>
           </DialogHeader>
 
-          <form onSubmit={handleSave} className="p-8 pt-6 space-y-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-[11px] font-black text-slate-500 font-headline ml-1 uppercase tracking-widest">NIDN / NIP</Label>
-                <Input required value={form.NIDN} onChange={e => setForm({ ...form, NIDN: e.target.value })} placeholder="Nomor Induk..." className="h-11 rounded-lg border-slate-200/60 bg-white/50 focus:bg-white font-medium text-sm font-inter uppercase" />
+          <form onSubmit={handleSave}>
+            <div className="p-6 md:p-8 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar font-inter">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[11px] font-black text-slate-500 font-headline ml-1 uppercase tracking-widest">NIDN / NIP</Label>
+                  <Input required value={form.NIDN} onChange={e => setForm({ ...form, NIDN: e.target.value })} placeholder="Nomor Induk..." className="h-11 rounded-lg border-slate-200/60 bg-white/50 focus:bg-white font-medium text-sm font-inter uppercase" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[11px] font-black text-slate-500 font-headline ml-1 uppercase tracking-widest">Nama Lengkap</Label>
+                  <Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Nama..." className="h-11 rounded-lg border-slate-200/60 bg-white/50 focus:bg-white font-medium text-sm font-inter" />
+                </div>
               </div>
+
               <div className="space-y-2">
-                <Label className="text-[11px] font-black text-slate-500 font-headline ml-1 uppercase tracking-widest">Nama Lengkap</Label>
-                <Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Nama..." className="h-11 rounded-lg border-slate-200/60 bg-white/50 focus:bg-white font-medium text-sm font-inter" />
+                <Label className="text-[11px] font-black text-slate-500 font-headline ml-1 uppercase tracking-widest">Email Institusi</Label>
+                <Input required type="email" value={form.Email} onChange={e => setForm({ ...form, Email: e.target.value })} placeholder="dosen@bku.ac.id" className="h-11 rounded-lg border-slate-200/60 bg-white/50 focus:bg-white font-medium text-sm font-inter" />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[11px] font-black text-slate-500 font-headline ml-1 uppercase tracking-widest">Jabatan</Label>
+                  <Select value={form.Jabatan} onValueChange={v => setForm({ ...form, Jabatan: v })}>
+                    <SelectTrigger className="h-11 rounded-lg border-slate-200/60 bg-white/50 font-medium text-sm"><SelectValue /></SelectTrigger>
+                    <SelectContent className="rounded-xl shadow-xl">
+                      {['Asisten', 'Lektor', 'Lektor Kepala', 'Profesor'].map(j => <SelectItem key={j} value={j} className="text-xs font-medium">{j}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[11px] font-black text-slate-500 font-headline ml-1 uppercase tracking-widest">Fakultas</Label>
+                  <Select value={form.FakultasID} onValueChange={v => setForm({ ...form, FakultasID: v, ProgramStudiID: '' })}>
+                    <SelectTrigger className="h-11 rounded-lg border-slate-200/60 bg-white/50 font-medium text-sm"><SelectValue placeholder="Pilih" /></SelectTrigger>
+                    <SelectContent className="rounded-xl shadow-xl">
+                      {faculties.map(f => <SelectItem key={f.id || f.ID} value={String(f.id || f.ID)} className="text-xs font-medium uppercase">{f.Nama}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[11px] font-black text-slate-500 font-headline ml-1 uppercase tracking-widest">Program Studi</Label>
+                  <Select value={form.ProgramStudiID} onValueChange={v => setForm({ ...form, ProgramStudiID: v })}>
+                    <SelectTrigger className="h-11 rounded-lg border-slate-200/60 bg-white/50 font-medium text-sm"><SelectValue placeholder="Pilih" /></SelectTrigger>
+                    <SelectContent className="rounded-xl shadow-xl">
+                      {prodi.filter(p => !form.FakultasID || String(p.FakultasID) === form.FakultasID).map(p => <SelectItem key={p.id || p.ID} value={String(p.id || p.ID)} className="text-xs font-medium uppercase">{p.Nama}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-[11px] font-black text-slate-500 font-headline ml-1 uppercase tracking-widest">Email Institusi</Label>
-              <Input required type="email" value={form.Email} onChange={e => setForm({ ...form, Email: e.target.value })} placeholder="dosen@bku.ac.id" className="h-11 rounded-lg border-slate-200/60 bg-white/50 focus:bg-white font-medium text-sm font-inter" />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label className="text-[11px] font-black text-slate-500 font-headline ml-1 uppercase tracking-widest">Jabatan</Label>
-                <Select value={form.Jabatan} onValueChange={v => setForm({ ...form, Jabatan: v })}>
-                  <SelectTrigger className="h-11 rounded-lg border-slate-200/60 bg-white/50 font-medium text-sm"><SelectValue /></SelectTrigger>
-                  <SelectContent className="rounded-xl shadow-xl">
-                    {['Asisten', 'Lektor', 'Lektor Kepala', 'Profesor'].map(j => <SelectItem key={j} value={j} className="text-xs font-medium">{j}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[11px] font-black text-slate-500 font-headline ml-1 uppercase tracking-widest">Fakultas</Label>
-                <Select value={form.FakultasID} onValueChange={v => setForm({ ...form, FakultasID: v, ProgramStudiID: '' })}>
-                  <SelectTrigger className="h-11 rounded-lg border-slate-200/60 bg-white/50 font-medium text-sm"><SelectValue placeholder="Pilih" /></SelectTrigger>
-                  <SelectContent className="rounded-xl shadow-xl">
-                    {faculties.map(f => <SelectItem key={f.ID} value={String(f.ID)} className="text-xs font-medium uppercase">{f.Nama}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[11px] font-black text-slate-500 font-headline ml-1 uppercase tracking-widest">Program Studi</Label>
-                <Select value={form.ProgramStudiID} onValueChange={v => setForm({ ...form, ProgramStudiID: v })}>
-                  <SelectTrigger className="h-11 rounded-lg border-slate-200/60 bg-white/50 font-medium text-sm"><SelectValue placeholder="Pilih" /></SelectTrigger>
-                  <SelectContent className="rounded-xl shadow-xl">
-                    {prodi.filter(p => !form.FakultasID || String(p.FakultasID) === form.FakultasID).map(p => <SelectItem key={p.ID} value={String(p.ID)} className="text-xs font-medium uppercase">{p.Nama}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="pt-6 flex flex-row gap-3 border-t border-slate-200/40">
-               <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="flex-1 h-12 rounded-xl text-[10px] font-black font-headline uppercase tracking-widest text-slate-400 hover:bg-slate-100 cursor-pointer">Batal</Button>
-               <Button type="submit" disabled={isSubmitting} className="flex-1 h-12 rounded-xl bg-slate-800 text-white hover:bg-slate-900 shadow-none transition-all active:scale-95 border-none cursor-pointer">
-                  {isSubmitting ? <span className="material-symbols-outlined animate-spin mr-2" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined mr-2" style={{ fontSize: '14px' }} >save</span>}
-                  <span className="text-[10px] font-black font-headline uppercase tracking-widest">Simpan Data</span>
-               </Button>
-            </div>
+            <DialogFooter>
+              <button
+                type="button"
+                onClick={() => setIsCrudOpen(false)}
+                className="flex-1 h-12 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-headline cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex-1 h-12 bg-neutral-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2 font-headline disabled:opacity-50 cursor-pointer border-none"
+              >
+                {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >save</span>}
+                <span>Simpan Data</span>
+              </button>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>

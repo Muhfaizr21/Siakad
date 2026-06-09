@@ -221,15 +221,26 @@ export default function TenagaKesehatanMedicalRecords() {
         </Card>
 
       {/* ── Detail Rekam Medis / Screening Dialog ─────────────── */}
-      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-2xl bg-white border rounded-2xl shadow-xl overflow-hidden p-0 animate-in fade-in duration-200">
-          <div className="bg-gradient-to-br from-[#00236f] via-[#00236f]/90 to-[#00236f]/85 px-6 py-5 text-white">
-            <DialogTitle className="text-base font-bold uppercase tracking-wider font-jakarta text-white">Detail Pemeriksaan & Screening</DialogTitle>
-            <DialogDescription className="text-white/70 text-xs mt-1">Informasi lengkap hasil pemeriksaan fisik mahasiswa.</DialogDescription>
-          </div>
+      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen} maxWidth="max-w-2xl">
+        <DialogContent>
+          <DialogHeader className="relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-5 text-bku-primary"><span className="material-symbols-outlined" style={{ fontSize: '100px' }} >medical_services</span></div>
+            <div className="relative z-10 space-y-1">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
+                  <span className="material-symbols-outlined text-[12px]">medical_services</span>
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-bku-primary font-jakarta">Medical Records</span>
+              </div>
+              <DialogTitle className="text-xl sm:text-2xl font-black font-jakarta tracking-tight text-slate-800 uppercase">
+                Detail Pemeriksaan & Screening
+              </DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm font-medium text-slate-500">Informasi lengkap hasil pemeriksaan fisik mahasiswa.</DialogDescription>
+            </div>
+          </DialogHeader>
           
           {detailItem && (
-            <div className="p-6 max-h-[70vh] overflow-y-auto space-y-6">
+            <div className="p-6 md:p-8 max-h-[50vh] overflow-y-auto no-scrollbar space-y-6">
               {/* Mahasiswa Info Card */}
               <div className="flex gap-4 p-4 bg-slate-50 border border-slate-200/50 rounded-2xl font-jakarta">
                 <StudentAvatar
@@ -327,13 +338,14 @@ export default function TenagaKesehatanMedicalRecords() {
             </div>
           )}
 
-          <DialogFooter className="p-6 border-t border-slate-100 bg-neutral-50/50">
-            <Button
+          <DialogFooter>
+            <button
+              type="button"
               onClick={() => setIsDetailOpen(false)}
-              className="w-full bg-bku-primary hover:bg-bku-primary/90 text-white font-bold font-jakarta text-xs uppercase tracking-wider h-11 rounded-xl border-none"
+              className="flex-1 sm:flex-initial h-12 px-6 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-jakarta cursor-pointer"
             >
               Tutup Detail
-            </Button>
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

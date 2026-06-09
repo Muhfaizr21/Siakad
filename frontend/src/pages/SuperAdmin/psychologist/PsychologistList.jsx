@@ -441,134 +441,158 @@ export default function PsychologistList() {
         </Card>
 
       {/* ── Edit Modal ───────────────────────────────────────────── */}
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="w-[95vw] sm:w-[90vw] md:max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white animate-in slide-in-from-bottom-4 duration-300">
-          <DialogHeader className="p-6 sm:p-8 pb-4 sm:pb-6 border-b border-neutral-100 relative overflow-hidden bg-neutral-50/50">
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen} maxWidth="max-w-xl">
+        <DialogContent>
+          <DialogHeader className="relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-5 text-bku-primary"><BrainCircuit size={100} /></div>
             <div className="relative z-10 space-y-1">
               <div className="flex items-center gap-2 mb-2">
                 <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
-                  <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >edit</span>
+                  <span className="material-symbols-outlined text-[12px]" >edit</span>
                 </div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-bku-primary">Clinical Registry</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-bku-primary font-jakarta">Clinical Registry</span>
               </div>
-              <DialogTitle className="text-xl sm:text-2xl font-bold font-jakarta tracking-tight text-neutral-900 uppercase">
+              <DialogTitle className="text-xl sm:text-2xl font-black font-jakarta tracking-tight text-slate-800 uppercase">
                 Edit Profil Psikolog
               </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm font-medium text-neutral-400">Pembaruan kualifikasi dan pengaturan operasional tenaga ahli.</DialogDescription>
+              <DialogDescription className="text-xs sm:text-sm font-medium text-slate-500">Pembaruan kualifikasi dan pengaturan operasional tenaga ahli.</DialogDescription>
             </div>
           </DialogHeader>
 
-          <form onSubmit={handleSave} className="p-6 sm:p-8 pt-4 sm:pt-6 space-y-4 sm:space-y-5 max-h-[70vh] overflow-y-auto">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta ml-1">Nama Lengkap & Gelar</Label>
-                <Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Nama psikolog..." className="h-10 rounded-xl border-[var(--theme-border)] bg-white font-medium text-sm font-jakarta uppercase" />
+          <form onSubmit={handleSave}>
+            <div className="p-6 md:p-8 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar font-jakarta">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">Nama Lengkap & Gelar</Label>
+                  <Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Nama psikolog..." className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-jakarta uppercase" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">Spesialisasi Klinis</Label>
+                  <Input value={form.Spesialisasi} onChange={e => setForm({ ...form, Spesialisasi: e.target.value })} placeholder="Bidang keahlian..." className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-jakarta" />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta ml-1">Spesialisasi Klinis</Label>
-                <Input value={form.Spesialisasi} onChange={e => setForm({ ...form, Spesialisasi: e.target.value })} placeholder="Bidang keahlian..." className="h-10 rounded-xl border-[var(--theme-border)] bg-white font-medium text-sm font-jakarta" />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">Email</Label>
+                  <Input type="email" value={form.Email} onChange={e => setForm({ ...form, Email: e.target.value })} placeholder="Email psikolog..." className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-jakarta" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">No. HP / WhatsApp</Label>
+                  <Input value={form.NoHP} onChange={e => setForm({ ...form, NoHP: e.target.value })} placeholder="Contoh: 08123456789" className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-jakarta" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">Titik Lokasi Praktek</Label>
+                  <Input value={form.Lokasi} onChange={e => setForm({ ...form, Lokasi: e.target.value })} placeholder="Klinik / Ruang Konseling..." className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-jakarta" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">Bahasa Layanan</Label>
+                  <Input value={form.Bahasa} onChange={e => setForm({ ...form, Bahasa: e.target.value })} placeholder="Contoh: Indonesia, Inggris" className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-jakarta" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">Status Operasional</Label>
+                  <Select value={form.IsAktif ? "1" : "0"} onValueChange={v => setForm({ ...form, IsAktif: v === "1" })}>
+                    <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-slate-50/30 font-semibold text-sm text-slate-800 focus:border-bku-primary"><SelectValue /></SelectTrigger>
+                    <SelectContent className="rounded-xl shadow-xl bg-white border border-slate-200">
+                      <SelectItem value="1" className="text-xs font-medium uppercase">Aktif Tersedia</SelectItem>
+                      <SelectItem value="0" className="text-xs font-medium uppercase text-rose-600">Non-Aktif</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">Foto URL / Avatar</Label>
+                <Input value={form.FotoURL} onChange={e => setForm({ ...form, FotoURL: e.target.value })} placeholder="https://example.com/foto.jpg atau path lokal..." className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-jakarta" />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">Bio / Deskripsi Singkat</Label>
+                <textarea value={form.Bio} onChange={e => setForm({ ...form, Bio: e.target.value })} placeholder="Tulis deskripsi keahlian, pengalaman, atau latar belakang akademis..." rows={3} className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50/30 text-sm font-semibold text-slate-800 font-jakarta outline-none focus:bg-white focus:border-bku-primary transition-all resize-none" />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta ml-1">Email</Label>
-                <Input type="email" value={form.Email} onChange={e => setForm({ ...form, Email: e.target.value })} placeholder="Email psikolog..." className="h-10 rounded-xl border-[var(--theme-border)] bg-white font-medium text-sm font-jakarta" />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta ml-1">No. HP / WhatsApp</Label>
-                <Input value={form.NoHP} onChange={e => setForm({ ...form, NoHP: e.target.value })} placeholder="Contoh: 08123456789" className="h-10 rounded-xl border-[var(--theme-border)] bg-white font-medium text-sm font-jakarta" />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta ml-1">Titik Lokasi Praktek</Label>
-                <Input value={form.Lokasi} onChange={e => setForm({ ...form, Lokasi: e.target.value })} placeholder="Klinik / Ruang Konseling..." className="h-10 rounded-xl border-[var(--theme-border)] bg-white font-medium text-sm font-jakarta" />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta ml-1">Bahasa Layanan</Label>
-                <Input value={form.Bahasa} onChange={e => setForm({ ...form, Bahasa: e.target.value })} placeholder="Contoh: Indonesia, Inggris" className="h-10 rounded-xl border-[var(--theme-border)] bg-white font-medium text-sm font-jakarta" />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta ml-1">Status Operasional</Label>
-                <Select value={form.IsAktif ? "1" : "0"} onValueChange={v => setForm({ ...form, IsAktif: v === "1" })}>
-                  <SelectTrigger className="h-10 rounded-xl border-[var(--theme-border)] bg-white font-medium text-sm"><SelectValue /></SelectTrigger>
-                  <SelectContent className="rounded-xl shadow-xl bg-white border border-[var(--theme-border)]">
-                    <SelectItem value="1" className="text-xs font-medium uppercase">Aktif Tersedia</SelectItem>
-                    <SelectItem value="0" className="text-xs font-medium uppercase text-[var(--theme-error)]">Non-Aktif</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta ml-1">Foto URL / Avatar</Label>
-              <Input value={form.FotoURL} onChange={e => setForm({ ...form, FotoURL: e.target.value })} placeholder="https://example.com/foto.jpg atau path lokal..." className="h-10 rounded-xl border-[var(--theme-border)] bg-white font-medium text-sm font-jakarta" />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta ml-1">Bio / Deskripsi Singkat</Label>
-              <textarea value={form.Bio} onChange={e => setForm({ ...form, Bio: e.target.value })} placeholder="Tulis deskripsi keahlian, pengalaman, atau latar belakang akademis..." rows={3} className="w-full p-3 rounded-xl border border-[var(--theme-border)] bg-white text-sm font-medium font-jakarta outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] transition-all resize-none" />
-            </div>
-
-            <div className="pt-6 flex flex-col-reverse sm:flex-row gap-3 border-t border-[var(--theme-border-muted)]">
-              <Button type="button" variant="ghost" onClick={() => setIsEditOpen(false)} className="w-full sm:w-auto h-10 rounded-xl text-xs font-bold uppercase tracking-widest text-[var(--theme-text-muted)]">Batal</Button>
-              <Button type="submit" disabled={isSubmitting} className="w-full sm:flex-1 h-10 rounded-xl bg-[var(--theme-primary)] text-white hover:bg-[var(--theme-primary-hover)] shadow-md transition-all active:scale-95 flex items-center justify-center border-none cursor-pointer">
-                {isSubmitting ? <span className="material-symbols-outlined animate-spin mr-2" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined mr-2" style={{ fontSize: '14px' }} >save</span>}
-                <span className="text-xs font-bold uppercase tracking-widest">Update Profil</span>
-              </Button>
-            </div>
+            <DialogFooter>
+              <button
+                type="button"
+                onClick={() => setIsEditOpen(false)}
+                className="flex-1 sm:flex-initial h-12 px-6 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-jakarta cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex-1 sm:flex-initial h-12 px-8 bg-neutral-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2 font-jakarta disabled:opacity-50 cursor-pointer border-none"
+              >
+                {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >save</span>}
+                <span>Update Profil</span>
+              </button>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
       {/* ── Add Modal ───────────────────────────────────────────── */}
-      <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-        <DialogContent className="w-[95vw] sm:w-[90vw] md:max-w-md p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white animate-in slide-in-from-bottom-4 duration-300">
-          <DialogHeader className="p-6 sm:p-8 pb-4 sm:pb-6 border-b border-neutral-100 relative overflow-hidden bg-neutral-50/50">
+      <Dialog open={isAddOpen} onOpenChange={setIsAddOpen} maxWidth="max-w-md">
+        <DialogContent>
+          <DialogHeader className="relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-5 text-bku-primary"><BrainCircuit size={100} /></div>
             <div className="relative z-10 space-y-1">
               <div className="flex items-center gap-2 mb-2">
                 <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
-                  <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >add_circle</span>
+                  <span className="material-symbols-outlined text-[12px]" >add_circle</span>
                 </div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-bku-primary">Registry System</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-bku-primary font-jakarta">Registry System</span>
               </div>
-              <DialogTitle className="text-xl sm:text-2xl font-bold font-jakarta tracking-tight text-neutral-900 uppercase">
+              <DialogTitle className="text-xl sm:text-2xl font-black font-jakarta tracking-tight text-slate-800 uppercase">
                 Tambah Psikolog Baru
               </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm font-medium text-neutral-400">Registrasi akun baru untuk psikolog.</DialogDescription>
+              <DialogDescription className="text-xs sm:text-sm font-medium text-slate-500">Registrasi akun baru untuk psikolog.</DialogDescription>
             </div>
           </DialogHeader>
 
-          <form onSubmit={handleAdd} className="p-6 sm:p-8 pt-4 sm:pt-6 space-y-4">
-            <div className="space-y-2">
-              <Label className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta ml-1">Nama Lengkap & Gelar</Label>
-              <Input required value={addForm.Nama} onChange={e => setAddForm({ ...addForm, Nama: e.target.value })} placeholder="Contoh: Budi Santoso, M.Psi." className="h-10 rounded-xl border-[var(--theme-border)] bg-white font-medium text-sm font-jakarta uppercase" />
+          <form onSubmit={handleAdd}>
+            <div className="p-6 md:p-8 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar font-jakarta">
+              <div className="space-y-1.5">
+                <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">Nama Lengkap & Gelar</Label>
+                <Input required value={addForm.Nama} onChange={e => setAddForm({ ...addForm, Nama: e.target.value })} placeholder="Contoh: Budi Santoso, M.Psi." className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-jakarta uppercase" />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">Email</Label>
+                <Input type="email" required value={addForm.Email} onChange={e => setAddForm({ ...addForm, Email: e.target.value })} placeholder="Contoh: psikolog.budi@bku.ac.id" className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-jakarta" />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">Password</Label>
+                <Input type="password" required value={addForm.Password} onChange={e => setAddForm({ ...addForm, Password: e.target.value })} placeholder="Password..." className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-jakarta" />
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta ml-1">Email</Label>
-              <Input type="email" required value={addForm.Email} onChange={e => setAddForm({ ...addForm, Email: e.target.value })} placeholder="Contoh: psikolog.budi@bku.ac.id" className="h-10 rounded-xl border-[var(--theme-border)] bg-white font-medium text-sm font-jakarta" />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta ml-1">Password</Label>
-              <Input type="password" required value={addForm.Password} onChange={e => setAddForm({ ...addForm, Password: e.target.value })} placeholder="Password..." className="h-10 rounded-xl border-[var(--theme-border)] bg-white font-medium text-sm font-jakarta" />
-            </div>
-
-            <div className="pt-6 flex flex-col-reverse sm:flex-row gap-3 border-t border-[var(--theme-border-muted)]">
-              <Button type="button" variant="ghost" onClick={() => setIsAddOpen(false)} className="w-full sm:w-auto h-10 rounded-xl text-xs font-bold uppercase tracking-widest text-[var(--theme-text-muted)]">Batal</Button>
-              <Button type="submit" disabled={isSubmitting} className="w-full sm:flex-1 h-10 rounded-xl bg-[var(--theme-primary)] text-white hover:bg-[var(--theme-primary-hover)] shadow-md transition-all active:scale-95 flex items-center justify-center border-none cursor-pointer">
-                {isSubmitting ? <span className="material-symbols-outlined animate-spin mr-2" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined mr-2" style={{ fontSize: '14px' }} >save</span>}
-                <span className="text-xs font-bold uppercase tracking-widest">Daftarkan Akun</span>
-              </Button>
-            </div>
+            <DialogFooter>
+              <button
+                type="button"
+                onClick={() => setIsAddOpen(false)}
+                className="flex-1 sm:flex-initial h-12 px-6 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-jakarta cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex-1 sm:flex-initial h-12 px-8 bg-neutral-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2 font-jakarta disabled:opacity-50 cursor-pointer border-none"
+              >
+                {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >save</span>}
+                <span>Daftarkan Akun</span>
+              </button>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
@@ -583,56 +607,33 @@ export default function PsychologistList() {
       />
 
       {/* ── Schedule Management Modal ────────────────────────────── */}
-      <Dialog open={isScheduleOpen} onOpenChange={setIsScheduleOpen}>
-        <DialogContent className="w-[95vw] sm:w-[90vw] md:max-w-4xl p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white animate-in slide-in-from-bottom-4 duration-300">
-          <DialogHeader className="p-6 border-b border-neutral-100 relative overflow-hidden bg-neutral-50/50">
+      <Dialog open={isScheduleOpen} onOpenChange={setIsScheduleOpen} maxWidth="max-w-4xl">
+        <DialogContent>
+          <DialogHeader className="relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-5 text-bku-primary"><span className="material-symbols-outlined text-[100px]">calendar_month</span></div>
-            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
-                    <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >calendar_month</span>
-                  </div>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-bku-primary">Jadwal Praktik</span>
+            <div className="relative z-10 space-y-1">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
+                  <span className="material-symbols-outlined text-[12px]">calendar_month</span>
                 </div>
-                <DialogTitle className="text-xl font-bold font-jakarta tracking-tight text-neutral-900 uppercase">
-                  Kelola Jadwal: {selected?.nama}
-                </DialogTitle>
-                <DialogDescription className="text-xs font-medium text-neutral-400">Atur ketersediaan slot konseling mingguan untuk psikolog.</DialogDescription>
+                <span className="text-[10px] font-black uppercase tracking-widest text-bku-primary font-jakarta">Jadwal Praktik</span>
               </div>
-              <div className="flex items-center gap-2 md:pr-12">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={resetScheduleChanges}
-                  disabled={isSavingSchedule || scheduleLoading}
-                  className="h-10 px-4 rounded-xl text-xs font-bold uppercase tracking-widest text-neutral-500 hover:text-bku-primary hover:bg-slate-50 transition-all active:scale-95"
-                >
-                  <span className="material-symbols-outlined mr-1.5" style={{ fontSize: '14px' }}>history</span>
-                  Reset
-                </Button>
-                <Button
-                  type="button"
-                  onClick={saveSchedule}
-                  disabled={isSavingSchedule || scheduleLoading}
-                  className="h-10 rounded-xl bg-bku-primary hover:bg-bku-primary/90 text-white font-bold uppercase tracking-widest text-xs flex items-center justify-center px-4 border-none shadow-md shadow-bku-primary/10 hover:shadow-bku-primary/20 transition-all"
-                >
-                  {isSavingSchedule ? <span className="material-symbols-outlined animate-spin mr-1.5" style={{ fontSize: '14px' }}>sync</span> : <span className="material-symbols-outlined mr-1.5" style={{ fontSize: '14px' }}>save</span>}
-                  {isSavingSchedule ? 'Menyimpan...' : 'Simpan Jadwal'}
-                </Button>
-              </div>
+              <DialogTitle className="text-xl font-bold font-jakarta tracking-tight text-slate-800 uppercase">
+                Kelola Jadwal: {selected?.nama}
+              </DialogTitle>
+              <DialogDescription className="text-xs font-medium text-slate-500">Atur ketersediaan slot konseling mingguan untuk psikolog.</DialogDescription>
             </div>
           </DialogHeader>
 
           {scheduleLoading ? (
-            <div className="h-[450px] flex items-center justify-center flex-col gap-3 bg-white">
+            <div className="h-[350px] flex items-center justify-center flex-col gap-3 bg-white">
               <span className="material-symbols-outlined animate-spin text-bku-primary" style={{ fontSize: '40px' }}>sync</span>
               <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">Memuat Jadwal...</span>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-12 h-[480px] bg-white">
+            <div className="grid grid-cols-1 md:grid-cols-12 max-h-[50vh] min-h-[350px] bg-white border-t border-b border-neutral-100">
               {/* Day Selector Aside */}
-              <aside className="md:col-span-3 border-r border-neutral-100 p-4 bg-slate-50/30 overflow-y-auto space-y-2">
+              <aside className="md:col-span-3 border-r border-neutral-100 p-4 bg-slate-50/30 overflow-y-auto space-y-2 no-scrollbar">
                 <span className="text-[9px] font-black uppercase tracking-widest text-neutral-400 block px-2 mb-2">Pilih Hari</span>
                 {scheduleData.map((item) => {
                   const isSelected = selectedDay === item.day;
@@ -642,7 +643,7 @@ export default function PsychologistList() {
                       type="button"
                       onClick={() => setSelectedDay(item.day)}
                       className={cn(
-                        "w-full rounded-xl border p-3 text-left transition-all duration-200 relative overflow-hidden flex flex-col gap-1.5",
+                        "w-full rounded-xl border p-3 text-left transition-all duration-200 relative overflow-hidden flex flex-col gap-1.5 cursor-pointer",
                         isSelected
                           ? "border-bku-primary bg-bku-primary/10 text-bku-primary shadow-sm"
                           : "border-neutral-200/60 bg-white text-neutral-600 hover:border-bku-primary/30"
@@ -661,7 +662,7 @@ export default function PsychologistList() {
               </aside>
 
               {/* Slot Editor Area */}
-              <section className="md:col-span-9 p-6 overflow-y-auto h-full">
+              <section className="md:col-span-9 p-6 overflow-y-auto h-full no-scrollbar">
                 {currentDayData.enabled ? (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
@@ -673,37 +674,36 @@ export default function PsychologistList() {
                         <p className="text-[10px] font-medium text-neutral-400">Tentukan jam mulai, selesai, jenis layanan, lokasi, dan kuota.</p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Button
+                        <button
                           type="button"
-                          variant="outline"
                           onClick={() => toggleDay(selectedDay)}
-                          className="h-8 rounded-lg text-[10px] font-bold uppercase tracking-widest text-rose-600 border-rose-100 hover:bg-rose-50 hover:text-rose-700"
+                          className="h-9 px-3 rounded-xl text-[10px] font-bold uppercase tracking-widest text-rose-600 border border-rose-100 hover:bg-rose-50 hover:text-rose-700 cursor-pointer bg-white"
                         >
                           Nonaktifkan Hari
-                        </Button>
-                        <Button
+                        </button>
+                        <button
                           type="button"
                           onClick={() => addSlot(selectedDay)}
-                          className="h-8 rounded-lg bg-bku-primary/10 text-bku-primary hover:bg-bku-primary hover:text-white text-[10px] font-bold uppercase tracking-widest flex items-center px-3 border border-bku-primary/20"
+                          className="h-9 rounded-xl bg-bku-primary/10 text-bku-primary hover:bg-bku-primary hover:text-white text-[10px] font-bold uppercase tracking-widest flex items-center px-3 border border-bku-primary/20 cursor-pointer"
                         >
                           <span className="material-symbols-outlined mr-1" style={{ fontSize: '12px' }}>add</span>
                           Tambah Slot
-                        </Button>
+                        </button>
                       </div>
                     </div>
 
                     {currentDayData.slots.length === 0 ? (
-                      <div className="h-[280px] flex flex-col items-center justify-center border-2 border-dashed border-neutral-200 rounded-xl bg-slate-50/50 text-center p-6">
+                      <div className="h-[240px] flex flex-col items-center justify-center border-2 border-dashed border-neutral-200 rounded-xl bg-slate-50/50 text-center p-6">
                         <span className="material-symbols-outlined text-neutral-300 mb-2" style={{ fontSize: '32px' }}>schedule</span>
                         <h4 className="text-xs font-bold uppercase tracking-tight text-neutral-800">Belum Ada Slot Waktu</h4>
                         <p className="text-[11px] text-neutral-400 mt-1 max-w-xs">Tambahkan slot waktu praktik agar mahasiswa dapat memilih hari ini.</p>
-                        <Button
+                        <button
                           type="button"
                           onClick={() => addSlot(selectedDay)}
-                          className="mt-4 h-9 bg-bku-primary text-white rounded-lg text-[10px] font-bold uppercase tracking-widest"
+                          className="mt-4 h-9 bg-bku-primary text-white rounded-lg text-[10px] font-bold uppercase tracking-widest cursor-pointer px-4 border-none"
                         >
                           Tambah Slot Pertama
-                        </Button>
+                        </button>
                       </div>
                     ) : (
                       <div className="space-y-3">
@@ -735,7 +735,7 @@ export default function PsychologistList() {
                                     <Label className="text-[9px] font-bold text-neutral-400 uppercase">Jenis</Label>
                                     <Select value={slot.kategori} onValueChange={(val) => updateSlot(selectedDay, index, 'kategori', val)}>
                                       <SelectTrigger className="h-9 rounded-lg border-neutral-200 text-xs font-bold"><SelectValue /></SelectTrigger>
-                                      <SelectContent className="rounded-lg shadow-lg">
+                                      <SelectContent className="rounded-lg shadow-lg bg-white border border-slate-200">
                                         {scheduleTypes.map((type) => (
                                           <SelectItem key={type} value={type} className="text-xs font-semibold">{type}</SelectItem>
                                         ))}
@@ -762,15 +762,13 @@ export default function PsychologistList() {
                                     />
                                   </div>
                                 </div>
-                                <Button
+                                <button
                                   type="button"
                                   onClick={() => removeSlot(selectedDay, index)}
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-9 w-9 text-neutral-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg shrink-0"
+                                  className="h-9 w-9 text-neutral-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg shrink-0 flex items-center justify-center border-none bg-transparent cursor-pointer"
                                 >
                                   <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>delete</span>
-                                </Button>
+                                </button>
                               </div>
                               {invalidTime && (
                                 <p className="mt-2 text-[9px] font-black uppercase tracking-wider text-amber-700">Jam selesai harus setelah jam mulai.</p>
@@ -790,18 +788,49 @@ export default function PsychologistList() {
                     <p className="text-[11px] text-neutral-400 mt-1 max-w-xs leading-normal">
                       Psikolog tidak akan menerima pendaftaran sesi konseling pada hari {selectedDay}. Aktifkan hari ini jika ingin membuka slot praktek.
                     </p>
-                    <Button
+                    <button
                       type="button"
                       onClick={() => toggleDay(selectedDay)}
-                      className="mt-5 h-9 bg-bku-primary hover:bg-bku-primary/90 text-white rounded-lg text-[10px] font-bold uppercase tracking-widest"
+                      className="mt-5 h-9 bg-bku-primary hover:bg-bku-primary/90 text-white rounded-lg text-[10px] font-bold uppercase tracking-widest cursor-pointer px-4 border-none"
                     >
                       Aktifkan Hari {selectedDay}
-                    </Button>
+                    </button>
                   </div>
                 )}
               </section>
             </div>
           )}
+
+          <DialogFooter>
+            <div className="flex flex-col sm:flex-row justify-between items-center w-full gap-3">
+              <button
+                type="button"
+                onClick={() => setIsScheduleOpen(false)}
+                className="w-full sm:w-auto h-12 px-6 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-jakarta cursor-pointer"
+              >
+                Tutup Panel
+              </button>
+              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={resetScheduleChanges}
+                  disabled={isSavingSchedule || scheduleLoading}
+                  className="h-12 px-6 bg-white hover:bg-slate-50 border border-slate-200 text-slate-500 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-jakarta cursor-pointer"
+                >
+                  Reset
+                </button>
+                <button
+                  type="button"
+                  onClick={saveSchedule}
+                  disabled={isSavingSchedule || scheduleLoading}
+                  className="h-12 px-8 bg-neutral-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2 font-jakarta disabled:opacity-50 cursor-pointer border-none"
+                >
+                  {isSavingSchedule ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }}>sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>save</span>}
+                  <span>{isSavingSchedule ? 'Menyimpan...' : 'Simpan Jadwal'}</span>
+                </button>
+              </div>
+            </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </PageContent>

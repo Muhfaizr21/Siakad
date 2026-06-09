@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:bkuhub_mobile/core/theme/app_colors.dart';
+import 'package:provider/provider.dart';
+import 'package:bkuhub_mobile/core/providers/theme_provider.dart';
 
 class CounselingBottomNavBar extends StatefulWidget {
   final int currentIndex;
@@ -18,9 +19,6 @@ class CounselingBottomNavBar extends StatefulWidget {
 class _CounselingBottomNavBarState extends State<CounselingBottomNavBar> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
-  
-  // Hardcoded Navy Blue BKU untuk memastikan perubahan
-  final Color primaryColor = const Color(0xFF002068); 
 
   @override
   void initState() {
@@ -54,6 +52,8 @@ class _CounselingBottomNavBarState extends State<CounselingBottomNavBar> with Si
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+
     return Container(
       height: 85,
       color: Colors.transparent,
@@ -85,10 +85,10 @@ class _CounselingBottomNavBarState extends State<CounselingBottomNavBar> with Si
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  _buildNavItem(0, Icons.dashboard_rounded, 'Home'),
-                  _buildNavItem(1, Icons.event_note_rounded, 'Booking'),
-                  _buildNavItem(2, Icons.people_alt_rounded, 'Pasien'),
-                  _buildNavItem(3, Icons.settings_rounded, 'Settings'),
+                  _buildNavItem(0, Icons.dashboard_rounded, 'Home', themeProvider),
+                  _buildNavItem(1, Icons.event_note_rounded, 'Booking', themeProvider),
+                  _buildNavItem(2, Icons.people_alt_rounded, 'Pasien', themeProvider),
+                  _buildNavItem(3, Icons.settings_rounded, 'Settings', themeProvider),
                 ],
               ),
             ),
@@ -98,7 +98,7 @@ class _CounselingBottomNavBarState extends State<CounselingBottomNavBar> with Si
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, String label) {
+  Widget _buildNavItem(int index, IconData icon, String label, ThemeProvider themeProvider) {
     final isSelected = widget.currentIndex == index;
 
     return GestureDetector(
@@ -120,10 +120,10 @@ class _CounselingBottomNavBarState extends State<CounselingBottomNavBar> with Si
                   if (isSelected)
                     ScaleTransition(
                       scale: _scaleAnimation,
-                      child: _buildIconBox(icon, isSelected),
+                      child: _buildIconBox(icon, isSelected, themeProvider),
                     )
                   else
-                    _buildIconBox(icon, isSelected),
+                    _buildIconBox(icon, isSelected, themeProvider),
                   if (isSelected)
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
@@ -132,7 +132,7 @@ class _CounselingBottomNavBarState extends State<CounselingBottomNavBar> with Si
                         style: TextStyle(
                           fontSize: 9,
                           fontWeight: FontWeight.bold,
-                          color: primaryColor,
+                          color: themeProvider.primary,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -148,16 +148,16 @@ class _CounselingBottomNavBarState extends State<CounselingBottomNavBar> with Si
     );
   }
 
-  Widget _buildIconBox(IconData icon, bool isSelected) {
+  Widget _buildIconBox(IconData icon, bool isSelected, ThemeProvider themeProvider) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isSelected ? primaryColor : Colors.transparent,
+        color: isSelected ? themeProvider.primary : Colors.transparent,
         shape: BoxShape.circle,
         boxShadow: isSelected
             ? [
                 BoxShadow(
-                  color: primaryColor.withAlpha(60),
+                  color: themeProvider.primary.withAlpha(60),
                   blurRadius: 15,
                   offset: const Offset(0, 5),
                 )
@@ -166,7 +166,7 @@ class _CounselingBottomNavBarState extends State<CounselingBottomNavBar> with Si
       ),
       child: Icon(
         icon,
-        color: isSelected ? Colors.white : AppColors.outline.withAlpha(150),
+        color: isSelected ? Colors.white : themeProvider.outline.withAlpha(150),
         size: 24,
       ),
     );

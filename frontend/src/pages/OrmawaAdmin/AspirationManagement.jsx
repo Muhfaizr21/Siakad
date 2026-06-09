@@ -232,33 +232,32 @@ export default function AspirationManagement() {
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
         <DialogContent className="max-w-2xl p-0 overflow-hidden border border-border shadow-2xl rounded-2xl bg-surface animate-in zoom-in-95 duration-200">
           {selected && (
-            <div>
-              {/* Header Gradient */}
-              <div className="p-8 bg-[var(--theme-primary)] text-white relative overflow-hidden">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.06)_0%,transparent_50%)]" />
+            <div className="flex flex-col">
+              {/* Header */}
+              <DialogHeader className="p-8 pb-6 bg-slate-50/50 border-b border-border relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-                  <span className="material-symbols-outlined size-24 text-white">chat</span>
+                  <span className="material-symbols-outlined size-24 text-slate-850">chat</span>
                 </div>
                 <div className="relative z-10 space-y-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="space-y-0.5">
-                      <p className="text-[10px] font-black text-blue-200 tracking-[0.2em] uppercase font-headline">Aspirasi ID: ASP-{selected.id || selected.ID}</p>
-                      <h2 className="text-xl font-black font-headline tracking-tighter leading-tight">{selected.Judul}</h2>
+                      <p className="text-[10px] font-black text-slate-400 tracking-[0.2em] uppercase font-headline">Aspirasi ID: ASP-{selected.id || selected.ID}</p>
+                      <DialogTitle className="text-xl font-black font-headline tracking-tighter text-slate-900 leading-tight">{selected.Judul}</DialogTitle>
                     </div>
                     <Badge className={cn(
                       'font-bold text-[10px] uppercase tracking-wider px-3.5 py-1 border shrink-0 rounded-full',
                       selected.Status === 'ditanggapi' 
-                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30' 
-                        : 'bg-amber-500/20 text-amber-300 border-amber-400/30'
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                        : 'bg-amber-50 text-amber-700 border-amber-200'
                     )}>
                       {selected.Status === 'ditanggapi' ? 'Ditanggapi' : 'Menunggu'}
                     </Badge>
                   </div>
                 </div>
-              </div>
+              </DialogHeader>
 
               {/* Dialog Content Grid */}
-              <div className="p-8 space-y-5">
+              <div className="p-8 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar">
                 {/* Content Box */}
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Konten & Uraian Aspirasi</Label>
@@ -286,7 +285,7 @@ export default function AspirationManagement() {
                       value={tanggapan} 
                       onChange={e => setTanggapan(e.target.value)}
                       placeholder="Ketik tanggapan atau resolusi resmi dari pengurus organisasi..."
-                      className="min-h-[100px] rounded-xl border border-border bg-[var(--theme-bg)] focus:bg-white focus:ring-[var(--theme-primary-light)] focus:outline-none focus:border-[var(--theme-primary)] shadow-none transition-all font-semibold text-xs leading-relaxed p-4" 
+                      className="min-h-[100px] rounded-xl border border-border bg-slate-50/50 focus:bg-white focus:ring-primary/20 focus:outline-none focus:border-primary shadow-none transition-all font-semibold text-xs leading-relaxed p-4" 
                     />
 
                     <Button 
@@ -303,18 +302,18 @@ export default function AspirationManagement() {
                     </Button>
                   </div>
                 )}
-
-                {/* Footer close button */}
-                <div className="flex justify-end pt-4 border-t border-slate-100">
-                  <Button 
-                    variant="ghost" 
-                    onClick={() => setIsDetailOpen(false)} 
-                    className="text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl active:scale-95 transition-all"
-                  >
-                    TUTUP DIALOG
-                  </Button>
-                </div>
               </div>
+
+              {/* Footer close button */}
+              <DialogFooter className="p-8 pt-6 border-t border-slate-100 flex justify-end bg-slate-50/30">
+                <Button 
+                  variant="ghost" 
+                  onClick={() => setIsDetailOpen(false)} 
+                  className="text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl active:scale-95 transition-all"
+                >
+                  TUTUP DIALOG
+                </Button>
+              </DialogFooter>
             </div>
           )}
         </DialogContent>

@@ -28,13 +28,13 @@ const Award = ({ size, className, ...props }) => <span className={`material-symb
 
 
 const JENJANG_STYLES = {
-  S1: 'bg-blue-500 text-white',
-  S2: 'bg-indigo-500 text-white',
-  S3: 'bg-neutral-900 text-white',
-  D3: 'bg-emerald-500 text-white',
-  D4: 'bg-teal-500 text-white',
-  Profesi: 'bg-rose-500 text-white',
-  DEFAULT: 'bg-neutral-100 text-neutral-500'
+  S1: 'bg-[var(--theme-info-light)] text-[var(--theme-info)] border border-[var(--theme-info)]/10',
+  S2: 'bg-[var(--theme-primary-light)] text-[var(--theme-primary)] border border-[var(--theme-primary)]/10',
+  S3: 'bg-[var(--theme-secondary-light)] text-[var(--theme-secondary)] border border-[var(--theme-secondary)]/10',
+  D3: 'bg-[var(--theme-success-light)] text-[var(--theme-success)] border border-[var(--theme-success)]/10',
+  D4: 'bg-teal-50 text-teal-700 border border-teal-200/50',
+  Profesi: 'bg-[var(--theme-warning-light)] text-[var(--theme-warning)] border border-[var(--theme-warning)]/10',
+  DEFAULT: 'bg-[var(--theme-bg)] text-[var(--theme-text-muted)] border border-[var(--theme-border)]'
 }
 
 export default function KelolaFakultas() {
@@ -133,19 +133,19 @@ export default function KelolaFakultas() {
       key: 'Kode', 
       label: 'Kode Unit', 
       className: 'w-[120px]', 
-      render: v => <Badge variant="outline" className="font-bold text-neutral-400 font-jakarta uppercase text-[9px] tracking-[0.2em] border-neutral-100 bg-neutral-50 px-2.5 py-1 rounded-lg">{v || '—'}</Badge> 
+      render: v => <Badge variant="outline" className="font-semibold text-[var(--theme-text-muted)] font-headline uppercase text-[9px] tracking-[0.2em] border-[var(--theme-border)] bg-[var(--theme-bg)] px-2.5 py-1 rounded-md">{v || '—'}</Badge> 
     },
     { 
       key: 'Nama', 
       label: 'Nama Fakultas', 
       className: 'min-w-[260px]', 
-      render: v => <span className="font-bold text-neutral-900 font-jakarta tracking-tight text-[14px]">{v || '—'}</span> 
+      render: v => <span className="font-semibold text-[var(--theme-text)] font-headline tracking-tight text-[14px]">{v || '—'}</span> 
     },
     { 
       key: 'Dekan', 
       label: 'Pimpinan / Dekan', 
       className: 'w-[220px]', 
-      render: v => <span className="text-[12px] font-bold text-neutral-600 font-inter tracking-tight">{v || '—'}</span> 
+      render: v => <span className="text-[12px] font-medium text-[var(--theme-text-muted)] font-body tracking-tight">{v || '—'}</span> 
     },
     { 
       key: 'Email', 
@@ -153,13 +153,13 @@ export default function KelolaFakultas() {
       className: 'w-[200px]', 
       render: (v, row) => (
         <div className="flex flex-col leading-tight gap-1.5">
-          <div className="flex items-center gap-2 text-neutral-900">
-             <div className="size-4 rounded bg-primary/5 flex items-center justify-center text-primary"><span className="material-symbols-outlined" style={{ fontSize: '10px' }} >mail</span></div>
-             <span className="text-[11px] font-bold font-inter lowercase">{v || '—'}</span>
+          <div className="flex items-center gap-2 text-[var(--theme-text)]">
+             <div className="size-4 rounded bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)]"><span className="material-symbols-outlined" style={{ fontSize: '10px' }} >mail</span></div>
+             <span className="text-[11px] font-semibold font-body lowercase">{v || '—'}</span>
           </div>
-          <div className="flex items-center gap-2 text-neutral-400">
-             <div className="size-4 rounded bg-neutral-50 flex items-center justify-center"><Phone size={10} /></div>
-             <span className="text-[10px] font-bold tracking-widest">{row.NoHP || '—'}</span>
+          <div className="flex items-center gap-2 text-[var(--theme-text-subtle)]">
+             <div className="size-4 rounded bg-[var(--theme-bg)] flex items-center justify-center"><Phone size={10} /></div>
+             <span className="text-[10px] font-semibold tracking-widest">{row.NoHP || '—'}</span>
           </div>
         </div>
       )
@@ -171,8 +171,8 @@ export default function KelolaFakultas() {
       cellClassName: 'text-center', 
       render: (v, row) => (
         <div className="flex flex-col items-center gap-1">
-           <span className="font-bold text-primary text-[15px] font-jakarta leading-none tabular-nums">{v || row.jumlah_prodi || 0}</span>
-           <span className="text-[8px] font-bold text-neutral-300 uppercase tracking-widest">Programs</span>
+           <span className="font-semibold text-[var(--theme-primary)] text-[15px] font-headline leading-none tabular-nums">{v || row.jumlah_prodi || 0}</span>
+           <span className="text-[8px] font-semibold text-[var(--theme-text-subtle)] uppercase tracking-wider">Programs</span>
         </div>
       )
     }
@@ -613,60 +613,61 @@ export default function KelolaFakultas() {
           </CardContent>
         </Card>
 
-      {/* ── CRUD Modal ───────────────────────────────────────────── */}
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
-        <DialogContent className="max-w-lg p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white">
-          <DialogHeader className="p-5 md:p-8 pb-6 border-b border-neutral-100 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-[0.03] text-primary"><Building2 size={120} /></div>
+        <DialogContent className="max-w-lg">
+          <DialogHeader className="relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-[0.03] text-[var(--theme-primary)]"><Building2 size={120} /></div>
             <div className="relative z-10 space-y-1">
               <div className="flex items-center gap-2 mb-2">
-                <div className="size-6 rounded bg-primary/10 flex items-center justify-center text-primary">
+                <div className="size-6 rounded bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)]">
                   {isEditMode ? <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >edit</span> : <span className="material-symbols-outlined" style={{ fontSize: '12px' }}  strokeWidth={3}>add</span>}
                 </div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-primary/60">Unit Configuration</span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--theme-primary)]">Unit Configuration</span>
               </div>
-              <DialogTitle className="text-2xl font-bold font-jakarta tracking-tight text-neutral-900">
+              <DialogTitle className="text-2xl font-bold font-headline tracking-tight text-[var(--theme-text)]">
                 {isEditMode ? 'Update Fakultas' : 'Registrasi Unit'}
               </DialogTitle>
-              <DialogDescription className="text-sm font-medium text-neutral-400 italic">Modifikasi identitas dan pimpinan unit fakultas.</DialogDescription>
+              <DialogDescription className="text-sm font-medium text-[var(--theme-text-muted)]">Modifikasi identitas dan pimpinan unit fakultas.</DialogDescription>
             </div>
           </DialogHeader>
 
-          <form onSubmit={handleSave} className="p-5 md:p-8 pt-6 space-y-5 md:space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-              <div className="space-y-2">
-                <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Nama Lengkap Fakultas</Label>
-                <Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Fakultas..." className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white font-bold text-sm font-jakarta" />
+          <form onSubmit={handleSave}>
+            <div className="p-6 md:p-8 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider ml-1">Nama Lengkap Fakultas</Label>
+                  <Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Fakultas..." className="h-10 rounded-xl border-[var(--theme-border)] bg-white text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] text-sm font-body" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider ml-1">Kode Unit</Label>
+                  <Input required value={form.Kode} onChange={e => setForm({ ...form, Kode: e.target.value })} placeholder="Ex: FSK" className="h-10 rounded-xl border-[var(--theme-border)] bg-white text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] text-sm font-body uppercase" />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Kode Unit</Label>
-                <Input required value={form.Kode} onChange={e => setForm({ ...form, Kode: e.target.value })} placeholder="Ex: FSK" className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white font-bold text-sm font-jakarta uppercase" />
+
+              <div className="space-y-1.5">
+                <Label className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider ml-1">Pimpinan Unit (Dekan)</Label>
+                <Input value={form.Dekan} onChange={e => setForm({ ...form, Dekan: e.target.value })} placeholder="Lengkap dengan gelar akademik..." className="h-10 rounded-xl border-[var(--theme-border)] bg-white text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] text-sm font-body" />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider ml-1">Email Korespondensi</Label>
+                  <Input type="email" value={form.Email} onChange={e => setForm({ ...form, Email: e.target.value })} placeholder="fakultas@bku.ac.id" className="h-10 rounded-xl border-[var(--theme-border)] bg-white text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] text-sm font-body" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider ml-1">Hotline / Telepon</Label>
+                  <Input value={form.NoHP} onChange={e => setForm({ ...form, NoHP: e.target.value.replace(/\D/g, '') })} placeholder="08..." className="h-10 rounded-xl border-[var(--theme-border)] bg-white text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] text-sm font-body" />
+                </div>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Pimpinan Unit (Dekan)</Label>
-              <Input value={form.Dekan} onChange={e => setForm({ ...form, Dekan: e.target.value })} placeholder="Lengkap dengan gelar akademik..." className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white font-bold text-sm font-jakarta" />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-              <div className="space-y-2">
-                <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Email Korespondensi</Label>
-                <Input type="email" value={form.Email} onChange={e => setForm({ ...form, Email: e.target.value })} placeholder="fakultas@bku.ac.id" className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white font-bold text-sm font-jakarta" />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Hotline / Telepon</Label>
-                <Input value={form.NoHP} onChange={e => setForm({ ...form, NoHP: e.target.value.replace(/\D/g, '') })} placeholder="08..." className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white font-bold text-sm font-jakarta" />
-              </div>
-            </div>
-
-            <div className="pt-6 flex flex-col-reverse md:flex-row gap-3 md:gap-4 border-t border-neutral-100">
-               <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="flex-1 h-12 md:h-14 rounded-xl text-[10px] font-bold uppercase tracking-widest text-neutral-400 hover:bg-neutral-50 transition-all">Abort</Button>
-               <Button type="submit" disabled={isSubmitting} className="flex-[2] h-12 md:h-14 rounded-xl bg-neutral-900 text-white hover:bg-primary shadow-xl shadow-neutral-900/10 transition-all active:scale-95 border-none flex items-center justify-center gap-3">
+            <DialogFooter>
+               <button type="button" onClick={() => setIsCrudOpen(false)} className="flex-1 h-10 rounded-xl border border-[var(--theme-border)] text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg)] transition-colors">Batal</button>
+               <button type="submit" disabled={isSubmitting} className="flex-[2] h-10 rounded-xl bg-[var(--theme-primary)] text-white hover:bg-[var(--theme-primary-hover)] shadow-md transition-all active:scale-95 border-none flex items-center justify-center gap-2">
                   {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >save</span>}
-                  <span className="text-[10px] font-bold uppercase tracking-widest">Commit Database</span>
-               </Button>
-            </div>
+                  <span className="text-xs font-semibold uppercase tracking-wider">Simpan Perubahan</span>
+               </button>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
@@ -680,20 +681,19 @@ export default function KelolaFakultas() {
         loading={isSubmitting} 
       />
 
-      {/* ── Faculty Program Studi Details Modal ────────────────────── */}
       <Dialog open={isFacultyDetailsOpen} onOpenChange={setIsFacultyDetailsOpen}>
-        <DialogContent className="max-w-3xl p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white">
-          <DialogHeader className="p-6 md:p-8 pb-6 border-b border-neutral-100 relative overflow-hidden bg-white">
-            <div className="absolute top-0 right-0 p-8 opacity-[0.03] text-primary"><span className="material-symbols-outlined" style={{ fontSize: '120px' }}>school</span></div>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader className="relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-[0.03] text-[var(--theme-primary)]"><span className="material-symbols-outlined" style={{ fontSize: '120px' }}>school</span></div>
             <div className="relative z-10 space-y-1">
               <div className="flex items-center gap-2 mb-2">
-                <div className="h-4 w-1 bg-primary rounded-full" />
-                <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Fakultas {selectedFacultyDetails?.Kode || selectedFacultyDetails?.kode || ''}</span>
+                <div className="h-4 w-1 bg-[var(--theme-primary)] rounded-full" />
+                <span className="text-[10px] font-semibold text-[var(--theme-primary)] uppercase tracking-wider">Fakultas {selectedFacultyDetails?.Kode || selectedFacultyDetails?.kode || ''}</span>
               </div>
-              <DialogTitle className="text-xl font-bold font-jakarta tracking-tight text-neutral-900">
+              <DialogTitle className="text-xl font-bold font-headline tracking-tight text-[var(--theme-text)]">
                 {selectedFacultyDetails?.Nama || selectedFacultyDetails?.nama || 'Detail Fakultas'}
               </DialogTitle>
-              <DialogDescription className="text-xs font-semibold text-neutral-400 italic">
+              <DialogDescription className="text-xs font-semibold text-[var(--theme-text-muted)] italic">
                 Daftar Program Studi di bawah naungan Fakultas ini.
               </DialogDescription>
             </div>
@@ -701,35 +701,35 @@ export default function KelolaFakultas() {
 
           <div className="p-6 md:p-8 max-h-[50vh] overflow-y-auto space-y-4">
             {selectedFacultyDetails?.ProgramStudi?.length > 0 || selectedFacultyDetails?.program_studi?.length > 0 ? (
-              <div className="border border-neutral-200 rounded-xl overflow-x-auto shadow-sm bg-white">
+              <div className="border border-[var(--theme-border)] rounded-xl overflow-x-auto shadow-sm bg-white">
                 <table className="w-full min-w-[650px] text-left border-collapse text-xs">
                   <thead>
-                    <tr className="bg-neutral-50 border-b border-neutral-200">
-                      <th className="px-5 py-3.5 font-bold text-neutral-400 uppercase tracking-wider w-[60px] whitespace-nowrap">#</th>
-                      <th className="px-5 py-3.5 font-bold text-neutral-400 uppercase tracking-wider w-[120px] whitespace-nowrap">Kode</th>
-                      <th className="px-5 py-3.5 font-bold text-neutral-400 uppercase tracking-wider w-[100px] text-center whitespace-nowrap">Jenjang</th>
-                      <th className="px-5 py-3.5 font-bold text-neutral-400 uppercase tracking-wider whitespace-nowrap">Nama Program Studi</th>
-                      <th className="px-5 py-3.5 font-bold text-neutral-400 uppercase tracking-wider whitespace-nowrap">Pimpinan / Kaprodi</th>
+                    <tr className="bg-[var(--theme-bg)] border-b border-[var(--theme-border)]">
+                      <th className="px-5 py-3.5 font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider w-[60px] whitespace-nowrap">#</th>
+                      <th className="px-5 py-3.5 font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider w-[120px] whitespace-nowrap">Kode</th>
+                      <th className="px-5 py-3.5 font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider w-[100px] text-center whitespace-nowrap">Jenjang</th>
+                      <th className="px-5 py-3.5 font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider whitespace-nowrap">Nama Program Studi</th>
+                      <th className="px-5 py-3.5 font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider whitespace-nowrap">Pimpinan / Kaprodi</th>
                     </tr>
                   </thead>
                   <tbody>
                     {(selectedFacultyDetails?.ProgramStudi || selectedFacultyDetails?.program_studi || []).map((prodi, idx) => {
                       const jenjangStyle = JENJANG_STYLES[prodi.Jenjang || prodi.jenjang] || JENJANG_STYLES.DEFAULT
                       return (
-                        <tr key={prodi.id || prodi.ID || idx} className="border-b border-neutral-100 hover:bg-[#f7faff] transition-colors">
-                          <td className="px-5 py-4 text-neutral-400 font-semibold whitespace-nowrap">{idx + 1}</td>
+                        <tr key={prodi.id || prodi.ID || idx} className="border-b border-[var(--theme-border-muted)] hover:bg-[var(--theme-primary-light)] transition-colors">
+                          <td className="px-5 py-4 text-[var(--theme-text-subtle)] font-semibold whitespace-nowrap">{idx + 1}</td>
                           <td className="px-5 py-4 whitespace-nowrap">
-                            <code className="text-[11px] font-bold text-[#3b82f6] tracking-wider bg-blue-50 px-2 py-1 rounded">
+                            <code className="text-[11px] font-semibold text-[var(--theme-info)] tracking-wider bg-[var(--theme-info-light)] px-2 py-1 rounded">
                               {prodi.Kode || prodi.kode || '—'}
                             </code>
                           </td>
                           <td className="px-5 py-4 text-center whitespace-nowrap">
-                            <span className={cn("inline-flex items-center px-2.5 py-0.5 rounded-lg text-[9px] font-bold uppercase tracking-wider shadow-sm", jenjangStyle)}>
+                            <span className={cn("inline-flex items-center px-2.5 py-0.5 rounded-md text-[9px] font-semibold uppercase tracking-wider shadow-sm", jenjangStyle)}>
                               {prodi.Jenjang || prodi.jenjang || '—'}
                             </span>
                           </td>
-                          <td className="px-5 py-4 font-bold text-neutral-800 text-sm leading-snug whitespace-nowrap">{prodi.Nama || prodi.nama || '—'}</td>
-                          <td className="px-5 py-4 font-semibold text-neutral-500 whitespace-nowrap">{prodi.KepalaProdi || prodi.kepala_prodi || '—'}</td>
+                          <td className="px-5 py-4 font-semibold text-[var(--theme-text)] text-sm leading-snug whitespace-nowrap">{prodi.Nama || prodi.nama || '—'}</td>
+                          <td className="px-5 py-4 font-medium text-[var(--theme-text-muted)] whitespace-nowrap">{prodi.KepalaProdi || prodi.kepala_prodi || '—'}</td>
                         </tr>
                       )
                     })}
@@ -738,65 +738,64 @@ export default function KelolaFakultas() {
               </div>
             ) : (
               <div className="py-12 text-center flex flex-col items-center gap-3">
-                <div className="w-12 h-12 bg-neutral-50 rounded-2xl flex items-center justify-center text-neutral-400 border border-neutral-100 animate-pulse">
+                <div className="w-12 h-12 bg-[var(--theme-bg)] rounded-2xl flex items-center justify-center text-[var(--theme-text-subtle)] border border-[var(--theme-border)] animate-pulse">
                   <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>info</span>
                 </div>
-                <p className="font-bold text-sm text-neutral-700">Belum Ada Program Studi</p>
-                <p className="text-xs text-neutral-400">Fakultas ini belum menaungi program studi apa pun saat ini.</p>
+                <p className="font-semibold text-sm text-[var(--theme-text)]">Belum Ada Program Studi</p>
+                <p className="text-xs text-[var(--theme-text-muted)]">Fakultas ini belum menaungi program studi apa pun saat ini.</p>
               </div>
             )}
           </div>
 
-          <div className="p-6 border-t border-neutral-100 bg-neutral-50/50 flex justify-end">
-            <Button onClick={() => setIsFacultyDetailsOpen(false)} className="h-10 px-6 rounded-xl bg-neutral-900 text-white text-xs font-bold uppercase tracking-wider hover:bg-primary transition-all active:scale-95 border-none">Tutup</Button>
-          </div>
+          <DialogFooter>
+            <button onClick={() => setIsFacultyDetailsOpen(false)} className="h-10 px-6 rounded-xl bg-[var(--theme-primary)] text-white text-xs font-semibold uppercase tracking-wider hover:bg-[var(--theme-primary-hover)] transition-all active:scale-95">Tutup</button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* ── All Faculties Dialog ─────────────────────────────────── */}
       <Dialog open={isAllFacultiesOpen} onOpenChange={setIsAllFacultiesOpen}>
-        <DialogContent className="max-w-4xl p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white">
-          <DialogHeader className="p-6 md:p-8 pb-6 border-b border-neutral-100 relative overflow-hidden bg-white">
-            <div className="absolute top-0 right-0 p-8 opacity-[0.03] text-primary"><span className="material-symbols-outlined" style={{ fontSize: '120px' }}>business</span></div>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader className="relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-[0.03] text-[var(--theme-primary)]"><span className="material-symbols-outlined" style={{ fontSize: '120px' }}>business</span></div>
             <div className="relative z-10 space-y-1">
               <div className="flex items-center gap-2 mb-2">
-                <div className="h-4 w-1 bg-[#00236F] rounded-full" />
-                <span className="text-[10px] font-black text-[#00236F] uppercase tracking-[0.2em]">Daftar Unit Kerja</span>
+                <div className="h-4 w-1 bg-[var(--theme-primary)] rounded-full" />
+                <span className="text-[10px] font-semibold text-[var(--theme-primary)] uppercase tracking-wider">Daftar Unit Kerja</span>
               </div>
-              <DialogTitle className="text-xl font-bold font-jakarta tracking-tight text-neutral-900">
+              <DialogTitle className="text-xl font-bold font-headline tracking-tight text-[var(--theme-text)]">
                 Seluruh Fakultas Universitas Bhakti Kencana
               </DialogTitle>
-              <DialogDescription className="text-xs font-semibold text-neutral-400 italic">
+              <DialogDescription className="text-xs font-semibold text-[var(--theme-text-muted)] italic">
                 Daftar semua fakultas yang terdaftar dalam sistem akademik.
               </DialogDescription>
             </div>
           </DialogHeader>
 
           <div className="p-6 md:p-8 max-h-[50vh] overflow-y-auto space-y-4">
-            <div className="border border-neutral-200 rounded-xl overflow-x-auto shadow-sm bg-white">
+            <div className="border border-[var(--theme-border)] rounded-xl overflow-x-auto shadow-sm bg-white">
               <table className="w-full min-w-[700px] text-left border-collapse text-xs">
                 <thead>
-                  <tr className="bg-neutral-50 border-b border-neutral-200">
-                    <th className="px-5 py-3.5 font-bold text-neutral-400 uppercase tracking-wider w-[60px] whitespace-nowrap">#</th>
-                    <th className="px-5 py-3.5 font-bold text-neutral-400 uppercase tracking-wider w-[140px] whitespace-nowrap">Kode Fakultas</th>
-                    <th className="px-5 py-3.5 font-bold text-neutral-400 uppercase tracking-wider whitespace-nowrap">Nama Fakultas</th>
-                    <th className="px-5 py-3.5 font-bold text-neutral-400 uppercase tracking-wider whitespace-nowrap">Pimpinan / Dekan</th>
-                    <th className="px-5 py-3.5 font-bold text-neutral-400 uppercase tracking-wider w-[140px] text-center whitespace-nowrap">Jumlah Prodi</th>
+                  <tr className="bg-[var(--theme-bg)] border-b border-[var(--theme-border)]">
+                    <th className="px-5 py-3.5 font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider w-[60px] whitespace-nowrap">#</th>
+                    <th className="px-5 py-3.5 font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider w-[140px] whitespace-nowrap">Kode Fakultas</th>
+                    <th className="px-5 py-3.5 font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider whitespace-nowrap">Nama Fakultas</th>
+                    <th className="px-5 py-3.5 font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider whitespace-nowrap">Pimpinan / Dekan</th>
+                    <th className="px-5 py-3.5 font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider w-[140px] text-center whitespace-nowrap">Jumlah Prodi</th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.map((fac, idx) => (
-                    <tr key={fac.id || fac.ID || idx} className="border-b border-neutral-100 hover:bg-[#f7faff] transition-colors">
-                      <td className="px-5 py-4 text-neutral-400 font-semibold whitespace-nowrap">{idx + 1}</td>
+                    <tr key={fac.id || fac.ID || idx} className="border-b border-[var(--theme-border-muted)] hover:bg-[var(--theme-primary-light)] transition-colors">
+                      <td className="px-5 py-4 text-[var(--theme-text-subtle)] font-semibold whitespace-nowrap">{idx + 1}</td>
                       <td className="px-5 py-4 whitespace-nowrap">
-                        <code className="text-[11px] font-bold text-[#00236F] tracking-widest bg-[#eef4ff] px-2.5 py-1 rounded">
+                        <code className="text-[11px] font-semibold text-[var(--theme-primary)] tracking-widest bg-[var(--theme-primary-light)] px-2.5 py-1 rounded">
                           {fac.Kode || fac.kode || '—'}
                         </code>
                       </td>
-                      <td className="px-5 py-4 font-bold text-neutral-800 text-sm leading-snug whitespace-nowrap">{fac.Nama || fac.nama || '—'}</td>
-                      <td className="px-5 py-4 font-semibold text-neutral-500 whitespace-nowrap">{fac.Dekan || fac.dekan || '—'}</td>
+                      <td className="px-5 py-4 font-semibold text-[var(--theme-text)] text-sm leading-snug whitespace-nowrap">{fac.Nama || fac.nama || '—'}</td>
+                      <td className="px-5 py-4 font-medium text-[var(--theme-text-muted)] whitespace-nowrap">{fac.Dekan || fac.dekan || '—'}</td>
                       <td className="px-5 py-4 text-center whitespace-nowrap">
-                        <span className="inline-flex px-3 py-1 rounded-full bg-primary/5 text-primary font-bold text-xs">
+                        <span className="inline-flex px-3 py-1 rounded-full bg-[var(--theme-primary-light)] text-[var(--theme-primary)] font-semibold text-xs">
                           {fac.JumlahProdi || fac.jumlah_prodi || fac.ProgramStudi?.length || fac.program_studi?.length || 0}
                         </span>
                       </td>
@@ -807,41 +806,40 @@ export default function KelolaFakultas() {
             </div>
           </div>
 
-          <div className="p-6 border-t border-neutral-100 bg-neutral-50/50 flex justify-end">
-            <Button onClick={() => setIsAllFacultiesOpen(false)} className="h-10 px-6 rounded-xl bg-neutral-900 text-white text-xs font-bold uppercase tracking-wider hover:bg-primary transition-all active:scale-95 border-none">Tutup</Button>
-          </div>
+          <DialogFooter>
+            <button onClick={() => setIsAllFacultiesOpen(false)} className="h-10 px-6 rounded-xl bg-[var(--theme-primary)] text-white text-xs font-semibold uppercase tracking-wider hover:bg-[var(--theme-primary-hover)] transition-all active:scale-95">Tutup</button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* ── All Program Studies Dialog ───────────────────────────── */}
       <Dialog open={isAllProdiOpen} onOpenChange={setIsAllProdiOpen}>
-        <DialogContent className="max-w-3xl p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white">
-          <DialogHeader className="p-6 md:p-8 pb-6 border-b border-neutral-100 relative overflow-hidden bg-white">
-            <div className="absolute top-0 right-0 p-8 opacity-[0.03] text-primary"><span className="material-symbols-outlined" style={{ fontSize: '120px' }}>grid_view</span></div>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader className="relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-[0.03] text-[var(--theme-primary)]"><span className="material-symbols-outlined" style={{ fontSize: '120px' }}>grid_view</span></div>
             <div className="relative z-10 space-y-1">
               <div className="flex items-center gap-2 mb-2">
-                <div className="h-4 w-1 bg-indigo-600 rounded-full" />
-                <span className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em]">Daftar Program Studi</span>
+                <div className="h-4 w-1 bg-[var(--theme-primary)] rounded-full" />
+                <span className="text-[10px] font-semibold text-[var(--theme-primary)] uppercase tracking-wider">Daftar Program Studi</span>
               </div>
-              <DialogTitle className="text-xl font-bold font-jakarta tracking-tight text-neutral-900">
+              <DialogTitle className="text-xl font-bold font-headline tracking-tight text-[var(--theme-text)]">
                 Seluruh Program Studi Universitas Bhakti Kencana
               </DialogTitle>
-              <DialogDescription className="text-xs font-semibold text-neutral-400 italic">
+              <DialogDescription className="text-xs font-semibold text-[var(--theme-text-muted)] italic">
                 Daftar lengkap program studi lintas fakultas dalam satu tampilan.
               </DialogDescription>
             </div>
           </DialogHeader>
 
           <div className="p-6 md:p-8 max-h-[50vh] overflow-y-auto space-y-4">
-            <div className="border border-neutral-200 rounded-xl overflow-x-auto shadow-sm bg-white">
+            <div className="border border-[var(--theme-border)] rounded-xl overflow-x-auto shadow-sm bg-white">
               <table className="w-full min-w-[650px] text-left border-collapse text-xs">
                 <thead>
-                  <tr className="bg-neutral-50 border-b border-neutral-200">
-                    <th className="px-5 py-3.5 font-bold text-neutral-400 uppercase tracking-wider w-[50px] whitespace-nowrap">#</th>
-                    <th className="px-5 py-3.5 font-bold text-neutral-400 uppercase tracking-wider w-[120px] whitespace-nowrap">Kode Prodi</th>
-                    <th className="px-5 py-3.5 font-bold text-neutral-400 uppercase tracking-wider w-[100px] text-center whitespace-nowrap">Jenjang</th>
-                    <th className="px-5 py-3.5 font-bold text-neutral-400 uppercase tracking-wider whitespace-nowrap">Nama Program Studi</th>
-                    <th className="px-5 py-3.5 font-bold text-neutral-400 uppercase tracking-wider whitespace-nowrap">Pimpinan / Kaprodi</th>
+                  <tr className="bg-[var(--theme-bg)] border-b border-[var(--theme-border)]">
+                    <th className="px-5 py-3.5 font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider w-[50px] whitespace-nowrap">#</th>
+                    <th className="px-5 py-3.5 font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider w-[120px] whitespace-nowrap">Kode Prodi</th>
+                    <th className="px-5 py-3.5 font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider w-[100px] text-center whitespace-nowrap">Jenjang</th>
+                    <th className="px-5 py-3.5 font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider whitespace-nowrap">Nama Program Studi</th>
+                    <th className="px-5 py-3.5 font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider whitespace-nowrap">Pimpinan / Kaprodi</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -854,20 +852,20 @@ export default function KelolaFakultas() {
                   ).map((prodi, idx) => {
                     const jenjangStyle = JENJANG_STYLES[prodi.Jenjang || prodi.jenjang] || JENJANG_STYLES.DEFAULT
                     return (
-                      <tr key={prodi.id || prodi.ID || idx} className="border-b border-neutral-100 hover:bg-[#f7faff] transition-colors">
-                        <td className="px-5 py-4 text-neutral-400 font-semibold whitespace-nowrap">{idx + 1}</td>
+                      <tr key={prodi.id || prodi.ID || idx} className="border-b border-[var(--theme-border-muted)] hover:bg-[var(--theme-primary-light)] transition-colors">
+                        <td className="px-5 py-4 text-[var(--theme-text-subtle)] font-semibold whitespace-nowrap">{idx + 1}</td>
                         <td className="px-5 py-4 whitespace-nowrap">
-                          <code className="text-[11px] font-bold text-[#3b82f6] tracking-wider bg-blue-50 px-2 py-1 rounded">
+                          <code className="text-[11px] font-semibold text-[var(--theme-info)] tracking-wider bg-[var(--theme-info-light)] px-2 py-1 rounded">
                             {prodi.Kode || prodi.kode || '—'}
                           </code>
                         </td>
                         <td className="px-5 py-4 text-center whitespace-nowrap">
-                          <span className={cn("inline-flex items-center px-2.5 py-0.5 rounded-lg text-[9px] font-bold uppercase tracking-wider shadow-sm", jenjangStyle)}>
+                          <span className={cn("inline-flex items-center px-2.5 py-0.5 rounded-md text-[9px] font-semibold uppercase tracking-wider shadow-sm", jenjangStyle)}>
                             {prodi.Jenjang || prodi.jenjang || '—'}
                           </span>
                         </td>
-                        <td className="px-5 py-4 font-bold text-neutral-850 text-sm leading-snug whitespace-nowrap">{prodi.Nama || prodi.nama || '—'}</td>
-                        <td className="px-5 py-4 font-semibold text-neutral-500 whitespace-nowrap">{prodi.KepalaProdi || prodi.kepala_prodi || '—'}</td>
+                        <td className="px-5 py-4 font-semibold text-[var(--theme-text)] text-sm leading-snug whitespace-nowrap">{prodi.Nama || prodi.nama || '—'}</td>
+                        <td className="px-5 py-4 font-medium text-[var(--theme-text-muted)] whitespace-nowrap">{prodi.KepalaProdi || prodi.kepala_prodi || '—'}</td>
                       </tr>
                     )
                   })}
@@ -876,9 +874,9 @@ export default function KelolaFakultas() {
             </div>
           </div>
 
-          <div className="p-6 border-t border-neutral-100 bg-neutral-50/50 flex justify-end">
-            <Button onClick={() => setIsAllProdiOpen(false)} className="h-10 px-6 rounded-xl bg-neutral-900 text-white text-xs font-bold uppercase tracking-wider hover:bg-primary transition-all active:scale-95 border-none">Tutup</Button>
-          </div>
+          <DialogFooter>
+            <button onClick={() => setIsAllProdiOpen(false)} className="h-10 px-6 rounded-xl bg-[var(--theme-primary)] text-white text-xs font-semibold uppercase tracking-wider hover:bg-[var(--theme-primary-hover)] transition-all active:scale-95">Tutup</button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </PageContent>

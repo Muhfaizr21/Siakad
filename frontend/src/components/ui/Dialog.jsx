@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 
 /**
  * Dialog — Modal dialog standar
@@ -11,7 +12,7 @@ import React from 'react';
  * - Radius: rounded-2xl
  */
 function DialogPortal({ children }) {
-  return typeof document !== 'undefined' ? React.createElement('div', null, children) : null;
+  return typeof document !== 'undefined' ? createPortal(children, document.body) : null;
 }
 
 function DialogOverlay({ children }) {
@@ -29,7 +30,7 @@ export function DialogContent({ className = '', children, ...props }) {
 export function DialogHeader({ className = '', ...props }) {
   return (
     <div
-      className={`flex flex-col space-y-1.5 p-6 pb-0 ${className}`}
+      className={`flex flex-col space-y-1.5 p-6 md:p-8 border-b border-[var(--theme-border-muted)] bg-[var(--theme-bg)]/50 relative overflow-hidden ${className}`}
       {...props}
     />
   );
@@ -38,7 +39,7 @@ export function DialogHeader({ className = '', ...props }) {
 export function DialogFooter({ className = '', ...props }) {
   return (
     <div
-      className={`flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 ${className}`}
+      className={`flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 p-6 md:p-8 bg-[var(--theme-bg)]/20 border-t border-[var(--theme-border-muted)] ${className}`}
       {...props}
     />
   );
@@ -47,7 +48,7 @@ export function DialogFooter({ className = '', ...props }) {
 export function DialogTitle({ className = '', ...props }) {
   return (
     <h2
-      className={`text-lg font-bold leading-none tracking-tight text-[#171717] font-headline ${className}`}
+      className={`text-lg font-bold leading-none tracking-tight text-[var(--theme-text)] font-headline ${className}`}
       {...props}
     />
   );
@@ -56,7 +57,7 @@ export function DialogTitle({ className = '', ...props }) {
 export function DialogDescription({ className = '', ...props }) {
   return (
     <p
-      className={`text-sm text-muted font-medium ${className}`}
+      className={`text-sm text-[var(--theme-text-muted)] font-medium ${className}`}
       {...props}
     />
   );
@@ -73,7 +74,7 @@ export default function Dialog({ open, onOpenChange, children, maxWidth = "max-w
   if (!isOpen) return null;
 
   return (
-    <>
+    <DialogPortal>
       {/* Overlay */}
       <div
         className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200"
@@ -81,26 +82,23 @@ export default function Dialog({ open, onOpenChange, children, maxWidth = "max-w
       />
 
       {/* Modal */}
-      <DialogPortal>
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            className={`relative w-full ${maxWidth} rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200 bg-white border border-[#e5e5e5] ${className}`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {children}
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div
+          className={`relative w-full ${maxWidth} rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200 bg-[var(--theme-surface)] border border-[var(--theme-border)] ${className}`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {children}
 
-            {/* Close button */}
-            <button
-              onClick={handleClose}
-              className="absolute right-4 top-4 p-2 rounded-lg transition-colors hover:bg-black/[0.05] z-[60]"
-              style={{ color: '#a3a3a3' }}
-            >
-              <span className="material-symbols-outlined">close</span>
-            </button>
-          </div>
+          {/* Close button */}
+          <button
+            onClick={handleClose}
+            className="absolute right-4 top-4 p-2 rounded-lg transition-colors hover:bg-[var(--theme-text-subtle)]/10 text-[var(--theme-text-subtle)] hover:text-[var(--theme-text)] z-[60]"
+          >
+            <span className="material-symbols-outlined">close</span>
+          </button>
         </div>
-      </DialogPortal>
-    </>
+      </div>
+    </DialogPortal>
   );
 }
 

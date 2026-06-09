@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/Badge"
 import { DeleteConfirmModal } from "@/components/ui/DeleteConfirmModal"
 import { PageContent } from '@/components/ui/page'
 import { DashboardHero } from '@/components/ui/dashboard'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const RefreshCw = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>sync</span>;
@@ -508,142 +509,132 @@ export default function ProdiPage() {
       </div>
 
       {/* CRUD Modal */}
-      {isModalOpen && (
-        <div
-          className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200"
-          onClick={() => setIsModal(false)}
-        >
-          <div
-            className="relative w-full max-w-lg glass-card border border-slate-200/60 rounded-2xl shadow-none z-[101] flex flex-col overflow-hidden max-h-[90vh] animate-in zoom-in-95 duration-300"
-            onClick={e => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className="relative bg-gradient-to-br from-primary via-primary to-blue-700 pt-8 pb-9 px-8 overflow-hidden flex-shrink-0">
-              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
-              <button
-                onClick={() => setIsModal(false)}
-                className="absolute top-6 right-6 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors text-white border-none"
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >close</span>
-              </button>
-              <div className="relative z-10">
-                <p className="text-[9px] font-black text-white/50 uppercase tracking-[0.25em] mb-1">
+      <Dialog open={isModalOpen} onOpenChange={setIsModal} maxWidth="max-w-lg">
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)] shrink-0">
+                <GraduationCap size={20} />
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-0.5">
                   {isEditMode ? 'Edit Program Studi' : 'Tambah Program Studi'}
                 </p>
-                <h2 className="text-2xl font-black font-headline leading-none text-white">{isEditMode ? 'Update Data Prodi' : 'Registrasi Prodi Baru'}</h2>
-                <p className="text-xs text-blue-200 font-medium mt-1.5 leading-relaxed">Isi semua formulir administrasi di bawah ini dengan lengkap.</p>
+                <DialogTitle>{isEditMode ? 'Update Data Prodi' : 'Registrasi Prodi Baru'}</DialogTitle>
+                <DialogDescription>Isi semua formulir administrasi di bawah ini dengan lengkap.</DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <form onSubmit={handleSave} className="p-6 space-y-4 text-[var(--theme-text)]">
+            {/* Fakultas Naungan (Auto-Generated, Read-Only) */}
+            <div>
+              <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Fakultas Naungan</label>
+              <div className="relative group">
+                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--theme-primary)]">
+                  <span className="material-symbols-outlined text-[16px]">school</span>
+                </div>
+                <input
+                  type="text"
+                  value={
+                    faculties.find(f => String(f.ID) === String(formData.FakultasID))?.Nama ||
+                    (faculties.length > 0 ? faculties[0].Nama : "Universitas Bhakti Kencana")
+                  }
+                  readOnly
+                  disabled
+                  className="pl-10 pr-4 w-full h-10 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg)] text-xs font-semibold text-[var(--theme-text-muted)] cursor-not-allowed select-none"
+                />
+              </div>
+              <p className="text-[10px] text-[var(--theme-text-subtle)] font-medium mt-1 leading-normal">
+                * Terdeteksi otomatis sebagai unit administrasi di bawah naungan fakultas Anda.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Kode / Akronim</label>
+                <input
+                  value={formData.Kode}
+                  onChange={e => set('Kode', e.target.value.toUpperCase())}
+                  placeholder="TI, SI, MN..."
+                  required
+                  className="w-full h-10 px-3 border border-[var(--theme-border)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors uppercase font-medium"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Jenjang</label>
+                <select
+                  value={formData.Jenjang}
+                  onChange={e => set('Jenjang', e.target.value)}
+                  className="w-full h-10 px-3 border border-[var(--theme-border)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors cursor-pointer font-medium"
+                >
+                  <option value="S1">S1 - Sarjana</option>
+                  <option value="D3">D3 - Diploma</option>
+                  <option value="S2">S2 - Magister</option>
+                </select>
               </div>
             </div>
 
-            {/* Modal Form Body */}
-            <form onSubmit={handleSave} className="flex flex-col flex-1 overflow-hidden">
-              <div className="flex-1 overflow-y-auto p-8 space-y-5">
-                {/* Fakultas Naungan (Auto-Generated, Read-Only) */}
-                <div>
-                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Fakultas Naungan</label>
-                  <div className="relative group">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-primary">
-                      <span className="material-symbols-outlined size-4" style={{ fontSize: '18px' }}>school</span>
-                    </div>
-                    <input
-                      type="text"
-                      value={
-                        faculties.find(f => String(f.ID) === String(formData.FakultasID))?.Nama ||
-                        (faculties.length > 0 ? faculties[0].Nama : "Universitas Bhakti Kencana")
-                      }
-                      readOnly
-                      disabled
-                      className="pl-11 pr-4 w-full h-12 rounded-2xl border border-slate-200/60 bg-transparent text-xs font-bold text-slate-500 cursor-not-allowed select-none"
-                    />
-                  </div>
-                  <p className="text-[10px] text-slate-400 font-medium mt-1.5 ml-1 leading-relaxed">
-                    * Terdeteksi otomatis sebagai unit administrasi di bawah naungan fakultas Anda.
-                  </p>
-                </div>
+            <div>
+              <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Nama Lengkap Program Studi</label>
+              <input
+                value={formData.Nama}
+                onChange={e => set('Nama', e.target.value)}
+                placeholder="Nama resmi prodi..."
+                required
+                className="w-full h-10 px-3 border border-[var(--theme-border)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors font-medium"
+              />
+            </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Kode / Akronim</label>
-                    <input
-                      value={formData.Kode}
-                      onChange={e => set('Kode', e.target.value.toUpperCase())}
-                      placeholder="TI, SI, MN..."
-                      required
-                      className="w-full h-12 px-4 rounded-2xl border border-slate-200/60 bg-transparent/50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-transparent focus:ring-4 focus:ring-primary/10 transition-all uppercase"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Jenjang</label>
-                    <select
-                      value={formData.Jenjang}
-                      onChange={e => set('Jenjang', e.target.value)}
-                      className="w-full h-12 px-4 rounded-2xl border border-slate-200/60 bg-transparent/50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-transparent focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer"
-                    >
-                      <option value="S1">S1 - Sarjana</option>
-                      <option value="D3">D3 - Diploma</option>
-                      <option value="S2">S2 - Magister</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Nama Lengkap Program Studi</label>
-                  <input
-                    value={formData.Nama}
-                    onChange={e => set('Nama', e.target.value)}
-                    placeholder="Nama resmi prodi..."
-                    required
-                    className="w-full h-12 px-4 rounded-2xl border border-slate-200/60 bg-transparent/50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-transparent focus:ring-4 focus:ring-primary/10 transition-all"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Akreditasi</label>
-                    <select
-                      value={formData.Akreditasi}
-                      onChange={e => set('Akreditasi', e.target.value)}
-                      className="w-full h-12 px-4 rounded-2xl border border-slate-200/60 bg-transparent/50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-transparent focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer"
-                    >
-                      <option value="Unggul">Unggul</option>
-                      <option value="Baik Sekali">Baik Sekali</option>
-                      <option value="Baik">Baik</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Kapasitas (MHS)</label>
-                    <input
-                      type="number"
-                      value={formData.Kapasitas}
-                      onChange={e => set('Kapasitas', e.target.value)}
-                      min={1}
-                      className="w-full h-12 px-4 rounded-2xl border border-slate-200/60 bg-transparent/50 text-xs font-black text-center text-slate-700 focus:outline-none focus:border-primary focus:bg-transparent focus:ring-4 focus:ring-primary/10 transition-all"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="px-8 py-5 border-t border-slate-200/60 bg-transparent flex gap-3 flex-shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setIsModal(false)}
-                  className="flex-1 h-12 rounded-2xl border border-slate-200/60 bg-transparent text-[10px] font-black text-slate-500 uppercase tracking-widest hover:bg-slate-50/50 transition-all"
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Akreditasi</label>
+                <select
+                  value={formData.Akreditasi}
+                  onChange={e => set('Akreditasi', e.target.value)}
+                  className="w-full h-10 px-3 border border-[var(--theme-border)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors cursor-pointer font-medium"
                 >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="flex-1 h-12 rounded-2xl bg-primary hover:bg-primary/95 text-white text-[10px] font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-primary/15 disabled:opacity-60 flex items-center justify-center gap-2 border-none"
-                >
-                  {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '15px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >save</span>}
-                  <span>{isEditMode ? 'Update Prodi' : 'Simpan Prodi'}</span>
-                </button>
+                  <option value="Unggul">Unggul</option>
+                  <option value="Baik Sekali">Baik Sekali</option>
+                  <option value="Baik">Baik</option>
+                </select>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
+              <div>
+                <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Kapasitas (MHS)</label>
+                <input
+                  type="number"
+                  value={formData.Kapasitas}
+                  onChange={e => set('Kapasitas', e.target.value)}
+                  min={1}
+                  className="w-full h-10 px-3 border border-[var(--theme-border)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors font-medium text-center"
+                />
+              </div>
+            </div>
+
+            <DialogFooter className="flex gap-3 pt-4 sm:flex-row sm:justify-stretch sm:space-x-0">
+              <button
+                type="button"
+                onClick={() => setIsModal(false)}
+                className="flex-1 h-10 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider hover:bg-[var(--theme-bg)] transition-colors cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex-1 h-10 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-xs font-semibold uppercase tracking-wider transition-colors disabled:opacity-60 flex items-center justify-center gap-2 border-none cursor-pointer"
+              >
+                {isSubmitting ? (
+                  <span className="material-symbols-outlined animate-spin" style={{ fontSize: '15px' }} >sync</span>
+                ) : (
+                  <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >save</span>
+                )}
+                <span>{isEditMode ? 'Update' : 'Simpan'}</span>
+              </button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <DeleteConfirmModal
         isOpen={!!deleteTarget}

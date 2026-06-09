@@ -449,123 +449,147 @@ export default function TenagaKesehatanList() {
         </Card>
 
       {/* ── Edit Modal ───────────────────────────────────────────── */}
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="w-[95vw] sm:w-[90vw] md:max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white animate-in slide-in-from-bottom-4 duration-300">
-          <DialogHeader className="p-6 sm:p-8 pb-4 sm:pb-6 border-b border-neutral-100 relative overflow-hidden bg-neutral-50/50">
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen} maxWidth="max-w-xl">
+        <DialogContent>
+          <DialogHeader className="relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-5 text-bku-primary"><MedicalServices size={100} /></div>
             <div className="relative z-10 space-y-1">
               <div className="flex items-center gap-2 mb-2">
                 <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
-                  <span className="material-symbols-outlined text-[14px]" >edit</span>
+                  <span className="material-symbols-outlined text-[12px]" >edit</span>
                 </div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-bku-primary font-jakarta">Medical Registry</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-bku-primary font-jakarta">Medical Registry</span>
               </div>
-              <DialogTitle className="text-xl sm:text-2xl font-bold font-jakarta tracking-tight text-neutral-900 uppercase">
+              <DialogTitle className="text-xl sm:text-2xl font-black font-jakarta tracking-tight text-slate-800 uppercase">
                 Edit Profil Tenaga Medis
               </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm font-medium text-neutral-400">Pembaruan kualifikasi dan pengaturan operasional tenaga medis klinik.</DialogDescription>
+              <DialogDescription className="text-xs sm:text-sm font-medium text-slate-500">Pembaruan kualifikasi dan pengaturan operasional tenaga medis klinik.</DialogDescription>
             </div>
           </DialogHeader>
 
-          <form onSubmit={handleSave} className="p-6 sm:p-8 pt-4 sm:pt-6 space-y-4 sm:space-y-5 max-h-[70vh] overflow-y-auto">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta ml-1">Nama Lengkap & Gelar</Label>
-                <Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Nama lengkap..." className="h-10 rounded-xl border-[var(--theme-border)] bg-white font-medium text-sm font-jakarta uppercase" />
+          <form onSubmit={handleSave}>
+            <div className="p-6 md:p-8 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar font-jakarta">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">Nama Lengkap & Gelar</Label>
+                  <Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Nama lengkap..." className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-jakarta uppercase" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">Spesialisasi / Jabatan</Label>
+                  <Input value={form.Spesialisasi} onChange={e => setForm({ ...form, Spesialisasi: e.target.value })} placeholder="Contoh: Dokter Umum, Perawat..." className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-jakarta" />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta ml-1">Spesialisasi / Jabatan</Label>
-                <Input value={form.Spesialisasi} onChange={e => setForm({ ...form, Spesialisasi: e.target.value })} placeholder="Contoh: Dokter Umum, Perawat..." className="h-10 rounded-xl border-[var(--theme-border)] bg-white font-medium text-sm font-jakarta" />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">Email</Label>
+                  <Input type="email" value={form.Email} onChange={e => setForm({ ...form, Email: e.target.value })} placeholder="Email dinas..." className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-jakarta" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">No. HP / WhatsApp</Label>
+                  <Input value={form.NoHP} onChange={e => setForm({ ...form, NoHP: e.target.value })} placeholder="Contoh: 08123456789" className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-jakarta" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">Lokasi Pemeriksaan</Label>
+                  <Input value={form.Lokasi} onChange={e => setForm({ ...form, Lokasi: e.target.value })} placeholder="Klinik / Ruang..." className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-jakarta" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">Status Operasional</Label>
+                  <SelectField
+                    value={form.IsAktif ? "1" : "0"}
+                    onValueChange={v => setForm({ ...form, IsAktif: v === "1" })}
+                    className="w-full h-11 rounded-xl border-slate-200 bg-slate-50/30 font-semibold text-sm text-slate-800 focus:border-bku-primary"
+                  >
+                    <SelectOption value="1">Aktif Tugas</SelectOption>
+                    <SelectOption value="0">Non-Aktif</SelectOption>
+                  </SelectField>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">Foto URL / Avatar</Label>
+                <Input value={form.FotoURL} onChange={e => setForm({ ...form, FotoURL: e.target.value })} placeholder="https://example.com/foto.jpg..." className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-jakarta" />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta ml-1">Email</Label>
-                <Input type="email" value={form.Email} onChange={e => setForm({ ...form, Email: e.target.value })} placeholder="Email dinas..." className="h-10 rounded-xl border-[var(--theme-border)] bg-white font-medium text-sm font-jakarta" />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta ml-1">No. HP / WhatsApp</Label>
-                <Input value={form.NoHP} onChange={e => setForm({ ...form, NoHP: e.target.value })} placeholder="Contoh: 08123456789" className="h-10 rounded-xl border-[var(--theme-border)] bg-white font-medium text-sm font-jakarta" />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta ml-1">Lokasi Pemeriksaan</Label>
-                <Input value={form.Lokasi} onChange={e => setForm({ ...form, Lokasi: e.target.value })} placeholder="Klinik / Ruang..." className="h-10 rounded-xl border-[var(--theme-border)] bg-white font-medium text-sm font-jakarta" />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta ml-1">Status Operasional</Label>
-                <SelectField
-                  value={form.IsAktif ? "1" : "0"}
-                  onValueChange={v => setForm({ ...form, IsAktif: v === "1" })}
-                  className="w-full h-10"
-                >
-                  <SelectOption value="1">Aktif Tugas</SelectOption>
-                  <SelectOption value="0">Non-Aktif</SelectOption>
-                </SelectField>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta ml-1">Foto URL / Avatar</Label>
-              <Input value={form.FotoURL} onChange={e => setForm({ ...form, FotoURL: e.target.value })} placeholder="https://example.com/foto.jpg..." className="h-10 rounded-xl border-[var(--theme-border)] bg-white font-medium text-sm font-jakarta" />
-            </div>
-
-            <div className="pt-6 flex flex-col-reverse sm:flex-row gap-3 border-t border-[var(--theme-border-muted)]">
-              <Button type="button" variant="ghost" onClick={() => setIsEditOpen(false)} className="w-full sm:w-auto h-10 rounded-xl text-xs font-bold uppercase tracking-widest text-[var(--theme-text-muted)]">Batal</Button>
-              <Button type="submit" disabled={isSubmitting} className="w-full sm:flex-1 h-10 rounded-xl bg-[var(--theme-primary)] text-white hover:bg-[var(--theme-primary-hover)] shadow-md transition-all active:scale-95 flex items-center justify-center border-none cursor-pointer">
-                {isSubmitting ? <span className="material-symbols-outlined animate-spin mr-2" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined mr-2" style={{ fontSize: '14px' }} >save</span>}
-                <span className="text-xs font-bold uppercase tracking-widest">Update Profil</span>
-              </Button>
-            </div>
+            <DialogFooter>
+              <button
+                type="button"
+                onClick={() => setIsEditOpen(false)}
+                className="flex-1 sm:flex-initial h-12 px-6 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-jakarta cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex-1 sm:flex-initial h-12 px-8 bg-neutral-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2 font-jakarta disabled:opacity-50 cursor-pointer border-none"
+              >
+                {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >save</span>}
+                <span>Update Profil</span>
+              </button>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
       {/* ── Add Modal ───────────────────────────────────────────── */}
-      <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-        <DialogContent className="w-[95vw] sm:w-[90vw] md:max-w-md p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white animate-in slide-in-from-bottom-4 duration-300">
-          <DialogHeader className="p-6 sm:p-8 pb-4 sm:pb-6 border-b border-neutral-100 relative overflow-hidden bg-neutral-50/50">
+      <Dialog open={isAddOpen} onOpenChange={setIsAddOpen} maxWidth="max-w-md">
+        <DialogContent>
+          <DialogHeader className="relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-5 text-bku-primary"><MedicalServices size={100} /></div>
             <div className="relative z-10 space-y-1">
               <div className="flex items-center gap-2 mb-2">
                 <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
-                  <span className="material-symbols-outlined text-[14px]" >add_circle</span>
+                  <span className="material-symbols-outlined text-[12px]" >add_circle</span>
                 </div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-bku-primary font-jakarta">Registry System</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-bku-primary font-jakarta">Registry System</span>
               </div>
-              <DialogTitle className="text-xl sm:text-2xl font-bold font-jakarta tracking-tight text-neutral-900 uppercase">
+              <DialogTitle className="text-xl sm:text-2xl font-black font-jakarta tracking-tight text-slate-800 uppercase">
                 Tambah Tenaga Medis Baru
               </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm font-medium text-neutral-400">Registrasi akun baru untuk dokter atau perawat.</DialogDescription>
+              <DialogDescription className="text-xs sm:text-sm font-medium text-slate-500">Registrasi akun baru untuk dokter atau perawat.</DialogDescription>
             </div>
           </DialogHeader>
 
-          <form onSubmit={handleAdd} className="p-6 sm:p-8 pt-4 sm:pt-6 space-y-4">
-            <div className="space-y-2">
-              <Label className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta ml-1">Nama Lengkap & Gelar</Label>
-              <Input required value={addForm.Nama} onChange={e => setAddForm({ ...addForm, Nama: e.target.value })} placeholder="Contoh: dr. Ahmad Fauzi" className="h-10 rounded-xl border-[var(--theme-border)] bg-white font-medium text-sm font-jakarta uppercase" />
+          <form onSubmit={handleAdd}>
+            <div className="p-6 md:p-8 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar font-jakarta">
+              <div className="space-y-1.5">
+                <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">Nama Lengkap & Gelar</Label>
+                <Input required value={addForm.Nama} onChange={e => setAddForm({ ...addForm, Nama: e.target.value })} placeholder="Contoh: dr. Ahmad Fauzi" className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-jakarta uppercase" />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">Email</Label>
+                <Input type="email" required value={addForm.Email} onChange={e => setAddForm({ ...addForm, Email: e.target.value })} placeholder="Contoh: medis.ahmad@bku.ac.id" className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-jakarta" />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">Password</Label>
+                <Input type="password" required value={addForm.Password} onChange={e => setAddForm({ ...addForm, Password: e.target.value })} placeholder="Password..." className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-jakarta" />
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta ml-1">Email</Label>
-              <Input type="email" required value={addForm.Email} onChange={e => setAddForm({ ...addForm, Email: e.target.value })} placeholder="Contoh: medis.ahmad@bku.ac.id" className="h-10 rounded-xl border-[var(--theme-border)] bg-white font-medium text-sm font-jakarta" />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta ml-1">Password</Label>
-              <Input type="password" required value={addForm.Password} onChange={e => setAddForm({ ...addForm, Password: e.target.value })} placeholder="Password..." className="h-10 rounded-xl border-[var(--theme-border)] bg-white font-medium text-sm font-jakarta" />
-            </div>
-
-            <div className="pt-6 flex flex-col-reverse sm:flex-row gap-3 border-t border-[var(--theme-border-muted)]">
-              <Button type="button" variant="ghost" onClick={() => setIsAddOpen(false)} className="w-full sm:w-auto h-10 rounded-xl text-xs font-bold uppercase tracking-widest text-[var(--theme-text-muted)]">Batal</Button>
-              <Button type="submit" disabled={isSubmitting} className="w-full sm:flex-1 h-10 rounded-xl bg-[var(--theme-primary)] text-white hover:bg-[var(--theme-primary-hover)] shadow-md transition-all active:scale-95 flex items-center justify-center border-none cursor-pointer">
-                {isSubmitting ? <span className="material-symbols-outlined animate-spin mr-2" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined mr-2" style={{ fontSize: '14px' }} >save</span>}
-                <span className="text-xs font-bold uppercase tracking-widest">Daftarkan Akun</span>
-              </Button>
-            </div>
+            <DialogFooter>
+              <button
+                type="button"
+                onClick={() => setIsAddOpen(false)}
+                className="flex-1 sm:flex-initial h-12 px-6 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-jakarta cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex-1 sm:flex-initial h-12 px-8 bg-neutral-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2 font-jakarta disabled:opacity-50 cursor-pointer border-none"
+              >
+                {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >save</span>}
+                <span>Daftarkan Akun</span>
+              </button>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
@@ -580,23 +604,35 @@ export default function TenagaKesehatanList() {
       />
 
       {/* ── Schedule Management Modal ────────────────────────────── */}
-      <Dialog open={isScheduleOpen} onOpenChange={setIsScheduleOpen}>
-        <DialogContent className="max-w-4xl bg-white border rounded-2xl shadow-xl overflow-hidden p-0 animate-in fade-in duration-200 font-jakarta">
-          <div className="bg-gradient-to-br from-[var(--theme-primary)] via-[var(--theme-primary)]/90 to-[var(--theme-primary)]/85 px-6 py-5 pr-16 text-white flex justify-between items-center">
-            <div>
-              <DialogTitle className="text-base font-bold uppercase tracking-wider font-jakarta text-white">Kelola Jadwal Praktik</DialogTitle>
-              <DialogDescription className="text-white/70 text-xs mt-1">Tenaga Medis: {selected?.nama}</DialogDescription>
+      <Dialog open={isScheduleOpen} onOpenChange={setIsScheduleOpen} maxWidth="max-w-4xl">
+        <DialogContent>
+          <DialogHeader className="relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-5 text-bku-primary"><span className="material-symbols-outlined" style={{ fontSize: '100px' }} >calendar_month</span></div>
+            <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
+                    <span className="material-symbols-outlined text-[12px]">calendar_month</span>
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-bku-primary font-jakarta">Operational Schedule</span>
+                </div>
+                <DialogTitle className="text-xl sm:text-2xl font-black font-jakarta tracking-tight text-slate-800 uppercase">
+                  Kelola Jadwal Praktik
+                </DialogTitle>
+                <DialogDescription className="text-xs sm:text-sm font-medium text-slate-500">Tenaga Medis: {selected?.nama}</DialogDescription>
+              </div>
+              <button
+                type="button"
+                onClick={handleOpenAddScheduleSlot}
+                className="bg-neutral-900 hover:bg-slate-800 text-white font-bold font-jakarta text-xs uppercase tracking-widest h-10 px-4 rounded-xl flex items-center gap-1 shadow-md border-none cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[16px]">add</span>
+                <span>Tambah Slot</span>
+              </button>
             </div>
-            <Button
-              onClick={handleOpenAddScheduleSlot}
-              className="bg-white hover:bg-slate-50 text-bku-primary font-bold font-jakarta text-xs uppercase tracking-wider h-9 px-3 rounded-lg flex items-center gap-1 shadow-sm border-none"
-            >
-              <span className="material-symbols-outlined text-[16px]">add</span>
-              Tambah Slot
-            </Button>
-          </div>
+          </DialogHeader>
 
-          <div className="p-6 max-h-[60vh] overflow-y-auto space-y-6">
+          <div className="p-6 md:p-8 max-h-[50vh] overflow-y-auto no-scrollbar space-y-6">
             {showScheduleAddForm && (
               <form onSubmit={handleSaveScheduleSlot} className="bg-slate-50 p-4 border border-slate-200 rounded-2xl space-y-4 animate-in slide-in-from-top-4 duration-200 font-jakarta">
                 <div className="text-xs font-bold text-bku-primary uppercase tracking-wider mb-2">
@@ -756,7 +792,7 @@ export default function TenagaKesehatanList() {
                 <p className="text-xs text-slate-400 mt-1">Tenaga medis ini belum memiliki jadwal praktik terdaftar.</p>
               </div>
             ) : (
-              <div className="overflow-x-auto border border-slate-100 rounded-2xl shadow-sm">
+              <div className="overflow-x-auto border border-slate-100 rounded-2xl shadow-sm no-scrollbar">
                 <table className="w-full text-left border-collapse bg-white">
                   <thead>
                     <tr className="bg-slate-50 border-b border-slate-200 text-[9px] font-black text-slate-400 uppercase tracking-widest">
@@ -768,7 +804,7 @@ export default function TenagaKesehatanList() {
                       <th className="py-3 px-4 text-right">Aksi</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-600">
+                  <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-600 font-jakarta">
                     {scheduleData.map((sch) => (
                       <tr key={sch.id} className="hover:bg-slate-50/50">
                         <td className="py-4 px-4 font-bold text-slate-800">
@@ -793,14 +829,14 @@ export default function TenagaKesehatanList() {
                           <div className="inline-flex gap-2">
                             <button
                               onClick={() => handleOpenEditScheduleSlot(sch)}
-                              className="inline-flex size-8 items-center justify-center rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200"
+                              className="inline-flex size-8 items-center justify-center rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 cursor-pointer"
                               title="Edit Jadwal"
                             >
                               <span className="material-symbols-outlined text-sm">edit</span>
                             </button>
                             <button
                               onClick={() => handleDeleteScheduleSlot(sch.id)}
-                              className="inline-flex size-8 items-center justify-center rounded-lg bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 border border-rose-100 transition-colors"
+                              className="inline-flex size-8 items-center justify-center rounded-lg bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 border border-rose-100 transition-colors cursor-pointer"
                               title="Hapus Jadwal"
                             >
                               <span className="material-symbols-outlined text-sm">delete</span>
@@ -815,13 +851,14 @@ export default function TenagaKesehatanList() {
             )}
           </div>
 
-          <DialogFooter className="p-6 border-t border-slate-100">
-            <Button
+          <DialogFooter>
+            <button
+              type="button"
               onClick={() => setIsScheduleOpen(false)}
-              className="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold font-jakarta text-xs uppercase tracking-wider h-11 rounded-xl"
+              className="flex-1 sm:flex-initial h-12 px-6 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-jakarta cursor-pointer"
             >
               Tutup Panel
-            </Button>
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

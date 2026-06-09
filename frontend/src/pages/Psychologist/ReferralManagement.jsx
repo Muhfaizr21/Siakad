@@ -5,6 +5,14 @@ import { DataTable } from '@/components/ui/DataTable';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/Table';
+
+// Material Symbol icons
+const Send = ({ size, className, ...props }) => <span className={`material-symbols-outlined shrink-0 ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>send</span>;
+const CheckCircle = ({ size, className, ...props }) => <span className={`material-symbols-outlined shrink-0 ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>check_circle</span>;
+const Clock = ({ size, className, ...props }) => <span className={`material-symbols-outlined shrink-0 ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>schedule</span>;
+const FileDownload = ({ size, className, ...props }) => <span className={`material-symbols-outlined shrink-0 ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>download</span>;
+
 
 export default function ReferralManagement() {
   const [referrals, setReferrals] = useState([]);
@@ -391,20 +399,24 @@ export default function ReferralManagement() {
       </div>
 
       {/* --- CREATE REFERRAL MODAL --- */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="w-[95vw] sm:max-w-lg p-0 overflow-hidden border border-[var(--theme-border)] shadow-2xl rounded-2xl bg-[var(--theme-surface)] font-body animate-in zoom-in-95 duration-200">
-          <div className="px-6 py-5 border-b border-[var(--theme-border-muted)] bg-[var(--theme-primary)] text-white relative overflow-hidden">
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen} maxWidth="max-w-lg">
+        <DialogContent className="p-0 overflow-hidden border border-[var(--theme-border)] shadow-2xl rounded-2xl bg-[var(--theme-surface)] font-body animate-in zoom-in-95 duration-200">
+          {/* Header */}
+          <DialogHeader className="p-8 pb-5 border-b border-[var(--theme-border-muted)] bg-[var(--theme-primary)] text-white relative overflow-hidden">
             <div className="absolute -top-12 -right-12 w-24 h-24 bg-white/5 rounded-full blur-xl pointer-events-none" />
-            <div className="relative z-10">
-              <h3 className="text-base font-bold uppercase tracking-tight font-headline">Surat Rujukan Baru</h3>
-              <DialogDescription className="text-xs text-white/70 font-semibold uppercase tracking-widest mt-0.5">
-                Buat Rujukan untuk Pasien
-              </DialogDescription>
+            <div className="relative z-10 flex items-center gap-3 text-left">
+              <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white/10 text-white shrink-0">
+                <span className="material-symbols-outlined text-white" style={{ fontSize: '20px' }}>send</span>
+              </div>
+              <div>
+                <DialogTitle className="text-base font-bold uppercase tracking-tight font-headline">Surat Rujukan Baru</DialogTitle>
+                <DialogDescription className="text-xs text-white/70 font-semibold uppercase tracking-widest mt-0.5">Buat Rujukan untuk Pasien</DialogDescription>
+              </div>
             </div>
-          </div>
+          </DialogHeader>
 
-          <form onSubmit={handleCreateReferral} className="px-6 py-5 space-y-4">
-            <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+          <form onSubmit={handleCreateReferral} className="flex flex-col">
+            <div className="p-8 overflow-y-auto max-h-[50vh] no-scrollbar space-y-4 text-left bg-[var(--theme-surface)]">
               <div className="relative">
                 <label className="text-[9px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest ml-1 mb-2 block">Pilih Pasien</label>
                 <div className="relative">
@@ -549,7 +561,7 @@ export default function ReferralManagement() {
               </div>
             </div>
 
-            <div className="pt-4 border-t border-[var(--theme-border-muted)] flex gap-3">
+            <DialogFooter className="p-8 border-t border-[var(--theme-border-muted)] bg-[var(--theme-bg)]/50 shrink-0 flex gap-3">
               <Button 
                 type="button" 
                 variant="outline"
@@ -564,7 +576,7 @@ export default function ReferralManagement() {
               >
                 <span className="material-symbols-outlined text-base shrink-0">save</span> Buat Rujukan
               </button>
-            </div>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>

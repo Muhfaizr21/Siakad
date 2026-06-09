@@ -11,6 +11,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Button } from "@/components/ui/Button"
 import { PageContent } from '@/components/ui/page'
 import { DashboardHero } from '@/components/ui/dashboard'
+import Dialog, { DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/Dialog"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Droplet = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>opacity</span>;
@@ -39,10 +40,10 @@ const AVATAR_COLORS = [
 const getInitials = (n = '') => n.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase() || '?'
 
 const HEALTH_STATUS = {
-  prima: { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500' },
-  stabil: { cls: 'bg-blue-50 text-blue-700 border-blue-200', dot: 'bg-blue-500' },
-  pantauan: { cls: 'bg-amber-50 text-amber-700 border-amber-200', dot: 'bg-amber-500' },
-  kritis: { cls: 'bg-rose-50 text-rose-700 border-rose-200', dot: 'bg-rose-500' },
+  prima: { cls: 'bg-[var(--theme-success-light)] text-[var(--theme-success)] border-[var(--theme-success)]/10', dot: 'bg-[var(--theme-success)]' },
+  stabil: { cls: 'bg-[var(--theme-info-light)] text-[var(--theme-info)] border-[var(--theme-info)]/10', dot: 'bg-[var(--theme-info)]' },
+  pantauan: { cls: 'bg-[var(--theme-warning-light)] text-[var(--theme-warning)] border-[var(--theme-warning)]/10', dot: 'bg-[var(--theme-warning)]' },
+  kritis: { cls: 'bg-[var(--theme-error-light)] text-[var(--theme-error)] border-[var(--theme-error)]/10', dot: 'bg-[var(--theme-error)]' },
 }
 const getHealth = (v = '') => HEALTH_STATUS[(v || 'stabil').toLowerCase()] || HEALTH_STATUS.stabil
 
@@ -902,227 +903,213 @@ export default function FacultyKesehatan() {
         </div>
 
       {/* Stats Detail Modal (Pop-up rincian dari card stats) */}
-      {statsDetail && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
-          onClick={() => setStatsDetail(null)}>
-          <div className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[85vh]"
-            onClick={e => e.stopPropagation()}>
+      <Dialog open={!!statsDetail} onOpenChange={(open) => !open && setStatsDetail(null)} maxWidth="max-w-4xl">
+        <DialogContent className="max-w-4xl p-0 overflow-hidden border border-[var(--theme-border)] shadow-2xl rounded-2xl bg-[var(--theme-surface)] flex flex-col max-h-[85vh]">
+          {/* Header */}
+          <DialogHeader className="shrink-0 relative bg-[var(--theme-bg)]/50 p-6 pb-5 border-b border-[var(--theme-border-muted)]">
+            <DialogTitle className="text-lg font-bold font-headline leading-tight text-[var(--theme-text)]">{statsDetail?.label}</DialogTitle>
+            <DialogDescription className="text-xs text-[var(--theme-text-muted)] mt-1">Daftar mahasiswa baru dengan status kesehatan tersebut</DialogDescription>
+          </DialogHeader>
 
-            {/* Header */}
-            <div className="bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] pt-6 pb-5 px-6 relative flex-shrink-0">
-              <button onClick={() => setStatsDetail(null)}
-                className="absolute top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors text-white">
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >close</span>
-              </button>
-              <h3 className="text-lg font-extrabold text-white tracking-tight leading-tight">{statsDetail.label}</h3>
-              <p className="text-xs text-blue-200 mt-1">Daftar mahasiswa baru dengan status kesehatan tersebut</p>
+          {/* Toolbar */}
+          <div className="p-4 border-b border-[var(--theme-border-muted)] bg-[var(--theme-bg)]/20 flex flex-col sm:flex-row items-center justify-between gap-3 flex-shrink-0">
+            <div className="relative w-full sm:w-72">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--theme-text-subtle)]" style={{ fontSize: '15px' }} >search</span>
+              <input
+                type="text"
+                placeholder="Cari nama, NIM, prodi..."
+                value={statsSearch}
+                onChange={e => setStatsSearch(e.target.value)}
+                className="pl-9 pr-4 h-10 w-full rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] text-xs font-semibold text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] transition-colors"
+              />
             </div>
-
-            {/* Toolbar */}
-            <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-3 flex-shrink-0">
-              <div className="relative w-full sm:w-72">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '15px' }} >search</span>
-                <input
-                  type="text"
-                  placeholder="Cari nama, NIM, prodi..."
-                  value={statsSearch}
-                  onChange={e => setStatsSearch(e.target.value)}
-                  className="pl-9 pr-4 h-9 w-full rounded-xl border border-slate-200/60 focus:outline-none focus:border-primary text-xs bg-white"
-                />
-              </div>
-              <p className="text-xs text-slate-500 font-semibold">
-                Menampilkan <span className="text-primary">{filteredStatsDetailList.length}</span> data
-              </p>
-            </div>
-
-            {/* List Body */}
-            <div className="flex-1 overflow-y-auto p-4">
-              {filteredStatsDetailList.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 text-center">
-                  <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-400 mb-2"><HeartPulse size={20} /></div>
-                  <p className="font-bold text-sm text-slate-800">Tidak ada mahasiswa ditemukan</p>
-                  <p className="text-xs text-slate-400">Kata kunci tidak cocok dengan data mana pun.</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {filteredStatsDetailList.map((row) => {
-                    const hs = getHealth(row.StatusKesehatan)
-                    return (
-                      <div key={row.ID} className="flex items-center gap-3 p-3 rounded-2xl border border-slate-100 bg-white hover:border-primary/20 hover:shadow-sm transition-all group">
-                        <StudentAvatar src={getFullUrl(row.Mahasiswa?.FotoURL || row.Mahasiswa?.foto_url)} name={row.Mahasiswa?.Nama} className="w-11 h-11 rounded-xl" />
-                        <div className="min-w-0 flex-1">
-                          <p className="font-bold text-xs text-slate-900 group-hover:text-primary transition-colors truncate">{row.Mahasiswa?.Nama || '—'}</p>
-                          <p className="text-[10px] text-slate-400 font-semibold">{row.Mahasiswa?.NIM || '—'} · {row.Mahasiswa?.ProgramStudi?.Nama || '—'}</p>
-                          <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                            <span className="inline-flex items-center justify-center px-1.5 py-0.5 rounded-md bg-rose-50 border border-rose-100 text-rose-600 text-[9px] font-black font-mono">
-                              Gol. {row.GolonganDarah || '?'}
-                            </span>
-                            <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold border uppercase tracking-wider whitespace-nowrap', hs.cls)}>
-                              <span className={cn('w-1 h-1 rounded-full shrink-0', hs.dot)} />{row.StatusKesehatan || '—'}
-                            </span>
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => { setSelected(row); setStatsDetail(null); }}
-                          className="w-8 h-8 rounded-xl bg-slate-50 hover:bg-[#eef4ff] text-slate-400 hover:text-primary flex items-center justify-center transition-colors shadow-inner"
-                          title="Detail Rekam Medis"
-                        >
-                          <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>visibility</span>
-                        </button>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-
-            {/* Footer */}
-            <div className="px-5 py-4 border-t border-slate-100 bg-slate-50/50 flex justify-end flex-shrink-0">
-              <button onClick={() => setStatsDetail(null)}
-                className="h-10 px-6 rounded-xl bg-primary hover:bg-[#001a52] text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-[#00236F]/20">
-                Tutup
-              </button>
-            </div>
-
+            <p className="text-xs text-[var(--theme-text-muted)] font-semibold">
+              Menampilkan <span className="text-[var(--theme-primary)]">{filteredStatsDetailList.length}</span> data
+            </p>
           </div>
-        </div>
-      )}
+
+          {/* List Body */}
+          <div className="flex-1 overflow-y-auto p-4">
+            {filteredStatsDetailList.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="w-12 h-12 bg-[var(--theme-bg)] rounded-2xl flex items-center justify-center text-[var(--theme-text-muted)] mb-2"><HeartPulse size={20} /></div>
+                <p className="font-bold text-sm text-[var(--theme-text)]">Tidak ada mahasiswa ditemukan</p>
+                <p className="text-xs text-[var(--theme-text-muted)]">Kata kunci tidak cocok dengan data mana pun.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {filteredStatsDetailList.map((row) => {
+                  const hs = getHealth(row.StatusKesehatan)
+                  return (
+                    <div key={row.ID} className="flex items-center gap-3 p-3 rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-surface)] hover:border-[var(--theme-primary)]/20 hover:shadow-sm transition-all group">
+                      <StudentAvatar src={getFullUrl(row.Mahasiswa?.FotoURL || row.Mahasiswa?.foto_url)} name={row.Mahasiswa?.Nama} className="w-11 h-11 rounded-xl" />
+                      <div className="min-w-0 flex-1">
+                        <p className="font-bold text-xs text-[var(--theme-text)] group-hover:text-[var(--theme-primary)] transition-colors truncate">{row.Mahasiswa?.Nama || '—'}</p>
+                        <p className="text-[10px] text-[var(--theme-text-muted)] font-semibold">{row.Mahasiswa?.NIM || '—'} · {row.Mahasiswa?.ProgramStudi?.Nama || '—'}</p>
+                        <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                          <span className="inline-flex items-center justify-center px-1.5 py-0.5 rounded-md bg-[var(--theme-error-light)] border border-[var(--theme-error)]/10 text-[var(--theme-error)] text-[9px] font-semibold font-mono">
+                            Gol. {row.GolonganDarah || '?'}
+                          </span>
+                          <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-semibold border uppercase tracking-wider whitespace-nowrap', hs.cls)}>
+                            <span className={cn('w-1 h-1 rounded-full shrink-0', hs.dot)} />{row.StatusKesehatan || '—'}
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => { setSelected(row); setStatsDetail(null); }}
+                        className="w-8 h-8 rounded-xl bg-[var(--theme-bg)] hover:bg-[var(--theme-primary-light)] text-[var(--theme-text-subtle)] hover:text-[var(--theme-primary)] flex items-center justify-center transition-colors shadow-inner cursor-pointer"
+                        title="Detail Rekam Medis"
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>visibility</span>
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="px-5 py-4 border-t border-[var(--theme-border-muted)] bg-transparent flex justify-end flex-shrink-0">
+            <button onClick={() => setStatsDetail(null)}
+              className="h-10 px-6 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-xs font-semibold uppercase tracking-wider transition-all active:scale-95 shadow-md cursor-pointer">
+              Tutup
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Detail Modal */}
-      {selected && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
-          onClick={() => setSelected(null)}>
-          <div className="relative w-full max-w-lg glass-card rounded-2xl shadow-none border border-slate-200/60 flex flex-col overflow-hidden max-h-[90vh]"
-            onClick={e => e.stopPropagation()}>
-            {/* Header */}
-            <div className="relative bg-gradient-to-br from-bku-primary via-[#00308F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
-              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
-              <button onClick={() => setSelected(null)}
-                className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
-                <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span>
-              </button>
-              <div className="relative z-10 flex items-center gap-4 mb-5">
-                <StudentAvatar src={getFullUrl(selected.Mahasiswa?.FotoURL || selected.Mahasiswa?.foto_url)} name={selected.Mahasiswa?.Nama} className="w-14 h-14 rounded-2xl shadow-xl ring-2 ring-white/20" />
-                <div className="min-w-0">
-                  <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Rekam Medis Mahasiswa</p>
-                  <h2 className="text-base font-extrabold font-headline leading-tight text-white">{selected.Mahasiswa?.Nama}</h2>
-                  <p className="text-xs text-blue-200 font-medium mt-0.5">{selected.Mahasiswa?.NIM} · {selected.Mahasiswa?.ProgramStudi?.Nama || '—'}</p>
-                </div>
-              </div>
-              <div className="relative z-10 flex flex-wrap gap-2">
-                <span className="flex items-center gap-1.5 bg-white/10 border border-white/20 px-3 py-1.5 rounded-xl text-[10px] font-bold text-white font-mono tracking-wider">
-                  <Droplet size={10} /> Gol. {selected.GolonganDarah || '?'}
-                </span>
-                <span className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider',
-                  selected.StatusKesehatan === 'prima' ? 'bg-emerald-400/20 border border-emerald-300/30 text-emerald-200'
-                    : selected.StatusKesehatan === 'stabil' ? 'bg-blue-400/20 border border-blue-300/30 text-blue-200'
-                      : selected.StatusKesehatan === 'pantauan' ? 'bg-amber-400/20 border border-amber-300/30 text-amber-200'
-                        : 'bg-rose-400/20 border border-rose-300/30 text-rose-200')}>
-                  <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
-                  {selected.StatusKesehatan || 'Stabil'}
-                </span>
+      <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)} maxWidth="max-w-lg">
+        <DialogContent className="max-w-lg p-0 overflow-hidden border border-[var(--theme-border)] shadow-2xl rounded-2xl bg-[var(--theme-surface)] flex flex-col max-h-[90vh]">
+          {/* Header */}
+          <DialogHeader className="shrink-0 relative bg-[var(--theme-bg)]/50 p-6 pb-5 border-b border-[var(--theme-border-muted)]">
+            <div className="relative z-10 flex items-center gap-4 mb-4">
+              <StudentAvatar src={getFullUrl(selected?.Mahasiswa?.FotoURL || selected?.Mahasiswa?.foto_url)} name={selected?.Mahasiswa?.Nama} className="w-14 h-14 rounded-2xl shadow-inner ring-2 ring-[var(--theme-border)]" />
+              <div className="min-w-0">
+                <p className="text-[9px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-[0.25em] mb-1">Rekam Medis Mahasiswa</p>
+                <DialogTitle className="text-base font-bold font-headline leading-tight text-[var(--theme-text)]">{selected?.Mahasiswa?.Nama}</DialogTitle>
+                <DialogDescription className="text-xs text-[var(--theme-text-muted)] mt-0.5">{selected?.Mahasiswa?.NIM} · {selected?.Mahasiswa?.ProgramStudi?.Nama || '—'}</DialogDescription>
               </div>
             </div>
+            <div className="relative z-10 flex flex-wrap gap-2">
+              <span className="flex items-center gap-1.5 bg-[var(--theme-error-light)] border border-[var(--theme-error)]/10 px-3 py-1 rounded-full text-[10px] font-semibold text-[var(--theme-error)] font-mono tracking-wider">
+                <Droplet size={10} /> Gol. {selected?.GolonganDarah || '?'}
+              </span>
+              {selected?.StatusKesehatan && (() => {
+                const hs = getHealth(selected.StatusKesehatan);
+                return (
+                  <span className={cn('flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-semibold border uppercase tracking-wider', hs.cls)}>
+                    <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', hs.dot)} />
+                    {selected.StatusKesehatan}
+                  </span>
+                );
+              })()}
+            </div>
+          </DialogHeader>
 
-            {/* Body */}
-            <div className="flex-1 overflow-y-auto p-5 space-y-4">
-              {/* Data Fisik Grid */}
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-5 h-5 rounded-md bg-[#eef4ff] flex items-center justify-center"><span className="material-symbols-outlined text-primary" style={{ fontSize: '11px' }} >show_chart</span></div>
-                  <h3 className="text-[10px] font-black font-headline uppercase tracking-[0.18em]" style={{ color: 'var(--theme-h3)' }}>Data Fisik & Vital</h3>
+          {/* Body */}
+          <div className="flex-1 overflow-y-auto p-5 space-y-4">
+            {/* Data Fisik Grid */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-5 h-5 rounded-md bg-[var(--theme-primary-light)] flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '11px' }} >show_chart</span>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  {[
-                    { label: 'Tinggi Badan', value: selected.TinggiBadan ? `${parseFloat(selected.TinggiBadan).toFixed(1)} cm` : '—' },
-                    { label: 'Berat Badan', value: selected.BeratBadan ? `${parseFloat(selected.BeratBadan).toFixed(1)} kg` : '—' },
-                    { label: 'BMI', value: bmi(selected) || '—', highlight: bmi(selected) >= 25 },
-                    { label: 'Tekanan Darah', value: (selected.Sistole || selected.Diastole) ? `${selected.Sistole || 0}/${selected.Diastole || 0} mmHg` : '—' },
-                    { label: 'Gula Darah', value: selected.GulaDarah ? `${selected.GulaDarah} mg/dL` : '—' },
-                    { label: 'Buta Warna', value: selected.ButaWarna || '—' },
-                    { label: 'Jenis Pemeriksaan', value: selected.JenisPemeriksaan || '—' },
-                    { label: 'Hasil Medis', value: selected.Hasil || '—' },
-                  ].map(item => (
-                    <div key={item.label} className="bg-slate-50/50 border border-slate-100 rounded-xl p-3">
-                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-1">{item.label}</p>
-                      <p className={cn('text-sm font-extrabold', item.highlight ? 'text-rose-600' : 'text-slate-900')}>
-                        {item.value}
-                      </p>
-                    </div>
-                  ))}
-                </div>
+                <h3 className="text-[10px] font-bold font-headline uppercase tracking-[0.18em] text-[var(--theme-text)]">Data Fisik & Vital</h3>
               </div>
-
-              {/* Riwayat Penyakit */}
-              {selected.RiwayatPenyakit && (
-                <div className="bg-slate-50 border border-slate-200/50 rounded-2xl p-4">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Riwayat Penyakit</p>
-                  <p className="text-xs text-slate-700 leading-relaxed">{selected.RiwayatPenyakit}</p>
-                </div>
-              )}
-
-              {/* Catatan */}
-              {selected.Catatan && (
-                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
-                  <p className="text-[10px] font-black text-amber-700 uppercase tracking-[0.18em] mb-1.5">Catatan Medis</p>
-                  <p className="text-xs text-amber-800 leading-relaxed">{selected.Catatan}</p>
-                </div>
-              )}
-
-              {/* File Dokumen / Lampiran */}
-              {selected.FileURL && (
-                <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex items-center justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[10px] font-black text-blue-700 uppercase tracking-[0.18em] mb-0.5">Berkas Hasil Medis</p>
-                    <p className="text-[10px] text-blue-500 font-medium truncate">Dokumen hasil pemeriksaan resmi (.pdf/.jpg)</p>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { label: 'Tinggi Badan', value: selected?.TinggiBadan ? `${parseFloat(selected.TinggiBadan).toFixed(1)} cm` : '—' },
+                  { label: 'Berat Badan', value: selected?.BeratBadan ? `${parseFloat(selected.BeratBadan).toFixed(1)} kg` : '—' },
+                  { label: 'BMI', value: (selected ? bmi(selected) : null) || '—', highlight: selected && bmi(selected) >= 25 },
+                  { label: 'Tekanan Darah', value: (selected?.Sistole || selected?.Diastole) ? `${selected.Sistole || 0}/${selected.Diastole || 0} mmHg` : '—' },
+                  { label: 'Gula Darah', value: selected?.GulaDarah ? `${selected.GulaDarah} mg/dL` : '—' },
+                  { label: 'Buta Warna', value: selected?.ButaWarna || '—' },
+                  { label: 'Jenis Pemeriksaan', value: selected?.JenisPemeriksaan || '—' },
+                  { label: 'Hasil Medis', value: selected?.Hasil || '—' },
+                ].map(item => (
+                  <div key={item.label} className="bg-[var(--theme-bg)]/50 border border-[var(--theme-border-muted)] rounded-xl p-3">
+                    <p className="text-[9px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-[0.15em] mb-1">{item.label}</p>
+                    <p className={cn('text-sm font-bold text-[var(--theme-text)]', item.highlight && 'text-[var(--theme-error)]')}>
+                      {item.value}
+                    </p>
                   </div>
-                  <a href={getFullUrl(selected.FileURL)} target="_blank" rel="noreferrer"
-                    className="h-8 px-3 rounded-lg bg-primary hover:bg-[#001a52] text-white text-xs font-bold uppercase tracking-widest flex items-center gap-1 transition-all shadow-sm shrink-0">
-                    <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>visibility</span> Lihat
-                  </a>
-                </div>
-              )}
-
-              {/* Info Tambahan */}
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-5 h-5 rounded-md bg-[#eef4ff] flex items-center justify-center"><span className="material-symbols-outlined text-primary" style={{ fontSize: '11px' }} >calendar_month</span></div>
-                  <h3 className="text-[10px] font-black font-headline uppercase tracking-[0.18em]" style={{ color: 'var(--theme-h3)' }}>Informasi Tambahan</h3>
-                </div>
-                <div className="space-y-1">
-                  {[
-                    { icon: Calendar, label: 'Tanggal Periksa', value: formatDate(selected.Tanggal) },
-                    { icon: GraduationCap, label: 'Program Studi', value: selected.Mahasiswa?.ProgramStudi?.Nama },
-                    { icon: ShieldCheck, label: 'Status', value: selected.StatusKesehatan || 'Stabil' },
-                  ].map(r => (
-                    <div key={r.label} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50/50 border border-slate-100 hover:bg-white transition-all">
-                      <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center text-primary shadow-sm border border-slate-100 flex-shrink-0">
-                        <r.icon size={13} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em]">{r.label}</p>
-                        <p className="text-sm font-semibold text-slate-900">{r.value || '—'}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                ))}
               </div>
             </div>
 
-            {/* Footer */}
-            <div className="px-5 py-4 border-t border-slate-200/60 bg-transparent flex gap-3 flex-shrink-0">
-              <button onClick={() => window.print()}
-                className="flex-1 h-11 rounded-xl border border-slate-200/60 bg-white text-xs font-bold text-slate-600 uppercase tracking-widest hover:bg-slate-50 transition-all">
-                Cetak
-              </button>
-              <button onClick={() => setSelected(null)}
-                className="flex-1 h-11 rounded-xl bg-primary hover:bg-bku-hover text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-bku-primary/20">
-                Tutup
-              </button>
+            {/* Riwayat Penyakit */}
+            {selected?.RiwayatPenyakit && (
+              <div className="bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-2xl p-4">
+                <p className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-[0.18em] mb-1.5">Riwayat Penyakit</p>
+                <p className="text-xs text-[var(--theme-text)] leading-relaxed">{selected.RiwayatPenyakit}</p>
+              </div>
+            )}
+
+            {/* Catatan */}
+            {selected?.Catatan && (
+              <div className="bg-[var(--theme-warning-light)] border border-[var(--theme-warning)]/20 rounded-2xl p-4">
+                <p className="text-[10px] font-semibold text-[var(--theme-warning)] uppercase tracking-[0.18em] mb-1.5">Catatan Medis</p>
+                <p className="text-xs text-[var(--theme-warning)] leading-relaxed">{selected.Catatan}</p>
+              </div>
+            )}
+
+            {/* File Dokumen / Lampiran */}
+            {selected?.FileURL && (
+              <div className="bg-[var(--theme-info-light)] border border-[var(--theme-info)]/20 rounded-2xl p-4 flex items-center justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-semibold text-[var(--theme-info)] uppercase tracking-[0.18em] mb-0.5">Berkas Hasil Medis</p>
+                  <p className="text-[10px] text-[var(--theme-text-muted)] font-medium truncate">Dokumen hasil pemeriksaan resmi (.pdf/.jpg)</p>
+                </div>
+                <a href={getFullUrl(selected.FileURL)} target="_blank" rel="noreferrer"
+                  className="h-8 px-3 rounded-lg bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-xs font-semibold uppercase tracking-widest flex items-center gap-1 transition-all shadow-sm shrink-0">
+                  <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>visibility</span> Lihat
+                </a>
+              </div>
+            )}
+
+            {/* Info Tambahan */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-5 h-5 rounded-md bg-[var(--theme-primary-light)] flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '11px' }} >calendar_month</span>
+                </div>
+                <h3 className="text-[10px] font-bold font-headline uppercase tracking-[0.18em] text-[var(--theme-text)]">Informasi Tambahan</h3>
+              </div>
+              <div className="space-y-1">
+                {[
+                  { icon: Calendar, label: 'Tanggal Periksa', value: selected ? formatDate(selected.Tanggal) : '' },
+                  { icon: GraduationCap, label: 'Program Studi', value: selected?.Mahasiswa?.ProgramStudi?.Nama },
+                  { icon: ShieldCheck, label: 'Status', value: selected?.StatusKesehatan || 'Stabil' },
+                ].map(r => (
+                  <div key={r.label} className="flex items-center gap-3 p-3 rounded-xl bg-[var(--theme-bg)]/50 border border-[var(--theme-border-muted)] hover:bg-[var(--theme-surface)] transition-all">
+                    <div className="w-7 h-7 bg-[var(--theme-surface)] rounded-lg flex items-center justify-center text-[var(--theme-primary)] shadow-sm border border-[var(--theme-border-muted)] flex-shrink-0">
+                      <r.icon size={13} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[9px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-[0.15em]">{r.label}</p>
+                      <p className="text-sm font-semibold text-[var(--theme-text)]">{r.value || '—'}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+
+          {/* Footer */}
+          <DialogFooter className="px-5 py-4 border-t border-[var(--theme-border-muted)] bg-transparent flex gap-3 flex-shrink-0 sm:flex-row sm:justify-stretch sm:space-x-0">
+            <button onClick={() => window.print()}
+              className="flex-1 h-10 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] text-xs font-semibold text-[var(--theme-text)] uppercase tracking-wider hover:bg-[var(--theme-bg)] transition-all cursor-pointer">
+              Cetak
+            </button>
+            <button onClick={() => setSelected(null)}
+              className="flex-1 h-10 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-xs font-semibold uppercase tracking-wider transition-all active:scale-95 shadow-md cursor-pointer">
+              Tutup
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </PageContent>
   )
 }

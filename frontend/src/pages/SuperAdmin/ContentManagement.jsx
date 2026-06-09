@@ -578,9 +578,9 @@ export default function ContentManagement() {
             </div>
 
             {/* ── CRUD Dialog ───────────────────────────────────────────── */}
-            <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
-                <DialogContent className="max-w-2xl p-0 overflow-hidden border-none shadow-2xl rounded-3xl glass-card bg-white/95">
-                    <DialogHeader className="p-8 pb-6 border-b border-slate-200/40 relative overflow-hidden">
+            <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen} maxWidth="max-w-2xl">
+                <DialogContent>
+                    <DialogHeader className="relative overflow-hidden">
                         <div className="absolute top-0 right-0 p-8 opacity-5 text-bku-primary"><Newspaper size={100} /></div>
                         <div className="relative z-10 space-y-1">
                             <div className="flex items-center gap-2 mb-2">
@@ -596,8 +596,8 @@ export default function ContentManagement() {
                         </div>
                     </DialogHeader>
 
-                    <form onSubmit={handleSave} className="p-8 pt-6 space-y-5">
-                        <div className="max-h-[50vh] overflow-y-auto no-scrollbar">
+                    <form onSubmit={handleSave}>
+                        <div className="p-6 md:p-8 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar">
                             <div className="space-y-5 px-1">
                             <div className="space-y-2">
                                 <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Judul Utama Berita</Label>
@@ -872,15 +872,25 @@ export default function ContentManagement() {
                                 </Select>
                             </div>
                         </div>
-                    </div>
-
-                        <div className="pt-6 flex flex-row gap-3 border-t border-slate-200/40">
-                             <Button type="button" variant="outline" onClick={() => setIsCrudOpen(false)} className="flex-1 h-12 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-500 border-slate-200 hover:bg-slate-100 font-headline cursor-pointer">Batal</Button>
-                             <Button type="submit" disabled={isSubmitting} className="flex-1 h-12 rounded-xl bg-slate-800 text-white hover:bg-slate-900 shadow-none transition-all active:scale-95 font-headline text-[10px] font-black uppercase tracking-widest cursor-pointer border-none">
-                                {isSubmitting ? <span className="material-symbols-outlined animate-spin mr-2" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined mr-2" style={{ fontSize: '14px' }} >save</span>}
-                                {isEditMode ? 'Update Konten' : 'Terbitkan Berita'}
-                             </Button>
                         </div>
+
+                        <DialogFooter>
+                             <button
+                               type="button"
+                               onClick={() => setIsCrudOpen(false)}
+                               className="flex-1 sm:flex-initial h-12 px-6 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-body cursor-pointer"
+                             >
+                               Batal
+                             </button>
+                             <button
+                               type="submit"
+                               disabled={isSubmitting}
+                               className="flex-1 sm:flex-initial h-12 px-8 bg-neutral-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2 font-body disabled:opacity-50 cursor-pointer border-none"
+                             >
+                                {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >save</span>}
+                                <span>{isEditMode ? 'Update Konten' : 'Terbitkan Berita'}</span>
+                             </button>
+                        </DialogFooter>
                     </form>
                 </DialogContent>
             </Dialog>

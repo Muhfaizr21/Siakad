@@ -4,6 +4,7 @@ import { insuranceService } from '../../services/api';
 import toast from 'react-hot-toast';
 import { PageContent } from '@/components/ui/page';
 import { DashboardHero } from '@/components/ui/dashboard';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
 
 // Auto-injected Material Symbol fallbacks
 const InsuranceIcon = ({ size, className, ...props }) => (
@@ -48,16 +49,16 @@ const STATUS_OPTIONS = [
 // Status badge component
 const StatusBadge = ({ status }) => {
   const statusConfig = {
-    'PENDING_VERIFICATION': { label: 'Menunggu', bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-300' },
-    'APPROVED_TK': { label: 'Disetujui TK', bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300' },
-    'APPROVED_FINAL': { label: 'Final Approved', bg: 'bg-emerald-100', text: 'text-emerald-700', border: 'border-emerald-300' },
-    'REJECTED': { label: 'Ditolak', bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300' },
+    'PENDING_VERIFICATION': { label: 'Menunggu', bg: 'bg-[var(--theme-warning-light)]', text: 'text-[var(--theme-warning)]', border: 'border-[var(--theme-warning-light)]' },
+    'APPROVED_TK': { label: 'Disetujui TK', bg: 'bg-[var(--theme-info-light)]', text: 'text-[var(--theme-info)]', border: 'border-[var(--theme-info-light)]' },
+    'APPROVED_FINAL': { label: 'Final Approved', bg: 'bg-[var(--theme-success-light)]', text: 'text-[var(--theme-success)]', border: 'border-[var(--theme-success-light)]' },
+    'REJECTED': { label: 'Ditolak', bg: 'bg-[var(--theme-error-light)]', text: 'text-[var(--theme-error)]', border: 'border-[var(--theme-error-light)]' },
   };
 
   const config = statusConfig[status] || statusConfig['PENDING_VERIFICATION'];
 
   return (
-    <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold border ${config.bg} ${config.text} ${config.border}`}>
+    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${config.bg} ${config.text} ${config.border}`}>
       {config.label}
     </span>
   );
@@ -66,13 +67,13 @@ const StatusBadge = ({ status }) => {
 // Provider badge
 const ProviderBadge = ({ provider }) => {
   const config = {
-    'BKU_Assurance': { label: 'BKU', color: 'bg-teal-500' },
-    'BPJS': { label: 'BPJS', color: 'bg-blue-500' },
-    'Asuransi_Lain': { label: 'Lain', color: 'bg-purple-500' },
+    'BKU_Assurance': { label: 'BKU', color: 'bg-[var(--theme-primary)] text-white' },
+    'BPJS': { label: 'BPJS', color: 'bg-[var(--theme-info)] text-white' },
+    'Asuransi_Lain': { label: 'Lain', color: 'bg-[var(--theme-secondary)] text-[var(--theme-text)]' },
   };
   const badge = config[provider] || config['Asuransi_Lain'];
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold text-white ${badge.color}`}>
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold ${badge.color}`}>
       {badge.label}
     </span>
   );
@@ -390,145 +391,122 @@ export default function InsuranceReview() {
       </div>
 
       {/* Detail Modal */}
-      <AnimatePresence>
-        {isModalOpen && selectedClaim && (
-          <>
-            <div
-              className="fixed inset-0 bg-black/50 z-40"
-              onClick={() => setIsModalOpen(false)}
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="fixed inset-0 z-50 flex items-center justify-center p-4"
-            >
-              <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-                <div className="p-6 border-b border-slate-200">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-teal-100 flex items-center justify-center">
-                        <InsuranceIcon size={20} className="text-teal-600" />
-                      </div>
-                      <div>
-                        <h2 className="text-lg font-bold text-slate-800">Detail Klaim</h2>
-                        <p className="text-xs text-slate-500">ID: #{selectedClaim.id}</p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => setIsModalOpen(false)}
-                      className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                    >
-                      <span className="material-symbols-outlined">close</span>
-                    </button>
-                  </div>
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen} maxWidth="max-w-lg">
+        {selectedClaim && (
+          <DialogContent className="max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)]">
+                  <InsuranceIcon size={20} />
                 </div>
-
-                <div className="p-6 space-y-4">
-                  {/* Student Info */}
-                  <div className="bg-slate-50 rounded-xl p-4">
-                    <h3 className="text-xs font-bold text-slate-500 uppercase mb-2">Data Mahasiswa</h3>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <p className="text-[10px] text-slate-400">Nama</p>
-                        <p className="font-semibold text-sm">{selectedClaim.mahasiswa?.nama || '—'}</p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] text-slate-400">NIM</p>
-                        <p className="font-semibold text-sm">{selectedClaim.mahasiswa?.nim || '—'}</p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] text-slate-400">Program Studi</p>
-                        <p className="font-semibold text-sm">{selectedClaim.mahasiswa?.program_studi?.nama || '—'}</p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] text-slate-400">Fakultas</p>
-                        <p className="font-semibold text-sm">{selectedClaim.mahasiswa?.fakultas?.nama || '—'}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Claim Info */}
-                  <div className="bg-slate-50 rounded-xl p-4">
-                    <h3 className="text-xs font-bold text-slate-500 uppercase mb-2">Detail Klaim</h3>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-slate-500">Provider</span>
-                        <ProviderBadge provider={selectedClaim.jenis_provider} />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-slate-500">Tanggal Kejadian</span>
-                        <span className="text-sm font-semibold">{formatDate(selectedClaim.tanggal_kejadian)}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-slate-500">Lokasi Faskes</span>
-                        <span className="text-sm font-semibold">{selectedClaim.lokasi_faskes || '—'}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-slate-500">Estimasi Biaya</span>
-                        <span className="text-sm font-bold text-teal-600">{formatCurrency(selectedClaim.estimasi_biaya)}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-slate-500">Status</span>
-                        <StatusBadge status={selectedClaim.status} />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Kronologis */}
-                  <div>
-                    <h3 className="text-xs font-bold text-slate-500 uppercase mb-2">Kronologis</h3>
-                    <p className="text-sm text-slate-700 bg-slate-50 rounded-lg p-3">{selectedClaim.deskripsi || '—'}</p>
-                  </div>
-
-                  {/* Catatan Review */}
-                  {selectedClaim.catatan_review && (
-                    <div>
-                      <h3 className="text-xs font-bold text-slate-500 uppercase mb-2">Catatan Review</h3>
-                      <p className="text-sm text-slate-700 bg-blue-50 rounded-lg p-3">{selectedClaim.catatan_review}</p>
-                    </div>
-                  )}
-
-                  {/* Document */}
-                  {selectedClaim.file_url && (
-                    <div>
-                      <h3 className="text-xs font-bold text-slate-500 uppercase mb-2">Dokumen</h3>
-                      <div className="flex items-center gap-2 bg-slate-50 rounded-lg p-3">
-                        <span className="material-symbols-outlined text-slate-400">attach_file</span>
-                        <span className="text-sm text-slate-700">{selectedClaim.nama_file || 'Dokumen terlampir'}</span>
-                      </div>
-                    </div>
-                  )}
+                <div>
+                  <DialogTitle>Detail Klaim</DialogTitle>
+                  <DialogDescription>ID: #{selectedClaim.id}</DialogDescription>
                 </div>
-
-                {/* Actions */}
-                {selectedClaim.status === 'PENDING_VERIFICATION' && (
-                  <div className="p-6 border-t border-slate-200 space-y-3">
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => handleUpdateStatus('APPROVED_TK')}
-                        disabled={processing}
-                        className="flex-1 flex items-center justify-center gap-2 py-3 bg-emerald-500 text-white font-bold rounded-xl hover:bg-emerald-600 transition-colors disabled:opacity-50"
-                      >
-                        <CheckCircle size={18} />
-                        Setujui
-                      </button>
-                      <button
-                        onClick={() => handleUpdateStatus('REJECTED')}
-                        disabled={processing}
-                        className="flex-1 flex items-center justify-center gap-2 py-3 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 transition-colors disabled:opacity-50"
-                      >
-                        <CancelIcon size={18} />
-                        Tolak
-                      </button>
-                    </div>
-                  </div>
-                )}
               </div>
-            </motion.div>
-          </>
+            </DialogHeader>
+
+            <div className="p-6 space-y-4 text-[var(--theme-text)]">
+              {/* Student Info */}
+              <div className="bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-2xl p-4">
+                <h3 className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-2">Data Mahasiswa</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-[10px] text-[var(--theme-text-subtle)]">Nama</p>
+                    <p className="font-semibold text-sm">{selectedClaim.mahasiswa?.nama || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-[var(--theme-text-subtle)]">NIM</p>
+                    <p className="font-semibold text-sm">{selectedClaim.mahasiswa?.nim || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-[var(--theme-text-subtle)]">Program Studi</p>
+                    <p className="font-semibold text-sm">{selectedClaim.mahasiswa?.program_studi?.nama || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-[var(--theme-text-subtle)]">Fakultas</p>
+                    <p className="font-semibold text-sm">{selectedClaim.mahasiswa?.fakultas?.nama || '—'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Claim Info */}
+              <div className="bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-2xl p-4">
+                <h3 className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-2">Detail Klaim</h3>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-[var(--theme-text-muted)]">Provider</span>
+                    <ProviderBadge provider={selectedClaim.jenis_provider} />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-[var(--theme-text-muted)]">Tanggal Kejadian</span>
+                    <span className="text-sm font-semibold">{formatDate(selectedClaim.tanggal_kejadian)}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-[var(--theme-text-muted)]">Lokasi Faskes</span>
+                    <span className="text-sm font-semibold">{selectedClaim.lokasi_faskes || '—'}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-[var(--theme-text-muted)]">Estimasi Biaya</span>
+                    <span className="text-sm font-bold text-[var(--theme-primary)]">{formatCurrency(selectedClaim.estimasi_biaya)}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-[var(--theme-text-muted)]">Status</span>
+                    <StatusBadge status={selectedClaim.status} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Kronologis */}
+              <div>
+                <h3 className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-2">Kronologis</h3>
+                <p className="text-sm text-[var(--theme-text)] bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl p-3">{selectedClaim.deskripsi || '—'}</p>
+              </div>
+
+              {/* Catatan Review */}
+              {selectedClaim.catatan_review && (
+                <div>
+                  <h3 className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-2">Catatan Review</h3>
+                  <p className="text-sm text-[var(--theme-text)] bg-[var(--theme-info-light)] rounded-xl p-3 border border-[var(--theme-border)]">{selectedClaim.catatan_review}</p>
+                </div>
+              )}
+
+              {/* Document */}
+              {selectedClaim.file_url && (
+                <div>
+                  <h3 className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-2">Dokumen</h3>
+                  <div className="flex items-center gap-2 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl p-3">
+                    <span className="material-symbols-outlined text-[var(--theme-text-subtle)]">attach_file</span>
+                    <span className="text-sm text-[var(--theme-text)]">{selectedClaim.nama_file || 'Dokumen terlampir'}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Actions */}
+            {selectedClaim.status === 'PENDING_VERIFICATION' && (
+              <DialogFooter className="flex gap-3">
+                <button
+                  onClick={() => handleUpdateStatus('APPROVED_TK')}
+                  disabled={processing}
+                  className="flex-1 h-10 flex items-center justify-center gap-2 bg-[var(--theme-success)] hover:bg-[var(--theme-success)]/95 text-white font-semibold rounded-xl transition-all active:scale-95 disabled:opacity-50 cursor-pointer text-xs uppercase tracking-wider"
+                >
+                  <CheckCircle size={18} />
+                  Setujui
+                </button>
+                <button
+                  onClick={() => handleUpdateStatus('REJECTED')}
+                  disabled={processing}
+                  className="flex-1 h-10 flex items-center justify-center gap-2 bg-[var(--theme-error)] hover:bg-[var(--theme-error)]/95 text-white font-semibold rounded-xl transition-all active:scale-95 disabled:opacity-50 cursor-pointer text-xs uppercase tracking-wider"
+                >
+                  <CancelIcon size={18} />
+                  Tolak
+                </button>
+              </DialogFooter>
+            )}
+          </DialogContent>
         )}
-      </AnimatePresence>
+      </Dialog>
     </PageContent>
   );
 }
