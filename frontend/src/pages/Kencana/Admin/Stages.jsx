@@ -9,6 +9,12 @@ import {
 import { SelectField, SelectOption } from '../../../components/ui/SelectField';
 import { DashboardHero } from '@/components/ui/dashboard';
 import { DialogModal } from '@/components/ui/DialogModal';
+import { Popover, PopoverContent, PopoverTrigger } from '../../../components/ui/Popover';
+import { DataTable } from '@/components/ui/DataTable';
+import { Settings2 } from 'lucide-react';
+import { ManageMaterialsModal } from '../components/ManageMaterialsModal';
+import { ManageQuizzesModal } from '../components/ManageQuizzesModal';
+import { ManageAssignmentsModal } from '../components/ManageAssignmentsModal';
 
 // ──── Constants ────────────────────────────────────────────────────────────────
 const PHASE_CONFIG = {
@@ -73,6 +79,10 @@ const Stages = ({ phaseType = 'kencana_universitas' }) => {
   const { data: phaseData } = usePeriodPhasesQuery(selectedPeriodId);
 
   const [showAddSessionModal, setShowAddSessionModal] = useState(false);
+  const [activeSessionId, setActiveSessionId] = useState(null);
+  const [showMaterialModal, setShowMaterialModal] = useState(false);
+  const [showQuizModal, setShowQuizModal] = useState(false);
+  const [showAssignmentModal, setShowAssignmentModal] = useState(false);
   const [showEditSessionModal, setShowEditSessionModal] = useState(false);
   const [activeStage, setActiveStage] = useState(null);
   const [activeSession, setActiveSession] = useState(null);
@@ -273,34 +283,129 @@ const Stages = ({ phaseType = 'kencana_universitas' }) => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {phaseSessions.map((session) => (
-              <div key={session.id} className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all">
-                <div>
-                  <div className="flex justify-between items-start mb-3 gap-2">
-                    <h4 className="font-bold text-slate-800 font-jakarta text-[14px] tracking-tight line-clamp-2">{session.title}</h4>
-                    <StatusBadge status={session.status} />
-                  </div>
-                  <p className="text-[11px] text-slate-400 font-medium font-inter mt-0.5 line-clamp-2 mb-4 leading-relaxed">
-                    {session.description || 'Tidak ada deskripsi untuk sesi ini.'}
-                  </p>
-                  
-                  <div className="flex flex-wrap gap-2 text-[10px] font-bold">
-                    <span className="px-2.5 py-1 rounded-md bg-slate-50 text-slate-600 border border-slate-200">Materi: {getContentCount(session, 'materials')}</span>
-                    <span className="px-2.5 py-1 rounded-md bg-slate-50 text-slate-600 border border-slate-200">Kuis: {getContentCount(session, 'quizzes')}</span>
-                    <span className="px-2.5 py-1 rounded-md bg-slate-50 text-slate-600 border border-slate-200">Tugas: {getContentCount(session, 'assignments')}</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between pt-4 mt-5 border-t border-slate-100/50">
-                  <button onClick={() => openEditSession(session)} className="text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-primary transition-colors flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[14px]">edit</span> Edit
-                  </button>
-                  <button onClick={() => navigate(`/kencana-admin/sessions/${session.id}/content`)} className="text-[10px] font-bold uppercase tracking-widest text-primary hover:opacity-80 transition-opacity flex items-center gap-1.5">
-                    Kelola Konten <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
-                  </button>
-                </div>
-              </div>
-            ))}
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 mt-6">
+            <DataTable
+              data={phaseSessions}
+              columns={[
+                {
+                  key: 'title',
+                  label: 'Detail Sesi',
+                  className: 'w-[45%]',
+                  render: (v, item) => (
+                    <div className="flex flex-col py-1">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <span className="font-bold text-[var(--theme-text)] font-jakarta text-sm">{item.title}</span>
+                      </div>
+                      <p className="text-[11px] text-[var(--theme-text-muted)] leading-relaxed line-clamp-2">
+                        {item.description || 'Tidak ada deskripsi.'}
+                      </p>
+                      <div className="flex gap-2 mt-2">
+                        <span className="text-[10px] font-bold text-slate-500 bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
+                          Materi: {getContentCount(item, 'materials')}
+                        </span>
+                        <span className="text-[10px] font-bold text-slate-500 bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
+                          Kuis: {getContentCount(item, 'quizzes')}
+                        </span>
+                        <span className="text-[10px] font-bold text-slate-500 bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
+                          Tugas: {getContentCount(item, 'assignments')}
+                        </span>
+                      </div>
+                    </div>
+                  )
+                },
+                {
+                  key: 'schedule',
+                  label: 'Jadwal Sesi',
+                  className: 'w-[25%]',
+                  render: (v, item) => {
+                    const hasSchedule = item.start_date && item.end_date;
+                    if (!hasSchedule) return <span className="text-[11px] text-slate-400 italic">Belum diatur</span>;
+                    
+                    const start = new Date(item.start_date);
+                    const end = new Date(item.end_date);
+                    const now = new Date();
+                    
+                    return (
+                      <div className="flex flex-col gap-1.5 py-1">
+                        <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-600 bg-slate-50 w-fit px-2 py-0.5 rounded-md border border-slate-100">
+                          <span className="material-symbols-outlined text-[12px] text-slate-400">calendar_today</span>
+                          {start.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} - {end.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </div>
+                        {now > end ? (
+                          <span className="text-[11px] font-bold text-slate-500 pl-1">Berakhir</span>
+                        ) : now >= start && now <= end ? (
+                          <span className="text-[11px] font-bold text-amber-500 animate-pulse pl-1">Sedang Berlangsung</span>
+                        ) : (
+                          <span className="text-[11px] font-bold text-[var(--theme-primary)] pl-1">
+                            {Math.ceil((start.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))} Hari Lagi
+                          </span>
+                        )}
+                      </div>
+                    );
+                  }
+                },
+                {
+                  key: 'is_required',
+                  label: 'Sifat',
+                  className: 'w-[10%]',
+                  render: (v, item) => (
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase ${item.is_required ? 'bg-[var(--theme-secondary-light)] text-[var(--theme-secondary)]' : 'bg-slate-100 text-slate-500'}`}>
+                      {item.is_required ? 'Wajib' : 'Opsional'}
+                    </span>
+                  )
+                },
+                {
+                  key: 'status',
+                  label: 'Status',
+                  className: 'w-[10%]',
+                  render: (v, item) => <StatusBadge status={item.status} />
+                },
+                {
+                  key: 'actions',
+                  label: 'Aksi',
+                  className: 'w-[10%] text-center',
+                  cellClassName: 'text-center',
+                  sortable: false,
+                  render: (_, item) => (
+                    <div className="flex justify-center items-center gap-1">
+                      <button 
+                        onClick={() => openEditSession(item)}
+                        title="Edit Sesi"
+                        className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">edit</span>
+                      </button>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button
+                            title="Kelola Konten"
+                            className="px-3 py-1.5 rounded-lg text-white bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm active:scale-95 text-[11px] font-bold ml-1"
+                          >
+                            <Settings2 className="w-[14px] h-[14px]" strokeWidth={2.5} />
+                            Kelola
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent align="end" className="w-40 p-1 rounded-xl bg-white border border-slate-100 shadow-xl z-50">
+                          <div className="flex flex-col">
+                            <button onClick={() => { setActiveSessionId(item.id); setShowMaterialModal(true); }} className="text-left px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-primary rounded-lg transition-colors flex items-center gap-2">
+                              <span className="material-symbols-outlined text-[16px]">library_books</span> Materi
+                            </button>
+                            <button onClick={() => { setActiveSessionId(item.id); setShowQuizModal(true); }} className="text-left px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-primary rounded-lg transition-colors flex items-center gap-2">
+                              <span className="material-symbols-outlined text-[16px]">quiz</span> Kuis
+                            </button>
+                            <button onClick={() => { setActiveSessionId(item.id); setShowAssignmentModal(true); }} className="text-left px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-primary rounded-lg transition-colors flex items-center gap-2">
+                              <span className="material-symbols-outlined text-[16px]">assignment</span> Tugas
+                            </button>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  )
+                }
+              ]}
+              searchPlaceholder="Cari sesi..."
+              searchable={true}
+            />
           </div>
         )}
       </div>
@@ -503,6 +608,22 @@ const Stages = ({ phaseType = 'kencana_universitas' }) => {
           </div>
         </form>
       </DialogModal>
+
+      <ManageMaterialsModal
+        open={showMaterialModal}
+        onOpenChange={setShowMaterialModal}
+        sessionId={activeSessionId}
+      />
+      <ManageQuizzesModal
+        open={showQuizModal}
+        onOpenChange={setShowQuizModal}
+        sessionId={activeSessionId}
+      />
+      <ManageAssignmentsModal
+        open={showAssignmentModal}
+        onOpenChange={setShowAssignmentModal}
+        sessionId={activeSessionId}
+      />
     </div>
   );
 };

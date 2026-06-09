@@ -34,6 +34,7 @@ export default function DataTable({
   onPageChange,
   onSearchChange,
   onSortChange,
+  onPageSizeChange,
   tableFooter,
 }) {
   const [search, setSearch] = useState('');
@@ -351,8 +352,10 @@ export default function DataTable({
                 <select
                   value={limit}
                   onChange={(e) => {
-                    setLimit(parseInt(e.target.value));
+                    const newLimit = parseInt(e.target.value);
+                    setLimit(newLimit);
                     handlePageChange(1);
+                    if (onPageSizeChange) onPageSizeChange(newLimit);
                   }}
                   className="pl-2 pr-6 py-1 bg-surface border rounded-md text-xs font-bold outline-none cursor-pointer appearance-none"
                   style={{

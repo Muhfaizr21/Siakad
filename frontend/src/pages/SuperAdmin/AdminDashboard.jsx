@@ -215,6 +215,32 @@ export default function AdminDashboard() {
     server_status: "Operational"
   })
 
+  // Client Health States
+  const [batteryLevel, setBatteryLevel] = useState(null)
+  const [isCharging, setIsCharging] = useState(false)
+  const [networkSpeed, setNetworkSpeed] = useState(null)
+
+  useEffect(() => {
+    if ('getBattery' in navigator) {
+      navigator.getBattery().then(battery => {
+        setBatteryLevel(Math.round(battery.level * 100))
+        setIsCharging(battery.charging)
+        battery.addEventListener('levelchange', () => setBatteryLevel(Math.round(battery.level * 100)))
+        battery.addEventListener('chargingchange', () => setIsCharging(battery.charging))
+      })
+    }
+    const updateNetwork = () => {
+      if (navigator.connection && navigator.connection.downlink) {
+        setNetworkSpeed(navigator.connection.downlink)
+      }
+    }
+    updateNetwork()
+    if (navigator.connection) {
+      navigator.connection.addEventListener('change', updateNetwork)
+      return () => navigator.connection.removeEventListener('change', updateNetwork)
+    }
+  }, [])
+
   // Search & Pagination States for System Audit Logs
   const [searchQuery, setSearchQuery] = useState("")
   const [pageSize, setPageSize] = useState(10)
@@ -729,6 +755,20 @@ const fetchData = async (showRefresh = false) => {
                       <p className="text-sm font-extrabold text-white mt-1 flex items-center gap-1">
                         <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
                         {systemHealth.db_connections} Active
+                      </p>
+                    </div>
+                    <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-left">
+                      <p className="text-[9px] text-white/50 font-bold uppercase tracking-wider">Baterai Klien</p>
+                      <p className="text-sm font-extrabold text-white mt-1 flex items-center gap-1">
+                        <span className={`w-2 h-2 rounded-full shrink-0 ${isCharging ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'}`} />
+                        {batteryLevel !== null ? `${batteryLevel}%` : 'N/A'}
+                      </p>
+                    </div>
+                    <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-left">
+                      <p className="text-[9px] text-white/50 font-bold uppercase tracking-wider">Jaringan</p>
+                      <p className="text-sm font-extrabold text-white mt-1 flex items-center gap-1">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
+                        {networkSpeed ? `${networkSpeed} Mbps` : 'N/A'}
                       </p>
                     </div>
                   </div>

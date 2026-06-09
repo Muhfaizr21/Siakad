@@ -147,6 +147,7 @@ const Certificates = () => {
             totalData={meta.total_data}
             currentPage={meta.current_page}
             onPageChange={setPage}
+            onPageSizeChange={setLimit}
             onSearchChange={setSearchQuery}
             emptyMessage="Tidak ada sertifikat ditemukan."
             emptyIcon="workspace_premium"

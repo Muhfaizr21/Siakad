@@ -163,10 +163,6 @@ import KencanaLayout from './pages/Kencana/components/KencanaLayout'
 import KencanaAdminDashboard from './pages/Kencana/Admin/Dashboard'
 import KencanaAdminPeriods from './pages/Kencana/Admin/Periods'
 import KencanaAdminStages from './pages/Kencana/Admin/Stages'
-import SessionContent from './pages/Kencana/Admin/SessionContent'
-import MaterialForm from './pages/Kencana/Admin/MaterialForm'
-import AssignmentForm from './pages/Kencana/Admin/AssignmentForm'
-import QuizForm from './pages/Kencana/Admin/QuizForm'
 import QuizBuilder from './pages/Kencana/Admin/QuizBuilder'
 import KencanaAdminParticipants from './pages/Kencana/Admin/Participants'
 import KencanaAdminScores from './pages/Kencana/Admin/Scores'
@@ -174,7 +170,7 @@ import KencanaAdminSummary from './pages/Kencana/Admin/ScoreSummary'
 import KencanaAdminRemedials from './pages/Kencana/Admin/Remedials'
 import KencanaAdminCertificates from './pages/Kencana/Admin/Certificates'
 import KencanaAdminUniversitasGroup from './pages/Kencana/Admin/Groups'
-import KencanaAdminUniversitasGroupDetail from './pages/Kencana/Admin/GroupDetail'
+
 import KencanaAdminMentors from './pages/Kencana/Admin/Mentors'
 import KencanaFakultasDashboard from './pages/Kencana/Fakultas/Dashboard'
 import KencanaFakultDashboard from './pages/Kencana/Fakultas/Dashboard'
@@ -359,7 +355,7 @@ function App() {
                   <Route path="kencana-univ/university" element={<KencanaAdminStages phaseType="kencana_universitas" />} />
                   <Route path="kencana-univ/faculty-stages" element={<KencanaFakultaskesStages />} />
                   <Route path="kencana-univ/faculty-stages/:facultyId" element={<KencanaFakultaskesStages />} />
-                  <Route path="kencana-univ/faculty-stages/:facultyId/groups/:id" element={<KencanaAdminUniversitasGroupDetail />} />
+
                   <Route path="kencana-univ/quiz/:id/builder" element={<QuizBuilder />} />
                   <Route path="kencana-univ/participants" element={<KencanaAdminParticipants />} />
                   <Route path="kencana-univ/scores" element={<KencanaAdminScores />} />
@@ -368,14 +364,6 @@ function App() {
                   <Route path="kencana-univ/certificates" element={<KencanaAdminCertificates />} />
                   <Route path="kencana-univ/mentors" element={<KencanaAdminMentors />} />
                   <Route path="kencana-univ/groups" element={<KencanaAdminUniversitasGroup />} />
-                  <Route path="kencana-univ/groups/:id" element={<KencanaAdminUniversitasGroupDetail />} />
-                  <Route path="kencana-univ/sessions/:sessionId/content" element={<SessionContent />} />
-                  <Route path="kencana-univ/sessions/:sessionId/material/create" element={<MaterialForm />} />
-                  <Route path="kencana-univ/sessions/:sessionId/material/:materialId/edit" element={<MaterialForm />} />
-                  <Route path="kencana-univ/sessions/:sessionId/assignment/create" element={<AssignmentForm />} />
-                  <Route path="kencana-univ/sessions/:sessionId/assignment/:assignmentId/edit" element={<AssignmentForm />} />
-                  <Route path="kencana-univ/sessions/:sessionId/quiz/create" element={<QuizForm />} />
-                  <Route path="kencana-univ/sessions/:sessionId/quiz/:quizId/edit" element={<QuizForm />} />
 
                   {/* Kencana Fakultas inside SuperAdmin */}
                   <Route path="kencana-fakultas-admin" element={<KencanaFakultDashboard />} />
@@ -383,15 +371,8 @@ function App() {
                   <Route path="kencana-fakultas-admin/scores" element={<KencanaFakultaskesScores />} />
                   <Route path="kencana-fakultas-admin/stages" element={<KencanaFakultaskesStages />} />
                   <Route path="kencana-fakultas-admin/stages/:facultyId" element={<KencanaFakultaskesStages />} />
-                  <Route path="kencana-fakultas-admin/stages/:facultyId/groups/:id" element={<KencanaAdminUniversitasGroupDetail />} />
+
                   <Route path="kencana-fakultas-admin/mentors" element={<KencanaAdminMentors portal="fakult" />} />
-                  <Route path="kencana-fakultas-admin/sessions/:sessionId/content" element={<SessionContent />} />
-                  <Route path="kencana-fakultas-admin/sessions/:sessionId/material/create" element={<MaterialForm />} />
-                  <Route path="kencana-fakultas-admin/sessions/:sessionId/material/:materialId/edit" element={<MaterialForm />} />
-                  <Route path="kencana-fakultas-admin/sessions/:sessionId/assignment/create" element={<AssignmentForm />} />
-                  <Route path="kencana-fakultas-admin/sessions/:sessionId/assignment/:assignmentId/edit" element={<AssignmentForm />} />
-                  <Route path="kencana-fakultas-admin/sessions/:sessionId/quiz/create" element={<QuizForm />} />
-                  <Route path="kencana-fakultas-admin/sessions/:sessionId/quiz/:quizId/edit" element={<QuizForm />} />
                   <Route path="kencana-fakultas-admin/quiz/:id/builder" element={<QuizBuilder />} />
                 </Route>
 
@@ -405,7 +386,7 @@ function App() {
                   <Route path="university" element={<KencanaAdminStages phaseType="kencana_universitas" />} />
                   <Route path="faculty-stages" element={<KencanaFakultaskesStages />} />
                   <Route path="faculty-stages/:facultyId" element={<KencanaFakultaskesStages />} />
-                  <Route path="faculty-stages/:facultyId/groups/:id" element={<KencanaAdminUniversitasGroupDetail />} />
+
                   <Route path="quiz/:id/builder" element={<QuizBuilder />} />
                   <Route path="participants" element={<KencanaAdminParticipants />} />
                   <Route path="scores" element={<KencanaAdminScores />} />
@@ -414,14 +395,6 @@ function App() {
                   <Route path="certificates" element={<KencanaAdminCertificates />} />
                   <Route path="mentors" element={<KencanaAdminMentors />} />
                   <Route path="groups" element={<KencanaAdminUniversitasGroup />} />
-                  <Route path="groups/:id" element={<KencanaAdminUniversitasGroupDetail />} />
-                  <Route path="sessions/:sessionId/content" element={<SessionContent />} />
-                  <Route path="sessions/:sessionId/material/create" element={<MaterialForm />} />
-                  <Route path="sessions/:sessionId/material/:materialId/edit" element={<MaterialForm />} />
-                  <Route path="sessions/:sessionId/assignment/create" element={<AssignmentForm />} />
-                  <Route path="sessions/:sessionId/assignment/:assignmentId/edit" element={<AssignmentForm />} />
-                  <Route path="sessions/:sessionId/quiz/create" element={<QuizForm />} />
-                  <Route path="sessions/:sessionId/quiz/:quizId/edit" element={<QuizForm />} />
                 </Route>
 
                 {/* Kencana Fakul */}
@@ -430,15 +403,8 @@ function App() {
                   <Route path="participants" element={<KencanaFakultaskesParticipants />} />
                   <Route path="scores" element={<KencanaFakultaskesScores />} />
                   <Route path="stages" element={<KencanaFakultaskesStages />} />
-                  <Route path="stages/:facultyId/groups/:id" element={<KencanaAdminUniversitasGroupDetail />} />
+
                   <Route path="mentors" element={<KencanaAdminMentors portal="fakult" />} />
-                  <Route path="sessions/:sessionId/content" element={<SessionContent />} />
-                  <Route path="sessions/:sessionId/material/create" element={<MaterialForm />} />
-                  <Route path="sessions/:sessionId/material/:materialId/edit" element={<MaterialForm />} />
-                  <Route path="sessions/:sessionId/assignment/create" element={<AssignmentForm />} />
-                  <Route path="sessions/:sessionId/assignment/:assignmentId/edit" element={<AssignmentForm />} />
-                  <Route path="sessions/:sessionId/quiz/create" element={<QuizForm />} />
-                  <Route path="sessions/:sessionId/quiz/:quizId/edit" element={<QuizForm />} />
                   <Route path="quiz/:id/builder" element={<QuizBuilder />} />
                 </Route>
 
@@ -449,15 +415,8 @@ function App() {
                   <Route path="scores" element={<KencanaFakultaskesScores />} />
                   <Route path="stages" element={<KencanaFakultaskesStages />} />
                   <Route path="stages/:facultyId" element={<KencanaFakultaskesStages />} />
-                  <Route path="stages/:facultyId/groups/:id" element={<KencanaAdminUniversitasGroupDetail />} />
+
                   <Route path="mentors" element={<KencanaAdminMentors portal="fakult" />} />
-                  <Route path="sessions/:sessionId/content" element={<SessionContent />} />
-                  <Route path="sessions/:sessionId/material/create" element={<MaterialForm />} />
-                  <Route path="sessions/:sessionId/material/:materialId/edit" element={<MaterialForm />} />
-                  <Route path="sessions/:sessionId/assignment/create" element={<AssignmentForm />} />
-                  <Route path="sessions/:sessionId/assignment/:assignmentId/edit" element={<AssignmentForm />} />
-                  <Route path="sessions/:sessionId/quiz/create" element={<QuizForm />} />
-                  <Route path="sessions/:sessionId/quiz/:quizId/edit" element={<QuizForm />} />
                   <Route path="quiz/:id/builder" element={<QuizBuilder />} />
                 </Route>
 

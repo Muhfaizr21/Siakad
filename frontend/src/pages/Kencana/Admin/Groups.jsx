@@ -8,18 +8,30 @@ import {
   useMentorsQuery,
   usePeriodsQuery,
   useUpdateGroupMutation,
+  useParticipantsQuery,
+  useAddGroupMembersMutation,
+  useRemoveGroupMemberMutation,
+  useGroupQuery,
 } from '../../../queries/useKencanaAdminQuery';
 import useAuthStore from '../../../store/useAuthStore';
-import { PageHeader } from '../../../components/ui/page/PageHeader';
+import { DashboardHero } from '@/components/ui/dashboard';
 import { SelectField, SelectOption } from '../../../components/ui/SelectField';
+import { UserInfoCell, TitleSubtitleCell } from '../../../components/ui/TableCells';
 import { DialogModal } from '../../../components/ui/DialogModal';
+import { Popover, PopoverContent, PopoverTrigger } from '../../../components/ui/Popover';
+import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem, CommandList } from '../../../components/ui/Command';
+import { Check, ChevronsUpDown, Users, SquarePen, Trash2 } from 'lucide-react';
+import { cn } from '../../../lib/utils';
+import { DataTable } from '../../../components/ui/DataTable';
+import { DeleteConfirmModal } from '../../../components/ui/DeleteConfirmModal';
+import { Card, CardContent } from '@/components/ui/Card';
 
 const emptyForm = { group_number: '', name: '', code: '', description: '', scope_type: 'university', fakultas_id: '', mentor_id: '', capacity: 30, status: 'active' };
 
 const Groups = ({ portal: propPortal, facultyId: propFacultyId }) => {
   const navigate = useNavigate();
   const user = useAuthStore(state => state.user);
-  
+
   const role = String(user?.role || '').toLowerCase();
   const isFacultyScoped = propPortal === 'fakultas' || role === 'kencana_fakultas';
   const portal = propPortal || (isFacultyScoped ? 'fakultas' : 'admin');
@@ -34,7 +46,12 @@ const Groups = ({ portal: propPortal, facultyId: propFacultyId }) => {
   const [showForm, setShowForm] = useState(false);
   const [editingGroup, setEditingGroup] = useState(null);
   const [form, setForm] = useState(emptyForm);
-  const [autoForm, setAutoForm] = useState({ group_number: 1, group_name: 'Praja', student_count: 30, scope_type: 'university', fakultas_id: '', mentor_id: '' });
+
+  const [mentorSearch, setMentorSearch] = useState('');
+  const [openMentorSelect, setOpenMentorSelect] = useState(false);
+
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { data: periods } = usePeriodsQuery();
   const { data: faculties } = useFakultasListQuery();
@@ -43,6 +60,49 @@ const Groups = ({ portal: propPortal, facultyId: propFacultyId }) => {
   const createGroup = useCreateGroupMutation(portal);
   const updateGroup = useUpdateGroupMutation(portal);
   const deleteGroup = useDeleteGroupMutation(portal);
+
+  const [showMembersModal, setShowMembersModal] = useState(false);
+  const [selectedGroupForMembers, setSelectedGroupForMembers] = useState(null);
+  const [studentSearch, setStudentSearch] = useState('');
+  const [selectedStudentIds, setSelectedStudentIds] = useState([]);
+
+  const { data: selectedGroupDetails, isLoading: isLoadingGroupDetails } = useGroupQuery(selectedGroupForMembers?.id, portal);
+  const { data: participantsRes } = useParticipantsQuery({
+    limit: 500,
+    search: studentSearch,
+    ...(selectedGroupDetails?.period_id && { period_id: selectedGroupDetails.period_id }),
+    ...((isFacultyScoped ? (selectedFacultyFilter || userFacultyId) : selectedGroupDetails?.fakultas_id) && { fakultas_id: isFacultyScoped ? (selectedFacultyFilter || userFacultyId) : selectedGroupDetails?.fakultas_id })
+  });
+
+  const addMembers = useAddGroupMembersMutation(portal);
+  const removeMember = useRemoveGroupMemberMutation(portal);
+
+  const memberStudentIds = useMemo(() => new Set((selectedGroupDetails?.members || []).map(m => Number(m.student_id))), [selectedGroupDetails]);
+  const availableStudents = useMemo(() => {
+    const rows = Array.isArray(participantsRes?.data) ? participantsRes.data : [];
+    return rows.filter(s => !memberStudentIds.has(Number(s.id)));
+  }, [participantsRes, memberStudentIds]);
+
+  const toggleStudent = (studentId) => {
+    setSelectedStudentIds(prev => prev.includes(studentId) ? prev.filter(id => id !== studentId) : [...prev, studentId]);
+  };
+
+  const submitMembers = () => {
+    if (!selectedStudentIds.length || !selectedGroupForMembers) return;
+    addMembers.mutate({ groupId: selectedGroupForMembers.id, student_ids: selectedStudentIds.map(Number) }, {
+      onSuccess: () => {
+        setSelectedStudentIds([]);
+        // Optional: refresh groups query to update member count
+      }
+    });
+  };
+
+  const openMembersModal = (group) => {
+    setSelectedGroupForMembers(group);
+    setStudentSearch('');
+    setSelectedStudentIds([]);
+    setShowMembersModal(true);
+  };
 
   useEffect(() => {
     if (!selectedPeriodId && periods?.length) {
@@ -62,11 +122,11 @@ const Groups = ({ portal: propPortal, facultyId: propFacultyId }) => {
   const filteredGroups = useMemo(() => {
     if (!groups) return [];
     if (isFacultyScoped) {
-       const activeId = isSuperAdmin ? selectedFacultyFilter : userFacultyId;
-       if (activeId) {
-         return groups.filter(g => String(g.fakultas_id) === String(activeId));
-       }
-       return [];
+      const activeId = isSuperAdmin ? selectedFacultyFilter : userFacultyId;
+      if (activeId) {
+        return groups.filter(g => String(g.fakultas_id) === String(activeId));
+      }
+      return [];
     }
     return groups;
   }, [groups, isFacultyScoped, isSuperAdmin, selectedFacultyFilter, userFacultyId]);
@@ -76,8 +136,8 @@ const Groups = ({ portal: propPortal, facultyId: propFacultyId }) => {
     return (mentors || []).filter(m => {
       if (scope && m.scope_type !== scope && m.scope_type) return false;
       if (scope === 'faculty') {
-         const activeId = isSuperAdmin ? selectedFacultyFilter : userFacultyId;
-         if (activeId && String(m.fakultas_id) !== String(activeId)) return false;
+        const activeId = isSuperAdmin ? selectedFacultyFilter : userFacultyId;
+        if (activeId && String(m.fakultas_id) !== String(activeId)) return false;
       }
       return true;
     });
@@ -86,6 +146,8 @@ const Groups = ({ portal: propPortal, facultyId: propFacultyId }) => {
   const openCreate = () => {
     setEditingGroup(null);
     setForm({ ...emptyForm, scope_type: isFacultyScoped ? 'faculty' : 'university', fakultas_id: isFacultyScoped ? (selectedFacultyFilter || '') : '' });
+    setMentorSearch('');
+    setOpenMentorSelect(false);
     setShowForm(true);
   };
 
@@ -95,6 +157,9 @@ const Groups = ({ portal: propPortal, facultyId: propFacultyId }) => {
       group_number: group.group_number || '', name: group.name || '', code: group.code || '', description: group.description || '', scope_type: group.scope_type || 'university',
       fakultas_id: group.fakultas_id || '', mentor_id: group.mentor_id || '', capacity: group.capacity || 30, status: group.status || 'active',
     });
+    const mentor = (mentors || []).find(m => String(m.id) === String(group.mentor_id));
+    setMentorSearch(mentor ? mentor.name : (group.mentor_id ? '' : 'Tanpa Mentor'));
+    setOpenMentorSelect(false);
     setShowForm(true);
   };
 
@@ -106,214 +171,176 @@ const Groups = ({ portal: propPortal, facultyId: propFacultyId }) => {
     mutation.mutate(editingGroup ? { id: editingGroup.id, ...payload } : payload, { onSuccess: () => setShowForm(false) });
   };
 
-  const runQuickGroup = (e) => {
-    e.preventDefault();
-    const number = Number(autoForm.group_number);
-    const name = autoForm.group_name.trim();
-    const codeName = name.toUpperCase().replace(/\s+/g, '-').replace(/[^A-Z0-9-]/g, '') || 'KENCANA';
-    const payload = {
-      period_id: Number(selectedPeriodId),
-      group_number: number,
-      name: `Kelompok ${number} - ${name}`,
-      code: `KEL-${String(number).padStart(2, '0')}-${codeName}`,
-      capacity: Number(autoForm.student_count),
-      scope_type: isFacultyScoped ? 'faculty' : autoForm.scope_type,
-      fakultas_id: autoForm.fakultas_id ? Number(autoForm.fakultas_id) : null,
-      mentor_id: autoForm.mentor_id ? Number(autoForm.mentor_id) : null,
-      status: 'active',
-    };
-    if (payload.scope_type === 'university') payload.fakultas_id = null;
-    createGroup.mutate(payload);
+  const handleDelete = () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    deleteGroup.mutate(deleteTarget.id, {
+      onSuccess: () => {
+        setDeleteTarget(null);
+        setIsDeleting(false);
+      },
+      onError: () => {
+        setIsDeleting(false);
+      }
+    });
   };
+
+
 
   return (
     <div className="bg-transparent font-body max-w-7xl mx-auto space-y-6">
-      
+
       {/* Page Header */}
-      <PageHeader
+      <DashboardHero
         icon="groups"
-        title={
-          <>
-            <span className="text-[var(--theme-text)]">Kelola </span>
-            <span className="text-[var(--theme-primary)]">Kelompok & DP</span>
-          </>
-        }
+        title="Kelola"
+        highlightedTitle="Kelompok & DP"
         subtitle="Buat kelompok orientasi, pasangkan mentor pendamping (DP), dan masukkan banyak mahasiswa ke dalam kelompok."
-        breadcrumbs={[
-          { label: 'Kencana Admin', path: '#' },
-          { label: 'Kelompok & Mentor' }
+        badges={[
+          { label: isFacultyScoped ? 'Kencana Fakultas' : 'Kencana Admin', active: false },
+          { label: 'Kelompok & Mentor', active: true }
         ]}
-        action={
+        actions={
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto items-stretch sm:items-center">
-            <SelectField
-              value={selectedPeriodId}
-              onValueChange={setSelectedPeriodId}
-              placeholder="Pilih Periode"
-              className="min-w-[200px]"
-            >
-              {periods?.map(p => (
-                <SelectOption key={p.id} value={String(p.id)}>
-                  {p.name}
-                </SelectOption>
-              ))}
-            </SelectField>
+            <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl border border-white/20 backdrop-blur-md">
+              <span className="text-xs font-bold text-white whitespace-nowrap">Periode:</span>
+              <SelectField
+                value={selectedPeriodId}
+                onValueChange={setSelectedPeriodId}
+                placeholder="Pilih Periode..."
+                className="min-w-[160px] h-8 bg-white/90 border-0"
+              >
+                {periods?.map(p => (
+                  <SelectOption key={p.id} value={String(p.id)}>
+                    {p.name}
+                  </SelectOption>
+                ))}
+              </SelectField>
+            </div>
             <button
               onClick={openCreate}
               disabled={!selectedPeriodId}
-              className="h-10 px-5 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-xs font-bold shadow-md disabled:opacity-50 transition-colors shrink-0"
+              className="h-9 px-5 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-[11px] font-bold uppercase tracking-widest shadow-md disabled:opacity-50 transition-all active:scale-95 shrink-0 flex items-center justify-center gap-1.5 border-none cursor-pointer"
             >
-              + Buat Kelompok
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>add_circle</span>
+              Buat Kelompok
             </button>
           </div>
         }
       />
 
-      <div className={`grid grid-cols-1 ${propPortal === 'fakultas' ? '' : 'lg:grid-cols-[1fr_360px]'} gap-6`}>
-        <div className="bg-white rounded-2xl border border-[var(--theme-border)] shadow-sm overflow-hidden">
-          <div className="p-5 border-b border-[var(--theme-border-muted)] flex flex-col sm:flex-row gap-3 sm:items-center justify-between bg-[var(--theme-bg)]">
-            <div className="flex flex-col sm:flex-row gap-3 flex-1">
-              <input
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder="Cari nama/kode kelompok..."
-                className="h-10 px-4 rounded-xl bg-white border border-[var(--theme-border)] text-sm font-semibold outline-none flex-1 focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)]"
-              />
-              {!isFacultyScoped && (
-                <SelectField
-                  value={scopeFilter}
-                  onValueChange={setScopeFilter}
-                  placeholder="Semua Scope"
-                  className="min-w-[150px]"
-                >
-                  <SelectOption value="all">Semua Scope</SelectOption>
-                  <SelectOption value="university">University</SelectOption>
-                  <SelectOption value="faculty">Fakultas</SelectOption>
-                </SelectField>
-              )}
-              {isFacultyScoped && isSuperAdmin && (
-                <SelectField
-                  value={selectedFacultyFilter}
-                  onValueChange={setSelectedFacultyFilter}
-                  placeholder="Pilih Fakultas"
-                  className="min-w-[180px]"
-                >
-                  <SelectOption value="">Pilih Fakultas</SelectOption>
-                  {faculties?.map(f => (
-                    <SelectOption key={f.id} value={String(f.id)}>
-                      {f.nama || f.Nama}
-                    </SelectOption>
-                  ))}
-                </SelectField>
-              )}
-            </div>
-          </div>
-          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-5 bg-[var(--theme-surface)]">
+      <Card className="glass-card shadow-sm rounded-xl overflow-hidden border-slate-100/60">
+        <CardContent className="p-0 border-none shadow-none bg-transparent">
+          <div className="flex-1">
             {isLoading ? (
-              <div className="col-span-full py-16 text-center font-bold text-[var(--theme-text-subtle)]">Memuat kelompok...</div>
-            ) : filteredGroups?.length ? (
-              filteredGroups.map(group => (
-                <div key={group.id} className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-bg)] p-5 hover:bg-white hover:shadow-md transition-all flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-[9px] font-black text-[var(--theme-text-subtle)] uppercase tracking-widest">KELOMPOK {group.group_number || '-'} • {group.code || 'Tanpa Kode'}</p>
-                        <h3 className="text-base font-bold text-[var(--theme-text)] mt-1">{group.name}</h3>
-                        <p className="text-xs font-semibold text-[var(--theme-text-muted)] mt-1">Mentor/DP: <span className="text-[var(--theme-primary)] font-bold">{group.mentor_name || '-'}</span></p>
-                      </div>
-                      <span className="px-2.5 py-0.5 rounded-full bg-[var(--theme-success-light)] text-[var(--theme-success)] border border-[var(--theme-success-light)] text-[9px] font-bold uppercase">{group.status}</span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2 my-4 text-center">
-                      <div className="bg-white rounded-xl p-2.5 border border-[var(--theme-border)]"><p className="text-base font-bold text-[var(--theme-text)]">{group.members_count || 0}</p><p className="text-[9px] font-bold text-[var(--theme-text-subtle)] uppercase mt-0.5">Anggota</p></div>
-                      <div className="bg-white rounded-xl p-2.5 border border-[var(--theme-border)]"><p className="text-base font-bold text-[var(--theme-text)]">{group.capacity || 0}</p><p className="text-[9px] font-bold text-[var(--theme-text-subtle)] uppercase mt-0.5">Kapasitas</p></div>
-                      <div className="bg-white rounded-xl p-2.5 border border-[var(--theme-border)]"><p className="text-xs font-bold text-[var(--theme-text)] capitalize mt-1.5 truncate">{group.scope_type}</p><p className="text-[9px] font-bold text-[var(--theme-text-subtle)] uppercase">Scope</p></div>
-                    </div>
-                  </div>
-                  <div className="flex gap-2 border-t border-[var(--theme-border-muted)] pt-3 mt-2">
-                    <button onClick={() => navigate(propPortal === 'fakultas' ? `${basePath}/${basePath.includes('fakult') ? 'stages' : 'faculty-stages'}/${selectedFacultyFilter || group.fakultas_id}/groups/${group.id}` : `${basePath}/groups/${group.id}`)} className="flex-1 h-9 rounded-lg bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-xs font-bold transition-colors">Anggota</button>
-                    <button onClick={() => openEdit(group)} className="h-9 px-3 rounded-lg bg-white border border-[var(--theme-border)] text-xs font-bold text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg)] transition-colors">Edit</button>
-                    <button onClick={() => window.confirm('Hapus kelompok ini?') && deleteGroup.mutate(group.id)} className="h-9 px-3 rounded-lg bg-[var(--theme-error-light)] text-[var(--theme-error)] text-xs font-bold hover:bg-[var(--theme-error-light)]/80 transition-colors">Hapus</button>
-                  </div>
-                </div>
-              ))
+              <div className="py-16 text-center font-bold text-[var(--theme-text-subtle)]">Memuat kelompok...</div>
             ) : (
-              <div className="col-span-full py-16 text-center font-bold text-[var(--theme-text-subtle)]">
-                {isFacultyScoped && isSuperAdmin && !selectedFacultyFilter ? 'Pilih fakultas di filter atas untuk melihat kelompok' : 'Belum ada kelompok.'}
-              </div>
+              <DataTable
+                data={groups || []}
+                searchable={true}
+                searchPlaceholder="Cari nama/kode kelompok..."
+                onSearch={(data, searchStr) => {
+                  const q = searchStr.toLowerCase();
+                  return data.filter(g => (g.name || '').toLowerCase().includes(q) || (g.code || '').toLowerCase().includes(q));
+                }}
+                filters={[
+                  !isFacultyScoped && { key: 'scope_type', placeholder: 'Scope', options: [{ label: 'University', value: 'university' }, { label: 'Fakultas', value: 'faculty' }] },
+                  isFacultyScoped && isSuperAdmin && { key: 'fakultas_id', placeholder: 'Fakultas', options: (faculties || []).map(f => ({ label: f.nama || f.Nama, value: String(f.id) })) }
+                ].filter(Boolean)}
+                emptyMessage={isFacultyScoped && isSuperAdmin && !selectedFacultyFilter ? 'Pilih fakultas di filter atas untuk melihat kelompok' : 'Belum ada kelompok.'}
+                emptyIcon="group_off"
+                columns={[
+                  {
+                    key: 'group_number',
+                    label: 'Kel.',
+                    className: 'w-[80px]',
+                    render: (v, item) => <span className="font-bold text-[var(--theme-text)]">{item.group_number || '-'}</span>
+                  },
+                  {
+                    key: 'info',
+                    label: 'Informasi Kelompok',
+                    className: 'w-[30%]',
+                    render: (v, item) => (
+                      <div>
+                        <p className="text-[13px] font-bold text-[var(--theme-text)] leading-tight">{item.name}</p>
+                        {item.code && item.code.toLowerCase() !== item.name.toLowerCase() && (
+                          <p className="text-[11px] font-medium text-[var(--theme-text-muted)] mt-1">{item.code}</p>
+                        )}
+                      </div>
+                    )
+                  },
+                  {
+                    key: 'mentor',
+                    label: 'Mentor/DP',
+                    className: 'w-[20%]',
+                    render: (v, item) => (
+                      <span className="text-[12px] font-bold text-[var(--theme-primary)]">{item.mentor_name || '-'}</span>
+                    )
+                  },
+                  {
+                    key: 'stats',
+                    label: 'Anggota / Kuota',
+                    className: 'w-[15%]',
+                    render: (v, item) => (
+                      <span className="text-[12px] font-bold text-[var(--theme-text)]">{item.members_count || 0} <span className="text-[var(--theme-text-muted)] font-medium">/ {item.capacity || 0}</span></span>
+                    )
+                  },
+                  {
+                    key: 'scope',
+                    label: 'Scope',
+                    className: 'w-[10%]',
+                    render: (v, item) => (
+                      <span className="text-[11px] font-bold uppercase text-[var(--theme-text)]">{item.scope_type}</span>
+                    )
+                  },
+                  {
+                    key: 'status',
+                    label: 'Status',
+                    className: 'w-[10%]',
+                    render: (v, item) => (
+                      <span className={`px-2.5 py-1 rounded-full border text-[10px] font-bold tracking-wide uppercase ${item.status === 'active' ? 'bg-[var(--theme-success-light)] text-[var(--theme-success)] border-[var(--theme-success-light)]' : item.status === 'completed' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
+                        {item.status}
+                      </span>
+                    )
+                  },
+                  {
+                    key: 'actions',
+                    label: 'Aksi',
+                    className: 'w-[100px] text-center',
+                    cellClassName: 'text-center',
+                    sortable: false,
+                    render: (_, item) => (
+                      <div className="flex justify-center items-center gap-1">
+                        <button
+                          onClick={() => openMembersModal(item)}
+                          title="Anggota"
+                          className="p-1.5 rounded-lg text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)] flex items-center justify-center transition-colors cursor-pointer"
+                        >
+                          <Users className="w-4 h-4" strokeWidth={2.5} />
+                        </button>
+                        <button
+                          onClick={() => openEdit(item)}
+                          title="Edit"
+                          className="p-1.5 rounded-lg text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] hover:bg-[var(--theme-bg)] flex items-center justify-center transition-colors cursor-pointer"
+                        >
+                          <SquarePen className="w-4 h-4" strokeWidth={2.5} />
+                        </button>
+                        <button
+                          onClick={() => setDeleteTarget(item)}
+                          title="Hapus"
+                          className="p-1.5 rounded-lg text-[var(--theme-error)] hover:bg-[var(--theme-error-light)] flex items-center justify-center transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="w-4 h-4" strokeWidth={2.5} />
+                        </button>
+                      </div>
+                    )
+                  }
+                ]}
+              />
             )}
           </div>
-        </div>
-
-        {propPortal !== 'fakultas' && (
-          <form onSubmit={runQuickGroup} className="bg-white rounded-2xl border border-[var(--theme-border)] shadow-sm p-5 h-fit space-y-4 font-body">
-            <div>
-              <h2 className="text-base font-bold text-[var(--theme-text)]">Buat Cepat Kelompok</h2>
-              <p className="text-xs font-semibold text-[var(--theme-text-muted)] mt-1">Isi nomor, nama, dan kuota mahasiswa untuk mempercepat pembentukan kelompok.</p>
-            </div>
-            <label className="block space-y-1">
-              <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Kelompok Ke-</span>
-              <input type="number" min="1" value={autoForm.group_number} onChange={e => setAutoForm({ ...autoForm, group_number: e.target.value })} className="w-full h-10 px-4 rounded-xl bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm font-semibold focus:outline-none focus:border-[var(--theme-primary)]" />
-            </label>
-            <label className="block space-y-1">
-              <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Nama Kelompok</span>
-              <input required value={autoForm.group_name} onChange={e => setAutoForm({ ...autoForm, group_name: e.target.value })} placeholder="Contoh: Praja" className="w-full h-10 px-4 rounded-xl bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm font-semibold focus:outline-none focus:border-[var(--theme-primary)]" />
-            </label>
-            <label className="block space-y-1">
-              <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Jumlah Mahasiswa (Kuota)</span>
-              <input type="number" min="1" value={autoForm.student_count} onChange={e => setAutoForm({ ...autoForm, student_count: e.target.value })} className="w-full h-10 px-4 rounded-xl bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm font-semibold focus:outline-none focus:border-[var(--theme-primary)]" />
-            </label>
-            {!isFacultyScoped && (
-              <div className="space-y-1">
-                <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Scope</span>
-                <SelectField
-                  value={autoForm.scope_type}
-                  onValueChange={(val) => setAutoForm({ ...autoForm, scope_type: val, mentor_id: '' })}
-                  className="w-full"
-                >
-                  <SelectOption value="university">University</SelectOption>
-                  <SelectOption value="faculty">Fakultas</SelectOption>
-                </SelectField>
-              </div>
-            )}
-            {!isFacultyScoped && autoForm.scope_type === 'faculty' && (
-              <div className="space-y-1">
-                <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Fakultas</span>
-                <SelectField
-                  value={autoForm.fakultas_id}
-                  onValueChange={(val) => setAutoForm({ ...autoForm, fakultas_id: val })}
-                  className="w-full"
-                >
-                  <SelectOption value="">Pilih Fakultas</SelectOption>
-                  {faculties?.map(f => (
-                    <SelectOption key={f.id} value={String(f.id)}>{f.nama || f.Nama}</SelectOption>
-                  ))}
-                </SelectField>
-              </div>
-            )}
-            <div className="space-y-1">
-              <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Mentor/DP</span>
-              <SelectField
-                value={autoForm.mentor_id}
-                onValueChange={(val) => setAutoForm({ ...autoForm, mentor_id: val })}
-                className="w-full"
-              >
-                <SelectOption value="">Pilih Mentor/DP (opsional)</SelectOption>
-                {mentorOptions.map(m => (
-                  <SelectOption key={m.id} value={String(m.id)}>{m.name}</SelectOption>
-                ))}
-              </SelectField>
-            </div>
-            <div className="rounded-xl bg-[var(--theme-success-light)] border border-[var(--theme-success-light)] p-4 text-xs font-semibold text-[var(--theme-success)]">
-              Preview: Kelompok {autoForm.group_number || 1} - {autoForm.group_name || 'Nama'} dengan kapasitas {autoForm.student_count || 0} mahasiswa.
-            </div>
-            <button
-              disabled={!selectedPeriodId || createGroup.isPending}
-              className="w-full h-10 px-5 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-xs font-bold disabled:opacity-50 transition-colors"
-            >
-              Buat Kelompok
-            </button>
-          </form>
-        )}
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Group Create/Edit Modal */}
       <DialogModal
@@ -363,7 +390,7 @@ const Groups = ({ portal: propPortal, facultyId: propFacultyId }) => {
                 <span className="text-xs font-bold text-slate-500 uppercase tracking-wider pl-1">Scope</span>
                 <SelectField
                   value={form.scope_type}
-                  onValueChange={(val) => setForm({ ...form, scope_type: val, mentor_id: '' })}
+                  onValueChange={(val) => setForm({ ...form, scope_type: val, mentor_id: '', fakultas_id: '' })}
                   className="w-full"
                 >
                   <SelectOption value="university">University</SelectOption>
@@ -371,35 +398,93 @@ const Groups = ({ portal: propPortal, facultyId: propFacultyId }) => {
                 </SelectField>
               </div>
             )}
-            {((!isFacultyScoped && form.scope_type === 'faculty') || isFacultyScoped) && (
-              <div className="space-y-1.5">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider pl-1">Fakultas</span>
-                <SelectField
-                  value={form.fakultas_id}
-                  onValueChange={(val) => setForm({ ...form, fakultas_id: val })}
-                  className="w-full"
-                >
-                  <SelectOption value="">Pilih Fakultas</SelectOption>
-                  {faculties?.map(f => (
-                    <SelectOption key={f.id} value={String(f.id)}>{f.nama || f.Nama}</SelectOption>
-                  ))}
-                </SelectField>
+            <div className="space-y-1.5 flex flex-col">
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider pl-1">Mentor/DP</span>
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Ketik nama mentor..."
+                  value={mentorSearch}
+                  onChange={(e) => {
+                    setMentorSearch(e.target.value);
+                    setForm({ ...form, mentor_id: '' });
+                    if (!openMentorSelect) setOpenMentorSelect(true);
+                  }}
+                  onFocus={() => setOpenMentorSelect(true)}
+                  onBlur={() => setTimeout(() => setOpenMentorSelect(false), 200)}
+                  className="w-full h-10 pl-4 pr-10 rounded-xl bg-slate-50 border border-slate-200 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] transition-all placeholder:text-slate-400 placeholder:font-normal"
+                />
+                <span className={`material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none transition-transform duration-200 ${openMentorSelect ? 'rotate-180' : ''}`} style={{ fontSize: '20px' }}>
+                  expand_more
+                </span>
+
+                {openMentorSelect && (
+                  <div className="absolute top-full left-0 right-0 mt-2 max-h-[280px] overflow-y-auto bg-white rounded-xl shadow-xl border border-slate-100 z-50 p-2 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+                    <div className="flex flex-col gap-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setForm({ ...form, mentor_id: '' });
+                          setMentorSearch('Tanpa Mentor');
+                          setOpenMentorSelect(false);
+                        }}
+                        className={`w-full text-left p-2.5 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 ${form.mentor_id === '' ? 'bg-[var(--theme-primary-light)] text-[var(--theme-primary)]' : 'text-slate-700 hover:bg-slate-50'}`}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: '18px', opacity: form.mentor_id === '' ? 1 : 0 }}>check</span>
+                        Tanpa Mentor
+                      </button>
+
+                      {mentorOptions.filter(m => !mentorSearch || m.name.toLowerCase().includes(mentorSearch.toLowerCase()) || (m.nim && m.nim.toLowerCase().includes(mentorSearch.toLowerCase()))).map(m => (
+                        <button
+                          key={m.id}
+                          type="button"
+                          onClick={() => {
+                            setForm({
+                              ...form,
+                              mentor_id: String(m.id),
+                              fakultas_id: m.fakultas_id ? String(m.fakultas_id) : form.fakultas_id,
+                              scope_type: m.fakultas_id ? 'faculty' : form.scope_type
+                            });
+                            setMentorSearch(m.name);
+                            setOpenMentorSelect(false);
+                          }}
+                          className={`w-full text-left p-2.5 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 ${form.mentor_id === String(m.id) ? 'bg-[var(--theme-primary-light)] text-[var(--theme-primary)]' : 'text-slate-700 hover:bg-slate-50'}`}
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: '18px', opacity: form.mentor_id === String(m.id) ? 1 : 0 }}>check</span>
+                          <div className="flex flex-col">
+                            <span>{m.name}</span>
+                            <span className="text-[11px] font-semibold text-slate-400 -mt-0.5">{m.nim}</span>
+                          </div>
+                        </button>
+                      ))}
+
+                      {mentorSearch && mentorOptions.filter(m => m.name.toLowerCase().includes(mentorSearch.toLowerCase()) || (m.nim && m.nim.toLowerCase().includes(mentorSearch.toLowerCase()))).length === 0 && (
+                        <div className="py-4 text-center text-sm font-medium text-slate-500">Mentor tidak ditemukan.</div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="md:col-span-2 space-y-1.5">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider pl-1">Mentor/DP</span>
-              <SelectField
-                value={form.mentor_id}
-                onValueChange={(val) => setForm({ ...form, mentor_id: val })}
-                className="w-full"
-              >
-                <SelectOption value="">Tanpa Mentor</SelectOption>
-                {mentorOptions.map(m => (
-                  <SelectOption key={m.id} value={String(m.id)}>{m.name}</SelectOption>
-                ))}
-              </SelectField>
+            <div className="md:col-span-2 space-y-1.5 flex flex-col justify-center">
+              {((!isFacultyScoped && form.scope_type === 'faculty') || isFacultyScoped) && (
+                <div className="space-y-1.5">
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider pl-1">Fakultas</span>
+                  <SelectField
+                    value={form.fakultas_id}
+                    onValueChange={(val) => setForm({ ...form, fakultas_id: val })}
+                    className="w-full"
+                    disabled={!!form.mentor_id}
+                  >
+                    <SelectOption value="">Pilih Fakultas</SelectOption>
+                    {faculties?.map(f => (
+                      <SelectOption key={f.id} value={String(f.id)}>{f.nama || f.Nama}</SelectOption>
+                    ))}
+                  </SelectField>
+                </div>
+              )}
             </div>
             <div className="space-y-1.5">
               <span className="text-xs font-bold text-slate-500 uppercase tracking-wider pl-1">Kuota</span>
@@ -420,6 +505,103 @@ const Groups = ({ portal: propPortal, facultyId: propFacultyId }) => {
           </div>
         </form>
       </DialogModal>
+
+      {/* Members Modal */}
+      <DialogModal
+        open={showMembersModal}
+        onOpenChange={setShowMembersModal}
+        title={`Anggota ${selectedGroupForMembers?.name || 'Kelompok'}`}
+        subtitle="Kelola mahasiswa yang tergabung dalam kelompok ini."
+        icon={<Users size={24} />}
+        className="max-w-4xl"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+          {/* Members List */}
+          <div className="border border-[var(--theme-border)] rounded-2xl overflow-hidden flex flex-col max-h-[500px]">
+            <div className="p-4 bg-[var(--theme-bg)] border-b border-[var(--theme-border)]">
+              <h3 className="text-sm font-bold text-[var(--theme-text)]">Anggota Saat Ini ({selectedGroupDetails?.members?.length || 0})</h3>
+            </div>
+            <div className="overflow-y-auto flex-1 custom-scrollbar bg-white">
+              {isLoadingGroupDetails ? (
+                <div className="p-8 text-center text-[var(--theme-text-subtle)] text-xs font-bold">Memuat...</div>
+              ) : selectedGroupDetails?.members?.length ? (
+                <div className="divide-y divide-[var(--theme-border-muted)]">
+                  {selectedGroupDetails.members.map(member => (
+                    <div key={member.id} className="p-3 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                      <UserInfoCell name={member.student?.nama} subtitle={member.student?.nim} avatarUrl={member.student?.foto_url || member.student?.foto} />
+                      <button
+                        onClick={() => removeMember.mutate({ groupId: selectedGroupForMembers.id, studentId: member.student_id })}
+                        title="Keluarkan"
+                        className="p-1.5 rounded-lg text-[var(--theme-error)] hover:bg-[var(--theme-error-light)] transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" strokeWidth={2.5} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-8 text-center text-[var(--theme-text-subtle)] text-xs font-bold">Belum ada anggota.</div>
+              )}
+            </div>
+          </div>
+
+          {/* Add Members */}
+          <div className="border border-[var(--theme-border)] rounded-2xl overflow-hidden flex flex-col max-h-[500px]">
+            <div className="p-4 bg-[var(--theme-bg)] border-b border-[var(--theme-border)]">
+              <h3 className="text-sm font-bold text-[var(--theme-text)]">Tambah Mahasiswa</h3>
+              <div className="mt-3 relative">
+                <input
+                  value={studentSearch}
+                  onChange={e => setStudentSearch(e.target.value)}
+                  placeholder="Cari nama atau NIM..."
+                  className="w-full h-9 pl-9 pr-4 rounded-xl border border-[var(--theme-border)] text-xs font-semibold focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] outline-none"
+                />
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-[var(--theme-text-muted)] pointer-events-none">search</span>
+              </div>
+            </div>
+            <div className="overflow-y-auto flex-1 custom-scrollbar p-2 bg-white space-y-1">
+              {availableStudents.map(student => (
+                <label key={student.id} className="flex items-center gap-3 p-2.5 rounded-xl border border-transparent hover:bg-slate-50 cursor-pointer transition-colors group">
+                  <input
+                    type="checkbox"
+                    checked={selectedStudentIds.includes(student.id)}
+                    onChange={() => toggleStudent(student.id)}
+                    className="rounded text-[var(--theme-primary)] focus:ring-[var(--theme-primary)] w-4 h-4 cursor-pointer"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-[var(--theme-text)] truncate">{student.nama}</p>
+                    <p className="text-[10px] font-semibold text-[var(--theme-text-muted)] truncate mt-0.5">{student.nim} • {student.program_studi_name || '-'}</p>
+                  </div>
+                </label>
+              ))}
+              {!availableStudents.length && (
+                <div className="p-8 flex flex-col items-center justify-center text-center">
+                  <span className="material-symbols-outlined text-3xl text-slate-300 mb-2">person_off</span>
+                  <p className="text-xs font-bold text-[var(--theme-text-subtle)]">Tidak ada mahasiswa.</p>
+                </div>
+              )}
+            </div>
+            <div className="p-4 border-t border-[var(--theme-border)] bg-white">
+              <button
+                onClick={submitMembers}
+                disabled={!selectedStudentIds.length || addMembers.isPending}
+                className="w-full h-10 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-xs font-bold shadow-md disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+              >
+                Tambah {selectedStudentIds.length > 0 ? selectedStudentIds.length : ''} Mahasiswa
+              </button>
+            </div>
+          </div>
+        </div>
+      </DialogModal>
+
+      <DeleteConfirmModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        title="Hapus Kelompok?"
+        description={deleteTarget ? `Apakah Anda yakin ingin menghapus kelompok "${deleteTarget.name}"? Semua data anggota di dalamnya juga akan terhapus dan tidak dapat dikembalikan.` : ''}
+        loading={isDeleting}
+      />
     </div>
   );
 };

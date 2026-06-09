@@ -13,15 +13,15 @@ export function SelectField({ value, onValueChange, placeholder, children, class
   return (
     <Select.Root value={val} onValueChange={handleValueChange} disabled={disabled}>
       <Select.Trigger className={`
-        h-10 flex items-center justify-between gap-2
+        h-10 flex items-center justify-between gap-2 flex-nowrap whitespace-nowrap
         rounded-xl border border-[var(--theme-border)] bg-white
         px-3 text-sm text-[var(--theme-text)]
         hover:border-[var(--theme-primary)] focus:outline-none
         focus:ring-2 focus:ring-[var(--theme-primary-light)]
         transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${className ?? ''}
       `}>
-        <Select.Value placeholder={placeholder} />
-        <Select.Icon><ChevronDown className="h-4 w-4 text-[var(--theme-text-muted)]" /></Select.Icon>
+        <span className="truncate min-w-0 flex-1 text-left"><Select.Value placeholder={placeholder} /></span>
+        <Select.Icon className="shrink-0"><ChevronDown className="h-4 w-4 text-[var(--theme-text-muted)]" /></Select.Icon>
       </Select.Trigger>
       <Select.Portal>
         <Select.Content className="

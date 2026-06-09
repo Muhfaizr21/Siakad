@@ -59,6 +59,20 @@ const Participants = () => {
       render: (v, p) => <TitleSubtitleCell title={p.program_studi_name} subtitle={p.fakultas_name} />
     },
     {
+      key: 'gender',
+      label: 'Gender',
+      render: (v, p) => (
+        <span className="text-[11px] font-bold text-slate-600 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-md">
+          {p.jenis_kelamin || p.JenisKelamin || '-'}
+        </span>
+      )
+    },
+    {
+      key: 'kontak',
+      label: 'Kontak',
+      render: (v, p) => <TitleSubtitleCell title={p.telepon || p.Telepon || p.no_hp || '-'} subtitle={p.email_kampus || p.email_personal || p.email || '-'} />
+    },
+    {
       key: 'group_name',
       label: 'Kelompok',
       render: (v, p) => {
@@ -115,11 +129,12 @@ const Participants = () => {
             totalData={meta.total_data}
             currentPage={meta.current_page}
             onPageChange={setPage}
+            onPageSizeChange={setLimit}
             onSearchChange={setSearchTermInput}
             emptyMessage="Tidak ada data mahasiswa orientasi Kencana yang ditemukan."
             emptyIcon="groups"
             actions={
-              <div className="flex gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 {!isFacultyScoped && (
                   <SelectField 
                     value={fakultasFilter} 
@@ -129,7 +144,7 @@ const Participants = () => {
                       setPage(1);
                     }}
                     placeholder="Semua Fakultas"
-                    className="w-[140px] h-9 text-xs rounded-lg border-[var(--theme-border)] bg-[var(--theme-bg)] text-[var(--theme-text)] focus:ring-1 focus:ring-[var(--theme-primary)] outline-none hidden md:block"
+                    className="min-w-[160px] h-9 text-xs rounded-lg border-[var(--theme-border)] bg-[var(--theme-bg)] text-[var(--theme-text)] focus:ring-1 focus:ring-[var(--theme-primary)] outline-none hidden md:flex"
                   >
                     <SelectOption value="all">Semua Fakultas</SelectOption>
                     {faculties?.map(f => (
@@ -144,7 +159,7 @@ const Participants = () => {
                     setPage(1);
                   }}
                   placeholder="Semua Prodi"
-                  className="w-[140px] h-9 text-xs rounded-lg border-[var(--theme-border)] bg-[var(--theme-bg)] text-[var(--theme-text)] focus:ring-1 focus:ring-[var(--theme-primary)] outline-none hidden lg:block"
+                  className="min-w-[160px] h-9 text-xs rounded-lg border-[var(--theme-border)] bg-[var(--theme-bg)] text-[var(--theme-text)] focus:ring-1 focus:ring-[var(--theme-primary)] outline-none hidden lg:flex"
                 >
                   <SelectOption value="all">Semua Prodi</SelectOption>
                   {majors?.map(m => (
@@ -158,7 +173,7 @@ const Participants = () => {
                     setPage(1);
                   }}
                   placeholder="Status Mentor"
-                  className="w-[140px] h-9 text-xs rounded-lg border-[var(--theme-border)] bg-[var(--theme-bg)] text-[var(--theme-text)] focus:ring-1 focus:ring-[var(--theme-primary)] outline-none"
+                  className="min-w-[140px] h-9 text-xs rounded-lg border-[var(--theme-border)] bg-[var(--theme-bg)] text-[var(--theme-text)] focus:ring-1 focus:ring-[var(--theme-primary)] outline-none flex"
                 >
                   <SelectOption value="all">Status Mentor</SelectOption>
                   <SelectOption value="assigned">Sudah Ada</SelectOption>
@@ -171,7 +186,7 @@ const Participants = () => {
                     setPage(1);
                   }}
                   placeholder="Kelompok"
-                  className="w-[140px] h-9 text-xs rounded-lg border-[var(--theme-border)] bg-[var(--theme-bg)] text-[var(--theme-text)] focus:ring-1 focus:ring-[var(--theme-primary)] outline-none"
+                  className="min-w-[140px] h-9 text-xs rounded-lg border-[var(--theme-border)] bg-[var(--theme-bg)] text-[var(--theme-text)] focus:ring-1 focus:ring-[var(--theme-primary)] outline-none flex"
                 >
                   <SelectOption value="all">Kelompok</SelectOption>
                   {groups?.map(g => (

@@ -457,6 +457,7 @@ const Scores = () => {
             totalData={meta.total_data}
             currentPage={meta.current_page}
             onPageChange={setPage}
+            onPageSizeChange={setLimit}
             onSortChange={handleSortChange}
             emptyMessage="Tidak ada data nilai mahasiswa untuk kriteria ini."
             emptyIcon="school"
@@ -466,7 +467,7 @@ const Scores = () => {
                   value={statusFilter}
                   onValueChange={val => { setStatusFilter(val); setPage(1); }}
                   placeholder="Semua Status"
-                  className="w-[140px] h-9 text-xs rounded-lg border-[var(--theme-border)] bg-[var(--theme-bg)] text-[var(--theme-text)] focus:ring-1 focus:ring-[var(--theme-primary)] outline-none"
+                  className="min-w-[140px] h-9 text-xs rounded-lg border-[var(--theme-border)] bg-[var(--theme-bg)] text-[var(--theme-text)] focus:ring-1 focus:ring-[var(--theme-primary)] outline-none flex"
                 >
                   <SelectOption value="all">Semua Status</SelectOption>
                   <SelectOption value="passed">Lulus</SelectOption>
@@ -479,7 +480,7 @@ const Scores = () => {
                   value={groupFilter ? String(groupFilter) : "all"}
                   onValueChange={val => { setGroupFilter(val); setPage(1); }}
                   placeholder="Semua Kelompok"
-                  className="w-[160px] h-9 text-xs rounded-lg border-[var(--theme-border)] bg-[var(--theme-bg)] text-[var(--theme-text)] focus:ring-1 focus:ring-[var(--theme-primary)] outline-none"
+                  className="min-w-[160px] h-9 text-xs rounded-lg border-[var(--theme-border)] bg-[var(--theme-bg)] text-[var(--theme-text)] focus:ring-1 focus:ring-[var(--theme-primary)] outline-none flex"
                 >
                   <SelectOption value="all">Semua Kelompok</SelectOption>
                   {groups?.map(group => (

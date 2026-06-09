@@ -15,10 +15,14 @@ import { adminService } from '../../../services/api';
 import useAuthStore from '../../../store/useAuthStore';
 import Mentors from '../Admin/Mentors';
 import Groups from '../Admin/Groups';
+import { ManageMaterialsModal } from '../components/ManageMaterialsModal';
+import { ManageQuizzesModal } from '../components/ManageQuizzesModal';
+import { ManageAssignmentsModal } from '../components/ManageAssignmentsModal';
 import { DashboardHero } from '@/components/ui/dashboard';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
 import { DataTable } from '@/components/ui/DataTable';
-import { Settings2 } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '../../../components/ui/Popover';
+import { Settings2, CheckCircle2, ChevronRight, LayoutDashboard } from 'lucide-react';
 
 const badgeClass = {
   not_open: 'bg-slate-100 text-slate-500',
@@ -67,6 +71,10 @@ const Stages = () => {
   const [showStageModal, setShowStageModal] = useState(false);
   const [showSessionModal, setShowSessionModal] = useState(false);
   const [activeStage, setActiveStage] = useState(null);
+  const [activeSessionId, setActiveSessionId] = useState(null);
+  const [showMaterialModal, setShowMaterialModal] = useState(false);
+  const [showQuizModal, setShowQuizModal] = useState(false);
+  const [showAssignmentModal, setShowAssignmentModal] = useState(false);
   const [stageForm, setStageForm] = useState({ name: '', description: '', status: 'locked', start_date: '', end_date: '', is_published: false });
   const [sessionForm, setSessionForm] = useState({ title: '', description: '', status: 'locked', start_date: '', end_date: '', is_required: true, is_published: false });
   const [phaseForm, setPhaseForm] = useState({ start_date: '', end_date: '', theme: '', is_published: true });
@@ -298,12 +306,12 @@ const Stages = () => {
                   
                   <div className="mt-auto pt-3 border-t border-[var(--theme-border-muted)] flex justify-between items-center">
                     {isActive ? (
-                      <span className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 text-[var(--theme-primary)]">
-                        <span className="material-symbols-outlined text-[14px]">check_circle</span> Sedang Dikelola
+                      <span className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 text-[var(--theme-primary)] bg-[var(--theme-primary-light)] px-2 py-1 rounded-md">
+                        <CheckCircle2 className="w-4 h-4" /> Sedang Dikelola
                       </span>
                     ) : (
                       <span className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 text-[var(--theme-text-muted)] group-hover:text-[var(--theme-primary)] transition-colors">
-                        Kelola Fakultas <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+                        Buka Ruang Kerja <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                       </span>
                     )}
                   </div>
@@ -420,24 +428,10 @@ const Stages = () => {
 
                 {isLoading ? (
                   <div className="p-16 text-center text-slate-500 font-bold bg-white rounded-3xl border border-slate-100 shadow-sm">Memuat sesi...</div>
-                ) : !sessions.length ? (
-                  <div className="bg-gradient-to-b from-white to-slate-50 border border-slate-200 rounded-3xl p-16 text-center shadow-sm relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-sky-100 rounded-full blur-3xl opacity-50 -mr-32 -mt-32"></div>
-                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-100 rounded-full blur-3xl opacity-50 -ml-32 -mb-32"></div>
-
-                    <div className="relative z-10 flex flex-col items-center">
-                      <div className="w-24 h-24 bg-primary/5 rounded-full flex items-center justify-center mb-6 shadow-inner">
-                        <span className="material-symbols-outlined text-[48px] text-primary">dashboard_customize</span>
-                      </div>
-                      <h3 className="text-2xl font-black text-slate-800 font-headline">Ruang Sesi Masih Kosong</h3>
-                      <p className="text-sm font-medium text-slate-500 max-w-lg mx-auto mt-3 leading-relaxed">Mulai merancang perjalanan orientasi mahasiswa dengan menyusun materi, kuis, dan tugas dalam sesi-sesi terstruktur.</p>
-                      <button onClick={() => openSession(phaseStage)} disabled={createStage.isPending} className="mt-8 px-8 py-4 rounded-full bg-primary text-white text-sm font-black disabled:opacity-40 shadow-lg shadow-primary/20 hover:bg-primary/90 hover:-translate-y-0.5 transition-all flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[20px]">add_circle</span> Buat Sesi Pertama
-                      </button>
-                    </div>
-                  </div>
                 ) : (
                   <DataTable
+                    emptyMessage="Ruang sesi masih kosong. Tambahkan sesi pertama."
+                    emptyIcon="dashboard_customize"
                     data={sessions}
                     filters={[
                       {
@@ -535,20 +529,48 @@ const Stages = () => {
                           sortable: false,
                           render: (_, item) => (
                             <div className="flex justify-center items-center gap-1">
-                              <button
-                                onClick={() => {
-                                  const p = window.location.pathname;
-                                  let prefix = '/kencana-admin';
-                                  if (p.includes('/admin/kencana-fakultas-admin')) prefix = '/admin/kencana-fakultas-admin';
-                                  else if (p.includes('/kencana-fakult')) prefix = p.split('/stages')[0];
-                                  navigate(`${prefix}/sessions/${item.id}/content`);
-                                }}
-                                title="Kelola Konten"
-                                className="px-3 py-1.5 rounded-lg text-white bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm active:scale-95 text-[11px] font-bold"
-                              >
-                                <Settings2 className="w-[14px] h-[14px]" strokeWidth={2.5} />
-                                Kelola
-                              </button>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <button
+                                    title="Kelola Konten"
+                                    className="px-3 py-1.5 rounded-lg text-white bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm active:scale-95 text-[11px] font-bold"
+                                  >
+                                    <Settings2 className="w-[14px] h-[14px]" strokeWidth={2.5} />
+                                    Kelola
+                                  </button>
+                                </PopoverTrigger>
+                                <PopoverContent align="end" className="w-40 p-1 rounded-xl bg-white border border-slate-100 shadow-xl z-50">
+                                      <div className="flex flex-col">
+                                        <button
+                                          onClick={() => {
+                                            setActiveSessionId(item.id);
+                                            setShowMaterialModal(true);
+                                          }}
+                                          className="text-left px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-[var(--theme-primary)] rounded-lg transition-colors flex items-center gap-2"
+                                        >
+                                          <span className="material-symbols-outlined text-[16px]">library_books</span> Materi
+                                        </button>
+                                        <button
+                                          onClick={() => {
+                                            setActiveSessionId(item.id);
+                                            setShowQuizModal(true);
+                                          }}
+                                          className="text-left px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-[var(--theme-primary)] rounded-lg transition-colors flex items-center gap-2"
+                                        >
+                                          <span className="material-symbols-outlined text-[16px]">quiz</span> Kuis
+                                        </button>
+                                        <button
+                                          onClick={() => {
+                                            setActiveSessionId(item.id);
+                                            setShowAssignmentModal(true);
+                                          }}
+                                          className="text-left px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-[var(--theme-primary)] rounded-lg transition-colors flex items-center gap-2"
+                                        >
+                                          <span className="material-symbols-outlined text-[16px]">assignment</span> Tugas
+                                        </button>
+                                      </div>
+                                </PopoverContent>
+                              </Popover>
                             </div>
                           )
                         }
@@ -690,6 +712,22 @@ const Stages = () => {
           </form>
         </DialogContent>
       </Dialog>
+      {/* Modals */}
+      <ManageMaterialsModal
+        open={showMaterialModal}
+        onOpenChange={setShowMaterialModal}
+        sessionId={activeSessionId}
+      />
+      <ManageQuizzesModal
+        open={showQuizModal}
+        onOpenChange={setShowQuizModal}
+        sessionId={activeSessionId}
+      />
+      <ManageAssignmentsModal
+        open={showAssignmentModal}
+        onOpenChange={setShowAssignmentModal}
+        sessionId={activeSessionId}
+      />
     </div>
   );
 };

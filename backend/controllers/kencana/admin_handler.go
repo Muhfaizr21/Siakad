@@ -724,8 +724,7 @@ func ListParticipants(c *fiber.Ctx) error {
 	}
 
 	if search != "" {
-		q = q.Joins("LEFT JOIN fakultas.program_studi ON fakultas.program_studi.id = mahasiswa.mahasiswa.program_studi_id").
-			Where("LOWER(mahasiswa.mahasiswa.nama) LIKE ? OR LOWER(mahasiswa.mahasiswa.nim) LIKE ? OR LOWER(fakultas.program_studi.nama) LIKE ?", "%"+search+"%", "%"+search+"%", "%"+search+"%")
+		q = q.Where("LOWER(mahasiswa.mahasiswa.nama) LIKE ? OR LOWER(mahasiswa.mahasiswa.nim) LIKE ?", "%"+search+"%", "%"+search+"%")
 	}
 
 	var total int64
@@ -2177,7 +2176,8 @@ func AdminListScoreItems(c *fiber.Ctx) error {
 // SearchStudents mencari mahasiswa untuk ditambahkan sebagai mentor (berdasarkan nama/nim)
 func SearchStudents(c *fiber.Ctx) error {
 	var students []models.Mahasiswa
-	query := config.DB.Preload("Pengguna").Preload("ProgramStudi.Fakultas")
+	query := config.DB.Preload("Pengguna").Preload("ProgramStudi.Fakultas").
+		Where("EXISTS (SELECT 1 FROM ormawa.ormawa_anggota WHERE ormawa.ormawa_anggota.mahasiswa_id = mahasiswa.mahasiswa.id AND LOWER(ormawa.ormawa_anggota.status) = 'aktif')")
 	
 	if search := c.Query("search"); search != "" {
 		query = query.Where("nama ILIKE ? OR nim ILIKE ?", "%"+search+"%", "%"+search+"%")
