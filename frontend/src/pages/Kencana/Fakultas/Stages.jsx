@@ -17,6 +17,8 @@ import Mentors from '../Admin/Mentors';
 import Groups from '../Admin/Groups';
 import { DashboardHero } from '@/components/ui/dashboard';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
+import { DataTable } from '@/components/ui/DataTable';
+import { Settings2 } from 'lucide-react';
 
 const badgeClass = {
   not_open: 'bg-slate-100 text-slate-500',
@@ -98,7 +100,7 @@ const Stages = () => {
 
   const { data: periodPhasesData } = usePeriodPhasesQuery(selectedPeriodId);
   const allFacultyPhases = periodPhasesData?.faculty_phases || [];
-  
+
   const scopeParams = canPickFaculty && selectedFacultyId ? { fakultas_id: selectedFacultyId } : {};
   const { data: phaseData } = useFakultasPhaseQuery(selectedPeriodId, scopeParams);
   const { data: stages, isLoading } = useFakultasStagesQuery(selectedPeriodId, scopeParams);
@@ -227,7 +229,7 @@ const Stages = () => {
 
   return (
     <div className="md:max-w-7xl mx-auto space-y-6 font-body">
-      <DashboardHero 
+      <DashboardHero
         title="Sesi & Konten"
         highlightedTitle={selectedFacultyId ? (faculties.find(f => String(f.id) === String(selectedFacultyId))?.Nama || faculties.find(f => String(f.id) === String(selectedFacultyId))?.nama || 'Fakultas') : 'Fakultas'}
         subtitle="Kelola sesi, materi, kuis, dan tugas untuk Kencana Fakultas. Super admin dapat memilih fakultas, sedangkan admin fakultas dibatasi ke fakultasnya sendiri."
@@ -238,9 +240,9 @@ const Stages = () => {
         ]}
         actions={
           <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto mt-2 lg:mt-0">
-            <select 
-              value={selectedPeriodId} 
-              onChange={e => setSelectedPeriodId(e.target.value)} 
+            <select
+              value={selectedPeriodId}
+              onChange={e => setSelectedPeriodId(e.target.value)}
               className="w-full sm:w-64 h-10 px-4 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 outline-none focus:border-cyan-500 transition-colors shadow-sm"
             >
               <option value="" disabled className="text-slate-800">Pilih Periode...</option>
@@ -258,35 +260,53 @@ const Stages = () => {
               <p className="text-sm font-semibold text-slate-500 mt-1">Pilih fakultas untuk mengelola sesi dan melihat status Kencana Fakultas mereka.</p>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {faculties.map(faculty => {
               const fp = allFacultyPhases.find(p => p.fakultas_id === faculty.id) || null;
               const isActive = String(selectedFacultyId) === String(faculty.id);
+              
               return (
-                <div key={faculty.id} className={`p-5 rounded-2xl border transition-all flex flex-col justify-between cursor-pointer ${isActive ? 'bg-primary/5 border-primary/30 shadow-md ring-2 ring-primary/20' : 'border-slate-100 bg-slate-50 hover:bg-white hover:border-primary/20 hover:shadow-lg'}`}
-                     onClick={() => {
-                       navigate(`${basePath}/${faculty.id}?tab=stages`);
-                       setTimeout(() => document.getElementById('faculty-details-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
-                     }}>
-                  <div>
-                    <div className="flex justify-between items-start mb-3 gap-2">
-                      <h3 className={`font-black text-lg leading-tight font-headline ${isActive ? 'text-primary' : 'text-slate-800'}`}>{faculty.Nama || faculty.nama || `Fakultas ID ${faculty.id}`}</h3>
-                      <div className="shrink-0"><Badge status={fp?.status || 'not_open'} /></div>
+                <div 
+                  key={faculty.id} 
+                  className={`p-5 rounded-2xl border transition-all flex flex-col h-full cursor-pointer group ${
+                    isActive 
+                      ? 'bg-[var(--theme-primary-light)] border-[var(--theme-primary)] shadow-sm ring-1 ring-[var(--theme-primary)]' 
+                      : 'bg-[var(--theme-surface)] border-[var(--theme-border)] hover:border-[var(--theme-primary)] hover:shadow-md'
+                  }`}
+                  onClick={() => {
+                    navigate(`${basePath}/${faculty.id}?tab=stages`);
+                    setTimeout(() => document.getElementById('faculty-details-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+                  }}
+                >
+                  <div className="flex justify-between items-start gap-3 mb-4">
+                    <h3 className={`font-bold text-[13px] leading-tight line-clamp-2 ${isActive ? 'text-[var(--theme-primary-dark)]' : 'text-[var(--theme-text)]'}`}>
+                      {faculty.Nama || faculty.nama || `Fakultas ID ${faculty.id}`}
+                    </h3>
+                    <div className="shrink-0"><Badge status={fp?.status || 'not_open'} /></div>
+                  </div>
+                  
+                  <div className="space-y-1.5 mb-5 flex-1">
+                    <div className="flex justify-between items-center text-[11px]">
+                      <span className="font-medium text-[var(--theme-text-muted)]">Mulai</span>
+                      <span className={`font-bold ${isActive ? 'text-[var(--theme-primary-dark)]' : 'text-[var(--theme-text)]'}`}>{formatDate(fp?.start_date)}</span>
                     </div>
-                    <div className="space-y-1 mb-4">
-                      <p className={`text-xs font-semibold flex justify-between ${isActive ? 'text-primary/80' : 'text-slate-500'}`}><span>Mulai:</span> <span>{formatDate(fp?.start_date)}</span></p>
-                      <p className={`text-xs font-semibold flex justify-between ${isActive ? 'text-primary/80' : 'text-slate-500'}`}><span>Selesai:</span> <span>{formatDate(fp?.end_date)}</span></p>
+                    <div className="flex justify-between items-center text-[11px]">
+                      <span className="font-medium text-[var(--theme-text-muted)]">Selesai</span>
+                      <span className={`font-bold ${isActive ? 'text-[var(--theme-primary-dark)]' : 'text-[var(--theme-text)]'}`}>{formatDate(fp?.end_date)}</span>
                     </div>
                   </div>
-                  {isActive ? (
-                    <div className="w-full py-2 text-primary text-xs font-black flex items-center justify-center gap-2">
-                      <span className="material-symbols-outlined text-[16px]">check_circle</span> Sedang Dikelola
-                    </div>
-                  ) : (
-                    <button className="w-full py-2.5 bg-white border border-slate-200 hover:bg-primary/5 hover:border-primary/20 hover:text-primary text-slate-500 text-xs font-black rounded-xl transition-colors">
-                      Kelola Fakultas Ini →
-                    </button>
-                  )}
+                  
+                  <div className="mt-auto pt-3 border-t border-[var(--theme-border-muted)] flex justify-between items-center">
+                    {isActive ? (
+                      <span className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 text-[var(--theme-primary)]">
+                        <span className="material-symbols-outlined text-[14px]">check_circle</span> Sedang Dikelola
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 text-[var(--theme-text-muted)] group-hover:text-[var(--theme-primary)] transition-colors">
+                        Kelola Fakultas <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+                      </span>
+                    )}
+                  </div>
                 </div>
               );
             })}
@@ -302,22 +322,20 @@ const Stages = () => {
           <div className="flex flex-wrap items-center gap-1.5 p-1 bg-[var(--theme-surface)] rounded-2xl border border-[var(--theme-border)] shadow-sm w-fit mb-6">
             <button
               onClick={() => setActiveTab('stages')}
-              className={`h-10 px-5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${
-                activeTab === 'stages'
+              className={`h-10 px-5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${activeTab === 'stages'
                   ? 'bg-[var(--theme-primary)] text-white shadow-md'
                   : 'text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg)] hover:text-[var(--theme-text)]'
-              }`}
+                }`}
             >
               <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>list_alt</span>
               Sesi & Tahapan
             </button>
             <button
               onClick={() => setActiveTab('groups')}
-              className={`h-10 px-5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${
-                activeTab === 'groups'
+              className={`h-10 px-5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${activeTab === 'groups'
                   ? 'bg-[var(--theme-primary)] text-white shadow-md'
                   : 'text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg)] hover:text-[var(--theme-text)]'
-              }`}
+                }`}
             >
               <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>groups</span>
               Kelompok Mahasiswa
@@ -328,7 +346,7 @@ const Stages = () => {
             <div className="space-y-6">
               {/* Control Panel Section */}
               <div className="bg-white rounded-[2rem] border border-slate-200/60 shadow-xl shadow-slate-200/20 overflow-hidden flex flex-col lg:flex-row relative">
-                
+
                 {/* Left Column: Premium Primary Hero */}
                 <div className="p-8 lg:p-10 lg:w-[40%] bg-gradient-to-br from-primary via-[#152F58] to-[#0D1C36] text-white flex flex-col justify-between relative overflow-hidden">
                   {/* Decorative Background Elements */}
@@ -343,7 +361,7 @@ const Stages = () => {
                     </div>
                     <p className="text-sm text-white/70 font-medium leading-relaxed max-w-sm">Kelola timeline dan tema utama acara Kencana di tingkat Fakultas untuk mengkoordinasikan seluruh kegiatan mahasiswa baru.</p>
                   </div>
-                  
+
                   {!universityCompleted && (
                     <div className="relative z-10 mt-8 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs font-bold text-amber-200 leading-relaxed flex gap-3 items-start backdrop-blur-sm">
                       <span className="material-symbols-outlined text-[18px] shrink-0 mt-0.5 text-amber-400">warning</span>
@@ -357,22 +375,22 @@ const Stages = () => {
                     <div className="flex flex-col sm:flex-row gap-8">
                       <div className="flex-1 relative group">
                         <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 transition-colors group-focus-within:text-primary">Tanggal Mulai</label>
-                        <input type="date" value={phaseForm.start_date} disabled={!universityCompleted} onChange={e => setPhaseForm({ ...phaseForm, start_date: e.target.value })} 
-                               className="w-full pb-2 pt-1 bg-transparent border-b-2 border-slate-200 focus:border-primary text-sm font-bold text-slate-800 disabled:opacity-50 transition-all outline-none" />
+                        <input type="date" value={phaseForm.start_date} disabled={!universityCompleted} onChange={e => setPhaseForm({ ...phaseForm, start_date: e.target.value })}
+                          className="w-full pb-2 pt-1 bg-transparent border-b-2 border-slate-200 focus:border-primary text-sm font-bold text-slate-800 disabled:opacity-50 transition-all outline-none" />
                       </div>
                       <div className="flex-1 relative group">
                         <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 transition-colors group-focus-within:text-primary">Tanggal Selesai</label>
-                        <input type="date" value={phaseForm.end_date} disabled={!universityCompleted} onChange={e => setPhaseForm({ ...phaseForm, end_date: e.target.value })} 
-                               className="w-full pb-2 pt-1 bg-transparent border-b-2 border-slate-200 focus:border-primary text-sm font-bold text-slate-800 disabled:opacity-50 transition-all outline-none" />
+                        <input type="date" value={phaseForm.end_date} disabled={!universityCompleted} onChange={e => setPhaseForm({ ...phaseForm, end_date: e.target.value })}
+                          className="w-full pb-2 pt-1 bg-transparent border-b-2 border-slate-200 focus:border-primary text-sm font-bold text-slate-800 disabled:opacity-50 transition-all outline-none" />
                       </div>
                     </div>
                     <div className="relative group">
                       <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 transition-colors group-focus-within:text-primary">Tema / Slogan Kencana Fakultas</label>
-                      <input type="text" placeholder="Ketik tema besar acara kencana di sini..." value={phaseForm.theme} disabled={!universityCompleted} onChange={e => setPhaseForm({ ...phaseForm, theme: e.target.value })} 
-                             className="w-full pb-2 pt-1 bg-transparent border-b-2 border-slate-200 focus:border-primary text-sm font-bold text-slate-800 disabled:opacity-50 transition-all outline-none placeholder:text-slate-300 placeholder:font-medium" />
+                      <input type="text" placeholder="Ketik tema besar acara kencana di sini..." value={phaseForm.theme} disabled={!universityCompleted} onChange={e => setPhaseForm({ ...phaseForm, theme: e.target.value })}
+                        className="w-full pb-2 pt-1 bg-transparent border-b-2 border-slate-200 focus:border-primary text-sm font-bold text-slate-800 disabled:opacity-50 transition-all outline-none placeholder:text-slate-300 placeholder:font-medium" />
                     </div>
                   </div>
-                  
+
                   <div className="flex flex-wrap items-center justify-end gap-3 pt-6 mt-auto">
                     <button onClick={savePhase} disabled={!universityCompleted || updatePhase.isPending} className="px-6 py-3 rounded-full bg-primary/5 hover:bg-primary/10 text-primary text-xs font-black disabled:opacity-40 transition-colors">
                       Simpan Perubahan
@@ -398,56 +416,146 @@ const Stages = () => {
                     <h2 className="text-xl font-black text-slate-800 font-headline">Sesi & Konten Fakultas</h2>
                     <p className="text-sm font-semibold text-slate-500 mt-1">Buat wadah sesi untuk menyusun materi, kuis, dan tugas.</p>
                   </div>
-                  <div className="flex gap-2">
-                    {phaseStage && <button onClick={() => openEditStage(phaseStage)} className="px-5 py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-black shadow-sm transition-colors">Atur Visibilitas Konten</button>}
-                    <button onClick={() => openSession(phaseStage)} disabled={createStage.isPending} className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-black shadow-sm disabled:opacity-40 transition-colors">+ Tambah Sesi</button>
-                  </div>
                 </div>
 
-              {isLoading ? (
-                <div className="p-16 text-center text-slate-500 font-bold bg-white rounded-3xl border border-slate-100 shadow-sm">Memuat sesi...</div>
-              ) : !sessions.length ? (
-                <div className="bg-gradient-to-b from-white to-slate-50 border border-slate-200 rounded-3xl p-16 text-center shadow-sm relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-sky-100 rounded-full blur-3xl opacity-50 -mr-32 -mt-32"></div>
-                  <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-100 rounded-full blur-3xl opacity-50 -ml-32 -mb-32"></div>
-                  
-                  <div className="relative z-10 flex flex-col items-center">
-                    <div className="w-24 h-24 bg-primary/5 rounded-full flex items-center justify-center mb-6 shadow-inner">
-                      <span className="material-symbols-outlined text-[48px] text-primary">dashboard_customize</span>
+                {isLoading ? (
+                  <div className="p-16 text-center text-slate-500 font-bold bg-white rounded-3xl border border-slate-100 shadow-sm">Memuat sesi...</div>
+                ) : !sessions.length ? (
+                  <div className="bg-gradient-to-b from-white to-slate-50 border border-slate-200 rounded-3xl p-16 text-center shadow-sm relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-sky-100 rounded-full blur-3xl opacity-50 -mr-32 -mt-32"></div>
+                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-100 rounded-full blur-3xl opacity-50 -ml-32 -mb-32"></div>
+
+                    <div className="relative z-10 flex flex-col items-center">
+                      <div className="w-24 h-24 bg-primary/5 rounded-full flex items-center justify-center mb-6 shadow-inner">
+                        <span className="material-symbols-outlined text-[48px] text-primary">dashboard_customize</span>
+                      </div>
+                      <h3 className="text-2xl font-black text-slate-800 font-headline">Ruang Sesi Masih Kosong</h3>
+                      <p className="text-sm font-medium text-slate-500 max-w-lg mx-auto mt-3 leading-relaxed">Mulai merancang perjalanan orientasi mahasiswa dengan menyusun materi, kuis, dan tugas dalam sesi-sesi terstruktur.</p>
+                      <button onClick={() => openSession(phaseStage)} disabled={createStage.isPending} className="mt-8 px-8 py-4 rounded-full bg-primary text-white text-sm font-black disabled:opacity-40 shadow-lg shadow-primary/20 hover:bg-primary/90 hover:-translate-y-0.5 transition-all flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[20px]">add_circle</span> Buat Sesi Pertama
+                      </button>
                     </div>
-                    <h3 className="text-2xl font-black text-slate-800 font-headline">Ruang Sesi Masih Kosong</h3>
-                    <p className="text-sm font-medium text-slate-500 max-w-lg mx-auto mt-3 leading-relaxed">Mulai merancang perjalanan orientasi mahasiswa dengan menyusun materi, kuis, dan tugas dalam sesi-sesi terstruktur.</p>
-                    <button onClick={() => openSession(phaseStage)} disabled={createStage.isPending} className="mt-8 px-8 py-4 rounded-full bg-primary text-white text-sm font-black disabled:opacity-40 shadow-lg shadow-primary/20 hover:bg-primary/90 hover:-translate-y-0.5 transition-all flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[20px]">add_circle</span> Buat Sesi Pertama
-                    </button>
                   </div>
-                </div>
-              ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                    {sessions.map(session => (
-                      <div key={session.id} className="p-6 rounded-3xl border border-slate-200 bg-white hover:border-primary/30 hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
-                        <div>
-                          <div className="flex items-start justify-between gap-3 mb-4">
-                            <h3 className="font-black text-slate-800 text-lg leading-tight line-clamp-2 group-hover:text-primary transition-colors font-headline">{session.title}</h3>
-                            <div className="shrink-0"><Badge status={session.status} /></div>
-                          </div>
-                          <p className="text-xs font-semibold text-slate-500 mb-6 line-clamp-2 leading-relaxed">{session.description || 'Tidak ada deskripsi.'}</p>
-                          <div className="flex items-center gap-2 mb-6">
-                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg">{session.is_required ? 'Wajib' : 'Opsional'}</span>
-                          </div>
-                        </div>
-                        <button onClick={() => {
-                          const p = window.location.pathname;
-                          let prefix = '/kencana-admin';
-                          if (p.includes('/admin/kencana-fakultas-admin')) prefix = '/admin/kencana-fakultas-admin';
-                          else if (p.includes('/kencana-fakult')) prefix = p.split('/stages')[0];
-                          navigate(`${prefix}/sessions/${session.id}/content`);
-                        }} className="w-full py-3 bg-slate-50 group-hover:bg-primary/5 text-slate-600 group-hover:text-primary border border-slate-100 group-hover:border-primary/10 text-xs font-black rounded-xl transition-all mt-auto flex justify-center items-center gap-2">
-                          Kelola Konten Sesi <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+                ) : (
+                  <DataTable
+                    data={sessions}
+                    filters={[
+                      {
+                        key: 'status',
+                        placeholder: 'Status',
+                        options: [
+                          { label: 'Aktif', value: 'active' },
+                          { label: 'Terkunci', value: 'locked' },
+                          { label: 'Published', value: 'published' }
+                        ]
+                      },
+                      {
+                        key: 'is_required',
+                        placeholder: 'Sifat',
+                        options: [
+                          { label: 'Wajib', value: 'true' },
+                          { label: 'Opsional', value: 'false' }
+                        ]
+                      }
+                    ]}
+                    actions={
+                      <div className="flex items-center gap-2">
+                        {phaseStage && (
+                          <button onClick={() => openEditStage(phaseStage)} className="h-9 px-4 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-[11px] font-black uppercase tracking-wider shadow-sm transition-colors flex items-center gap-2">
+                            <Settings2 className="w-4 h-4" />
+                            Atur Visibilitas
+                          </button>
+                        )}
+                        <button onClick={() => openSession(phaseStage)} disabled={createStage.isPending} className="h-9 px-4 rounded-lg bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-[11px] font-black uppercase tracking-wider shadow-sm disabled:opacity-40 transition-colors flex items-center gap-2">
+                          <span className="material-symbols-outlined text-[16px]">add</span>
+                          Tambah Sesi
                         </button>
                       </div>
-                    ))}
-                  </div>
+                    }
+                    columns={[
+                        {
+                          key: 'title',
+                          label: 'Informasi Sesi',
+                          className: 'w-[25%]',
+                          render: (v, item) => (
+                            <div>
+                              <p className="text-[13px] font-bold text-[var(--theme-text)] leading-tight">{item.title}</p>
+                              <p className="text-[11px] font-medium text-[var(--theme-text-muted)] mt-1 line-clamp-1">{item.description || '-'}</p>
+                            </div>
+                          )
+                        },
+                        {
+                          key: 'timeline',
+                          label: 'Timeline',
+                          className: 'w-[20%]',
+                          render: (v, item) => (
+                            <div className="flex flex-col gap-0.5">
+                              <span className="text-[11px] text-[var(--theme-text-muted)] font-mono font-bold">Mulai: {formatDate(item.start_date)}</span>
+                              <span className="text-[11px] text-[var(--theme-text-muted)] font-mono font-bold">Akhir: {formatDate(item.end_date)}</span>
+                            </div>
+                          )
+                        },
+                        {
+                          key: 'sisa_waktu',
+                          label: 'Sisa Waktu',
+                          className: 'w-[15%]',
+                          render: (v, item) => {
+                            if (!item.end_date) return <span className="text-[11px] font-bold text-slate-400">-</span>;
+                            const end = new Date(item.end_date);
+                            const now = new Date();
+                            const diffTime = end.getTime() - now.getTime();
+                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                            
+                            if (diffDays < 0) return <span className="text-[11px] font-bold text-slate-500">Berakhir</span>;
+                            if (diffDays === 0) return <span className="text-[11px] font-bold text-amber-500 animate-pulse">Hari Ini</span>;
+                            return <span className="text-[11px] font-bold text-[var(--theme-primary)]">{diffDays} Hari Lagi</span>;
+                          }
+                        },
+                        {
+                          key: 'is_required',
+                          label: 'Sifat',
+                          className: 'w-[15%]',
+                          render: (v, item) => (
+                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase ${item.is_required ? 'bg-[var(--theme-secondary-light)] text-[var(--theme-secondary)]' : 'bg-slate-100 text-slate-500'}`}>
+                              {item.is_required ? 'Wajib' : 'Opsional'}
+                            </span>
+                          )
+                        },
+                        {
+                          key: 'status',
+                          label: 'Status',
+                          className: 'w-[15%]',
+                          render: (v, item) => <Badge status={item.status} />
+                        },
+                        {
+                          key: 'actions',
+                          label: 'Aksi',
+                          className: 'w-[100px] text-center',
+                          cellClassName: 'text-center',
+                          sortable: false,
+                          render: (_, item) => (
+                            <div className="flex justify-center items-center gap-1">
+                              <button
+                                onClick={() => {
+                                  const p = window.location.pathname;
+                                  let prefix = '/kencana-admin';
+                                  if (p.includes('/admin/kencana-fakultas-admin')) prefix = '/admin/kencana-fakultas-admin';
+                                  else if (p.includes('/kencana-fakult')) prefix = p.split('/stages')[0];
+                                  navigate(`${prefix}/sessions/${item.id}/content`);
+                                }}
+                                title="Kelola Konten"
+                                className="px-3 py-1.5 rounded-lg text-white bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm active:scale-95 text-[11px] font-bold"
+                              >
+                                <Settings2 className="w-[14px] h-[14px]" strokeWidth={2.5} />
+                                Kelola
+                              </button>
+                            </div>
+                          )
+                        }
+                      ]}
+                      searchPlaceholder="Cari sesi..."
+                      searchable={true}
+                    />
                 )}
               </div>
             </div>

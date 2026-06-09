@@ -27,10 +27,32 @@ export default function DataTable({
   addLabel = 'Tambah',
   filters = [],
   searchPlaceholder = 'Cari...',
+  serverPagination = false,
+  serverSort = false,
+  totalData = 0,
+  currentPage = 1,
+  onPageChange,
+  onSearchChange,
+  onSortChange,
+  tableFooter,
 }) {
   const [search, setSearch] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
+  const [internalPage, setInternalPage] = useState(1);
+  const activePage = serverPagination ? currentPage : internalPage;
   const [selectedFilters, setSelectedFilters] = useState({});
+  const [limit, setLimit] = useState(pageSize);
+
+  const handlePageChange = (p) => {
+    if (serverPagination && onPageChange) {
+      onPageChange(p);
+    } else {
+      setInternalPage(p);
+    }
+  };
+
+  React.useEffect(() => {
+    setLimit(pageSize);
+  }, [pageSize]);
 
   // Search filter
   const searchedData = searchable && onSearch
@@ -67,9 +89,11 @@ export default function DataTable({
       direction = 'desc';
     }
     setSortConfig({ key, direction });
+    if (onSortChange) onSortChange({ key, direction });
   };
 
   const sortedData = useMemo(() => {
+    if (serverSort) return filteredData;
     let items = [...filteredData];
     if (sortConfig.key) {
       items.sort((a, b) => {
@@ -95,17 +119,19 @@ export default function DataTable({
       });
     }
     return items;
-  }, [filteredData, sortConfig]);
+  }, [filteredData, sortConfig, serverSort]);
 
   // Pagination
-  const totalPages = Math.ceil(filteredData.length / pageSize);
+  const totalPages = serverPagination ? Math.ceil(totalData / limit) : Math.ceil(filteredData.length / limit);
   const paginatedData = pagination
-    ? sortedData.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+    ? (serverPagination ? sortedData : sortedData.slice((activePage - 1) * limit, activePage * limit))
     : sortedData;
 
   const handleSearch = (e) => {
-    setSearch(e.target.value);
-    setCurrentPage(1);
+    const val = e.target.value;
+    setSearch(val);
+    if (onSearchChange) onSearchChange(val);
+    handlePageChange(1);
   };
 
   return (
@@ -151,7 +177,7 @@ export default function DataTable({
                     value={selectedFilters[f.key] || 'all'}
                     onValueChange={(val) => {
                       setSelectedFilters(prev => ({ ...prev, [f.key]: val }));
-                      setCurrentPage(1);
+                      handlePageChange(1);
                     }}
                     placeholder={f.placeholder}
                     className="w-full h-9 text-xs rounded-lg"
@@ -197,13 +223,16 @@ export default function DataTable({
                     key={col.key}
                     onClick={() => isSortable && handleSort(col.key)}
                     className={cn(
-                      "px-4 py-2.5 text-left text-[10px] font-black uppercase tracking-widest select-none",
+                      "px-6 py-3.5 text-left text-[10px] font-bold uppercase tracking-wider select-none whitespace-nowrap",
                       isSortable && "cursor-pointer hover:text-slate-900 group",
                       col.className
                     )}
-                    style={{ color: 'var(--theme-h4)' }}
+                    style={{ color: 'var(--theme-text-subtle)' }}
                   >
-                    <div className="flex items-center gap-1">
+                    <div className={cn(
+                      "flex items-center gap-1",
+                      col.className?.includes('text-right') ? 'justify-end' : col.className?.includes('text-center') ? 'justify-center' : ''
+                    )}>
                       {col.label}
                       {isSortable && (
                         sortConfig.key === col.key ? (
@@ -221,7 +250,7 @@ export default function DataTable({
                 );
               })}
               {(onRowClick || (actions && typeof actions === 'function')) && (
-                <th className="px-4 py-2.5 text-right text-[10px] font-black uppercase tracking-widest" style={{ color: 'var(--theme-h4)' }}>
+                <th className="px-6 py-3.5 text-right text-[10px] font-bold uppercase tracking-wider whitespace-nowrap" style={{ color: 'var(--theme-text-subtle)' }}>
                   Aksi
                 </th>
               )}
@@ -233,20 +262,20 @@ export default function DataTable({
               Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i} className="border-t" style={{ borderColor: 'var(--theme-border-muted)' }}>
                   {columns.map((col) => (
-                    <td key={col.key} className={cn("px-4 py-2", col.className, col.cellClassName)}>
+                    <td key={col.key} className={cn("px-6 py-4", col.className, col.cellClassName)}>
                       <div
                         className="h-4 rounded animate-pulse"
                         style={{ backgroundColor: 'var(--theme-border-muted)', width: `${60 + Math.random() * 40}%` }}
                       />
                     </td>
                   ))}
-                  {(onRowClick || (actions && typeof actions === 'function')) && <td className="px-4 py-2"><div className="h-4 w-16 rounded animate-pulse" style={{ backgroundColor: 'var(--theme-border-muted)' }} /></td>}
+                  {(onRowClick || (actions && typeof actions === 'function')) && <td className="px-6 py-4"><div className="h-2.5 w-16 rounded animate-pulse" style={{ backgroundColor: 'var(--theme-border-muted)' }} /></td>}
                 </tr>
               ))
             ) : paginatedData.length === 0 ? (
               // Empty state
               <tr>
-                <td colSpan={columns.length + (onRowClick || (actions && typeof actions === 'function') ? 1 : 0)} className="px-4 py-12 text-center">
+                <td colSpan={columns.length + (onRowClick || (actions && typeof actions === 'function') ? 1 : 0)} className="px-6 py-12 text-center">
                   <div className="flex flex-col items-center justify-center gap-3">
                     <span
                       className="material-symbols-outlined text-4xl"
@@ -270,14 +299,14 @@ export default function DataTable({
                   {columns.map((col) => (
                     <td
                       key={col.key}
-                      className={cn("px-4 py-2 text-xs font-medium", col.className, col.cellClassName)}
+                      className={cn("px-6 py-4 text-sm font-semibold", col.className, col.cellClassName)}
                       style={{ color: 'var(--theme-text)' }}
                     >
-                      {col.render ? col.render(row[col.key], row, (currentPage - 1) * pageSize + idx) : row[col.key]}
+                      {col.render ? col.render(row[col.key], row, (activePage - 1) * limit + idx) : row[col.key]}
                     </td>
                   ))}
                   {(onRowClick || (actions && typeof actions === 'function')) && (
-                    <td className="px-4 py-2">
+                    <td className="px-6 py-4">
                       <div className="flex items-center justify-end gap-1.5">
                         {actions && typeof actions === 'function' && actions(row)}
                         {onRowClick && (
@@ -296,6 +325,7 @@ export default function DataTable({
               ))
             )}
           </tbody>
+          {tableFooter}
         </table>
       </div>
 
@@ -305,14 +335,49 @@ export default function DataTable({
           className="flex items-center justify-between px-4 py-3 border-t"
           style={{ borderColor: 'var(--theme-border-muted)' }}
         >
-          <span className="text-[11px] font-bold" style={{ color: 'var(--theme-text-muted)' }}>
-            Menampilkan {filteredData.length > 0 ? (currentPage - 1) * pageSize + 1 : 0}–{Math.min(currentPage * pageSize, filteredData.length)} dari {filteredData.length} entri
-          </span>
+          <div className="flex flex-wrap items-center gap-4">
+            <span className="text-xs font-medium" style={{ color: 'var(--theme-text-muted)' }}>
+              Menampilkan {serverPagination 
+                ? (totalData > 0 ? (activePage - 1) * limit + 1 : 0)
+                : (filteredData.length > 0 ? (activePage - 1) * limit + 1 : 0)}–{serverPagination 
+                ? Math.min(activePage * limit, totalData)
+                : Math.min(activePage * limit, filteredData.length)} dari {serverPagination ? totalData : filteredData.length} entri
+            </span>
+            
+            {/* Rows Per Page Selector */}
+            <div className="flex items-center gap-1.5 text-xs animate-in fade-in duration-200" style={{ color: 'var(--theme-text-muted)' }}>
+              <span>Tampilkan</span>
+              <div className="relative">
+                <select
+                  value={limit}
+                  onChange={(e) => {
+                    setLimit(parseInt(e.target.value));
+                    handlePageChange(1);
+                  }}
+                  className="pl-2 pr-6 py-1 bg-surface border rounded-md text-xs font-bold outline-none cursor-pointer appearance-none"
+                  style={{
+                    borderColor: 'var(--theme-border)',
+                    color: 'var(--theme-text)',
+                    backgroundColor: 'var(--theme-surface)'
+                  }}
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+                <span className="material-symbols-outlined absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none" style={{ fontSize: '14px', color: 'var(--theme-text-muted)' }}>expand_more</span>
+              </div>
+              <span>entri</span>
+            </div>
+          </div>
+
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              disabled={currentPage === 1 || totalPages <= 1}
-              className="px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40 hover:bg-black/[0.03] flex items-center gap-1 text-[11px] font-black uppercase tracking-wider border border-slate-200 bg-white"
+              onClick={() => handlePageChange(Math.max(1, activePage - 1))}
+              disabled={activePage === 1 || totalPages <= 1}
+              className="px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40 hover:bg-black/[0.03] flex items-center gap-1 text-xs font-semibold border border-slate-200 bg-white cursor-pointer"
               style={{ color: 'var(--theme-text)' }}
             >
               <span className="material-symbols-outlined text-base" style={{ fontSize: '16px' }}>chevron_left</span>
@@ -320,38 +385,29 @@ export default function DataTable({
             </button>
             {totalPages > 1 && (
               <div className="flex items-center gap-1">
-                {(() => {
-                  let startPage = Math.max(1, currentPage - 2);
-                  let endPage = Math.min(totalPages, startPage + 4);
-                  if (endPage - startPage < 4) {
-                    startPage = Math.max(1, endPage - 4);
-                  }
-                  
-                  const pages = [];
-                  for (let i = startPage; i <= endPage; i++) {
-                    pages.push(
-                      <button
-                        key={i}
-                        onClick={() => setCurrentPage(i)}
-                        className="w-8 h-8 rounded-lg text-[11px] font-extrabold transition-colors"
-                        style={
-                          currentPage === i
-                            ? { backgroundColor: 'var(--theme-primary)', color: 'white' }
-                            : { color: 'var(--theme-text-muted)' }
-                        }
-                      >
-                        {i}
-                      </button>
-                    );
-                  }
-                  return pages;
-                })()}
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  const page = i + 1;
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      className="w-8 h-8 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                      style={
+                        activePage === page
+                          ? { backgroundColor: 'var(--theme-primary)', color: 'white' }
+                          : { color: 'var(--theme-text-muted)' }
+                      }
+                    >
+                      {page}
+                    </button>
+                  );
+                })}
               </div>
             )}
             <button
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages || totalPages <= 1}
-              className="px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40 hover:bg-black/[0.03] flex items-center gap-1 text-[11px] font-black uppercase tracking-wider border border-slate-200 bg-white"
+              onClick={() => handlePageChange(Math.min(totalPages, activePage + 1))}
+              disabled={activePage === totalPages || totalPages <= 1}
+              className="px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40 hover:bg-black/[0.03] flex items-center gap-1 text-xs font-semibold border border-slate-200 bg-white cursor-pointer"
               style={{ color: 'var(--theme-text)' }}
             >
               Berikutnya

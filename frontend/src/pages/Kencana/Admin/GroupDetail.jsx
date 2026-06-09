@@ -7,7 +7,10 @@ import {
   useRemoveGroupMemberMutation,
 } from '../../../queries/useKencanaAdminQuery';
 import useAuthStore from '../../../store/useAuthStore';
-import { PageHeader } from '../../../components/ui/page/PageHeader';
+import { DashboardHero } from '@/components/ui/dashboard';
+import { DataTable } from '@/components/ui/DataTable';
+import { Card, CardContent } from '@/components/ui/Card';
+import { UserInfoCell, TitleSubtitleCell, ActionButton } from '@/components/ui/TableCells';
 
 const GroupDetail = () => {
   const { id, facultyId } = useParams();
@@ -40,13 +43,40 @@ const GroupDetail = () => {
   if (isLoading) return <div className="p-8 text-center font-bold text-[var(--theme-text-subtle)]">Memuat detail kelompok...</div>;
   if (!group) return <div className="p-8 text-center font-bold text-[var(--theme-text-subtle)]">Kelompok tidak ditemukan.</div>;
 
+  const memberColumns = [
+    {
+      key: 'student',
+      label: 'Informasi Mahasiswa',
+      render: (v, member) => <UserInfoCell name={member.student?.nama} subtitle={member.student?.nim} avatarUrl={member.student?.foto_url || member.student?.foto} />
+    },
+    {
+      key: 'prodi',
+      label: 'Prodi & Fakultas',
+      render: (v, member) => <TitleSubtitleCell title={member.student?.program_studi_name} subtitle={member.student?.fakultas_name} />
+    },
+    {
+      key: 'actions',
+      label: 'Aksi',
+      render: (v, member) => (
+        <div className="flex justify-end">
+          <button
+            onClick={() => removeMember.mutate({ groupId: id, studentId: member.student_id })}
+            className="px-3 py-1.5 rounded-lg bg-[var(--theme-error-light)] text-[var(--theme-error)] text-xs font-bold transition-colors hover:bg-[var(--theme-error-light)]/85 border-none cursor-pointer"
+          >
+            Keluarkan
+          </button>
+        </div>
+      )
+    }
+  ];
+
   return (
     <div className="bg-transparent font-body max-w-7xl mx-auto space-y-6">
       
       <div>
         <button
           onClick={() => navigate(facultyId ? `${basePath}/${basePath.includes('fakult') ? 'stages' : 'faculty-stages'}/${facultyId}?tab=groups` : `${basePath}/groups`)}
-          className="text-xs font-bold text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] transition-colors"
+          className="text-xs font-bold text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] transition-colors bg-transparent border-none cursor-pointer"
         >
           ← Kembali ke Kelola Kelompok
         </button>
@@ -80,55 +110,24 @@ const GroupDetail = () => {
 
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_420px] gap-6">
         {/* Members List Card */}
-        <div className="bg-white rounded-2xl border border-[var(--theme-border)] shadow-sm overflow-hidden flex flex-col">
+        <Card className="glass-card shadow-sm rounded-xl overflow-hidden border-slate-100/60 flex flex-col h-fit">
           <div className="p-5 border-b border-[var(--theme-border-muted)] bg-[var(--theme-bg)]">
             <h2 className="text-base font-bold text-[var(--theme-text)]">Anggota Kelompok</h2>
             <p className="text-xs font-semibold text-[var(--theme-text-muted)] mt-1">Daftar mahasiswa yang terdaftar dalam kelompok ini.</p>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-[var(--theme-border-muted)] bg-[var(--theme-bg)]">
-                  <th className="py-3.5 px-5 text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider">NIM</th>
-                  <th className="py-3.5 px-5 text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider">Nama</th>
-                  <th className="py-3.5 px-5 text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider">Prodi</th>
-                  <th className="py-3.5 px-5 text-right text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider">Aksi</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--theme-border-muted)]">
-                {group.members?.map(member => (
-                  <tr key={member.id} className="hover:bg-[var(--theme-bg)] transition-colors">
-                    <td className="py-3.5 px-5 text-sm font-semibold text-[var(--theme-text)]">
-                      <span className="font-bold text-[var(--theme-text)] bg-[var(--theme-bg)] px-2 py-0.5 rounded-lg border border-[var(--theme-border)]">{member.student?.nim || '-'}</span>
-                    </td>
-                    <td className="py-3.5 px-5">
-                      <p className="font-bold text-sm text-[var(--theme-text)]">{member.student?.nama || '-'}</p>
-                      <p className="text-xs font-semibold text-[var(--theme-text-muted)]">{member.student?.fakultas_name || '-'}</p>
-                    </td>
-                    <td className="py-3.5 px-5 text-xs font-semibold text-[var(--theme-text-muted)]">
-                      {member.student?.program_studi_name || '-'}
-                    </td>
-                    <td className="py-3.5 px-5 text-right">
-                      <button
-                        onClick={() => removeMember.mutate({ groupId: id, studentId: member.student_id })}
-                        className="px-3 py-1.5 rounded-lg bg-[var(--theme-error-light)] text-[var(--theme-error)] text-xs font-bold transition-colors hover:bg-[var(--theme-error-light)]/85"
-                      >
-                        Keluarkan
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-                {!group.members?.length && (
-                  <tr>
-                    <td colSpan="4" className="py-12 text-center text-[var(--theme-text-subtle)] font-bold">
-                      Belum ada anggota kelompok yang terdaftar.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+          <CardContent className="p-0 border-none shadow-none bg-transparent flex-1">
+            <DataTable
+              columns={memberColumns}
+              data={group.members || []}
+              searchable={true}
+              searchPlaceholder="Cari anggota kelompok..."
+              emptyMessage="Belum ada anggota kelompok yang terdaftar."
+              emptyIcon="group"
+              pagination={true}
+              pageSize={10}
+            />
+          </CardContent>
+        </Card>
 
         {/* Add Student Card */}
         <div className="bg-white rounded-2xl border border-[var(--theme-border)] shadow-sm overflow-hidden h-fit flex flex-col">
@@ -137,37 +136,45 @@ const GroupDetail = () => {
             <p className="text-xs font-semibold text-[var(--theme-text-muted)] mt-1">Pilih mahasiswa yang belum bergabung ke kelompok lain.</p>
           </div>
           <div className="p-5 space-y-4">
-            <input
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Cari nama atau NIM..."
-              className="w-full h-10 px-4 rounded-xl bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm font-semibold outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)]"
-            />
-            <div className="max-h-[420px] overflow-y-auto space-y-2 pr-1">
+            <div className="relative">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-base text-[var(--theme-text-muted)]">search</span>
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Cari nama atau NIM..."
+                className="w-full h-10 pl-9 pr-4 rounded-xl bg-white border border-[var(--theme-border)] text-sm font-semibold outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] transition-all"
+              />
+            </div>
+            
+            <div className="max-h-[420px] overflow-y-auto space-y-2 pr-1 custom-scrollbar">
               {availableStudents.map(student => (
-                <label key={student.id} className="flex items-center gap-3 p-3 rounded-xl border border-[var(--theme-border)] hover:bg-[var(--theme-bg)] cursor-pointer transition-colors">
+                <label key={student.id} className="flex items-center gap-3 p-3 rounded-xl border border-[var(--theme-border)] hover:bg-[var(--theme-primary-light)] cursor-pointer transition-colors group">
                   <input
                     type="checkbox"
                     checked={selectedIds.includes(student.id)}
                     onChange={() => toggleStudent(student.id)}
-                    className="rounded text-[var(--theme-primary)] focus:ring-[var(--theme-primary)]"
+                    className="rounded text-[var(--theme-primary)] focus:ring-[var(--theme-primary)] w-4 h-4 cursor-pointer"
                   />
                   <div>
-                    <p className="text-sm font-bold text-[var(--theme-text)]">{student.nama}</p>
-                    <p className="text-xs font-semibold text-[var(--theme-text-muted)]">{student.nim} • {student.program_studi_name || '-'}</p>
+                    <p className="text-sm font-bold text-[var(--theme-text)] group-hover:text-[var(--theme-primary)] transition-colors">{student.nama}</p>
+                    <p className="text-xs font-semibold text-[var(--theme-text-muted)] mt-0.5">{student.nim} • {student.program_studi_name || '-'}</p>
                   </div>
                 </label>
               ))}
               {!availableStudents.length && (
-                <p className="py-8 text-center text-sm font-bold text-[var(--theme-text-subtle)]">Tidak ada mahasiswa tersedia.</p>
+                <div className="py-12 flex flex-col items-center justify-center text-center">
+                  <span className="material-symbols-outlined text-4xl text-[var(--theme-text-muted)] mb-2">person_off</span>
+                  <p className="text-sm font-bold text-[var(--theme-text-subtle)]">Tidak ada mahasiswa tersedia.</p>
+                </div>
               )}
             </div>
             <button
               onClick={submitMembers}
               disabled={!selectedIds.length || addMembers.isPending}
-              className="w-full h-10 px-5 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-xs font-bold disabled:opacity-50 transition-colors shadow-md"
+              className="w-full h-11 px-5 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-xs font-bold disabled:opacity-50 transition-colors shadow-md flex items-center justify-center gap-2 cursor-pointer border-none"
             >
-              Tambah {selectedIds.length || ''} Mahasiswa
+              <span className="material-symbols-outlined text-[18px]">person_add</span>
+              Tambah {selectedIds.length > 0 ? selectedIds.length : ''} Mahasiswa
             </button>
           </div>
         </div>

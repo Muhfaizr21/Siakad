@@ -12,15 +12,18 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jung-kurt/gofpdf"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 func kencanaAdminScope(c *fiber.Ctx) (role string, fakultasID uint) {
 	role, _ = c.Locals("role").(string)
 	role = strings.ToLower(role)
-	if v, ok := c.Locals("fakultas_id").(uint); ok {
+	if v, ok := c.Locals("fakultas_id").(float64); ok {
+		fakultasID = uint(v)
+	} else if v, ok := c.Locals("fakultas_id").(uint); ok {
 		fakultasID = v
+	} else if v, ok := c.Locals("fakultas_id").(int); ok {
+		fakultasID = uint(v)
 	}
 	return role, fakultasID
 }
@@ -30,7 +33,7 @@ func applyKencanaMentorScope(c *fiber.Ctx, q *gorm.DB) *gorm.DB {
 	if role == "kencana_admin" {
 		return q.Where("scope_type = ?", "university")
 	}
-	if role == "kencana_fakultas" {
+	if strings.Contains(role, "fakultas") || strings.Contains(role, "faculty") || role == "kencana_fakultas" {
 		return q.Where("scope_type = ? AND fakultas_id = ?", "faculty", fakultasID)
 	}
 	return q
@@ -1312,7 +1315,7 @@ func GenerateCertificate(c *fiber.Ctx) error {
 
 func ListMentors(c *fiber.Ctx) error {
 	var mentors []models.KencanaMentor
-	q := applyKencanaMentorScope(c, config.DB.Preload("Fakultas").Preload("User").Order("created_at desc"))
+	q := applyKencanaMentorScope(c, config.DB.Preload("Fakultas").Preload("User").Preload("Mahasiswa").Preload("Mahasiswa.ProgramStudi").Order("created_at desc"))
 	if err := q.Find(&mentors).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal memuat mentor"})
 	}
@@ -1321,10 +1324,7 @@ func ListMentors(c *fiber.Ctx) error {
 
 func CreateMentor(c *fiber.Ctx) error {
 	type reqBody struct {
-		Email      string `json:"email"`
-		Password   string `json:"password"`
-		Name       string `json:"name"`
-		Phone      string `json:"phone"`
+		UserID     uint   `json:"user_id"`
 		ScopeType  string `json:"scope_type"`
 		FakultasID uint   `json:"fakultas_id"`
 	}
@@ -1332,8 +1332,6 @@ func CreateMentor(c *fiber.Ctx) error {
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Payload mentor tidak valid"})
 	}
-	req.Email = strings.TrimSpace(strings.ToLower(req.Email))
-	req.Name = strings.TrimSpace(req.Name)
 	req.ScopeType = strings.TrimSpace(req.ScopeType)
 	if req.ScopeType == "" {
 		req.ScopeType = "faculty"
@@ -1347,7 +1345,7 @@ func CreateMentor(c *fiber.Ctx) error {
 
 		hasPerm := false
 		for _, p := range perms {
-			if p == "*" || (role == "kencana_fakultas" && p == "kencana.faculty.mentor.manage") || (role == "kencana_admin" && p == "kencana.mentor.university.manage") {
+			if p == "*" || p == "kencana.faculty.mentor.manage" || p == "kencana.mentor.university.manage" || p == "faculty.view" {
 				hasPerm = true
 				break
 			}
@@ -1356,7 +1354,9 @@ func CreateMentor(c *fiber.Ctx) error {
 			return c.Status(403).JSON(fiber.Map{"success": false, "message": "Anda tidak memiliki izin (permission) untuk membuat mentor"})
 		}
 	}
-	if role == "kencana_fakultas" {
+	isFacultyRole := strings.Contains(role, "fakultas") || strings.Contains(role, "faculty") || role == "kencana_fakultas"
+	
+	if isFacultyRole {
 		if adminFakultasID == 0 {
 			return c.Status(400).JSON(fiber.Map{"success": false, "message": "Admin Kencana Fakultas belum memiliki scope fakultas"})
 		}
@@ -1366,26 +1366,29 @@ func CreateMentor(c *fiber.Ctx) error {
 		req.ScopeType = "university"
 		req.FakultasID = 0
 	}
-	if req.Email == "" || req.Password == "" || req.Name == "" {
-		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Nama, email, dan password wajib diisi"})
+	if req.UserID == 0 {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Mahasiswa (UserID) wajib dipilih"})
 	}
 	if req.ScopeType == "faculty" && req.FakultasID == 0 {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Fakultas wajib dipilih untuk mentor fakultas"})
 	}
-	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal mengamankan password"})
+
+	var mhs models.Mahasiswa
+	if err := config.DB.Preload("Pengguna").Where("pengguna_id = ?", req.UserID).First(&mhs).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Data mahasiswa tidak ditemukan"})
 	}
+
 	var mentor models.KencanaMentor
-	err = config.DB.Transaction(func(tx *gorm.DB) error {
-		user := models.User{Email: req.Email, Password: string(hash), Role: "kencana_mentor"}
-		if req.FakultasID != 0 {
-			user.FakultasID = &req.FakultasID
+	err := config.DB.Transaction(func(tx *gorm.DB) error {
+		mentor = models.KencanaMentor{
+			UserID:       req.UserID,
+			Name:         mhs.Nama,
+			Email:        mhs.Pengguna.Email,
+			Phone:        mhs.NoHP,
+			JenisKelamin: mhs.JenisKelamin,
+			ScopeType:    req.ScopeType,
+			Status:       "active",
 		}
-		if err := tx.Create(&user).Error; err != nil {
-			return err
-		}
-		mentor = models.KencanaMentor{UserID: user.ID, Name: req.Name, Email: req.Email, Phone: req.Phone, ScopeType: req.ScopeType, Status: "active"}
 		if req.FakultasID != 0 {
 			mentor.FakultasID = &req.FakultasID
 		}
@@ -1394,7 +1397,7 @@ func CreateMentor(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal membuat mentor: " + err.Error()})
 	}
-	return c.JSON(fiber.Map{"success": true, "data": mentor})
+	return c.JSON(fiber.Map{"success": true, "data": mentor, "message": "Pembimbing berhasil ditambahkan"})
 }
 
 func UpdateMentor(c *fiber.Ctx) error {
@@ -1407,7 +1410,8 @@ func UpdateMentor(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Payload Mentor tidak valid"})
 	}
 	role, adminFakultasID := kencanaAdminScope(c)
-	if role == "kencana_fakultas" {
+	isFacultyRole := strings.Contains(role, "fakultas") || strings.Contains(role, "faculty") || role == "kencana_fakultas"
+	if isFacultyRole {
 		mentor.ScopeType = "faculty"
 		mentor.FakultasID = &adminFakultasID
 	}
@@ -1419,10 +1423,10 @@ func UpdateMentor(c *fiber.Ctx) error {
 
 func DeleteMentor(c *fiber.Ctx) error {
 	q := applyKencanaMentorScope(c, config.DB)
-	if err := q.Delete(&models.KencanaMentor{}, c.Params("id")).Error; err != nil {
+	if err := q.Unscoped().Delete(&models.KencanaMentor{}, c.Params("id")).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal menghapus mentor"})
 	}
-	return c.JSON(fiber.Map{"success": true, "message": "Mentor dihapus"})
+	return c.JSON(fiber.Map{"success": true, "message": "Mentor dihapus permanen"})
 }
 
 func ListMentorAssignments(c *fiber.Ctx) error {
@@ -2168,4 +2172,35 @@ func AdminListScoreItems(c *fiber.Ctx) error {
 		"score":    score,
 		"blockers": blockers,
 	}})
+}
+
+// SearchStudents mencari mahasiswa untuk ditambahkan sebagai mentor (berdasarkan nama/nim)
+func SearchStudents(c *fiber.Ctx) error {
+	var students []models.Mahasiswa
+	query := config.DB.Preload("Pengguna").Preload("ProgramStudi.Fakultas")
+	
+	if search := c.Query("search"); search != "" {
+		query = query.Where("nama ILIKE ? OR nim ILIKE ?", "%"+search+"%", "%"+search+"%")
+	}
+	
+	if err := query.Limit(30).Find(&students).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"success": false, "message": err.Error()})
+	}
+	
+	var results []map[string]interface{}
+	for _, s := range students {
+		results = append(results, map[string]interface{}{
+			"id": s.ID,
+			"user_id": s.PenggunaID,
+			"name": s.Nama,
+			"nim": s.NIM,
+			"email": s.Pengguna.Email,
+			"phone": s.NoHP,
+			"jenis_kelamin": s.JenisKelamin,
+			"prodi": s.ProgramStudi.Nama,
+			"fakultas": s.ProgramStudi.Fakultas.Nama,
+			"fakultas_id": s.ProgramStudi.FakultasID,
+		})
+	}
+	return c.JSON(fiber.Map{"success": true, "data": results})
 }

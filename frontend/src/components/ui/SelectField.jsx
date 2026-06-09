@@ -26,7 +26,7 @@ export function SelectField({ value, onValueChange, placeholder, children, class
       <Select.Portal>
         <Select.Content className="
           rounded-xl border border-[var(--theme-border)] bg-white
-          shadow-md z-50 overflow-hidden
+          shadow-md z-[1000] overflow-hidden
         ">
           <Select.Viewport className="p-1">
             {children}

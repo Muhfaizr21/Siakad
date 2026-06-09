@@ -87,6 +87,7 @@ func SetupKencanaRoutes(app *fiber.App) {
 	admin.Post("/certificates/generate", kencana.GenerateCertificate)
 	// Mentors
 	admin.Get("/mentors", kencana.ListMentors)
+	admin.Get("/students", kencana.SearchStudents)
 	admin.Post("/mentors", kencana.CreateMentor)
 	admin.Put("/mentors/:id", kencana.UpdateMentor)
 	admin.Delete("/mentors/:id", kencana.DeleteMentor)
@@ -121,6 +122,7 @@ func SetupKencanaRoutes(app *fiber.App) {
 	fakultas.Post("/sessions", kencana.CreateSession)
 	fakultas.Put("/sessions/:id", kencana.UpdateSession)
 	fakultas.Get("/mentors", kencana.ListMentors)
+	fakultas.Get("/students", kencana.SearchStudents)
 	fakultas.Post("/mentors", kencana.CreateMentor)
 	fakultas.Put("/mentors/:id", kencana.UpdateMentor)
 	fakultas.Delete("/mentors/:id", kencana.DeleteMentor)

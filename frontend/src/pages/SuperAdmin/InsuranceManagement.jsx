@@ -6,6 +6,8 @@ import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, Cart
 import { PageContent } from '@/components/ui/page'
 import { DashboardHero } from '@/components/ui/dashboard'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
+import { DataTable } from '@/components/ui/DataTable';
+import { Eye, Download } from 'lucide-react';
 
 // Auto-injected Material Symbol fallbacks
 const InsuranceIcon = ({ size, className, ...props }) => (
@@ -80,20 +82,11 @@ export default function InsuranceManagement() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [processing, setProcessing] = useState(false);
 
-  // Filters
-  const [filterStatus, setFilterStatus] = useState('');
-  const [filterProvider, setFilterProvider] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-
   // Fetch claims
   const fetchClaims = async () => {
     setLoading(true);
     try {
-      const params = {};
-      if (filterStatus) params.status = filterStatus;
-      if (filterProvider) params.jenis_provider = filterProvider;
-
-      const res = await insuranceService.getClaims(params);
+      const res = await insuranceService.getClaims();
       if (res.status === 'success') {
         setClaims(res.data || []);
       }
@@ -120,7 +113,7 @@ export default function InsuranceManagement() {
   useEffect(() => {
     fetchClaims();
     fetchStats();
-  }, [filterStatus, filterProvider]);
+  }, []);
 
   // Open detail modal
   const handleOpenDetail = (claim) => {
@@ -223,17 +216,6 @@ export default function InsuranceManagement() {
   }, [stats])
 
   const PIE_COLORS = ['#f59e0b', '#3b82f6', '#10b981', '#ef4444']
-
-  // Filter by search
-  const filteredClaims = claims.filter(claim => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    return (
-      claim.mahasiswa?.nama?.toLowerCase().includes(query) ||
-      claim.mahasiswa?.nim?.toLowerCase().includes(query) ||
-      claim.deskripsi?.toLowerCase().includes(query)
-    );
-  });
 
   return (
     <PageContent>
@@ -353,235 +335,288 @@ export default function InsuranceManagement() {
         </div>
       )}
 
-      {/* Filters */}
-      <div className="bg-white rounded-xl p-4 border border-slate-200">
-        <div className="flex flex-wrap gap-4">
-          <div className="flex-1 min-w-[200px] relative">
-            <SearchIcon size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Cari nama/NIM..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none"
-            />
-          </div>
 
-          <div className="relative">
-            <select
-              value={filterProvider}
-              onChange={(e) => setFilterProvider(e.target.value)}
-              className="appearance-none pl-3 pr-10 py-2 border border-slate-300 rounded-lg text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none bg-white cursor-pointer"
-            >
-              {PROVIDER_OPTIONS.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-            <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none text-base">expand_more</span>
-          </div>
-
-          <div className="relative">
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="appearance-none pl-3 pr-10 py-2 border border-slate-300 rounded-lg text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none bg-white cursor-pointer"
-            >
-              {STATUS_OPTIONS.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-            <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none text-base">expand_more</span>
-          </div>
-        </div>
-      </div>
 
       {/* Claims Table */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-slate-50 border-b border-slate-200">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase">ID</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase">Mahasiswa</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase">Provider</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase">Tanggal</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase">Estimasi</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {loading ? (
-                [...Array(5)].map((_, i) => (
-                  <tr key={i} className="animate-pulse">
-                    <td className="px-4 py-3"><div className="h-4 bg-slate-200 rounded w-8"></div></td>
-                    <td className="px-4 py-3"><div className="h-4 bg-slate-200 rounded w-32"></div></td>
-                    <td className="px-4 py-3"><div className="h-4 bg-slate-200 rounded w-20"></div></td>
-                    <td className="px-4 py-3"><div className="h-4 bg-slate-200 rounded w-24"></div></td>
-                    <td className="px-4 py-3"><div className="h-4 bg-slate-200 rounded w-20"></div></td>
-                    <td className="px-4 py-3"><div className="h-4 bg-slate-200 rounded w-24"></div></td>
-                    <td className="px-4 py-3"><div className="h-4 bg-slate-200 rounded w-16"></div></td>
-                  </tr>
-                ))
-              ) : filteredClaims.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-slate-500">
-                    <span className="material-symbols-outlined text-4xl text-slate-300">inbox</span>
-                    <p className="mt-2">Tidak ada pengajuan klaim</p>
-                  </td>
-                </tr>
-              ) : (
-                filteredClaims.map((claim) => (
-                  <tr key={claim.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-4 py-3">
-                      <span className="text-xs font-mono text-slate-500">#{claim.id}</span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div>
-                        <p className="font-semibold text-slate-800 text-sm">{claim.mahasiswa?.nama || '—'}</p>
-                        <p className="text-xs text-slate-500">{claim.mahasiswa?.nim || '—'}</p>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <ProviderBadge provider={claim.jenis_provider} />
-                    </td>
-                    <td className="px-4 py-3">
-                      <p className="text-sm text-slate-700">{formatDate(claim.tanggal_kejadian)}</p>
-                    </td>
-                    <td className="px-4 py-3">
-                      <p className="text-sm font-bold text-teal-600">{formatCurrency(claim.estimasi_biaya)}</p>
-                    </td>
-                    <td className="px-4 py-3">
-                      <StatusBadge status={claim.status} />
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => handleOpenDetail(claim)}
-                          className="px-3 py-1.5 bg-teal-500 text-white text-xs font-bold rounded-lg hover:bg-teal-600 transition-colors"
-                        >
-                          Detail
-                        </button>
-                        {claim.status === 'APPROVED_TK' && (
-                          <button
-                            onClick={() => handleDownloadPDF(claim.id)}
-                            className="px-3 py-1.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-lg hover:bg-slate-200 transition-colors flex items-center gap-1"
-                          >
-                            <DownloadIcon size={14} />
-                            PDF
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <DataTable
+        searchable={true}
+        searchPlaceholder="Cari ID, Mahasiswa, NIM..."
+        filters={[
+          { key: 'jenis_provider', placeholder: 'Provider', options: PROVIDER_OPTIONS },
+          { key: 'status', placeholder: 'Status', options: STATUS_OPTIONS }
+        ]}
+        onSearch={(data, search) => data.filter(row => 
+          String(row.id).includes(search) ||
+          (row.mahasiswa?.nama || '').toLowerCase().includes(search.toLowerCase()) ||
+          (row.mahasiswa?.nim || '').toLowerCase().includes(search.toLowerCase())
+        )}
+        data={claims}
+        loading={loading}
+        columns={[
+          {
+            label: 'ID',
+            key: 'id',
+            render: (_, row) => <span className="text-xs font-mono text-slate-500">#{row.id}</span>
+          },
+          {
+            label: 'Mahasiswa',
+            key: 'mahasiswa',
+            render: (_, row) => (
+              <div>
+                <p className="font-semibold text-[var(--theme-text)] text-sm">{row.mahasiswa?.nama || '—'}</p>
+                <p className="text-xs text-[var(--theme-text-subtle)]">{row.mahasiswa?.nim || '—'}</p>
+              </div>
+            )
+          },
+          {
+            label: 'Provider',
+            key: 'jenis_provider',
+            render: (_, row) => <ProviderBadge provider={row.jenis_provider} />
+          },
+          {
+            label: 'Tanggal',
+            key: 'tanggal_kejadian',
+            render: (_, row) => <p className="text-sm font-medium text-[var(--theme-text-muted)]">{formatDate(row.tanggal_kejadian)}</p>
+          },
+          {
+            label: 'Estimasi',
+            key: 'estimasi_biaya',
+            render: (_, row) => <p className="text-sm font-bold text-[var(--theme-primary)]">{formatCurrency(row.estimasi_biaya)}</p>
+          },
+          {
+            label: 'Status',
+            key: 'status',
+            render: (_, row) => <StatusBadge status={row.status} />
+          },
+          {
+            label: 'Aksi',
+            key: 'actions',
+            className: 'w-[100px] text-center',
+            cellClassName: 'text-center',
+            sortable: false,
+            render: (_, row) => (
+              <div className="flex justify-center items-center gap-1">
+                <button
+                  onClick={() => handleOpenDetail(row)}
+                  title="Lihat Detail"
+                  className="p-1.5 rounded-lg text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)] transition-colors flex items-center justify-center cursor-pointer"
+                >
+                  <Eye className="w-4 h-4" strokeWidth={2.5} />
+                </button>
+                {row.status === 'APPROVED_TK' && (
+                  <button
+                    onClick={() => handleDownloadPDF(row.id)}
+                    title="Download PDF"
+                    className="p-1.5 rounded-lg text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] hover:bg-[var(--theme-bg)] transition-colors flex items-center justify-center cursor-pointer"
+                  >
+                    <Download className="w-4 h-4" strokeWidth={2.5} />
+                  </button>
+                )}
+              </div>
+            )
+          }
+        ]}
+      />
 
-      {/* Detail Modal */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen} maxWidth="max-w-lg">
+      {/* ── Global Insurance Claim Audit Dialog Popup Modal ───────────────── */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen} maxWidth="max-w-5xl">
         {selectedClaim && (
-          <DialogContent className="max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)]">
-                  <InsuranceIcon size={20} />
+          <DialogContent className="max-h-[90vh] overflow-y-auto flex flex-col p-0">
+            {/* Modal Header */}
+            <DialogHeader className="shrink-0 flex items-center justify-between flex-row bg-[var(--theme-surface)] border-b border-[var(--theme-border)] p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-[var(--theme-primary-light)] rounded-2xl flex items-center justify-center text-[var(--theme-primary)] shrink-0">
+                  <InsuranceIcon size={24} />
                 </div>
                 <div>
-                  <DialogTitle>Detail Klaim</DialogTitle>
-                  <DialogDescription>ID: #{selectedClaim.id}</DialogDescription>
+                  <div className="flex items-center gap-2 text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">
+                    <span>Insurance Claim Manager</span>
+                    <span>·</span>
+                    <span className="text-[var(--theme-secondary)]">#INS-{selectedClaim.id?.toString().padStart(4, '0')}</span>
+                  </div>
+                  <DialogTitle className="text-base font-bold font-headline leading-tight mt-0.5 text-[var(--theme-text)]">
+                    Klaim Asuransi Mahasiswa
+                  </DialogTitle>
                 </div>
+              </div>
+
+              <div className="flex items-center gap-3 pr-4">
+                <StatusBadge status={selectedClaim.status} />
               </div>
             </DialogHeader>
 
-            <div className="p-6 space-y-4 text-[var(--theme-text)]">
-              <div className="bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-2xl p-4">
-                <h3 className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-2">Mahasiswa</h3>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <p className="text-[10px] text-[var(--theme-text-subtle)]">Nama</p>
-                    <p className="font-semibold text-sm">{selectedClaim.mahasiswa?.nama || '—'}</p>
+            {/* Modal Body */}
+            <div className="flex-1 overflow-y-auto p-8 grid grid-cols-1 lg:grid-cols-5 gap-8">
+              {/* Left Column: Claimant Profile & Claim Details */}
+              <div className="lg:col-span-3 space-y-6">
+                
+                {/* Claimant Profile Block */}
+                <div className="p-6 rounded-2xl bg-[var(--theme-bg)] border border-[var(--theme-border)] shadow-none flex flex-col md:flex-row gap-5 items-start">
+                  <div className="w-16 h-16 rounded-2xl shadow-md ring-4 ring-[var(--theme-border-muted)] shrink-0 flex items-center justify-center bg-[var(--theme-surface)] text-slate-400">
+                    <span className="material-symbols-outlined text-[32px]">person</span>
                   </div>
-                  <div>
-                    <p className="text-[10px] text-[var(--theme-text-subtle)]">NIM</p>
-                    <p className="font-semibold text-sm">{selectedClaim.mahasiswa?.nim || '—'}</p>
+                  
+                  <div className="flex-1 space-y-3 w-full">
+                    <div className="flex items-center justify-between border-b border-[var(--theme-border-muted)] pb-2">
+                      <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Identitas Pengklaim</span>
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[8px] font-bold border border-[var(--theme-border)] text-[var(--theme-text-muted)] bg-[var(--theme-bg)] uppercase tracking-wider">Verified Mahasiswa</span>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3 text-xs text-[var(--theme-text)]">
+                      <div>
+                        <p className="text-[9px] font-semibold text-[var(--theme-text-subtle)] uppercase tracking-wider">Nama Lengkap</p>
+                        <p className="font-bold truncate">{selectedClaim.mahasiswa?.nama || '—'}</p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-semibold text-[var(--theme-text-subtle)] uppercase tracking-wider">NIM / Identifier</p>
+                        <p className="font-mono font-bold">{selectedClaim.mahasiswa?.nim || '—'}</p>
+                      </div>
+                      <div className="col-span-2 md:col-span-1">
+                        <p className="text-[9px] font-semibold text-[var(--theme-text-subtle)] uppercase tracking-wider">Fakultas</p>
+                        <p className="font-bold truncate flex items-center gap-1 mt-0.5">
+                          <span className="material-symbols-outlined text-[14px] text-[var(--theme-primary)]">business</span>
+                          {selectedClaim.mahasiswa?.fakultas?.nama || '—'}
+                        </p>
+                      </div>
+                      <div className="col-span-2 md:col-span-1">
+                        <p className="text-[9px] font-semibold text-[var(--theme-text-subtle)] uppercase tracking-wider">Program Studi</p>
+                        <p className="font-bold truncate mt-0.5">{selectedClaim.mahasiswa?.program_studi?.nama || '—'}</p>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[10px] text-[var(--theme-text-subtle)]">Prodi</p>
-                    <p className="font-semibold text-sm">{selectedClaim.mahasiswa?.program_studi?.nama || '—'}</p>
+                </div>
+
+                {/* Substantive Content */}
+                <div className="space-y-3">
+                  <h4 className="text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 text-[var(--theme-text-muted)]">
+                    <span className="material-symbols-outlined text-[var(--theme-primary)] text-[16px]">health_and_safety</span> Detail Klaim Asuransi
+                  </h4>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-5 rounded-2xl bg-[var(--theme-bg)] border border-[var(--theme-border)]">
+                      <p className="text-[10px] font-semibold text-[var(--theme-text-subtle)] uppercase tracking-wider mb-2">Provider</p>
+                      <ProviderBadge provider={selectedClaim.jenis_provider} />
+                    </div>
+                    <div className="p-5 rounded-2xl bg-[var(--theme-bg)] border border-[var(--theme-border)]">
+                      <p className="text-[10px] font-semibold text-[var(--theme-text-subtle)] uppercase tracking-wider mb-2">Tanggal Kejadian</p>
+                      <p className="font-bold text-sm text-[var(--theme-text)] flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[16px] text-slate-400">calendar_today</span>
+                        {formatDate(selectedClaim.tanggal_kejadian)}
+                      </p>
+                    </div>
+                    <div className="p-5 rounded-2xl bg-[var(--theme-bg)] border border-[var(--theme-border)]">
+                      <p className="text-[10px] font-semibold text-[var(--theme-text-subtle)] uppercase tracking-wider mb-2">Lokasi Faskes</p>
+                      <p className="font-bold text-sm text-[var(--theme-text)] flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[16px] text-slate-400">location_on</span>
+                        {selectedClaim.lokasi_faskes || '—'}
+                      </p>
+                    </div>
+                    <div className="p-5 rounded-2xl bg-[var(--theme-bg)] border border-[var(--theme-border)]">
+                      <p className="text-[10px] font-semibold text-[var(--theme-text-subtle)] uppercase tracking-wider mb-2">Estimasi Biaya</p>
+                      <p className="font-black text-lg text-[var(--theme-primary)]">{formatCurrency(selectedClaim.estimasi_biaya)}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[10px] text-[var(--theme-text-subtle)]">Fakultas</p>
-                    <p className="font-semibold text-sm">{selectedClaim.mahasiswa?.fakultas?.nama || '—'}</p>
+                </div>
+
+                <div className="space-y-3">
+                  <h4 className="text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 text-[var(--theme-text-muted)]">
+                    <span className="material-symbols-outlined text-[var(--theme-primary)] text-[16px]">description</span> Kronologis / Deskripsi
+                  </h4>
+                  <div className="p-6 rounded-2xl bg-[var(--theme-bg)] border border-[var(--theme-border)] relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                      <span className="material-symbols-outlined text-[80px]">history_edu</span>
+                    </div>
+                    <p className="text-sm text-[var(--theme-text-muted)] font-medium leading-relaxed font-body relative z-10 whitespace-pre-wrap">
+                      {selectedClaim.deskripsi || 'Tidak ada deskripsi kejadian.'}
+                    </p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-2xl p-4">
-                <h3 className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-2">Detail Klaim</h3>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-[var(--theme-text-muted)]">Provider</span>
-                    <ProviderBadge provider={selectedClaim.jenis_provider} />
+              {/* Right Column: Action & Audit Trail Section */}
+              <div className="lg:col-span-2 space-y-6 flex flex-col">
+                <div className="bg-[var(--theme-surface)] rounded-2xl border border-[var(--theme-border)] shadow-sm overflow-hidden flex flex-col flex-1">
+                  <div className="p-5 border-b border-[var(--theme-border)] bg-[var(--theme-bg)]/50 backdrop-blur-md">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--theme-text)] flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[16px] text-[var(--theme-primary)]">task_alt</span>
+                      Resolution Control
+                    </h3>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-[var(--theme-text-muted)]">Tanggal</span>
-                    <span className="text-sm font-semibold">{formatDate(selectedClaim.tanggal_kejadian)}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-[var(--theme-text-muted)]">Lokasi</span>
-                    <span className="text-sm font-semibold">{selectedClaim.lokasi_faskes || '—'}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-[var(--theme-text-muted)]">Estimasi</span>
-                    <span className="text-sm font-bold text-[var(--theme-primary)]">{formatCurrency(selectedClaim.estimasi_biaya)}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-[var(--theme-text-muted)]">Status</span>
-                    <StatusBadge status={selectedClaim.status} />
+                  
+                  <div className="p-5 flex-1 flex flex-col gap-4">
+                    {/* Status Alert */}
+                    <div className="space-y-4">
+                      {selectedClaim.status === 'APPROVED_TK' ? (
+                        <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-xl">
+                          <p className="text-xs text-emerald-700 font-semibold flex items-center gap-2">
+                            <span className="material-symbols-outlined text-[16px]">verified</span>
+                            Klaim telah disetujui provider. Finalisasi klaim dapat dilakukan.
+                          </p>
+                        </div>
+                      ) : selectedClaim.status === 'APPROVED_FINAL' ? (
+                        <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl">
+                          <p className="text-xs text-slate-500 font-semibold flex items-center gap-2">
+                            <span className="material-symbols-outlined text-[16px]">lock</span>
+                            Klaim ini sudah mencapai status akhir (APPROVED_FINAL).
+                          </p>
+                        </div>
+                      ) : selectedClaim.status === 'REJECTED' ? (
+                        <div className="bg-rose-50 border border-rose-200 p-4 rounded-xl">
+                          <p className="text-xs text-rose-600 font-semibold flex items-center gap-2">
+                            <span className="material-symbols-outlined text-[16px]">cancel</span>
+                            Klaim ini telah ditolak dan tidak dapat diproses lebih lanjut.
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl">
+                          <p className="text-xs text-amber-700 font-semibold flex items-center gap-2">
+                            <span className="material-symbols-outlined text-[16px]">info</span>
+                            Klaim ini sedang dalam status {selectedClaim.status}.
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Action Buttons */}
+                      <div className="space-y-3 mt-4">
+                        {selectedClaim.status === 'APPROVED_TK' && (
+                          <button
+                            onClick={() => handleUpdateStatus('APPROVED_FINAL')}
+                            disabled={processing}
+                            className="w-full h-11 flex items-center justify-center gap-2 bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white font-bold rounded-xl transition-all active:scale-95 disabled:opacity-50 cursor-pointer text-xs uppercase tracking-wider shadow-md"
+                          >
+                            <CheckCircle size={16} />
+                            Approve Final
+                          </button>
+                        )}
+                        {selectedClaim.status !== 'REJECTED' && selectedClaim.status !== 'APPROVED_FINAL' && (
+                          <button
+                            onClick={() => handleUpdateStatus('REJECTED')}
+                            disabled={processing}
+                            className="w-full h-11 flex items-center justify-center gap-2 text-rose-600 border border-rose-200 hover:bg-rose-50 font-bold rounded-xl transition-all active:scale-95 disabled:opacity-50 cursor-pointer text-xs uppercase tracking-wider"
+                          >
+                            <CancelIcon size={16} />
+                            Tolak Klaim
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Review Notes Box */}
+                    {selectedClaim.catatan_review && (
+                      <div className="mt-4 border-t border-[var(--theme-border-muted)] pt-4">
+                        <p className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-2">Catatan Review</p>
+                        <div className="bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl p-4 relative">
+                          <span className="material-symbols-outlined absolute top-3 right-3 text-slate-200 text-3xl">format_quote</span>
+                          <p className="text-xs text-[var(--theme-text)] font-medium leading-relaxed italic relative z-10">
+                            "{selectedClaim.catatan_review}"
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
-
-              <div>
-                <h3 className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-2">Kronologis</h3>
-                <p className="text-sm text-[var(--theme-text)] bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl p-3">{selectedClaim.deskripsi || '—'}</p>
-              </div>
-
-              {selectedClaim.catatan_review && (
-                <div>
-                  <h3 className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-2">Catatan Review</h3>
-                  <p className="text-sm text-[var(--theme-text)] bg-[var(--theme-info-light)] border border-[var(--theme-info-light)] rounded-xl p-3">{selectedClaim.catatan_review}</p>
-                </div>
-              )}
             </div>
-
-            {/* Actions */}
-            <DialogFooter className="flex flex-col gap-2 sm:flex-col sm:space-x-0">
-              {selectedClaim.status === 'APPROVED_TK' && (
-                <button
-                  onClick={() => handleUpdateStatus('APPROVED_FINAL')}
-                  disabled={processing}
-                  className="w-full h-10 flex items-center justify-center gap-2 bg-[var(--theme-success)] hover:bg-[var(--theme-success)]/95 text-white font-semibold rounded-xl transition-all active:scale-95 disabled:opacity-50 cursor-pointer text-xs uppercase tracking-wider"
-                >
-                  <CheckCircle size={18} />
-                  Approve Final
-                </button>
-              )}
-              {selectedClaim.status !== 'REJECTED' && selectedClaim.status !== 'APPROVED_FINAL' && (
-                <button
-                  onClick={() => handleUpdateStatus('REJECTED')}
-                  disabled={processing}
-                  className="w-full h-10 flex items-center justify-center gap-2 bg-[var(--theme-error)] hover:bg-[var(--theme-error)]/95 text-white font-semibold rounded-xl transition-all active:scale-95 disabled:opacity-50 cursor-pointer text-xs uppercase tracking-wider"
-                >
-                  <CancelIcon size={18} />
-                  Tolak Klaim
-                </button>
-              )}
-            </DialogFooter>
           </DialogContent>
         )}
       </Dialog>

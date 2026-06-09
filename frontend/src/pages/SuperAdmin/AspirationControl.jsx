@@ -18,6 +18,8 @@ import { Label } from '@/components/ui/Label'
 import { PageContent } from '@/components/ui/page'
 import { DashboardHero } from '@/components/ui/dashboard'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
+import { DataTable } from '@/components/ui/DataTable'
+import { Eye } from 'lucide-react'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Filter = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>filter_alt</span>;
@@ -104,14 +106,11 @@ const AspirationControl = () => {
   const [aspirations, setAspirations] = useState([])
   const [stats, setStats] = useState({ active: 0, overdue: 0, resolved: 0 })
   const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('')
   const [selected, setSelected] = useState(null)
   const [form, setForm] = useState({ status: '', respon: '' })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [faculties, setFaculties] = useState([])
   const [periods, setPeriods] = useState([])
-  const [selectedFaculty, setSelectedFaculty] = useState('')
-  const [selectedStatus, setSelectedStatus] = useState('')
 
   const activeFacultyId = localStorage.getItem('superadmin_fakultas_id') || 'all'
   const activeProdiId = localStorage.getItem('superadmin_prodi_id') || 'all'
@@ -204,40 +203,28 @@ const AspirationControl = () => {
     return { active, overdue, resolved, total }
   }, [viewableAspirations])
 
-  const normalizedSearch = searchTerm.toLowerCase()
-  const filteredAspirations = viewableAspirations.filter(asp => {
-    const statusLower = (asp.Status || '').toLowerCase();
-
-    // Filter by Faculty
+  const baseFilteredAspirations = viewableAspirations.filter(asp => {
+    // Filter by Faculty Context
     if (activeFacultyId !== 'all') {
       const activeFaculty = faculties.find(f => String(f.id || f.ID) === String(activeFacultyId))
       const targetFacultyName = activeFaculty ? (activeFaculty.nama || activeFaculty.Nama || '').toLowerCase() : ''
       const facultyName = (asp.Fakultas?.Nama || asp.Mahasiswa?.Fakultas?.Nama || '').toLowerCase();
-      if (facultyName !== targetFacultyName) {
-        return false;
-      }
-    } else if (selectedFaculty) {
-      const facultyName = (asp.Fakultas?.Nama || asp.Mahasiswa?.Fakultas?.Nama || '').toLowerCase();
-      if (facultyName !== selectedFaculty.toLowerCase()) {
-        return false;
-      }
+      if (facultyName !== targetFacultyName) return false;
     }
 
-    // Filter by Prodi
+    // Filter by Prodi Context
     if (activeProdiId !== 'all') {
       const prodiId = asp.Mahasiswa?.ProgramStudiID || asp.Mahasiswa?.program_studi_id || '';
       if (String(prodiId) !== String(activeProdiId)) return false;
     }
 
-    // Filter by Period
+    // Filter by Period Context
     if (activePeriodId !== 'all') {
       const selectedPeriod = periods.find(p => String(p.id || p.ID) === String(activePeriodId))
       if (selectedPeriod) {
-        var year = 0;
+        let year = 0;
         const match = selectedPeriod.AcademicYear?.match(/\d+/);
-        if (match) {
-          year = parseInt(match[0]);
-        }
+        if (match) year = parseInt(match[0]);
         if (year > 0) {
           const entryYear = asp.Mahasiswa?.TahunMasuk || asp.Mahasiswa?.tahun_masuk || 0;
           if (entryYear !== year) return false;
@@ -245,23 +232,12 @@ const AspirationControl = () => {
       }
     }
 
-    // Filter by Status
-    if (selectedStatus) {
-      if (statusLower !== selectedStatus.toLowerCase()) {
-        return false;
-      }
-    }
-
-    const title = asp.Judul?.toString().toLowerCase() || ''
-    const studentName = asp.Mahasiswa?.Nama?.toString().toLowerCase() || ''
-    const facultyName = asp.Fakultas?.Nama?.toString().toLowerCase() || asp.Mahasiswa?.Fakultas?.Nama?.toString().toLowerCase() || ''
-    const ticketId = asp.ID?.toString() || ''
-
-    return title.includes(normalizedSearch) ||
-      studentName.includes(normalizedSearch) ||
-      facultyName.includes(normalizedSearch) ||
-      ticketId.includes(searchTerm)
-  })
+    return true;
+  }).map(asp => ({
+    ...asp,
+    FakultasNama: asp.Fakultas?.Nama || asp.Mahasiswa?.Fakultas?.Nama || '',
+    StatusLower: (asp.Status || '').toLowerCase()
+  }));
 
   // Priority mapping for UI
   const priorityStyles = {
@@ -636,361 +612,373 @@ const AspirationControl = () => {
         )}
 
         {/* ── Main Data Table ────────────────────────────────────── */}
-        <Card className="glass-card border border-slate-200/60 shadow-none rounded-2xl overflow-hidden">
-          <div className="p-5 border-b border-slate-200/40 bg-white/40 flex flex-col md:flex-row items-center gap-4">
-              <div className="relative flex-1 group">
-                  <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 size-4 stroke-[3px] group-focus-within:text-bku-primary transition-colors" >search</span>
-                  <Input 
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full bg-white/60 border-slate-200 h-11 pl-11 rounded-xl text-[11px] font-bold text-slate-700 focus:ring-bku-primary/20 uppercase tracking-widest placeholder:text-slate-400" 
-                    placeholder="Search incident ID, student name, or faculty node..." 
-                  />
-              </div>
-              <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-                {/* Faculty Filter */}
-                <div className="relative w-full sm:w-[200px]">
-                  <select
-                    value={activeFacultyId !== 'all' ? (faculties.find(f => String(f.id || f.ID) === String(activeFacultyId))?.nama || faculties.find(f => String(f.id || f.ID) === String(activeFacultyId))?.Nama || '') : selectedFaculty}
-                    onChange={(e) => setSelectedFaculty(e.target.value)}
-                    disabled={activeFacultyId !== 'all'}
-                    className="w-full h-11 pl-4 pr-10 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-bku-primary cursor-pointer appearance-none disabled:bg-slate-50 disabled:text-slate-400"
-                  >
-                    <option value="">Semua Fakultas</option>
-                    {faculties.map((fac) => (
-                      <option key={fac.id || fac.ID} value={fac.nama || fac.Nama}>
-                        {fac.nama || fac.Nama}
-                      </option>
-                    ))}
-                  </select>
-                  <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" style={{ fontSize: '16px' }}>expand_more</span>
-                </div>
-
-                {/* Status Filter */}
-                <div className="relative w-full sm:w-[160px]">
-                  <select
-                    value={selectedStatus}
-                    onChange={(e) => setSelectedStatus(e.target.value)}
-                    className="w-full h-11 pl-4 pr-10 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-bku-primary cursor-pointer appearance-none"
-                  >
-                    <option value="">Semua Status</option>
-                    <option value="proses">On Process</option>
-                    <option value="Selesai">Resolved</option>
-                    <option value="Ditinjau">Review</option>
-                    <option value="Ditolak">Rejected</option>
-                    <option value="disetujui fakultas">Disetujui Fakultas</option>
-                  </select>
-                  <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" style={{ fontSize: '16px' }}>expand_more</span>
-                </div>
-              </div>
-          </div>
+        <div className="flex flex-col gap-4">
           
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="bg-slate-50/50 text-[10px] font-black font-headline uppercase tracking-widest text-slate-500 border-b border-slate-200/40">
-                  <th className="px-6 py-4">Incident Ticket</th>
-                  <th className="px-6 py-4">Faculty / Sub-Unit</th>
-                  <th className="px-6 py-4 text-center">Priority</th>
-                  <th className="px-6 py-4">SLA / Status</th>
-                  <th className="px-6 py-4 text-right">Operations</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100/50">
-                {loading ? (
-                    <tr>
-                        <td colSpan="5" className="px-8 py-24 text-center">
-                            <div className="flex flex-col items-center gap-4">
-                                <span className="material-symbols-outlined size-8 animate-spin text-primary" >sync</span>
-                                <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-[0.2em]">Synchronizing Global Nodes...</p>
-                            </div>
-                        </td>
-                    </tr>
-                ) : filteredAspirations.length === 0 ? (
-                    <tr>
-                        <td colSpan="5" className="px-8 py-24 text-center">
-                            <div className="flex flex-col items-center gap-4 opacity-30 grayscale">
-                                <Database size={48} className="text-neutral-300" />
-                                <p className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-400">No incident tickets found</p>
-                            </div>
-                        </td>
-                    </tr>
-                ) : (
-                    filteredAspirations.map((asp, index) => (
-                        <tr key={asp.ID || `aspiration-${index}`} className="hover:bg-slate-50/50 transition-colors group">
-                            <td className="px-6 py-4">
-                                <div className="space-y-1">
-                                    <p className="font-bold text-slate-800 uppercase tracking-tight text-sm font-headline group-hover:text-bku-primary transition-colors">
-                                    #ASP-{asp.ID?.toString().padStart(4, '0') || '----'}
-                                    </p>
-                                    <p className="text-[11px] text-slate-500 font-medium uppercase truncate max-w-[220px]">
-                                    {asp.Subjek || asp.Judul || 'Untranslated Subject'}
-                                    </p>
-                                </div>
-                            </td>
-                            <td className="px-6 py-4">
-                                <div className="flex flex-col">
-                                    <span className="text-[12px] font-bold text-slate-800 uppercase tracking-tight font-headline">
-                                        {asp.Fakultas?.Nama || 'Institusional Node'}
-                                    </span>
-                                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">
-                                        {asp.Mahasiswa?.Nama || 'Unknown Identity'}
-                                    </span>
-                                </div>
-                            </td>
-                            <td className="px-6 py-4 text-center">
-                                <Badge className={cn('px-2.5 py-1 rounded-lg border-none text-[9px] font-bold uppercase tracking-widest shadow-none', 
-                                    asp.Priority === 'CRITICAL' ? 'bg-rose-100 text-rose-700' : 
-                                    asp.Priority === 'HIGH' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700')}>
-                                    {asp.Priority || 'NORMAL'}
-                                </Badge>
-                            </td>
-                            <td className="px-6 py-4">
-                                <div className="space-y-2.5 max-w-[140px]">
-                                    <div className="flex items-center justify-between gap-4">
-                                        <span className={cn('text-[9px] font-bold uppercase tracking-widest', asp.Deadline && new Date(asp.Deadline) < new Date() ? 'text-rose-500' : 'text-slate-400')}>
-                                            {asp.Deadline ? `DL: ${new Date(asp.Deadline).toLocaleDateString('id-ID', {day:'numeric', month:'short'})}` : 'SLA Standard'}
-                                        </span>
-                                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest font-headline">{asp.Status || 'OPEN'}</span>
-                                    </div>
-                                    <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                        <div className={cn('h-full transition-all duration-1000 rounded-full', 
-                                            asp.Status === 'Selesai' ? 'w-full bg-emerald-500' : 
-                                            asp.Status === 'Proses' ? 'w-[60%] bg-bku-primary' : 
-                                            asp.Status === 'Disetujui Fakultas' ? 'w-[40%] bg-blue-500' : 'w-[20%] bg-slate-300')} />
-                                    </div>
-                                </div>
-                            </td>
-                            <td className="px-6 py-4 text-right">
-                                <Button 
-                                variant="outline"
-                                onClick={() => handleOpenAudit(asp)}
-                                className="h-9 px-4 rounded-xl border-slate-200 text-slate-600 text-[10px] font-black font-headline uppercase tracking-widest hover:bg-slate-800 hover:text-white transition-all gap-2 shadow-none cursor-pointer"
-                                >
-                                    Audit Detail
-                                    <ChevronRight size={12} strokeWidth={3} />
-                                </Button>
-                            </td>
-                        </tr>
-                    ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-
-      {/* ── Global Aspiration Audit Dialog Popup Modal ───────────────── */}
-      <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)} maxWidth="max-w-5xl">
-        {selected && (
-          <DialogContent className="max-h-[90vh] overflow-y-auto flex flex-col p-0">
-            {/* Modal Header */}
-            <DialogHeader className="shrink-0 flex items-center justify-between flex-row">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-[var(--theme-primary-light)] rounded-2xl flex items-center justify-center text-[var(--theme-primary)] shrink-0">
-                  <span className="material-symbols-outlined" style={{ fontSize: '24px' }} >security</span>
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">
-                    <span>Incident Audit Manager</span>
-                    <span>·</span>
-                    <span className="text-[var(--theme-secondary)]">#ASP-{selected.ID?.toString().padStart(4, '0')}</span>
+          <DataTable
+            searchable={true}
+            searchPlaceholder="Cari ID, nama, subjek..."
+            searchWidth="sm:w-80"
+            filters={[
+              ...(activeFacultyId === 'all' ? [{
+                key: 'FakultasNama',
+                placeholder: 'Fakultas',
+                options: faculties.map(f => ({ label: f.Nama || f.nama, value: f.Nama || f.nama }))
+              }] : []),
+              {
+                key: 'StatusLower',
+                placeholder: 'Status',
+                options: [
+                  { label: 'On Process', value: 'proses' },
+                  { label: 'Resolved', value: 'selesai' },
+                  { label: 'Review', value: 'ditinjau' },
+                  { label: 'Rejected', value: 'ditolak' },
+                  { label: 'Disetujui Fakultas', value: 'disetujui fakultas' }
+                ]
+              }
+            ]}
+            onSearch={(data, search) => data.filter(asp => {
+              const normalizedSearch = search.toLowerCase();
+              const title = asp.Judul?.toString().toLowerCase() || ''
+              const studentName = asp.Mahasiswa?.Nama?.toString().toLowerCase() || ''
+              const facultyName = asp.Fakultas?.Nama?.toString().toLowerCase() || asp.Mahasiswa?.Fakultas?.Nama?.toString().toLowerCase() || ''
+              const ticketId = asp.ID?.toString() || ''
+              return title.includes(normalizedSearch) ||
+                studentName.includes(normalizedSearch) ||
+                facultyName.includes(normalizedSearch) ||
+                ticketId.includes(search)
+            })}
+            data={baseFilteredAspirations}
+            loading={loading}
+            emptyMessage="No incident tickets found"
+            columns={[
+              {
+                key: 'ID',
+                label: 'ID Tiket',
+                className: 'w-[140px]',
+                render: (_, asp) => (
+                  <div className="flex flex-col gap-1.5">
+                    <span className="text-[12px] font-bold text-blue-600 bg-blue-50/60 px-2.5 py-1 rounded-lg border border-blue-100/50 font-body w-fit">
+                      #ASP-{asp.ID?.toString().padStart(4, '0') || '----'}
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-semibold font-body flex items-center gap-1">
+                      <span className={cn("w-1.5 h-1.5 rounded-full", 
+                        asp.Priority === 'CRITICAL' ? 'bg-rose-500' : 
+                        asp.Priority === 'HIGH' ? 'bg-amber-500' : 'bg-emerald-500')} />
+                      {asp.Priority === 'CRITICAL' ? 'Critical' : asp.Priority === 'HIGH' ? 'High Priority' : 'Normal Priority'}
+                    </span>
                   </div>
-                  <DialogTitle className="text-base font-bold font-headline leading-tight mt-0.5 text-[var(--theme-text)]">
+                )
+              },
+              {
+                key: 'Judul',
+                label: 'Subjek Aspirasi',
+                className: 'max-w-[280px]',
+                render: (_, asp) => (
+                  <div className="flex flex-col max-w-[260px]">
+                    <span className="text-[13px] font-bold text-slate-800 font-body truncate leading-tight">
+                      {asp.Subjek || asp.Judul || 'Tanpa Subjek'}
+                    </span>
+                    <span className="text-[11px] font-semibold text-slate-400 font-body truncate mt-1">
+                      Oleh: <span className="text-slate-600">{asp.Mahasiswa?.Nama || 'Mahasiswa'}</span>
+                    </span>
+                  </div>
+                )
+              },
+              {
+                key: 'Fakultas',
+                label: 'Fakultas / Node',
+                className: 'max-w-[200px]',
+                render: (_, asp) => (
+                  <span className="text-[12px] font-semibold text-slate-700 font-body block truncate max-w-[180px]" title={asp.Fakultas?.Nama || asp.Mahasiswa?.Fakultas?.Nama || '—'}>
+                    {asp.Fakultas?.Nama || asp.Mahasiswa?.Fakultas?.Nama || '—'}
+                  </span>
+                )
+              },
+              {
+                key: 'Status',
+                label: 'Status Tiket',
+                className: 'w-[140px]',
+                render: (_, asp) => {
+                  const status = (asp.Status || 'Proses').toLowerCase();
+                  let style = 'bg-slate-50 text-slate-600 border-slate-200';
+                  let label = asp.Status || 'Proses';
+                  if (status === 'selesai') style = 'bg-emerald-50 text-emerald-600 border-emerald-100';
+                  else if (status.includes('ditolak')) style = 'bg-rose-50 text-rose-600 border-rose-100';
+                  else if (status.includes('proses')) style = 'bg-blue-50 text-blue-600 border-blue-100';
+                  else if (status.includes('ditinjau')) style = 'bg-amber-50 text-amber-600 border-amber-100';
+                  else if (status.includes('disetujui')) style = 'bg-indigo-50 text-indigo-600 border-indigo-100';
+
+                  return (
+                    <div className="flex flex-col gap-1.5">
+                      <Badge className={cn('px-2.5 py-1 rounded-lg border text-[10px] font-semibold uppercase tracking-wider shadow-none w-fit', style)}>
+                        {label}
+                      </Badge>
+                      {asp.Deadline && (
+                        <span className="text-[9px] font-semibold text-slate-400 font-body">
+                          Deadline: {new Date(asp.Deadline).toLocaleDateString('id-ID', {day:'numeric', month:'short'})}
+                        </span>
+                      )}
+                    </div>
+                  );
+                }
+              },
+              {
+                key: 'actions',
+                label: 'Aksi',
+                className: 'w-[100px] text-center',
+                cellClassName: 'text-center',
+                render: (_, asp) => (
+                  <div className="flex justify-center items-center gap-1">
+                    <button 
+                      onClick={() => { setSelected(asp); handleOpenAudit(asp); }}
+                      title="Lihat Detail"
+                      className="p-1.5 rounded-lg text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors inline-flex items-center justify-center cursor-pointer"
+                    >
+                      <Eye className="w-4 h-4" strokeWidth={2.5} />
+                    </button>
+                  </div>
+                )
+              }
+            ]}
+          />
+        </div>
+
+      {/* ── Folder Style Aspiration Audit Modal ───────────────── */}
+      {selected && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+          onClick={() => {
+            if (!isSubmitting) setSelected(null);
+          }}
+        >
+          <div
+            className="relative w-full max-w-5xl bg-[var(--theme-bg)] rounded-2xl shadow-none border border-[var(--theme-border)] flex flex-col overflow-hidden max-h-[90vh]"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Folder Header */}
+            <div className="relative bg-gradient-to-br from-primary via-primary to-blue-700 pt-6 pb-7 px-8 overflow-hidden flex-shrink-0">
+              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
+              <div className="absolute -bottom-6 right-16 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
+              <button
+                onClick={() => setSelected(null)}
+                disabled={isSubmitting}
+                className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors disabled:opacity-50 text-white border-none cursor-pointer"
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span>
+              </button>
+              <div className="relative z-10 flex items-center gap-5 mb-5">
+                <div className="w-16 h-16 rounded-2xl shadow-xl ring-2 ring-white/20 bg-white/10 flex items-center justify-center shrink-0 overflow-hidden text-white">
+                  <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>security</span>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">
+                    Incident Audit Manager
+                  </p>
+                  <h2 className="text-xl font-extrabold font-headline leading-tight truncate text-white">
                     {selected.Judul || selected.Subjek}
-                  </DialogTitle>
+                  </h2>
+                  <p className="text-xs text-blue-100 font-medium mt-1">
+                    Dilaporkan oleh: {selected.Mahasiswa?.Nama || 'Mahasiswa'}
+                  </p>
                 </div>
               </div>
-
-              <div className="flex items-center gap-3 pr-10">
+              <div className="relative z-10 flex flex-wrap gap-2">
+                <span className="flex items-center gap-1.5 bg-white/10 border border-white/20 px-3 py-1.5 rounded-xl text-[10px] font-bold text-white font-mono tracking-wider">
+                  #ASP-{selected.ID?.toString().padStart(4, '0')}
+                </span>
                 <span className={cn(
-                  'px-3.5 py-1 py-1 rounded-full border text-[9px] font-semibold uppercase tracking-widest shadow-sm',
-                  selected.Status?.toLowerCase() === 'selesai' ? 'bg-[var(--theme-success-light)] border-[var(--theme-success)]/30 text-[var(--theme-success)]' :
-                  selected.Status?.toLowerCase() === 'proses' ? 'bg-[var(--theme-info-light)] border-[var(--theme-info)]/30 text-[var(--theme-info)]' :
-                  'bg-[var(--theme-warning-light)] border-[var(--theme-warning)]/30 text-[var(--theme-warning)]'
+                  "flex items-center gap-1.5 border px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider",
+                  selected.Status?.toLowerCase() === 'selesai' ? 'bg-emerald-500/20 border-emerald-400/30 text-emerald-200' :
+                  selected.Status?.toLowerCase() === 'proses' ? 'bg-sky-500/20 border-sky-400/30 text-sky-200' :
+                  'bg-amber-500/20 border-amber-400/30 text-amber-200'
                 )}>
                   Status: {selected.Status || 'OPEN'}
                 </span>
               </div>
-            </DialogHeader>
+            </div>
 
-            {/* Modal Body */}
-            <div className="flex-1 overflow-y-auto p-8 grid grid-cols-1 lg:grid-cols-5 gap-8">
-              {/* Left Column: Reporter Profile, Content Subjek & Attachments */}
-              <div className="lg:col-span-3 space-y-6">
-                
-                {/* Reporter Profile Block */}
-                <div className="p-6 rounded-2xl bg-[var(--theme-bg)] border border-[var(--theme-border)] shadow-none flex flex-col md:flex-row gap-5 items-start">
-                  <StudentAvatar src={selected.Mahasiswa?.Foto} name={selected.Mahasiswa?.Nama} className="w-16 h-16 rounded-2xl shadow-md ring-4 ring-[var(--theme-border-muted)] shrink-0" />
+            {/* Folder Body */}
+            <div className="flex-1 overflow-y-auto p-8 bg-[var(--theme-bg)]/20">
+              <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                {/* Left Column: Reporter Profile, Content Subjek & Attachments */}
+                <div className="lg:col-span-3 space-y-6">
                   
-                  <div className="flex-1 space-y-3 w-full">
-                    <div className="flex items-center justify-between border-b border-[var(--theme-border-muted)] pb-2">
-                      <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Identitas Pelapor</span>
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[8px] font-bold border border-[var(--theme-border)] text-[var(--theme-text-muted)] bg-[var(--theme-bg)] uppercase tracking-wider">Verified Mahasiswa</span>
-                    </div>
+                  {/* Reporter Profile Block */}
+                  <div className="p-6 rounded-2xl bg-[var(--theme-surface)] border border-[var(--theme-border)] shadow-sm flex flex-col md:flex-row gap-5 items-start hover:shadow-md transition-shadow">
+                    <StudentAvatar src={selected.Mahasiswa?.Foto} name={selected.Mahasiswa?.Nama} className="w-16 h-16 rounded-2xl shadow-md ring-4 ring-[var(--theme-border-muted)] shrink-0" />
                     
-                    <div className="grid grid-cols-2 gap-3 text-xs text-[var(--theme-text)]">
-                      <div>
-                        <p className="text-[9px] font-semibold text-[var(--theme-text-subtle)] uppercase tracking-wider">Nama Lengkap</p>
-                        <p className="font-bold truncate">{selected.Mahasiswa?.Nama}</p>
-                      </div>
-                      <div>
-                        <p className="text-[9px] font-semibold text-[var(--theme-text-subtle)] uppercase tracking-wider">NIM / Identifier</p>
-                        <p className="font-mono font-bold">{selected.Mahasiswa?.NIM}</p>
-                      </div>
-                      <div className="col-span-2">
-                        <p className="text-[9px] font-semibold text-[var(--theme-text-subtle)] uppercase tracking-wider">Fakultas / Node asal</p>
-                        <p className="font-bold uppercase flex items-center gap-1.5 mt-0.5">
-                          <span className="material-symbols-outlined text-[14px] text-[var(--theme-primary)]">business</span>
-                          {selected.Mahasiswa?.Fakultas?.Nama || 'Institusional'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Substantive Content */}
-                <div className="space-y-3">
-                  <h4 className="text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 text-[var(--theme-text-muted)]">
-                    <span className="material-symbols-outlined text-[var(--theme-primary)] text-[16px]">chat</span> Substansi Aspirasi
-                  </h4>
-                  <div className="p-6 rounded-2xl bg-[var(--theme-bg)] border border-[var(--theme-border)] relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                      <span className="material-symbols-outlined text-[80px]" >chat</span>
-                    </div>
-                    <p className="text-sm text-[var(--theme-text-muted)] font-medium leading-relaxed font-body relative z-10 whitespace-pre-wrap">
-                      "{selected.Isi || 'Tidak ada deskripsi konten.'}"
-                    </p>
-                  </div>
-                </div>
-
-                {/* Visual Proof Section */}
-                <div className="space-y-3">
-                  <h4 className="text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 text-[var(--theme-text-muted)]">
-                    <span className="material-symbols-outlined text-[var(--theme-primary)] text-[16px]">image</span> Bukti Lampiran Visual
-                  </h4>
-                  
-                  {selected.BuktiURL ? (
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
-                      <div className="md:col-span-5 relative aspect-video rounded-xl overflow-hidden border border-[var(--theme-border)] shadow-md group">
-                        <img 
-                          src={getCleanImageUrl(selected.BuktiURL)} 
-                          alt="Bukti Aspirasi" 
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                        />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <a 
-                            href={getCleanImageUrl(selected.BuktiURL)} 
-                            target="_blank" 
-                            rel="noreferrer"
-                            className="px-4 py-2 bg-[var(--theme-surface)] text-[var(--theme-text)] rounded-lg font-bold text-[10px] uppercase tracking-widest shadow-xl flex items-center gap-1.5 hover:bg-[var(--theme-primary)] hover:text-white transition-all active:scale-95"
-                          >
-                            <span className="material-symbols-outlined text-[13px]">open_in_new</span> Full View
-                          </a>
-                        </div>
+                    <div className="flex-1 space-y-3 w-full">
+                      <div className="flex items-center justify-between border-b border-[var(--theme-border-muted)] pb-2">
+                        <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Identitas Pelapor</span>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[8px] font-bold border border-[var(--theme-border)] text-[var(--theme-text-muted)] bg-[var(--theme-bg)] uppercase tracking-wider">Verified Mahasiswa</span>
                       </div>
                       
-                      <div className="md:col-span-7 p-4 rounded-xl bg-[var(--theme-bg)] border border-dashed border-[var(--theme-border)] flex flex-col justify-center gap-1.5">
-                        <p className="text-xs font-bold text-[var(--theme-text)]">Berkas Lampiran Laporan</p>
-                        <p className="text-[11px] text-[var(--theme-text-muted)] font-medium leading-relaxed">
-                          Lampiran pendukung telah disertakan oleh mahasiswa. Silakan periksa gambar secara detail untuk proses pembuktian data laporan.
-                        </p>
+                      <div className="grid grid-cols-2 gap-3 text-xs text-[var(--theme-text)]">
+                        <div>
+                          <p className="text-[9px] font-semibold text-[var(--theme-text-subtle)] uppercase tracking-wider">Nama Lengkap</p>
+                          <p className="font-bold truncate mt-0.5">{selected.Mahasiswa?.Nama}</p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] font-semibold text-[var(--theme-text-subtle)] uppercase tracking-wider">NIM / Identifier</p>
+                          <p className="font-mono font-bold mt-0.5">{selected.Mahasiswa?.NIM}</p>
+                        </div>
+                        <div className="col-span-2">
+                          <p className="text-[9px] font-semibold text-[var(--theme-text-subtle)] uppercase tracking-wider">Fakultas / Node asal</p>
+                          <p className="font-bold uppercase flex items-center gap-1.5 mt-1">
+                            <span className="material-symbols-outlined text-[14px] text-[var(--theme-primary)]">business</span>
+                            {selected.Mahasiswa?.Fakultas?.Nama || 'Institusional'}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  ) : (
-                    <div className="p-8 rounded-xl border border-dashed border-[var(--theme-border)] flex flex-col items-center justify-center gap-2 text-[var(--theme-text-subtle)] bg-[var(--theme-bg)]/20">
-                      <span className="material-symbols-outlined text-[30px]" >image</span>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--theme-text-subtle)]">Tidak ada bukti lampiran gambar</p>
-                    </div>
-                  )}
-                </div>
-
-              </div>
-
-              {/* Right Column: Governance Panel, Resolution Response Form */}
-              <div className="lg:col-span-2 space-y-6">
-                
-                {/* Governance Card */}
-                <div className="p-6 rounded-2xl bg-[var(--theme-bg)] border border-[var(--theme-border)] space-y-6">
-                  
-                  {/* Status Selection Buttons */}
-                  <div className="space-y-3">
-                    <Label className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider ml-0.5">Ubah Status Resolusi</Label>
-                    <div className="grid grid-cols-2 gap-2.5">
-                      {[
-                        { val: 'proses', label: 'On Process', icon: 'schedule', active: 'bg-[var(--theme-info)] text-white border-[var(--theme-info)]' },
-                        { val: 'Selesai', label: 'Resolved', icon: 'check_circle', active: 'bg-[var(--theme-success)] text-white border-[var(--theme-success)]' },
-                        { val: 'Ditinjau', label: 'Review', icon: 'show_chart', active: 'bg-[var(--theme-warning)] text-white border-[var(--theme-warning)]' },
-                        { val: 'Ditolak', label: 'Rejected', icon: 'close', active: 'bg-[var(--theme-error)] text-white border-[var(--theme-error)]' },
-                      ].map(s => (
-                        <button 
-                          key={s.val} 
-                          type="button"
-                          onClick={() => setForm({ ...form, status: s.val })}
-                          className={cn(
-                            'h-10 rounded-xl flex items-center justify-center gap-1.5 border border-[var(--theme-border)] bg-[var(--theme-surface)] font-bold uppercase tracking-widest text-[9px] text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg)] hover:text-[var(--theme-text)] transition-all duration-300 cursor-pointer',
-                            form.status?.toLowerCase() === s.val.toLowerCase() && s.active
-                          )}
-                        >
-                          <span className="material-symbols-outlined" style={{ fontSize: '13px' }} >{s.icon}</span>
-                          {s.label}
-                        </button>
-                      ))}
-                    </div>
                   </div>
 
-                  {/* Response Textarea */}
+                  {/* Substantive Content */}
                   <div className="space-y-3">
-                    <Label className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider ml-0.5">Tanggapan Resmi Universitas</Label>
-                    <textarea 
-                      value={form.respon}
-                      onChange={e => setForm({ ...form, respon: e.target.value })}
-                      placeholder="Tuliskan respon resmi, klarifikasi, atau solusi yang diajukan institusi..."
-                      className="w-full min-h-[140px] rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] p-4 font-medium text-xs font-body text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none resize-none transition-all"
-                    />
-                  </div>
-
-                  {/* Warning SLA Card */}
-                  <div className="p-4 rounded-xl bg-[var(--theme-warning-light)] border border-[var(--theme-warning)]/30 flex items-start gap-3">
-                    <span className="material-symbols-outlined text-[var(--theme-warning)] shrink-0" style={{ fontSize: '16px' }} >error</span>
-                    <div className="space-y-0.5">
-                      <p className="text-[9px] font-bold text-[var(--theme-warning)] uppercase tracking-wider">SLA Resolution Limit</p>
-                      <p className="text-[10px] text-[var(--theme-warning)]/90 font-semibold leading-normal">
-                        Batas penanganan standar adalah 3x24 jam sejak tiket dibuat. Harap berikan resolusi secara objektif dan akurat.
+                    <h4 className="text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 text-[var(--theme-text-muted)]">
+                      <span className="material-symbols-outlined text-[var(--theme-primary)] text-[16px]">chat</span> Substansi Aspirasi
+                    </h4>
+                    <div className="p-6 rounded-2xl bg-[var(--theme-surface)] border border-[var(--theme-border)] shadow-sm relative overflow-hidden group">
+                      <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                        <span className="material-symbols-outlined text-[80px]" >chat</span>
+                      </div>
+                      <p className="text-sm text-[var(--theme-text)] font-medium leading-relaxed font-body relative z-10 whitespace-pre-wrap">
+                        "{selected.Isi || 'Tidak ada deskripsi konten.'}"
                       </p>
                     </div>
                   </div>
 
+                  {/* Visual Proof Section */}
+                  <div className="space-y-3">
+                    <h4 className="text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 text-[var(--theme-text-muted)]">
+                      <span className="material-symbols-outlined text-[var(--theme-primary)] text-[16px]">image</span> Bukti Lampiran Visual
+                    </h4>
+                    
+                    {selected.BuktiURL ? (
+                      <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
+                        <div className="md:col-span-5 relative aspect-video rounded-xl overflow-hidden border border-[var(--theme-border)] shadow-sm group bg-[var(--theme-bg)]">
+                          <img 
+                            src={getCleanImageUrl(selected.BuktiURL)} 
+                            alt="Bukti Aspirasi" 
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                          />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                            <a 
+                              href={getCleanImageUrl(selected.BuktiURL)} 
+                              target="_blank" 
+                              rel="noreferrer"
+                              className="px-4 py-2 bg-[var(--theme-surface)] text-[var(--theme-text)] rounded-lg font-bold text-[10px] uppercase tracking-widest shadow-xl flex items-center gap-1.5 hover:bg-[var(--theme-primary)] hover:text-white transition-all active:scale-95"
+                            >
+                              <span className="material-symbols-outlined text-[13px]">open_in_new</span> Full View
+                            </a>
+                          </div>
+                        </div>
+                        
+                        <div className="md:col-span-7 p-5 rounded-xl bg-[var(--theme-surface)] shadow-sm border border-[var(--theme-border)] flex flex-col justify-center gap-2">
+                          <p className="text-xs font-bold text-[var(--theme-text)] flex items-center gap-2">
+                            <span className="material-symbols-outlined text-[var(--theme-success)]" style={{ fontSize: '16px' }}>check_circle</span>
+                            Berkas Lampiran Tersedia
+                          </p>
+                          <p className="text-[11px] text-[var(--theme-text-muted)] font-medium leading-relaxed">
+                            Lampiran pendukung telah disertakan oleh pelapor. Pastikan gambar memuat informasi yang relevan dan dapat dipertanggungjawabkan untuk membantu proses resolusi.
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-8 rounded-xl border border-dashed border-[var(--theme-border-muted)] flex flex-col items-center justify-center gap-3 text-[var(--theme-text-subtle)] bg-[var(--theme-surface)] shadow-sm">
+                        <span className="material-symbols-outlined text-[32px] opacity-50" >image</span>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--theme-text-subtle)]">Tidak ada bukti lampiran gambar</p>
+                      </div>
+                    )}
+                  </div>
+
+                </div>
+
+                {/* Right Column: Governance Panel, Resolution Response Form */}
+                <div className="lg:col-span-2 space-y-6">
+                  
+                  {/* Governance Card */}
+                  <div className="p-6 rounded-2xl bg-[var(--theme-surface)] border border-[var(--theme-border)] shadow-sm space-y-6">
+                    
+                    {/* Status Selection Buttons */}
+                    <div className="space-y-3">
+                      <Label className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider ml-0.5">Ubah Status Resolusi</Label>
+                      <div className="grid grid-cols-2 gap-2.5">
+                        {[
+                          { val: 'proses', label: 'On Process', icon: 'schedule', active: 'bg-[var(--theme-info)] text-white border-[var(--theme-info)] shadow-md shadow-[var(--theme-info)]/20' },
+                          { val: 'Selesai', label: 'Resolved', icon: 'check_circle', active: 'bg-[var(--theme-success)] text-white border-[var(--theme-success)] shadow-md shadow-[var(--theme-success)]/20' },
+                          { val: 'Ditinjau', label: 'Review', icon: 'show_chart', active: 'bg-[var(--theme-warning)] text-white border-[var(--theme-warning)] shadow-md shadow-[var(--theme-warning)]/20' },
+                          { val: 'Ditolak', label: 'Rejected', icon: 'close', active: 'bg-[var(--theme-error)] text-white border-[var(--theme-error)] shadow-md shadow-[var(--theme-error)]/20' },
+                        ].map(s => (
+                          <button 
+                            key={s.val} 
+                            type="button"
+                            onClick={() => setForm({ ...form, status: s.val })}
+                            className={cn(
+                              'h-10 rounded-xl flex items-center justify-center gap-1.5 border border-[var(--theme-border)] bg-[var(--theme-bg)] font-bold uppercase tracking-widest text-[9px] text-[var(--theme-text-muted)] hover:border-[var(--theme-border-muted)] hover:text-[var(--theme-text)] transition-all duration-300 cursor-pointer',
+                              form.status?.toLowerCase() === s.val.toLowerCase() && s.active
+                            )}
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >{s.icon}</span>
+                            {s.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Response Textarea */}
+                    <div className="space-y-3">
+                      <Label className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider ml-0.5">Tanggapan Resmi Institusi</Label>
+                      <textarea 
+                        value={form.respon}
+                        onChange={e => setForm({ ...form, respon: e.target.value })}
+                        placeholder="Tuliskan respon resmi, klarifikasi, atau solusi yang diajukan institusi untuk menyelesaikan kendala ini..."
+                        className="w-full min-h-[160px] rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg)] p-4 text-xs font-medium font-body text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:bg-[var(--theme-surface)] outline-none resize-none transition-all placeholder:text-[var(--theme-text-subtle)] leading-relaxed"
+                      />
+                    </div>
+
+                    {/* Warning SLA Card */}
+                    <div className="p-4 rounded-xl bg-[var(--theme-warning-light)] border border-[var(--theme-warning)]/30 flex items-start gap-3 shadow-sm">
+                      <span className="material-symbols-outlined text-[var(--theme-warning)] shrink-0" style={{ fontSize: '18px' }} >assignment_late</span>
+                      <div className="space-y-1">
+                        <p className="text-[9px] font-bold text-[var(--theme-warning)] uppercase tracking-wider">SLA Resolution Limit</p>
+                        <p className="text-[10px] text-[var(--theme-warning)]/90 font-semibold leading-normal">
+                          Batas penanganan SLA standar adalah <span className="font-bold">3x24 jam</span> sejak tiket dibuat. Harap berikan resolusi secepatnya dan pastikan informasi yang disampaikan akurat.
+                        </p>
+                      </div>
+                    </div>
+
+                  </div>
+
                 </div>
 
               </div>
-
             </div>
 
-            {/* Modal Footer */}
-            <DialogFooter className="px-8 py-5 flex items-center justify-end gap-3 shrink-0">
-              <Button 
-                variant="outline"
+            {/* Folder Footer */}
+            <div className="px-8 py-5 border-t border-[var(--theme-border)] bg-[var(--theme-surface)] flex justify-end gap-3 flex-shrink-0">
+              <button 
                 onClick={() => setSelected(null)}
-                className="h-10 px-6 rounded-xl border border-[var(--theme-border)] text-[var(--theme-text-muted)] text-[10px] font-bold uppercase tracking-wider hover:bg-[var(--theme-bg)] active:scale-95 transition-all"
+                className="h-10 px-6 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] text-xs font-bold text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] hover:border-[var(--theme-border-muted)] uppercase tracking-widest transition-all active:scale-95 cursor-pointer"
               >
-                Close Audit
-              </Button>
-              <Button 
+                Tutup Audit
+              </button>
+              <button 
                 onClick={handleSubmitResolution}
                 disabled={isSubmitting}
-                className="h-10 px-6 rounded-xl bg-[var(--theme-primary)] text-white hover:bg-[var(--theme-primary-hover)] font-bold text-[10px] uppercase tracking-wider active:scale-95 transition-all gap-1.5 flex items-center"
+                className="h-10 px-6 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white font-bold text-xs uppercase tracking-widest active:scale-95 transition-all flex items-center justify-center gap-2 border-none shadow-md shadow-[var(--theme-primary)]/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
-                  <span className="material-symbols-outlined animate-spin" style={{ fontSize: '15px' }} >sync</span>
+                  <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
                 ) : (
-                  <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >save</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >save</span>
                 )}
-                Save & Commit Resolution
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        )}
-      </Dialog>
+                Simpan & Update
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </PageContent>
   )

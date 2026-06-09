@@ -290,9 +290,11 @@ type KencanaMentor struct {
 	BaseModel
 	UserID     uint      `gorm:"uniqueIndex;not null" json:"user_id"`
 	User       User      `gorm:"foreignKey:UserID" json:"user,omitempty"`
+	Mahasiswa  *Mahasiswa `gorm:"foreignKey:UserID;references:PenggunaID" json:"mahasiswa,omitempty"`
 	Name       string    `gorm:"size:150;not null" json:"name"`
 	Email      string    `gorm:"size:150;index" json:"email"`
 	Phone      string    `gorm:"size:40" json:"phone"`
+	JenisKelamin string  `gorm:"size:20" json:"jenis_kelamin"`
 	ScopeType  string    `gorm:"size:40;default:'faculty';index" json:"scope_type"`
 	FakultasID *uint     `gorm:"index" json:"fakultas_id"`
 	Fakultas   *Fakultas `gorm:"foreignKey:FakultasID" json:"fakultas,omitempty"`

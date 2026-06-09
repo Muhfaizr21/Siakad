@@ -225,7 +225,6 @@ export const PORTAL_CONFIG = {
             hasSubmenu: true,
             submenu: [
               { name: 'Kelola Ormawa', icon: 'corporate_fare', path: '/admin/organizations' },
-              { name: 'Dashboard Ormawa', icon: 'dashboard', path: '/admin/ormawa-dashboard' },
               { name: 'Anggota Aktif', icon: 'group', path: '/admin/ormawa-anggota' },
               { name: 'Struktur Pengurus', icon: 'account_tree', path: '/admin/ormawa-struktur' },
               { name: 'Proposal & Kegiatan', icon: 'description', path: '/admin/ormawa-proposal' },

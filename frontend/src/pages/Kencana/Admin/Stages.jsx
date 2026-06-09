@@ -1,88 +1,46 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { cn } from "@/lib/utils";
 import {
   usePeriodsQuery, useStagesQuery, useCreateStageMutation, useUpdateStageMutation,
-  useSessionsQuery, useCreateSessionMutation, useUpdateSessionMutation, useCreateQuizMutation,
-  useCreateMaterialMutation, useUploadMaterialMutation, useUpdateMaterialMutation, useDeleteMaterialMutation,
-  useCreateAssignmentMutation, useUpdateAssignmentMutation, useDeleteAssignmentMutation,
-  useParticipantsQuery, usePeriodPhasesQuery,
+  useCreateSessionMutation, useUpdateSessionMutation,
+  usePeriodPhasesQuery,
 } from '../../../queries/useKencanaAdminQuery';
-import { PageHeader } from '../../../components/ui/page/PageHeader';
 import { SelectField, SelectOption } from '../../../components/ui/SelectField';
-import { DialogModal } from '../../../components/ui/DialogModal';
+import { DashboardHero } from '@/components/ui/dashboard';
+import { DialogModal } from '@/components/ui/DialogModal';
 
 // ──── Constants ────────────────────────────────────────────────────────────────
-const SCORE_DEFINITIONS = {
-  cognitive: [
-    { key: 'Handbook', label: 'Handbook' },
-    { key: 'Post Test 1', label: 'Post Test 1' },
-    { key: 'Post Test 2', label: 'Post Test 2' },
-  ],
-  psychomotor: [
-    { key: 'Taat Peraturan & Tatib (Makanan)', label: 'Taat Peraturan & Tatib' },
-    { key: 'Twibon', label: 'Twibon' },
-    { key: 'Video Perkenalan (Analog)', label: 'Video Perkenalan' },
-    { key: 'Atribut sesuai Ketentuan', label: 'Atribut Sesuai Ketentuan' },
-    { key: 'Kreativitas Individu (name tag, mind map & video rekap)', label: 'Kreativitas Individu' },
-    { key: 'Kreativitas Kelompok (Tongkat & yelyel)', label: 'Kreativitas Kelompok' },
-    { key: 'Memelihara Fasilitas UBK', label: 'Memelihara Fasilitas UBK' },
-  ],
-  affective: [
-    { key: 'Etika terhadap panitia & civitas', label: 'Etika' },
-    { key: 'Empati', label: 'Empati' },
-    { key: 'Tanggung Jawab', label: 'Tanggung Jawab' },
-    { key: 'Disiplin', label: 'Disiplin' },
-    { key: 'Adil', label: 'Adil' },
-  ],
-};
-
 const PHASE_CONFIG = {
   pra_kencana: {
     title: 'Pra-Kencana',
     subtitle: 'Kelola sesi persiapan, materi awal, tugas pembuka, dan kuis pra-orientasi.',
-    empty: 'Buat tahap Pra-Kencana pertama untuk menyusun materi persiapan mahasiswa.',
-    color: 'violet',
   },
   kencana_universitas: {
     title: 'Kencana Universitas',
     subtitle: 'Kelola sesi utama universitas, materi kebijakan kampus, tugas, dan kuis orientasi pusat.',
-    empty: 'Buat tahap Kencana Universitas pertama untuk menyusun orientasi tingkat universitas.',
-    color: 'emerald',
   },
   pasca_kencana: {
     title: 'Pasca-Kencana',
     subtitle: 'Kelola sesi refleksi, tugas akhir, kuis evaluasi, dan penutupan setelah orientasi utama.',
-    empty: 'Buat tahap Pasca-Kencana pertama untuk finalisasi orientasi.',
-    color: 'amber',
   },
 };
 
-// ──── Status Badge ──────────────────────────────────────────────────────────
 const StatusBadge = ({ status }) => {
   const map = {
-    published: 'bg-[var(--theme-success-light)] text-[var(--theme-success)] border-[var(--theme-success-light)]',
-    active: 'bg-[var(--theme-success-light)] text-[var(--theme-success)] border-[var(--theme-success-light)]',
-    locked: 'bg-[var(--theme-bg)] text-[var(--theme-text-muted)] border-[var(--theme-border)]',
-    draft: 'bg-[var(--theme-warning-light)] text-[var(--theme-warning)] border-[var(--theme-warning-light)]',
-    completed: 'bg-[var(--theme-info-light)] text-[var(--theme-info)] border-[var(--theme-info-light)]',
+    published: 'bg-emerald-50 text-emerald-700',
+    active: 'bg-emerald-50 text-emerald-700',
+    locked: 'bg-slate-50 text-slate-600',
+    draft: 'bg-amber-50 text-amber-700',
+    completed: 'bg-indigo-50 text-indigo-700',
   };
   const labelMap = { published: 'Aktif', active: 'Aktif', locked: 'Terkunci', draft: 'Draft', completed: 'Selesai' };
   return (
-    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${map[status] || 'bg-[var(--theme-bg)] text-[var(--theme-text-muted)] border-[var(--theme-border)]'}`}>
+    <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[9px] font-bold uppercase tracking-wider', map[status] || 'bg-slate-50 text-slate-600')}>
+      <span className={cn('w-1.5 h-1.5 rounded-full', status === 'active' || status === 'published' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400')} />
       {labelMap[status] || status}
     </span>
   );
-};
-
-const PhaseStatusBadge = ({ active, status }) => {
-  const completed = status === 'completed';
-  const label = active ? 'Aktif' : completed ? 'Selesai' : 'Belum Aktif';
-  const classes = active
-    ? 'bg-[var(--theme-success-light)] text-[var(--theme-success)] border-[var(--theme-success-light)]'
-    : completed
-      ? 'bg-[var(--theme-info-light)] text-[var(--theme-info)] border-[var(--theme-info-light)]'
-      : 'bg-[var(--theme-bg)] text-[var(--theme-text-muted)] border-[var(--theme-border)]';
-  return <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${classes}`}>{label}</span>;
 };
 
 const formatDate = (date, options = { day: '2-digit', month: 'short', year: 'numeric' }) => (
@@ -114,24 +72,17 @@ const Stages = ({ phaseType = 'kencana_universitas' }) => {
   const { data: stages, isLoading: loadingStages } = useStagesQuery(selectedPeriodId, { type: phaseType });
   const { data: phaseData } = usePeriodPhasesQuery(selectedPeriodId);
 
-  // Modal states
   const [showAddSessionModal, setShowAddSessionModal] = useState(false);
   const [showEditSessionModal, setShowEditSessionModal] = useState(false);
-
-  // Active state
   const [activeStage, setActiveStage] = useState(null);
   const [activeSession, setActiveSession] = useState(null);
-
-  // Forms
   const [sessionForm, setSessionForm] = useState({ title: '', description: '', status: 'locked', is_required: true, start_date: '', end_date: '' });
 
-  // Mutations
   const createStageMutation = useCreateStageMutation();
   const updateStageMutation = useUpdateStageMutation();
   const createSessionMutation = useCreateSessionMutation();
   const updateSessionMutation = useUpdateSessionMutation();
 
-  // ─── Handlers ───────────────────────────────────────────────────────────
   const ensurePhaseStage = async () => {
     if (!selectedPeriodId) return null;
     const timeline = phaseData?.timeline_phases?.find(item => item.phase_type === phaseType);
@@ -220,7 +171,8 @@ const Stages = ({ phaseType = 'kencana_universitas' }) => {
     setShowEditSessionModal(true);
   };
 
-  // ─── Render ──────────────────────────────────────────────────────────────
+  const set = (k, v) => setSessionForm(prev => ({ ...prev, [k]: v }));
+
   const phaseTimeline = phaseData?.timeline_phases?.find(item => item.phase_type === phaseType);
   const phaseStage = stages?.[0] || null;
   const phaseSessions = stages?.flatMap(stage => (stage.sessions || []).map(session => ({ ...session, stage }))) || [];
@@ -229,244 +181,325 @@ const Stages = ({ phaseType = 'kencana_universitas' }) => {
   const totalAssignments = phaseSessions.reduce((sum, session) => sum + getContentCount(session, 'assignments'), 0);
 
   return (
-    <div className="bg-transparent font-body max-w-7xl mx-auto space-y-6">
-
-      {/* Page Header */}
-      <PageHeader
-        icon="book_open"
-        title={
-          <>
-            <span className="text-[var(--theme-text)]">Sesi & Konten </span>
-            <span className="text-[var(--theme-primary)]">{phaseConfig.title}</span>
-          </>
-        }
+    <div className="font-body max-w-7xl mx-auto space-y-4 pb-12">
+      
+      {/* Page Header (using Faculty Admin DashboardHero) */}
+      <DashboardHero
+        title="Sesi "
+        highlightedTitle={phaseConfig.title}
         subtitle={phaseConfig.subtitle}
-        breadcrumbs={[
-          { label: 'Kencana Admin', path: '#' },
-          { label: phaseConfig.title }
+        icon="view_kanban"
+        badges={[
+          { label: 'Kencana Admin', active: false },
+          { label: phaseTimeline?.is_active ? 'Fase Berjalan' : 'Fase Terkunci', active: true }
         ]}
-        action={
-          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto items-stretch sm:items-center">
-            <div className="flex items-center gap-2 pr-2">
-              <PhaseStatusBadge active={phaseTimeline?.is_active} status={phaseTimeline?.status} />
+        actions={
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            <div className="relative w-full sm:w-[220px]">
+              <select
+                value={selectedPeriodId}
+                onChange={(e) => setSelectedPeriodId(e.target.value)}
+                disabled={loadingPeriods}
+                className="w-full h-9 px-3 pr-8 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-700 hover:border-slate-300 focus:outline-none focus:border-[var(--theme-primary)] focus:ring-1 focus:ring-[var(--theme-primary)] shadow-sm appearance-none cursor-pointer transition-colors"
+              >
+                <option value="" disabled>Pilih Periode...</option>
+                {periods?.map(p => (
+                  <option key={p.id} value={String(p.id)}>
+                    {p.name} {p.status === 'active' || p.status === 'published' ? '(Aktif)' : ''}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none">
+                <span className="material-symbols-outlined text-slate-400" style={{ fontSize: '18px' }}>expand_more</span>
+              </div>
             </div>
-            <SelectField
-              value={selectedPeriodId}
-              onValueChange={setSelectedPeriodId}
-              placeholder="Pilih Periode..."
-              className="min-w-[200px]"
-              disabled={loadingPeriods}
-            >
-              {periods?.map(p => (
-                <SelectOption key={p.id} value={String(p.id)}>
-                  {p.name} {p.status === 'active' || p.status === 'published' ? '(Aktif)' : ''}
-                </SelectOption>
-              ))}
-            </SelectField>
             <button
               onClick={() => openAddSession(phaseStage)}
               disabled={!selectedPeriodId || createStageMutation.isPending}
-              className="h-10 px-5 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-xs font-bold shadow-md disabled:opacity-50 transition-all shrink-0"
+              className="h-10 px-4 rounded-xl bg-primary hover:bg-bku-hover text-white text-xs font-bold uppercase tracking-wider gap-2 flex items-center transition-all active:scale-95 shadow-lg shadow-bku-primary/20 shrink-0 w-full sm:w-auto justify-center"
             >
-              + Tambah Sesi
+              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>add</span> Tambah Sesi
             </button>
           </div>
         }
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-2xl border border-[var(--theme-border)] p-5 shadow-sm">
-          <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-widest">Timeline</p>
-          <p className="text-sm font-bold text-[var(--theme-text)] mt-2">{formatDate(phaseTimeline?.start_date)} - {formatDate(phaseTimeline?.end_date)}</p>
-        </div>
-        <div className="bg-white rounded-2xl border border-[var(--theme-border)] p-5 shadow-sm">
-          <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-widest">Total Sesi</p>
-          <p className="text-2xl font-bold text-[var(--theme-text)] mt-1">{phaseSessions.length}</p>
-        </div>
-        <div className="bg-white rounded-2xl border border-[var(--theme-border)] p-5 shadow-sm">
-          <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-widest">Materi & Kuis</p>
-          <p className="text-2xl font-bold text-[var(--theme-text)] mt-1">{totalMaterials + totalQuizzes}</p>
-        </div>
-        <div className="bg-white rounded-2xl border border-[var(--theme-border)] p-5 shadow-sm">
-          <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-widest">Tugas Utama</p>
-          <p className="text-2xl font-bold text-[var(--theme-text)] mt-1">{totalAssignments}</p>
-        </div>
+      {/* Stats Section (using Faculty Admin Stat Card styling) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+        {[
+          { label: 'Timeline', value: `${formatDate(phaseTimeline?.start_date)} - ${formatDate(phaseTimeline?.end_date)}`, icon: 'event', bg: 'bg-primary/10', color: 'text-primary', desc: 'Jadwal pelaksanaan' },
+          { label: 'Total Sesi', value: phaseSessions.length, icon: 'view_agenda', bg: 'bg-emerald-50 text-emerald-600', color: 'text-emerald-600', desc: 'Sesi pembelajaran' },
+          { label: 'Materi & Kuis', value: totalMaterials + totalQuizzes, icon: 'library_books', bg: 'bg-amber-50 text-amber-600', color: 'text-amber-600', desc: 'Konten aktif' },
+          { label: 'Tugas', value: totalAssignments, icon: 'assignment', bg: 'bg-indigo-50 text-indigo-600', color: 'text-indigo-600', desc: 'Tagihan utama' },
+        ].map(s => (
+          <div key={s.label} className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', s.bg, s.color)}>
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{s.icon}</span>
+              </div>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</span>
+            </div>
+            <p className={`font-extrabold text-slate-900 leading-none tabular-nums ${s.label === 'Timeline' ? 'text-sm mt-1' : 'text-2xl'}`}>
+              {loadingStages ? <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span> : s.value}
+            </p>
+            <p className="text-xs text-slate-400 font-medium mt-2">{s.desc}</p>
+          </div>
+        ))}
       </div>
 
       {/* Content */}
-      {loadingStages ? (
-        <div className="flex justify-center items-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--theme-primary)]"></div>
-        </div>
-      ) : !selectedPeriodId ? (
-        <div className="bg-[var(--theme-warning-light)] border border-[var(--theme-warning-light)] rounded-2xl p-8 text-center text-[var(--theme-warning)] font-bold">
-          Silakan pilih periode terlebih dahulu.
-        </div>
-      ) : phaseSessions.length === 0 ? (
-        <div className="bg-white border border-dashed border-[var(--theme-border)] rounded-2xl p-12 text-center shadow-sm">
-          <div className="text-5xl mb-4">📚</div>
-          <h2 className="text-lg font-bold text-[var(--theme-text)] mb-2">Belum Ada Sesi</h2>
-          <p className="text-[var(--theme-text-muted)] font-medium max-w-xl mx-auto text-sm">
-            Timeline fase ini sudah disiapkan dari Kelola Timeline. Mulai susun materi, kuis, dan tugas dengan membuat sesi pertama.
-          </p>
-          <button
-            onClick={() => openAddSession(phaseStage)}
-            disabled={createStageMutation.isPending}
-            className="mt-6 h-10 px-6 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-xs font-bold disabled:opacity-50 transition-all"
-          >
-            + Tambah Sesi Pertama
-          </button>
-        </div>
-      ) : (
-        <div className="bg-white rounded-2xl border border-[var(--theme-border)] shadow-sm overflow-hidden">
-          <div className="p-5 border-b border-[var(--theme-border-muted)] flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[var(--theme-bg)]">
-            <div>
-              <h2 className="text-base font-bold text-[var(--theme-text)]">Daftar Sesi {phaseConfig.title}</h2>
-              <p className="text-xs font-semibold text-[var(--theme-text-muted)] mt-1">Kelola materi, kuis, dan tugas per sesi.</p>
-            </div>
+      <div className="mt-8">
+        {loadingStages ? (
+          <div className="flex justify-center items-center py-20">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
-          <div className="p-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 bg-[var(--theme-surface)]">
+        ) : !selectedPeriodId ? (
+          <div className="bg-slate-50 border border-slate-200 rounded-3xl p-8 text-center text-slate-500 font-medium">
+            Silakan pilih periode di atas.
+          </div>
+        ) : phaseSessions.length === 0 ? (
+          <div className="bg-white border border-dashed border-slate-200 rounded-3xl p-12 text-center shadow-sm">
+            <div className="text-4xl mb-4 text-slate-300">📚</div>
+            <h2 className="text-lg font-bold text-slate-800 mb-2">Belum Ada Sesi</h2>
+            <p className="text-slate-400 text-sm mb-6 max-w-md mx-auto">
+              Sesi akan menjadi wadah untuk materi, tugas, dan kuis. Buat sesi pertama Anda untuk memulai.
+            </p>
+            <button
+              onClick={() => openAddSession(phaseStage)}
+              disabled={createStageMutation.isPending}
+              className="h-10 px-5 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-bold uppercase tracking-wider transition-all inline-flex items-center gap-2"
+            >
+              Tambah Sesi Pertama
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {phaseSessions.map((session) => (
-              <div key={session.id} className="border border-[var(--theme-border)] rounded-xl p-5 hover:border-[var(--theme-primary-hover)] hover:shadow-md transition-all bg-white relative overflow-hidden flex flex-col justify-between">
-                <div className="absolute top-0 left-0 w-1 h-full bg-[var(--theme-primary)]"></div>
+              <div key={session.id} className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all">
                 <div>
-                  <div className="flex justify-between items-start mb-2 gap-2">
-                    <h4 className="font-bold text-[var(--theme-text)] line-clamp-2 text-sm">{session.title}</h4>
-                    <div className="shrink-0"><StatusBadge status={session.status} /></div>
+                  <div className="flex justify-between items-start mb-3 gap-2">
+                    <h4 className="font-bold text-slate-800 font-jakarta text-[14px] tracking-tight line-clamp-2">{session.title}</h4>
+                    <StatusBadge status={session.status} />
                   </div>
-                  <p className="text-xs font-semibold text-[var(--theme-text-muted)] line-clamp-2 mb-3 leading-relaxed">{session.description || 'Tidak ada deskripsi.'}</p>
+                  <p className="text-[11px] text-slate-400 font-medium font-inter mt-0.5 line-clamp-2 mb-4 leading-relaxed">
+                    {session.description || 'Tidak ada deskripsi untuk sesi ini.'}
+                  </p>
+                  
                   <div className="flex flex-wrap gap-2 text-[10px] font-bold">
-                    <span className="px-2 py-1 rounded-lg bg-[var(--theme-info-light)] text-[var(--theme-info)]">Materi {getContentCount(session, 'materials')}</span>
-                    <span className="px-2 py-1 rounded-lg bg-[var(--theme-warning-light)] text-[var(--theme-warning)]">Kuis {getContentCount(session, 'quizzes')}</span>
-                    <span className="px-2 py-1 rounded-lg bg-[var(--theme-error-light)] text-[var(--theme-error)]">Tugas {getContentCount(session, 'assignments')}</span>
+                    <span className="px-2.5 py-1 rounded-md bg-slate-50 text-slate-600 border border-slate-200">Materi: {getContentCount(session, 'materials')}</span>
+                    <span className="px-2.5 py-1 rounded-md bg-slate-50 text-slate-600 border border-slate-200">Kuis: {getContentCount(session, 'quizzes')}</span>
+                    <span className="px-2.5 py-1 rounded-md bg-slate-50 text-slate-600 border border-slate-200">Tugas: {getContentCount(session, 'assignments')}</span>
                   </div>
                 </div>
-                <div className="flex items-center justify-between pt-3 border-t border-[var(--theme-border-muted)] mt-4">
-                  <div className="flex gap-2 items-center">
-                    <span className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider">{session.is_required ? 'Wajib' : 'Opsional'}</span>
-                    <button onClick={() => openEditSession(session)} className="text-[10px] font-bold text-[var(--theme-primary)] bg-[var(--theme-primary-light)] hover:bg-[var(--theme-primary-light)]/80 px-2 py-1 rounded-lg transition-colors">Edit Sesi</button>
-                  </div>
-                  <button onClick={() => navigate(`/kencana-admin/sessions/${session.id}/content`)} className="text-xs font-bold text-[var(--theme-text)] hover:text-[var(--theme-primary)] transition-colors">Kelola Konten →</button>
+                <div className="flex items-center justify-between pt-4 mt-5 border-t border-slate-100/50">
+                  <button onClick={() => openEditSession(session)} className="text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-primary transition-colors flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[14px]">edit</span> Edit
+                  </button>
+                  <button onClick={() => navigate(`/kencana-admin/sessions/${session.id}/content`)} className="text-[10px] font-bold uppercase tracking-widest text-primary hover:opacity-80 transition-opacity flex items-center gap-1.5">
+                    Kelola Konten <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+                  </button>
                 </div>
               </div>
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* Add Session Modal */}
+      {/* Add Session Custom Modal (from Faculty Admin style) */}
       <DialogModal
         open={showAddSessionModal}
         onOpenChange={setShowAddSessionModal}
-        title="Tambah Sesi Baru"
-        description="Lengkapi detail sesi untuk ditambahkan ke tahap orientasi aktif."
-        maxWidth="max-w-md"
+        title="Buat Sesi Baru"
+        subtitle="Isi semua detail sesi di bawah ini dengan lengkap."
+        icon={<span className="material-symbols-outlined">add_box</span>}
+        maxWidth="max-w-lg"
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => setShowAddSessionModal(false)}
+              className="px-5 h-10 rounded-xl border border-[var(--theme-border)] text-xs font-bold uppercase tracking-wider text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg)] transition-colors"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              form="createSessionForm"
+              disabled={createSessionMutation.isPending}
+              className="px-6 h-10 rounded-xl text-xs font-bold uppercase tracking-wider bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white shadow-md active:scale-95 transition-all flex items-center gap-2"
+            >
+              {createSessionMutation.isPending ? <span className="material-symbols-outlined animate-spin text-[16px]">sync</span> : <span className="material-symbols-outlined text-[16px]">save</span>}
+              <span>Simpan Sesi</span>
+            </button>
+          </>
+        }
       >
-        <form onSubmit={handleCreateSession} className="p-6 space-y-4">
+        <form id="createSessionForm" onSubmit={handleCreateSession} className="space-y-5">
           <div>
-            <label className="block text-xs font-bold text-[var(--theme-text-muted)] mb-1">Judul Sesi</label>
-            <input type="text" required value={sessionForm.title} onChange={e => setSessionForm({...sessionForm, title: e.target.value})} className="w-full h-10 px-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl focus:outline-none focus:border-[var(--theme-primary)] text-sm font-semibold" />
+            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Judul Sesi</label>
+            <input
+              value={sessionForm.title}
+              onChange={e => set('title', e.target.value)}
+              placeholder="Contoh: Sesi 1 - Pengenalan Kampus..."
+              required
+              className="w-full h-12 px-4 rounded-2xl border border-slate-200/60 bg-transparent/50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-transparent focus:ring-4 focus:ring-primary/10 transition-all"
+            />
           </div>
+          
           <div>
-            <label className="block text-xs font-bold text-[var(--theme-text-muted)] mb-1">Deskripsi</label>
-            <textarea rows="3" value={sessionForm.description} onChange={e => setSessionForm({...sessionForm, description: e.target.value})} className="w-full p-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl focus:outline-none focus:border-[var(--theme-primary)] text-sm font-medium" />
+            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Deskripsi Sesi</label>
+            <textarea
+              value={sessionForm.description}
+              onChange={e => set('description', e.target.value)}
+              placeholder="Materi yang akan dibahas..."
+              rows="3"
+              className="w-full px-4 py-3 rounded-2xl border border-slate-200/60 bg-transparent/50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-transparent focus:ring-4 focus:ring-primary/10 transition-all resize-none"
+            />
           </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-[var(--theme-text-muted)] mb-1">Mulai</label>
-              <input type="date" value={sessionForm.start_date} onChange={e => setSessionForm({...sessionForm, start_date: e.target.value})} className="w-full h-10 px-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl focus:outline-none focus:border-[var(--theme-primary)] text-sm font-semibold" />
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Tanggal Mulai</label>
+              <input
+                type="date"
+                value={sessionForm.start_date}
+                onChange={e => set('start_date', e.target.value)}
+                className="w-full h-12 px-4 rounded-2xl border border-slate-200/60 bg-transparent/50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-transparent focus:ring-4 focus:ring-primary/10 transition-all"
+              />
             </div>
             <div>
-              <label className="block text-xs font-bold text-[var(--theme-text-muted)] mb-1">Berakhir</label>
-              <input type="date" value={sessionForm.end_date} onChange={e => setSessionForm({...sessionForm, end_date: e.target.value})} className="w-full h-10 px-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl focus:outline-none focus:border-[var(--theme-primary)] text-sm font-semibold" />
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Tanggal Berakhir</label>
+              <input
+                type="date"
+                value={sessionForm.end_date}
+                onChange={e => set('end_date', e.target.value)}
+                className="w-full h-12 px-4 rounded-2xl border border-slate-200/60 bg-transparent/50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-transparent focus:ring-4 focus:ring-primary/10 transition-all"
+              />
             </div>
           </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-[var(--theme-text-muted)] mb-1">Status</label>
-              <SelectField
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Status Sesi</label>
+              <select
                 value={sessionForm.status}
-                onValueChange={(val) => setSessionForm({ ...sessionForm, status: val })}
-                className="w-full"
+                onChange={e => set('status', e.target.value)}
+                className="w-full h-12 px-4 rounded-2xl border border-slate-200/60 bg-transparent/50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-transparent focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer"
               >
-                <SelectOption value="active">Aktif</SelectOption>
-                <SelectOption value="locked">Terkunci</SelectOption>
-              </SelectField>
+                <option value="active">Aktif</option>
+                <option value="locked">Terkunci</option>
+              </select>
             </div>
             <div>
-              <label className="block text-xs font-bold text-[var(--theme-text-muted)] mb-1">Sifat</label>
-              <SelectField
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Sifat Sesi</label>
+              <select
                 value={String(sessionForm.is_required)}
-                onValueChange={(val) => setSessionForm({ ...sessionForm, is_required: val === 'true' })}
-                className="w-full"
+                onChange={e => set('is_required', e.target.value === 'true')}
+                className="w-full h-12 px-4 rounded-2xl border border-slate-200/60 bg-transparent/50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-transparent focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer"
               >
-                <SelectOption value="true">Wajib</SelectOption>
-                <SelectOption value="false">Opsional</SelectOption>
-              </SelectField>
+                <option value="true">Wajib</option>
+                <option value="false">Opsional</option>
+              </select>
             </div>
-          </div>
-          <div className="flex justify-end gap-3 pt-4 border-t border-[var(--theme-border-muted)]">
-            <button type="button" onClick={() => setShowAddSessionModal(false)} className="px-4 py-2 text-xs font-bold text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg)] rounded-xl transition-colors">Batal</button>
-            <button type="submit" disabled={createSessionMutation.isPending} className="px-5 py-2 h-10 bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-xs font-bold rounded-xl shadow-md transition-colors">Simpan Sesi</button>
           </div>
         </form>
       </DialogModal>
 
-      {/* Edit Session Modal */}
+      {/* Edit Session Custom Modal */}
       <DialogModal
         open={showEditSessionModal}
         onOpenChange={setShowEditSessionModal}
-        title="Edit Detail Sesi"
-        description="Perbarui informasi dan parameter waktu untuk sesi orientasi."
-        maxWidth="max-w-md"
+        title="Update Detail Sesi"
+        subtitle="Perbarui informasi sesi di bawah ini."
+        icon={<span className="material-symbols-outlined">edit_square</span>}
+        maxWidth="max-w-lg"
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => setShowEditSessionModal(false)}
+              className="px-5 h-10 rounded-xl border border-[var(--theme-border)] text-xs font-bold uppercase tracking-wider text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg)] transition-colors"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              form="editSessionForm"
+              disabled={updateSessionMutation.isPending}
+              className="px-6 h-10 rounded-xl text-xs font-bold uppercase tracking-wider bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white shadow-md active:scale-95 transition-all flex items-center gap-2"
+            >
+              {updateSessionMutation.isPending ? <span className="material-symbols-outlined animate-spin text-[16px]">sync</span> : <span className="material-symbols-outlined text-[16px]">save</span>}
+              <span>Update Sesi</span>
+            </button>
+          </>
+        }
       >
-        <form onSubmit={handleUpdateSession} className="p-6 space-y-4">
+        <form id="editSessionForm" onSubmit={handleUpdateSession} className="space-y-5">
           <div>
-            <label className="block text-xs font-bold text-[var(--theme-text-muted)] mb-1">Judul Sesi</label>
-            <input type="text" required value={sessionForm.title} onChange={e => setSessionForm({...sessionForm, title: e.target.value})} className="w-full h-10 px-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl focus:outline-none focus:border-[var(--theme-primary)] text-sm font-semibold" />
+            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Judul Sesi</label>
+            <input
+              value={sessionForm.title}
+              onChange={e => set('title', e.target.value)}
+              required
+              className="w-full h-12 px-4 rounded-2xl border border-slate-200/60 bg-transparent/50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-transparent focus:ring-4 focus:ring-primary/10 transition-all"
+            />
           </div>
+          
           <div>
-            <label className="block text-xs font-bold text-[var(--theme-text-muted)] mb-1">Deskripsi</label>
-            <textarea rows="3" value={sessionForm.description} onChange={e => setSessionForm({...sessionForm, description: e.target.value})} className="w-full p-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl focus:outline-none focus:border-[var(--theme-primary)] text-sm font-medium" />
+            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Deskripsi Sesi</label>
+            <textarea
+              value={sessionForm.description}
+              onChange={e => set('description', e.target.value)}
+              rows="3"
+              className="w-full px-4 py-3 rounded-2xl border border-slate-200/60 bg-transparent/50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-transparent focus:ring-4 focus:ring-primary/10 transition-all resize-none"
+            />
           </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-[var(--theme-text-muted)] mb-1">Mulai</label>
-              <input type="date" value={sessionForm.start_date} onChange={e => setSessionForm({...sessionForm, start_date: e.target.value})} className="w-full h-10 px-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl focus:outline-none focus:border-[var(--theme-primary)] text-sm font-semibold" />
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Tanggal Mulai</label>
+              <input
+                type="date"
+                value={sessionForm.start_date}
+                onChange={e => set('start_date', e.target.value)}
+                className="w-full h-12 px-4 rounded-2xl border border-slate-200/60 bg-transparent/50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-transparent focus:ring-4 focus:ring-primary/10 transition-all"
+              />
             </div>
             <div>
-              <label className="block text-xs font-bold text-[var(--theme-text-muted)] mb-1">Berakhir</label>
-              <input type="date" value={sessionForm.end_date} onChange={e => setSessionForm({...sessionForm, end_date: e.target.value})} className="w-full h-10 px-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl focus:outline-none focus:border-[var(--theme-primary)] text-sm font-semibold" />
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Tanggal Berakhir</label>
+              <input
+                type="date"
+                value={sessionForm.end_date}
+                onChange={e => set('end_date', e.target.value)}
+                className="w-full h-12 px-4 rounded-2xl border border-slate-200/60 bg-transparent/50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-transparent focus:ring-4 focus:ring-primary/10 transition-all"
+              />
             </div>
           </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-[var(--theme-text-muted)] mb-1">Status</label>
-              <SelectField
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Status Sesi</label>
+              <select
                 value={sessionForm.status}
-                onValueChange={(val) => setSessionForm({ ...sessionForm, status: val })}
-                className="w-full"
+                onChange={e => set('status', e.target.value)}
+                className="w-full h-12 px-4 rounded-2xl border border-slate-200/60 bg-transparent/50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-transparent focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer"
               >
-                <SelectOption value="active">Aktif</SelectOption>
-                <SelectOption value="locked">Terkunci</SelectOption>
-                <SelectOption value="published">Diterbitkan</SelectOption>
-              </SelectField>
+                <option value="active">Aktif</option>
+                <option value="locked">Terkunci</option>
+                <option value="published">Diterbitkan</option>
+              </select>
             </div>
             <div>
-              <label className="block text-xs font-bold text-[var(--theme-text-muted)] mb-1">Sifat</label>
-              <SelectField
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Sifat Sesi</label>
+              <select
                 value={String(sessionForm.is_required)}
-                onValueChange={(val) => setSessionForm({ ...sessionForm, is_required: val === 'true' })}
-                className="w-full"
+                onChange={e => set('is_required', e.target.value === 'true')}
+                className="w-full h-12 px-4 rounded-2xl border border-slate-200/60 bg-transparent/50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-transparent focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer"
               >
-                <SelectOption value="true">Wajib</SelectOption>
-                <SelectOption value="false">Opsional</SelectOption>
-              </SelectField>
+                <option value="true">Wajib</option>
+                <option value="false">Opsional</option>
+              </select>
             </div>
-          </div>
-          <div className="flex justify-end gap-3 pt-4 border-t border-[var(--theme-border-muted)]">
-            <button type="button" onClick={() => setShowEditSessionModal(false)} className="px-4 py-2 text-xs font-bold text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg)] rounded-xl transition-colors">Batal</button>
-            <button type="submit" disabled={updateSessionMutation.isPending} className="px-5 py-2 h-10 bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-xs font-bold rounded-xl shadow-md transition-colors">Simpan Perubahan</button>
           </div>
         </form>
       </DialogModal>

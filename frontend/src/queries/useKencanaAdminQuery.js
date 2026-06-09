@@ -437,3 +437,9 @@ export const useDeleteMentorAssignmentMutation = () => {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['kencana-admin', 'mentor-assignments'] }),
   });
 };
+
+export const useSearchStudentsQuery = (search, portal = 'admin') => useQuery({
+	queryKey: [`kencana-${portal}`, 'search-students', search],
+	queryFn: async () => unwrap(await api.get(`${kencanaBase(portal)}/students`, { params: { search } })),
+	enabled: search.length >= 3,
+});

@@ -6,6 +6,9 @@ import { DashboardHero, DashboardStatGrid, DashboardStatCard } from '@/component
 import { PageContent } from '@/components/ui/page'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
+import { DataTable } from '@/components/ui/DataTable'
+import { Badge } from '@/components/ui/Badge'
+import { SquarePen, Trash2 } from 'lucide-react'
 
 const EMPTY_FORM = {
   nama: '',
@@ -29,7 +32,6 @@ export default function KategoriOrmawaPage() {
   const [formData, setFormData]   = useState(EMPTY_FORM)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [delTarget, setDelTarget] = useState(null)
-  const [search, setSearch]       = useState('')
 
   const fetchData = async () => {
     setLoading(true)
@@ -97,10 +99,7 @@ export default function KategoriOrmawaPage() {
     }
   }
 
-  const filtered = useMemo(() =>
-    kategoris.filter(k => !search || k.nama.toLowerCase().includes(search.toLowerCase())),
-    [kategoris, search]
-  )
+
 
   const totalKategori    = kategoris.length
   const totalAfiliasi    = kategoris.filter(k => k.terafiliasi_fakultas).length
@@ -175,124 +174,130 @@ export default function KategoriOrmawaPage() {
         </div>
       </div>
 
-      {/* ── Toolbar + Table ────────────────── */}
-      <div className="glass-card rounded-2xl border border-slate-200/60 overflow-hidden shadow-none">
-        {/* Toolbar */}
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-100">
-          <div className="relative flex-1 max-w-xs">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
-            <input
-              type="text"
-              placeholder="Cari kategori..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="w-full h-10 pl-10 pr-4 rounded-xl border border-slate-200/60 bg-white text-sm focus:outline-none focus:border-primary transition-all"
-            />
-          </div>
-          <span className="text-xs text-muted font-medium ml-auto">
-            {filtered.length} kategori{search ? ` dari ${kategoris.length}` : ''}
-          </span>
-        </div>
-
-        {/* Table */}
-        {loading ? (
-          <div className="flex items-center justify-center h-48">
-            <div className="animate-spin h-8 w-8 border-2 border-t-transparent rounded-full" style={{ borderColor: 'var(--theme-primary)', borderTopColor: 'transparent' }} />
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-48 gap-2 text-muted">
-            <span className="material-symbols-outlined text-4xl">category</span>
-            <p className="text-sm">{search ? 'Tidak ada hasil yang cocok' : 'Belum ada kategori'}</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse font-inter">
-              <thead>
-                <tr className="border-b border-slate-100 bg-slate-50/80 text-[10px] font-black uppercase tracking-widest text-slate-400">
-                  <th className="px-5 py-3 w-8">#</th>
-                  <th className="px-5 py-3">Nama Kategori</th>
-                  <th className="px-5 py-3">Deskripsi</th>
-                  <th className="px-4 py-3 text-center">Afiliasi Fakultas</th>
-                  <th className="px-4 py-3 text-center">Wajib Prodi</th>
-                  <th className="px-4 py-3 text-center">Tipe</th>
-                  <th className="px-5 py-3 text-right">Aksi</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100/60">
-                {filtered.map((kat, i) => (
-                  <tr key={kat.id} className="hover:bg-slate-50/50 transition-colors duration-150">
-                    <td className="px-5 py-4 text-xs text-muted font-mono">{i + 1}</td>
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-2.5">
-                        <div className={cn(
-                          'h-8 w-8 rounded-xl flex items-center justify-center text-[14px] font-black shrink-0',
-                          kat.terafiliasi_fakultas ? 'bg-blue-100 text-blue-600' : 'bg-emerald-100 text-emerald-600'
-                        )}>
-                          {kat.nama.charAt(0)}
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-on-surface">{kat.nama}</p>
-                          {kat.is_system && (
-                            <span className="text-[9px] font-black text-orange-500 uppercase tracking-wider">🔒 Sistem</span>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-5 py-4 max-w-xs">
-                      <p className="text-xs text-muted line-clamp-2">{kat.deskripsi || <span className="italic text-slate-300">—</span>}</p>
-                    </td>
-                    <td className="px-4 py-4 text-center">
-                      {kat.terafiliasi_fakultas ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold">
-                          <span className="material-symbols-outlined text-[12px]">account_balance</span>
-                          Via Fakultas
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">
-                          <span className="material-symbols-outlined text-[12px]">school</span>
-                          Langsung Univ
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-4 text-center">
-                      {kat.wajib_prodi ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[10px] font-bold">Wajib</span>
-                      ) : (
-                        <span className="text-slate-300 text-xs">—</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-4 text-center">
-                      <span className={cn(
-                        'inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold',
-                        kat.is_system ? 'bg-orange-100 text-orange-600' : 'bg-slate-100 text-slate-500'
-                      )}>
-                        {kat.is_system ? 'Bawaan' : 'Kustom'}
+      {/* ── Data Table ─────────────────────── */}
+      <div className="flex flex-col gap-4">
+        <DataTable
+          searchable={true}
+          searchPlaceholder="Cari kategori..."
+          searchWidth="sm:w-80"
+          onSearch={(data, query) => data.filter(k => k.nama.toLowerCase().includes(query.toLowerCase()))}
+          data={kategoris}
+          loading={loading}
+          emptyMessage="Belum ada kategori terdaftar"
+          columns={[
+            {
+              key: 'index',
+              label: 'No',
+              className: 'w-[60px] text-center',
+              cellClassName: 'text-center',
+              render: (_, __, i) => <span className="text-[11px] text-[var(--theme-text-muted)] font-mono font-bold">{i + 1}</span>
+            },
+            {
+              key: 'nama',
+              label: 'Nama Kategori',
+              className: 'w-[200px]',
+              render: (_, kat) => (
+                <div className="flex items-center gap-3">
+                  <div className={cn(
+                    'h-8 w-8 rounded-xl flex items-center justify-center text-[13px] font-black shrink-0',
+                    kat.terafiliasi_fakultas ? 'bg-[var(--theme-info-light)] text-[var(--theme-info)]' : 'bg-[var(--theme-success-light)] text-[var(--theme-success)]'
+                  )}>
+                    {kat.nama.charAt(0)}
+                  </div>
+                  <div className="flex flex-col">
+                    <p className="text-[13px] font-bold text-[var(--theme-text)] leading-tight">{kat.nama}</p>
+                    {kat.is_system && (
+                      <span className="text-[9px] font-black text-[var(--theme-warning)] uppercase tracking-wider flex items-center gap-0.5 mt-0.5">
+                        <span className="material-symbols-outlined text-[10px]">lock</span> Sistem
                       </span>
-                    </td>
-                    <td className="px-5 py-4">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => openEdit(kat)}
-                          className="h-8 w-8 rounded-lg bg-slate-100 hover:bg-primary/10 hover:text-primary flex items-center justify-center transition-colors"
-                        >
-                          <span className="material-symbols-outlined text-[15px]">edit</span>
-                        </button>
-                        {!kat.is_system && (
-                          <button
-                            onClick={() => setDelTarget(kat)}
-                            className="h-8 w-8 rounded-lg bg-slate-100 hover:bg-red-100 hover:text-red-600 flex items-center justify-center transition-colors"
-                          >
-                            <span className="material-symbols-outlined text-[15px]">delete</span>
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                    )}
+                  </div>
+                </div>
+              )
+            },
+            {
+              key: 'deskripsi',
+              label: 'Deskripsi',
+              className: 'min-w-[280px]',
+              render: (_, kat) => (
+                <p className="text-[11px] text-[var(--theme-text-muted)] font-medium leading-relaxed pr-4">
+                  {kat.deskripsi || <span className="italic text-[var(--theme-text-subtle)]">—</span>}
+                </p>
+              )
+            },
+            {
+              key: 'afiliasi',
+              label: 'Afiliasi Fakultas',
+              className: 'w-[160px]',
+              render: (_, kat) => (
+                <div className="flex items-center">
+                  {kat.terafiliasi_fakultas ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[var(--theme-primary-light)] text-[var(--theme-primary)] text-[10px] font-bold tracking-wide">
+                      <span className="material-symbols-outlined text-[13px]">account_balance</span>
+                      Via Fakultas
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[var(--theme-success-light)] text-[var(--theme-success)] text-[10px] font-bold tracking-wide">
+                      <span className="material-symbols-outlined text-[13px]">school</span>
+                      Langsung Univ
+                    </span>
+                  )}
+                </div>
+              )
+            },
+            {
+              key: 'wajib_prodi',
+              label: 'Wajib Prodi',
+              className: 'w-[120px]',
+              render: (_, kat) => (
+                <div className="flex items-center">
+                  {kat.wajib_prodi ? (
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-[var(--theme-secondary-light)] text-[var(--theme-secondary)] text-[10px] font-bold tracking-wide">Wajib</span>
+                  ) : (
+                    <span className="text-[var(--theme-text-subtle)] text-xs font-bold ml-2">—</span>
+                  )}
+                </div>
+              )
+            },
+            {
+              key: 'tipe',
+              label: 'Tipe',
+              className: 'w-[100px]',
+              render: (_, kat) => (
+                <span className={cn(
+                  'inline-flex px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide',
+                  kat.is_system ? 'bg-[var(--theme-warning-light)] text-[var(--theme-warning)]' : 'bg-[var(--theme-bg)] text-[var(--theme-text-muted)] border border-[var(--theme-border)]'
+                )}>
+                  {kat.is_system ? 'Bawaan' : 'Kustom'}
+                </span>
+              )
+            },
+            {
+              key: 'actions',
+              label: 'Aksi',
+              className: 'w-[110px] text-right',
+              cellClassName: 'text-right',
+              render: (_, kat) => (
+                <div className="flex items-center justify-end gap-1">
+                  <button
+                    onClick={() => openEdit(kat)}
+                    className="p-1.5 rounded-lg text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] hover:bg-[var(--theme-bg)] transition-colors flex items-center justify-center cursor-pointer"
+                  >
+                    <SquarePen className="w-4 h-4" strokeWidth={2.5} />
+                  </button>
+                  {!kat.is_system && (
+                    <button
+                      onClick={() => setDelTarget(kat)}
+                      className="p-1.5 rounded-lg text-[var(--theme-error)] hover:bg-[var(--theme-error-light)] transition-colors flex items-center justify-center cursor-pointer"
+                    >
+                      <Trash2 className="w-4 h-4" strokeWidth={2.5} />
+                    </button>
+                  )}
+                </div>
+              )
+            }
+          ]}
+        />
       </div>
 
       {/* ── Modal Form ─────────────────────── */}

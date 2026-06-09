@@ -321,35 +321,46 @@ const Groups = ({ portal: propPortal, facultyId: propFacultyId }) => {
         onOpenChange={setShowForm}
         title={editingGroup ? 'Edit Detail Kelompok' : 'Buat Kelompok Baru'}
         subtitle="Silakan tentukan nomor kelompok, nama kelompok, kuota, dan mentor pembimbing."
+        icon={<span className="material-symbols-outlined">{editingGroup ? 'edit_square' : 'group_add'}</span>}
         maxWidth="max-w-2xl"
+        footer={
+          <>
+            <button type="button" onClick={() => setShowForm(false)} className="px-5 h-10 rounded-xl border border-[var(--theme-border)] text-xs font-bold uppercase tracking-wider text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg)] transition-colors">
+              Batal
+            </button>
+            <button type="submit" form="groupForm" className="px-6 h-10 rounded-xl text-xs font-bold uppercase tracking-wider bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white shadow-md active:scale-95 transition-all flex items-center gap-2">
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>save</span> Simpan
+            </button>
+          </>
+        }
       >
-        <form onSubmit={saveGroup} className="p-6 space-y-4 font-body text-left">
+        <form id="groupForm" onSubmit={saveGroup} className="space-y-4 font-body text-left">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-1.5">
-              <span className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider pl-1">Nomor Kelompok</span>
-              <input required type="number" min="1" value={form.group_number} onChange={e => setForm({ ...form, group_number: e.target.value })} placeholder="No. Kel." className="w-full h-10 px-4 rounded-xl border border-[var(--theme-border)] bg-white text-sm font-medium text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors" />
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider pl-1">Nomor Kelompok</span>
+              <input required type="number" min="1" value={form.group_number} onChange={e => setForm({ ...form, group_number: e.target.value })} placeholder="No. Kel." className="w-full h-10 px-4 rounded-xl bg-slate-50 border border-slate-200 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)]" />
             </div>
             <div className="md:col-span-2 space-y-1.5">
-              <span className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider pl-1">Nama Kelompok</span>
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider pl-1">Nama Kelompok</span>
               <input required value={form.name} onChange={e => {
                 const newName = e.target.value;
                 const newCode = newName.toUpperCase().replace(/\s+/g, '-').replace(/[^A-Z0-9-]/g, '');
                 setForm({ ...form, name: newName, code: newCode });
-              }} placeholder="Contoh: Praja" className="w-full h-10 px-4 rounded-xl border border-[var(--theme-border)] bg-white text-sm font-medium text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors" />
+              }} placeholder="Contoh: Praja" className="w-full h-10 px-4 rounded-xl bg-slate-50 border border-slate-200 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)]" />
             </div>
           </div>
           <div className="space-y-1.5">
-            <span className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider pl-1">Kode Kelompok</span>
-            <input value={form.code} onChange={e => setForm({ ...form, code: e.target.value })} placeholder="Contoh: PRAJA-01" className="w-full h-10 px-4 rounded-xl border border-[var(--theme-border)] bg-white text-sm font-medium text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors" />
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider pl-1">Kode Kelompok</span>
+            <input value={form.code} onChange={e => setForm({ ...form, code: e.target.value })} placeholder="Contoh: PRAJA-01" className="w-full h-10 px-4 rounded-xl bg-slate-50 border border-slate-200 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)]" />
           </div>
           <div className="space-y-1.5">
-            <span className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider pl-1">Deskripsi</span>
-            <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Deskripsi kelompok..." rows="2" className="w-full p-4 rounded-xl border border-[var(--theme-border)] bg-white text-sm font-medium text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors resize-none" />
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider pl-1">Deskripsi</span>
+            <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Deskripsi kelompok..." rows="2" className="w-full p-4 rounded-xl bg-slate-50 border border-slate-200 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] resize-none" />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {!isFacultyScoped && (
               <div className="space-y-1.5">
-                <span className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider pl-1">Scope</span>
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider pl-1">Scope</span>
                 <SelectField
                   value={form.scope_type}
                   onValueChange={(val) => setForm({ ...form, scope_type: val, mentor_id: '' })}
@@ -362,7 +373,7 @@ const Groups = ({ portal: propPortal, facultyId: propFacultyId }) => {
             )}
             {((!isFacultyScoped && form.scope_type === 'faculty') || isFacultyScoped) && (
               <div className="space-y-1.5">
-                <span className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider pl-1">Fakultas</span>
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider pl-1">Fakultas</span>
                 <SelectField
                   value={form.fakultas_id}
                   onValueChange={(val) => setForm({ ...form, fakultas_id: val })}
@@ -378,7 +389,7 @@ const Groups = ({ portal: propPortal, facultyId: propFacultyId }) => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="md:col-span-2 space-y-1.5">
-              <span className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider pl-1">Mentor/DP</span>
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider pl-1">Mentor/DP</span>
               <SelectField
                 value={form.mentor_id}
                 onValueChange={(val) => setForm({ ...form, mentor_id: val })}
@@ -391,12 +402,12 @@ const Groups = ({ portal: propPortal, facultyId: propFacultyId }) => {
               </SelectField>
             </div>
             <div className="space-y-1.5">
-              <span className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider pl-1">Kuota</span>
-              <input type="number" min="1" value={form.capacity} onChange={e => setForm({ ...form, capacity: e.target.value })} className="w-full h-10 px-4 rounded-xl border border-[var(--theme-border)] bg-white text-sm font-medium text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors" />
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider pl-1">Kuota</span>
+              <input type="number" min="1" value={form.capacity} onChange={e => setForm({ ...form, capacity: e.target.value })} className="w-full h-10 px-4 rounded-xl bg-slate-50 border border-slate-200 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)]" />
             </div>
           </div>
           <div className="space-y-1.5">
-            <span className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider pl-1">Status Keaktifan</span>
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider pl-1">Status Keaktifan</span>
             <SelectField
               value={form.status}
               onValueChange={(val) => setForm({ ...form, status: val })}
@@ -406,12 +417,6 @@ const Groups = ({ portal: propPortal, facultyId: propFacultyId }) => {
               <SelectOption value="inactive">Nonaktif</SelectOption>
               <SelectOption value="completed">Selesai</SelectOption>
             </SelectField>
-          </div>
-          <div className="flex justify-end gap-3 pt-5 border-t border-[var(--theme-border-muted)]">
-            <button type="button" onClick={() => setShowForm(false)} className="h-10 px-5 rounded-xl border border-[var(--theme-border)] text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg)] transition-colors">Batal</button>
-            <button type="submit" className="h-10 px-6 rounded-xl text-xs font-semibold uppercase tracking-wider bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white shadow-md active:scale-95 transition-all flex items-center gap-2">
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>save</span> Simpan
-            </button>
           </div>
         </form>
       </DialogModal>
