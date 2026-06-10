@@ -10,7 +10,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Button } from "@/components/ui/Button"
 import { PageContent } from "@/components/ui/page/PageContent"
 import { DashboardHero } from "@/components/ui/dashboard/DashboardHero"
-import Dialog, { DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/Dialog"
+import { DialogModal, ModalCancelButton } from "@/components/ui/DialogModal"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const RefreshCw = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>sync</span>;
@@ -734,16 +734,25 @@ export default function MahasiswaPage() {
         </div>
 
       {/* ── Detail Modal ── */}
-      <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)} maxWidth="max-w-xl">
-        <DialogContent className="max-w-xl p-0 overflow-hidden border border-[var(--theme-border)] shadow-2xl rounded-2xl bg-[var(--theme-surface)] flex flex-col max-h-[90vh]">
+      <DialogModal
+        open={!!selected}
+        onOpenChange={(open) => !open && setSelected(null)}
+        icon="person"
+        title="Detail Mahasiswa"
+        subtitle="Informasi akademik dan biodata lengkap"
+        badgeText="Profil Mahasiswa"
+        maxWidth="max-w-xl"
+        bodyClassName="p-0 flex flex-col"
+        footer={<ModalCancelButton onClick={() => setSelected(null)} text="Tutup" />}
+      >
           {/* Header */}
-          <DialogHeader className="shrink-0 relative bg-[var(--theme-bg)]/50 p-6 pb-5 border-b border-[var(--theme-border-muted)]">
+          <div className="shrink-0 relative bg-[var(--theme-bg)]/50 p-6 pb-5 border-b border-[var(--theme-border-muted)]">
             <div className="relative z-10 flex items-center gap-4 mb-4">
               <StudentAvatar src={selected?.Foto} name={selected?.Nama} className="w-14 h-14 rounded-2xl shadow-inner ring-2 ring-[var(--theme-border)]" />
               <div className="min-w-0">
                 <p className="text-[9px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-[0.25em] mb-1">Profil Mahasiswa</p>
-                <DialogTitle className="text-base font-bold font-headline leading-tight truncate text-[var(--theme-text)]">{selected?.Nama}</DialogTitle>
-                <DialogDescription className="text-xs text-[var(--theme-text-muted)] mt-0.5">{selected?.ProgramStudi}</DialogDescription>
+                <h3 className="text-base font-bold font-headline leading-tight truncate text-[var(--theme-text)]">{selected?.Nama}</h3>
+                <p className="text-xs text-[var(--theme-text-muted)] mt-0.5">{selected?.ProgramStudi}</p>
               </div>
             </div>
             <div className="relative z-10 flex flex-wrap gap-2">
@@ -763,7 +772,7 @@ export default function MahasiswaPage() {
                 )
               })()}
             </div>
-          </DialogHeader>
+          </div>
 
           {/* Body */}
           <div className="flex-1 overflow-y-auto">
@@ -791,16 +800,7 @@ export default function MahasiswaPage() {
               <InfoCard icon={FileText} label="Penghasilan" value={selected?.PenghasilanOrtu ? `Rp ${Number(selected.PenghasilanOrtu).toLocaleString('id-ID')}` : '—'} accent="border-l-[var(--theme-success)]" />
             </SectionBlock>
           </div>
-
-          {/* Footer */}
-          <DialogFooter className="px-5 py-4 border-t border-[var(--theme-border-muted)] bg-transparent flex justify-end gap-3 flex-shrink-0">
-            <button onClick={() => setSelected(null)}
-              className="w-full sm:w-auto h-10 px-6 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] text-xs font-semibold text-[var(--theme-text)] uppercase tracking-wider hover:bg-[var(--theme-bg)] transition-all cursor-pointer">
-              Tutup
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      </DialogModal>
     </PageContent>
   )
 }

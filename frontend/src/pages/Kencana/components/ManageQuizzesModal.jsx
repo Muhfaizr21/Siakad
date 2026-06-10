@@ -29,7 +29,14 @@ const StatusBadge = ({ status }) => {
 
 export const ManageQuizzesModal = ({ open, onOpenChange, sessionId }) => {
   const navigate = useNavigate();
-  const basePath = window.location.pathname.startsWith('/kencana-fakultas') ? '/kencana-fakultas' : window.location.pathname.startsWith('/kencana-fakult') ? '/kencana-fakult' : '/kencana-admin';
+  const getBasePath = () => {
+    const p = window.location.pathname;
+    if (p.includes('/admin/kencana-fakultas-admin')) return '/admin/kencana-fakultas-admin';
+    if (p.includes('/kencana-fakultas')) return '/kencana-fakultas';
+    if (p.includes('/kencana-fakult')) return '/kencana-fakult';
+    return '/kencana-admin';
+  };
+  const basePath = getBasePath();
   const { data: session, isLoading } = useSessionDetailQuery(sessionId, { enabled: !!sessionId && open });
   
   const [view, setView] = useState('list'); // 'list' | 'form'
@@ -110,6 +117,7 @@ export const ManageQuizzesModal = ({ open, onOpenChange, sessionId }) => {
         await createQuizMutation.mutateAsync(payload);
         toast.success('Kuis berhasil dibuat!');
       }
+      setEditingQuiz(null);
       setView('list');
     } catch (err) {
       toast.error('Gagal menyimpan kuis');
@@ -125,8 +133,8 @@ export const ManageQuizzesModal = ({ open, onOpenChange, sessionId }) => {
       open={open}
       onOpenChange={onOpenChange}
       title={view === 'list' ? `Kelola Kuis: ${session?.title || '...'}` : editingQuiz ? 'Edit Pengaturan Kuis' : 'Tambah Kuis Baru'}
-      description={view === 'list' ? 'Kelola daftar kuis evaluasi untuk sesi ini.' : 'Perbarui informasi waktu dan batasan pengerjaan kuis.'}
-      maxWidth="max-w-4xl"
+      description={view === 'list' ? 'Kelola semua kuis untuk sesi ini. Setidaknya 1 kuis wajib agar peserta bisa melaju ke tahap berikutnya.' : 'Isi form untuk membuat kuis baru. Link gform disarankan.'}
+      maxWidth="max-w-2xl"
     >
       <div className="p-6 md:p-8 max-h-[70vh] overflow-y-auto">
         {isLoading ? (
@@ -137,7 +145,10 @@ export const ManageQuizzesModal = ({ open, onOpenChange, sessionId }) => {
           <div className="space-y-6">
             <div className="flex justify-end">
               <button 
-                onClick={() => setView('form')}
+                onClick={() => {
+                  setEditingQuiz(null);
+                  setView('form');
+                }}
                 className="bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md transition-colors"
               >
                 + Tambah Kuis
@@ -232,7 +243,7 @@ export const ManageQuizzesModal = ({ open, onOpenChange, sessionId }) => {
             </div>
 
             <div className="flex justify-end gap-3 pt-4 border-t border-[var(--theme-border-muted)] mt-8">
-              <button type="button" onClick={() => setView('list')} className="px-5 py-2.5 rounded-xl font-bold text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg)] transition-colors text-xs">Kembali</button>
+              <button type="button" onClick={() => { setView('list'); setEditingQuiz(null); }} className="px-5 py-2.5 rounded-xl font-bold text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg)] transition-colors text-xs">Kembali</button>
               <button type="submit" disabled={isSaving} className="px-5 py-2.5 h-10 bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-xs font-bold rounded-xl shadow-md transition-colors">{isSaving ? 'Menyimpan...' : 'Simpan Kuis'}</button>
             </div>
           </form>

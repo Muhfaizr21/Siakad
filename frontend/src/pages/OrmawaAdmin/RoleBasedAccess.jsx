@@ -8,6 +8,7 @@ import { DataTable } from '@/components/ui/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
+import { DialogModal } from '@/components/ui/DialogModal'
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
@@ -423,16 +424,6 @@ export default function RoleBasedAccess() {
         title="Otoritas & Hak Akses"
         subtitle="Konfigurasi tata kelola otorisasi modul, hak istimewa role, dan kendali keamanan sistem."
         icon="security"
-        action={
-          <Button 
-            onClick={handleOpenAdd} 
-            className="h-10 px-6 rounded-xl text-white font-medium text-xs tracking-wider shadow-lg transition-all active:scale-95 shrink-0 w-full md:w-auto flex items-center justify-center gap-2"
-            style={{ backgroundColor: 'var(--theme-primary)' }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add</span>
-            <span>BUAT ROLE BARU</span>
-          </Button>
-        }
        
         breadcrumbs={[ { label: 'Dashboard', path: '/ormawa' }, { label: 'Otoritas & Hak Akses', path: '#' } ]} 
       />
@@ -476,59 +467,69 @@ export default function RoleBasedAccess() {
         </CardContent>
       </Card>
 
-      {/* ── CRUD Dialog (Gorgeously Redesigned and Fitted for Screen Viewport) ── */}
-      <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen} maxWidth="max-w-4xl">
-        <DialogContent>
-          <DialogHeader className="relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
-              <span className="material-symbols-outlined size-24 rotate-12 text-[var(--theme-primary)]">security</span>
-            </div>
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-1.5">
-                <div className="size-8 rounded-xl bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)]">
-                  <span className="material-symbols-outlined stroke-[3px]" style={{ fontSize: '16px' }}>security</span>
-                </div>
-                <Badge className="text-[9px] font-semibold tracking-widest px-2.5 py-0.5 bg-[var(--theme-primary-light)] text-[var(--theme-primary)] border-none rounded-md">RBAC SECURITY MATRIX</Badge>
-              </div>
-              <DialogTitle className="text-xl font-bold font-jakarta tracking-tight text-slate-800 uppercase leading-none">
-                {isEditMode ? 'Konfigurasi Hak Akses Role' : 'Daftarkan Role Baru'}
-              </DialogTitle>
-              <DialogDescription className="text-xs font-semibold text-slate-400 mt-1.5">
-                Definisikan kewenangan akses, tugas tanggung jawab, dan otorisasi modul fungsional ormawa.
-              </DialogDescription>
-            </div>
-          </DialogHeader>
-
-          <form onSubmit={handleSave}>
-            <div className="p-6 md:p-8 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar font-inter">
+      {/* ── CRUD Dialog (Premium Glassmorphism Style) ── */}
+      <DialogModal
+        open={isCrudOpen}
+        onOpenChange={setIsCrudOpen}
+        title={isEditMode ? 'Konfigurasi Hak Akses Role' : 'Daftarkan Role Baru'}
+        subtitle="Definisikan kewenangan akses, tugas tanggung jawab, dan otorisasi modul fungsional ormawa."
+        icon={<span className="material-symbols-outlined" style={{ fontSize: '24px' }}>security</span>}
+        maxWidth="max-w-4xl"
+        footer={
+          <>
+            <Button 
+              type="button" 
+              variant="outline"
+              onClick={() => setIsCrudOpen(false)} 
+            >
+              Batal
+            </Button>
+            <Button 
+              type="submit" 
+              form="rbac-form"
+              disabled={isSubmitting} 
+              className="bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white shadow-md flex items-center gap-2"
+            >
+              {isSubmitting ? (
+                <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span>
+              ) : (
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>save</span>
+              )}
+              <span>{isEditMode ? 'Simpan Otoritas' : 'Terbitkan Role'}</span>
+            </Button>
+          </>
+        }
+      >
+        <form id="rbac-form" onSubmit={handleSave}>
+          <div className="space-y-5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Nama Role */}
                 <div className="space-y-1.5">
-                  <Label className="text-[10px] font-bold text-[var(--theme-text-muted)] tracking-[0.2em] ml-1 uppercase font-headline">Nama Otoritas Role</Label>
+                  <Label className="text-xs font-semibold text-[var(--theme-text)]">Nama Otoritas Role</Label>
                   <Input 
                     required 
                     value={form.Nama} 
                     onChange={e => setForm({ ...form, Nama: e.target.value })} 
                     placeholder="Misal: Ketua, Bendahara, Staff Divisi..."
-                    className="h-10 rounded-xl border-border bg-[var(--theme-bg)]/50 focus:bg-[var(--theme-surface)] focus:ring-[var(--theme-primary-light)] shadow-none transition-all font-semibold text-xs" 
+                    className="w-full" 
                   />
                 </div>
 
                 {/* Deskripsi */}
                 <div className="space-y-1.5">
-                  <Label className="text-[10px] font-bold text-[var(--theme-text-muted)] tracking-[0.2em] ml-1 uppercase font-headline">Tanggung Jawab Singkat</Label>
+                  <Label className="text-xs font-semibold text-[var(--theme-text)]">Tanggung Jawab Singkat</Label>
                   <Input 
                     value={form.Deskripsi} 
                     onChange={e => setForm({ ...form, Deskripsi: e.target.value })} 
                     placeholder="Deskripsi singkat kewenangan tugas..."
-                    className="h-10 rounded-xl border-border bg-[var(--theme-bg)]/50 focus:bg-[var(--theme-surface)] focus:ring-[var(--theme-primary-light)] shadow-none transition-all font-semibold text-xs" 
+                    className="w-full" 
                   />
                 </div>
               </div>
 
               {/* CRUD Permission Matrix */}
               <div className="space-y-3">
-                <Label className="text-[10px] font-bold text-[var(--theme-text-muted)] tracking-[0.2em] ml-1 uppercase font-headline block">
+                <Label className="text-xs font-semibold text-[var(--theme-text)] block">
                   Matriks Izin Otorisasi (Centang per CRUD)
                 </Label>
                 <div className="max-h-[300px] overflow-y-auto pr-1 no-scrollbar">
@@ -596,30 +597,8 @@ export default function RoleBasedAccess() {
               </div>
             </div>
 
-            <DialogFooter>
-              <button 
-                type="button" 
-                onClick={() => setIsCrudOpen(false)} 
-                className="flex-1 sm:flex-initial h-12 px-6 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-body cursor-pointer"
-              >
-                Batal
-              </button>
-              <button 
-                type="submit" 
-                disabled={isSubmitting} 
-                className="flex-1 sm:flex-initial h-12 px-8 bg-neutral-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2 font-body disabled:opacity-50 cursor-pointer border-none"
-              >
-                {isSubmitting ? (
-                  <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }}>sync</span>
-                ) : (
-                  <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>save</span>
-                )}
-                <span>{isEditMode ? 'Simpan Otoritas' : 'Terbitkan Role'}</span>
-              </button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+        </form>
+      </DialogModal>
 
       {/* Delete Confirmation Modal */}
       <DeleteConfirmModal 

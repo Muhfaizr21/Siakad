@@ -44,7 +44,7 @@ const getShortFacultyName = (name) => {
 function StudentAvatar({ src, name, className = "w-9 h-9 rounded-xl" }) {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
-  
+
   const hasNoImage = !src || src.trim() === "" || src.endsWith("/profiles/") || src.endsWith("/students/") || src.endsWith("localhost:8000") || src.endsWith("localhost:8000/");
 
   return (
@@ -281,7 +281,7 @@ const AspirationControl = () => {
       const shortFac = fac.replace('Fakultas ', 'F. ').substring(0, 14)
       map[shortFac] = (map[shortFac] || 0) + 1
     })
-    return Object.entries(map).map(([name, value]) => ({ name, value })).sort((a,b) => b.value - a.value).slice(0,5)
+    return Object.entries(map).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 5)
   }, [viewableAspirations])
 
   const extraStats = useMemo(() => {
@@ -340,7 +340,7 @@ const AspirationControl = () => {
         const date = new Date(a.CreatedAt)
         const monthYear = date.toLocaleString('id-ID', { month: 'long', year: 'numeric' })
         monthCounts[monthYear] = (monthCounts[monthYear] || 0) + 1
-      } catch (e) {}
+      } catch (e) { }
     })
     let topMonth = '—'
     let topMonthCount = 0
@@ -380,7 +380,7 @@ const AspirationControl = () => {
   return (
     <PageContent>
       <Toaster position="top-right" />
-      
+
       <DashboardHero
         title="Global"
         highlightedTitle="Aspiration Hub"
@@ -388,7 +388,7 @@ const AspirationControl = () => {
         icon="forum"
         badges={[{ label: 'Incident Management', active: false }]}
         actions={
-          <Button 
+          <Button
             variant="outline"
             onClick={loadData}
             className="h-11 px-6 rounded-xl border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-100 hover:text-bku-primary gap-2.5 transition-all active:scale-95 shadow-none cursor-pointer font-headline"
@@ -399,583 +399,616 @@ const AspirationControl = () => {
         }
       />
 
-        {/* ── Stats Grid ──────────────────────────────────────────── */}
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-             <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none">
-                <div className="flex items-center gap-3 mb-3">
-                   <div className="w-10 h-10 bg-bku-primary/10 rounded-xl flex justify-center items-center text-bku-primary flex-shrink-0">
-                      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>chat</span>
-                   </div>
-                   <span className="text-[10px] font-black text-slate-400 font-headline uppercase tracking-widest">Active Tickets</span>
+      {/* ── Stats Grid ──────────────────────────────────────────── */}
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="glass-card p-6 rounded-3xl border border-slate-200/60 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden group bg-white/60">
+            <div className="absolute top-0 right-0 p-4 opacity-5 text-bku-primary group-hover:scale-110 transition-transform duration-500 pointer-events-none">
+              <span className="material-symbols-outlined" style={{ fontSize: '100px' }}>chat</span>
+            </div>
+            <div className="relative z-10 flex flex-col justify-between h-full space-y-4">
+              <div className="flex justify-between items-start">
+                <div className="w-12 h-12 bg-bku-primary/10 rounded-2xl flex justify-center items-center text-bku-primary border border-bku-primary/20 shadow-inner group-hover:bg-bku-primary group-hover:text-white transition-colors duration-300">
+                  <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>chat</span>
                 </div>
-                <p className="text-2xl font-black text-slate-800 font-headline leading-none tabular-nums">{computedStats.active}</p>
-                <p className="text-[11px] text-slate-400 font-medium mt-1">Aspirasi menunggu respons</p>
-             </div>
-
-             <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none">
-                <div className="flex items-center gap-3 mb-3">
-                   <div className="w-10 h-10 bg-rose-50 rounded-xl flex justify-center items-center text-rose-500 flex-shrink-0">
-                      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>error</span>
-                   </div>
-                   <span className="text-[10px] font-black text-slate-400 font-headline uppercase tracking-widest">SLA Overdue</span>
-                </div>
-                <p className="text-2xl font-black text-slate-800 font-headline leading-none tabular-nums">{computedStats.overdue}</p>
-                <p className="text-[11px] text-slate-400 font-medium mt-1">Melewati batas waktu SLA</p>
-             </div>
-
-             <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none">
-                <div className="flex items-center gap-3 mb-3">
-                   <div className="w-10 h-10 bg-emerald-50 rounded-xl flex justify-center items-center text-emerald-500 flex-shrink-0">
-                      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>check_circle</span>
-                   </div>
-                   <span className="text-[10px] font-black text-slate-400 font-headline uppercase tracking-widest">Resolved Today</span>
-                </div>
-                <p className="text-2xl font-black text-slate-800 font-headline leading-none tabular-nums">{computedStats.resolved}</p>
-                <p className="text-[11px] text-slate-400 font-medium mt-1">Ditangani hari ini</p>
-             </div>
-
-             <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none">
-                <div className="flex items-center gap-3 mb-3">
-                   <div className="w-10 h-10 bg-slate-100 rounded-xl flex justify-center items-center text-slate-600 flex-shrink-0">
-                      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>storage</span>
-                   </div>
-                   <span className="text-[10px] font-black text-slate-400 font-headline uppercase tracking-widest">Total Aspirasi</span>
-                </div>
-                <p className="text-2xl font-black text-slate-800 font-headline leading-none tabular-nums">{computedStats.total}</p>
-                <p className="text-[11px] text-slate-400 font-medium mt-1">Seluruh aspirasi masuk</p>
-             </div>
+                <span className="text-[9px] font-bold px-2 py-1 bg-bku-primary/10 text-bku-primary rounded-lg uppercase tracking-widest">Wait</span>
+              </div>
+              <div>
+                <span className="text-[10px] font-black text-slate-500 font-headline uppercase tracking-widest block mb-1">Active Tickets</span>
+                <p className="text-4xl font-black text-slate-800 font-headline leading-none tabular-nums tracking-tighter">{computedStats.active}</p>
+                <p className="text-[10px] text-slate-400 font-bold mt-2 uppercase tracking-widest">Menunggu respons</p>
+              </div>
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-             <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none bg-white">
-                <div className="flex items-center gap-3 mb-3">
-                   <div className="w-10 h-10 bg-blue-50 rounded-xl flex justify-center items-center text-blue-600 flex-shrink-0">
-                      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>group</span>
-                   </div>
-                   <span className="text-[10px] font-black text-slate-400 font-headline uppercase tracking-widest">Fakultas Teraktif</span>
+          <div className="glass-card p-6 rounded-3xl border border-rose-100 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden group bg-rose-50/30">
+            <div className="absolute top-0 right-0 p-4 opacity-5 text-rose-500 group-hover:scale-110 transition-transform duration-500 pointer-events-none">
+              <span className="material-symbols-outlined" style={{ fontSize: '100px' }}>timer</span>
+            </div>
+            <div className="relative z-10 flex flex-col justify-between h-full space-y-4">
+              <div className="flex justify-between items-start">
+                <div className="w-12 h-12 bg-rose-100 rounded-2xl flex justify-center items-center text-rose-600 border border-rose-200 shadow-inner group-hover:bg-rose-500 group-hover:text-white transition-colors duration-300">
+                  <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>error</span>
                 </div>
-                <p className="text-lg font-black text-slate-800 font-headline leading-none truncate">{getShortFacultyName(extraStats.topFaculty)}</p>
-                <p className="text-[11px] text-slate-400 font-medium mt-1">{extraStats.topFacultyCount} aspirasi masuk</p>
-             </div>
+                {computedStats.overdue > 0 && <span className="flex h-2 w-2 relative"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span></span>}
+              </div>
+              <div>
+                <span className="text-[10px] font-black text-rose-500 font-headline uppercase tracking-widest block mb-1">SLA Overdue</span>
+                <p className="text-4xl font-black text-slate-800 font-headline leading-none tabular-nums tracking-tighter">{computedStats.overdue}</p>
+                <p className="text-[10px] text-rose-400 font-bold mt-2 uppercase tracking-widest">Melewati batas waktu</p>
+              </div>
+            </div>
+          </div>
 
-             <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none bg-white">
-                <div className="flex items-center gap-3 mb-3">
-                   <div className="w-10 h-10 bg-emerald-50 rounded-xl flex justify-center items-center text-emerald-500 flex-shrink-0">
-                      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>chat</span>
-                   </div>
-                   <span className="text-[10px] font-black text-slate-400 font-headline uppercase tracking-widest">Kategori Terbanyak</span>
+          <div className="glass-card p-6 rounded-3xl border border-emerald-100 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden group bg-emerald-50/30">
+            <div className="absolute top-0 right-0 p-4 opacity-5 text-emerald-500 group-hover:scale-110 transition-transform duration-500 pointer-events-none">
+              <span className="material-symbols-outlined" style={{ fontSize: '100px' }}>check_circle</span>
+            </div>
+            <div className="relative z-10 flex flex-col justify-between h-full space-y-4">
+              <div className="flex justify-between items-start">
+                <div className="w-12 h-12 bg-emerald-100 rounded-2xl flex justify-center items-center text-emerald-600 border border-emerald-200 shadow-inner group-hover:bg-emerald-500 group-hover:text-white transition-colors duration-300">
+                  <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>check_circle</span>
                 </div>
-                <p className="text-lg font-black text-slate-800 font-headline leading-none truncate">{extraStats.topCategory}</p>
-                <p className="text-[11px] text-slate-400 font-medium mt-1">{extraStats.topCategoryCount} pengajuan</p>
-             </div>
+              </div>
+              <div>
+                <span className="text-[10px] font-black text-emerald-600 font-headline uppercase tracking-widest block mb-1">Resolved Today</span>
+                <p className="text-4xl font-black text-slate-800 font-headline leading-none tabular-nums tracking-tighter">{computedStats.resolved}</p>
+                <p className="text-[10px] text-emerald-500 font-bold mt-2 uppercase tracking-widest">Selesai hari ini</p>
+              </div>
+            </div>
+          </div>
 
-             <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none bg-white">
-                <div className="flex items-center gap-3 mb-3">
-                   <div className="w-10 h-10 bg-indigo-50 rounded-xl flex justify-center items-center text-indigo-600 flex-shrink-0">
-                      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>error_outline</span>
-                   </div>
-                   <span className="text-[10px] font-black text-slate-400 font-headline uppercase tracking-widest">Urgensi Dominan</span>
+          <div className="glass-card p-6 rounded-3xl border border-slate-200/60 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden group bg-slate-50/50">
+            <div className="absolute top-0 right-0 p-4 opacity-[0.03] text-slate-800 group-hover:scale-110 transition-transform duration-500 pointer-events-none">
+              <span className="material-symbols-outlined" style={{ fontSize: '100px' }}>storage</span>
+            </div>
+            <div className="relative z-10 flex flex-col justify-between h-full space-y-4">
+              <div className="flex justify-between items-start">
+                <div className="w-12 h-12 bg-slate-100 rounded-2xl flex justify-center items-center text-slate-600 border border-slate-200 shadow-inner group-hover:bg-slate-700 group-hover:text-white transition-colors duration-300">
+                  <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>storage</span>
                 </div>
-                <p className="text-lg font-black text-slate-800 font-headline leading-none truncate">{extraStats.topPriority}</p>
-                <p className="text-[11px] text-slate-400 font-medium mt-1">{extraStats.topPriorityPct}% dari total aspirasi</p>
-             </div>
-
-             <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none bg-white">
-                <div className="flex items-center gap-3 mb-3">
-                   <div className="w-10 h-10 bg-amber-50 rounded-xl flex justify-center items-center text-amber-500 flex-shrink-0">
-                      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>calendar_today</span>
-                   </div>
-                   <span className="text-[10px] font-black text-slate-400 font-headline uppercase tracking-widest">Periode Teraktif</span>
-                </div>
-                <p className="text-lg font-black text-slate-800 font-headline leading-none truncate">{extraStats.topMonth}</p>
-                <p className="text-[11px] text-slate-400 font-medium mt-1">{extraStats.topMonthCount} tiket terkumpul</p>
-             </div>
+                <span className="text-[9px] font-bold px-2 py-1 bg-slate-200 text-slate-600 rounded-lg uppercase tracking-widest">All</span>
+              </div>
+              <div>
+                <span className="text-[10px] font-black text-slate-500 font-headline uppercase tracking-widest block mb-1">Total Aspirasi</span>
+                <p className="text-4xl font-black text-slate-800 font-headline leading-none tabular-nums tracking-tighter">{computedStats.total}</p>
+                <p className="text-[10px] text-slate-400 font-bold mt-2 uppercase tracking-widest">Volume keseluruhan</p>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* ── Analytics Charts ─────────────────────────────────────── */}
-        {!loading && aspirations.length > 0 && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Donut – Status Distribution */}
-            <div className="glass-card rounded-2xl border border-slate-200/60 p-6 shadow-none flex flex-col">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-bku-primary/10 rounded-lg flex items-center justify-center text-bku-primary">
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>donut_large</span>
-                </div>
-                <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Distribusi Status</p>
-                  <p className="text-xs font-bold text-slate-700 font-headline">Komposisi Aspirasi</p>
-                </div>
-              </div>
-              <div className="flex-1 min-h-[200px]">
-                <ResponsiveContainer width="100%" height={220}>
-                  <PieChart>
-                    <Pie
-                      data={statusDonutData}
-                      cx="50%" cy="50%"
-                      innerRadius={55} outerRadius={85}
-                      paddingAngle={3}
-                      dataKey="value"
-                      labelLine={false}
-                    >
-                      {statusDonutData.map((entry, idx) => (
-                        <Cell key={idx} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 24px rgba(0,0,0,0.08)', fontSize: '11px', fontWeight: '700' }}
-                      formatter={(val, name) => [val + ' ticket', name]}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              {/* Legend */}
-              <div className="grid grid-cols-2 gap-1.5 mt-2">
-                {statusDonutData.map((d, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: d.color }} />
-                    <span className="text-[10px] font-bold text-slate-500 truncate">{d.name}</span>
-                    <span className="text-[10px] font-black text-slate-700 ml-auto">{d.value}</span>
-                  </div>
-                ))}
-              </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none bg-white flex items-center gap-4 group hover:bg-blue-50/30 transition-colors">
+            <div className="w-12 h-12 bg-blue-50 rounded-xl flex justify-center items-center text-blue-600 flex-shrink-0 group-hover:scale-110 transition-transform">
+              <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>group</span>
             </div>
-
-            {/* Bar – Priority Breakdown */}
-            <div className="glass-card rounded-2xl border border-slate-200/60 p-6 shadow-none flex flex-col">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center text-amber-500">
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>bar_chart</span>
-                </div>
-                <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Level Prioritas</p>
-                  <p className="text-xs font-bold text-slate-700 font-headline">Urgensi Penanganan</p>
-                </div>
-              </div>
-              <div className="flex-1 flex flex-col justify-end gap-3 mt-2">
-                {priorityBarData.map((d, i) => {
-                  const max = Math.max(...priorityBarData.map(x => x.value), 1)
-                  const pct = Math.round((d.value / max) * 100)
-                  return (
-                    <div key={i} className="flex items-center gap-3">
-                      <span className="text-[10px] font-black text-slate-400 uppercase w-16 flex-shrink-0 font-headline">{d.name}</span>
-                      <div className="flex-1 h-6 bg-slate-100 rounded-lg overflow-hidden relative">
-                        <div
-                          className="h-full rounded-lg transition-all duration-700 flex items-center justify-end pr-2"
-                          style={{ width: `${pct}%`, backgroundColor: d.fill, minWidth: d.value > 0 ? '28px' : '0' }}
-                        >
-                          {d.value > 0 && <span className="text-[9px] font-black text-white">{d.value}</span>}
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* Bar – Faculty Distribution */}
-            <div className="glass-card rounded-2xl border border-slate-200/60 p-6 shadow-none flex flex-col">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-500">
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>school</span>
-                </div>
-                <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Top Fakultas</p>
-                  <p className="text-xs font-bold text-slate-700 font-headline">Volume Aspirasi</p>
-                </div>
-              </div>
-              <div className="flex-1 flex flex-col justify-end gap-3 mt-2">
-                {facultyTrendData.length === 0 ? (
-                  <p className="text-[10px] text-slate-400 text-center py-8">Belum ada data</p>
-                ) : facultyTrendData.map((d, i) => {
-                  const max = Math.max(...facultyTrendData.map(x => x.value), 1)
-                  const pct = Math.round((d.value / max) * 100)
-                  const colors = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444']
-                  return (
-                    <div key={i} className="flex items-center gap-3">
-                      <span className="text-[9px] font-black text-slate-400 uppercase w-20 flex-shrink-0 truncate font-headline">{d.name}</span>
-                      <div className="flex-1 h-6 bg-slate-100 rounded-lg overflow-hidden">
-                        <div
-                          className="h-full rounded-lg transition-all duration-700 flex items-center justify-end pr-2"
-                          style={{ width: `${pct}%`, backgroundColor: colors[i % colors.length], minWidth: '28px' }}
-                        >
-                          <span className="text-[9px] font-black text-white">{d.value}</span>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
+            <div className="min-w-0">
+              <span className="text-[9px] font-black text-slate-400 font-headline uppercase tracking-widest block mb-0.5 truncate">Fakultas Teraktif</span>
+              <p className="text-sm font-black text-slate-800 font-headline leading-tight truncate">{getShortFacultyName(extraStats.topFaculty)}</p>
+              <p className="text-[9px] text-blue-600 font-bold mt-0.5 uppercase">{extraStats.topFacultyCount} Laporan</p>
             </div>
           </div>
-        )}
 
-        {/* ── Main Data Table ────────────────────────────────────── */}
-        <div className="flex flex-col gap-4">
-          
-          <DataTable
-            searchable={true}
-            searchPlaceholder="Cari ID, nama, subjek..."
-            searchWidth="sm:w-80"
-            filters={[
-              ...(activeFacultyId === 'all' ? [{
-                key: 'FakultasNama',
-                placeholder: 'Fakultas',
-                options: faculties.map(f => ({ label: f.Nama || f.nama, value: f.Nama || f.nama }))
-              }] : []),
-              {
-                key: 'StatusLower',
-                placeholder: 'Status',
-                options: [
-                  { label: 'On Process', value: 'proses' },
-                  { label: 'Resolved', value: 'selesai' },
-                  { label: 'Review', value: 'ditinjau' },
-                  { label: 'Rejected', value: 'ditolak' },
-                  { label: 'Disetujui Fakultas', value: 'disetujui fakultas' }
-                ]
-              }
-            ]}
-            onSearch={(data, search) => data.filter(asp => {
-              const normalizedSearch = search.toLowerCase();
-              const title = asp.Judul?.toString().toLowerCase() || ''
-              const studentName = asp.Mahasiswa?.Nama?.toString().toLowerCase() || ''
-              const facultyName = asp.Fakultas?.Nama?.toString().toLowerCase() || asp.Mahasiswa?.Fakultas?.Nama?.toString().toLowerCase() || ''
-              const ticketId = asp.ID?.toString() || ''
-              return title.includes(normalizedSearch) ||
-                studentName.includes(normalizedSearch) ||
-                facultyName.includes(normalizedSearch) ||
-                ticketId.includes(search)
-            })}
-            data={baseFilteredAspirations}
-            loading={loading}
-            emptyMessage="No incident tickets found"
-            columns={[
-              {
-                key: 'ID',
-                label: 'ID Tiket',
-                className: 'w-[140px]',
-                render: (_, asp) => (
-                  <div className="flex flex-col gap-1.5">
-                    <span className="text-[12px] font-bold text-blue-600 bg-blue-50/60 px-2.5 py-1 rounded-lg border border-blue-100/50 font-body w-fit">
-                      #ASP-{asp.ID?.toString().padStart(4, '0') || '----'}
-                    </span>
-                    <span className="text-[10px] text-slate-400 font-semibold font-body flex items-center gap-1">
-                      <span className={cn("w-1.5 h-1.5 rounded-full", 
-                        asp.Priority === 'CRITICAL' ? 'bg-rose-500' : 
-                        asp.Priority === 'HIGH' ? 'bg-amber-500' : 'bg-emerald-500')} />
-                      {asp.Priority === 'CRITICAL' ? 'Critical' : asp.Priority === 'HIGH' ? 'High Priority' : 'Normal Priority'}
-                    </span>
+          <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none bg-white flex items-center gap-4 group hover:bg-emerald-50/30 transition-colors">
+            <div className="w-12 h-12 bg-emerald-50 rounded-xl flex justify-center items-center text-emerald-500 flex-shrink-0 group-hover:scale-110 transition-transform">
+              <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>forum</span>
+            </div>
+            <div className="min-w-0">
+              <span className="text-[9px] font-black text-slate-400 font-headline uppercase tracking-widest block mb-0.5 truncate">Kategori Dominan</span>
+              <p className="text-sm font-black text-slate-800 font-headline leading-tight truncate">{extraStats.topCategory}</p>
+              <p className="text-[9px] text-emerald-600 font-bold mt-0.5 uppercase">{extraStats.topCategoryCount} Pengajuan</p>
+            </div>
+          </div>
+
+          <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none bg-white flex items-center gap-4 group hover:bg-indigo-50/30 transition-colors">
+            <div className="w-12 h-12 bg-indigo-50 rounded-xl flex justify-center items-center text-indigo-600 flex-shrink-0 group-hover:scale-110 transition-transform">
+              <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>gpp_maybe</span>
+            </div>
+            <div className="min-w-0">
+              <span className="text-[9px] font-black text-slate-400 font-headline uppercase tracking-widest block mb-0.5 truncate">Urgensi Terbesar</span>
+              <p className="text-sm font-black text-slate-800 font-headline leading-tight truncate">{extraStats.topPriority}</p>
+              <p className="text-[9px] text-indigo-600 font-bold mt-0.5 uppercase">{extraStats.topPriorityPct}% dari Total</p>
+            </div>
+          </div>
+
+          <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none bg-white flex items-center gap-4 group hover:bg-amber-50/30 transition-colors">
+            <div className="w-12 h-12 bg-amber-50 rounded-xl flex justify-center items-center text-amber-500 flex-shrink-0 group-hover:scale-110 transition-transform">
+              <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>calendar_month</span>
+            </div>
+            <div className="min-w-0">
+              <span className="text-[9px] font-black text-slate-400 font-headline uppercase tracking-widest block mb-0.5 truncate">Periode Puncak</span>
+              <p className="text-sm font-black text-slate-800 font-headline leading-tight truncate">{extraStats.topMonth}</p>
+              <p className="text-[9px] text-amber-600 font-bold mt-0.5 uppercase">{extraStats.topMonthCount} Tiket Masuk</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Analytics Charts ─────────────────────────────────────── */}
+      {!loading && aspirations.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Donut – Status Distribution */}
+          <div className="glass-card rounded-3xl border border-slate-200/60 p-6 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col bg-white/60 group relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-6 opacity-[0.02] text-bku-primary group-hover:scale-110 transition-transform duration-500 pointer-events-none">
+              <span className="material-symbols-outlined" style={{ fontSize: '120px' }}>donut_large</span>
+            </div>
+            <div className="flex items-center gap-4 mb-6 relative z-10">
+              <div className="w-10 h-10 bg-bku-primary/10 rounded-2xl flex items-center justify-center text-bku-primary shadow-inner">
+                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>donut_large</span>
+              </div>
+              <div>
+                <p className="text-[10px] font-black text-bku-primary uppercase tracking-widest font-headline mb-0.5">Distribusi Status</p>
+                <p className="text-xs font-bold text-slate-700 font-headline">Komposisi Aspirasi</p>
+              </div>
+            </div>
+            <div className="flex-1 min-h-[180px] relative z-10 flex items-center justify-center mt-2">
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie
+                    data={statusDonutData}
+                    cx="50%" cy="50%"
+                    innerRadius={55} outerRadius={80}
+                    paddingAngle={4}
+                    dataKey="value"
+                    stroke="none"
+                    cornerRadius={6}
+                  >
+                    {statusDonutData.map((entry, idx) => (
+                      <Cell key={idx} fill={entry.color} style={{ filter: `drop-shadow(0px 4px 6px ${entry.color}40)` }} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', fontSize: '11px', fontWeight: '800', backgroundColor: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(8px)' }}
+                    formatter={(val, name) => [val + ' Laporan', name]}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            {/* Legend */}
+            <div className="grid grid-cols-2 gap-y-3 gap-x-2 mt-4 relative z-10 bg-white/50 p-4 rounded-2xl border border-slate-100">
+              {statusDonutData.map((d, i) => (
+                <div key={i} className="flex items-center gap-2.5">
+                  <div className="w-2.5 h-2.5 rounded-full flex-shrink-0 shadow-sm" style={{ backgroundColor: d.color }} />
+                  <span className="text-[10px] font-bold text-slate-500 truncate">{d.name}</span>
+                  <span className="text-[10px] font-black text-slate-800 ml-auto tabular-nums">{d.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Bar – Priority Breakdown */}
+          <div className="glass-card rounded-3xl border border-slate-200/60 p-6 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col bg-white/60 group relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-6 opacity-[0.02] text-amber-500 group-hover:scale-110 transition-transform duration-500 pointer-events-none">
+              <span className="material-symbols-outlined" style={{ fontSize: '120px' }}>bar_chart</span>
+            </div>
+            <div className="flex items-center gap-4 mb-6 relative z-10">
+              <div className="w-10 h-10 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-500 shadow-inner">
+                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>bar_chart</span>
+              </div>
+              <div>
+                <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest font-headline mb-0.5">Level Prioritas</p>
+                <p className="text-xs font-bold text-slate-700 font-headline">Urgensi Penanganan</p>
+              </div>
+            </div>
+            <div className="flex-1 flex flex-col justify-center gap-4 mt-2 relative z-10">
+              {priorityBarData.map((d, i) => {
+                const max = Math.max(...priorityBarData.map(x => x.value), 1)
+                const pct = Math.round((d.value / max) * 100)
+                return (
+                  <div key={i} className="flex flex-col gap-1.5 group/bar">
+                    <div className="flex justify-between items-end">
+                      <span className="text-[10px] font-black text-slate-500 uppercase font-headline">{d.name}</span>
+                      {d.value > 0 && <span className="text-[10px] font-black text-slate-800 tabular-nums">{d.value}</span>}
+                    </div>
+                    <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden shadow-inner relative">
+                      <div
+                        className="h-full rounded-full transition-all duration-1000 ease-out flex items-center justify-end pr-1.5 group-hover/bar:brightness-110"
+                        style={{
+                          width: `${pct}%`,
+                          backgroundColor: d.fill,
+                          minWidth: d.value > 0 ? '10px' : '0',
+                          boxShadow: `0 0 10px ${d.fill}40`
+                        }}
+                      />
+                    </div>
                   </div>
                 )
-              },
-              {
-                key: 'Judul',
-                label: 'Subjek Aspirasi',
-                className: 'max-w-[280px]',
-                render: (_, asp) => (
-                  <div className="flex flex-col max-w-[260px]">
-                    <span className="text-[13px] font-bold text-slate-800 font-body truncate leading-tight">
-                      {asp.Subjek || asp.Judul || 'Tanpa Subjek'}
-                    </span>
-                    <span className="text-[11px] font-semibold text-slate-400 font-body truncate mt-1">
-                      Oleh: <span className="text-slate-600">{asp.Mahasiswa?.Nama || 'Mahasiswa'}</span>
-                    </span>
+              })}
+            </div>
+          </div>
+
+          {/* Bar – Faculty Distribution */}
+          <div className="glass-card rounded-3xl border border-slate-200/60 p-6 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col bg-white/60 group relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-6 opacity-[0.02] text-emerald-500 group-hover:scale-110 transition-transform duration-500 pointer-events-none">
+              <span className="material-symbols-outlined" style={{ fontSize: '120px' }}>school</span>
+            </div>
+            <div className="flex items-center gap-4 mb-6 relative z-10">
+              <div className="w-10 h-10 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-500 shadow-inner">
+                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>school</span>
+              </div>
+              <div>
+                <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest font-headline mb-0.5">Top Fakultas</p>
+                <p className="text-xs font-bold text-slate-700 font-headline">Volume Aspirasi</p>
+              </div>
+            </div>
+            <div className="flex-1 flex flex-col justify-center gap-4 mt-2 relative z-10">
+              {facultyTrendData.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-2">
+                  <span className="material-symbols-outlined text-4xl opacity-50">data_alert</span>
+                  <p className="text-[10px] font-bold uppercase tracking-widest">Belum ada data</p>
+                </div>
+              ) : facultyTrendData.map((d, i) => {
+                const max = Math.max(...facultyTrendData.map(x => x.value), 1)
+                const pct = Math.round((d.value / max) * 100)
+                const colors = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444']
+                const color = colors[i % colors.length]
+                return (
+                  <div key={i} className="flex flex-col gap-1.5 group/bar">
+                    <div className="flex justify-between items-end">
+                      <span className="text-[10px] font-black text-slate-500 uppercase truncate font-headline max-w-[80%]">{d.name}</span>
+                      <span className="text-[10px] font-black text-slate-800 tabular-nums">{d.value}</span>
+                    </div>
+                    <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden shadow-inner relative">
+                      <div
+                        className="h-full rounded-full transition-all duration-1000 ease-out flex items-center justify-end pr-1.5 group-hover/bar:brightness-110"
+                        style={{
+                          width: `${pct}%`,
+                          backgroundColor: color,
+                          minWidth: '10px',
+                          boxShadow: `0 0 10px ${color}40`
+                        }}
+                      />
+                    </div>
                   </div>
                 )
-              },
-              {
-                key: 'Fakultas',
-                label: 'Fakultas / Node',
-                className: 'max-w-[200px]',
-                render: (_, asp) => (
-                  <span className="text-[12px] font-semibold text-slate-700 font-body block truncate max-w-[180px]" title={asp.Fakultas?.Nama || asp.Mahasiswa?.Fakultas?.Nama || '—'}>
-                    {asp.Fakultas?.Nama || asp.Mahasiswa?.Fakultas?.Nama || '—'}
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Main Data Table ────────────────────────────────────── */}
+      <div className="flex flex-col gap-4">
+
+        <DataTable
+          searchable={true}
+          searchPlaceholder="Cari ID, nama, subjek..."
+          searchWidth="sm:w-80"
+          filters={[
+            ...(activeFacultyId === 'all' ? [{
+              key: 'FakultasNama',
+              placeholder: 'Fakultas',
+              options: faculties.map(f => ({ label: f.Nama || f.nama, value: f.Nama || f.nama }))
+            }] : []),
+            {
+              key: 'StatusLower',
+              placeholder: 'Status',
+              options: [
+                { label: 'On Process', value: 'proses' },
+                { label: 'Resolved', value: 'selesai' },
+                { label: 'Review', value: 'ditinjau' },
+                { label: 'Rejected', value: 'ditolak' },
+                { label: 'Disetujui Fakultas', value: 'disetujui fakultas' }
+              ]
+            }
+          ]}
+          onSearch={(data, search) => data.filter(asp => {
+            const normalizedSearch = search.toLowerCase();
+            const title = asp.Judul?.toString().toLowerCase() || ''
+            const studentName = asp.Mahasiswa?.Nama?.toString().toLowerCase() || ''
+            const facultyName = asp.Fakultas?.Nama?.toString().toLowerCase() || asp.Mahasiswa?.Fakultas?.Nama?.toString().toLowerCase() || ''
+            const ticketId = asp.ID?.toString() || ''
+            return title.includes(normalizedSearch) ||
+              studentName.includes(normalizedSearch) ||
+              facultyName.includes(normalizedSearch) ||
+              ticketId.includes(search)
+          })}
+          data={baseFilteredAspirations}
+          loading={loading}
+          emptyMessage="No incident tickets found"
+          columns={[
+            {
+              key: 'ID',
+              label: 'ID Tiket',
+              className: 'w-[140px]',
+              render: (_, asp) => (
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-[12px] font-bold text-blue-600 bg-blue-50/60 px-2.5 py-1 rounded-lg border border-blue-100/50 font-body w-fit">
+                    #ASP-{asp.ID?.toString().padStart(4, '0') || '----'}
                   </span>
-                )
-              },
-              {
-                key: 'Status',
-                label: 'Status Tiket',
-                className: 'w-[140px]',
-                render: (_, asp) => {
-                  const status = (asp.Status || 'Proses').toLowerCase();
-                  let style = 'bg-slate-50 text-slate-600 border-slate-200';
-                  let label = asp.Status || 'Proses';
-                  if (status === 'selesai') style = 'bg-emerald-50 text-emerald-600 border-emerald-100';
-                  else if (status.includes('ditolak')) style = 'bg-rose-50 text-rose-600 border-rose-100';
-                  else if (status.includes('proses')) style = 'bg-blue-50 text-blue-600 border-blue-100';
-                  else if (status.includes('ditinjau')) style = 'bg-amber-50 text-amber-600 border-amber-100';
-                  else if (status.includes('disetujui')) style = 'bg-indigo-50 text-indigo-600 border-indigo-100';
+                  <span className="text-[10px] text-slate-400 font-semibold font-body flex items-center gap-1">
+                    <span className={cn("w-1.5 h-1.5 rounded-full",
+                      asp.Priority === 'CRITICAL' ? 'bg-rose-500' :
+                        asp.Priority === 'HIGH' ? 'bg-amber-500' : 'bg-emerald-500')} />
+                    {asp.Priority === 'CRITICAL' ? 'Critical' : asp.Priority === 'HIGH' ? 'High Priority' : 'Normal Priority'}
+                  </span>
+                </div>
+              )
+            },
+            {
+              key: 'Judul',
+              label: 'Subjek Aspirasi',
+              className: 'max-w-[280px]',
+              render: (_, asp) => (
+                <div className="flex flex-col max-w-[260px]">
+                  <span className="text-[13px] font-bold text-slate-800 font-body truncate leading-tight">
+                    {asp.Subjek || asp.Judul || 'Tanpa Subjek'}
+                  </span>
+                  <span className="text-[11px] font-semibold text-slate-400 font-body truncate mt-1">
+                    Oleh: <span className="text-slate-600">{asp.Mahasiswa?.Nama || 'Mahasiswa'}</span>
+                  </span>
+                </div>
+              )
+            },
+            {
+              key: 'Fakultas',
+              label: 'Fakultas / Node',
+              className: 'max-w-[200px]',
+              render: (_, asp) => (
+                <span className="text-[12px] font-semibold text-slate-700 font-body block truncate max-w-[180px]" title={asp.Fakultas?.Nama || asp.Mahasiswa?.Fakultas?.Nama || '—'}>
+                  {asp.Fakultas?.Nama || asp.Mahasiswa?.Fakultas?.Nama || '—'}
+                </span>
+              )
+            },
+            {
+              key: 'Status',
+              label: 'Status Tiket',
+              className: 'w-[140px]',
+              render: (_, asp) => {
+                const status = (asp.Status || 'Proses').toLowerCase();
+                let style = 'bg-slate-50 text-slate-600 border-slate-200';
+                let label = asp.Status || 'Proses';
+                if (status === 'selesai') style = 'bg-emerald-50 text-emerald-600 border-emerald-100';
+                else if (status.includes('ditolak')) style = 'bg-rose-50 text-rose-600 border-rose-100';
+                else if (status.includes('proses')) style = 'bg-blue-50 text-blue-600 border-blue-100';
+                else if (status.includes('ditinjau')) style = 'bg-amber-50 text-amber-600 border-amber-100';
+                else if (status.includes('disetujui')) style = 'bg-indigo-50 text-indigo-600 border-indigo-100';
 
-                  return (
-                    <div className="flex flex-col gap-1.5">
-                      <Badge className={cn('px-2.5 py-1 rounded-lg border text-[10px] font-semibold uppercase tracking-wider shadow-none w-fit', style)}>
-                        {label}
-                      </Badge>
-                      {asp.Deadline && (
-                        <span className="text-[9px] font-semibold text-slate-400 font-body">
-                          Deadline: {new Date(asp.Deadline).toLocaleDateString('id-ID', {day:'numeric', month:'short'})}
-                        </span>
-                      )}
-                    </div>
-                  );
-                }
-              },
-              {
-                key: 'actions',
-                label: 'Aksi',
-                className: 'w-[100px] text-center',
-                cellClassName: 'text-center',
-                render: (_, asp) => (
-                  <div className="flex justify-center items-center gap-1">
-                    <button 
-                      onClick={() => { setSelected(asp); handleOpenAudit(asp); }}
-                      title="Lihat Detail"
-                      className="p-1.5 rounded-lg text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors inline-flex items-center justify-center cursor-pointer"
-                    >
-                      <Eye className="w-4 h-4" strokeWidth={2.5} />
-                    </button>
+                return (
+                  <div className="flex flex-col gap-1.5">
+                    <Badge className={cn('px-2.5 py-1 rounded-lg border text-[10px] font-semibold uppercase tracking-wider shadow-none w-fit', style)}>
+                      {label}
+                    </Badge>
+                    {asp.Deadline && (
+                      <span className="text-[9px] font-semibold text-slate-400 font-body">
+                        Deadline: {new Date(asp.Deadline).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                      </span>
+                    )}
                   </div>
-                )
+                );
               }
-            ]}
-          />
-        </div>
+            },
+            {
+              key: 'actions',
+              label: 'Aksi',
+              className: 'w-[100px] text-center',
+              cellClassName: 'text-center',
+              render: (_, asp) => (
+                <div className="flex justify-center items-center gap-1">
+                  <button
+                    onClick={() => { setSelected(asp); handleOpenAudit(asp); }}
+                    title="Lihat Detail"
+                    className="p-1.5 rounded-lg text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors inline-flex items-center justify-center cursor-pointer"
+                  >
+                    <Eye className="w-4 h-4" strokeWidth={2.5} />
+                  </button>
+                </div>
+              )
+            }
+          ]}
+        />
+      </div>
 
-      {/* ── Folder Style Aspiration Audit Modal ───────────────── */}
+      {/* ── Premium Skinnier Aspiration Audit Modal ──────────────── */}
       {selected && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4 sm:p-6"
           onClick={() => {
             if (!isSubmitting) setSelected(null);
           }}
         >
           <div
-            className="relative w-full max-w-5xl bg-[var(--theme-bg)] rounded-2xl shadow-none border border-[var(--theme-border)] flex flex-col overflow-hidden max-h-[90vh]"
+            className="relative w-full max-w-3xl bg-[var(--theme-bg)]/95 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-[var(--theme-border)] flex flex-col overflow-hidden max-h-[95vh] animate-in fade-in zoom-in-95 duration-300"
             onClick={e => e.stopPropagation()}
           >
-            {/* Folder Header */}
-            <div className="relative bg-gradient-to-br from-primary via-primary to-blue-700 pt-6 pb-7 px-8 overflow-hidden flex-shrink-0">
-              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
-              <div className="absolute -bottom-6 right-16 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
+            {/* ── Premium Header ────────────────────────────────────── */}
+            <div className="relative bg-gradient-to-br from-primary via-primary to-blue-700 pt-8 pb-8 px-8 overflow-hidden flex-shrink-0">
+              <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
+              <div className="absolute bottom-0 left-0 w-[200px] h-[200px] bg-white/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/3 pointer-events-none" />
+
               <button
                 onClick={() => setSelected(null)}
                 disabled={isSubmitting}
-                className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors disabled:opacity-50 text-white border-none cursor-pointer"
+                className="absolute z-50 top-6 right-6 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-all disabled:opacity-50 text-white border border-white/10 cursor-pointer shadow-lg"
               >
-                <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span>
+                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>close</span>
               </button>
-              <div className="relative z-10 flex items-center gap-5 mb-5">
-                <div className="w-16 h-16 rounded-2xl shadow-xl ring-2 ring-white/20 bg-white/10 flex items-center justify-center shrink-0 overflow-hidden text-white">
-                  <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>security</span>
+
+              <div className="relative z-10 flex flex-col sm:flex-row sm:items-center gap-5 mb-5">
+                <div className="w-16 h-16 rounded-2xl shadow-xl ring-2 ring-white/20 bg-white/10 flex items-center justify-center shrink-0 overflow-hidden text-white relative">
+                  <span className="material-symbols-outlined relative z-10" style={{ fontSize: '32px' }}>admin_panel_settings</span>
                 </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">
-                    Incident Audit Manager
-                  </p>
-                  <h2 className="text-xl font-extrabold font-headline leading-tight truncate text-white">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-3 mb-1.5">
+                    <p className="text-[10px] font-black text-blue-200 uppercase tracking-[0.3em]">
+                      Incident Audit
+                    </p>
+                    <span className="w-1 h-1 rounded-full bg-blue-200/50" />
+                    <span className="text-[10px] font-bold text-white/70 font-mono tracking-wider">
+                      #ASP-{selected.ID?.toString().padStart(4, '0')}
+                    </span>
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-black font-headline leading-tight truncate text-white mb-2 tracking-tight">
                     {selected.Judul || selected.Subjek}
                   </h2>
-                  <p className="text-xs text-blue-100 font-medium mt-1">
-                    Dilaporkan oleh: {selected.Mahasiswa?.Nama || 'Mahasiswa'}
+                </div>
+              </div>
+
+              <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4">
+                <div className="flex items-center gap-2 text-xs text-blue-100 font-medium">
+                  <span className="material-symbols-outlined text-[16px] text-white/70">person</span>
+                  Oleh: <span className="text-white font-bold">{selected.Mahasiswa?.Nama || 'Mahasiswa'}</span>
+                </div>
+                <span className={cn(
+                  "flex items-center gap-2 border px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg",
+                  selected.Status?.toLowerCase() === 'selesai' ? 'bg-emerald-500/20 border-emerald-400/30 text-emerald-200 shadow-emerald-500/10' :
+                    selected.Status?.toLowerCase() === 'proses' ? 'bg-sky-500/20 border-sky-400/30 text-sky-200 shadow-sky-500/10' :
+                      'bg-amber-500/20 border-amber-400/30 text-amber-200 shadow-amber-500/10'
+                )}>
+                  <span className="w-2 h-2 rounded-full bg-current animate-pulse" />
+                  {selected.Status || 'OPEN'}
+                </span>
+              </div>
+            </div>
+
+            {/* ── Single Column Body ────────────────────────────────── */}
+            <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-8 bg-[var(--theme-bg)]/20">
+
+              {/* 1. Identitas Pelapor */}
+              <div className="p-5 rounded-3xl bg-[var(--theme-surface)] border border-[var(--theme-border)] shadow-sm flex gap-5 items-center group hover:shadow-md transition-all">
+                <StudentAvatar src={selected.Mahasiswa?.Foto} name={selected.Mahasiswa?.Nama} className="w-16 h-16 rounded-[1rem] shadow-md ring-4 ring-[var(--theme-border-muted)] shrink-0 group-hover:scale-105 transition-transform" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest">Identitas Pelapor</p>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[8px] font-black border border-[var(--theme-border)] text-[var(--theme-text-muted)] bg-[var(--theme-bg)] uppercase tracking-widest">
+                      Verified
+                    </span>
+                  </div>
+                  <p className="font-black text-[var(--theme-text)] text-sm truncate">{selected.Mahasiswa?.Nama}</p>
+                  <div className="flex items-center gap-3 mt-1 text-xs text-[var(--theme-text-muted)]">
+                    <span className="font-mono bg-[var(--theme-bg)] px-1.5 py-0.5 rounded border border-[var(--theme-border)] text-[10px] font-bold">{selected.Mahasiswa?.NIM}</span>
+                    <span className="flex items-center gap-1 font-bold text-[10px] uppercase">
+                      <span className="material-symbols-outlined text-[14px] text-[var(--theme-primary)]">domain</span>
+                      {selected.Mahasiswa?.Fakultas?.Nama || 'Institusional'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. Substansi Aspirasi */}
+              <div className="space-y-3">
+                <h4 className="text-[11px] font-black uppercase tracking-widest flex items-center gap-2 text-[var(--theme-text-muted)] ml-1">
+                  <span className="material-symbols-outlined text-[var(--theme-primary)] text-[18px]">article</span>
+                  Substansi Aspirasi
+                </h4>
+                <div className="p-6 rounded-3xl bg-[var(--theme-surface)] border border-[var(--theme-border)] shadow-sm relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 p-5 opacity-5 text-[var(--theme-primary)] pointer-events-none group-hover:scale-110 transition-transform duration-700">
+                    <span className="material-symbols-outlined text-[80px]">format_quote</span>
+                  </div>
+                  <p className="text-[14px] text-[var(--theme-text)] font-medium leading-relaxed font-body relative z-10 whitespace-pre-wrap">
+                    {selected.Isi || 'Tidak ada deskripsi konten.'}
                   </p>
                 </div>
               </div>
-              <div className="relative z-10 flex flex-wrap gap-2">
-                <span className="flex items-center gap-1.5 bg-white/10 border border-white/20 px-3 py-1.5 rounded-xl text-[10px] font-bold text-white font-mono tracking-wider">
-                  #ASP-{selected.ID?.toString().padStart(4, '0')}
-                </span>
-                <span className={cn(
-                  "flex items-center gap-1.5 border px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider",
-                  selected.Status?.toLowerCase() === 'selesai' ? 'bg-emerald-500/20 border-emerald-400/30 text-emerald-200' :
-                  selected.Status?.toLowerCase() === 'proses' ? 'bg-sky-500/20 border-sky-400/30 text-sky-200' :
-                  'bg-amber-500/20 border-amber-400/30 text-amber-200'
-                )}>
-                  Status: {selected.Status || 'OPEN'}
-                </span>
+
+              {/* 3. Visual Proof */}
+              {selected.BuktiURL && (
+                <div className="space-y-3">
+                  <h4 className="text-[11px] font-black uppercase tracking-widest flex items-center gap-2 text-[var(--theme-text-muted)] ml-1">
+                    <span className="material-symbols-outlined text-[var(--theme-primary)] text-[18px]">photo_library</span>
+                    Bukti Lampiran
+                  </h4>
+                  <div className="relative aspect-[21/9] rounded-3xl overflow-hidden border border-[var(--theme-border)] shadow-md group bg-[var(--theme-bg)] cursor-pointer">
+                    <img
+                      src={getCleanImageUrl(selected.BuktiURL)}
+                      alt="Bukti Aspirasi"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                      <a
+                        href={getCleanImageUrl(selected.BuktiURL)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-5 py-2.5 bg-[var(--theme-surface)] text-[var(--theme-text)] rounded-xl font-black text-[11px] uppercase tracking-widest shadow-xl flex items-center gap-2 hover:bg-[var(--theme-primary)] hover:text-white transition-all active:scale-95"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">open_in_new</span> Lihat Penuh
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <hr className="border-[var(--theme-border-muted)]" />
+
+              {/* 4. Governance Panel */}
+              <div className="space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--theme-border-muted)] flex items-center justify-center text-[var(--theme-text-muted)]">
+                    <span className="material-symbols-outlined">gavel</span>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-[var(--theme-text)]">Panel Resolusi</h3>
+                    <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-widest">Tindakan Admin</p>
+                  </div>
+                </div>
+
+                {/* Status Selection */}
+                <div className="space-y-3">
+                  <Label className="text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest ml-1 block">Ubah Status Tiket</Label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {[
+                      { val: 'proses', label: 'Diproses', icon: 'sync', active: 'bg-blue-50 text-blue-700 border-blue-200 shadow-sm ring-1 ring-blue-500/20' },
+                      { val: 'Selesai', label: 'Selesai', icon: 'check_circle', active: 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-sm ring-1 ring-emerald-500/20' },
+                      { val: 'Ditinjau', label: 'Ditinjau', icon: 'plagiarism', active: 'bg-amber-50 text-amber-700 border-amber-200 shadow-sm ring-1 ring-amber-500/20' },
+                      { val: 'Ditolak', label: 'Ditolak', icon: 'cancel', active: 'bg-rose-50 text-rose-700 border-rose-200 shadow-sm ring-1 ring-rose-500/20' },
+                    ].map(s => (
+                      <button
+                        key={s.val}
+                        type="button"
+                        onClick={() => setForm({ ...form, status: s.val })}
+                        className={cn(
+                          'h-11 rounded-xl flex items-center justify-center gap-2 border font-black uppercase tracking-widest text-[9px] transition-all duration-300 cursor-pointer',
+                          form.status?.toLowerCase() === s.val.toLowerCase()
+                            ? s.active
+                            : 'border-[var(--theme-border)] bg-[var(--theme-surface)] text-[var(--theme-text)] hover:border-[var(--theme-border-muted)] hover:bg-[var(--theme-bg)]'
+                        )}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >{s.icon}</span>
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Response */}
+                <div className="space-y-3">
+                  <Label className="text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest ml-1 block">Tanggapan Resmi</Label>
+                  <textarea
+                    value={form.respon}
+                    onChange={e => setForm({ ...form, respon: e.target.value })}
+                    placeholder="Tuliskan respon resmi, klarifikasi, atau solusi..."
+                    className="w-full min-h-[140px] rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-bg)] p-5 text-[13px] font-medium font-body text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/20 outline-none resize-none transition-all placeholder:text-[var(--theme-text-subtle)] leading-relaxed shadow-inner"
+                  />
+                </div>
               </div>
             </div>
 
-            {/* Folder Body */}
-            <div className="flex-1 overflow-y-auto p-8 bg-[var(--theme-bg)]/20">
-              <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-                {/* Left Column: Reporter Profile, Content Subjek & Attachments */}
-                <div className="lg:col-span-3 space-y-6">
-                  
-                  {/* Reporter Profile Block */}
-                  <div className="p-6 rounded-2xl bg-[var(--theme-surface)] border border-[var(--theme-border)] shadow-sm flex flex-col md:flex-row gap-5 items-start hover:shadow-md transition-shadow">
-                    <StudentAvatar src={selected.Mahasiswa?.Foto} name={selected.Mahasiswa?.Nama} className="w-16 h-16 rounded-2xl shadow-md ring-4 ring-[var(--theme-border-muted)] shrink-0" />
-                    
-                    <div className="flex-1 space-y-3 w-full">
-                      <div className="flex items-center justify-between border-b border-[var(--theme-border-muted)] pb-2">
-                        <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Identitas Pelapor</span>
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[8px] font-bold border border-[var(--theme-border)] text-[var(--theme-text-muted)] bg-[var(--theme-bg)] uppercase tracking-wider">Verified Mahasiswa</span>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-3 text-xs text-[var(--theme-text)]">
-                        <div>
-                          <p className="text-[9px] font-semibold text-[var(--theme-text-subtle)] uppercase tracking-wider">Nama Lengkap</p>
-                          <p className="font-bold truncate mt-0.5">{selected.Mahasiswa?.Nama}</p>
-                        </div>
-                        <div>
-                          <p className="text-[9px] font-semibold text-[var(--theme-text-subtle)] uppercase tracking-wider">NIM / Identifier</p>
-                          <p className="font-mono font-bold mt-0.5">{selected.Mahasiswa?.NIM}</p>
-                        </div>
-                        <div className="col-span-2">
-                          <p className="text-[9px] font-semibold text-[var(--theme-text-subtle)] uppercase tracking-wider">Fakultas / Node asal</p>
-                          <p className="font-bold uppercase flex items-center gap-1.5 mt-1">
-                            <span className="material-symbols-outlined text-[14px] text-[var(--theme-primary)]">business</span>
-                            {selected.Mahasiswa?.Fakultas?.Nama || 'Institusional'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Substantive Content */}
-                  <div className="space-y-3">
-                    <h4 className="text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 text-[var(--theme-text-muted)]">
-                      <span className="material-symbols-outlined text-[var(--theme-primary)] text-[16px]">chat</span> Substansi Aspirasi
-                    </h4>
-                    <div className="p-6 rounded-2xl bg-[var(--theme-surface)] border border-[var(--theme-border)] shadow-sm relative overflow-hidden group">
-                      <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                        <span className="material-symbols-outlined text-[80px]" >chat</span>
-                      </div>
-                      <p className="text-sm text-[var(--theme-text)] font-medium leading-relaxed font-body relative z-10 whitespace-pre-wrap">
-                        "{selected.Isi || 'Tidak ada deskripsi konten.'}"
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Visual Proof Section */}
-                  <div className="space-y-3">
-                    <h4 className="text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 text-[var(--theme-text-muted)]">
-                      <span className="material-symbols-outlined text-[var(--theme-primary)] text-[16px]">image</span> Bukti Lampiran Visual
-                    </h4>
-                    
-                    {selected.BuktiURL ? (
-                      <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
-                        <div className="md:col-span-5 relative aspect-video rounded-xl overflow-hidden border border-[var(--theme-border)] shadow-sm group bg-[var(--theme-bg)]">
-                          <img 
-                            src={getCleanImageUrl(selected.BuktiURL)} 
-                            alt="Bukti Aspirasi" 
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                          />
-                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
-                            <a 
-                              href={getCleanImageUrl(selected.BuktiURL)} 
-                              target="_blank" 
-                              rel="noreferrer"
-                              className="px-4 py-2 bg-[var(--theme-surface)] text-[var(--theme-text)] rounded-lg font-bold text-[10px] uppercase tracking-widest shadow-xl flex items-center gap-1.5 hover:bg-[var(--theme-primary)] hover:text-white transition-all active:scale-95"
-                            >
-                              <span className="material-symbols-outlined text-[13px]">open_in_new</span> Full View
-                            </a>
-                          </div>
-                        </div>
-                        
-                        <div className="md:col-span-7 p-5 rounded-xl bg-[var(--theme-surface)] shadow-sm border border-[var(--theme-border)] flex flex-col justify-center gap-2">
-                          <p className="text-xs font-bold text-[var(--theme-text)] flex items-center gap-2">
-                            <span className="material-symbols-outlined text-[var(--theme-success)]" style={{ fontSize: '16px' }}>check_circle</span>
-                            Berkas Lampiran Tersedia
-                          </p>
-                          <p className="text-[11px] text-[var(--theme-text-muted)] font-medium leading-relaxed">
-                            Lampiran pendukung telah disertakan oleh pelapor. Pastikan gambar memuat informasi yang relevan dan dapat dipertanggungjawabkan untuk membantu proses resolusi.
-                          </p>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="p-8 rounded-xl border border-dashed border-[var(--theme-border-muted)] flex flex-col items-center justify-center gap-3 text-[var(--theme-text-subtle)] bg-[var(--theme-surface)] shadow-sm">
-                        <span className="material-symbols-outlined text-[32px] opacity-50" >image</span>
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--theme-text-subtle)]">Tidak ada bukti lampiran gambar</p>
-                      </div>
-                    )}
-                  </div>
-
-                </div>
-
-                {/* Right Column: Governance Panel, Resolution Response Form */}
-                <div className="lg:col-span-2 space-y-6">
-                  
-                  {/* Governance Card */}
-                  <div className="p-6 rounded-2xl bg-[var(--theme-surface)] border border-[var(--theme-border)] shadow-sm space-y-6">
-                    
-                    {/* Status Selection Buttons */}
-                    <div className="space-y-3">
-                      <Label className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider ml-0.5">Ubah Status Resolusi</Label>
-                      <div className="grid grid-cols-2 gap-2.5">
-                        {[
-                          { val: 'proses', label: 'On Process', icon: 'schedule', active: 'bg-[var(--theme-info)] text-white border-[var(--theme-info)] shadow-md shadow-[var(--theme-info)]/20' },
-                          { val: 'Selesai', label: 'Resolved', icon: 'check_circle', active: 'bg-[var(--theme-success)] text-white border-[var(--theme-success)] shadow-md shadow-[var(--theme-success)]/20' },
-                          { val: 'Ditinjau', label: 'Review', icon: 'show_chart', active: 'bg-[var(--theme-warning)] text-white border-[var(--theme-warning)] shadow-md shadow-[var(--theme-warning)]/20' },
-                          { val: 'Ditolak', label: 'Rejected', icon: 'close', active: 'bg-[var(--theme-error)] text-white border-[var(--theme-error)] shadow-md shadow-[var(--theme-error)]/20' },
-                        ].map(s => (
-                          <button 
-                            key={s.val} 
-                            type="button"
-                            onClick={() => setForm({ ...form, status: s.val })}
-                            className={cn(
-                              'h-10 rounded-xl flex items-center justify-center gap-1.5 border border-[var(--theme-border)] bg-[var(--theme-bg)] font-bold uppercase tracking-widest text-[9px] text-[var(--theme-text-muted)] hover:border-[var(--theme-border-muted)] hover:text-[var(--theme-text)] transition-all duration-300 cursor-pointer',
-                              form.status?.toLowerCase() === s.val.toLowerCase() && s.active
-                            )}
-                          >
-                            <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >{s.icon}</span>
-                            {s.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Response Textarea */}
-                    <div className="space-y-3">
-                      <Label className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider ml-0.5">Tanggapan Resmi Institusi</Label>
-                      <textarea 
-                        value={form.respon}
-                        onChange={e => setForm({ ...form, respon: e.target.value })}
-                        placeholder="Tuliskan respon resmi, klarifikasi, atau solusi yang diajukan institusi untuk menyelesaikan kendala ini..."
-                        className="w-full min-h-[160px] rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg)] p-4 text-xs font-medium font-body text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:bg-[var(--theme-surface)] outline-none resize-none transition-all placeholder:text-[var(--theme-text-subtle)] leading-relaxed"
-                      />
-                    </div>
-
-                    {/* Warning SLA Card */}
-                    <div className="p-4 rounded-xl bg-[var(--theme-warning-light)] border border-[var(--theme-warning)]/30 flex items-start gap-3 shadow-sm">
-                      <span className="material-symbols-outlined text-[var(--theme-warning)] shrink-0" style={{ fontSize: '18px' }} >assignment_late</span>
-                      <div className="space-y-1">
-                        <p className="text-[9px] font-bold text-[var(--theme-warning)] uppercase tracking-wider">SLA Resolution Limit</p>
-                        <p className="text-[10px] text-[var(--theme-warning)]/90 font-semibold leading-normal">
-                          Batas penanganan SLA standar adalah <span className="font-bold">3x24 jam</span> sejak tiket dibuat. Harap berikan resolusi secepatnya dan pastikan informasi yang disampaikan akurat.
-                        </p>
-                      </div>
-                    </div>
-
-                  </div>
-
-                </div>
-
-              </div>
-            </div>
-
-            {/* Folder Footer */}
-            <div className="px-8 py-5 border-t border-[var(--theme-border)] bg-[var(--theme-surface)] flex justify-end gap-3 flex-shrink-0">
-              <button 
+            {/* ── Footer Actions ────────────────────────────────────── */}
+            <div className="px-6 sm:px-8 py-5 border-t border-[var(--theme-border)] bg-[var(--theme-surface)]/80 backdrop-blur-md flex justify-end gap-3 flex-shrink-0">
+              <button
                 onClick={() => setSelected(null)}
-                className="h-10 px-6 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] text-xs font-bold text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] hover:border-[var(--theme-border-muted)] uppercase tracking-widest transition-all active:scale-95 cursor-pointer"
+                className="h-11 px-6 sm:px-8 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] text-[11px] font-black text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] hover:border-[var(--theme-border-muted)] hover:bg-[var(--theme-bg)] uppercase tracking-[0.1em] transition-all duration-300 active:scale-95 cursor-pointer shadow-sm"
               >
-                Tutup Audit
+                Batal
               </button>
-              <button 
+              <button
                 onClick={handleSubmitResolution}
                 disabled={isSubmitting}
-                className="h-10 px-6 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white font-bold text-xs uppercase tracking-widest active:scale-95 transition-all flex items-center justify-center gap-2 border-none shadow-md shadow-[var(--theme-primary)]/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="group relative h-11 px-6 sm:px-8 rounded-xl bg-[var(--theme-primary)] hover:opacity-90 text-white font-black text-[11px] uppercase tracking-[0.1em] transition-all duration-300 flex items-center justify-center gap-2 border border-transparent shadow-[0_4px_14px_0_rgba(59,130,246,0.39)] hover:shadow-[0_6px_20px_rgba(59,130,246,0.23)] hover:-translate-y-0.5 active:translate-y-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
               >
+                {/* Inner highlight for glass button effect */}
+                <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/20 pointer-events-none" />
+
                 {isSubmitting ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white relative z-10"></div>
                 ) : (
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >save</span>
+                  <span className="material-symbols-outlined relative z-10 group-hover:scale-110 transition-transform duration-300" style={{ fontSize: '18px' }} >task_alt</span>
                 )}
-                Simpan & Update
+                <span className="relative z-10">Simpan Resolusi</span>
               </button>
             </div>
+
           </div>
         </div>
       )}

@@ -123,16 +123,24 @@ func GetOrmawaList(c *fiber.Ctx) error {
 	}
 
 	var list []models.Ormawa
-	if err := config.DB.Where("status = ?", "Aktif").Order("nama asc").Find(&list).Error; err != nil {
+	if err := config.DB.Preload("KategoriDetail").Where("status = ?", "Aktif").Order("nama asc").Find(&list).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal mengambil data Ormawa"})
 	}
 
 	// Filter based on Kategori and student affiliation
 	var filtered []models.Ormawa
 	for _, o := range list {
-		k := o.Kategori
-		// BEM, MPM, UKM, UKK are open to everyone (no faculty/prodi check)
-		if k == "BEM" || k == "MPM" || k == "UKM" || k == "UKK" {
+		isUniversal := false
+		if o.KategoriDetail != nil && !o.KategoriDetail.TerafiliasiFakultas && !o.KategoriDetail.WajibProdi {
+			isUniversal = true
+		} else if o.KategoriDetail == nil {
+			k := o.Kategori
+			if k == "BEM" || k == "MPM" || k == "UKM" || k == "UKK" {
+				isUniversal = true
+			}
+		}
+
+		if isUniversal {
 			filtered = append(filtered, o)
 		} else {
 			// Himpunan and other categories: check affiliation
@@ -140,7 +148,7 @@ func GetOrmawaList(c *fiber.Ctx) error {
 				if student.ProgramStudiID == *o.ProgramStudiID {
 					filtered = append(filtered, o)
 				}
-			} else if o.FakultasID != nil {
+			} else if o.FakultasID != nil && *o.FakultasID > 0 {
 				if student.FakultasID == *o.FakultasID {
 					filtered = append(filtered, o)
 				}
@@ -179,7 +187,7 @@ func DaftarOrmawa(c *fiber.Ctx) error {
 
 	// Fetch Ormawa details to check affiliation and open recruitment status
 	var ormawa models.Ormawa
-	if err := config.DB.First(&ormawa, req.OrmawaID).Error; err != nil {
+	if err := config.DB.Preload("KategoriDetail").First(&ormawa, req.OrmawaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Ormawa tidak ditemukan"})
 	}
 
@@ -203,13 +211,22 @@ func DaftarOrmawa(c *fiber.Ctx) error {
 	}
 
 	// Validate affiliation!
-	k := ormawa.Kategori
-	if k != "BEM" && k != "MPM" && k != "UKM" && k != "UKK" {
+	isUniversal := false
+	if ormawa.KategoriDetail != nil && !ormawa.KategoriDetail.TerafiliasiFakultas && !ormawa.KategoriDetail.WajibProdi {
+		isUniversal = true
+	} else if ormawa.KategoriDetail == nil {
+		k := ormawa.Kategori
+		if k == "BEM" || k == "MPM" || k == "UKM" || k == "UKK" {
+			isUniversal = true
+		}
+	}
+
+	if !isUniversal {
 		if ormawa.ProgramStudiID != nil && *ormawa.ProgramStudiID > 0 {
 			if student.ProgramStudiID != *ormawa.ProgramStudiID {
 				return c.Status(403).JSON(fiber.Map{"success": false, "message": "Ormawa ini hanya terbuka untuk Program Studi yang bersangkutan"})
 			}
-		} else if ormawa.FakultasID != nil {
+		} else if ormawa.FakultasID != nil && *ormawa.FakultasID > 0 {
 			if student.FakultasID != *ormawa.FakultasID {
 				return c.Status(403).JSON(fiber.Map{"success": false, "message": "Ormawa ini hanya terbuka untuk Fakultas yang bersangkutan"})
 			}

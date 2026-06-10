@@ -9,7 +9,7 @@ import { API_BASE_URL } from '../../services/api'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/Select"
 import { Button } from "@/components/ui/Button"
 import { PageContent } from "@/components/ui/page"
-import Dialog, { DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "@/components/ui/Dialog"
+import { DialogModal } from "@/components/ui/DialogModal"
 import { DashboardHero } from "@/components/ui/dashboard"
 import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import { PrimaryStatsCard } from '@/components/ui/StatsCard'
@@ -54,6 +54,7 @@ export default function FacultyProposalApproval() {
   const [loading, setLoading]     = useState(true)
   const [selected, setSelected]   = useState(null)
   const [isSubmitting, setIsSub]  = useState(false)
+  const [showPdf, setShowPdf]     = useState(false)
   const [catatan, setCatatan]     = useState('')
   const [search, setSearch]       = useState('')
   const [filterStatus, setFilter] = useState('all')
@@ -418,47 +419,22 @@ export default function FacultyProposalApproval() {
         </div>
       </PageContent>
       {/* Verification Modal / Side-by-Side Review Panel */}
-      <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)} maxWidth="max-w-7xl" className="h-[90vh] flex flex-col p-0 overflow-hidden">
-        <DialogHeader className="shrink-0">
-          <div className="flex items-center justify-between w-full">
-            <div>
-              <span className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">Detail Review Proposal ORMAWA</span>
-              <DialogTitle className="text-base font-bold text-[var(--theme-text)] mt-0.5 line-clamp-1">{selected?.Judul}</DialogTitle>
-            </div>
-          </div>
-        </DialogHeader>
-
-        {/* Split Screen Workspace */}
-        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0 bg-[var(--theme-bg)]">
-          {/* Left Pane (60%): Document Viewer */}
-          <div className="flex-1 lg:w-3/5 border-r border-[var(--theme-border)] flex flex-col bg-slate-800">
-            <div className="px-4 py-2.5 bg-slate-900 text-slate-400 text-[10px] font-semibold uppercase tracking-wider flex items-center justify-between shrink-0">
-              <span className="flex items-center gap-1.5"><span className="material-symbols-outlined text-[14px]">description</span> Naskah Proposal PDF</span>
-              {selected?.FileURL && (
-                <a href={selected.FileURL} target="_blank" rel="noreferrer" className="text-white hover:underline flex items-center gap-1 font-semibold">
-                  Buka Tab Baru <span className="material-symbols-outlined text-[10px]">open_in_new</span>
-                </a>
-              )}
-            </div>
-            <div className="flex-1 relative bg-slate-700">
-              {selected?.FileURL ? (
-                <iframe
-                  src={`${selected.FileURL}#toolbar=1`}
-                  className="w-full h-full border-0"
-                  title="Naskah Proposal"
-                />
-              ) : (
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 p-8 text-center">
-                  <span className="material-symbols-outlined text-4xl mb-3 text-slate-500">warning</span>
-                  <p className="font-bold text-sm text-slate-300">Naskah Dokumen Tidak Dilampirkan</p>
-                  <p className="text-[11px] text-slate-400 mt-1 max-w-xs">ORMAWA belum mengunggah dokumen proposal untuk pengajuan ini.</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Right Pane (40%): Metadata, History, Action Forms */}
-          <div className="lg:w-2/5 flex flex-col overflow-y-auto bg-white min-h-0 divide-y divide-[var(--theme-border-muted)]">
+      <DialogModal
+        open={!!selected}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelected(null)
+            setShowPdf(false)
+          }
+        }}
+        icon="description"
+        title={<span className="capitalize">{selected?.Judul?.toLowerCase() || ''}</span>}
+        subtitle="Detail Review Proposal ORMAWA"
+        maxWidth="max-w-2xl"
+        bodyClassName="p-6 sm:p-8 space-y-6"
+      >        <div className="flex flex-col gap-6">
+          {/* Main Info Section */}
+          <div className="flex flex-col bg-white rounded-2xl border border-[var(--theme-border-muted)] overflow-hidden shadow-sm">
             {/* 1. Proposal & Proposer Details */}
             <div className="p-5 space-y-4">
               <div className="flex items-center justify-between">
@@ -503,6 +479,41 @@ export default function FacultyProposalApproval() {
                   </div>
                 </div>
               )}
+              {/* Document Link Card */}
+              <div className="pt-2">
+                <p className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-2.5">Berkas Pendaftaran</p>
+                {selected?.FileURL ? (
+                  <a 
+                    href={selected.FileURL} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="group flex items-center justify-between p-4 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg)]/50 hover:bg-[var(--theme-primary-light)] hover:border-[var(--theme-primary)]/30 transition-all duration-300 cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-10 h-10 rounded-lg bg-[var(--theme-error-light)] text-[var(--theme-error)] flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                        <span className="material-symbols-outlined text-[22px]">description</span>
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-[var(--theme-text)] text-sm group-hover:text-[var(--theme-primary)] transition-colors">Berkas Utama</h4>
+                        <p className="text-[11px] font-medium text-[var(--theme-text-muted)] mt-0.5">Klik untuk melihat file</p>
+                      </div>
+                    </div>
+                    <span className="material-symbols-outlined text-[var(--theme-text-subtle)] group-hover:text-[var(--theme-primary)] transition-colors" style={{ fontSize: '20px' }}>open_in_new</span>
+                  </a>
+                ) : (
+                  <div className="flex items-center justify-between p-4 rounded-xl border border-dashed border-[var(--theme-border-muted)] bg-[var(--theme-bg)]/30 opacity-70">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-10 h-10 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center shrink-0">
+                        <span className="material-symbols-outlined text-[22px]">description</span>
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-[var(--theme-text-muted)] text-sm">Belum Ada Berkas</h4>
+                        <p className="text-[11px] font-medium text-[var(--theme-text-subtle)] mt-0.5">Dokumen belum dilampirkan</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* 2. Review Decision Form */}
@@ -530,7 +541,7 @@ export default function FacultyProposalApproval() {
                       key={opt.s} 
                       onClick={()=>handleUpdateStatus(opt.s)} 
                       disabled={isSubmitting}
-                      className={cn('flex flex-col items-center justify-center gap-1.5 h-16 rounded-xl text-white text-[10px] font-semibold uppercase tracking-wider transition-all active:scale-[0.97] shadow-sm disabled:opacity-50', opt.cls)}
+                      className={cn('flex flex-row items-center justify-center gap-2 h-11 rounded-xl text-white text-[11px] font-bold uppercase tracking-wider transition-all active:scale-[0.97] shadow-sm disabled:opacity-50', opt.cls)}
                     >
                       {isSubmitting ? (
                         <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }}>sync</span>
@@ -544,8 +555,10 @@ export default function FacultyProposalApproval() {
               </div>
             </div>
 
+            </div>
+
             {/* 3. Review Timeline & Logs */}
-            <div className="p-5 space-y-4">
+            <div className="bg-white rounded-2xl border border-[var(--theme-border-muted)] p-5 shadow-sm space-y-4">
               <span className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider block">Riwayat Aliran Status</span>
 
               {selected?.Riwayat && selected.Riwayat.length > 0 ? (
@@ -584,10 +597,8 @@ export default function FacultyProposalApproval() {
                 </div>
               )}
             </div>
-
           </div>
-        </div>
-      </Dialog>
+      </DialogModal>
     </div>
   )
 }

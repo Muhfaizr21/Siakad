@@ -8,9 +8,10 @@ import { cn } from '@/lib/utils'
 import { psychologistService } from '../../services/api'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/Select"
 import { Button } from "@/components/ui/Button"
-import { PageContent } from "@/components/ui/page"
 import { DashboardHero } from "@/components/ui/dashboard"
 import { DataTable } from "@/components/ui/DataTable"
+import { Card, CardContent } from "@/components/ui/Card"
+import { PrimaryStatsCard } from "@/components/ui/StatsCard"
 import { Dialog, DialogHeader, DialogTitle } from '@/components/ui/Dialog'
 
 import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
@@ -48,7 +49,6 @@ export default function PsychologistDashboard() {
 
   const [catatan, setCatatan] = useState('')
   const [linkMeeting, setLinkMeeting] = useState('')
-  const [filterStatus, setFilter] = useState('all')
 
   const fetchData = async () => {
     setLoading(true)
@@ -85,12 +85,6 @@ export default function PsychologistDashboard() {
 
   const rawBookings = dashboard?.bookings || []
 
-  const filteredBookings = useMemo(() => {
-    return rawBookings.filter(p => {
-      return filterStatus === 'all' || (p.status || 'Menunggu') === filterStatus
-    })
-  }, [rawBookings, filterStatus])
-
   const handleTableSearch = (data, query) => {
     const q = query.toLowerCase();
     return data.filter(
@@ -126,8 +120,8 @@ export default function PsychologistDashboard() {
       label: 'Jadwal Sesi',
       render: (v, row) => (
         <div>
-          <p className="font-black text-sm text-slate-700">{row.date}</p>
-          <p className="text-[10px] text-primary font-bold mt-0.5 bg-primary/10 inline-block px-1.5 py-0.5 rounded uppercase tracking-wider">{row.time}</p>
+          <p className="font-semibold text-sm text-[var(--theme-text)]">{row.date}</p>
+          <p className="text-[10px] text-[var(--theme-primary)] font-bold mt-0.5 bg-[var(--theme-primary-light)]/20 border border-[var(--theme-primary)]/10 inline-block px-1.5 py-0.5 rounded uppercase tracking-wider">{row.time}</p>
         </div>
       )
     },
@@ -155,7 +149,7 @@ export default function PsychologistDashboard() {
             setCatatan(row.note || '')
             setLinkMeeting(row.link_meeting || '')
           }}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-primary bg-[#eef4ff] border border-[#c9d8ff] rounded-lg hover:bg-primary hover:text-white transition-all active:scale-95"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-[var(--theme-primary)] bg-[var(--theme-primary-light)]/20 border border-[var(--theme-primary)]/20 rounded-lg hover:bg-[var(--theme-primary)] hover:text-white transition-all active:scale-95"
         >
           <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>psychology</span> Tinjau
         </button>
@@ -229,11 +223,10 @@ export default function PsychologistDashboard() {
   const PIE_COLORS = ['#f59e0b', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6', '#00236f']
 
   return (
-    <div className="min-h-screen bg-transparent font-inter space-y-6">
+    <div className="w-full relative space-y-6 min-h-screen bg-transparent font-inter pb-8">
       <Toaster position="top-right" />
-      <PageContent>
         {/* ── Welcome Banner ─────────────────────────────────────────── */}
-        <section className="relative overflow-hidden rounded-2xl p-6 md:p-8 flex flex-col xl:flex-row xl:items-center gap-6 group shadow-sm border border-slate-200/60 bg-white mb-6">
+        <section className="relative overflow-hidden rounded-2xl p-6 md:p-8 flex flex-col xl:flex-row xl:items-center gap-6 group shadow-sm border border-slate-200/60 bg-white">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-50/80 via-white to-slate-50/80" />
           <div className="absolute inset-0 opacity-[0.02]"
             style={{
@@ -274,37 +267,62 @@ export default function PsychologistDashboard() {
         </section>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-          {[
-            { label: 'Total Pasien', value: totalPasien, icon: People, bg: 'bg-[#eef4ff]', color: 'text-primary', desc: 'Pasien terdaftar' },
-            { label: 'Sesi Selesai', value: sesiSelesai, icon: CheckCircle2, bg: 'bg-emerald-50', color: 'text-emerald-600', desc: 'Bulan ini' },
-            { label: 'Antrean Baru', value: antreanMenunggu, icon: Clock, bg: 'bg-amber-50', color: 'text-amber-600', desc: 'Menunggu ACC' },
-            { label: 'Sesi Hari Ini', value: sesiHariIni, icon: Activity, bg: 'bg-indigo-50', color: 'text-indigo-600', desc: 'Total jadwal hari ini' },
-            { label: 'Total Asesmen', value: totalAsesmen, icon: FileText, bg: 'bg-rose-50', color: 'text-rose-600', desc: 'Riwayat rekam medis' },
-          ].map(s => (
-            <div key={s.label} className="glass-card border border-slate-200/60 rounded-2xl p-5 shadow-none">
-              <div className="flex items-center gap-3 mb-3">
-                <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', s.bg, s.color)}><s.icon size={18} /></div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</span>
-              </div>
-              <p className={cn('font-extrabold text-slate-900 leading-none tabular-nums', String(s.value).length > 10 ? 'text-base' : 'text-2xl')}>
-                {loading ? <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span> : s.value}
-              </p>
-              <p className="text-xs text-slate-400 font-medium mt-1">{s.desc}</p>
-            </div>
-          ))}
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-5 mb-6 mt-6">
+          <PrimaryStatsCard
+            title="Total Pasien"
+            value={loading ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span> : totalPasien}
+            icon={People}
+            colorTheme="primary"
+            badgeText="Pasien Terdaftar"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">group</span>}
+          />
+          <PrimaryStatsCard
+            title="Sesi Selesai"
+            value={loading ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span> : sesiSelesai}
+            icon={CheckCircle2}
+            colorTheme="success"
+            badgeText="Bulan Ini"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">event_available</span>}
+          />
+          <PrimaryStatsCard
+            title="Antrean Baru"
+            value={loading ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span> : antreanMenunggu}
+            icon={Clock}
+            colorTheme="warning"
+            badgeText="Menunggu ACC"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">hourglass_empty</span>}
+          />
+          <PrimaryStatsCard
+            title="Sesi Hari Ini"
+            value={loading ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span> : sesiHariIni}
+            icon={Activity}
+            colorTheme="info"
+            badgeText="Jadwal Aktif"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">today</span>}
+          />
+          <PrimaryStatsCard
+            title="Total Asesmen"
+            value={loading ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span> : totalAsesmen}
+            icon={FileText}
+            colorTheme="error"
+            badgeText="Rekam Medis"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">folder_shared</span>}
+          />
         </div>
 
         {/* Charts */}
         {!loading && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             {/* Pie: Faculty Distribution */}
-            <div className="glass-card border border-slate-200/60 rounded-2xl p-5 shadow-none">
-              <div className="flex items-center gap-3 mb-3">
+            <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+              <div className="flex items-center gap-3 mb-4 shrink-0">
                 <div className="w-10 h-10 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-600 shrink-0">
                   <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>pie_chart</span>
                 </div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Distribusi Sesi per Fakultas</span>
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Rasio Pasien</span>
+                  <h3 className="text-sm font-bold text-slate-800 leading-tight">Distribusi Sesi per Fakultas</h3>
+                </div>
               </div>
               <div className="h-[180px] w-full flex items-center justify-center">
                 {facultyDistribution.length > 0 ? (
@@ -332,12 +350,15 @@ export default function PsychologistDashboard() {
             </div>
 
             {/* Bar: Topik Keluhan (Top 5) */}
-            <div className="glass-card border border-slate-200/60 rounded-2xl p-5 shadow-none">
-              <div className="flex items-center gap-3 mb-3">
+            <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+              <div className="flex items-center gap-3 mb-4 shrink-0">
                 <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-600 shrink-0">
                   <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>bar_chart</span>
                 </div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Topik Konseling (Top 5)</span>
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Isu Terbanyak</span>
+                  <h3 className="text-sm font-bold text-slate-800 leading-tight">Topik Konseling (Top 5)</h3>
+                </div>
               </div>
               <div className="h-[180px] w-full">
                 {topTopicsData.length > 0 ? (
@@ -355,12 +376,15 @@ export default function PsychologistDashboard() {
             </div>
 
             {/* Line: Tren Sesi per Bulan */}
-            <div className="glass-card border border-slate-200/60 rounded-2xl p-5 shadow-none">
-              <div className="flex items-center gap-3 mb-3">
+            <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+              <div className="flex items-center gap-3 mb-4 shrink-0">
                 <div className="w-10 h-10 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-600 shrink-0">
                   <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>trending_up</span>
                 </div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tren Sesi per Bulan</span>
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Grafik Riwayat</span>
+                  <h3 className="text-sm font-bold text-slate-800 leading-tight">Tren Sesi per Bulan</h3>
+                </div>
               </div>
               <div className="h-[180px] w-full">
                 {monthlyTrendData.length > 0 ? (
@@ -380,60 +404,43 @@ export default function PsychologistDashboard() {
         )}
 
         {/* Table */}
-        <div className="glass-card border border-slate-200/60 rounded-2xl shadow-none p-5 mt-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-4 mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary shrink-0">
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>list</span>
-              </div>
-              <div>
-                <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Daftar Antrean & Booking Sesi</h2>
-                <p className="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-widest">Total {filteredBookings.length} data ditemukan</p>
-              </div>
-            </div>
-            <div>
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilter(e.target.value)}
-                className="h-9 pl-3 pr-8 rounded-xl border border-slate-200/60 text-xs font-medium bg-transparent text-slate-600 focus:outline-none focus:border-primary appearance-none cursor-pointer"
-              >
-                <option value="all">Semua Status</option>
-                <option value="Menunggu">Menunggu</option>
-                <option value="Dikonfirmasi">Dikonfirmasi</option>
-                <option value="Selesai">Selesai</option>
-                <option value="Ditolak">Ditolak</option>
-              </select>
-            </div>
-          </div>
-
-          <DataTable
-            columns={columns}
-            data={filteredBookings}
-            loading={loading}
-            searchable={true}
-            onSearch={handleTableSearch}
-            searchPlaceholder="Cari mahasiswa atau keluhan..."
-            pagination={true}
-            pageSize={10}
-            emptyMessage="Tidak Ada Sesi Terjadwal."
-            emptyIcon="psychology"
-          />
+        <div className="bg-[var(--theme-surface)] rounded-2xl border border-[var(--theme-border)] shadow-sm overflow-hidden mb-6">
+            <DataTable
+              columns={columns}
+              data={rawBookings}
+              loading={loading}
+              searchable={true}
+              onSearch={handleTableSearch}
+              searchPlaceholder="Cari mahasiswa atau keluhan..."
+              pagination={true}
+              pageSize={10}
+              emptyMessage="Tidak Ada Sesi Terjadwal."
+              emptyIcon="psychology"
+              filters={[
+                {
+                  key: 'status',
+                  placeholder: 'Status',
+                  options: [
+                    { label: 'Menunggu', value: 'Menunggu' },
+                    { label: 'Dikonfirmasi', value: 'Dikonfirmasi' },
+                    { label: 'Selesai', value: 'Selesai' },
+                    { label: 'Ditolak', value: 'Ditolak' }
+                  ]
+                }
+              ]}
+            />
         </div>
-      </PageContent>
 
-      <Dialog open={!!selected} onOpenChange={() => setSelected(null)} maxWidth="max-w-7xl" className="h-[90vh] flex flex-col overflow-hidden">
+      <Dialog open={!!selected} onOpenChange={() => setSelected(null)} maxWidth="max-w-4xl" className="max-h-[85vh] flex flex-col overflow-hidden">
         {selected && (
           <>
             {/* Header */}
             <div className="relative bg-gradient-to-br from-[#00236F] to-[#003db5] py-4 px-6 overflow-hidden flex-shrink-0 flex items-center justify-between">
               <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
-              <div className="relative z-10">
+              <div className="relative z-10 pr-8">
                 <span className="text-[9px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-[0.25em]">Detail Sesi Konseling</span>
                 <DialogTitle className="text-base font-bold text-[var(--theme-text)] leading-tight line-clamp-1 mt-0.5">{selected.name} - {selected.issue}</DialogTitle>
               </div>
-              <button onClick={() => setSelected(null)} className="relative z-50 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center text-white transition-colors">
-                <span className="material-symbols-outlined text-[16px]">close</span>
-              </button>
             </div>
 
             {/* Split Screen Workspace */}

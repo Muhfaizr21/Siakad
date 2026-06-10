@@ -12,7 +12,8 @@ import { Badge } from "@/components/ui/Badge"
 import { DeleteConfirmModal } from "@/components/ui/DeleteConfirmModal"
 import { PageContent } from '@/components/ui/page'
 import { DashboardHero } from '@/components/ui/dashboard'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
+import { DialogModal, ModalCancelButton, ModalSaveButton } from "@/components/ui/DialogModal"
+import { PrimaryStatsCard } from '@/components/ui/StatsCard'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const RefreshCw = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>sync</span>;
@@ -48,6 +49,7 @@ export default function ProdiPage() {
   const [isSubmitting, setIsSub] = useState(false)
   const [deleteTarget, setDelTarget] = useState(null)
   const [formData, setFormData] = useState(EMPTY_FORM)
+  const [jenjangOpen, setJenjangOpen] = useState(false)
 
   const fetchMajors = async () => {
     setLoading(true)
@@ -275,8 +277,8 @@ export default function ProdiPage() {
       label: "Program Studi",
       render: (val, row) => (
         <div className="flex flex-col">
-          <span className="font-bold text-slate-800 font-jakarta text-[13px] tracking-tight">{val}</span>
-          <span className="text-[10px] text-slate-400 font-medium font-inter mt-0.5">{row.Fakultas?.Nama || "Univ. Bhakti Kencana"}</span>
+          <span className="font-semibold text-[var(--theme-text)] font-headline tracking-tight text-[14px]">{val}</span>
+          <span className="text-[11px] font-medium text-[var(--theme-text-muted)] font-body tracking-tight mt-0.5">{row.Fakultas?.Nama || "Univ. Bhakti Kencana"}</span>
         </div>
       )
     },
@@ -376,40 +378,53 @@ export default function ProdiPage() {
         />
 
       {/* Stats Section */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: 'Total Program Studi', value: stats.total, icon: GraduationCap, bg: 'bg-primary/10', color: 'text-primary', desc: 'Prodi terdaftar' },
-          { label: 'Akreditasi Unggul', value: stats.unggul, icon: CheckCircle2, bg: 'bg-emerald-50 text-emerald-600', color: 'text-emerald-600', desc: 'Prodi Unggul / A' },
-          { label: 'Total Mahasiswa', value: totalMahasiswa, icon: Users, bg: 'bg-amber-50 text-amber-600', color: 'text-amber-600', desc: 'Mahasiswa aktif' },
-          { label: 'Total Kapasitas', value: stats.kapasitas, icon: BookOpen, bg: 'bg-indigo-50 text-indigo-600', color: 'text-indigo-600', desc: 'Slot mahasiswa tersedia' },
-        ].map(s => (
-          <div key={s.label} className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
-            <div className="flex items-center gap-3 mb-3">
-              <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', s.bg, s.color)}>
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{s.icon === GraduationCap ? 'school' : s.icon === CheckCircle2 ? 'check_circle' : s.icon === Users ? 'group' : 'menu_book'}</span>
-              </div>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</span>
-            </div>
-            <p className="text-2xl font-extrabold text-slate-900 leading-none tabular-nums">
-              {loading ? <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span> : s.value.toLocaleString()}
-            </p>
-            <p className="text-xs text-slate-400 font-medium mt-1">{s.desc}</p>
-          </div>
-        ))}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+        <PrimaryStatsCard
+          title="Total Program Studi"
+          value={stats.total}
+          icon={GraduationCap}
+          colorTheme="primary"
+          badgeText="Prodi terdaftar"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">business</span>}
+        />
+        <PrimaryStatsCard
+          title="Akreditasi Unggul"
+          value={stats.unggul}
+          icon={CheckCircle2}
+          colorTheme="success"
+          badgeText="Prodi Unggul / A"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">verified</span>}
+        />
+        <PrimaryStatsCard
+          title="Total Mahasiswa"
+          value={totalMahasiswa}
+          icon={Users}
+          colorTheme="warning"
+          badgeText="Mahasiswa aktif"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">groups</span>}
+        />
+        <PrimaryStatsCard
+          title="Total Kapasitas"
+          value={stats.kapasitas}
+          icon={BookOpen}
+          colorTheme="info"
+          badgeText="Slot tersedia"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">event_seat</span>}
+        />
       </div>
 
       {/* 5W1H Charts */}
       {!loading && majors.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           {/* WHAT → Distribusi Jenjang */}
-          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-600 shrink-0">
+          <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
                 <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>pie_chart</span>
               </div>
               <div>
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Distribusi Jenjang</h3>
-                <p className="text-[10px] text-slate-400">Rasio S1 / D3 / S2</p>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Distribusi Jenjang</span>
+                <h3 className="text-sm font-bold text-slate-800 leading-tight">Rasio S1 / D3 / S2</h3>
               </div>
             </div>
             <div className="h-[170px] w-full flex items-center justify-center">
@@ -424,7 +439,7 @@ export default function ProdiPage() {
                 </ResponsiveContainer>
               ) : <span className="text-xs text-slate-400 italic">Tidak ada data</span>}
             </div>
-            <div className="flex justify-center gap-3 mt-1">
+            <div className="flex flex-wrap justify-center gap-3 mt-1">
               {jenjangData.map((item, i) => (
                 <div key={item.name} className="flex items-center gap-1.5">
                   <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
@@ -435,14 +450,14 @@ export default function ProdiPage() {
           </div>
 
           {/* WHAT → Distribusi Akreditasi */}
-          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-600 shrink-0">
+          <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
                 <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>verified</span>
               </div>
               <div>
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Status Akreditasi</h3>
-                <p className="text-[10px] text-slate-400">Kualitas prodi</p>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Status Akreditasi</span>
+                <h3 className="text-sm font-bold text-slate-800 leading-tight">Kualitas Prodi</h3>
               </div>
             </div>
             <div className="h-[170px] w-full flex items-center justify-center">
@@ -457,7 +472,7 @@ export default function ProdiPage() {
                 </ResponsiveContainer>
               ) : <span className="text-xs text-slate-400 italic">Tidak ada data</span>}
             </div>
-            <div className="flex justify-center gap-3 mt-1">
+            <div className="flex flex-wrap justify-center gap-3 mt-1">
               {akreditasiData.map((item, i) => (
                 <div key={item.name} className="flex items-center gap-1.5">
                   <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: ['#10b981', '#3b82f6', '#94a3b8'][i % 3] }} />
@@ -468,14 +483,14 @@ export default function ProdiPage() {
           </div>
 
           {/* HOW → Utilisasi Kapasitas (Top 8) */}
-          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-600 shrink-0">
+          <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 shrink-0">
                 <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>bar_chart</span>
               </div>
               <div>
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Utilisasi Kapasitas</h3>
-                <p className="text-[10px] text-slate-400">Mahasiswa vs daya tampung</p>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Utilisasi Kapasitas</span>
+                <h3 className="text-sm font-bold text-slate-800 leading-tight">Mahasiswa vs Daya Tampung</h3>
               </div>
             </div>
             <div className="h-[170px] w-full">
@@ -496,37 +511,47 @@ export default function ProdiPage() {
       )}
 
       {/* Main Data Table */}
-      <div className="pt-2">
-        <DataTable
-          columns={prodiColumns}
-          data={majors}
-          loading={loading}
-          searchPlaceholder="Cari program studi..."
-          actions={renderActions}
-          title="Daftar Program Studi"
-          itemLabel="program studi"
-        />
+      <div className="glass-card shadow-sm rounded-xl overflow-hidden mt-6 mb-6">
+        <div className="px-6 py-5 border-b border-[var(--theme-border)] flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-[var(--theme-surface)]">
+          <div className="flex-1">
+            <h2 className="font-headline font-bold text-lg text-[var(--theme-text)]">Daftar Program Studi</h2>
+            <p className="text-xs text-[var(--theme-text-muted)] mt-1 font-medium">
+              Menampilkan total <span className="font-bold text-[var(--theme-primary)]">{majors.length}</span> program studi terdaftar
+            </p>
+          </div>
+        </div>
+        <div className="p-0">
+          <DataTable
+            columns={prodiColumns}
+            data={majors}
+            loading={loading}
+            searchPlaceholder="Cari program studi..."
+            actions={renderActions}
+          />
+        </div>
       </div>
 
       {/* CRUD Modal */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModal} maxWidth="max-w-lg">
-        <DialogContent className="max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)] shrink-0">
-                <GraduationCap size={20} />
-              </div>
-              <div>
-                <p className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-0.5">
-                  {isEditMode ? 'Edit Program Studi' : 'Tambah Program Studi'}
-                </p>
-                <DialogTitle>{isEditMode ? 'Update Data Prodi' : 'Registrasi Prodi Baru'}</DialogTitle>
-                <DialogDescription>Isi semua formulir administrasi di bawah ini dengan lengkap.</DialogDescription>
-              </div>
-            </div>
-          </DialogHeader>
-
-          <form onSubmit={handleSave} className="p-6 space-y-4 text-[var(--theme-text)]">
+      <DialogModal
+        open={isModalOpen}
+        onOpenChange={setIsModal}
+        icon="school"
+        title={isEditMode ? 'Update Data Prodi' : 'Registrasi Prodi Baru'}
+        subtitle="Isi semua formulir administrasi di bawah ini dengan lengkap."
+        badgeText={isEditMode ? 'Edit Program Studi' : 'Tambah Program Studi'}
+        maxWidth="max-w-lg"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setIsModal(false)} />
+            <ModalSaveButton 
+              form="prodi-form" 
+              loading={isSubmitting} 
+              text={isEditMode ? 'Update' : 'Simpan'} 
+            />
+          </>
+        }
+      >
+        <form id="prodi-form" onSubmit={handleSave} className="space-y-4 text-[var(--theme-text)]">
             {/* Fakultas Naungan (Auto-Generated, Read-Only) */}
             <div>
               <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Fakultas Naungan</label>
@@ -561,17 +586,40 @@ export default function ProdiPage() {
                   className="w-full h-10 px-3 border border-[var(--theme-border)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors uppercase font-medium"
                 />
               </div>
-              <div>
+              <div className="relative">
                 <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Jenjang</label>
-                <select
-                  value={formData.Jenjang}
-                  onChange={e => set('Jenjang', e.target.value)}
-                  className="w-full h-10 px-3 border border-[var(--theme-border)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors cursor-pointer font-medium"
-                >
-                  <option value="S1">S1 - Sarjana</option>
-                  <option value="D3">D3 - Diploma</option>
-                  <option value="S2">S2 - Magister</option>
-                </select>
+                <div className="relative">
+                  <input
+                    value={formData.Jenjang}
+                    onChange={e => set('Jenjang', e.target.value)}
+                    onFocus={() => setJenjangOpen(true)}
+                    onBlur={() => setTimeout(() => setJenjangOpen(false), 200)}
+                    placeholder="Ketik atau pilih..."
+                    className="w-full h-10 pl-3 pr-10 border border-[var(--theme-border)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors cursor-text font-medium"
+                  />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--theme-text-subtle)]">
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>expand_more</span>
+                  </div>
+                </div>
+
+                {jenjangOpen && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-slate-100 rounded-xl shadow-lg shadow-slate-200/50 py-1 overflow-y-auto max-h-40 animate-in fade-in slide-in-from-top-1 duration-200">
+                    {['S1', 'S2', 'S3', 'D3', 'D4', 'Profesi', 'Spesialis'].map(opt => (
+                      <div
+                        key={opt}
+                        onMouseDown={(e) => {
+                          e.preventDefault(); // Prevent input onBlur from firing before click
+                          set('Jenjang', opt);
+                          setJenjangOpen(false);
+                        }}
+                        className="px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-primary/5 hover:text-primary cursor-pointer transition-colors flex items-center gap-2"
+                      >
+                        <span className="material-symbols-outlined text-[14px] text-slate-400">school</span>
+                        {opt}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -611,30 +659,8 @@ export default function ProdiPage() {
               </div>
             </div>
 
-            <DialogFooter className="flex gap-3 pt-4 sm:flex-row sm:justify-stretch sm:space-x-0">
-              <button
-                type="button"
-                onClick={() => setIsModal(false)}
-                className="flex-1 h-10 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider hover:bg-[var(--theme-bg)] transition-colors cursor-pointer"
-              >
-                Batal
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="flex-1 h-10 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-xs font-semibold uppercase tracking-wider transition-colors disabled:opacity-60 flex items-center justify-center gap-2 border-none cursor-pointer"
-              >
-                {isSubmitting ? (
-                  <span className="material-symbols-outlined animate-spin" style={{ fontSize: '15px' }} >sync</span>
-                ) : (
-                  <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >save</span>
-                )}
-                <span>{isEditMode ? 'Update' : 'Simpan'}</span>
-              </button>
-            </DialogFooter>
           </form>
-        </DialogContent>
-      </Dialog>
+      </DialogModal>
 
       <DeleteConfirmModal
         isOpen={!!deleteTarget}

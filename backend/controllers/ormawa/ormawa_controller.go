@@ -816,7 +816,9 @@ func GetAnnouncements(c *fiber.Ctx) error {
 	var list []models.OrmawaPengumuman
 	query := config.DB.Preload("Ormawa")
 
-	if ormawaId != "" {
+	if tokenOrmawaID, ok := c.Locals("ormawa_id").(uint); ok && tokenOrmawaID != 0 {
+		query = query.Where("ormawa_id = ?", tokenOrmawaID)
+	} else if ormawaId != "" {
 		query = query.Where("ormawa_id = ?", ormawaId)
 	}
 	query.Order("created_at desc").Find(&list)
@@ -834,16 +836,43 @@ func CreateAnnouncement(c *fiber.Ctx) error {
 		payload.OrmawaID = tokenOrmawaID
 	}
 
+	// Default to now if zero
+	if payload.TanggalMulai.IsZero() {
+		payload.TanggalMulai = time.Now()
+	}
+
 	if err := config.DB.Create(&payload).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menyimpan pengumuman: " + err.Error()})
 	}
+
+	createdAt := payload.TanggalMulai
+
 	// Buat notifikasi ormawa
-	config.DB.Create(&models.OrmawaNotifikasi{
+	notifOrmawa := models.OrmawaNotifikasi{
 		OrmawaID: payload.OrmawaID,
 		Tipe:     "pengumuman",
 		Judul:    "Pengumuman Baru",
 		Pesan:    fmt.Sprintf("Pengumuman baru dirilis: '%s'.", payload.Judul),
-	})
+	}
+	notifOrmawa.CreatedAt = createdAt
+	config.DB.Create(&notifOrmawa)
+
+	// Buat notifikasi untuk anggota ormawa
+	var anggota []models.OrmawaAnggota
+	config.DB.Preload("Mahasiswa").Where("ormawa_id = ?", payload.OrmawaID).Find(&anggota)
+	for _, a := range anggota {
+		if a.Mahasiswa.PenggunaID != 0 {
+			notifMember := models.Notifikasi{
+				UserID: a.Mahasiswa.PenggunaID,
+				Tipe:   "pengumuman_ormawa",
+				Judul:  "Pengumuman Ormawa",
+				Deskripsi:  fmt.Sprintf("Ada pengumuman baru: '%s'", payload.Judul),
+			}
+			notifMember.CreatedAt = createdAt
+			config.DB.Create(&notifMember)
+		}
+	}
+
 	return c.JSON(fiber.Map{"status": "success", "data": payload})
 }
 
@@ -1248,12 +1277,17 @@ func RegenerateMembers(c *fiber.Ctx) error {
 
 func CreateMember(c *fiber.Ctx) error {
 	var payload struct {
-		MahasiswaID uint   `json:"MahasiswaID"`
-		OrmawaID    uint   `json:"OrmawaID"`
-		Role        string `json:"Role"`
-		Divisi      string `json:"Divisi"`
-		EmailKampus string `json:"EmailKampus"`
-		NoHP        string `json:"NoHP"`
+		MahasiswaID      uint    `json:"MahasiswaID"`
+		OrmawaID         uint    `json:"OrmawaID"`
+		Role             string  `json:"Role"`
+		Divisi           string  `json:"Divisi"`
+		DivisiPilihanDua string  `json:"DivisiPilihanDua"`
+		EmailKampus      string  `json:"EmailKampus"`
+		NoHP             string  `json:"NoHP"`
+		Status           string  `json:"Status"` // "aktif" or "pending"
+		Alasan           string  `json:"Alasan"`
+		CVURL            string  `json:"CVURL"`
+		CustomAnswers    string  `json:"CustomAnswers"`
 	}
 
 	if err := c.BodyParser(&payload); err != nil {
@@ -1276,7 +1310,7 @@ func CreateMember(c *fiber.Ctx) error {
 	}
 
 	var mhs models.Mahasiswa
-	if err := config.DB.Select("fakultas_id").First(&mhs, payload.MahasiswaID).Error; err != nil {
+	if err := config.DB.Select("fakultas_id, ipk").First(&mhs, payload.MahasiswaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Mahasiswa tidak ditemukan"})
 	}
 
@@ -1287,70 +1321,92 @@ func CreateMember(c *fiber.Ctx) error {
 		})
 	}
 
+	status := "aktif"
+	if payload.Status == "pending" {
+		status = "pending"
+	}
+
 	member := models.OrmawaAnggota{
-		MahasiswaID: payload.MahasiswaID,
-		OrmawaID:    payload.OrmawaID,
-		Role:        payload.Role,
-		Divisi:      payload.Divisi,
-		Status:      "aktif",
-		JoinedAt:    time.Now(),
+		MahasiswaID:      payload.MahasiswaID,
+		OrmawaID:         payload.OrmawaID,
+		Role:             payload.Role,
+		Divisi:           payload.Divisi,
+		DivisiPilihanDua: payload.DivisiPilihanDua,
+		Alasan:           payload.Alasan,
+		CVURL:            payload.CVURL,
+		CustomAnswers:    payload.CustomAnswers,
+		IPK:              mhs.IPK,
+		Status:           status,
+		JoinedAt:         time.Now(),
 	}
 
 	if err := config.DB.Create(&member).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menambah anggota"})
 	}
 
-	// Sinkronisasi RiwayatOrganisasi Portfolio
-	year := time.Now().Year()
-	periodeStr := fmt.Sprintf("%d/%d", year, year+1)
+	if status == "aktif" {
+		// Sinkronisasi RiwayatOrganisasi Portfolio
+		year := time.Now().Year()
+		periodeStr := fmt.Sprintf("%d/%d", year, year+1)
 
-	var riwayat models.RiwayatOrganisasi
-	errSync := config.DB.Where("mahasiswa_id = ? AND ormawa_id = ? AND periode = ?", payload.MahasiswaID, payload.OrmawaID, periodeStr).First(&riwayat).Error
-	if errSync != nil {
-		newRiwayat := models.RiwayatOrganisasi{
-			MahasiswaID:       payload.MahasiswaID,
-			OrmawaID:          payload.OrmawaID,
-			NamaOrganisasi:    ormawa.Nama,
-			Tipe:              ormawa.Kategori,
-			Jabatan:           payload.Role,
-			PeriodeMulai:      year,
-			PeriodeSelesai:    &[]int{year + 1}[0],
-			Periode:           periodeStr,
-			Status:            "Aktif",
-			DeskripsiKegiatan: "Aktif sebagai anggota pengurus organisasi mahasiswa.",
-			StatusVerifikasi:  "Terverifikasi",
+		var riwayat models.RiwayatOrganisasi
+		errSync := config.DB.Where("mahasiswa_id = ? AND ormawa_id = ? AND periode = ?", payload.MahasiswaID, payload.OrmawaID, periodeStr).First(&riwayat).Error
+		if errSync != nil {
+			newRiwayat := models.RiwayatOrganisasi{
+				MahasiswaID:       payload.MahasiswaID,
+				OrmawaID:          payload.OrmawaID,
+				NamaOrganisasi:    ormawa.Nama,
+				Tipe:              ormawa.Kategori,
+				Jabatan:           payload.Role,
+				PeriodeMulai:      year,
+				PeriodeSelesai:    &[]int{year + 1}[0],
+				Periode:           periodeStr,
+				Status:            "Aktif",
+				DeskripsiKegiatan: "Aktif sebagai anggota pengurus organisasi mahasiswa.",
+				StatusVerifikasi:  "Terverifikasi",
+			}
+			config.DB.Create(&newRiwayat)
+		} else {
+			riwayat.Jabatan = payload.Role
+			riwayat.Status = "Aktif"
+			config.DB.Save(&riwayat)
 		}
-		config.DB.Create(&newRiwayat)
+
+		// Sinkronisasi Kontak Mahasiswa
+		mhsUpdates := map[string]interface{}{}
+		if payload.EmailKampus != "" {
+			mhsUpdates["email_kampus"] = payload.EmailKampus
+		}
+		if payload.NoHP != "" {
+			mhsUpdates["no_hp"] = payload.NoHP
+		}
+		if len(mhsUpdates) > 0 {
+			config.DB.Model(&models.Mahasiswa{}).Where("id = ?", member.MahasiswaID).Updates(mhsUpdates)
+		}
+
+		config.DB.Preload("Mahasiswa").First(&member, member.ID)
+
+		// Buat notifikasi ormawa
+		config.DB.Create(&models.OrmawaNotifikasi{
+			OrmawaID: member.OrmawaID,
+			Tipe:     "anggota",
+			Judul:    "Anggota Baru Bergabung",
+			Pesan:    fmt.Sprintf("Mahasiswa %s telah bergabung dengan organisasi sebagai %s.", member.Mahasiswa.Nama, member.Role),
+		})
+
+		// Synchronize user.Role to include "ormawa"
+		syncUserOrmawaRole(member.MahasiswaID)
 	} else {
-		riwayat.Jabatan = payload.Role
-		riwayat.Status = "Aktif"
-		config.DB.Save(&riwayat)
+		config.DB.Preload("Mahasiswa").First(&member, member.ID)
+		
+		// Buat notifikasi ormawa untuk pendaftaran baru
+		config.DB.Create(&models.OrmawaNotifikasi{
+			OrmawaID: member.OrmawaID,
+			Tipe:     "anggota",
+			Judul:    "Pendaftaran Manual Ditambahkan",
+			Pesan:    fmt.Sprintf("Pendaftaran manual untuk mahasiswa %s berhasil diajukan.", member.Mahasiswa.Nama),
+		})
 	}
-
-	// Sinkronisasi Kontak Mahasiswa
-	mhsUpdates := map[string]interface{}{}
-	if payload.EmailKampus != "" {
-		mhsUpdates["email_kampus"] = payload.EmailKampus
-	}
-	if payload.NoHP != "" {
-		mhsUpdates["no_hp"] = payload.NoHP
-	}
-	if len(mhsUpdates) > 0 {
-		config.DB.Model(&models.Mahasiswa{}).Where("id = ?", member.MahasiswaID).Updates(mhsUpdates)
-	}
-
-	config.DB.Preload("Mahasiswa").First(&member, member.ID)
-
-	// Buat notifikasi ormawa
-	config.DB.Create(&models.OrmawaNotifikasi{
-		OrmawaID: member.OrmawaID,
-		Tipe:     "anggota",
-		Judul:    "Anggota Baru Bergabung",
-		Pesan:    fmt.Sprintf("Mahasiswa %s telah bergabung dengan organisasi sebagai %s.", member.Mahasiswa.Nama, member.Role),
-	})
-
-	// Synchronize user.Role to include "ormawa"
-	syncUserOrmawaRole(member.MahasiswaID)
 
 	return c.JSON(fiber.Map{"status": "success", "data": member})
 }
@@ -1891,13 +1947,25 @@ func GetStudentsLookup(c *fiber.Ctx) error {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Ormawa tidak ditemukan"})
 	}
 
+	search := c.Query("search")
 	var students []models.Mahasiswa
-	query := config.DB.Select("id, nama, nim, email_kampus, no_hp").Where("fakultas_id = ?", ormawa.FakultasID)
-	if err := query.Find(&students).Error; err != nil {
+	query := config.DB.Select("id, nama, nim, email_kampus, no_hp")
+
+	if ormawa.FakultasID != nil {
+		query = query.Where("fakultas_id = ?", ormawa.FakultasID)
+	}
+
+	if search != "" {
+		searchTerm := "%" + search + "%"
+		query = query.Where("nama ILIKE ? OR nim ILIKE ?", searchTerm, searchTerm)
+	}
+
+	if err := query.Limit(50).Find(&students).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal memuat data mahasiswa"})
 	}
 	return c.JSON(fiber.Map{"status": "success", "data": students})
 }
+
 
 // GetOrmawaGamifikasi returns rank, points, and point history of active Ormawa
 func GetOrmawaGamifikasi(c *fiber.Ctx) error {

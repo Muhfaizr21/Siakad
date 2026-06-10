@@ -2,6 +2,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { psychologistService } from '../../services/api';
 import { DataTable } from '@/components/ui/DataTable';
+import { PrimaryStatsCard } from '@/components/ui/StatsCard';
+
+// Fallback Icons
+const GroupIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>group</span>;
+const ChartIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>show_chart</span>;
 
 export default function PatientList() {
   const navigate = useNavigate();
@@ -386,43 +391,23 @@ export default function PatientList() {
                 </div>
                 
                 {/* Premium Card 1: Total Pasien Unik */}
-                <div className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
-                  <div className="absolute -right-8 -top-5 w-24 h-24 rounded-full blur-xl pointer-events-none" style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)' }} />
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="w-11 h-11 rounded-[1rem] flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shrink-0" style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)', color: 'var(--theme-primary)' }}>
-                      <span className="material-symbols-outlined text-base shrink-0">group</span>
-                    </div>
-                    <div className="flex items-center gap-1 rounded-full bg-blue-50/80 border border-blue-100 px-2.5 py-0.5 text-[9px] font-black text-blue-600 uppercase tracking-widest">
-                      AKTIF
-                    </div>
-                  </div>
-                  
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-5">Pasien Unik</p>
-                  <p className="mt-1 text-3xl font-extrabold text-slate-900 tracking-tight leading-none">{patients.length} Orang</p>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide mt-1.5">mahasiswa terdaftar</p>
-                </div>
+                <PrimaryStatsCard
+                  title="Pasien Unik"
+                  value={`${patients.length} Orang`}
+                  icon={GroupIcon}
+                  colorTheme="primary"
+                  badgeText="AKTIF"
+                />
 
                 {/* Premium Card 2: Sesi Bulan Ini */}
-                <div className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
-                  <div className="absolute -right-8 -top-5 w-24 h-24 bg-amber-500/5 rounded-full blur-xl pointer-events-none" />
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="w-11 h-11 bg-amber-50 text-amber-600 rounded-[1rem] flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shrink-0">
-                      <span className="material-symbols-outlined text-base shrink-0">show_chart</span>
-                    </div>
-                    <div className="flex items-center gap-1 rounded-full bg-emerald-50/80 border border-emerald-100 px-2.5 py-0.5 text-[9px] font-black text-emerald-600 uppercase tracking-widest">
-                      <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
-                      LIVE
-                    </div>
-                  </div>
-                  
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-5">Sesi Bulan Ini</p>
-                  <p className="mt-1 text-3xl font-extrabold text-slate-900 tracking-tight leading-none">
-                    {patients.reduce((sum, item) => sum + Number(item.sessions || 0), 0)} Sesi
-                  </p>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide mt-1.5">konseling terselesaikan</p>
-                </div>
+                <PrimaryStatsCard
+                  title="Sesi Bulan Ini"
+                  value={`${patients.reduce((sum, item) => sum + Number(item.sessions || 0), 0)} Sesi`}
+                  icon={ChartIcon}
+                  colorTheme="success"
+                  badgeText="LIVE"
+                  badgeIcon={<span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />}
+                />
               </div>
 
               {/* Data Security Info Card */}

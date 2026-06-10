@@ -412,12 +412,44 @@ func UpdatePeriod(c *fiber.Ctx) error {
 }
 
 func ListStages(c *fiber.Ctx) error {
+	role, fakultasID := kencanaAdminScope(c)
+	var fid *uint
+	if role == "kencana_fakultas" {
+		fid = &fakultasID
+	} else {
+		if reqFakultasID := c.QueryInt("fakultas_id"); reqFakultasID != 0 {
+			uFid := uint(reqFakultasID)
+			fid = &uFid
+		}
+	}
+
+	materialCond := func(db *gorm.DB) *gorm.DB {
+		if fid != nil {
+			return db.Where("fakultas_id = ?", *fid).Order("order_number asc")
+		}
+		return db.Where("fakultas_id IS NULL").Order("order_number asc")
+	}
+
+	quizCond := func(db *gorm.DB) *gorm.DB {
+		if fid != nil {
+			return db.Where("fakultas_id = ?", *fid).Order("created_at asc")
+		}
+		return db.Where("fakultas_id IS NULL").Order("created_at asc")
+	}
+
+	assignmentCond := func(db *gorm.DB) *gorm.DB {
+		if fid != nil {
+			return db.Where("fakultas_id = ?", *fid).Order("created_at asc")
+		}
+		return db.Where("fakultas_id IS NULL").Order("created_at asc")
+	}
+
 	var stages []models.KencanaStage
 	q := config.DB.
 		Preload("Sessions", func(db *gorm.DB) *gorm.DB { return db.Order("order_number asc") }).
-		Preload("Sessions.Materials", func(db *gorm.DB) *gorm.DB { return db.Order("order_number asc") }).
-		Preload("Sessions.Quizzes", func(db *gorm.DB) *gorm.DB { return db.Order("created_at asc") }).
-		Preload("Sessions.Assignments", func(db *gorm.DB) *gorm.DB { return db.Order("created_at asc") }).
+		Preload("Sessions.Materials", materialCond).
+		Preload("Sessions.Quizzes", quizCond).
+		Preload("Sessions.Assignments", assignmentCond).
 		Order("period_id desc, order_number asc")
 	if periodID := c.Query("period_id"); periodID != "" {
 		q = q.Where("period_id = ?", periodID)
@@ -429,7 +461,6 @@ func ListStages(c *fiber.Ctx) error {
 			q = q.Where("type = ?", stageType)
 		}
 	}
-	role, fakultasID := kencanaAdminScope(c)
 	if role == "super_admin" || role == "kencana_admin" {
 		if reqFakultasID := c.Query("fakultas_id"); reqFakultasID != "" {
 			q = q.Where("fakultas_id = ?", reqFakultasID)
@@ -517,7 +548,44 @@ func UpdateStage(c *fiber.Ctx) error {
 }
 func ListSessions(c *fiber.Ctx) error {
 	var sessions []models.KencanaSession
-	q := config.DB.Preload("Materials").Preload("Quizzes").Preload("Assignments").Order("stage_id desc, order_number asc")
+
+	role, fakultasID := kencanaAdminScope(c)
+	var fid *uint
+	if role == "kencana_fakultas" {
+		fid = &fakultasID
+	} else {
+		if reqFakultasID := c.QueryInt("fakultas_id"); reqFakultasID != 0 {
+			uFid := uint(reqFakultasID)
+			fid = &uFid
+		}
+	}
+
+	materialCond := func(db *gorm.DB) *gorm.DB {
+		if fid != nil {
+			return db.Where("fakultas_id = ?", *fid).Order("order_number asc")
+		}
+		return db.Where("fakultas_id IS NULL").Order("order_number asc")
+	}
+
+	quizCond := func(db *gorm.DB) *gorm.DB {
+		if fid != nil {
+			return db.Where("fakultas_id = ?", *fid).Order("created_at asc")
+		}
+		return db.Where("fakultas_id IS NULL").Order("created_at asc")
+	}
+
+	assignmentCond := func(db *gorm.DB) *gorm.DB {
+		if fid != nil {
+			return db.Where("fakultas_id = ?", *fid).Order("created_at asc")
+		}
+		return db.Where("fakultas_id IS NULL").Order("created_at asc")
+	}
+
+	q := config.DB.Preload("Materials", materialCond).
+		Preload("Quizzes", quizCond).
+		Preload("Assignments", assignmentCond).
+		Order("stage_id desc, order_number asc")
+
 	if stageID := c.Query("stage_id"); stageID != "" {
 		q = q.Where("stage_id = ?", stageID)
 	}
@@ -538,23 +606,98 @@ func ListSessions(c *fiber.Ctx) error {
 }
 
 func GetAdminSessionDetail(c *fiber.Ctx) error {
+	role, fakultasID := kencanaAdminScope(c)
 	var session models.KencanaSession
-	if err := config.DB.Preload("Materials").Preload("Quizzes").Preload("Assignments").First(&session, c.Params("id")).Error; err != nil {
-		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Sesi tidak ditemukan"})
+
+	q := config.DB
+	if role == "kencana_fakultas" {
+		q = q.Joins("JOIN mahasiswa.kencana_stages s ON s.id = kencana_sessions.stage_id").
+			Where("s.fakultas_id = ?", fakultasID)
+	}
+
+	if err := q.First(&session, c.Params("id")).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Sesi tidak ditemukan atau di luar scope fakultas Anda"})
+	}
+
+	var fid *uint
+	if role == "kencana_fakultas" {
+		fid = &fakultasID
+	} else {
+		if reqFakultasID := c.QueryInt("fakultas_id"); reqFakultasID != 0 {
+			uFid := uint(reqFakultasID)
+			fid = &uFid
+		}
+	}
+
+	materialCond := func(db *gorm.DB) *gorm.DB {
+		if fid != nil {
+			return db.Where("fakultas_id = ?", *fid).Order("order_number asc")
+		}
+		return db.Where("fakultas_id IS NULL").Order("order_number asc")
+	}
+
+	quizCond := func(db *gorm.DB) *gorm.DB {
+		if fid != nil {
+			return db.Where("fakultas_id = ?", *fid).Order("created_at asc")
+		}
+		return db.Where("fakultas_id IS NULL").Order("created_at asc")
+	}
+
+	assignmentCond := func(db *gorm.DB) *gorm.DB {
+		if fid != nil {
+			return db.Where("fakultas_id = ?", *fid).Order("created_at asc")
+		}
+		return db.Where("fakultas_id IS NULL").Order("created_at asc")
+	}
+
+	if err := config.DB.Preload("Materials", materialCond).
+		Preload("Quizzes", quizCond).
+		Preload("Assignments", assignmentCond).
+		First(&session, session.ID).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal memuat detail sesi"})
+	}
+
+	return c.JSON(fiber.Map{"success": true, "data": session})
+}
+
+func CreateSession(c *fiber.Ctx) error {
+	var session models.KencanaSession
+	if err := c.BodyParser(&session); err != nil {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Payload Sesi tidak valid"})
+	}
+	role, fakultasID := kencanaAdminScope(c)
+	uid, _ := userID(c)
+	session.CreatedBy = &uid
+
+	if role == "kencana_fakultas" {
+		if fakultasID == 0 {
+			return c.Status(400).JSON(fiber.Map{"success": false, "message": "Admin Kencana Fakultas belum memiliki scope fakultas"})
+		}
+		var stage models.KencanaStage
+		if err := config.DB.Where("id = ? AND fakultas_id = ?", session.StageID, fakultasID).First(&stage).Error; err != nil {
+			return c.Status(403).JSON(fiber.Map{"success": false, "message": "Akses ditolak. Tahap tidak ditemukan atau di luar scope fakultas Anda."})
+		}
+	} else if role == "super_admin" || role == "kencana_admin" {
+		var stage models.KencanaStage
+		if err := config.DB.First(&stage, session.StageID).Error; err != nil {
+			return c.Status(404).JSON(fiber.Map{"success": false, "message": "Tahap tidak ditemukan"})
+		}
+	}
+
+	if err := config.DB.Create(&session).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal membuat sesi"})
 	}
 	return c.JSON(fiber.Map{"success": true, "data": session})
 }
 
-func CreateSession(c *fiber.Ctx) error  { return createRecord(c, &models.KencanaSession{}, "Sesi") }
-
 func UpdateSession(c *fiber.Ctx) error {
 	type sessionPayload struct {
-		Title       string  `json:"title"`
-		Description string  `json:"description"`
-		Status      string  `json:"status"`
-		IsRequired  bool    `json:"is_required"`
-		StartDate   *string `json:"start_date"`
-		EndDate     *string `json:"end_date"`
+		Title       string     `json:"title"`
+		Description string     `json:"description"`
+		Status      string     `json:"status"`
+		IsRequired  bool       `json:"is_required"`
+		StartDate   *time.Time `json:"start_date"`
+		EndDate     *time.Time `json:"end_date"`
 	}
 	id := c.Params("id")
 	var payload sessionPayload
@@ -565,10 +708,22 @@ func UpdateSession(c *fiber.Ctx) error {
 	if err := config.DB.First(&session, id).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Sesi tidak ditemukan"})
 	}
+
+	role, fakultasID := kencanaAdminScope(c)
+	if role == "kencana_fakultas" {
+		var stage models.KencanaStage
+		if err := config.DB.Where("id = ? AND fakultas_id = ?", session.StageID, fakultasID).First(&stage).Error; err != nil {
+			return c.Status(403).JSON(fiber.Map{"success": false, "message": "Akses ditolak. Sesi di luar scope fakultas Anda."})
+		}
+	}
+
 	session.Title = payload.Title
 	session.Description = payload.Description
 	session.Status = payload.Status
 	session.IsRequired = payload.IsRequired
+	session.StartDate = payload.StartDate
+	session.EndDate = payload.EndDate
+
 	if err := config.DB.Save(&session).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal memperbarui sesi"})
 	}
@@ -581,12 +736,43 @@ func UpdateSession(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"success": true, "message": "Sesi diperbarui", "data": session})
 }
 
+func DeleteSession(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var session models.KencanaSession
+	if err := config.DB.First(&session, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Sesi tidak ditemukan"})
+	}
+
+	role, fakultasID := kencanaAdminScope(c)
+	if role == "kencana_fakultas" {
+		var stage models.KencanaStage
+		if err := config.DB.Where("id = ? AND fakultas_id = ?", session.StageID, fakultasID).First(&stage).Error; err != nil {
+			return c.Status(403).JSON(fiber.Map{"success": false, "message": "Akses ditolak. Sesi di luar scope fakultas Anda."})
+		}
+	}
+
+	if err := config.DB.Delete(&session).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal menghapus sesi"})
+	}
+	return c.JSON(fiber.Map{"success": true, "message": "Sesi berhasil dihapus"})
+}
+
 func CreateMaterial(c *fiber.Ctx) error { return createRecord(c, &models.KencanaMaterial{}, "Materi") }
 func CreateQuiz(c *fiber.Ctx) error     { return createRecord(c, &models.KencanaQuiz{}, "Quiz") }
 func UpdateQuiz(c *fiber.Ctx) error     { return updateRecord(c, &models.KencanaQuiz{}, "Quiz") }
 
 func DeleteQuiz(c *fiber.Ctx) error {
-	if err := config.DB.Delete(&models.KencanaQuiz{}, c.Params("id")).Error; err != nil {
+	var quiz models.KencanaQuiz
+	if err := config.DB.First(&quiz, c.Params("id")).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Quiz tidak ditemukan"})
+	}
+	role, fakultasID := kencanaAdminScope(c)
+	if role == "kencana_fakultas" {
+		if quiz.FakultasID == nil || *quiz.FakultasID != fakultasID {
+			return c.Status(403).JSON(fiber.Map{"success": false, "message": "Akses ditolak. Anda tidak berwenang menghapus kuis ini."})
+		}
+	}
+	if err := config.DB.Delete(&quiz).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal menghapus kuis"})
 	}
 	return c.JSON(fiber.Map{"success": true, "message": "Kuis dihapus"})
@@ -1828,6 +2014,19 @@ func createRecord(c *fiber.Ctx, dest any, label string) error {
 	if err := c.BodyParser(dest); err != nil {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Payload " + label + " tidak valid"})
 	}
+	role, fakultasID := kencanaAdminScope(c)
+	if role == "kencana_fakultas" && fakultasID != 0 {
+		if fScoped, ok := dest.(interface{ SetFakultasID(id *uint) }); ok {
+			fScoped.SetFakultasID(&fakultasID)
+		}
+	} else if role == "super_admin" || role == "kencana_admin" {
+		if reqFakultasID := c.QueryInt("fakultas_id"); reqFakultasID != 0 {
+			uFid := uint(reqFakultasID)
+			if fScoped, ok := dest.(interface{ SetFakultasID(id *uint) }); ok {
+				fScoped.SetFakultasID(&uFid)
+			}
+		}
+	}
 	if err := config.DB.Create(dest).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal membuat " + label})
 	}
@@ -1838,8 +2037,22 @@ func updateRecord(c *fiber.Ctx, dest any, label string) error {
 	if err := config.DB.First(dest, c.Params("id")).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": label + " tidak ditemukan"})
 	}
+	role, fakultasID := kencanaAdminScope(c)
+	if role == "kencana_fakultas" {
+		if fScoped, ok := dest.(interface{ GetFakultasID() *uint }); ok {
+			fid := fScoped.GetFakultasID()
+			if fid == nil || *fid != fakultasID {
+				return c.Status(403).JSON(fiber.Map{"success": false, "message": "Akses ditolak. Anda tidak berwenang memperbarui item ini."})
+			}
+		}
+	}
 	if err := c.BodyParser(dest); err != nil {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Payload " + label + " tidak valid"})
+	}
+	if role == "kencana_fakultas" && fakultasID != 0 {
+		if fScoped, ok := dest.(interface{ SetFakultasID(id *uint) }); ok {
+			fScoped.SetFakultasID(&fakultasID)
+		}
 	}
 	if err := config.DB.Save(dest).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal memperbarui " + label})
@@ -1857,6 +2070,12 @@ func DeleteMaterial(c *fiber.Ctx) error {
 	var m models.KencanaMaterial
 	if err := config.DB.First(&m, c.Params("id")).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Materi tidak ditemukan"})
+	}
+	role, fakultasID := kencanaAdminScope(c)
+	if role == "kencana_fakultas" {
+		if m.FakultasID == nil || *m.FakultasID != fakultasID {
+			return c.Status(403).JSON(fiber.Map{"success": false, "message": "Akses ditolak. Anda tidak berwenang menghapus materi ini."})
+		}
 	}
 	// Hapus file fisik jika ada
 	if m.FileURL != "" {
@@ -1967,6 +2186,16 @@ func UploadMaterial(c *fiber.Ctx) error {
 		material.SessionID = sid
 	}
 
+	role, fakultasID := kencanaAdminScope(c)
+	if role == "kencana_fakultas" && fakultasID != 0 {
+		material.FakultasID = &fakultasID
+	} else if role == "super_admin" || role == "kencana_admin" {
+		if reqFakultasID := c.QueryInt("fakultas_id"); reqFakultasID != 0 {
+			uFid := uint(reqFakultasID)
+			material.FakultasID = &uFid
+		}
+	}
+
 	if err := config.DB.Create(&material).Error; err != nil {
 		_ = os.Remove(savePath)
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal menyimpan data materi ke database"})
@@ -1984,7 +2213,17 @@ func UpdateAssignment(c *fiber.Ctx) error {
 }
 
 func DeleteAssignment(c *fiber.Ctx) error {
-	if err := config.DB.Delete(&models.KencanaAssignment{}, c.Params("id")).Error; err != nil {
+	var a models.KencanaAssignment
+	if err := config.DB.First(&a, c.Params("id")).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Tugas tidak ditemukan"})
+	}
+	role, fakultasID := kencanaAdminScope(c)
+	if role == "kencana_fakultas" {
+		if a.FakultasID == nil || *a.FakultasID != fakultasID {
+			return c.Status(403).JSON(fiber.Map{"success": false, "message": "Akses ditolak. Anda tidak berwenang menghapus tugas ini."})
+		}
+	}
+	if err := config.DB.Delete(&a).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal menghapus tugas"})
 	}
 	return c.JSON(fiber.Map{"success": true, "message": "Tugas dihapus"})

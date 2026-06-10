@@ -4,30 +4,45 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { DataTable } from '@/components/ui/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
+import { DialogModal, ModalCancelButton, ModalSaveButton } from "@/components/ui/DialogModal"
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import { PageContent } from '@/components/ui/page'
 import { DashboardHero } from '@/components/ui/dashboard'
+import { PrimaryStatsCard } from '@/components/ui/StatsCard'
 
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 
 import { fetchWithAuth, API_BASE_URL } from '../../services/api'
 
+// Auto-injected Material Symbol fallbacks
+const Users = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>group</span>;
+const School = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>school</span>;
+const ShieldCheck = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>security</span>;
+
 const API_ADMINS = `${API_BASE_URL}/faculty/prodi-admins`
 const API_ROLES  = `${API_BASE_URL}/faculty/prodi-roles`
 const API_PRODI  = `${API_BASE_URL}/faculty/majors`
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
-/*  SearchableSelect — A styled, searchable dropdown option list               */
+/*  SearchableSelect — A styled, inline searchable combobox list               */
 /* ═══════════════════════════════════════════════════════════════════════════ */
 function SearchableSelect({ value, onChange, options, placeholder, searchPlaceholder = "Cari...", required = false, direction = "down" }) {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const containerRef = useRef(null);
+
+  const selectedOption = options.find(opt => String(opt.value) === String(value));
+
+  // Sync search text when closed
+  useEffect(() => {
+    if (!isOpen) {
+      setSearch(selectedOption ? selectedOption.label : "");
+    }
+  }, [value, selectedOption, isOpen]);
 
   // Close dropdown when user clicks outside
   useEffect(() => {
@@ -36,15 +51,9 @@ function SearchableSelect({ value, onChange, options, placeholder, searchPlaceho
         setIsOpen(false);
       }
     }
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    if (isOpen) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen]);
-
-  const selectedOption = options.find(opt => String(opt.value) === String(value));
 
   const filteredOptions = options.filter(opt =>
     (opt.label || "").toLowerCase().includes(search.toLowerCase())
@@ -52,63 +61,49 @@ function SearchableSelect({ value, onChange, options, placeholder, searchPlaceho
 
   return (
     <div className="relative w-full" ref={containerRef}>
-      {/* Invisible input to maintain native HTML5 validation constraints */}
+      {/* Invisible input to maintain native HTML5 validation constraints (removed required to fix focus issue) */}
       <input
         type="text"
         tabIndex={-1}
         className="sr-only absolute inset-x-0 bottom-0 h-0 w-full opacity-0 pointer-events-none"
-        required={required}
         value={value || ""}
         onChange={() => {}}
       />
 
-      {/* Select Trigger */}
-      <div
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full h-10 px-3 border border-[var(--theme-border)] rounded-xl text-sm bg-[var(--theme-surface)] text-[var(--theme-text)] flex items-center justify-between cursor-pointer transition-colors focus-within:border-[var(--theme-primary)] focus-within:ring-2 focus-within:ring-[var(--theme-primary-light)] font-medium"
-      >
-        <span className={selectedOption ? "text-[var(--theme-text)]" : "text-[var(--theme-text-subtle)]"}>
-          {selectedOption ? selectedOption.label : placeholder}
-        </span>
-        <span
-          className="material-symbols-outlined text-[18px] text-[var(--theme-text-subtle)] transition-transform duration-200"
-          style={{ transform: isOpen ? 'rotate(180deg)' : 'none' }}
-        >
-          keyboard_arrow_down
-        </span>
+      <div className="relative">
+        <input
+          type="text"
+          value={isOpen ? search : (selectedOption ? selectedOption.label : "")}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            if (!isOpen) setIsOpen(true);
+            if (e.target.value === "") onChange(""); // Clear if they empty it
+          }}
+          onFocus={() => {
+            setIsOpen(true);
+            setSearch(""); // Start fresh search when clicked
+          }}
+          placeholder={placeholder}
+          className="w-full h-10 pl-3 pr-10 border border-[var(--theme-border)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors font-medium placeholder-[var(--theme-text-subtle)]"
+        />
+        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--theme-text-subtle)]">
+          <span
+            className="material-symbols-outlined text-[18px] transition-transform duration-200"
+            style={{ transform: isOpen ? 'rotate(180deg)' : 'none' }}
+          >
+            keyboard_arrow_down
+          </span>
+        </div>
       </div>
 
       {/* Styled Popover list */}
       {isOpen && (
-        <div className={`absolute z-[100] bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl shadow-xl overflow-hidden flex flex-col animate-in fade-in duration-150 md:left-full md:top-0 md:bottom-auto md:ml-4 md:mt-0 md:w-80 md:slide-in-from-left-2 ${
+        <div className={`absolute z-[100] left-0 w-full bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl shadow-xl overflow-hidden flex flex-col animate-in fade-in duration-150 ${
           direction === "up" 
-            ? "max-md:left-0 max-md:w-full max-md:bottom-full max-md:mb-1.5 max-md:slide-in-from-bottom-1" 
-            : "max-md:left-0 max-md:w-full max-md:mt-1.5 max-md:slide-in-from-top-1"
+            ? "bottom-full mb-1.5 slide-in-from-bottom-1" 
+            : "top-full mt-1.5 slide-in-from-top-1"
         }`}>
-          {/* Search bar */}
-          <div className="p-2 border-b border-[var(--theme-border-muted)] bg-[var(--theme-bg)]/30 flex items-center gap-1.5">
-            <span className="material-symbols-outlined text-[16px] text-[var(--theme-text-subtle)] ml-1 shrink-0">search</span>
-            <input
-              type="text"
-              placeholder={searchPlaceholder}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full h-8 bg-transparent text-xs outline-none text-[var(--theme-text)] placeholder-[var(--theme-text-subtle)] font-medium"
-              autoFocus
-            />
-            {search && (
-              <button
-                type="button"
-                onClick={() => setSearch("")}
-                className="p-1 rounded-full hover:bg-[var(--theme-text-subtle)]/10 text-[var(--theme-text-subtle)] hover:text-[var(--theme-text)] flex items-center justify-center shrink-0"
-              >
-                <span className="material-symbols-outlined text-[12px]">close</span>
-              </button>
-            )}
-          </div>
-
-          {/* Options Wrapper */}
-          <div className="max-h-48 overflow-y-auto no-scrollbar py-1">
+          <div className="max-h-48 overflow-y-auto custom-scrollbar py-1">
             {filteredOptions.length === 0 ? (
               <div className="px-3 py-3 text-xs text-[var(--theme-text-subtle)] text-center font-medium">
                 Tidak ada hasil ditemukan
@@ -122,12 +117,11 @@ function SearchableSelect({ value, onChange, options, placeholder, searchPlaceho
                     onClick={() => {
                       onChange(opt.value);
                       setIsOpen(false);
-                      setSearch("");
                     }}
-                    className={`px-3 py-2 text-xs cursor-pointer font-medium transition-colors flex items-center justify-between ${
+                    className={`px-3 py-2.5 text-xs cursor-pointer font-medium transition-colors flex items-center justify-between ${
                       isSelected
                         ? "bg-[var(--theme-primary-light)] text-[var(--theme-primary)] font-semibold"
-                        : "text-[var(--theme-text)] hover:bg-[var(--theme-bg)]"
+                        : "text-[var(--theme-text)] hover:bg-[var(--theme-surface-hover)]"
                     }`}
                   >
                     <span>{opt.label}</span>
@@ -193,6 +187,7 @@ export default function ProdiUsers() {
   const handleCreate = async (e) => {
     e.preventDefault()
     if (!form.email) return toast.error('Email wajib diisi')
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return toast.error('Format email tidak valid (harus mengandung @ dan domain)')
     if (!form.password) return toast.error('Password wajib diisi')
     if (!form.program_studi_id) return toast.error('Program Studi wajib dipilih')
     if (!form.ormawa_assign) return toast.error('Role/Jabatan wajib dipilih')
@@ -227,6 +222,10 @@ export default function ProdiUsers() {
   const handleEdit = async (e) => {
     e.preventDefault()
     if (!selected) return
+    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      return toast.error('Format email tidak valid (harus mengandung @ dan domain)')
+    }
+
     setSubmitting(true)
     try {
       const body = {
@@ -301,12 +300,12 @@ export default function ProdiUsers() {
       className: 'min-w-[260px]',
       render: (v, row) => (
         <div className="flex items-center gap-3 py-1.5">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md">
-            <span className="material-symbols-outlined text-white" style={{ fontSize: 20 }}>person</span>
+          <div className="w-10 h-10 rounded-xl bg-[var(--theme-primary-light)] flex items-center justify-center shadow-sm">
+            <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: 20 }}>person</span>
           </div>
           <div className="flex flex-col">
-            <span className="font-bold text-neutral-900 text-[13.5px] leading-tight tracking-tight">{v}</span>
-            <span className="text-[10.5px] text-neutral-400 mt-0.5">Prodi Admin</span>
+            <span className="font-bold text-[var(--theme-text)] text-[14px] leading-tight">{v}</span>
+            <span className="text-[12px] font-medium text-[var(--theme-text-muted)] tracking-tight mt-0.5">Prodi Admin</span>
           </div>
         </div>
       ),
@@ -316,7 +315,7 @@ export default function ProdiUsers() {
       label: 'Program Studi',
       className: 'w-[200px]',
       render: (v) => (
-        <span className="text-sm font-medium text-neutral-700">{v || '—'}</span>
+        <span className="font-bold text-[var(--theme-text)] text-[13px] capitalize">{v ? v.toLowerCase() : '—'}</span>
       ),
     },
     {
@@ -324,9 +323,9 @@ export default function ProdiUsers() {
       label: 'Role / Jabatan',
       className: 'w-[160px]',
       render: (v) => (
-        <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-700 font-semibold text-[11px] px-2.5 py-0.5">
+        <span className="bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider">
           {v || '—'}
-        </Badge>
+        </span>
       ),
     },
     {
@@ -337,7 +336,7 @@ export default function ProdiUsers() {
         if (!v) return '—'
         const d = new Date(v)
         return (
-          <span className="text-xs text-neutral-500">
+          <span className="text-[12px] font-medium text-[var(--theme-text-muted)] tracking-tight">
             {d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
           </span>
         )
@@ -345,7 +344,7 @@ export default function ProdiUsers() {
     },
     {
       key: 'actions',
-      label: '',
+      label: 'Aksi',
       className: 'w-[100px] text-right',
       render: (_, row) => (
         <div className="flex items-center justify-end gap-1">
@@ -388,44 +387,41 @@ export default function ProdiUsers() {
         />
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="border-0 shadow-md bg-gradient-to-br from-blue-50 to-white">
-          <CardContent className="p-5 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center">
-              <span className="material-symbols-outlined text-blue-600" style={{ fontSize: 24 }}>group</span>
-            </div>
-            <div>
-              <p className="text-2xl font-extrabold text-neutral-900">{users.length}</p>
-              <p className="text-xs text-neutral-500 font-medium">Total Akun Prodi</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-0 shadow-md bg-gradient-to-br from-emerald-50 to-white">
-          <CardContent className="p-5 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center">
-              <span className="material-symbols-outlined text-emerald-600" style={{ fontSize: 24 }}>school</span>
-            </div>
-            <div>
-              <p className="text-2xl font-extrabold text-neutral-900">{prodis.length}</p>
-              <p className="text-xs text-neutral-500 font-medium">Program Studi</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-0 shadow-md bg-gradient-to-br from-violet-50 to-white">
-          <CardContent className="p-5 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-violet-100 flex items-center justify-center">
-              <span className="material-symbols-outlined text-violet-600" style={{ fontSize: 24 }}>security</span>
-            </div>
-            <div>
-              <p className="text-2xl font-extrabold text-neutral-900">{roles.length}</p>
-              <p className="text-xs text-neutral-500 font-medium">Role Tersedia</p>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-6 mt-6">
+        <PrimaryStatsCard
+          title="Total Akun Prodi"
+          value={loading ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span> : users.length}
+          icon={Users}
+          colorTheme="primary"
+          badgeText="Akun Terdaftar"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">manage_accounts</span>}
+        />
+        <PrimaryStatsCard
+          title="Program Studi"
+          value={loading ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span> : prodis.length}
+          icon={School}
+          colorTheme="success"
+          badgeText="Total Prodi"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">account_balance</span>}
+        />
+        <PrimaryStatsCard
+          title="Role Tersedia"
+          value={loading ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span> : roles.length}
+          icon={ShieldCheck}
+          colorTheme="info"
+          badgeText="Hak Akses"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">admin_panel_settings</span>}
+        />
       </div>
 
       {/* Data Table */}
-      <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
+      <Card className="glass-card shadow-sm rounded-xl overflow-hidden mt-6 mb-6">
+        <div className="px-6 py-5 border-b border-[var(--theme-border)] flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-[var(--theme-surface)]">
+          <div className="flex-1">
+            <h2 className="font-headline font-bold text-lg text-[var(--theme-text)]">Daftar Akun Prodi Admin</h2>
+            <p className="text-xs text-[var(--theme-text-muted)] mt-1 font-medium">Data administrator yang terdaftar</p>
+          </div>
+        </div>
         <CardContent className="p-0">
           {loading ? (
             <div className="flex items-center justify-center py-20">
@@ -445,29 +441,33 @@ export default function ProdiUsers() {
               </p>
             </div>
           ) : (
-            <DataTable columns={columns} data={users} />
+            <DataTable columns={columns} data={users} searchPlaceholder="Cari email atau prodi..." itemLabel="akun prodi" />
           )}
         </CardContent>
       </Card>
 
       {/* ═══ CREATE MODAL ═══ */}
-      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen} maxWidth="max-w-lg">
-        <DialogContent className="!overflow-visible">
-          <DialogHeader>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)] shrink-0">
-                <span className="material-symbols-outlined text-[20px]">person_add</span>
-              </div>
-              <div>
-                <p className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-0.5">
-                  Tambah Akun
-                </p>
-                <DialogTitle>Tambah Akun Prodi Admin</DialogTitle>
-                <DialogDescription>Buat akun baru untuk administrator program studi.</DialogDescription>
-              </div>
-            </div>
-          </DialogHeader>
-          <form onSubmit={handleCreate} className="p-6 space-y-4 text-[var(--theme-text)]">
+      <DialogModal
+        open={isCreateOpen}
+        onOpenChange={setIsCreateOpen}
+        icon="person_add"
+        title="Tambah Akun Prodi Admin"
+        description="Buat akun baru untuk administrator program studi."
+        subtitle="Tambah Akun"
+        maxWidth="max-w-lg"
+        bodyClassName="!overflow-visible p-6 pt-2"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setIsCreateOpen(false)} />
+            <ModalSaveButton 
+              form="create-prodi-user" 
+              loading={submitting} 
+              text="Simpan Akun" 
+            />
+          </>
+        }
+      >
+          <form id="create-prodi-user" noValidate onSubmit={handleCreate} className="space-y-4 text-[var(--theme-text)]">
             <div className="space-y-1.5">
               <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Email</label>
               <input
@@ -495,14 +495,20 @@ export default function ProdiUsers() {
               <SearchableSelect
                 value={form.program_studi_id}
                 onChange={val => setForm(f => ({ ...f, program_studi_id: val }))}
-                options={prodis.map(p => ({
-                  value: p.id || p.ID,
-                  label: p.nama || p.Nama || p.name
-                }))}
+                options={Object.values(prodis.reduce((acc, p) => {
+                  const nama = p.nama || p.Nama || p.name || "";
+                  if (!acc[nama]) {
+                    acc[nama] = {
+                      value: p.id || p.ID,
+                      label: nama
+                    };
+                  }
+                  return acc;
+                }, {}))}
                 placeholder="— Pilih Program Studi —"
                 searchPlaceholder="Cari program studi..."
                 required
-                direction="up"
+                direction="down"
               />
             </div>
             <div className="space-y-1.5">
@@ -517,47 +523,38 @@ export default function ProdiUsers() {
                 placeholder="— Pilih Role —"
                 searchPlaceholder="Cari role..."
                 required
-                direction="up"
+                direction="down"
               />
               <p className="text-[10px] text-[var(--theme-text-subtle)] font-medium mt-1 leading-normal">
                 Role dibuat di halaman <span className="font-semibold text-[var(--theme-primary)]">Role & Akses (RBAC)</span>
               </p>
             </div>
 
-            <DialogFooter className="pt-4 flex items-center justify-end gap-2">
-              <Button type="button" variant="ghost" onClick={() => setIsCreateOpen(false)} className="h-10 rounded-xl px-4 font-semibold">
-                Batal
-              </Button>
-              <Button
-                type="submit"
-                disabled={submitting}
-                className="bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white h-10 rounded-xl px-6 font-semibold shadow-lg shadow-blue-200/40 border-none transition-all"
-              >
-                {submitting ? 'Menyimpan...' : 'Simpan Akun'}
-              </Button>
-            </DialogFooter>
           </form>
-        </DialogContent>
-      </Dialog>
+      </DialogModal>
 
       {/* ═══ EDIT MODAL ═══ */}
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen} maxWidth="max-w-lg">
-        <DialogContent className="!overflow-visible">
-          <DialogHeader>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[var(--theme-warning-light)] flex items-center justify-center text-[var(--theme-warning)] shrink-0">
-                <span className="material-symbols-outlined text-[20px]">edit</span>
-              </div>
-              <div>
-                <p className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-0.5">
-                  Edit Akun
-                </p>
-                <DialogTitle>Edit Akun Prodi Admin</DialogTitle>
-                <DialogDescription>Perbarui informasi akun {selected?.email}</DialogDescription>
-              </div>
-            </div>
-          </DialogHeader>
-          <form onSubmit={handleEdit} className="p-6 space-y-4 text-[var(--theme-text)]">
+      <DialogModal
+        open={isEditOpen}
+        onOpenChange={setIsEditOpen}
+        icon="edit"
+        title="Edit Akun Prodi Admin"
+        description={`Perbarui informasi akun ${selected?.email}`}
+        subtitle="Edit Akun"
+        maxWidth="max-w-lg"
+        bodyClassName="!overflow-visible p-6 pt-2"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setIsEditOpen(false)} />
+            <ModalSaveButton 
+              form="edit-prodi-user" 
+              loading={submitting} 
+              text="Perbarui Akun" 
+            />
+          </>
+        }
+      >
+          <form id="edit-prodi-user" noValidate onSubmit={handleEdit} className="space-y-4 text-[var(--theme-text)]">
             <div className="space-y-1.5">
               <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Email</label>
               <input
@@ -584,14 +581,20 @@ export default function ProdiUsers() {
               <SearchableSelect
                 value={form.program_studi_id}
                 onChange={val => setForm(f => ({ ...f, program_studi_id: val }))}
-                options={prodis.map(p => ({
-                  value: p.id || p.ID,
-                  label: p.nama || p.Nama || p.name
-                }))}
+                options={Object.values(prodis.reduce((acc, p) => {
+                  const nama = p.nama || p.Nama || p.name || "";
+                  if (!acc[nama]) {
+                    acc[nama] = {
+                      value: p.id || p.ID,
+                      label: nama
+                    };
+                  }
+                  return acc;
+                }, {}))}
                 placeholder="— Pilih Program Studi —"
                 searchPlaceholder="Cari program studi..."
                 required
-                direction="up"
+                direction="down"
               />
             </div>
             <div className="space-y-1.5">
@@ -606,25 +609,12 @@ export default function ProdiUsers() {
                 placeholder="— Pilih Role —"
                 searchPlaceholder="Cari role..."
                 required
-                direction="up"
+                direction="down"
               />
             </div>
 
-            <DialogFooter className="pt-4 flex items-center justify-end gap-2">
-              <Button type="button" variant="ghost" onClick={() => setIsEditOpen(false)} className="h-10 rounded-xl px-4 font-semibold">
-                Batal
-              </Button>
-              <Button
-                type="submit"
-                disabled={submitting}
-                className="bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white h-10 rounded-xl px-6 font-semibold shadow-lg shadow-amber-200/40 border-none transition-all"
-              >
-                {submitting ? 'Menyimpan...' : 'Perbarui Akun'}
-              </Button>
-            </DialogFooter>
           </form>
-        </DialogContent>
-      </Dialog>
+      </DialogModal>
 
       {/* ═══ DELETE MODAL ═══ */}
       <DeleteConfirmModal

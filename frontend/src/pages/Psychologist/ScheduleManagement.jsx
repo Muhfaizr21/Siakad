@@ -2,6 +2,12 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { UI } from '../../constants/designSystem';
 import { psychologistService } from '../../services/api';
 import { toast } from 'react-hot-toast';
+import { PrimaryStatsCard } from '@/components/ui/StatsCard';
+
+// Fallback Icons
+const CalendarToday = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>calendar_today</span>;
+const ScheduleIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>schedule</span>;
+const GroupIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>group</span>;
 
 const defaultSchedule = [
   { day: 'Senin', enabled: true, slots: [{ kategori: 'Personal', start: '09:00', end: '12:00', lokasi: 'Ruang Konseling A', kuota: 3 }, { kategori: 'Akademik', start: '13:00', end: '16:00', lokasi: 'Ruang Konseling A', kuota: 3 }] },
@@ -209,56 +215,32 @@ export default function ScheduleManagement() {
               </div>
           </section>
 
-          {/* Bento Grid Stats Card (Diluar dan dibawah banner utama) */}
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3 w-full">
-            {/* Card 1 */}
-            <div className="bg-white rounded-2xl p-5 border border-slate-200/60 shadow-sm hover:shadow-md transition-all duration-300 group relative overflow-hidden">
-              <div className="absolute -right-6 -top-6 w-24 h-24 bg-primary/5 rounded-full blur-xl transition-colors duration-500 -z-10" />
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-10 h-10 bg-primary/5 text-primary rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shrink-0">
-                  <span className="material-symbols-outlined text-[20px] shrink-0">calendar_today</span>
-                </div>
-                <div className="flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-[9px] font-black text-emerald-600 uppercase tracking-widest">
-                  <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  AKTIF
-                </div>
-              </div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Hari Aktif</p>
-              <p className="text-2xl font-extrabold text-slate-800 font-headline mb-3 tabular-nums">{summary.activeDays}</p>
-              <p className="text-[10px] font-bold text-slate-400">hari pelayanan aktif</p>
-            </div>
-            
-            <div className="bg-white rounded-2xl p-5 border border-slate-200/60 shadow-sm hover:shadow-md transition-all duration-300 group relative overflow-hidden">
-              <div className="absolute -right-6 -top-6 w-24 h-24 bg-emerald-500/5 rounded-full blur-xl transition-colors duration-500 -z-10" />
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shrink-0">
-                  <span className="material-symbols-outlined text-[20px] shrink-0">schedule</span>
-                </div>
-                <div className="flex items-center gap-1 rounded-full bg-emerald-50/80 px-2 py-1 text-[9px] font-black text-emerald-600 uppercase tracking-widest">
-                  <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  LIVE
-                </div>
-              </div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Total Slot</p>
-              <p className="text-2xl font-extrabold text-slate-800 font-headline mb-3 tabular-nums">{summary.totalSlots}</p>
-              <p className="text-[10px] font-bold text-slate-400">slot konseling tersedia</p>
-            </div>
-
-            <div className="bg-white rounded-2xl p-5 border border-slate-200/60 shadow-sm hover:shadow-md transition-all duration-300 group relative overflow-hidden">
-              <div className="absolute -right-6 -top-6 w-24 h-24 bg-amber-500/5 rounded-full blur-xl transition-colors duration-500 -z-10" />
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shrink-0">
-                  <span className="material-symbols-outlined text-[20px] shrink-0">group</span>
-                </div>
-                <div className="flex items-center gap-1 rounded-full bg-amber-50/80 px-2 py-1 text-[9px] font-black text-amber-600 uppercase tracking-widest">
-                  <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  KUOTA
-                </div>
-              </div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Kuota Mingguan</p>
-              <p className="text-2xl font-extrabold text-slate-800 font-headline mb-3 tabular-nums">{summary.totalQuota}</p>
-              <p className="text-[10px] font-bold text-slate-400">maksimal kuota pasien</p>
-            </div>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-3 w-full mb-6 mt-6">
+            <PrimaryStatsCard
+              title="Hari Aktif"
+              value={summary.activeDays}
+              icon={CalendarToday}
+              colorTheme="success"
+              badgeText="AKTIF"
+              badgeIcon={<span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />}
+            />
+            <PrimaryStatsCard
+              title="Total Slot"
+              value={summary.totalSlots}
+              icon={ScheduleIcon}
+              colorTheme="info"
+              badgeText="LIVE"
+              badgeIcon={<span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />}
+            />
+            <PrimaryStatsCard
+              title="Kuota Mingguan"
+              value={summary.totalQuota}
+              icon={GroupIcon}
+              colorTheme="warning"
+              badgeText="KUOTA"
+              badgeIcon={<span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />}
+            />
           </div>
 
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-12 w-full">

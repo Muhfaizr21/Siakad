@@ -17,6 +17,8 @@ import { Label } from '@/components/ui/Label'
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 import { fetchWithAuth, API_BASE_URL } from '../../services/api'
 import useAuthStore from '../../store/useAuthStore'
@@ -140,15 +142,15 @@ export default function KeuanganKas() {
       if (!d) return
       const date = new Date(d)
       if (isNaN(date.getTime())) return
-      const key = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
       if (!byMonth[key]) byMonth[key] = { pemasukan: 0, pengeluaran: 0 }
       if (t.Tipe === 'pemasukan') byMonth[key].pemasukan += t.Nominal || 0
       else byMonth[key].pengeluaran += t.Nominal || 0
     })
-    const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des']
-    return Object.entries(byMonth).sort(([a],[b]) => a.localeCompare(b)).map(([m, v]) => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des']
+    return Object.entries(byMonth).sort(([a], [b]) => a.localeCompare(b)).map(([m, v]) => {
       const [y, mo] = m.split('-')
-      return { month: `${months[parseInt(mo)-1]} ${y}`, pemasukan: v.pemasukan, pengeluaran: v.pengeluaran }
+      return { month: `${months[parseInt(mo) - 1]} ${y}`, pemasukan: v.pemasukan, pengeluaran: v.pengeluaran }
     })
   }, [transactions])
 
@@ -158,7 +160,7 @@ export default function KeuanganKas() {
       const proker = t.Kategori || t.kategori || t.Deskripsi || 'Tanpa Kategori'
       byProker[proker] = (byProker[proker] || 0) + (t.Nominal || 0)
     })
-    return Object.entries(byProker).sort(([,a],[,b]) => b - a).slice(0, 8).map(([name, value]) => ({ name, value }))
+    return Object.entries(byProker).sort(([, a], [, b]) => b - a).slice(0, 8).map(([name, value]) => ({ name, value }))
   }, [transactions])
 
   const PIE_COLORS = ['#10b981', '#ef4444', '#3b82f6', '#f59e0b', '#8b5cf6', '#14b8a6']
@@ -210,7 +212,7 @@ export default function KeuanganKas() {
         toast.error(data.message || 'Gagal menyimpan transaksi')
       }
     } catch (err) {
-      toast.error('Terjadi kesalahan koneksi backend')
+      console.error(err); toast.error(err.message || 'Terjadi kesalahan koneksi backend')
     } finally {
       setIsSubmitting(false)
     }
@@ -230,9 +232,156 @@ export default function KeuanganKas() {
         toast.error('Gagal menghapus transaksi')
       }
     } catch (err) {
-      toast.error('Terjadi kesalahan koneksi backend')
+      console.error(err); toast.error(err.message || 'Terjadi kesalahan koneksi backend')
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const exportToPDF = () => {
+    const loadingToast = toast.loading('Menyiapkan dokumen PDF...');
+    try {
+      const doc = new jsPDF({ orientation: 'landscape' });
+      const img = new Image();
+
+      img.onload = () => {
+        try {
+          const user = useAuthStore.getState().user;
+          const ormawaName = user?.Nama || user?.nama || user?.ormawa_nama || "Organisasi Mahasiswa";
+
+          const targetHeight = 20;
+          const targetWidth = img.height ? (img.width * targetHeight) / img.height : 40;
+          doc.addImage(img, 'PNG', 15, 10, targetWidth, targetHeight);
+
+          doc.setFontSize(10);
+          doc.setTextColor(100, 100, 100);
+          doc.setFont("helvetica", "normal");
+          const pageWidth = doc.internal.pageSize.getWidth();
+          const textRightX = pageWidth - 15;
+          
+          doc.text('Jl. Soekarno Hatta No 754 Bandung', textRightX, 15, { align: 'right' });
+          doc.text('022 7830 760, 022 7830 768', textRightX, 20, { align: 'right' });
+          doc.text('bku.ac.id | contact@bku.ac.id', textRightX, 25, { align: 'right' });
+
+          doc.setDrawColor(200, 200, 200);
+          doc.setLineWidth(0.5);
+          doc.line(15, 35, pageWidth - 15, 35);
+          
+          doc.setFontSize(14);
+          doc.setTextColor(0, 0, 0);
+          doc.setFont("helvetica", "bold");
+          doc.text('LAPORAN TRANSPARANSI KEUANGAN', pageWidth / 2, 20, { align: 'center' });
+          
+          doc.setFontSize(10);
+          doc.setFont("helvetica", "normal");
+          doc.text('Organisasi Mahasiswa Universitas Bhakti Kencana', pageWidth / 2, 26, { align: 'center' });
+
+          doc.setFontSize(12);
+          doc.setFont("helvetica", "bold");
+          doc.text(ormawaName.toUpperCase(), pageWidth / 2, 32, { align: 'center' });
+          
+          const tableColumn = ["No", "Tanggal", "Keterangan", "Sumber", "Jenis", "Nominal (Rp)"];
+          const tableRows = [];
+
+          sortedTransactions.forEach((t, i) => {
+            const dateStr = t.Tanggal ? new Date(t.Tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
+            const nominalStr = formatRp(t.Nominal).replace('Rp', '').trim();
+            const jenis = t.Tipe === 'pemasukan' ? 'Pemasukan' : 'Pengeluaran';
+            const sumber = (t.Sumber === 'kampus' || t.sumber === 'kampus') ? 'Pagu Kampus' : 'Kas Mandiri';
+            tableRows.push([
+              i + 1,
+              dateStr,
+              t.Deskripsi || '-',
+              sumber,
+              jenis,
+              nominalStr
+            ]);
+          });
+
+          autoTable(doc, {
+            head: [tableColumn],
+            body: tableRows,
+            startY: 65,
+            styles: { fontSize: 9, cellPadding: 3 },
+            headStyles: { fillColor: [15, 23, 42], textColor: 255, halign: 'center' },
+            alternateRowStyles: { fillColor: [248, 250, 252] },
+            columnStyles: {
+              0: { cellWidth: 15, halign: 'center' },
+              1: { cellWidth: 35 },
+              2: { cellWidth: 'auto' },
+              3: { cellWidth: 35 },
+              4: { cellWidth: 30 },
+              5: { cellWidth: 40, halign: 'right' }
+            }
+          });
+
+          const finalY = doc.lastAutoTable?.finalY || 60;
+          doc.setFontSize(10);
+          doc.setFont("helvetica", "bold");
+          doc.text(`Total Pemasukan: ${formatRp(filteredIn)}`, 15, finalY + 10);
+          doc.text(`Total Pengeluaran: ${formatRp(filteredOut)}`, 15, finalY + 16);
+          doc.text(`Saldo Akhir: ${formatRp(filteredBalance)}`, 15, finalY + 22);
+
+          doc.save(`Transparansi_Keuangan_${new Date().getTime()}.pdf`);
+          toast.dismiss(loadingToast);
+          toast.success("PDF berhasil diunduh");
+        } catch (err) {
+          console.error("Error drawing PDF:", err);
+          toast.dismiss(loadingToast);
+          toast.error("Terjadi kesalahan saat memproses PDF: " + (err.message || err));
+        }
+      };
+
+      img.onerror = () => {
+        try {
+          toast.dismiss(loadingToast);
+          toast.error("Gagal memuat logo, menggunakan fallback teks");
+          
+          doc.setFontSize(18);
+          doc.setTextColor(0, 0, 0);
+          doc.setFont("helvetica", "bold");
+          doc.text('Universitas Bhakti Kencana', 15, 20);
+          
+          doc.setFontSize(14);
+          doc.text('LAPORAN TRANSPARANSI KEUANGAN', doc.internal.pageSize.getWidth() / 2, 45, { align: 'center' });
+          
+          const tableColumn = ["No", "Tanggal", "Keterangan", "Sumber", "Jenis", "Nominal (Rp)"];
+          const tableRows = [];
+
+          sortedTransactions.forEach((t, i) => {
+            const dateStr = t.Tanggal ? new Date(t.Tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
+            const nominalStr = formatRp(t.Nominal).replace('Rp', '').trim();
+            const jenis = t.Tipe === 'pemasukan' ? 'Pemasukan' : 'Pengeluaran';
+            const sumber = (t.Sumber === 'kampus' || t.sumber === 'kampus') ? 'Pagu Kampus' : 'Kas Mandiri';
+            tableRows.push([
+              i + 1,
+              dateStr,
+              t.Deskripsi || '-',
+              sumber,
+              jenis,
+              nominalStr
+            ]);
+          });
+
+          autoTable(doc, {
+            head: [tableColumn],
+            body: tableRows,
+            startY: 40,
+          });
+
+          doc.save(`Transparansi_Keuangan_${new Date().getTime()}.pdf`);
+        } catch (err) {
+          console.error("Error fallback PDF:", err);
+          toast.error("Gagal membuat PDF fallback: " + (err.message || err));
+        }
+      };
+
+      img.src = '/images/bku%20logo.png';
+      
+    } catch (err) {
+      console.error("Error init PDF:", err);
+      toast.dismiss(loadingToast);
+      toast.error("Gagal menginisialisasi modul PDF");
     }
   }
 
@@ -262,12 +411,16 @@ export default function KeuanganKas() {
             </span>
             <div className="flex items-center">
               <span className={cn(
-                "text-[8.5px] font-black tracking-widest px-2.5 py-0.5 rounded-md border",
+                "flex items-center gap-1 text-[8.5px] font-black tracking-widest px-2.5 py-0.5 rounded-md border",
                 isCampus
                   ? "bg-blue-50 text-blue-600 border-blue-100/50"
                   : "bg-slate-50 text-slate-500 border-border"
               )}>
-                {isCampus ? "🏛️ PAGU KAMPUS" : "💼 KAS MANDIRI"}
+                {isCampus ? (
+                  <><span className="material-symbols-outlined" style={{ fontSize: '11px' }}>account_balance</span> PAGU KAMPUS</>
+                ) : (
+                  <><span className="material-symbols-outlined" style={{ fontSize: '11px' }}>account_balance_wallet</span> KAS MANDIRI</>
+                )}
               </span>
             </div>
           </div>
@@ -284,12 +437,16 @@ export default function KeuanganKas() {
         const isIncome = v === 'pemasukan'
         return (
           <Badge className={cn(
-            'font-bold text-[10px] uppercase tracking-wider px-3.5 py-1 border rounded-full',
+            'flex items-center justify-center gap-1 font-bold text-[10px] uppercase tracking-wider px-3.5 py-1 border rounded-full',
             isIncome
               ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
               : 'bg-rose-50 text-rose-700 border-rose-100'
           )}>
-            {isIncome ? '▲ Masuk' : '▼ Keluar'}
+            {isIncome ? (
+              <><span className="material-symbols-outlined" style={{ fontSize: '12px' }}>arrow_upward</span> MASUK</>
+            ) : (
+              <><span className="material-symbols-outlined" style={{ fontSize: '12px' }}>arrow_downward</span> KELUAR</>
+            )}
           </Badge>
         )
       }
@@ -318,26 +475,36 @@ export default function KeuanganKas() {
     <PageContent className="font-body">
       <Toaster position="top-right" />
 
-            {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <PageHeader 
+      {/* ── Welcome Banner ─────────────────────────────────────────── */}
+      <PageHeader
         title="Buku Kas & Keuangan"
         subtitle="Pantau dan kelola seluruh pemasukan serta pengeluaran kas ormawa secara akuntabel."
         icon="account_balance_wallet"
         action={
-          <Button
-            onClick={() => {
-              setForm({ Deskripsi: '', Nominal: '', Tipe: 'pemasukan', Tanggal: '', OrmawaID: ormawaId, Sumber: 'organisasi' })
-              setIsCrudOpen(true)
-            }}
-            className="h-10 px-5 rounded-xl text-white font-bold text-xs tracking-wider shadow-lg transition-all active:scale-95 shrink-0 w-full md:w-auto flex items-center justify-center gap-2"
-            style={{ backgroundColor: 'var(--theme-primary)' }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add_box</span>
-            <span>CATAT TRANSAKSI</span>
-          </Button>
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <Button
+              onClick={exportToPDF}
+              variant="outline"
+              className="h-10 px-4 rounded-xl text-slate-700 font-bold text-xs tracking-wider shadow-sm transition-all active:scale-95 shrink-0 flex items-center justify-center gap-2 border border-slate-200 bg-white hover:bg-slate-50"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>download</span>
+              <span>DOWNLOAD PDF</span>
+            </Button>
+            <Button
+              onClick={() => {
+                setForm({ Deskripsi: '', Nominal: '', Tipe: 'pemasukan', Tanggal: '', OrmawaID: ormawaId, Sumber: 'organisasi' })
+                setIsCrudOpen(true)
+              }}
+              className="h-10 px-5 rounded-xl text-white font-bold text-xs tracking-wider shadow-lg transition-all active:scale-95 shrink-0 flex items-center justify-center gap-2"
+              style={{ backgroundColor: 'var(--theme-primary)' }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add_box</span>
+              <span>CATAT TRANSAKSI</span>
+            </Button>
+          </div>
         }
-       
-        breadcrumbs={[ { label: 'Dashboard', path: '/ormawa' }, { label: 'Buku Kas & Keuangan', path: '#' } ]} 
+
+        breadcrumbs={[{ label: 'Dashboard', path: '/ormawa' }, { label: 'Buku Kas & Keuangan', path: '#' }]}
       />
 
       {/* ── Financial Summary Cards ─────────────────────────────────── */}
@@ -402,13 +569,13 @@ export default function KeuanganKas() {
         <span className="text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mr-1">Filter</span>
         <SelectField value={filterTipe} onValueChange={setFilterTipe}>
           <SelectOption value="all">Semua Mutasi</SelectOption>
-          <SelectOption value="pemasukan">▲ Pemasukan</SelectOption>
-          <SelectOption value="pengeluaran">▼ Pengeluaran</SelectOption>
+          <SelectOption value="pemasukan"><div className="flex items-center gap-1.5"><span className="material-symbols-outlined text-emerald-500" style={{ fontSize: '16px' }}>arrow_upward</span> Pemasukan</div></SelectOption>
+          <SelectOption value="pengeluaran"><div className="flex items-center gap-1.5"><span className="material-symbols-outlined text-rose-500" style={{ fontSize: '16px' }}>arrow_downward</span> Pengeluaran</div></SelectOption>
         </SelectField>
         <SelectField value={filterSumber} onValueChange={setFilterSumber}>
           <SelectOption value="all">Semua Sumber</SelectOption>
-          <SelectOption value="kampus">🏛️ Pagu Kampus</SelectOption>
-          <SelectOption value="organisasi">💼 Kas Mandiri</SelectOption>
+          <SelectOption value="kampus"><div className="flex items-center gap-1.5"><span className="material-symbols-outlined text-blue-500" style={{ fontSize: '16px' }}>account_balance</span> Pagu Kampus</div></SelectOption>
+          <SelectOption value="organisasi"><div className="flex items-center gap-1.5"><span className="material-symbols-outlined text-slate-500" style={{ fontSize: '16px' }}>account_balance_wallet</span> Kas Mandiri</div></SelectOption>
         </SelectField>
         <div className="h-6 w-px bg-slate-200" />
         <span className="text-[10px] font-bold text-slate-400">Dari</span>
@@ -431,126 +598,126 @@ export default function KeuanganKas() {
       {/* ── 5W1H Charts ─────────────────────────────────────────────── */}
       {!loading && (
         <>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* WHAT → Distribusi Tipe */}
-          <div className="bg-white rounded-2xl border border-border p-5 shadow-sm">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 shrink-0">
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>pie_chart</span>
-              </div>
-              <div>
-                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Distribusi Mutasi</h3>
-                <p className="text-[9px] text-slate-400">Rasio pemasukan vs pengeluaran</p>
-              </div>
-            </div>
-            <div className="h-[160px] w-full flex items-center justify-center">
-              {tipeDistData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={160}>
-                  <PieChart>
-                    <Pie data={tipeDistData} cx="50%" cy="50%" innerRadius={42} outerRadius={68} paddingAngle={3} dataKey="value" stroke="none">
-                      {tipeDistData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
-                    </Pie>
-                    <Tooltip formatter={(v) => formatRp(v)} />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : <span className="text-xs text-slate-400 italic">Tidak ada data</span>}
-            </div>
-            <div className="flex justify-center gap-3 mt-1">
-              {tipeDistData.map((item, i) => (
-                <div key={item.name} className="flex items-center gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
-                  <span className="text-[10px] font-bold text-slate-500">{item.name}: {formatRp(item.value)}</span>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* WHAT → Distribusi Tipe */}
+            <div className="bg-white rounded-2xl border border-border p-5 shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 shrink-0">
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>pie_chart</span>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* WHERE → Sumber Dana */}
-          <div className="bg-white rounded-2xl border border-border p-5 shadow-sm">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 shrink-0">
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>account_balance</span>
-              </div>
-              <div>
-                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sumber Dana</h3>
-                <p className="text-[9px] text-slate-400">Pagu Kampus vs Kas Mandiri</p>
-              </div>
-            </div>
-            <div className="h-[160px] w-full flex items-center justify-center">
-              {sumberDistData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={160}>
-                  <PieChart>
-                    <Pie data={sumberDistData} cx="50%" cy="50%" innerRadius={42} outerRadius={68} paddingAngle={3} dataKey="value" stroke="none">
-                      {sumberDistData.map((_, i) => <Cell key={i} fill={['#3b82f6', '#10b981'][i % 2]} />)}
-                    </Pie>
-                    <Tooltip formatter={(v) => formatRp(v)} />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : <span className="text-xs text-slate-400 italic">Tidak ada data</span>}
-            </div>
-            <div className="flex justify-center gap-3 mt-1">
-              {sumberDistData.map((item, i) => (
-                <div key={item.name} className="flex items-center gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: ['#3b82f6', '#10b981'][i % 2] }} />
-                  <span className="text-[10px] font-bold text-slate-500">{item.name}</span>
+                <div>
+                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Distribusi Mutasi</h3>
+                  <p className="text-[9px] text-slate-400">Rasio pemasukan vs pengeluaran</p>
                 </div>
-              ))}
+              </div>
+              <div className="h-[160px] w-full flex items-center justify-center">
+                {tipeDistData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={160}>
+                    <PieChart>
+                      <Pie data={tipeDistData} cx="50%" cy="50%" innerRadius={42} outerRadius={68} paddingAngle={3} dataKey="value" stroke="none">
+                        {tipeDistData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+                      </Pie>
+                      <Tooltip formatter={(v) => formatRp(v)} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : <span className="text-xs text-slate-400 italic">Tidak ada data</span>}
+              </div>
+              <div className="flex justify-center gap-3 mt-1">
+                {tipeDistData.map((item, i) => (
+                  <div key={item.name} className="flex items-center gap-1.5">
+                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
+                    <span className="text-[10px] font-bold text-slate-500">{item.name}: {formatRp(item.value)}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
 
-          {/* WHEN → Trend Bulanan */}
-          <div className="bg-white rounded-2xl border border-border p-5 shadow-sm">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 shrink-0">
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>trending_up</span>
+            {/* WHERE → Sumber Dana */}
+            <div className="bg-white rounded-2xl border border-border p-5 shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 shrink-0">
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>account_balance</span>
+                </div>
+                <div>
+                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sumber Dana</h3>
+                  <p className="text-[9px] text-slate-400">Pagu Kampus vs Kas Mandiri</p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Trend Bulanan</h3>
-                <p className="text-[9px] text-slate-400">Pemasukan & pengeluaran per bulan</p>
+              <div className="h-[160px] w-full flex items-center justify-center">
+                {sumberDistData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={160}>
+                    <PieChart>
+                      <Pie data={sumberDistData} cx="50%" cy="50%" innerRadius={42} outerRadius={68} paddingAngle={3} dataKey="value" stroke="none">
+                        {sumberDistData.map((_, i) => <Cell key={i} fill={['#3b82f6', '#10b981'][i % 2]} />)}
+                      </Pie>
+                      <Tooltip formatter={(v) => formatRp(v)} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : <span className="text-xs text-slate-400 italic">Tidak ada data</span>}
+              </div>
+              <div className="flex justify-center gap-3 mt-1">
+                {sumberDistData.map((item, i) => (
+                  <div key={item.name} className="flex items-center gap-1.5">
+                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: ['#3b82f6', '#10b981'][i % 2] }} />
+                    <span className="text-[10px] font-bold text-slate-500">{item.name}</span>
+                  </div>
+                ))}
               </div>
             </div>
-            <div className="h-[160px] w-full">
-              {monthlyTrendData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={160}>
-                  <LineChart data={monthlyTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="month" tick={{ fontSize: 8, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+
+            {/* WHEN → Trend Bulanan */}
+            <div className="bg-white rounded-2xl border border-border p-5 shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 shrink-0">
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>trending_up</span>
+                </div>
+                <div>
+                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Trend Bulanan</h3>
+                  <p className="text-[9px] text-slate-400">Pemasukan & pengeluaran per bulan</p>
+                </div>
+              </div>
+              <div className="h-[160px] w-full">
+                {monthlyTrendData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={160}>
+                    <LineChart data={monthlyTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                      <XAxis dataKey="month" tick={{ fontSize: 8, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                      <Tooltip formatter={(v) => formatRp(v)} />
+                      <Line type="monotone" dataKey="pemasukan" name="Pemasukan" stroke="#10b981" strokeWidth={2} dot={{ r: 2 }} />
+                      <Line type="monotone" dataKey="pengeluaran" name="Pengeluaran" stroke="#ef4444" strokeWidth={2} dot={{ r: 2 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : <div className="h-full flex items-center justify-center"><span className="text-xs text-slate-400 italic">Tidak ada data</span></div>}
+              </div>
+            </div>
+          </div>
+          {/* HOW → Pengeluaran per Proker (full width) */}
+          {!loading && prokerSpendData.length > 0 && (
+            <div className="bg-white rounded-2xl border border-border p-5 shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center text-rose-600 shrink-0">
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>receipt_long</span>
+                </div>
+                <div>
+                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pengeluaran per Proker</h3>
+                  <p className="text-[9px] text-slate-400">Program kerja dengan pengeluaran terbesar</p>
+                </div>
+              </div>
+              <div className="h-[220px] w-full">
+                <ResponsiveContainer width="100%" height={220}>
+                  <BarChart data={prokerSpendData} layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+                    <XAxis type="number" tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                    <YAxis type="category" dataKey="name" tick={{ fontSize: 8.5, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} width={120} />
                     <Tooltip formatter={(v) => formatRp(v)} />
-                    <Line type="monotone" dataKey="pemasukan" name="Pemasukan" stroke="#10b981" strokeWidth={2} dot={{ r: 2 }} />
-                    <Line type="monotone" dataKey="pengeluaran" name="Pengeluaran" stroke="#ef4444" strokeWidth={2} dot={{ r: 2 }} />
-                  </LineChart>
+                    <Bar dataKey="value" name="Pengeluaran" fill="#ef4444" radius={[0, 4, 4, 0]} barSize={16} />
+                  </BarChart>
                 </ResponsiveContainer>
-              ) : <div className="h-full flex items-center justify-center"><span className="text-xs text-slate-400 italic">Tidak ada data</span></div>}
-            </div>
-          </div>
-        </div>
-        {/* HOW → Pengeluaran per Proker (full width) */}
-        {!loading && prokerSpendData.length > 0 && (
-          <div className="bg-white rounded-2xl border border-border p-5 shadow-sm">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center text-rose-600 shrink-0">
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>receipt_long</span>
-              </div>
-              <div>
-                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pengeluaran per Proker</h3>
-                <p className="text-[9px] text-slate-400">Program kerja dengan pengeluaran terbesar</p>
               </div>
             </div>
-            <div className="h-[220px] w-full">
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={prokerSpendData} layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
-                  <XAxis type="number" tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                  <YAxis type="category" dataKey="name" tick={{ fontSize: 8.5, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} width={120} />
-                  <Tooltip formatter={(v) => formatRp(v)} />
-                  <Bar dataKey="value" name="Pengeluaran" fill="#ef4444" radius={[0, 4, 4, 0]} barSize={16} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        )}
-      </>
+          )}
+        </>
       )}
 
       {/* ── Transaction Table Card ──────────────────────────────────── */}
@@ -598,21 +765,24 @@ export default function KeuanganKas() {
         </CardContent>
       </Card>
 
-      <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
-        <DialogContent className="max-w-lg p-0 overflow-hidden border border-border shadow-2xl rounded-2xl bg-surface animate-in zoom-in-95 duration-200">
-          <DialogHeader className="p-8 pb-6 bg-slate-50/50 border-b border-border relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-              <span className="material-symbols-outlined size-24 rotate-12 text-[var(--theme-primary)]">account_balance_wallet</span>
+      <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen} maxWidth="max-w-2xl">
+        <DialogContent className="w-full h-full p-0 overflow-hidden border-none shadow-none rounded-2xl bg-white animate-in zoom-in-95 duration-200">
+          <DialogHeader className="relative bg-gradient-to-br from-primary via-primary to-blue-700 pt-6 pb-7 px-6 overflow-hidden flex-shrink-0 border-b-0 text-left">
+            <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
+            <div className="absolute -bottom-6 right-16 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
+            <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
+              <span className="material-symbols-outlined size-24 rotate-12 text-white">account_balance_wallet</span>
             </div>
+
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-2">
-                <div className="size-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600">
+                <div className="size-8 rounded-xl bg-white/10 flex items-center justify-center text-white backdrop-blur-sm">
                   <span className="material-symbols-outlined stroke-[3px]" style={{ fontSize: '16px' }}>payments</span>
                 </div>
-                <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-slate-200 text-slate-700 border-none rounded-md">MUTASI KAS</Badge>
+                <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-white/10 text-white border-none rounded-md backdrop-blur-sm">MUTASI KAS</Badge>
               </div>
-              <DialogTitle className="text-xl font-black font-headline tracking-tighter text-slate-900">Catat Transaksi Baru</DialogTitle>
-              <DialogDescription className="text-xs font-semibold text-slate-400 mt-1">Dokumentasikan arus masuk atau keluar kas dengan akurat.</DialogDescription>
+              <DialogTitle className="text-xl font-black font-headline tracking-tighter text-white">Catat Transaksi Baru</DialogTitle>
+              <DialogDescription className="text-xs font-semibold text-white/70 mt-1">Dokumentasikan arus masuk atau keluar kas dengan akurat.</DialogDescription>
             </div>
           </DialogHeader>
 
@@ -649,8 +819,8 @@ export default function KeuanganKas() {
                     value={form.Tipe}
                     onValueChange={val => setForm({ ...form, Tipe: val })}
                   >
-                    <SelectOption value="pemasukan">▲ Pemasukan (Masuk)</SelectOption>
-                    <SelectOption value="pengeluaran">▼ Pengeluaran (Keluar)</SelectOption>
+                    <SelectOption value="pemasukan"><div className="flex items-center gap-1.5"><span className="material-symbols-outlined text-emerald-500" style={{ fontSize: '16px' }}>arrow_upward</span> Pemasukan (Masuk)</div></SelectOption>
+                    <SelectOption value="pengeluaran"><div className="flex items-center gap-1.5"><span className="material-symbols-outlined text-rose-500" style={{ fontSize: '16px' }}>arrow_downward</span> Pengeluaran (Keluar)</div></SelectOption>
                   </SelectField>
                 </div>
 
@@ -660,8 +830,8 @@ export default function KeuanganKas() {
                     value={form.Sumber}
                     onValueChange={val => setForm({ ...form, Sumber: val })}
                   >
-                    <SelectOption value="organisasi">💼 Kas Mandiri Organisasi</SelectOption>
-                    <SelectOption value="kampus">🏛️ Pagu Kampus (Duit Kampus)</SelectOption>
+                    <SelectOption value="organisasi"><div className="flex items-center gap-1.5"><span className="material-symbols-outlined text-slate-500" style={{ fontSize: '16px' }}>account_balance_wallet</span> Kas Mandiri Organisasi</div></SelectOption>
+                    <SelectOption value="kampus"><div className="flex items-center gap-1.5"><span className="material-symbols-outlined text-blue-500" style={{ fontSize: '16px' }}>account_balance</span> Pagu Kampus (Duit Kampus)</div></SelectOption>
                   </SelectField>
                 </div>
               </div>

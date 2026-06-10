@@ -3200,6 +3200,56 @@ func UpdateOrmawaGamifikasiRule(c *fiber.Ctx) error {
 	})
 }
 
+// CreateOrmawaGamifikasiRule creates a new point rule
+func CreateOrmawaGamifikasiRule(c *fiber.Ctx) error {
+	type CreatePayload struct {
+		Key       string `json:"key"`
+		Label     string `json:"label"`
+		Deskripsi string `json:"deskripsi"`
+		Poin      int    `json:"poin"`
+	}
+
+	var payload CreatePayload
+	if err := c.BodyParser(&payload); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload tidak valid"})
+	}
+
+	if payload.Key == "" || payload.Label == "" {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Key dan Label wajib diisi"})
+	}
+
+	rule := models.OrmawaGamifikasiRule{
+		Key:       payload.Key,
+		Label:     payload.Label,
+		Deskripsi: payload.Deskripsi,
+		Poin:      payload.Poin,
+	}
+
+	if err := config.DB.Create(&rule).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{
+		"status":  "success",
+		"message": "Aturan gamifikasi berhasil ditambahkan",
+		"data":    rule,
+	})
+}
+
+// DeleteOrmawaGamifikasiRule deletes a point rule
+func DeleteOrmawaGamifikasiRule(c *fiber.Ctx) error {
+	id := c.Params("id")
+	
+	if err := config.DB.Delete(&models.OrmawaGamifikasiRule{}, id).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{
+		"status":  "success",
+		"message": "Aturan gamifikasi berhasil dihapus",
+	})
+}
+
 // GetGlobalLPJs returns all LPJs for Super Admin review
 func GetGlobalLPJs(c *fiber.Ctx) error {
 	var list []models.LaporanPertanggungjawaban

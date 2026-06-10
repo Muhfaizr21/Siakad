@@ -102,6 +102,7 @@ func (KencanaSession) TableName() string { return "mahasiswa.kencana_sessions" }
 type KencanaMaterial struct {
 	BaseModel
 	SessionID        uint   `gorm:"index;not null" json:"session_id"`
+	FakultasID       *uint  `gorm:"index" json:"fakultas_id"`
 	Title            string `gorm:"size:180;not null" json:"title"`
 	Type             string `gorm:"size:40;default:'text'" json:"type"`
 	Content          string `gorm:"type:text" json:"content"`
@@ -113,6 +114,9 @@ type KencanaMaterial struct {
 }
 
 func (KencanaMaterial) TableName() string { return "mahasiswa.kencana_materials" }
+
+func (m *KencanaMaterial) SetFakultasID(id *uint) { m.FakultasID = id }
+func (m KencanaMaterial) GetFakultasID() *uint   { return m.FakultasID }
 
 type KencanaMaterialProgress struct {
 	BaseModel
@@ -127,6 +131,7 @@ func (KencanaMaterialProgress) TableName() string { return "mahasiswa.kencana_ma
 type KencanaQuiz struct {
 	BaseModel
 	SessionID       uint              `gorm:"index;not null" json:"session_id"`
+	FakultasID      *uint             `gorm:"index" json:"fakultas_id"`
 	Title           string            `gorm:"size:180;not null" json:"title"`
 	Description     string            `gorm:"type:text" json:"description"`
 	Instruction     string            `gorm:"type:text" json:"instruction"`
@@ -142,6 +147,9 @@ type KencanaQuiz struct {
 }
 
 func (KencanaQuiz) TableName() string { return "mahasiswa.kencana_quizzes" }
+
+func (q *KencanaQuiz) SetFakultasID(id *uint) { q.FakultasID = id }
+func (q KencanaQuiz) GetFakultasID() *uint   { return q.FakultasID }
 
 type KencanaQuestion struct {
 	BaseModel
@@ -194,6 +202,7 @@ func (KencanaQuizAnswer) TableName() string { return "mahasiswa.kencana_quiz_ans
 type KencanaAssignment struct {
 	BaseModel
 	SessionID        uint       `gorm:"index;not null" json:"session_id"`
+	FakultasID       *uint      `gorm:"index" json:"fakultas_id"`
 	Title            string     `gorm:"size:180;not null" json:"title"`
 	Description      string     `gorm:"type:text" json:"description"`
 	OpenAt           *time.Time `json:"open_at"`
@@ -206,6 +215,9 @@ type KencanaAssignment struct {
 }
 
 func (KencanaAssignment) TableName() string { return "mahasiswa.kencana_assignments" }
+
+func (a *KencanaAssignment) SetFakultasID(id *uint) { a.FakultasID = id }
+func (a KencanaAssignment) GetFakultasID() *uint   { return a.FakultasID }
 
 type KencanaAssignmentSubmission struct {
 	BaseModel
