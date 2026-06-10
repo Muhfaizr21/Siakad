@@ -102,7 +102,7 @@ export default function AbsensiKegiatan() {
     {
       key: 'Judul',
       label: 'Nama Kegiatan',
-      className: 'min-w-[260px]',
+      className: 'min-w-[140px] max-w-[200px]',
       render: (v, row) => (
         <div className="flex flex-col leading-tight">
           <span className="font-bold text-slate-900 text-[13px] font-headline tracking-tighter">{v || '—'}</span>
@@ -115,7 +115,7 @@ export default function AbsensiKegiatan() {
     {
       key: 'Status',
       label: 'Status',
-      className: 'w-[140px] text-center',
+      className: 'w-[90px] text-center',
       cellClassName: 'text-center',
       render: (v) => {
         const colors = {
@@ -233,14 +233,14 @@ export default function AbsensiKegiatan() {
       </div>
 
       {/* ── Content Grid Area ────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
         {/* Left Side: Events List (5 Cols) */}
-        <div className="lg:col-span-5 space-y-6">
-          <div className="bg-[var(--theme-surface)] rounded-2xl border border-border shadow-sm overflow-hidden p-6 space-y-4">
-            <div className="flex items-center justify-between">
+        <div className="lg:col-span-5 flex flex-col">
+          <div className="bg-[var(--theme-surface)] rounded-2xl border border-border shadow-sm overflow-hidden p-5 flex flex-col h-full">
+            <div className="flex items-center justify-between px-1 mb-4 shrink-0">
               <div className="space-y-0.5">
                 <h2 className="font-black text-[15px] font-headline uppercase tracking-wider" style={{ color: 'var(--theme-h2)' }}>Daftar Kegiatan</h2>
-                <p className="text-[11px] text-[var(--theme-text-subtle)] font-bold">Pilih salah satu sesi kegiatan di bawah ini</p>
+                <p className="text-[11px] text-[var(--theme-text-subtle)] font-bold">Pilih sesi kegiatan</p>
               </div>
               <Badge className="bg-[var(--theme-primary-light)] text-[var(--theme-primary)] px-2.5 py-1 border-none font-bold text-[10px] rounded-lg">
                 {events.length} Sesi
@@ -252,7 +252,7 @@ export default function AbsensiKegiatan() {
                 columns={eventColumns}
                 data={events}
                 loading={loading}
-                searchPlaceholder="Cari nama sesi..."
+                searchPlaceholder="Cari kegiatan..."
                 title=""
                 actions={(row) => {
                   const isSelected = selectedEvent?.ID === row.ID
@@ -277,9 +277,9 @@ export default function AbsensiKegiatan() {
         </div>
 
         {/* Right Side: Attendance Dashboard Control (7 Cols) */}
-        <div className="lg:col-span-7">
+        <div className="lg:col-span-7 flex flex-col">
           {!selectedEvent ? (
-            <Card className="border border-dashed border-border rounded-2xl bg-[var(--theme-bg)] p-12 text-center shadow-none flex flex-col items-center justify-center min-h-[460px] transition-all hover:bg-[var(--theme-bg)]/80">
+            <Card className="border border-dashed border-border rounded-2xl bg-[var(--theme-bg)] p-12 text-center shadow-none flex flex-col items-center justify-center h-full min-h-[460px] transition-all hover:bg-[var(--theme-bg)]/80">
               <div className="w-16 h-16 rounded-2xl bg-[var(--theme-bg)] flex items-center justify-center text-[var(--theme-text-subtle)] mb-4 shadow-sm border border-border/50">
                 <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>qr_code_scanner</span>
               </div>
@@ -289,41 +289,49 @@ export default function AbsensiKegiatan() {
               </p>
             </Card>
           ) : (
-            <div className="space-y-6">
+            <div className="flex flex-col h-full space-y-6">
               {/* Event Quick Info Banner */}
-              <div className="p-6 bg-gradient-to-r from-[var(--theme-primary-light)]/40 via-[var(--theme-primary-light)]/20 to-transparent rounded-2xl border border-[var(--theme-primary)]/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
-                <div className="space-y-1">
+              <div className="relative overflow-hidden p-6 bg-gradient-to-br from-primary via-primary to-blue-700 rounded-2xl border-none shadow-lg shadow-[var(--theme-primary)]/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 shrink-0">
+                <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
+                <div className="absolute -bottom-6 right-32 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
+                <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
+                  <span className="material-symbols-outlined size-24 rotate-12 text-white">qr_code_scanner</span>
+                </div>
+
+                <div className="relative z-10 space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-black text-[var(--theme-primary)] tracking-widest uppercase font-headline">Sesi Aktif</span>
-                    <Badge className="bg-[var(--theme-success-light)] text-[var(--theme-success)] border border-[var(--theme-success)]/20 px-2 py-0.5 text-[8px] font-black tracking-wider uppercase rounded-full">
+                    <span className="text-[10px] font-black text-white/80 tracking-widest uppercase font-headline">Sesi Aktif</span>
+                    <Badge className="bg-white text-[var(--theme-primary)] px-2 py-0.5 text-[8px] font-black tracking-wider uppercase rounded-full border-none shadow-sm">
                       Ready
                     </Badge>
                   </div>
-                  <h3 className="text-lg font-black text-[var(--theme-text)] font-headline tracking-tighter leading-tight">
+                  <h3 className="text-lg font-black text-white font-headline tracking-tighter leading-tight">
                     {selectedEvent.Judul}
                   </h3>
-                  <p className="text-[11px] text-[var(--theme-text-subtle)] font-bold flex items-center gap-1.5 mt-1">
+                  <p className="text-[11px] text-white/70 font-bold flex items-center gap-1.5 mt-1">
                     <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>calendar_today</span>
                     {selectedEvent.TanggalMulai ? new Date(selectedEvent.TanggalMulai).toLocaleDateString('id-ID', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }) : '—'}
                   </p>
                 </div>
 
-                <div className="flex items-center gap-3 w-full sm:w-auto shrink-0">
+                <div className="relative z-10 flex items-center gap-3 w-full sm:w-auto shrink-0">
                   {/* Dynamic mini QR box inside dashboard */}
                   <div
                     onClick={() => setIsQrOpen(true)}
-                    className="p-1.5 bg-[var(--theme-surface)] rounded-xl border border-border/50 shadow-sm cursor-pointer hover:scale-105 active:scale-95 transition-all group relative shrink-0"
+                    className="p-1.5 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 shadow-sm cursor-pointer hover:scale-105 active:scale-95 transition-all group relative shrink-0"
                     title="Perbesar QR Code"
                   >
-                    <img src={qrUrl} alt="Mini QR" className="size-11 object-contain" />
-                    <div className="absolute inset-0 bg-[var(--theme-primary-light)]/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
-                      <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '14px' }}>zoom_in</span>
+                    <div className="bg-white rounded-lg p-1">
+                      <img src={qrUrl} alt="Mini QR" className="size-10 object-contain" />
+                    </div>
+                    <div className="absolute inset-0 bg-[var(--theme-primary)]/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
+                      <span className="material-symbols-outlined text-white" style={{ fontSize: '16px' }}>zoom_in</span>
                     </div>
                   </div>
 
                   <Button
                     onClick={() => setIsQrOpen(true)}
-                    className="flex-1 sm:flex-initial h-11 px-5 rounded-2xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary)]/90 text-white font-bold text-xs tracking-wider gap-2 shadow-lg shadow-[var(--theme-primary)]/10 active:scale-95 transition-all border-none"
+                    className="flex-1 sm:flex-initial h-12 px-6 rounded-2xl bg-white hover:bg-slate-50 text-[var(--theme-primary)] font-black text-[10px] tracking-wider gap-2 shadow-lg active:scale-95 transition-all border-none"
                   >
                     <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>qr_code_2</span>
                     <span>BUKA SCANNER</span>
@@ -332,8 +340,8 @@ export default function AbsensiKegiatan() {
               </div>
 
               {/* Attendance Checklist Control List */}
-              <div className="bg-[var(--theme-surface)] rounded-2xl border border-border shadow-sm overflow-hidden p-6 space-y-4">
-                <div className="flex items-center justify-between">
+              <div className="bg-[var(--theme-surface)] rounded-2xl border border-border shadow-sm overflow-hidden p-6 flex flex-col flex-1">
+                <div className="flex items-center justify-between shrink-0 mb-4">
                   <div className="space-y-0.5">
                     <h3 className="font-black text-xs font-headline tracking-wider uppercase" style={{ color: 'var(--theme-h3)' }}>Konfirmasi Kehadiran Anggota</h3>
                     <p className="text-[11px] text-[var(--theme-text-subtle)] font-bold">Cek lis secara manual untuk memperbarui status</p>
@@ -358,12 +366,18 @@ export default function AbsensiKegiatan() {
                     <p className="text-[10px] font-black text-[var(--theme-text-subtle)] uppercase tracking-widest animate-pulse">Memuat absensi...</p>
                   </div>
                 ) : attendance.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 gap-3 border border-dashed border-border/50 rounded-2xl bg-[var(--theme-bg)]/20">
-                    <span className="material-symbols-outlined text-[var(--theme-text-subtle)]" style={{ fontSize: '32px' }}>group_off</span>
-                    <p className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-widest uppercase">Belum ada anggota terdaftar</p>
+                  <div className="flex flex-col items-center justify-center flex-1 min-h-[300px] gap-4 border-2 border-dashed border-border/60 rounded-2xl bg-[var(--theme-bg)]/40 relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[var(--theme-surface)]/50 pointer-events-none" />
+                    <div className="size-16 rounded-3xl bg-[var(--theme-surface)] shadow-sm border border-border/80 flex items-center justify-center relative z-10 transition-transform group-hover:scale-110 duration-300">
+                      <span className="material-symbols-outlined text-[var(--theme-text-subtle)]" style={{ fontSize: '32px' }}>group_off</span>
+                    </div>
+                    <div className="text-center relative z-10 space-y-1">
+                      <p className="text-xs font-black text-[var(--theme-text)] tracking-wider uppercase font-headline">Belum Ada Anggota Terdaftar</p>
+                      <p className="text-[11px] font-bold text-[var(--theme-text-subtle)]">Tidak ada data kehadiran yang masuk untuk sesi kegiatan ini.</p>
+                    </div>
                   </div>
                 ) : (
-                  <div className="space-y-2.5 max-h-[460px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-[var(--theme-border)] scrollbar-track-transparent">
+                  <div className="space-y-2.5 flex-1 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-[var(--theme-border)] scrollbar-track-transparent">
                     {attendance.map((att, idx) => {
                       const isAttended = att.Status === 'hadir'
                       const isAbsent = att.Status === 'tidak_hadir'
@@ -445,14 +459,27 @@ export default function AbsensiKegiatan() {
       </div>
 
       {/* ── QR Scanner Popup Dialog ───────────────────────────────── */}
-      <Dialog open={isQrOpen} onOpenChange={setIsQrOpen}>
-        <DialogContent className="max-w-md p-0 overflow-hidden border border-border shadow-2xl rounded-2xl bg-surface animate-in zoom-in-95 duration-200">
-          <DialogHeader className="p-8 pb-5 bg-slate-50/50 border-b border-border text-center">
-            <span className="text-[9px] font-black text-slate-400 tracking-[0.25em] uppercase font-headline">PEMINDAI QR PRESENSI</span>
-            <DialogTitle className="text-xl font-black text-slate-900 font-headline tracking-tighter leading-tight mt-1">
-              {selectedEvent?.Judul}
-            </DialogTitle>
-            <DialogDescription className="text-[10px] font-bold text-slate-450 tracking-wider">Arahkan kamera mahasiswa ke kode QR di bawah ini</DialogDescription>
+      <Dialog open={isQrOpen} onOpenChange={setIsQrOpen} maxWidth="max-w-md">
+        <DialogContent className="w-full h-full p-0 overflow-hidden border-none shadow-none rounded-2xl bg-white animate-in zoom-in-95 duration-200">
+          <DialogHeader className="relative bg-gradient-to-br from-primary via-primary to-blue-700 pt-6 pb-7 px-6 overflow-hidden flex-shrink-0 border-b-0 text-left">
+            <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
+            <div className="absolute -bottom-6 right-16 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
+            <div className="absolute -top-6 -right-2 opacity-10 pointer-events-none">
+              <span className="material-symbols-outlined -rotate-12 text-white" style={{ fontSize: '140px' }}>qr_code_scanner</span>
+            </div>
+            
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="size-8 rounded-xl bg-white/10 flex items-center justify-center text-white backdrop-blur-sm">
+                  <span className="material-symbols-outlined stroke-[3px]" style={{ fontSize: '16px' }}>qr_code_2</span>
+                </div>
+                <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-white/10 text-white border-none rounded-md backdrop-blur-sm">QR PRESENSI</Badge>
+              </div>
+              <DialogTitle className="text-xl font-black font-headline tracking-tighter text-white pr-8">
+                {selectedEvent?.Judul || 'Memuat Kegiatan...'}
+              </DialogTitle>
+              <DialogDescription className="text-xs font-semibold text-white/70 mt-1">Arahkan kamera ke kode QR di bawah ini</DialogDescription>
+            </div>
           </DialogHeader>
 
           <div className="p-8 flex flex-col items-center gap-6 relative">

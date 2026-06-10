@@ -9,7 +9,7 @@ import { API_BASE_URL } from '../../services/api'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/Select"
 import { Button } from "@/components/ui/Button"
 import { DeleteConfirmModal } from "@/components/ui/DeleteConfirmModal"
-import Dialog, { DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "@/components/ui/Dialog"
+import { DialogModal, ModalCancelButton, ModalSaveButton } from "@/components/ui/DialogModal"
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import { PageContent } from '@/components/ui/page'
 import { DashboardHero } from '@/components/ui/dashboard'
@@ -333,13 +333,24 @@ export default function FacultyOrganisasi() {
       </div>
 
       {/* Form Modal */}
-      <Dialog open={showModal} onOpenChange={setModal} maxWidth="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{editingOrg ? 'Update Data ORMAWA' : 'Tambah Organisasi'}</DialogTitle>
-          <DialogDescription>{editingOrg ? 'Edit Organisasi' : 'Registrasi Baru'}</DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
-          <DialogContent className="space-y-4 p-6 overflow-y-auto max-h-[60vh]">
+      <DialogModal
+        open={showModal}
+        onOpenChange={setModal}
+        icon="groups"
+        title={editingOrg ? 'Update Data ORMAWA' : 'Tambah Organisasi'}
+        subtitle={editingOrg ? 'Edit Organisasi' : 'Registrasi Baru'}
+        maxWidth="max-w-lg"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setModal(false)}>Batal</ModalCancelButton>
+            <ModalSaveButton type="submit" form="orgForm" isSubmitting={isSubmitting}>
+              {editingOrg ? 'Update Data' : 'Simpan Data'}
+            </ModalSaveButton>
+          </>
+        }
+      >
+        <form id="orgForm" onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+          <div className="space-y-4 overflow-y-auto max-h-[60vh]">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Kode Akronim</label>
@@ -537,30 +548,9 @@ export default function FacultyOrganisasi() {
                 className="h-10 w-full rounded-xl border border-[var(--theme-border)] bg-white px-3 text-sm text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors"
               />
             </div>
-          </DialogContent>
-          <DialogFooter>
-            <button
-              type="button"
-              onClick={() => setModal(false)}
-              className="h-10 px-4 rounded-xl border border-[var(--theme-border)] text-sm font-semibold text-[var(--theme-text)] hover:bg-[var(--theme-bg)] transition-colors"
-            >
-              Batal
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="h-10 px-4 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-sm font-semibold transition-all active:scale-95 disabled:opacity-60 flex items-center justify-center gap-2"
-            >
-              {isSubmitting ? (
-                <span className="material-symbols-outlined animate-spin text-[14px]">sync</span>
-              ) : (
-                <span className="material-symbols-outlined text-[14px]">save</span>
-              )}{' '}
-              {editingOrg ? 'Update Data' : 'Simpan Data'}
-            </button>
-          </DialogFooter>
+          </div>
         </form>
-      </Dialog>
+      </DialogModal>
 
       {/* Delete Confirm */}
       <DeleteConfirmModal

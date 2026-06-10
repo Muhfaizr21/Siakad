@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/Button"
 import { PageContent } from '@/components/ui/page'
 import { DashboardHero } from '@/components/ui/dashboard'
 import { Badge } from "@/components/ui/Badge"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/Dialog"
+import { DialogModal, ModalCancelButton, ModalSaveButton } from "@/components/ui/DialogModal"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Reply = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>reply</span>;
@@ -506,32 +506,27 @@ const FacultyAspirationManagement = () => {
         </div>
 
       {/* ── Global Aspiration Audit Dialog Popup Modal (Faculty Admin) ── */}
-      <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)} maxWidth="max-w-5xl">
-        <DialogContent className="max-w-5xl p-0 overflow-hidden border border-border shadow-2xl rounded-2xl bg-surface animate-in zoom-in-95 duration-200">
-          <DialogHeader className="p-8 pb-5 bg-slate-50/50 border-b border-border relative">
-            <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-              <span className="material-symbols-outlined size-24 rotate-12 text-slate-800">security</span>
-            </div>
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-1.5">
-                <div className="size-8 rounded-xl bg-slate-105 flex items-center justify-center text-slate-600">
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>security</span>
-                </div>
-                <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-slate-200 text-slate-700 border-none rounded-md">
-                  FACULTY AUDIT PANEL · #ASP-{selected?.ID?.toString().padStart(4, '0')}
-                </Badge>
-              </div>
-              <DialogTitle className="text-lg md:text-xl font-black font-headline tracking-tighter text-slate-900 truncate max-w-[500px]">
-                {selected?.Judul}
-              </DialogTitle>
-              <DialogDescription className="text-[11px] font-semibold text-slate-400 mt-0.5">
-                Status: {selected?.Status || 'Terbuka'}
-              </DialogDescription>
-            </div>
-          </DialogHeader>
-
-          {/* Modal Body */}
-          <div className="p-8 pt-5 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar">
+      <DialogModal
+        open={!!selected}
+        onOpenChange={(open) => !open && setSelected(null)}
+        icon="security"
+        title={selected?.Judul}
+        subtitle={`Status: ${selected?.Status || 'Terbuka'}`}
+        badgeText={`FACULTY AUDIT PANEL · #ASP-${selected?.ID?.toString().padStart(4, '0')}`}
+        maxWidth="max-w-5xl"
+        bodyClassName="p-8 pt-5 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setSelected(null)} text="Tutup" />
+            <ModalSaveButton 
+              onClick={() => handleUpdateStatus(form.status)} 
+              loading={isSubmitting} 
+              disabled={isSubmitting || !form.status}
+              text="Simpan Tanggapan" 
+            />
+          </>
+        }
+      >
             {selected && (
               <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
                 {/* Left Column: Reporter Profile, Content Subjek & Attachments */}
@@ -678,33 +673,7 @@ const FacultyAspirationManagement = () => {
                 </div>
               </div>
             )}
-          </div>
-
-          {/* Modal Footer */}
-          <DialogFooter className="flex flex-col md:flex-row items-center justify-end gap-3 p-8 pt-4 border-t border-slate-100 bg-slate-50/30">
-            <Button 
-              variant="ghost"
-              onClick={() => setSelected(null)}
-              className="w-full md:w-auto text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-11 rounded-xl active:scale-95 transition-all shadow-none border-none cursor-pointer font-headline uppercase"
-            >
-              Tutup
-            </Button>
-            <Button 
-              onClick={() => handleUpdateStatus(form.status)}
-              disabled={isSubmitting || !form.status}
-              className="w-full md:w-auto h-11 px-8 rounded-xl bg-primary hover:bg-bku-hover text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-bku-primary/20 active:scale-95 transition-all gap-1.5 cursor-pointer"
-            >
-              {isSubmitting ? (
-                <span className="material-symbols-outlined animate-spin" style={{ fontSize: '15px' }} >sync</span>
-              ) : (
-                <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >save</span>
-              )}
-              Simpan Tanggapan
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
+      </DialogModal>
     </PageContent>
   )
 }

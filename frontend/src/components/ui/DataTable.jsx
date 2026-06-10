@@ -338,13 +338,13 @@ export default function DataTable({
         >
           <div className="flex flex-wrap items-center gap-4">
             <span className="text-xs font-medium" style={{ color: 'var(--theme-text-muted)' }}>
-              Menampilkan {serverPagination 
+              Menampilkan {serverPagination
                 ? (totalData > 0 ? (activePage - 1) * limit + 1 : 0)
-                : (filteredData.length > 0 ? (activePage - 1) * limit + 1 : 0)}–{serverPagination 
-                ? Math.min(activePage * limit, totalData)
-                : Math.min(activePage * limit, filteredData.length)} dari {serverPagination ? totalData : filteredData.length} entri
+                : (filteredData.length > 0 ? (activePage - 1) * limit + 1 : 0)}–{serverPagination
+                  ? Math.min(activePage * limit, totalData)
+                  : Math.min(activePage * limit, filteredData.length)} dari {serverPagination ? totalData : filteredData.length} entri
             </span>
-            
+
             {/* Rows Per Page Selector */}
             <div className="flex items-center gap-1.5 text-xs animate-in fade-in duration-200" style={{ color: 'var(--theme-text-muted)' }}>
               <span>Tampilkan</span>

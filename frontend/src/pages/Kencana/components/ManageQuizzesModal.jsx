@@ -125,8 +125,8 @@ export const ManageQuizzesModal = ({ open, onOpenChange, sessionId }) => {
       open={open}
       onOpenChange={onOpenChange}
       title={view === 'list' ? `Kelola Kuis: ${session?.title || '...'}` : editingQuiz ? 'Edit Pengaturan Kuis' : 'Tambah Kuis Baru'}
-      description={view === 'list' ? 'Kelola daftar kuis evaluasi untuk sesi ini.' : 'Perbarui informasi waktu dan batasan pengerjaan kuis.'}
-      maxWidth="max-w-4xl"
+      description={view === 'list' ? 'Kelola semua kuis untuk sesi ini. Setidaknya 1 kuis wajib agar peserta bisa melaju ke tahap berikutnya.' : 'Isi form untuk membuat kuis baru. Link gform disarankan.'}
+      maxWidth="max-w-2xl"
     >
       <div className="p-6 md:p-8 max-h-[70vh] overflow-y-auto">
         {isLoading ? (

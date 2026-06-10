@@ -596,17 +596,21 @@ const Stages = () => {
       {/* Stage Modal */}
       <Dialog open={showStageModal} onOpenChange={setShowStageModal}>
         <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <span className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">
-              {activeStage ? 'Edit Tahap' : 'Tambah Tahap'}
-            </span>
-            <DialogTitle className="text-base font-bold text-[var(--theme-text)] mt-0.5">
-              {activeStage ? 'Edit Tahap Fakultas' : 'Tambah Tahap Fakultas'}
-            </DialogTitle>
-            <DialogDescription className="text-xs text-[var(--theme-text-muted)] mt-0.5">
-              {activeStage ? 'Perbarui detail tahapan orientasi fakultas' : 'Tambahkan tahapan orientasi baru'}
-            </DialogDescription>
-          </DialogHeader>
+          <div className="relative bg-gradient-to-br from-primary via-primary to-blue-700 pt-6 pb-7 px-6 overflow-hidden flex-shrink-0 border-b-0">
+            <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
+            <div className="absolute -bottom-6 right-16 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
+            <div className="relative z-10">
+              <span className="text-[10px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1 block">
+                {activeStage ? 'Edit Tahap' : 'Tambah Tahap'}
+              </span>
+              <DialogTitle className="text-xl font-extrabold font-headline leading-tight truncate text-white mt-0.5">
+                {activeStage ? 'Edit Tahap Fakultas' : 'Tambah Tahap Fakultas'}
+              </DialogTitle>
+              <DialogDescription className="text-xs text-blue-100 font-medium mt-1">
+                {activeStage ? 'Perbarui detail tahapan orientasi fakultas' : 'Tambahkan tahapan orientasi baru'}
+              </DialogDescription>
+            </div>
+          </div>
           <form onSubmit={saveStage} className="p-6 space-y-4">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">Nama Tahap</label>
@@ -656,17 +660,21 @@ const Stages = () => {
       {/* Session Modal */}
       <Dialog open={showSessionModal} onOpenChange={setShowSessionModal}>
         <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <span className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">
-              Sesi Kencana
-            </span>
-            <DialogTitle className="text-base font-bold text-[var(--theme-text)] mt-0.5">
-              Tambah Sesi Fakultas
-            </DialogTitle>
-            <DialogDescription className="text-xs text-[var(--theme-text-muted)] mt-0.5">
-              Buat sesi pembelajaran baru untuk orientasi mahasiswa
-            </DialogDescription>
-          </DialogHeader>
+          <div className="relative bg-gradient-to-br from-primary via-primary to-blue-700 pt-6 pb-7 px-6 overflow-hidden flex-shrink-0 border-b-0">
+            <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
+            <div className="absolute -bottom-6 right-16 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
+            <div className="relative z-10">
+              <span className="text-[10px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1 block">
+                Sesi Kencana
+              </span>
+              <DialogTitle className="text-xl font-extrabold font-headline leading-tight truncate text-white mt-0.5">
+                Tambah Sesi Fakultas
+              </DialogTitle>
+              <DialogDescription className="text-xs text-blue-100 font-medium mt-1">
+                Buat sesi pembelajaran baru untuk orientasi mahasiswa
+              </DialogDescription>
+            </div>
+          </div>
           <form onSubmit={saveSession} className="p-6 space-y-4">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">Judul Sesi</label>

@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { DataTable } from '@/components/ui/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
+import { DialogModal, ModalCancelButton, ModalSaveButton } from "@/components/ui/DialogModal"
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
@@ -454,23 +454,27 @@ export default function ProdiUsers() {
       </Card>
 
       {/* ═══ CREATE MODAL ═══ */}
-      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen} maxWidth="max-w-lg">
-        <DialogContent className="!overflow-visible">
-          <DialogHeader>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)] shrink-0">
-                <span className="material-symbols-outlined text-[20px]">person_add</span>
-              </div>
-              <div>
-                <p className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-0.5">
-                  Tambah Akun
-                </p>
-                <DialogTitle>Tambah Akun Prodi Admin</DialogTitle>
-                <DialogDescription>Buat akun baru untuk administrator program studi.</DialogDescription>
-              </div>
-            </div>
-          </DialogHeader>
-          <form onSubmit={handleCreate} className="p-6 space-y-4 text-[var(--theme-text)]">
+      <DialogModal
+        open={isCreateOpen}
+        onOpenChange={setIsCreateOpen}
+        icon="person_add"
+        title="Tambah Akun Prodi Admin"
+        subtitle="Buat akun baru untuk administrator program studi."
+        badgeText="Tambah Akun"
+        maxWidth="max-w-lg"
+        bodyClassName="!overflow-visible p-6 pt-2"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setIsCreateOpen(false)} />
+            <ModalSaveButton 
+              form="create-prodi-user" 
+              loading={submitting} 
+              text="Simpan Akun" 
+            />
+          </>
+        }
+      >
+          <form id="create-prodi-user" onSubmit={handleCreate} className="space-y-4 text-[var(--theme-text)]">
             <div className="space-y-1.5">
               <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Email</label>
               <input
@@ -527,40 +531,31 @@ export default function ProdiUsers() {
               </p>
             </div>
 
-            <DialogFooter className="pt-4 flex items-center justify-end gap-2">
-              <Button type="button" variant="ghost" onClick={() => setIsCreateOpen(false)} className="h-10 rounded-xl px-4 font-semibold">
-                Batal
-              </Button>
-              <Button
-                type="submit"
-                disabled={submitting}
-                className="bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white h-10 rounded-xl px-6 font-semibold shadow-lg shadow-blue-200/40 border-none transition-all"
-              >
-                {submitting ? 'Menyimpan...' : 'Simpan Akun'}
-              </Button>
-            </DialogFooter>
           </form>
-        </DialogContent>
-      </Dialog>
+      </DialogModal>
 
       {/* ═══ EDIT MODAL ═══ */}
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen} maxWidth="max-w-lg">
-        <DialogContent className="!overflow-visible">
-          <DialogHeader>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[var(--theme-warning-light)] flex items-center justify-center text-[var(--theme-warning)] shrink-0">
-                <span className="material-symbols-outlined text-[20px]">edit</span>
-              </div>
-              <div>
-                <p className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-0.5">
-                  Edit Akun
-                </p>
-                <DialogTitle>Edit Akun Prodi Admin</DialogTitle>
-                <DialogDescription>Perbarui informasi akun {selected?.email}</DialogDescription>
-              </div>
-            </div>
-          </DialogHeader>
-          <form onSubmit={handleEdit} className="p-6 space-y-4 text-[var(--theme-text)]">
+      <DialogModal
+        open={isEditOpen}
+        onOpenChange={setIsEditOpen}
+        icon="edit"
+        title="Edit Akun Prodi Admin"
+        subtitle={`Perbarui informasi akun ${selected?.email}`}
+        badgeText="Edit Akun"
+        maxWidth="max-w-lg"
+        bodyClassName="!overflow-visible p-6 pt-2"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setIsEditOpen(false)} />
+            <ModalSaveButton 
+              form="edit-prodi-user" 
+              loading={submitting} 
+              text="Perbarui Akun" 
+            />
+          </>
+        }
+      >
+          <form id="edit-prodi-user" onSubmit={handleEdit} className="space-y-4 text-[var(--theme-text)]">
             <div className="space-y-1.5">
               <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Email</label>
               <input
@@ -613,21 +608,8 @@ export default function ProdiUsers() {
               />
             </div>
 
-            <DialogFooter className="pt-4 flex items-center justify-end gap-2">
-              <Button type="button" variant="ghost" onClick={() => setIsEditOpen(false)} className="h-10 rounded-xl px-4 font-semibold">
-                Batal
-              </Button>
-              <Button
-                type="submit"
-                disabled={submitting}
-                className="bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white h-10 rounded-xl px-6 font-semibold shadow-lg shadow-amber-200/40 border-none transition-all"
-              >
-                {submitting ? 'Menyimpan...' : 'Perbarui Akun'}
-              </Button>
-            </DialogFooter>
           </form>
-        </DialogContent>
-      </Dialog>
+      </DialogModal>
 
       {/* ═══ DELETE MODAL ═══ */}
       <DeleteConfirmModal

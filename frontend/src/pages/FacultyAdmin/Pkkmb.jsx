@@ -8,7 +8,7 @@ import { API_BASE_URL, fetchWithAuth } from '../../services/api'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/Select"
 import { Button } from "@/components/ui/Button"
 import { PageContent } from '@/components/ui/page'
-import Dialog, { DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "@/components/ui/Dialog"
+import { DialogModal, ModalCancelButton } from "@/components/ui/DialogModal"
 import { DashboardHero } from '@/components/ui/dashboard'
 import { DataTable } from '@/components/ui/DataTable'
 import { PrimaryStatsCard } from '@/components/ui/StatsCard'
@@ -539,56 +539,61 @@ export default function FacultyPkkmb() {
       </div>
 
       {/* Detail Modal */}
-      <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)} maxWidth="max-w-md">
-        <DialogHeader className="pb-4">
-          <div className="flex items-center gap-4">
-            <StudentAvatar
-              src={getFullUrl(selected?.Mahasiswa?.FotoURL || selected?.Mahasiswa?.foto_url || selected?.Mahasiswa?.Foto || selected?.Mahasiswa?.Pengguna?.Foto)}
-              name={selected?.Mahasiswa?.Nama}
-              className="w-14 h-14 rounded-2xl shadow-xl ring-2 ring-white/20"
-            />
-            <div className="min-w-0">
-              <DialogTitle className="text-base font-extrabold font-headline leading-tight">{selected?.Mahasiswa?.Nama}</DialogTitle>
-              <DialogDescription className="text-xs text-[var(--theme-text-muted)] font-medium mt-0.5">
-                {selected?.Mahasiswa?.NIM} · {selected?.Mahasiswa?.ProgramStudi?.Nama || '—'}
-              </DialogDescription>
-            </div>
-          </div>
-        </DialogHeader>
-        <DialogContent className="p-6 space-y-3 overflow-y-auto max-h-[50vh]">
-          {selected && [
-            { icon: Activity, label: 'Kehadiran', value: `${selected.attendanceRate || 0}%` },
-            { icon: GraduationCap, label: 'Nilai Akhir', value: selected.Nilai || 0 },
-            { icon: CheckCircle, label: 'Status Kelulusan', value: selected.StatusKelulusan || 'Proses' },
-          ].map(r => (
-            <div key={r.label} className="flex items-center gap-3 p-3 rounded-xl bg-[var(--theme-bg)]/50 border border-[var(--theme-border)] hover:bg-white hover:shadow-sm transition-all">
-              <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center text-[var(--theme-primary)] shadow-sm border border-[var(--theme-border)] flex-shrink-0"><r.icon size={13} /></div>
-              <div className="flex-1">
-                <p className="text-[9px] font-bold text-[var(--theme-text-muted)] uppercase tracking-[0.15em]">{r.label}</p>
-                <p className="text-sm font-semibold text-[var(--theme-text)]">{r.value}</p>
+      <DialogModal
+        open={!!selected}
+        onOpenChange={(open) => !open && setSelected(null)}
+        icon="person"
+        title="Detail Peserta"
+        subtitle="Informasi kehadiran dan nilai kelulusan"
+        maxWidth="max-w-md"
+        footer={<ModalCancelButton onClick={() => setSelected(null)}>Tutup</ModalCancelButton>}
+      >
+        {selected && (
+          <div className="space-y-6">
+            <div className="flex flex-col items-center gap-3 text-center">
+              <StudentAvatar
+                src={getFullUrl(selected?.Mahasiswa?.FotoURL || selected?.Mahasiswa?.foto_url || selected?.Mahasiswa?.Foto || selected?.Mahasiswa?.Pengguna?.Foto)}
+                name={selected?.Mahasiswa?.Nama}
+                className="w-20 h-20 rounded-3xl shadow-xl ring-4 ring-[var(--theme-bg)]"
+              />
+              <div>
+                <h4 className="text-base font-extrabold text-[var(--theme-text)]">{selected?.Mahasiswa?.Nama}</h4>
+                <p className="text-xs font-semibold text-[var(--theme-text-muted)] mt-1">
+                  {selected?.Mahasiswa?.NIM} · {selected?.Mahasiswa?.ProgramStudi?.Nama || '—'}
+                </p>
               </div>
             </div>
-          ))}
-        </DialogContent>
-        <DialogFooter>
-          <button
-            onClick={() => setSelected(null)}
-            className="w-full h-10 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95"
-          >
-            Tutup
-          </button>
-        </DialogFooter>
-      </Dialog>
+
+            <div className="space-y-3">
+              {[
+                { icon: Activity, label: 'Kehadiran', value: `${selected.attendanceRate || 0}%` },
+                { icon: GraduationCap, label: 'Nilai Akhir', value: selected.Nilai || 0 },
+                { icon: CheckCircle, label: 'Status Kelulusan', value: selected.StatusKelulusan || 'Proses' },
+              ].map(r => (
+                <div key={r.label} className="flex items-center gap-3 p-3 rounded-xl bg-[var(--theme-bg)]/50 border border-[var(--theme-border)] hover:bg-white hover:shadow-sm transition-all">
+                  <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-[var(--theme-primary)] shadow-sm border border-[var(--theme-border)] flex-shrink-0"><r.icon size={16} /></div>
+                  <div className="flex-1">
+                    <p className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-[0.15em]">{r.label}</p>
+                    <p className="text-sm font-semibold text-[var(--theme-text)]">{r.value}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </DialogModal>
 
       {/* Stats Detail Modal */}
-      <Dialog open={!!statsDetail} onOpenChange={(open) => !open && setStatsDetail(null)} maxWidth="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{statsDetail?.label}</DialogTitle>
-          <DialogDescription>
-            Menampilkan {filteredStatsDetailList.length} mahasiswa dari total {statsDetail?.list?.length || 0} entri
-          </DialogDescription>
-        </DialogHeader>
-        <div className="p-4 border-b border-[var(--theme-border-muted)] bg-[var(--theme-bg)]/50 flex-shrink-0">
+      <DialogModal
+        open={!!statsDetail}
+        onOpenChange={(open) => !open && setStatsDetail(null)}
+        icon="analytics"
+        title={statsDetail?.label}
+        subtitle={`Menampilkan ${filteredStatsDetailList.length} mahasiswa dari total ${statsDetail?.list?.length || 0} entri`}
+        maxWidth="max-w-lg"
+        footer={<ModalCancelButton onClick={() => setStatsDetail(null)}>Tutup</ModalCancelButton>}
+      >
+        <div className="mb-4">
           <div className="relative">
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--theme-text-subtle)]" style={{ fontSize: '15px' }} >search</span>
             <input
@@ -596,11 +601,12 @@ export default function FacultyPkkmb() {
               placeholder="Cari nama, NIM, atau prodi..."
               value={statsSearch}
               onChange={e => setStatsSearch(e.target.value)}
-              className="pl-9 pr-4 h-10 w-full rounded-xl border border-[var(--theme-border)] focus:outline-none focus:border-primary text-sm bg-white placeholder-[var(--theme-text-subtle)] font-semibold text-[var(--theme-text)] focus:ring-2 focus:ring-[var(--theme-primary-light)]"
+              className="pl-9 pr-4 h-10 w-full rounded-xl border border-[var(--theme-border)] focus:outline-none focus:border-[var(--theme-primary)] text-sm bg-white placeholder-[var(--theme-text-subtle)] font-semibold text-[var(--theme-text)] focus:ring-2 focus:ring-[var(--theme-primary-light)] transition-all"
             />
           </div>
         </div>
-        <DialogContent className="flex-1 overflow-y-auto p-4 space-y-2 max-h-[50vh]">
+
+        <div className="space-y-2">
           {filteredStatsDetailList.length === 0 ? (
             <div className="py-12 flex flex-col items-center justify-center text-center gap-3">
               <div className="w-12 h-12 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-2xl flex items-center justify-center text-[var(--theme-text-subtle)]">
@@ -613,12 +619,12 @@ export default function FacultyPkkmb() {
             </div>
           ) : (
             filteredStatsDetailList.map((row, i) => (
-              <div key={row.ID || i} className="p-3 bg-[var(--theme-bg)]/50 border border-[var(--theme-border)] rounded-2xl hover:bg-white hover:border-[var(--theme-primary-hover)]/30 hover:shadow-sm transition-all flex items-center justify-between gap-3 shadow-none">
+              <div key={row.ID || i} className="p-3 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-2xl hover:border-[var(--theme-primary)]/30 hover:shadow-md transition-all flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  <StudentAvatar src={getFullUrl(row.Mahasiswa?.FotoURL || row.Mahasiswa?.foto_url || row.Mahasiswa?.Foto || row.Mahasiswa?.Pengguna?.Foto)} name={row.Mahasiswa?.Nama} className="w-9 h-9 rounded-xl" />
+                  <StudentAvatar src={getFullUrl(row.Mahasiswa?.FotoURL || row.Mahasiswa?.foto_url || row.Mahasiswa?.Foto || row.Mahasiswa?.Pengguna?.Foto)} name={row.Mahasiswa?.Nama} className="w-10 h-10 rounded-xl" />
                   <div className="min-w-0">
                     <p className="font-bold text-sm text-[var(--theme-text)] leading-tight truncate">{row.Mahasiswa?.Nama || '—'}</p>
-                    <p className="text-[10px] text-[var(--theme-text-muted)] font-semibold mt-0.5">{row.Mahasiswa?.NIM || '—'} · {row.Mahasiswa?.ProgramStudi?.Nama || '—'}</p>
+                    <p className="text-[10px] text-[var(--theme-text-muted)] font-semibold mt-0.5 truncate">{row.Mahasiswa?.NIM || '—'} · {row.Mahasiswa?.ProgramStudi?.Nama || '—'}</p>
                   </div>
                 </div>
                 <div className="text-right flex-shrink-0">
@@ -629,31 +635,23 @@ export default function FacultyPkkmb() {
                         Tersedia
                       </span>
                       {row.Mahasiswa?.PkkmbSertifikat?.FileURL && (
-                        <a href={getFullUrl(row.Mahasiswa.PkkmbSertifikat.FileURL)} target="_blank" rel="noreferrer" className="text-[10px] text-[var(--theme-primary)] font-semibold hover:underline mt-1 flex items-center gap-0.5">
+                        <a href={getFullUrl(row.Mahasiswa.PkkmbSertifikat.FileURL)} target="_blank" rel="noreferrer" className="text-[10px] text-[var(--theme-primary)] font-bold hover:underline mt-1 flex items-center gap-0.5">
                           <span className="material-symbols-outlined" style={{ fontSize: '10px' }} >download</span> Download
                         </a>
                       )}
                     </div>
                   ) : (
                     <div className="flex flex-col items-end">
-                      <span className="text-xs font-bold text-[var(--theme-text)] tabular-nums">Nilai: {row.Nilai || 0}</span>
-                      <span className="text-[9px] font-semibold text-[var(--theme-text-muted)] mt-0.5">Hadir: {row.attendanceRate || 0}%</span>
+                      <span className="text-sm font-black text-[var(--theme-text)] tabular-nums">{row.Nilai || 0}</span>
+                      <span className="text-[9px] font-semibold text-[var(--theme-text-muted)] mt-0.5 uppercase tracking-wider">Hadir: {row.attendanceRate || 0}%</span>
                     </div>
                   )}
                 </div>
               </div>
             ))
           )}
-        </DialogContent>
-        <DialogFooter>
-          <button
-            onClick={() => setStatsDetail(null)}
-            className="w-full h-10 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95"
-          >
-            Tutup
-          </button>
-        </DialogFooter>
-      </Dialog>
+        </div>
+      </DialogModal>
     </PageContent>
   )
 }

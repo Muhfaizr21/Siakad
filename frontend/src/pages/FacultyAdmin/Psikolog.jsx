@@ -9,7 +9,7 @@ import { SelectField, SelectOption } from "@/components/ui/SelectField"
 import { Button } from "@/components/ui/Button"
 import { PageContent } from '@/components/ui/page'
 import { DashboardHero } from '@/components/ui/dashboard'
-import Dialog, { DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/Dialog"
+import { DialogModal, ModalCancelButton } from "@/components/ui/DialogModal"
 import { Card, CardContent } from '@/components/ui/Card'
 import { DataTable } from '@/components/ui/DataTable'
 import { PrimaryStatsCard, SecondaryStatsCard } from '@/components/ui/StatsCard'
@@ -167,7 +167,7 @@ export default function PsikologPage() {
         if (!spesMap[spes]) spesMap[spes] = 0
         spesMap[spes]++
       })
-      setDistribusiSpes(Object.entries(spesMap).map(([name, count]) => ({ name, count })).sort((a,b) => b.count - a.count))
+      setDistribusiSpes(Object.entries(spesMap).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count))
     } catch {
       toast.error("Gagal memuat data psikolog")
     } finally {
@@ -300,277 +300,281 @@ export default function PsikologPage() {
   return (
     <PageContent>
       <Toaster position="top-right" />
-        <DashboardHero
-          title="Direktori "
-          highlightedTitle="Psikolog"
-          subtitle="Database tenaga konselor profesional, spesialisasi, dan jadwal aktif penugasan bimbingan psikologi tingkat fakultas."
-          icon="psychology"
-          badges={[
-            { label: 'Student Wellness', active: false },
-            { label: `${stats.aktif} Praktisi Aktif`, active: true }
-          ]}
-          actions={
-            <button onClick={fetchPsychologists} disabled={loading}
-              className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-60 flex items-center gap-2">
-              {loading ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '13px' }}>sync</span> : <span className="material-symbols-outlined text-primary" style={{ fontSize: 13 }}>sync</span>} Refresh Data
-            </button>
-          }
+      <DashboardHero
+        title="Direktori "
+        highlightedTitle="Psikolog"
+        subtitle="Database tenaga konselor profesional, spesialisasi, dan jadwal aktif penugasan bimbingan psikologi tingkat fakultas."
+        icon="psychology"
+        badges={[
+          { label: 'Student Wellness', active: false },
+          { label: `${stats.aktif} Praktisi Aktif`, active: true }
+        ]}
+        actions={
+          <button onClick={fetchPsychologists} disabled={loading}
+            className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-60 flex items-center gap-2">
+            {loading ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '13px' }}>sync</span> : <span className="material-symbols-outlined text-primary" style={{ fontSize: 13 }}>sync</span>} Refresh Data
+          </button>
+        }
+      />
+
+      {/* ── Stat Cards Row 1 ─────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+        <PrimaryStatsCard
+          title="Total Psikolog"
+          value={stats.total}
+          icon={Users}
+          colorTheme="primary"
+          badgeText="Tervalidasi"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">verified</span>}
         />
+        <PrimaryStatsCard
+          title="Spesialisasi Klinis"
+          value={stats.klinis}
+          icon={Briefcase}
+          colorTheme="error"
+          badgeText="Tersedia"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">health_and_safety</span>}
+        />
+        <PrimaryStatsCard
+          title="Spesialisasi Umum"
+          value={stats.umum}
+          icon={Award}
+          colorTheme="info"
+          badgeText="Tersedia"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">group</span>}
+        />
+        <PrimaryStatsCard
+          title="Psikolog Aktif"
+          value={stats.aktif}
+          icon={UserCheck}
+          colorTheme="success"
+          badgeText="Online"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">bolt</span>}
+        />
+      </div>
 
-        {/* ── Stat Cards Row 1 ─────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
-          <PrimaryStatsCard
-            title="Total Psikolog"
-            value={stats.total}
-            icon={Users}
-            colorTheme="primary"
-            badgeText="Tervalidasi"
-            badgeIcon={<span className="material-symbols-outlined text-[12px]">verified</span>}
-          />
-          <PrimaryStatsCard
-            title="Spesialisasi Klinis"
-            value={stats.klinis}
-            icon={Briefcase}
-            colorTheme="error"
-            badgeText="Tersedia"
-            badgeIcon={<span className="material-symbols-outlined text-[12px]">health_and_safety</span>}
-          />
-          <PrimaryStatsCard
-            title="Spesialisasi Umum"
-            value={stats.umum}
-            icon={Award}
-            colorTheme="info"
-            badgeText="Tersedia"
-            badgeIcon={<span className="material-symbols-outlined text-[12px]">group</span>}
-          />
-          <PrimaryStatsCard
-            title="Psikolog Aktif"
-            value={stats.aktif}
-            icon={UserCheck}
-            colorTheme="success"
-            badgeText="Online"
-            badgeIcon={<span className="material-symbols-outlined text-[12px]">bolt</span>}
-          />
+      {/* NEW: 5W1H Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        {/* WHAT → Distribusi Spesialisasi */}
+        <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center text-violet-600">
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>psychology</span>
+            </div>
+            <div>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Spesialisasi</span>
+              <h3 className="text-sm font-bold text-slate-800 leading-tight">Distribusi Bidang Ahli</h3>
+            </div>
+          </div>
+          <div className="space-y-2">
+            {distribusiSpes.map((item, i) => {
+              const maxCount = Math.max(...distribusiSpes.map(d => d.count), 1)
+              const colors = ['bg-rose-400', 'bg-blue-400', 'bg-amber-400', 'bg-emerald-400', 'bg-violet-400']
+              return (
+                <div key={i} className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold text-slate-500 w-20 truncate">{item.name}</span>
+                  <div className="flex-1 h-5 bg-slate-100 rounded-full overflow-hidden">
+                    <div className={cn('h-full rounded-full transition-all', colors[i % colors.length])} style={{ width: `${(item.count / maxCount) * 100}%` }} />
+                  </div>
+                  <span className="text-xs font-black text-slate-700 w-6 text-right">{item.count}</span>
+                </div>
+              )
+            })}
+          </div>
         </div>
 
-        {/* NEW: 5W1H Charts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          {/* WHAT → Distribusi Spesialisasi */}
-          <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center text-violet-600">
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>psychology</span>
-              </div>
-              <div>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Spesialisasi</span>
-                <h3 className="text-sm font-bold text-slate-800 leading-tight">Distribusi Bidang Ahli</h3>
-              </div>
+
+        {/* WHERE → Lokasi Praktik */}
+        <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>location_on</span>
             </div>
-            <div className="space-y-2">
-              {distribusiSpes.map((item, i) => {
-                const maxCount = Math.max(...distribusiSpes.map(d => d.count), 1)
-                const colors = ['bg-rose-400', 'bg-blue-400', 'bg-amber-400', 'bg-emerald-400', 'bg-violet-400']
-                return (
-                  <div key={i} className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold text-slate-500 w-20 truncate">{item.name}</span>
-                    <div className="flex-1 h-5 bg-slate-100 rounded-full overflow-hidden">
-                      <div className={cn('h-full rounded-full transition-all', colors[i % colors.length])} style={{width:`${(item.count/maxCount)*100}%`}}/>
-                    </div>
-                    <span className="text-xs font-black text-slate-700 w-6 text-right">{item.count}</span>
-                  </div>
-                )
-              })}
+            <div>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Lokasi Praktik</span>
+              <h3 className="text-sm font-bold text-slate-800 leading-tight">Mode Layanan Tersedia</h3>
             </div>
           </div>
-
-
-          {/* WHERE → Lokasi Praktik */}
-          <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>location_on</span>
-              </div>
-              <div>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Lokasi Praktik</span>
-                <h3 className="text-sm font-bold text-slate-800 leading-tight">Mode Layanan Tersedia</h3>
-              </div>
-            </div>
-            {(() => {
-              const online = psychologists.filter(p => (p.Lokasi || '').toLowerCase().includes('online')).length
-              const offline = psychologists.filter(p => (p.Lokasi || '').toLowerCase().includes('tatap') || (p.Lokasi || '').toLowerCase().includes('kampus')).length
-              const hybrid = psychologists.length - online - offline
-              return (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-blue-50 rounded-xl">
-                    <span className="text-sm font-bold text-blue-700">Online</span>
-                    <span className="text-lg font-extrabold text-blue-600">{online}</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-xl">
-                    <span className="text-sm font-bold text-emerald-700">Tatap Muka</span>
-                    <span className="text-lg font-extrabold text-emerald-600">{offline}</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-violet-50 rounded-xl">
-                    <span className="text-sm font-bold text-violet-700">Hybrid</span>
-                    <span className="text-lg font-extrabold text-violet-600">{hybrid}</span>
-                  </div>
+          {(() => {
+            const online = psychologists.filter(p => (p.Lokasi || '').toLowerCase().includes('online')).length
+            const offline = psychologists.filter(p => (p.Lokasi || '').toLowerCase().includes('tatap') || (p.Lokasi || '').toLowerCase().includes('kampus')).length
+            const hybrid = psychologists.length - online - offline
+            return (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-xl">
+                  <span className="text-sm font-bold text-blue-700">Online</span>
+                  <span className="text-lg font-extrabold text-blue-600">{online}</span>
                 </div>
-              )
-            })()}
-          </div>
-
-          {/* WHEN → Aktivitas Booking */}
-          <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>calendar_month</span>
-              </div>
-              <div>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Status Booking</span>
-                <h3 className="text-sm font-bold text-slate-800 leading-tight">Kondisi Jadwal Aktif</h3>
-              </div>
-            </div>
-            {(() => {
-              const aktif = psychologists.filter(p => p.IsAktif).length
-              const nonaktif = psychologists.length - aktif
-              return (
-                <div className="flex items-center gap-4">
-                  <div className="text-center">
-                    <span className="text-3xl font-extrabold text-emerald-600">{aktif}</span>
-                    <p className="text-[10px] text-emerald-600 font-bold mt-1">Aktif</p>
-                  </div>
-                  <div className="h-12 w-px bg-slate-200"/>
-                  <div className="text-center">
-                    <span className="text-3xl font-extrabold text-slate-400">{nonaktif}</span>
-                    <p className="text-[10px] text-slate-400 font-bold mt-1">Nonaktif</p>
-                  </div>
+                <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-xl">
+                  <span className="text-sm font-bold text-emerald-700">Tatap Muka</span>
+                  <span className="text-lg font-extrabold text-emerald-600">{offline}</span>
                 </div>
-              )
-            })()}
-          </div>
+                <div className="flex items-center justify-between p-3 bg-violet-50 rounded-xl">
+                  <span className="text-sm font-bold text-violet-700">Hybrid</span>
+                  <span className="text-lg font-extrabold text-violet-600">{hybrid}</span>
+                </div>
+              </div>
+            )
+          })()}
+        </div>
 
-          
-          {/* HOW → Kontak Cepat */}
-          <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600">
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>contact_phone</span>
-              </div>
-              <div>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Kontak Cepat</span>
-                <h3 className="text-sm font-bold text-slate-800 leading-tight">Info Kontak Tersedia</h3>
-              </div>
+        {/* WHEN → Aktivitas Booking */}
+        <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>calendar_month</span>
             </div>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 p-2 bg-rose-50 rounded-lg">
-                <Mail size={14} className="text-rose-600"/>
-                <span className="text-xs font-medium text-slate-600">{psychologists.filter(p => p.Email && p.Email !== '—').length} Email Terdaftar</span>
-              </div>
-              <div className="flex items-center gap-2 p-2 bg-emerald-50 rounded-lg">
-                <Phone size={14} className="text-emerald-600"/>
-                <span className="text-xs font-medium text-slate-600">{psychologists.filter(p => p.NoHP && p.NoHP !== '—').length} No. HP Terdaftar</span>
-              </div>
+            <div>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Status Booking</span>
+              <h3 className="text-sm font-bold text-slate-800 leading-tight">Kondisi Jadwal Aktif</h3>
             </div>
           </div>
+          {(() => {
+            const aktif = psychologists.filter(p => p.IsAktif).length
+            const nonaktif = psychologists.length - aktif
+            return (
+              <div className="flex items-center gap-4">
+                <div className="text-center">
+                  <span className="text-3xl font-extrabold text-emerald-600">{aktif}</span>
+                  <p className="text-[10px] text-emerald-600 font-bold mt-1">Aktif</p>
+                </div>
+                <div className="h-12 w-px bg-slate-200" />
+                <div className="text-center">
+                  <span className="text-3xl font-extrabold text-slate-400">{nonaktif}</span>
+                  <p className="text-[10px] text-slate-400 font-bold mt-1">Nonaktif</p>
+                </div>
+              </div>
+            )
+          })()}
+        </div>
 
-          {/* WHO → Prodi/Fakultas Tersebar */}
-          <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center text-violet-600">
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>school</span>
-              </div>
-              <div>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Cakupan</span>
-                <h3 className="text-sm font-bold text-slate-800 leading-tight">Prodi/Fakultas Terlayani</h3>
-              </div>
+
+        {/* HOW → Kontak Cepat */}
+        <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600">
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>contact_phone</span>
             </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between p-3 bg-violet-50 rounded-xl">
-                <span className="text-sm font-bold text-violet-700">Total Psikolog</span>
-                <span className="text-lg font-extrabold text-violet-600">{stats.total}</span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-xl">
-                <span className="text-sm font-bold text-emerald-700">Aktif & Siap</span>
-                <span className="text-lg font-extrabold text-emerald-600">{stats.aktif}</span>
-              </div>
+            <div>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Kontak Cepat</span>
+              <h3 className="text-sm font-bold text-slate-800 leading-tight">Info Kontak Tersedia</h3>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 p-2 bg-rose-50 rounded-lg">
+              <Mail size={14} className="text-rose-600" />
+              <span className="text-xs font-medium text-slate-600">{psychologists.filter(p => p.Email && p.Email !== '—').length} Email Terdaftar</span>
+            </div>
+            <div className="flex items-center gap-2 p-2 bg-emerald-50 rounded-lg">
+              <Phone size={14} className="text-emerald-600" />
+              <span className="text-xs font-medium text-slate-600">{psychologists.filter(p => p.NoHP && p.NoHP !== '—').length} No. HP Terdaftar</span>
             </div>
           </div>
         </div>
 
-        {/* ── Table Card ─────────────────────────────────────────── */}
-        <Card className="glass-card shadow-sm rounded-xl overflow-hidden mt-6 mb-6">
-          <div className="px-6 py-5 border-b border-[var(--theme-border)] flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-[var(--theme-surface)]">
-            <div className="flex-1">
-              <h2 className="font-headline font-bold text-lg text-[var(--theme-text)]">Daftar Praktisi & Psikolog</h2>
-              <p className="text-xs text-[var(--theme-text-muted)] mt-1 font-medium">
-                Menampilkan <span className="font-bold text-[var(--theme-text)]">{filtered.length}</span> dari <span className="font-bold text-[var(--theme-primary)]">{psychologists.length}</span> psikolog
-              </p>
+        {/* WHO → Prodi/Fakultas Tersebar */}
+        <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center text-violet-600">
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>school</span>
             </div>
-            <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-              <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--theme-text-muted)]" style={{ fontSize: '16px' }} >search</span>
-                <input type="text" placeholder="Cari nama atau spesialisasi..." value={search} onChange={e => setSearch(e.target.value)}
-                  className="pl-9 pr-4 h-10 w-64 rounded-xl border border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] text-sm bg-white transition-colors" />
-              </div>
-              <SelectField value={filterSpesialisasi} onValueChange={setFilterSpesialisasi} placeholder="Semua Spesialisasi" className="w-48">
-                <SelectOption value="all">Semua Spesialisasi</SelectOption>
-                {spesialisasiList.map(s => <SelectOption key={s} value={s}>{s}</SelectOption>)}
-              </SelectField>
-              {(search || filterSpesialisasi !== 'all') && (
-                <button onClick={() => { setSearch(''); setFilterSpesialisasi('all'); }}
-                  className="h-10 px-4 text-xs font-semibold text-[var(--theme-error)] bg-[var(--theme-error-light)] rounded-xl hover:bg-[var(--theme-error)]/20 transition-colors border border-[var(--theme-error)]/20">Reset</button>
-              )}
+            <div>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Cakupan</span>
+              <h3 className="text-sm font-bold text-slate-800 leading-tight">Prodi/Fakultas Terlayani</h3>
             </div>
           </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between p-3 bg-violet-50 rounded-xl">
+              <span className="text-sm font-bold text-violet-700">Total Psikolog</span>
+              <span className="text-lg font-extrabold text-violet-600">{stats.total}</span>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-xl">
+              <span className="text-sm font-bold text-emerald-700">Aktif & Siap</span>
+              <span className="text-lg font-extrabold text-emerald-600">{stats.aktif}</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
-          <CardContent className="p-0">
-            <DataTable
-              data={filtered}
-              columns={columns}
-              loading={loading}
-              searchable={false}
-              pagination={true}
-              pageSize={10}
-              emptyMessage="Tidak Ada Data Psikolog"
-              emptyIcon="psychology"
-            />
-          </CardContent>
-        </Card>
+      {/* ── Table Card ─────────────────────────────────────────── */}
+      <Card className="glass-card shadow-sm rounded-xl overflow-hidden mt-6 mb-6">
+        <div className="px-6 py-5 border-b border-[var(--theme-border)] flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-[var(--theme-surface)]">
+          <div className="flex-1">
+            <h2 className="font-headline font-bold text-lg text-[var(--theme-text)]">Daftar Praktisi & Psikolog</h2>
+            <p className="text-xs text-[var(--theme-text-muted)] mt-1 font-medium">
+              Menampilkan <span className="font-bold text-[var(--theme-text)]">{filtered.length}</span> dari <span className="font-bold text-[var(--theme-primary)]">{psychologists.length}</span> psikolog
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+            <div className="relative">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--theme-text-muted)]" style={{ fontSize: '16px' }} >search</span>
+              <input type="text" placeholder="Cari nama atau spesialisasi..." value={search} onChange={e => setSearch(e.target.value)}
+                className="pl-9 pr-4 h-10 w-64 rounded-xl border border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] text-sm bg-white transition-colors" />
+            </div>
+            <SelectField value={filterSpesialisasi} onValueChange={setFilterSpesialisasi} placeholder="Semua Spesialisasi" className="w-48">
+              <SelectOption value="all">Semua Spesialisasi</SelectOption>
+              {spesialisasiList.map(s => <SelectOption key={s} value={s}>{s}</SelectOption>)}
+            </SelectField>
+            {(search || filterSpesialisasi !== 'all') && (
+              <button onClick={() => { setSearch(''); setFilterSpesialisasi('all'); }}
+                className="h-10 px-4 text-xs font-semibold text-[var(--theme-error)] bg-[var(--theme-error-light)] rounded-xl hover:bg-[var(--theme-error)]/20 transition-colors border border-[var(--theme-error)]/20">Reset</button>
+            )}
+          </div>
+        </div>
+
+        <CardContent className="p-0">
+          <DataTable
+            data={filtered}
+            columns={columns}
+            loading={loading}
+            searchable={false}
+            pagination={true}
+            pageSize={10}
+            emptyMessage="Tidak Ada Data Psikolog"
+            emptyIcon="psychology"
+          />
+        </CardContent>
+      </Card>
 
       {/* ── Detail Modal ──────────────────────────────────────────── */}
-      <Dialog open={!!selectedPsikolog} onOpenChange={(open) => !open && handleSelectPsikolog(null)} maxWidth="max-w-2xl">
-        <DialogContent className="max-w-2xl p-0 overflow-hidden border border-[var(--theme-border)] shadow-2xl rounded-2xl bg-[var(--theme-surface)] flex flex-col max-h-[90vh]">
-          {/* ── Header ── */}
-          <DialogHeader className="shrink-0 relative bg-[var(--theme-bg)]/50 p-6 md:p-8 pb-5 border-b border-[var(--theme-border-muted)]">
-            {/* Avatar + name */}
-            <div className="relative z-10 flex items-center gap-4 mb-4">
-              <PsikologAvatar src={selectedPsikolog?.Foto} name={selectedPsikolog?.Nama} className="w-[60px] h-[60px] rounded-2xl shadow-xl ring-2 ring-white/20" />
-              <div className="min-w-0">
-                <p className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1">Praktisi Wellness</p>
-                <DialogTitle className="text-lg font-bold font-headline leading-tight truncate text-[var(--theme-text)]">{selectedPsikolog?.Nama}</DialogTitle>
-                <DialogDescription className="text-xs text-[var(--theme-text-muted)] font-medium mt-0.5">{selectedPsikolog?.Spesialisasi} Specialist</DialogDescription>
-              </div>
-            </div>
-
-            {/* Info pills row */}
-            <div className="relative z-10 flex flex-wrap gap-2">
-              <span className="flex items-center gap-1.5 bg-[var(--theme-primary-light)] border border-[var(--theme-primary)]/20 px-3 py-1.5 rounded-xl text-[10px] font-bold text-[var(--theme-primary)] uppercase tracking-wider">
-                <Award size={11} />
-                {selectedPsikolog?.Spesialisasi || 'Umum'}
-              </span>
-              <span className="flex items-center gap-1.5 bg-[var(--theme-info-light)] border border-[var(--theme-info)]/20 px-3 py-1.5 rounded-xl text-[10px] font-bold text-[var(--theme-info)] tracking-wider">
-                Gratis (Di-cover Kampus)
-              </span>
-              <span className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider border",
-                selectedPsikolog?.IsAktif 
-                  ? "bg-[var(--theme-success-light)] border-[var(--theme-success)]/20 text-[var(--theme-success)]" 
-                  : "bg-[var(--theme-error-light)] border-[var(--theme-error)]/20 text-[var(--theme-error)]"
-              )}>
-                <span className={cn("w-1.5 h-1.5 rounded-full bg-current", selectedPsikolog?.IsAktif && "animate-pulse")} />
-                {selectedPsikolog?.IsAktif ? 'Aktif' : 'Nonaktif'}
-              </span>
-            </div>
-          </DialogHeader>
+      <DialogModal
+        open={!!selectedPsikolog}
+        onOpenChange={(open) => !open && handleSelectPsikolog(null)}
+        icon="psychology"
+        title={selectedPsikolog?.Nama}
+        subtitle={`${selectedPsikolog?.Spesialisasi} Specialist`}
+        badgeText="Praktisi Wellness"
+        maxWidth="max-w-2xl"
+        bodyClassName="p-0 space-y-0"
+        footer={
+          <button
+            onClick={() => handleSelectPsikolog(null)}
+            className="h-10 px-5 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] text-xs font-semibold text-[var(--theme-text)] uppercase tracking-wider hover:bg-[var(--theme-bg)] transition-all active:scale-95 cursor-pointer"
+          >
+            Tutup Detail
+          </button>
+        }
+      >
+        <div className="flex flex-col">
+          {/* Info pills row */}
+          <div className="px-6 py-4 flex flex-wrap gap-2 border-b border-[var(--theme-border-muted)]">
+            <span className="flex items-center gap-1.5 bg-[var(--theme-primary-light)] border border-[var(--theme-primary)]/20 px-3 py-1.5 rounded-xl text-[10px] font-bold text-[var(--theme-primary)] uppercase tracking-wider">
+              <Award size={11} />
+              {selectedPsikolog?.Spesialisasi || 'Umum'}
+            </span>
+            <span className="flex items-center gap-1.5 bg-[var(--theme-info-light)] border border-[var(--theme-info)]/20 px-3 py-1.5 rounded-xl text-[10px] font-bold text-[var(--theme-info)] tracking-wider">
+              Gratis (Di-cover Kampus)
+            </span>
+            <span className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider border",
+              selectedPsikolog?.IsAktif
+                ? "bg-[var(--theme-success-light)] border-[var(--theme-success)]/20 text-[var(--theme-success)]"
+                : "bg-[var(--theme-error-light)] border-[var(--theme-error)]/20 text-[var(--theme-error)]"
+            )}>
+              <span className={cn("w-1.5 h-1.5 rounded-full bg-current", selectedPsikolog?.IsAktif && "animate-pulse")} />
+              {selectedPsikolog?.IsAktif ? 'Aktif' : 'Nonaktif'}
+            </span>
+          </div>
 
           {/* Tab Navigation */}
           <div className="flex border-b border-[var(--theme-border-muted)] bg-[var(--theme-bg)]/20 px-6 pt-2 flex-shrink-0">
@@ -605,7 +609,7 @@ export default function PsikologPage() {
           </div>
 
           {/* ── Body ── */}
-          <div className="flex-1 overflow-y-auto">
+          <div>
             {activeTab === 'profile' ? (
               <>
                 {/* Bio Section */}
@@ -771,18 +775,8 @@ export default function PsikologPage() {
               </div>
             )}
           </div>
-
-          {/* ── Footer ── */}
-          <div className="px-5 py-4 border-t border-[var(--theme-border-muted)] bg-transparent flex gap-3 flex-shrink-0 justify-end">
-            <button
-              onClick={() => handleSelectPsikolog(null)}
-              className="h-10 px-5 rounded-xl border border-[var(--theme-border)] bg-white text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider hover:bg-[var(--theme-bg)] transition-all active:scale-95 cursor-pointer"
-            >
-              Tutup Detail
-            </button>
-          </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </DialogModal>
     </PageContent>
   )
 }

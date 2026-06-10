@@ -9,7 +9,7 @@ import { API_BASE_URL } from '../../services/api'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/Select"
 import { Button } from "@/components/ui/Button"
 import { PageContent } from "@/components/ui/page"
-import Dialog, { DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "@/components/ui/Dialog"
+import { DialogModal } from "@/components/ui/DialogModal"
 import { DashboardHero } from "@/components/ui/dashboard"
 import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import { PrimaryStatsCard } from '@/components/ui/StatsCard'
@@ -418,15 +418,15 @@ export default function FacultyProposalApproval() {
         </div>
       </PageContent>
       {/* Verification Modal / Side-by-Side Review Panel */}
-      <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)} maxWidth="max-w-7xl" className="h-[90vh] flex flex-col p-0 overflow-hidden">
-        <DialogHeader className="shrink-0">
-          <div className="flex items-center justify-between w-full">
-            <div>
-              <span className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">Detail Review Proposal ORMAWA</span>
-              <DialogTitle className="text-base font-bold text-[var(--theme-text)] mt-0.5 line-clamp-1">{selected?.Judul}</DialogTitle>
-            </div>
-          </div>
-        </DialogHeader>
+      <DialogModal
+        open={!!selected}
+        onOpenChange={(open) => !open && setSelected(null)}
+        icon="description"
+        title={selected?.Judul}
+        subtitle="Detail Review Proposal ORMAWA"
+        maxWidth="max-w-7xl"
+        bodyClassName="p-0 flex flex-col"
+      >
 
         {/* Split Screen Workspace */}
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0 bg-[var(--theme-bg)]">
@@ -584,10 +584,9 @@ export default function FacultyProposalApproval() {
                 </div>
               )}
             </div>
-
           </div>
         </div>
-      </Dialog>
+      </DialogModal>
     </div>
   )
 }

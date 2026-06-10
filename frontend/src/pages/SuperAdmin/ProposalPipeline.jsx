@@ -8,16 +8,20 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Card, CardContent } from '@/components/ui/Card'
 import { Textarea } from '@/components/ui/Textarea'
 import { Label } from '@/components/ui/Label'
-
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs'
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import { adminService } from '../../services/api'
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
-  BarChart, Bar, XAxis, YAxis, CartesianGrid
+  BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  AreaChart, Area,
+  Radar, RadarChart, PolarGrid, PolarAngleAxis,
+  RadialBarChart, RadialBar, Legend
 } from 'recharts'
 import { PageContent, PageCard } from '@/components/ui/page'
 import { DashboardHero, DashboardStatGrid, DashboardStatCard } from '@/components/ui/dashboard'
+import { TitleSubtitleCell } from '@/components/ui/TableCells'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Wallet = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>account_balance_wallet</span>;
@@ -30,11 +34,11 @@ const Building2 = ({ size, className, ...props }) => <span className={`material-
 
 
 const STATUS_CFG = {
-  diajukan:           { label: 'DIAJUKAN',        cls: 'bg-neutral-50 text-neutral-500 border-neutral-100' },
-  disetujui_fakultas: { label: 'ACC FAKULTAS',   cls: 'bg-blue-50 text-blue-700 border-blue-100' },
-  disetujui_univ:     { label: 'DISYAHKAN',       cls: 'bg-emerald-50 text-emerald-700 border-emerald-100' },
-  revisi:             { label: 'BUTUH REVISI',     cls: 'bg-amber-50 text-amber-700 border-amber-100' },
-  ditolak:            { label: 'DITOLAK',          cls: 'bg-rose-50 text-rose-700 border-rose-100' },
+  diajukan: { label: 'DIAJUKAN', cls: 'bg-neutral-50 text-neutral-500 border-neutral-100' },
+  disetujui_fakultas: { label: 'ACC FAKULTAS', cls: 'bg-blue-50 text-blue-700 border-blue-100' },
+  disetujui_univ: { label: 'DISYAHKAN', cls: 'bg-emerald-50 text-emerald-700 border-emerald-100' },
+  revisi: { label: 'BUTUH REVISI', cls: 'bg-amber-50 text-amber-700 border-amber-100' },
+  ditolak: { label: 'DITOLAK', cls: 'bg-rose-50 text-rose-700 border-rose-100' },
 }
 
 const formatRp = n => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n || 0)
@@ -107,21 +111,23 @@ export default function ProposalPipeline() {
     })
   }, [data, activeFacultyId, activeProdiId])
 
-  // Pending = menunggu persetujuan Univ: bisa dari Himpunan (sudah acc_fakultas) atau BEM/UKM/MPM (diajukan, tanpa Fakultas)
   const isUnivLevelOrmawa = (p) => !p.Ormawa?.FakultasID && !p.Ormawa?.fakultas_id
   const isPendingUniv = (p) => p.Status === 'disetujui_fakultas' || (p.Status === 'diajukan' && isUnivLevelOrmawa(p))
   const pending = filteredData.filter(isPendingUniv).length
   const totalBudget = filteredData.filter(isPendingUniv).reduce((acc, curr) => acc + (curr.Anggaran || 0), 0)
+  const totalProposal = filteredData.length
+  const approvedProposal = filteredData.filter(p => p.Status === 'disetujui_univ').length
+  const rejectedProposal = filteredData.filter(p => p.Status === 'ditolak').length
 
   // ── Chart data derived from live data ─────────────────────────────
   // ── 5W1H Analytics Data ───────────────────────────────────────────
-  
+
   // 1. WHAT (Jenis Kegiatan)
   const whatChartData = useMemo(() => {
     const map = {};
     filteredData.forEach(p => { const j = p.Jenis || 'Lainnya'; map[j] = (map[j] || 0) + 1 });
     const colors = ['#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe', '#dbeafe'];
-    return Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([name, value], i) => ({
+    return Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([name, value], i) => ({
       name: name.substring(0, 15), value, color: colors[i % colors.length]
     }));
   }, [filteredData]);
@@ -147,15 +153,16 @@ export default function ProposalPipeline() {
   // 3. WHO (Top Pengaju / Ormawa)
   const whoChartData = useMemo(() => {
     const map = {};
-    filteredData.forEach(p => { const o = (p.Ormawa?.Nama || 'Lainnya').substring(0,20); map[o] = (map[o] || 0) + 1 });
-    return Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([name, value]) => ({ name, value }));
+    filteredData.forEach(p => { const o = (p.Ormawa?.Nama || 'Lainnya').substring(0, 20); map[o] = (map[o] || 0) + 1 });
+    const colors = ['#047857', '#059669', '#10b981', '#34d399', '#6ee7b7'];
+    return Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([name, value], i) => ({ name, value, fill: colors[i % colors.length] }));
   }, [filteredData]);
 
   // 4. WHEN (Bulan Pelaksanaan)
   const whenChartData = useMemo(() => {
     const map = {};
     filteredData.forEach(p => {
-      if(!p.TanggalKegiatan) return;
+      if (!p.TanggalKegiatan) return;
       const d = new Date(p.TanggalKegiatan);
       const m = d.toLocaleString('id-ID', { month: 'short', year: '2-digit' });
       map[m] = (map[m] || 0) + 1;
@@ -167,7 +174,7 @@ export default function ProposalPipeline() {
   const whereChartData = useMemo(() => {
     const map = {};
     filteredData.forEach(p => { const f = (p.Fakultas?.Nama || 'Lainnya').replace('Fakultas ', 'F. '); map[f] = (map[f] || 0) + 1 });
-    return Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([name, value]) => ({ name, value }));
+    return Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([name, value]) => ({ name, value }));
   }, [filteredData]);
 
   // 6. HOW (Distribusi Anggaran per Ormawa)
@@ -184,56 +191,43 @@ export default function ProposalPipeline() {
   }, [filteredData]);
 
   const columns = [
-    { 
-      key: 'ID', 
-      label: 'ID Track', 
-      className: 'w-[140px]', 
+    {
+      key: 'ID',
+      label: 'ID Track',
+      className: 'w-[120px]',
       render: (v, row) => (
-        <div className="flex items-center gap-2">
-          <div className="size-1.5 rounded-full bg-primary/40 animate-pulse" />
-          <span className="font-bold text-neutral-400 font-jakarta uppercase text-[10px] tracking-widest">#PRP-{row.id || row.ID || v}</span>
-        </div>
+        <span className="font-bold text-[var(--theme-text-muted)] text-[11px] tracking-wide">#{row.id || row.ID || v}</span>
       )
     },
-    { 
-      key: 'Judul', 
-      label: 'Judul Proposal & Pengaju', 
+    {
+      key: 'Judul',
+      label: 'Judul Proposal & Pengaju',
       className: 'w-[400px]',
       render: (v, row) => (
-        <div className="flex flex-col gap-1.5 py-3 group/title">
-          <span className="font-bold text-slate-800 font-headline tracking-tight text-[14px] leading-snug uppercase group-hover/title:text-bku-primary transition-colors line-clamp-2">{v || '—'}</span>
-          <div className="flex items-center gap-2.5">
-            <div className="flex items-center gap-1.5 bg-bku-primary/10 px-2 py-0.5 rounded-md border-none shadow-none">
-               <Building2 size={10} className="text-bku-primary" />
-               <span className="text-[9px] font-black text-bku-primary uppercase tracking-wider font-headline">{row.Ormawa?.Nama || 'Unit Mahasiswa'}</span>
-            </div>
-            <div className="size-1 rounded-full bg-slate-300" />
-            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">{row.Fakultas?.Nama || 'Institusi'}</span>
-          </div>
-        </div>
+        <TitleSubtitleCell
+          title={v || '—'}
+          subtitle={`${row.Ormawa?.Nama || 'Unit Mahasiswa'} • ${row.Fakultas?.Nama || 'Institusi'}`}
+        />
       )
     },
-    { 
-      key: 'Anggaran', 
-      label: 'Estimasi Dana', 
-      className: 'w-[200px]', 
+    {
+      key: 'Anggaran',
+      label: 'Estimasi Dana',
+      className: 'w-[160px]',
       render: v => (
-        <div className="flex flex-col">
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5 font-headline">Budget IDR</span>
-          <span className="font-black text-slate-800 text-[14px] font-headline tabular-nums tracking-tight">{formatRp(v)}</span>
-        </div>
+        <span className="font-bold text-[13px] text-[var(--theme-text)]">{formatRp(v)}</span>
       )
     },
-    { 
-      key: 'Status', 
-      label: 'Alur Verifikasi', 
-      className: 'w-[180px] text-center', 
+    {
+      key: 'Status',
+      label: 'Alur Verifikasi',
+      className: 'w-[160px] text-center',
       cellClassName: 'text-center',
       render: v => {
         const cfg = STATUS_CFG[v] || { label: v || '—', cls: 'bg-slate-100 text-slate-600' }
         return (
-          <div className="flex flex-col items-center gap-1">
-            <Badge className={cn('px-3 py-1 rounded-lg border-none text-[9px] font-black uppercase tracking-widest shadow-none font-headline', cfg.cls)}>
+          <div className="flex justify-center">
+            <Badge className={cn('px-2.5 py-1 text-[10px] font-bold tracking-wide rounded-full border-none shadow-none', cfg.cls)}>
               {cfg.label}
             </Badge>
           </div>
@@ -245,497 +239,595 @@ export default function ProposalPipeline() {
   return (
     <PageContent>
       <Toaster position="top-right" />
-      
-        {/* ── Page Header ─────────────────────────────────────────── */}
-        <DashboardHero
-          title="Proposal"
-          highlightedTitle="Global"
-          subtitle="Pusat pengawasan dan pengesahan akhir anggaran kegiatan mahasiswa yang telah diverifikasi di tingkat fakultas."
-          icon="account_balance_wallet"
-          badges={[
-            { label: 'Financial Intelligence', active: true }
-          ]}
-          actions={
-            <div className="flex items-center gap-6 bg-white/40 p-4 md:p-6 rounded-2xl border border-slate-200/60 shadow-none">
-               <div className="flex flex-col text-right">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 font-headline">Queue Priority</span>
-                  <span className="text-3xl font-black text-slate-800 font-headline tracking-tighter tabular-nums leading-none">{pending} <span className="text-[10px] font-bold text-primary uppercase tracking-widest ml-1">Items</span></span>
-               </div>
-               <div className="size-14 rounded-2xl bg-slate-800 flex items-center justify-center text-white shadow-none border-none">
-                  <span className="material-symbols-outlined animate-pulse" style={{ fontSize: '28px' }}  strokeWidth={2.5}>show_chart</span>
-               </div>
+
+      {/* ── Page Header ─────────────────────────────────────────── */}
+      <DashboardHero
+        title="Proposal"
+        highlightedTitle="Global"
+        subtitle="Pusat pengawasan dan pengesahan akhir anggaran kegiatan mahasiswa yang telah diverifikasi di tingkat fakultas."
+        icon="account_balance_wallet"
+        badges={[
+          { label: 'Financial Intelligence', active: true }
+        ]}
+        actions={
+          <div className="flex items-center gap-6 bg-[var(--theme-surface)] p-4 md:p-6 rounded-2xl border border-[var(--theme-border-muted)] shadow-sm">
+            <div className="flex flex-col text-right">
+              <span className="text-[11px] font-bold text-[var(--theme-text-muted)] tracking-wide mb-1 uppercase">Antrian Pending</span>
+              <span className="text-3xl font-bold text-[var(--theme-text)] font-headline tracking-tight tabular-nums leading-none">{pending} <span className="text-[10px] font-bold text-primary uppercase tracking-widest ml-1">Unit</span></span>
             </div>
-          }
+            <div className="size-14 rounded-2xl bg-primary flex items-center justify-center text-white shadow-md border-none">
+              <span className="material-symbols-outlined animate-pulse" style={{ fontSize: '28px' }} strokeWidth={2.5}>pending_actions</span>
+            </div>
+          </div>
+        }
+      />
+
+      {/* ── Stats Summary ────────────────────────────────────────── */}
+      <DashboardStatGrid className="lg:grid-cols-5 xl:grid-cols-5">
+        <DashboardStatCard
+          title="Total Proposal"
+          value={totalProposal}
+          icon="description"
+          iconColor="text-blue-600"
+          iconBg="bg-blue-50"
+          subtitle="Semua proposal diajukan"
         />
 
-        {/* ── Stats Summary ────────────────────────────────────────── */}
-        <DashboardStatGrid>
-          <DashboardStatCard
-            title="Menunggu Review"
-            value={pending}
-            icon="schedule"
-            iconColor="text-primary"
-            iconBg="bg-primary/10"
-            subtitle="Proposal masuk"
-          />
+        <DashboardStatCard
+          title="Menunggu Review"
+          value={pending}
+          icon="schedule"
+          iconColor="text-amber-600"
+          iconBg="bg-amber-50"
+          subtitle="Butuh aksi universitas"
+        />
 
-          <DashboardStatCard
-            title="Total Proyeksi Anggaran Antrian"
-            value={formatRp(totalBudget)}
-            icon="account_balance_wallet"
-            iconColor="text-emerald-600"
-            iconBg="bg-emerald-50"
-            subtitle="Validasi Universitas Diperlukan"
-            className="md:col-span-2"
-          />
-        </DashboardStatGrid>
+        <DashboardStatCard
+          title="Disetujui Universitas"
+          value={approvedProposal}
+          icon="verified"
+          iconColor="text-emerald-600"
+          iconBg="bg-emerald-50"
+          subtitle="Telah disyahkan"
+        />
 
-        {/* ── 5W1H Analytics Charts ─────────────────────────────────────── */}
-        {!loading && filteredData.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            
-            {/* 1. WHAT */}
-            <div className="glass-card rounded-2xl border border-slate-200/60 p-5 shadow-none flex flex-col">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600">
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>category</span>
+        <DashboardStatCard
+          title="Total Ditolak"
+          value={rejectedProposal}
+          icon="cancel"
+          iconColor="text-red-600"
+          iconBg="bg-red-50"
+          subtitle="Proposal yang ditolak"
+        />
+
+        <DashboardStatCard
+          title="Anggaran Pending"
+          value={formatRp(totalBudget)}
+          icon="account_balance_wallet"
+          iconColor="text-rose-600"
+          iconBg="bg-rose-50"
+          subtitle="Total dana menunggu persetujuan"
+        />
+      </DashboardStatGrid>
+
+      {/* ── Analytics Charts ─────────────────────────────────────── */}
+      {!loading && filteredData.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+
+          {/* 1. WHAT */}
+          <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-5 hover:shadow-md transition-all relative overflow-hidden group flex flex-col">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center text-blue-600 shadow-sm">
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>category</span>
                 </div>
-                <div>
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest font-headline">WHAT</p>
-                  <p className="text-xs font-black text-slate-800 font-headline">Topik Kegiatan</p>
-                </div>
-              </div>
-              <div className="flex-1 flex items-center gap-2">
-                <div className="w-1/2">
-                  <ResponsiveContainer width="100%" height={120}>
-                    <PieChart>
-                      <Pie data={whatChartData} cx="50%" cy="50%" innerRadius={35} outerRadius={50} paddingAngle={2} dataKey="value">
-                        {whatChartData.map((entry, idx) => <Cell key={idx} fill={entry.color} />)}
-                      </Pie>
-                      <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', fontSize: '10px', fontWeight: '700' }} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="space-y-1.5 w-1/2">
-                  {whatChartData.length === 0 ? <p className="text-[10px] text-slate-400">Belum ada data</p> : whatChartData.map((d, i) => (
-                    <div key={i} className="flex items-center gap-1.5">
-                      <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
-                      <span className="text-[9px] font-bold text-slate-600 flex-1 truncate">{d.name}</span>
-                      <span className="text-[9px] font-black text-slate-800 tabular-nums">{d.value}</span>
-                    </div>
-                  ))}
-                </div>
+                <h3 className="text-[13px] font-bold text-[var(--theme-text)]">Topik Kegiatan</h3>
               </div>
             </div>
-
-            {/* 2. WHY */}
-            <div className="glass-card rounded-2xl border border-slate-200/60 p-5 shadow-none flex flex-col">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600">
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>donut_large</span>
-                </div>
-                <div>
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest font-headline">WHY</p>
-                  <p className="text-xs font-black text-slate-800 font-headline">Status Validasi</p>
-                </div>
+            <div className="flex-1 flex items-center gap-3">
+              <div className="w-[110px]">
+                <ResponsiveContainer width="100%" height={120}>
+                  <PieChart>
+                    <Pie data={whatChartData} cx="50%" cy="50%" innerRadius={35} outerRadius={52} paddingAngle={2} dataKey="value" stroke="none">
+                      {whatChartData.map((entry, idx) => <Cell key={idx} fill={entry.color} />)}
+                    </Pie>
+                    <Tooltip formatter={(value, name, props) => [value + ' Proposal', props.payload.name || 'Topik']} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', fontSize: '10px', fontWeight: '700' }} />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
-              <div className="flex-1 flex items-center gap-2">
-                <div className="w-1/2">
-                  <ResponsiveContainer width="100%" height={120}>
-                    <PieChart>
-                      <Pie data={whyChartData} cx="50%" cy="50%" innerRadius={35} outerRadius={50} paddingAngle={2} dataKey="value">
-                        {whyChartData.map((entry, idx) => <Cell key={idx} fill={entry.color} />)}
-                      </Pie>
-                      <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', fontSize: '10px', fontWeight: '700' }} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="space-y-1.5 w-1/2">
-                  {whyChartData.length === 0 ? <p className="text-[10px] text-slate-400">Belum ada data</p> : whyChartData.map((d, i) => (
-                    <div key={i} className="flex items-center gap-1.5">
-                      <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
-                      <span className="text-[9px] font-bold text-slate-600 flex-1 truncate">{d.name}</span>
-                      <span className="text-[9px] font-black text-slate-800 tabular-nums">{d.value}</span>
-                    </div>
-                  ))}
-                </div>
+              <div className="flex-1 space-y-1">
+                {whatChartData.length === 0 ? <p className="text-[10px] text-slate-400">Belum ada data</p> : whatChartData.map((d, i) => (
+                  <div key={i} className="flex items-center gap-2.5 p-1.5 rounded-lg hover:bg-slate-50 transition-colors">
+                    <div className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: d.color }} />
+                    <span className="text-[10px] font-semibold text-[var(--theme-text-muted)] flex-1 truncate">{d.name}</span>
+                    <span className="text-[11px] font-bold text-[var(--theme-text)] tabular-nums">{d.value}</span>
+                  </div>
+                ))}
               </div>
             </div>
-
-            {/* 3. WHO */}
-            <div className="glass-card rounded-2xl border border-slate-200/60 p-5 shadow-none flex flex-col">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center text-emerald-600">
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>groups</span>
-                </div>
-                <div>
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest font-headline">WHO</p>
-                  <p className="text-xs font-black text-slate-800 font-headline">Pengaju Aktif</p>
-                </div>
-              </div>
-              <div className="flex-1 space-y-2.5 flex flex-col justify-center">
-                {whoChartData.length === 0 ? <p className="text-[10px] text-slate-400">Belum ada data</p> : whoChartData.map((d, i) => {
-                  const max = Math.max(...whoChartData.map(x => x.value), 1)
-                  const pct = Math.round((d.value / max) * 100)
-                  return (
-                    <div key={i} className="flex items-center gap-2">
-                      <span className="text-[9px] font-bold text-slate-500 uppercase w-16 truncate" title={d.name}>{d.name}</span>
-                      <div className="flex-1 h-3.5 bg-slate-100 rounded-md overflow-hidden">
-                        <div className="h-full rounded-md bg-emerald-400 transition-all" style={{ width: `${pct}%`, minWidth: '8px' }} />
-                      </div>
-                      <span className="text-[9px] font-black text-slate-800 w-4 text-right">{d.value}</span>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* 4. WHEN */}
-            <div className="glass-card rounded-2xl border border-slate-200/60 p-5 shadow-none flex flex-col">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center text-amber-600">
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>event</span>
-                </div>
-                <div>
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest font-headline">WHEN</p>
-                  <p className="text-xs font-black text-slate-800 font-headline">Linimasa Kegiatan</p>
-                </div>
-              </div>
-              <div className="flex-1 flex items-end">
-                {whenChartData.length === 0 ? <p className="text-[10px] text-slate-400 w-full text-center">Belum ada jadwal</p> : (
-                  <ResponsiveContainer width="100%" height={110}>
-                    <BarChart data={whenChartData} margin={{ top: 10, right: 0, left: -25, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#64748b', fontWeight: 700 }} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#64748b' }} />
-                      <Tooltip cursor={{ fill: '#f1f5f9' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', fontSize: '10px', fontWeight: '700' }} />
-                      <Bar dataKey="value" fill="#fbbf24" radius={[4, 4, 0, 0]} barSize={20} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
-            </div>
-
-            {/* 5. WHERE */}
-            <div className="glass-card rounded-2xl border border-slate-200/60 p-5 shadow-none flex flex-col">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center text-indigo-600">
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>pin_drop</span>
-                </div>
-                <div>
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest font-headline">WHERE</p>
-                  <p className="text-xs font-black text-slate-800 font-headline">Sebaran Fakultas</p>
-                </div>
-              </div>
-              <div className="flex-1 space-y-2.5 flex flex-col justify-center">
-                {whereChartData.length === 0 ? <p className="text-[10px] text-slate-400">Belum ada data</p> : whereChartData.map((d, i) => {
-                  const max = Math.max(...whereChartData.map(x => x.value), 1)
-                  const pct = Math.round((d.value / max) * 100)
-                  return (
-                    <div key={i} className="flex items-center gap-2">
-                      <span className="text-[9px] font-bold text-slate-500 uppercase w-16 truncate" title={d.name}>{d.name}</span>
-                      <div className="flex-1 h-3.5 bg-slate-100 rounded-md overflow-hidden">
-                        <div className="h-full rounded-md bg-indigo-400 transition-all" style={{ width: `${pct}%`, minWidth: '8px' }} />
-                      </div>
-                      <span className="text-[9px] font-black text-slate-800 w-4 text-right">{d.value}</span>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* 6. HOW */}
-            <div className="glass-card rounded-2xl border border-slate-200/60 p-5 shadow-none flex flex-col">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-rose-100 rounded-lg flex items-center justify-center text-rose-600">
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>account_balance_wallet</span>
-                </div>
-                <div>
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest font-headline">HOW</p>
-                  <p className="text-xs font-black text-slate-800 font-headline">Alokasi Anggaran</p>
-                </div>
-              </div>
-              <div className="flex-1 space-y-2.5 flex flex-col justify-center">
-                {howChartData.length === 0 ? (
-                  <p className="text-[10px] text-slate-400">Belum ada data anggaran</p>
-                ) : howChartData.map((d, i) => {
-                  const max = Math.max(...howChartData.map(x => x.value), 1)
-                  const pct = Math.round((d.value / max) * 100)
-                  const colors = ['#f43f5e', '#fb7185', '#fda4af', '#fecdd3', '#ffe4e6']
-                  return (
-                    <div key={i} className="flex items-center gap-2">
-                      <span className="text-[8px] font-bold text-slate-500 uppercase w-16 truncate" title={d.name}>{d.name}</span>
-                      <div className="flex-1 h-3.5 bg-slate-100 rounded-md overflow-hidden">
-                        <div
-                          className="h-full rounded-md flex items-center px-1 transition-all"
-                          style={{ width: `${pct}%`, backgroundColor: colors[i % colors.length], minWidth: '30px' }}
-                        >
-                          <span className="text-[7px] font-black text-white truncate">
-                            {new Intl.NumberFormat('id-ID', { notation: 'compact', maximumFractionDigits: 1 }).format(d.value)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-
           </div>
-        )}
 
-        {/* ── Table Section ────────────────────────────────────────── */}
-        <PageCard>
-          <CardContent className="p-0">
-            <DataTable
-              columns={columns} 
-              data={filteredData} 
-              loading={loading}
-              searchPlaceholder="Cari judul proposal, ormawa, atau ID..."
-              actions={(row) => (
-                <div className="flex items-center gap-1.5">
-                  <Button onClick={() => { setSelected(row); setIsDetailOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-bku-primary hover:bg-bku-primary/10 rounded-lg transition-colors cursor-pointer shadow-none"><span className="material-symbols-outlined" style={{ fontSize: '18px' }} >visibility</span></Button>
+          {/* 2. WHY */}
+          <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-5 hover:shadow-md transition-all relative overflow-hidden group flex flex-col">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-purple-50 border border-purple-100 rounded-xl flex items-center justify-center text-purple-600 shadow-sm">
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>donut_large</span>
                 </div>
+                <h3 className="text-[13px] font-bold text-[var(--theme-text)]">Status Validasi</h3>
+              </div>
+            </div>
+            <div className="flex-1 flex items-center gap-3">
+              <div className="w-[110px]">
+                <ResponsiveContainer width="100%" height={120}>
+                  <PieChart>
+                    <Pie data={whyChartData} cx="50%" cy="50%" innerRadius={35} outerRadius={52} paddingAngle={2} dataKey="value" stroke="none">
+                      {whyChartData.map((entry, idx) => <Cell key={idx} fill={entry.color} />)}
+                    </Pie>
+                    <Tooltip formatter={(value, name, props) => [value + ' Proposal', props.payload.name || 'Status']} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', fontSize: '10px', fontWeight: '700' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex-1 space-y-1">
+                {whyChartData.length === 0 ? <p className="text-[10px] text-slate-400">Belum ada data</p> : whyChartData.map((d, i) => (
+                  <div key={i} className="flex items-center gap-2.5 p-1.5 rounded-lg hover:bg-slate-50 transition-colors">
+                    <div className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: d.color }} />
+                    <span className="text-[10px] font-semibold text-[var(--theme-text-muted)] flex-1 truncate">{d.name}</span>
+                    <span className="text-[11px] font-bold text-[var(--theme-text)] tabular-nums">{d.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* 3. HOW */}
+          <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-5 hover:shadow-md transition-all relative overflow-hidden group flex flex-col">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-rose-50 border border-rose-100 rounded-xl flex items-center justify-center text-rose-600 shadow-sm">
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>account_balance_wallet</span>
+                </div>
+                <h3 className="text-[13px] font-bold text-[var(--theme-text)]">Alokasi Anggaran</h3>
+              </div>
+            </div>
+            <div className="flex-1 flex items-end justify-center">
+              {howChartData.length === 0 ? (
+                <p className="text-[10px] text-slate-400">Belum ada data anggaran</p>
+              ) : (
+                <ResponsiveContainer width="100%" height={120}>
+                  <AreaChart data={howChartData} margin={{ top: 10, right: 10, left: -5, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorHow" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#fb7185" stopOpacity={0.4} />
+                        <stop offset="95%" stopColor="#fb7185" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 8, fill: '#64748b', fontWeight: 600 }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#64748b' }} tickFormatter={(val) => new Intl.NumberFormat('id-ID', { notation: 'compact' }).format(val)} />
+                    <Tooltip labelFormatter={(label) => `Ormawa: ${label}`} cursor={{ stroke: '#fb7185', strokeWidth: 1, strokeDasharray: '3 3', fill: 'transparent' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', fontSize: '10px', fontWeight: '700' }} formatter={(val) => [new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', notation: 'compact', maximumFractionDigits: 1 }).format(val), 'Total Anggaran']} />
+                    <Area type="monotone" dataKey="value" stroke="#fb7185" strokeWidth={3} fillOpacity={1} fill="url(#colorHow)" />
+                  </AreaChart>
+                </ResponsiveContainer>
               )}
-            />
-          </CardContent>
-        </PageCard>
+            </div>
+          </div>
+
+        </div>
+      )}
+
+      {/* ── Table Section ────────────────────────────────────────── */}
+      <PageCard>
+        <CardContent className="p-0">
+          <DataTable
+            columns={columns}
+            data={filteredData}
+            loading={loading}
+            searchPlaceholder="Cari judul proposal, ormawa, atau ID..."
+            actions={(row) => (
+              <div className="flex items-center gap-1.5">
+                <Button onClick={() => { setSelected(row); setIsDetailOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-bku-primary hover:bg-bku-primary/10 rounded-lg transition-colors cursor-pointer shadow-none"><span className="material-symbols-outlined" style={{ fontSize: '18px' }} >visibility</span></Button>
+              </div>
+            )}
+          />
+        </CardContent>
+      </PageCard>
 
       {/* ── Detail Dialog ─────────────────────────────────────────── */}
-      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen} maxWidth="max-w-4xl">
-        <DialogContent>
+      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen} maxWidth="max-w-4xl" className="flex flex-col max-h-[90vh] overflow-hidden">
+        <DialogContent className="w-full flex flex-col flex-grow p-0 overflow-hidden border-none shadow-none rounded-2xl bg-white animate-in zoom-in-95 duration-200">
           {selected && (
             <>
-              <DialogHeader className="relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-8 opacity-5 text-bku-primary"><span className="material-symbols-outlined rotate-12" style={{ fontSize: '100px' }} >account_balance_wallet</span></div>
+              <DialogHeader className="relative bg-gradient-to-br from-primary via-primary to-blue-700 pt-6 pb-7 px-6 overflow-hidden flex-shrink-0 border-b-0 text-left">
+                <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
+                <div className="absolute -bottom-6 right-16 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
+                <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
+                  <span className="material-symbols-outlined size-24 rotate-12 text-white">account_balance_wallet</span>
+                </div>
                 <div className="relative z-10 space-y-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
-                      <span className="material-symbols-outlined text-[12px]" >visibility</span>
-                    </div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-bku-primary font-headline">Detail Proposal Kegiatan</span>
+                    <Badge className="bg-white/10 text-white px-2.5 py-0.5 text-[9px] font-black tracking-widest uppercase rounded-md border-none backdrop-blur-sm">
+                      Detail Proposal Kegiatan
+                    </Badge>
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">PRP-{selected.id || selected.ID}</span>
                   </div>
-                  <DialogTitle className="text-xl sm:text-2xl font-black font-headline tracking-tight text-slate-800 uppercase">
+                  <DialogTitle className="text-xl sm:text-2xl font-black font-headline tracking-tighter text-white uppercase pr-8 leading-tight">
                     {selected.Judul}
                   </DialogTitle>
-                  <DialogDescription className="text-xs sm:text-sm font-medium text-slate-500 font-inter">
+                  <DialogDescription className="text-xs sm:text-sm font-medium text-white/70 font-inter flex items-center gap-2 mt-1.5">
+                    <span className="material-symbols-outlined text-[14px]">corporate_fare</span>
                     Pengaju: {selected.Ormawa?.Nama || 'Unit Mahasiswa'} | {selected.Fakultas?.Nama || 'Institusi'}
                   </DialogDescription>
                 </div>
               </DialogHeader>
-              
-              <div className="p-6 md:p-8 space-y-6 max-h-[50vh] overflow-y-auto no-scrollbar font-inter">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="glass-card bg-white/50 p-5 rounded-2xl border border-slate-200/60 shadow-none space-y-2">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Proyeksi Anggaran</p>
-                      <p className="text-2xl font-black text-slate-800 font-headline tabular-nums">{formatRp(selected.Anggaran)}</p>
-                  </div>
-                  <div className="glass-card bg-white/50 p-5 rounded-2xl border border-slate-200/60 shadow-none space-y-2 flex flex-col justify-center">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Rekening Ormawa</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="material-symbols-outlined text-slate-400" style={{fontSize: '18px'}}>account_balance</span>
-                        <p className="text-sm font-bold text-slate-700 break-all">{selected.Ormawa?.rekening || selected.Ormawa?.Rekening || 'Belum diatur'}</p>
-                      </div>
-                  </div>
-                  <div className="glass-card bg-white/50 p-5 rounded-2xl border border-slate-200/60 shadow-none space-y-2 flex flex-col items-start justify-center">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Status Validasi</p>
-                      <Badge className={cn('px-3 py-1 rounded-lg border-none shadow-none text-[9px] font-black uppercase tracking-widest font-headline mt-1', STATUS_CFG[selected.Status]?.cls)}>
-                          {STATUS_CFG[selected.Status]?.label || selected.Status}
-                      </Badge>
-                  </div>
+
+              <Tabs defaultValue="overview" className="w-full flex flex-col flex-grow overflow-hidden">
+                <div className="px-6 md:px-8 pt-4 pb-0 bg-white border-b border-slate-100 shrink-0 z-10 relative">
+                  <TabsList className="grid w-full max-w-md grid-cols-2 bg-slate-100/80 p-1 rounded-xl mb-4">
+                    <TabsTrigger value="overview" className="rounded-lg text-xs sm:text-sm font-semibold text-slate-600 data-[state=active]:text-blue-700 transition-colors">Overview</TabsTrigger>
+                    <TabsTrigger value="administrasi" className="rounded-lg text-xs sm:text-sm font-semibold text-slate-600 data-[state=active]:text-blue-700 transition-colors">Administrasi</TabsTrigger>
+                  </TabsList>
                 </div>
 
-                {/* 5W1H Analysis */}
-                <div className="space-y-6">
-                  <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest border-b border-slate-200 pb-2 flex items-center gap-2">
-                    <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '18px' }}>analytics</span> Analisis 5W + 1H
-                  </h3>
-
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-10 gap-y-10">
-                    {/* WHAT */}
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200 border-none px-2 shadow-none font-bold">WHAT</Badge>
-                        <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Apa Kegiatan Ini?</span>
+                <div className="p-6 md:p-8 overflow-y-auto font-inter bg-slate-50/50 flex-grow relative">
+                  <TabsContent value="overview" className="mt-0 space-y-8 outline-none animate-in fade-in zoom-in-95 duration-200">
+                    {/* 1. KARTU RINGKASAN ATAS */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                      {/* Anggaran */}
+                      <div className="relative overflow-hidden bg-gradient-to-br from-emerald-500 to-teal-600 p-5 rounded-2xl shadow-lg shadow-emerald-500/20 text-white flex flex-col justify-center transition-all hover:scale-[1.02]">
+                        <div className="absolute -right-4 -bottom-4 opacity-10">
+                          <span className="material-symbols-outlined text-[100px]">payments</span>
+                        </div>
+                        <div className="relative z-10 flex items-center gap-2 mb-3">
+                          <div className="size-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
+                            <span className="material-symbols-outlined text-[16px] text-white">payments</span>
+                          </div>
+                          <p className="text-[10px] font-black text-emerald-50 uppercase tracking-widest font-headline">Proyeksi Anggaran</p>
+                        </div>
+                        <p className="relative z-10 text-2xl font-black font-headline tabular-nums leading-none mb-1">{formatRp(selected.Anggaran)}</p>
+                        <p className="relative z-10 text-[10px] font-medium text-emerald-100 truncate">Sumber: {selected.sumber_dana || selected.SumberDana || 'Tidak disebutkan'}</p>
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pl-4 border-l-2 border-blue-100">
-                        <div>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jenis Kegiatan</p>
-                          <p className="text-sm font-semibold text-slate-700">{selected.Jenis || '-'}</p>
+                      {/* Rekening */}
+                      <div className="relative overflow-hidden bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center transition-all hover:shadow-md hover:border-blue-200">
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="size-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                            <span className="material-symbols-outlined text-[16px]">account_balance</span>
+                          </div>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Rekening Pencairan</p>
                         </div>
-                        <div>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Bentuk Kegiatan</p>
-                          <p className="text-sm font-semibold text-slate-700">{selected.bentuk_kegiatan || selected.BentukKegiatan || '-'}</p>
+                        <p className="text-sm font-bold text-slate-800 break-all leading-tight mb-1">{selected.Ormawa?.rekening || selected.Ormawa?.Rekening || 'Belum diatur'}</p>
+                        <p className="text-[10px] font-semibold text-slate-500 truncate">A.N. {selected.Ormawa?.Nama || 'Organisasi'}</p>
+                      </div>
+                      {/* Status */}
+                      <div className="relative overflow-hidden bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center transition-all hover:shadow-md hover:border-amber-200">
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="size-8 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center">
+                            <span className="material-symbols-outlined text-[16px]">verified</span>
+                          </div>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Status Validasi</p>
                         </div>
-                        <div className="sm:col-span-2">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ringkasan / Deskripsi Singkat</p>
-                          <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap mt-1">
-                            {selected.Deskripsi || selected.deskripsi || '-'}
+                        <div className="mt-auto">
+                          <Badge className={cn('px-3 py-1.5 rounded-lg border-none shadow-sm text-[10px] font-black uppercase tracking-widest font-headline w-fit', STATUS_CFG[selected.Status]?.cls)}>
+                            {STATUS_CFG[selected.Status]?.label || selected.Status}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 2. TABEL KARTU (Sejajar Atas & Bawah) */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+                      {/* KIRI: Informasi Utama */}
+                      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
+                        <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50 shrink-0">
+                          <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                            <span className="material-symbols-outlined text-[18px]">description</span>
+                          </div>
+                          <h3 className="text-sm font-bold text-slate-800 font-headline">Informasi Utama Kegiatan</h3>
+                        </div>
+                        <div className="p-6 flex-grow flex flex-col">
+                          <div className="bg-slate-50/50 rounded-xl border border-slate-100/60 overflow-hidden divide-y divide-slate-100/60 flex-grow flex flex-col shadow-inner">
+                            <div className="flex-1 flex flex-col sm:flex-row sm:items-center p-5 hover:bg-white/50 transition-colors">
+                              <div className="w-full sm:w-2/5 text-xs font-semibold text-slate-500 mb-1 sm:mb-0 flex items-center gap-2">
+                                <span className="material-symbols-outlined text-[16px] text-slate-400">category</span>
+                                Jenis Kegiatan
+                              </div>
+                              <div className="w-full sm:w-3/5 text-sm font-bold text-slate-900">{selected.jenis_kegiatan || selected.JenisKegiatan || selected.Jenis || '-'}</div>
+                            </div>
+                            <div className="flex-1 flex flex-col sm:flex-row sm:items-center p-5 hover:bg-white/50 transition-colors">
+                              <div className="w-full sm:w-2/5 text-xs font-semibold text-slate-500 mb-1 sm:mb-0 flex items-center gap-2">
+                                <span className="material-symbols-outlined text-[16px] text-slate-400">extension</span>
+                                Bentuk Kegiatan
+                              </div>
+                              <div className="w-full sm:w-3/5 text-sm font-bold text-slate-900">{selected.bentuk_kegiatan || selected.BentukKegiatan || '-'}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* KANAN: Waktu & Lokasi */}
+                      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
+                        <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50 shrink-0">
+                          <div className="p-2 rounded-xl bg-amber-50 text-amber-600">
+                            <span className="material-symbols-outlined text-[18px]">event_note</span>
+                          </div>
+                          <h3 className="text-sm font-bold text-slate-800 font-headline">Pelaksanaan</h3>
+                        </div>
+                        <div className="p-6 flex-grow flex flex-col">
+                          <div className="bg-slate-50/50 rounded-xl border border-slate-100/60 overflow-hidden divide-y divide-slate-100/60 flex-grow flex flex-col shadow-inner">
+                            <div className="flex-1 flex flex-col sm:flex-row sm:items-center p-5 hover:bg-white/50 transition-colors">
+                              <div className="w-full sm:w-2/5 text-xs font-semibold text-slate-500 flex items-center gap-2 mb-1 sm:mb-0">
+                                <span className="material-symbols-outlined text-[16px] text-slate-400">calendar_today</span>
+                                Tanggal
+                              </div>
+                              <div className="w-full sm:w-3/5 text-sm font-bold text-slate-900 leading-snug">
+                                {selected.TanggalKegiatan ? new Date(selected.TanggalKegiatan).toLocaleDateString('id-ID', { dateStyle: 'long' }) : '-'}
+                              </div>
+                            </div>
+                            <div className="flex-1 flex flex-col sm:flex-row sm:items-center p-5 hover:bg-white/50 transition-colors">
+                              <div className="w-full sm:w-2/5 text-xs font-semibold text-slate-500 flex items-center gap-2 mb-1 sm:mb-0">
+                                <span className="material-symbols-outlined text-[16px] text-slate-400">location_on</span>
+                                Tempat & Waktu
+                              </div>
+                              <div className="w-full sm:w-3/5 text-sm font-bold text-slate-900 whitespace-pre-wrap leading-snug">
+                                {selected.jadwal_pelaksanaan || selected.JadwalPelaksanaan || '-'}
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    {/* WHY */}
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-200 border-none px-2 shadow-none font-bold">WHY</Badge>
-                        <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Mengapa Diadakan?</span>
-                      </div>
-                      <div className="space-y-4 pl-4 border-l-2 border-purple-100">
-                        <div>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Latar Belakang</p>
-                          <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap mt-1">
-                            {selected.latar_belakang || selected.LatarBelakang || '-'}
+                    {/* 3. RINCIAN & LATAR BELAKANG */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                      {/* KIRI: Rincian Kegiatan */}
+                      {(selected.deskripsi || selected.Deskripsi || selected.tujuan_kegiatan || selected.TujuanKegiatan || selected.indikator_keberhasilan || selected.IndikatorKeberhasilan) && (
+                        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                          <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50">
+                            <div className="p-2 rounded-xl bg-purple-50 text-purple-600">
+                              <span className="material-symbols-outlined text-[18px]">notes</span>
+                            </div>
+                            <h3 className="text-sm font-bold text-slate-800 font-headline">Rincian Kegiatan</h3>
+                          </div>
+                          <div className="p-6 space-y-6">
+                            {(selected.deskripsi || selected.Deskripsi) && (
+                              <div>
+                                <p className="text-xs font-semibold text-slate-500 mb-2 flex items-center gap-1.5">
+                                  <span className="material-symbols-outlined text-[16px]">subject</span> Deskripsi Singkat
+                                </p>
+                                <div className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
+                                  {selected.deskripsi || selected.Deskripsi}
+                                </div>
+                              </div>
+                            )}
+
+                            {(selected.tujuan_kegiatan || selected.TujuanKegiatan) && (
+                              <div>
+                                <p className="text-xs font-semibold text-slate-500 mb-2 flex items-center gap-1.5">
+                                  <span className="material-symbols-outlined text-[16px]">track_changes</span> Tujuan Kegiatan
+                                </p>
+                                <div className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
+                                  {selected.tujuan_kegiatan || selected.TujuanKegiatan}
+                                </div>
+                              </div>
+                            )}
+
+                            {(selected.indikator_keberhasilan || selected.IndikatorKeberhasilan) && (
+                              <div>
+                                <p className="text-xs font-semibold text-slate-500 mb-2 flex items-center gap-1.5">
+                                  <span className="material-symbols-outlined text-[16px]">analytics</span> Indikator Keberhasilan
+                                </p>
+                                <div className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
+                                  {selected.indikator_keberhasilan || selected.IndikatorKeberhasilan}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
-                        <div>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tujuan Kegiatan</p>
-                          <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap mt-1">
-                            {selected.tujuan_kegiatan || selected.TujuanKegiatan || '-'}
+                      )}
+
+                      {/* KANAN: Latar Belakang */}
+                      {(selected.latar_belakang || selected.LatarBelakang) && (
+                        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                          <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50">
+                            <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
+                              <span className="material-symbols-outlined text-[18px]">history_edu</span>
+                            </div>
+                            <h3 className="text-sm font-bold text-slate-800 font-headline">Latar Belakang</h3>
                           </div>
+                          <div className="p-6">
+                            <div className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
+                              {selected.latar_belakang || selected.LatarBelakang}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="administrasi" className="mt-0 space-y-8 outline-none animate-in fade-in zoom-in-95 duration-200">
+                    {/* TOP SECTION: Sejajar (items-stretch) */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+                      {/* KIRI: Penyelenggara */}
+                      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
+                        <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50 shrink-0">
+                          <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600">
+                            <span className="material-symbols-outlined text-[18px]">groups</span>
+                          </div>
+                          <h3 className="text-sm font-bold text-slate-800 font-headline">Penyelenggara</h3>
+                        </div>
+                        <div className="p-6 flex-grow flex flex-col">
+                          <div className="bg-slate-50/50 rounded-xl border border-slate-100/60 overflow-hidden divide-y divide-slate-100/60 flex-grow flex flex-col shadow-inner">
+                            <div className="flex-1 flex flex-col sm:flex-row sm:items-center p-5 hover:bg-white/50 transition-colors">
+                              <div className="w-full sm:w-2/5 text-xs font-semibold text-slate-500 flex items-center gap-2 mb-1 sm:mb-0">
+                                <span className="material-symbols-outlined text-[16px] text-slate-400">person</span>
+                                Penanggung Jawab
+                              </div>
+                              <div className="w-full sm:w-3/5 text-sm font-bold text-slate-900 leading-snug">{selected.pj_kegiatan || selected.PJKegiatan || '-'}</div>
+                            </div>
+                            <div className="flex-1 flex flex-col sm:flex-row sm:items-center p-5 hover:bg-white/50 transition-colors">
+                              <div className="w-full sm:w-2/5 text-xs font-semibold text-slate-500 flex items-center gap-2 mb-1 sm:mb-0">
+                                <span className="material-symbols-outlined text-[16px] text-slate-400">handshake</span>
+                                Mitra
+                              </div>
+                              <div className="w-full sm:w-3/5 text-sm font-bold text-slate-900 leading-snug">{selected.mitra || selected.Mitra || '-'}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* KANAN: Berkas Pendukung */}
+                      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
+                        <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50 shrink-0">
+                          <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                            <span className="material-symbols-outlined text-[18px]">folder</span>
+                          </div>
+                          <h3 className="text-sm font-bold text-slate-800 font-headline">Berkas Pendukung</h3>
+                        </div>
+                        <div className="p-6 flex-grow flex flex-col justify-center">
+                          {selected.file_url || selected.FileURL ? (
+                            <a href={selected.file_url || selected.FileURL} target="_blank" rel="noreferrer" className="flex items-center justify-between bg-primary/5 hover:bg-primary/10 border border-primary/10 p-5 rounded-xl transition-all hover:scale-[1.02] group h-full flex-1 max-h-[120px]">
+                              <div className="flex items-center gap-4">
+                                <div className="size-12 rounded-xl bg-primary text-white flex items-center justify-center shadow-md shrink-0">
+                                  <span className="material-symbols-outlined text-2xl">picture_as_pdf</span>
+                                </div>
+                                <div>
+                                  <p className="text-sm font-bold text-slate-900 mb-1">Dokumen Proposal</p>
+                                  <p className="text-xs font-medium text-slate-500 flex items-center gap-1">
+                                    <span className="material-symbols-outlined text-[14px]">download</span> Lihat / Unduh PDF
+                                  </p>
+                                </div>
+                              </div>
+                              <span className="material-symbols-outlined text-primary group-hover:translate-x-1 transition-transform text-2xl">arrow_forward_ios</span>
+                            </a>
+                          ) : (
+                            <div className="flex-1 flex flex-col items-center justify-center text-slate-400 gap-2 h-full bg-slate-50/50 rounded-xl border border-dashed border-slate-200 min-h-[100px]">
+                              <span className="material-symbols-outlined text-3xl">cancel</span>
+                              <p className="text-sm font-medium">Tidak ada berkas</p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
 
-                    {/* WHO */}
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border-none px-2 shadow-none font-bold">WHO</Badge>
-                        <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Siapa yang Terlibat?</span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pl-4 border-l-2 border-emerald-100">
-                        <div className="sm:col-span-2">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sasaran / Target Peserta</p>
-                          <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap mt-1">
-                            {selected.sasaran_kegiatan || selected.SasaranKegiatan || '-'}
+                    {/* FULL WIDTH: Sasaran Peserta */}
+                    {(selected.sasaran_kegiatan || selected.SasaranKegiatan) && (
+                      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50">
+                          <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600">
+                            <span className="material-symbols-outlined text-[18px]">target</span>
+                          </div>
+                          <h3 className="text-sm font-bold text-slate-800 font-headline">Sasaran Peserta</h3>
+                        </div>
+                        <div className="p-6">
+                          <div className="text-sm text-slate-700 leading-relaxed bg-slate-50/50 p-5 rounded-xl border border-slate-100 whitespace-pre-wrap">
+                            {selected.sasaran_kegiatan || selected.SasaranKegiatan}
                           </div>
                         </div>
-                        <div>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Penanggung Jawab</p>
-                          <p className="text-sm font-semibold text-slate-700">{selected.pj_kegiatan || selected.PJKegiatan || '-'}</p>
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mitra / Kolaborator</p>
-                          <p className="text-sm font-semibold text-slate-700">{selected.mitra || selected.Mitra || '-'}</p>
-                        </div>
                       </div>
-                    </div>
+                    )}
 
-                    {/* WHEN & WHERE */}
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-200 border-none px-2 shadow-none font-bold">WHEN &amp; WHERE</Badge>
-                        <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Kapan &amp; Dimana?</span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pl-4 border-l-2 border-amber-100">
-                        <div>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tanggal Kegiatan</p>
-                          <p className="text-sm font-semibold text-slate-700">
-                            {selected.TanggalKegiatan ? new Date(selected.TanggalKegiatan).toLocaleDateString('id-ID', { dateStyle: 'long' }) : '-'}
-                          </p>
-                        </div>
-                        <div className="sm:col-span-2">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jadwal &amp; Tempat Pelaksanaan</p>
-                          <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap mt-1">
-                            {selected.jadwal_pelaksanaan || selected.JadwalPelaksanaan || '-'}
+                    {/* BOTTOM SECTION: Tenggat LPJ & Aksi Persetujuan (Hanya untuk isPendingUniv) */}
+                    {isPendingUniv(selected) && (
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+                        {/* KIRI: Tetapkan Tenggat LPJ */}
+                        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
+                          <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50 shrink-0">
+                            <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                              <span className="material-symbols-outlined text-[18px]">timer</span>
+                            </div>
+                            <h3 className="text-sm font-bold text-slate-800 font-headline">Tenggat Waktu LPJ</h3>
+                          </div>
+                          <div className="p-6 flex-grow flex flex-col justify-center">
+                            <p className="text-xs font-medium text-slate-600 mb-6 leading-relaxed text-center sm:text-left">
+                              Tentukan batas waktu maksimal bagi ormawa untuk mengunggah Laporan Pertanggungjawaban (LPJ) setelah kegiatan selesai.
+                            </p>
+                            <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl overflow-hidden shadow-inner max-w-xs mx-auto sm:mx-0 w-full">
+                              <input type="number" min={1} max={365}
+                                value={tenggatHari}
+                                onChange={e => setTenggatHari(parseInt(e.target.value) || 14)}
+                                className="flex-1 h-12 px-4 text-lg font-black text-center text-slate-800 border-none bg-transparent focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                              <span className="text-sm font-bold text-slate-500 px-5 bg-slate-100 h-full flex items-center border-l border-slate-200">hari</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
 
-                    {/* HOW */}
-                    <div className="space-y-3 lg:col-span-2">
-                      <div className="flex items-center gap-2">
-                        <Badge className="bg-rose-100 text-rose-700 hover:bg-rose-200 border-none px-2 shadow-none font-bold">HOW</Badge>
-                        <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Bagaimana Pelaksanaannya?</span>
-                      </div>
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pl-4 border-l-2 border-rose-100">
-                        <div>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Indikator Keberhasilan</p>
-                          <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap mt-1">
-                            {selected.indikator_keberhasilan || selected.IndikatorKeberhasilan || '-'}
+                        {/* KANAN: Aksi Persetujuan */}
+                        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
+                          <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50 shrink-0">
+                            <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
+                              <span className="material-symbols-outlined text-[18px]">verified_user</span>
+                            </div>
+                            <h3 className="text-sm font-bold text-slate-800 font-headline">Aksi Persetujuan</h3>
+                          </div>
+                          <div className="p-6 flex-grow flex flex-col justify-center items-center gap-4 bg-slate-50/20">
+                            <div className="w-full flex flex-col gap-3">
+                              <Button
+                                type="button"
+                                onClick={() => handleApprove(selected.id || selected.ID)}
+                                disabled={isSubmitting}
+                                className="w-full h-12 rounded-xl bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/30 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 border-none font-black text-[10px] tracking-widest uppercase"
+                              >
+                                {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>security</span>}
+                                SAHKAN PROPOSAL
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setIsRejectOpen(true)}
+                                className="w-full h-12 rounded-xl border-rose-200 text-rose-600 hover:bg-rose-50 hover:text-rose-700 font-black text-[10px] tracking-widest uppercase transition-all active:scale-95 flex items-center justify-center gap-2 bg-white"
+                              >
+                                <span className="material-symbols-outlined text-[18px]">cancel</span>
+                                TOLAK / KEMBALIKAN
+                              </Button>
+                            </div>
                           </div>
                         </div>
-                        <div>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sumber Dana Utama</p>
-                          <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap mt-1">
-                            {selected.sumber_dana || selected.SumberDana || '-'}
+                      </div>
+                    )}
+
+                    {/* Catatan Revisi & Peringatan (Jika Ada) */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                      {selected.Catatan && (
+                        <div className="bg-rose-50 border border-rose-100 rounded-2xl p-6 shadow-sm">
+                          <div className="flex items-center gap-2 text-rose-600 mb-3">
+                            <div className="p-1.5 rounded-lg bg-rose-100 text-rose-600">
+                              <span className="material-symbols-outlined text-[16px]">feedback</span>
+                            </div>
+                            <h3 className="text-xs font-black uppercase tracking-widest font-headline">Catatan Revisi</h3>
+                          </div>
+                          <div className="text-sm font-medium text-rose-700 leading-relaxed whitespace-pre-wrap bg-white/60 p-4 rounded-xl border border-rose-200 shadow-inner">
+                            {selected.Catatan}
                           </div>
                         </div>
-                      </div>
+                      )}
+
+                      {selected.Status === 'diajukan' && isUnivLevelOrmawa(selected) && (
+                        <div className="flex items-start gap-3 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-5 shadow-sm">
+                          <div className="size-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 shrink-0 shadow-sm">
+                            <span className="material-symbols-outlined text-[16px]">info</span>
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-amber-800 font-headline">Peringatan</p>
+                            <p className="text-xs font-medium text-amber-800 leading-relaxed">
+                              Ormawa tingkat Universitas (BEM/UKM/MPM). Proposal ini <strong>langsung diajukan ke Rektorat</strong> tanpa validasi Fakultas.
+                            </p>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
+                  </TabsContent>
                 </div>
+              </Tabs>
 
-                {/* Link Lampiran / Berkas */}
-                {(selected.file_url || selected.FileURL) && (
-                   <div className="space-y-2">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Lampiran Dokumen</p>
-                      <a href={selected.file_url || selected.FileURL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 bg-bku-primary/10 text-bku-primary px-4 py-3 rounded-xl font-bold text-sm hover:bg-bku-primary/20 transition-colors">
-                         <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>download</span> Unduh/Lihat Dokumen Proposal
-                      </a>
-                   </div>
-                )}
-
-                {selected.Catatan && (
-                   <div className="bg-rose-50/50 border border-rose-100 p-6 rounded-2xl space-y-3">
-                       <div className="text-[10px] font-black text-rose-500 uppercase tracking-widest font-headline flex items-center gap-2">
-                           <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >error</span> Catatan / Revisi Sebelumnya
-                       </div>
-                       <div className="text-sm font-medium text-rose-700 leading-relaxed font-inter whitespace-pre-wrap">{selected.Catatan}</div>
-                   </div>
-                )}
-
-                {selected.Status === 'diajukan' && isUnivLevelOrmawa(selected) && (
-                  <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-2">
-                    <span className="material-symbols-outlined text-amber-500" style={{ fontSize: '16px' }}>info</span>
-                    <span className="text-[10px] font-bold text-amber-700">Ormawa Universitas (BEM/UKM/MPM) — Bypass persetujuan Fakultas</span>
-                  </div>
-                )}
-              </div>
-
-              <DialogFooter>
-                {isPendingUniv(selected) && (
-                  <div className="flex items-center gap-3 bg-slate-50/50 rounded-xl p-2 border border-slate-200/60 mr-auto w-full sm:w-auto mb-4 sm:mb-0">
-                    <span className="material-symbols-outlined text-slate-400" style={{ fontSize: '18px' }}>timer</span>
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest shrink-0">Tenggat LPJ:</span>
-                    <input type="number" min={1} max={365}
-                      value={tenggatHari}
-                      onChange={e => setTenggatHari(parseInt(e.target.value) || 14)}
-                      className="w-16 h-8 rounded-lg border border-slate-200 bg-white px-2 text-xs font-black text-center text-slate-800 focus:outline-none focus:border-primary" />
-                    <span className="text-[10px] font-bold text-slate-500">hari setelah disahkan</span>
-                  </div>
-                )}
-                <div className="flex gap-3 w-full sm:w-auto justify-end">
-                  <button
-                    type="button"
-                    onClick={() => setIsDetailOpen(false)}
-                    className="h-12 px-6 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-body cursor-pointer"
-                  >
-                    Tutup
-                  </button>
-                  {isPendingUniv(selected) && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => setIsRejectOpen(true)}
-                        className="h-12 px-6 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 cursor-pointer"
-                      >
-                        Kembalikan
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleApprove(selected.id || selected.ID)}
-                        disabled={isSubmitting}
-                        className="h-12 px-8 bg-neutral-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2 font-body cursor-pointer border-none"
-                      >
-                        {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >security</span>}
-                        <span>Sahkan Proposal</span>
-                      </button>
-                    </>
-                  )}
-                </div>
+              <DialogFooter className="px-6 py-5 bg-white border-t border-slate-100 flex flex-col sm:flex-row items-center justify-end shadow-[0_-4px_10px_-4px_rgba(0,0,0,0.05)] relative z-10 shrink-0">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setIsDetailOpen(false)}
+                  className="w-full sm:w-auto text-[10px] font-black tracking-widest text-slate-500 hover:text-slate-900 px-6 h-12 rounded-xl hover:bg-slate-100 active:scale-95 transition-all"
+                >
+                  TUTUP
+                </Button>
               </DialogFooter>
             </>
           )}
@@ -744,44 +836,52 @@ export default function ProposalPipeline() {
 
       {/* ── Reject Reason Dialog ──────────────────────────────────── */}
       <Dialog open={isRejectOpen} onOpenChange={setIsRejectOpen} maxWidth="max-w-md">
-        <DialogContent>
-          <DialogHeader className="relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-5 text-rose-600"><span className="material-symbols-outlined rotate-12" style={{ fontSize: '100px' }} >error</span></div>
+        <DialogContent className="w-full h-full p-0 overflow-hidden border-none shadow-none rounded-2xl bg-white animate-in zoom-in-95 duration-200">
+          <DialogHeader className="relative bg-gradient-to-br from-rose-500 via-rose-600 to-rose-700 pt-6 pb-7 px-6 overflow-hidden flex-shrink-0 border-b-0 text-left">
+            <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
+            <div className="absolute -bottom-6 right-16 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
+            <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
+              <span className="material-symbols-outlined size-24 rotate-12 text-white">error</span>
+            </div>
             <div className="relative z-10 space-y-1">
               <div className="flex items-center gap-2 mb-2">
-                <div className="size-6 rounded bg-rose-50 flex items-center justify-center text-rose-600">
-                  <span className="material-symbols-outlined text-[12px]" >close</span>
-                </div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-rose-600 font-headline">Tolak Proposal</span>
+                <Badge className="bg-white/10 text-white px-2.5 py-0.5 text-[9px] font-black tracking-widest uppercase rounded-md border-none backdrop-blur-sm">
+                  Tolak Proposal
+                </Badge>
               </div>
-              <DialogTitle className="text-xl sm:text-2xl font-black font-headline tracking-tight text-slate-800 uppercase">Tolak Proposal</DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm font-medium text-slate-500 font-inter">Berikan alasan formal penangguhan anggaran.</DialogDescription>
+              <DialogTitle className="text-xl sm:text-2xl font-black font-headline tracking-tighter text-white uppercase pr-8 leading-tight">
+                Tolak Proposal
+              </DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm font-medium text-white/70 font-inter mt-1.5">
+                Berikan alasan formal penangguhan anggaran.
+              </DialogDescription>
             </div>
           </DialogHeader>
           <div className="p-6 md:p-8 space-y-6">
             <div className="space-y-2">
               <Label className="text-[10px] font-black text-slate-500 font-headline uppercase tracking-widest ml-1">Justifikasi Penolakan</Label>
               <Textarea required value={rejectNote} onChange={e => setRejectNote(e.target.value)} placeholder="Tuliskan alasan penolakan atau instruksi revisi..."
-                className="min-h-[120px] rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white p-4 font-medium text-sm font-inter transition-all" />
+                className="min-h-[120px] rounded-xl border-slate-200 bg-white shadow-sm focus:border-rose-500 focus:ring-1 focus:ring-rose-500/20 p-4 font-medium text-xs font-inter transition-all" />
             </div>
           </div>
-          <DialogFooter>
-            <button
+          <DialogFooter className="px-6 py-5 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row justify-end sm:space-x-3 gap-3 sm:gap-0">
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => setIsRejectOpen(false)}
-              className="flex-1 sm:flex-initial h-12 px-6 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-body cursor-pointer"
+              className="w-full sm:w-auto text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl active:scale-95 transition-all"
             >
-              Batal
-            </button>
-            <button
+              BATAL
+            </Button>
+            <Button
               type="button"
               onClick={handleReject}
               disabled={isSubmitting || !rejectNote.trim()}
-              className="flex-1 sm:flex-initial h-12 px-8 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2 font-body cursor-pointer border-none"
+              className="w-full sm:w-auto h-12 px-8 rounded-2xl bg-rose-600 text-white hover:bg-rose-700 shadow-xl shadow-rose-600/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 border-none"
             >
-              {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >save</span>}
-              <span>Konfirmasi Tolak</span>
-            </button>
+              {isSubmitting ? <span className="material-symbols-outlined animate-spin size-4" style={{ fontSize: '16px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >save</span>}
+              <span className="text-[10px] font-black tracking-widest uppercase">KONFIRMASI TOLAK</span>
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

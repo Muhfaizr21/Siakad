@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
+import { DialogModal, ModalCancelButton, ModalSaveButton } from '@/components/ui/DialogModal'
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
@@ -698,31 +698,27 @@ export default function ProdiRBAC() {
       )}
 
       {/* ── Role Identity Dialog (Simplified) ── */}
-      <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden border border-border shadow-2xl rounded-2xl bg-surface animate-in zoom-in-95 duration-200">
-          <DialogHeader className="p-8 pb-5 bg-slate-50/50 border-b border-border relative">
-            <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-              <span className="material-symbols-outlined size-24 rotate-12 text-slate-800">badge</span>
-            </div>
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-1.5">
-                <div className="size-8 rounded-xl bg-slate-105 flex items-center justify-center text-slate-600">
-                  <span className="material-symbols-outlined stroke-[3px]" style={{ fontSize: '16px' }}>add</span>
-                </div>
-                <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-slate-200 text-slate-700 border-none rounded-md">ROLE IDENTITY</Badge>
-              </div>
-              <DialogTitle className="text-lg md:text-xl font-black font-headline tracking-tighter text-slate-900">
-                {isEditMode ? 'Edit Identitas Role Prodi' : 'Buat Identitas Role Baru'}
-              </DialogTitle>
-              <DialogDescription className="text-[11px] font-semibold text-slate-400 mt-0.5">
-                Tentukan nama role dan deskripsi. Matriks izin dapat diatur pada tab Permission Matrix.
-              </DialogDescription>
-            </div>
-          </DialogHeader>
-
-          <form onSubmit={handleSaveRoleInfo} className="flex flex-col">
-            <div className="p-8 pt-5 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar">
-              <div className="space-y-5">
+      <DialogModal
+        open={isCrudOpen}
+        onOpenChange={setIsCrudOpen}
+        icon="add"
+        title={isEditMode ? 'Edit Identitas Role Prodi' : 'Buat Identitas Role Baru'}
+        subtitle="Tentukan nama role dan deskripsi. Matriks izin dapat diatur pada tab Permission Matrix."
+        badgeText="ROLE IDENTITY"
+        maxWidth="max-w-xl"
+        bodyClassName="p-8 pt-5 max-h-[50vh] overflow-y-auto no-scrollbar"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setIsCrudOpen(false)} text="BATAL" />
+            <ModalSaveButton 
+              form="crud-role-form" 
+              loading={isSubmitting} 
+              text="SIMPAN IDENTITAS" 
+            />
+          </>
+        }
+      >
+          <form id="crud-role-form" onSubmit={handleSaveRoleInfo} className="flex flex-col space-y-5">
                 {/* Nama Role */}
                 <div className="space-y-1.5">
                   <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Nama Otoritas Role</Label>
@@ -745,37 +741,8 @@ export default function ProdiRBAC() {
                     className="h-11 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-xs" 
                   />
                 </div>
-              </div>
-            </div>
-
-            {/* Dialog Footer Actions */}
-            <DialogFooter className="flex flex-col md:flex-row items-center justify-end gap-3 p-8 pt-4 border-t border-slate-100 bg-slate-50/30">
-              <Button 
-                type="button" 
-                variant="ghost" 
-                onClick={() => setIsCrudOpen(false)} 
-                className="w-full md:w-auto text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-11 rounded-xl active:scale-95 transition-all shadow-none border-none cursor-pointer font-headline uppercase"
-              >
-                BATAL
-              </Button>
-              <Button 
-                type="submit" 
-                disabled={isSubmitting} 
-                className="w-full md:w-auto h-11 px-8 rounded-xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2 border-none cursor-pointer font-black text-[10px]"
-              >
-                {isSubmitting ? (
-                  <span className="material-symbols-outlined animate-spin size-4" style={{ fontSize: '15px' }}>sync</span>
-                ) : (
-                  <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>save</span>
-                )}
-                <span className="text-[10px] font-black tracking-widest uppercase">
-                  SIMPAN IDENTITAS
-                </span>
-              </Button>
-            </DialogFooter>
           </form>
-        </DialogContent>
-      </Dialog>
+      </DialogModal>
 
       {/* Delete Confirmation Modal */}
       <DeleteConfirmModal 

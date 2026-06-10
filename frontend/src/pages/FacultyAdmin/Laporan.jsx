@@ -9,7 +9,6 @@ import { cn } from "@/lib/utils"
 import { PageContent } from "@/components/ui/page/PageContent"
 import { DashboardHero } from "@/components/ui/dashboard/DashboardHero"
 import { PrimaryStatsCard } from '@/components/ui/StatsCard'
-import { Card, CardContent } from '@/components/ui/Card'
 import { DataTable } from '@/components/ui/DataTable'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
@@ -33,6 +32,31 @@ const Globe = ({ size, className, ...props }) => <span className={`material-symb
 
 const API = "/faculty"
 const CHART_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#6366f1", "#ec4899"]
+
+const prodiColumns = [
+  { label: 'Program Studi', key: 'nama_prodi', sortable: true, render: (val) => (
+      <span className="font-bold text-sm text-[var(--theme-text)]">{val}</span>
+    )
+  },
+  { label: 'Mahasiswa Aktif', key: 'active', sortable: true, render: (val) => (
+      <span className="inline-flex items-center gap-1.5 bg-[var(--theme-success-light)] border border-[var(--theme-success)]/10 text-[var(--theme-success)] px-2.5 py-1 rounded-lg text-xs font-bold">
+        <span className="w-1.5 h-1.5 rounded-full bg-[var(--theme-success)]" />
+        {val || 0}
+      </span>
+    )
+  },
+  { label: 'Lulusan', key: 'graduated', sortable: true, render: (val) => (
+      <span className="inline-flex items-center gap-1.5 bg-[var(--theme-info-light)] border border-[var(--theme-info)]/10 text-[var(--theme-info)] px-2.5 py-1 rounded-lg text-xs font-bold">
+        <span className="w-1.5 h-1.5 rounded-full bg-[var(--theme-info)]" />
+        {val || 0}
+      </span>
+    )
+  },
+  { label: 'Rata-rata IPK', key: 'avgIPK', sortable: true, render: (val) => (
+      <span className="font-black text-sm text-[var(--theme-text)] tabular-nums">{val?.toFixed(2) || '0.00'}</span>
+    )
+  }
+];
 
 export default function LaporanFakultasPage() {
   const [data, setData] = useState({ summary: { total: 0, active: 0, graduated: 0, avgIPK: 0, totalPrestasi: 0, totalBeasiswa: 0, totalKonseling: 0 }, perAngkatan: [], perProdi: [], ipkDist: [] })
@@ -661,133 +685,160 @@ export default function LaporanFakultasPage() {
       />
 
         {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-5 mb-6 mt-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
           <PrimaryStatsCard
             title="Total Mahasiswa"
-            value={loading ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span> : data.summary.total}
+            value={loading ? <span className="material-symbols-outlined animate-spin text-[var(--theme-text-subtle)]" style={{ fontSize: '18px' }} >sync</span> : data.summary.total}
             icon={Users}
-            colorTheme="primary"
+            colorTheme="info"
+            badgeText="Terdaftar aktif"
           />
           <PrimaryStatsCard
             title="Capaian Prestasi"
-            value={loading ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span> : data.summary.totalPrestasi}
+            value={loading ? <span className="material-symbols-outlined animate-spin text-[var(--theme-text-subtle)]" style={{ fontSize: '18px' }} >sync</span> : data.summary.totalPrestasi}
             icon={Award}
             colorTheme="success"
+            badgeText="Kompetisi & penghargaan"
           />
           <PrimaryStatsCard
             title="Penerima Beasiswa"
-            value={loading ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span> : data.summary.totalBeasiswa}
+            value={loading ? <span className="material-symbols-outlined animate-spin text-[var(--theme-text-subtle)]" style={{ fontSize: '18px' }} >sync</span> : data.summary.totalBeasiswa}
             icon={Globe}
-            colorTheme="info"
+            colorTheme="primary"
+            badgeText="Bantuan finansial"
           />
           <PrimaryStatsCard
             title="Layanan Konseling"
-            value={loading ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span> : (data.summary.totalKonseling || 0)}
+            value={loading ? <span className="material-symbols-outlined animate-spin text-[var(--theme-text-subtle)]" style={{ fontSize: '18px' }} >sync</span> : (data.summary.totalKonseling || 0)}
             icon={Psychology}
             colorTheme="warning"
+            badgeText="Sesi terdaftar"
           />
           <PrimaryStatsCard
             title="Rata-rata IPK"
-            value={loading ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span> : (data.summary.avgIPK ? data.summary.avgIPK.toFixed(2) : "0.00")}
+            value={loading ? <span className="material-symbols-outlined animate-spin text-[var(--theme-text-subtle)]" style={{ fontSize: '18px' }} >sync</span> : (data.summary.avgIPK ? data.summary.avgIPK.toFixed(2) : "0.00")}
             icon={HeartPulse}
-            colorTheme="error"
+            colorTheme="danger"
+            badgeText="IPK Rata-rata"
           />
         </div>
 
         {/* Charts */}
-        <div className="grid gap-6 lg:grid-cols-2 mb-6">
-          <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
-            <h3 className="font-bold text-base font-headline mb-1 text-[var(--theme-h3)]">Status per Angkatan</h3>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-5">Distribusi akademik tiap tahun angkatan</p>
-            <div className="h-64">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+          <div className="bg-[var(--theme-surface)] p-6 rounded-2xl border border-[var(--theme-border)] shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+            <div className="flex flex-col h-full">
+              <div className="flex items-center gap-4 mb-4 shrink-0">
+                <div className="w-12 h-12 bg-[var(--theme-primary-light)] rounded-xl flex justify-center items-center text-[var(--theme-primary)] group-hover:scale-110 group-hover:-rotate-6 transition-all duration-300">
+                  <span className="material-symbols-outlined text-[24px]">bar_chart</span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest block mb-0.5">Demografi</span>
+                  <h3 className="text-sm font-bold text-[var(--theme-text)] leading-tight">Status per Angkatan</h3>
+                </div>
+              </div>
+            <div className="flex-1 w-full h-60">
               {isMounted && (
                 <ResponsiveContainer width="99%" height="100%" debounce={50}>
-                  <BarChart data={data.perAngkatan} barGap={4}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--theme-border)" />
-                    <XAxis dataKey="angkatan" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700 }} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700 }} />
-                    <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,.1)', fontSize: '11px', fontWeight: 'bold' }} cursor={{ fill: '#f8fafc' }} />
+                  <BarChart data={data.perAngkatan} barGap={4} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--theme-border-muted)" />
+                    <XAxis dataKey="angkatan" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: 'var(--theme-text-muted)' }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: 'var(--theme-text-muted)' }} />
+                    <Tooltip contentStyle={{ backgroundColor: "#ffffff", border: "1px solid var(--theme-border-muted)", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }} cursor={{ fill: 'var(--theme-bg, #f8fafc)', opacity: 0.8 }} />
                     <Bar dataKey="aktif" name="Aktif" fill="var(--theme-primary)" radius={[4, 4, 0, 0]} barSize={20} />
-                    <Bar dataKey="lulus" name="Lulus" fill="#10b981" radius={[4, 4, 0, 0]} barSize={20} />
+                    <Bar dataKey="lulus" name="Lulus" fill="var(--theme-success)" radius={[4, 4, 0, 0]} barSize={20} />
                   </BarChart>
                 </ResponsiveContainer>
               )}
             </div>
+            </div>
           </div>
 
-          <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
-            <h3 className="font-bold text-base font-headline mb-1 text-[var(--theme-h3)]">Distribusi Prodi</h3>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-5">Persentase jumlah mahasiswa per prodi</p>
-            <div className="flex flex-col sm:flex-row items-center gap-6">
-              <div className="h-56 flex-1 min-w-0">
+          <div className="bg-[var(--theme-surface)] p-6 rounded-2xl border border-[var(--theme-border)] shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+            <div className="flex flex-col h-full">
+              <div className="flex items-center gap-4 mb-4 shrink-0">
+                <div className="w-12 h-12 bg-[var(--theme-success-light)] rounded-xl flex justify-center items-center text-[var(--theme-success)] group-hover:scale-110 group-hover:-rotate-6 transition-all duration-300">
+                  <span className="material-symbols-outlined text-[24px]">pie_chart</span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest block mb-0.5">Analisis Demografi</span>
+                  <h3 className="text-sm font-bold text-[var(--theme-text)] leading-tight">Distribusi Prodi</h3>
+                </div>
+              </div>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-6 flex-1 min-h-0">
+              <div className="h-48 w-48 shrink-0">
                 {isMounted && (
-                  <ResponsiveContainer width="99%" height="100%" debounce={50}>
+                  <ResponsiveContainer width="100%" height="100%" debounce={50}>
                     <PieChart>
-                      <Pie data={prodiWithColors} cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={2} dataKey="value">
-                        {prodiWithColors.map((entry, i) => <Cell key={i} fill={entry.color} stroke="none" />)}
+                      <Pie data={prodiWithColors} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={2} dataKey="value" stroke="none">
+                        {prodiWithColors.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                       </Pie>
-                      <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,.1)', fontSize: '11px', fontWeight: 'bold' }} />
+                      <Tooltip contentStyle={{ backgroundColor: "#ffffff", border: "1px solid var(--theme-border-muted)", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }} />
                     </PieChart>
                   </ResponsiveContainer>
                 )}
               </div>
-              <div className="flex flex-col gap-2.5 min-w-[130px]">
+              <div className="flex flex-col gap-2 w-full sm:w-auto sm:min-w-[160px] max-h-52 overflow-y-auto pr-2 pb-1">
                 {prodiWithColors.map((p, i) => (
-                  <div key={i} className="flex items-center gap-2.5">
+                  <div key={i} className="flex items-center gap-2 p-1.5 rounded-lg bg-[var(--theme-surface-hover)] border border-[var(--theme-border-muted)] shrink-0">
                     <div className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: p.color }} />
-                    <div>
-                      <p className="text-[10px] font-black text-slate-900 uppercase tracking-tight truncate max-w-[110px]">{p.nama_prodi}</p>
-                      <p className="text-[9px] text-slate-400 font-bold">{p.value} Mahasiswa</p>
+                    <div className="min-w-0">
+                      <p className="text-[9px] font-bold text-[var(--theme-text-muted)] uppercase truncate max-w-[140px] sm:max-w-[110px] leading-none" title={p.nama_prodi}>{p.nama_prodi}</p>
+                      <p className="text-[10px] text-[var(--theme-text)] font-extrabold leading-none mt-1">{p.value} Mahasiswa</p>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           {[
-            { label: 'Laporan Prestasi', icon: Award, bg: 'bg-emerald-600', light: 'bg-emerald-50', stat: `${data.summary.totalPrestasi} Capaian`, desc: 'Dataset kompetisi & penghargaan mahasiswa.', handler: downloadPrestasiPDF },
-            { label: 'Laporan Beasiswa', icon: Globe, bg: 'bg-indigo-600', light: 'bg-indigo-50', stat: `${data.summary.totalBeasiswa} Penerima`, desc: 'Transkrip penerima bantuan finansial.', handler: downloadBeasiswaPDF },
-            { label: 'Laporan Konseling', icon: Psychology, bg: 'bg-rose-600', light: 'bg-rose-50', stat: `${data.summary.totalKonseling || 0} Sesi`, desc: 'Monitoring layanan bimbingan & kesehatan psikologis.', handler: downloadKonselingPDF },
+            { label: 'Laporan Prestasi', icon: Award, theme: 'success', stat: `${data.summary.totalPrestasi} Capaian`, desc: 'Dataset kompetisi & penghargaan mahasiswa.', handler: downloadPrestasiPDF },
+            { label: 'Laporan Beasiswa', icon: Globe, theme: 'info', stat: `${data.summary.totalBeasiswa} Penerima`, desc: 'Transkrip penerima bantuan finansial.', handler: downloadBeasiswaPDF },
+            { label: 'Laporan Konseling', icon: Psychology, theme: 'warning', stat: `${data.summary.totalKonseling || 0} Sesi`, desc: 'Monitoring layanan bimbingan psikologis.', handler: downloadKonselingPDF },
           ].map((item, i) => (
-            <div key={i} className="glass-card border border-slate-200/60 rounded-2xl p-5 shadow-none hover:shadow-lg transition-shadow">
-              <div className="flex items-start justify-between mb-5">
-                <div className={cn('w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg', item.bg)}><item.icon size={20} /></div>
-                <span className="text-[9px] font-black text-slate-400 bg-slate-50 px-2.5 py-1 rounded-lg uppercase tracking-wider">SEM-II 2024</span>
-              </div>
-              <h4 className="text-base font-extrabold font-headline mb-1" style={{ color: 'var(--theme-h4)' }}>{item.label}</h4>
-              <p className="text-xs text-slate-400 mb-5 leading-relaxed">{item.desc}</p>
-              <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-                <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Master Data</p>
-                  <p className="text-sm font-black text-slate-900 tabular-nums">{item.stat}</p>
+            <div key={i} className="bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-2xl p-5 shadow-sm hover:shadow-md transition-all group flex flex-col justify-between">
+              <div>
+                <div className="flex items-start justify-between mb-4">
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-[var(--theme-${item.theme})] bg-[var(--theme-${item.theme}-light)] group-hover:scale-110 group-hover:-rotate-6 transition-all duration-300`}>
+                    <item.icon size={24} />
+                  </div>
+                  <span className="text-[9px] font-bold text-[var(--theme-text-muted)] bg-[var(--theme-surface-hover)] border border-[var(--theme-border-muted)] px-2.5 py-1 rounded-lg uppercase tracking-wider">Laporan</span>
                 </div>
-                <button onClick={item.handler} className="w-10 h-10 rounded-xl bg-[#171717] text-white flex items-center justify-center hover:bg-primary transition-colors active:scale-95"><Download size={15} /></button>
+                <h4 className="text-base font-bold text-[var(--theme-text)] leading-tight mb-1">{item.label}</h4>
+                <p className="text-xs text-[var(--theme-text-subtle)] font-medium leading-relaxed mb-5">{item.desc}</p>
+              </div>
+              <div className="flex items-center justify-between pt-4 border-t border-[var(--theme-border-muted)] mt-auto">
+                <div>
+                  <p className="text-[9px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest mb-0.5">Master Data</p>
+                  <p className="text-sm font-extrabold text-[var(--theme-text)] tabular-nums">{item.stat}</p>
+                </div>
+                <button onClick={item.handler} className="w-10 h-10 rounded-xl bg-[var(--theme-surface-hover)] text-[var(--theme-text)] border border-[var(--theme-border)] flex items-center justify-center hover:bg-[var(--theme-primary)] hover:text-white hover:border-[var(--theme-primary)] transition-all active:scale-95 group-hover:shadow-md">
+                  <Download size={16} />
+                </button>
               </div>
             </div>
           ))}
         </div>
 
         {/* Per-Prodi Table */}
-        <Card className="glass-card shadow-sm rounded-xl overflow-hidden mt-6 mb-6">
-          <div className="px-6 py-5 border-b border-[var(--theme-border)] flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-[var(--theme-surface)]">
-            <div className="flex-1">
-              <h2 className="font-headline font-bold text-lg text-[var(--theme-text)]">Rekap Per Program Studi</h2>
-              <p className="text-xs text-[var(--theme-text-muted)] mt-1 font-medium">Data akademik terbaru tiap prodi</p>
-            </div>
+        <div className="bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-2xl shadow-sm overflow-hidden mb-8">
+          <div className="px-5 py-4 border-b border-[var(--theme-border-muted)] bg-[var(--theme-bg)]/30">
+            <h2 className="font-bold text-sm text-[var(--theme-text)] leading-tight">Rekap Per Program Studi</h2>
+            <p className="text-[11px] font-medium text-[var(--theme-text-muted)] mt-0.5">Data akademik terbaru tiap prodi</p>
           </div>
-          <CardContent className="p-0">
+          <div className="bg-white">
             <DataTable
-              columns={prodiColumns}
               data={data.perProdi || []}
+              columns={prodiColumns}
+              searchable={false}
               loading={loading}
-              searchPlaceholder="Cari program studi..."
-              itemLabel="program studi"
+              pagination={false}
             />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
     </PageContent>
   )
 }

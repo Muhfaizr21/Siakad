@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { DataTable } from '@/components/ui/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
+import { DialogModal, ModalCancelButton, ModalSaveButton } from '@/components/ui/DialogModal'
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
 import { Card, CardContent } from '@/components/ui/Card'
 import { PrimaryStatsCard, SecondaryStatsCard } from '@/components/ui/StatsCard'
@@ -703,64 +703,51 @@ export default function KelolaFakultas() {
         </CardContent>
       </Card>
 
-      <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader className="relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-[0.03] text-[var(--theme-primary)]"><Building2 size={120} /></div>
-            <div className="relative z-10 space-y-1">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="size-6 rounded bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)]">
-                  {isEditMode ? <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >edit</span> : <span className="material-symbols-outlined" style={{ fontSize: '12px' }} strokeWidth={3}>add</span>}
-                </div>
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--theme-primary)]">Unit Configuration</span>
-              </div>
-              <DialogTitle className="text-2xl font-bold font-headline tracking-tight text-[var(--theme-text)]">
-                {isEditMode ? 'Update Fakultas' : 'Registrasi Unit'}
-              </DialogTitle>
-              <DialogDescription className="text-sm font-medium text-[var(--theme-text-muted)]">Modifikasi identitas dan pimpinan unit fakultas.</DialogDescription>
+      <DialogModal
+        open={isCrudOpen}
+        onOpenChange={setIsCrudOpen}
+        icon={isEditMode ? "edit" : "add"}
+        subtitle="Unit Configuration"
+        title={isEditMode ? 'Update Fakultas' : 'Registrasi Unit'}
+        maxWidth="max-w-lg"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setIsCrudOpen(false)} />
+            <ModalSaveButton onClick={handleSave} loading={isSubmitting}>
+              {isEditMode ? 'Update' : 'Simpan Perubahan'}
+            </ModalSaveButton>
+          </>
+        }
+      >
+        <form id="fakultas-form" onSubmit={handleSave} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider ml-1">Nama Lengkap Fakultas</Label>
+              <Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Fakultas..." className="h-10 rounded-xl border-[var(--theme-border)] bg-white text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] text-sm font-body" />
             </div>
-          </DialogHeader>
-
-          <form onSubmit={handleSave}>
-            <div className="p-6 md:p-8 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider ml-1">Nama Lengkap Fakultas</Label>
-                  <Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Fakultas..." className="h-10 rounded-xl border-[var(--theme-border)] bg-white text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] text-sm font-body" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider ml-1">Kode Unit</Label>
-                  <Input required value={form.Kode} onChange={e => setForm({ ...form, Kode: e.target.value })} placeholder="Ex: FSK" className="h-10 rounded-xl border-[var(--theme-border)] bg-white text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] text-sm font-body uppercase" />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider ml-1">Pimpinan Unit (Dekan)</Label>
-                <Input value={form.Dekan} onChange={e => setForm({ ...form, Dekan: e.target.value })} placeholder="Lengkap dengan gelar akademik..." className="h-10 rounded-xl border-[var(--theme-border)] bg-white text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] text-sm font-body" />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider ml-1">Email Korespondensi</Label>
-                  <Input type="email" value={form.Email} onChange={e => setForm({ ...form, Email: e.target.value })} placeholder="fakultas@bku.ac.id" className="h-10 rounded-xl border-[var(--theme-border)] bg-white text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] text-sm font-body" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider ml-1">Hotline / Telepon</Label>
-                  <Input value={form.NoHP} onChange={e => setForm({ ...form, NoHP: e.target.value.replace(/\D/g, '') })} placeholder="08..." className="h-10 rounded-xl border-[var(--theme-border)] bg-white text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] text-sm font-body" />
-                </div>
-              </div>
+            <div className="space-y-1.5">
+              <Label className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider ml-1">Kode Unit</Label>
+              <Input required value={form.Kode} onChange={e => setForm({ ...form, Kode: e.target.value })} placeholder="Ex: FSK" className="h-10 rounded-xl border-[var(--theme-border)] bg-white text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] text-sm font-body uppercase" />
             </div>
+          </div>
 
-            <DialogFooter>
-              <button type="button" onClick={() => setIsCrudOpen(false)} className="flex-1 h-10 rounded-xl border border-[var(--theme-border)] text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg)] transition-colors">Batal</button>
-              <button type="submit" disabled={isSubmitting} className="flex-[2] h-10 rounded-xl bg-[var(--theme-primary)] text-white hover:bg-[var(--theme-primary-hover)] shadow-md transition-all active:scale-95 border-none flex items-center justify-center gap-2">
-                {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >save</span>}
-                <span className="text-xs font-semibold uppercase tracking-wider">Simpan Perubahan</span>
-              </button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+          <div className="space-y-1.5">
+            <Label className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider ml-1">Pimpinan Unit (Dekan)</Label>
+            <Input value={form.Dekan} onChange={e => setForm({ ...form, Dekan: e.target.value })} placeholder="Lengkap dengan gelar akademik..." className="h-10 rounded-xl border-[var(--theme-border)] bg-white text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] text-sm font-body" />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider ml-1">Email Korespondensi</Label>
+              <Input type="email" value={form.Email} onChange={e => setForm({ ...form, Email: e.target.value })} placeholder="fakultas@bku.ac.id" className="h-10 rounded-xl border-[var(--theme-border)] bg-white text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] text-sm font-body" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider ml-1">Hotline / Telepon</Label>
+              <Input value={form.NoHP} onChange={e => setForm({ ...form, NoHP: e.target.value.replace(/\D/g, '') })} placeholder="08..." className="h-10 rounded-xl border-[var(--theme-border)] bg-white text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] text-sm font-body" />
+            </div>
+          </div>
+        </form>
+      </DialogModal>
 
       <DeleteConfirmModal
         isOpen={isDelOpen}
@@ -771,123 +758,83 @@ export default function KelolaFakultas() {
         loading={isSubmitting}
       />
 
-      <Dialog open={isFacultyDetailsOpen} onOpenChange={setIsFacultyDetailsOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader className="relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-[0.03] text-[var(--theme-primary)]"><span className="material-symbols-outlined" style={{ fontSize: '120px' }}>school</span></div>
-            <div className="relative z-10 space-y-1">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="h-4 w-1 bg-[var(--theme-primary)] rounded-full" />
-                <span className="text-[10px] font-semibold text-[var(--theme-primary)] uppercase tracking-wider">Fakultas {selectedFacultyDetails?.Kode || selectedFacultyDetails?.kode || ''}</span>
-              </div>
-              <DialogTitle className="text-xl font-bold font-headline tracking-tight text-[var(--theme-text)]">
-                {selectedFacultyDetails?.Nama || selectedFacultyDetails?.nama || 'Detail Fakultas'}
-              </DialogTitle>
-              <DialogDescription className="text-xs font-semibold text-[var(--theme-text-muted)] italic">
-                Daftar Program Studi di bawah naungan Fakultas ini.
-              </DialogDescription>
-            </div>
-          </DialogHeader>
-
-          <div className="p-6 md:p-8 max-h-[50vh] overflow-y-auto space-y-4">
-            {selectedFacultyDetails?.ProgramStudi?.length > 0 || selectedFacultyDetails?.program_studi?.length > 0 ? (
-              <div className="bg-white rounded-xl shadow-sm border border-[var(--theme-border)] overflow-hidden">
-                <DataTable
-                  data={selectedFacultyDetails?.ProgramStudi || selectedFacultyDetails?.program_studi || []}
-                  columns={prodiModalColumns}
-                  searchable={true}
-                  searchPlaceholder="Cari program studi..."
-                  loading={loading}
-                />
-              </div>
-            ) : (
-              <div className="py-12 text-center flex flex-col items-center gap-3">
-                <div className="w-12 h-12 bg-[var(--theme-bg)] rounded-2xl flex items-center justify-center text-[var(--theme-text-subtle)] border border-[var(--theme-border)] animate-pulse">
-                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>info</span>
-                </div>
-                <p className="font-semibold text-sm text-[var(--theme-text)]">Belum Ada Program Studi</p>
-                <p className="text-xs text-[var(--theme-text-muted)]">Fakultas ini belum menaungi program studi apa pun saat ini.</p>
-              </div>
-            )}
-          </div>
-
-          <DialogFooter>
-            <button onClick={() => setIsFacultyDetailsOpen(false)} className="h-10 px-6 rounded-xl bg-[var(--theme-primary)] text-white text-xs font-semibold uppercase tracking-wider hover:bg-[var(--theme-primary-hover)] transition-all active:scale-95">Tutup</button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isAllFacultiesOpen} onOpenChange={setIsAllFacultiesOpen}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader className="relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-[0.03] text-[var(--theme-primary)]"><span className="material-symbols-outlined" style={{ fontSize: '120px' }}>business</span></div>
-            <div className="relative z-10 space-y-1">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="h-4 w-1 bg-[var(--theme-primary)] rounded-full" />
-                <span className="text-[10px] font-semibold text-[var(--theme-primary)] uppercase tracking-wider">Daftar Unit Kerja</span>
-              </div>
-              <DialogTitle className="text-xl font-bold font-headline tracking-tight text-[var(--theme-text)]">
-                Seluruh Fakultas Universitas Bhakti Kencana
-              </DialogTitle>
-              <DialogDescription className="text-xs font-semibold text-[var(--theme-text-muted)] italic">
-                Daftar semua fakultas yang terdaftar dalam sistem akademik.
-              </DialogDescription>
-            </div>
-          </DialogHeader>
-
-          <div className="p-6 md:p-8 max-h-[50vh] overflow-y-auto space-y-4">
+      <DialogModal
+        open={isFacultyDetailsOpen}
+        onOpenChange={setIsFacultyDetailsOpen}
+        icon="school"
+        subtitle={`Fakultas ${selectedFacultyDetails?.Kode || selectedFacultyDetails?.kode || ''}`}
+        title={selectedFacultyDetails?.Nama || selectedFacultyDetails?.nama || 'Detail Fakultas'}
+        maxWidth="max-w-3xl"
+        footer={
+          <ModalCancelButton onClick={() => setIsFacultyDetailsOpen(false)}>Tutup</ModalCancelButton>
+        }
+      >
+        <div className="space-y-4">
+          {selectedFacultyDetails?.ProgramStudi?.length > 0 || selectedFacultyDetails?.program_studi?.length > 0 ? (
             <div className="bg-white rounded-xl shadow-sm border border-[var(--theme-border)] overflow-hidden">
               <DataTable
-                data={data}
-                columns={allFacultiesColumns}
+                data={selectedFacultyDetails?.ProgramStudi || selectedFacultyDetails?.program_studi || []}
+                columns={prodiModalColumns}
                 searchable={true}
-                searchPlaceholder="Cari unit kerja / fakultas..."
+                searchPlaceholder="Cari program studi..."
                 loading={loading}
               />
             </div>
-          </div>
-
-          <DialogFooter>
-            <button onClick={() => setIsAllFacultiesOpen(false)} className="h-10 px-6 rounded-xl bg-[var(--theme-primary)] text-white text-xs font-semibold uppercase tracking-wider hover:bg-[var(--theme-primary-hover)] transition-all active:scale-95">Tutup</button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isAllProdiOpen} onOpenChange={setIsAllProdiOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader className="relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-[0.03] text-[var(--theme-primary)]"><span className="material-symbols-outlined" style={{ fontSize: '120px' }}>grid_view</span></div>
-            <div className="relative z-10 space-y-1">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="h-4 w-1 bg-[var(--theme-primary)] rounded-full" />
-                <span className="text-[10px] font-semibold text-[var(--theme-primary)] uppercase tracking-wider">Daftar Program Studi</span>
+          ) : (
+            <div className="py-12 text-center flex flex-col items-center gap-3">
+              <div className="w-12 h-12 bg-[var(--theme-bg)] rounded-2xl flex items-center justify-center text-[var(--theme-text-subtle)] border border-[var(--theme-border)] animate-pulse">
+                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>info</span>
               </div>
-              <DialogTitle className="text-xl font-bold font-headline tracking-tight text-[var(--theme-text)]">
-                Seluruh Program Studi Universitas Bhakti Kencana
-              </DialogTitle>
-              <DialogDescription className="text-xs font-semibold text-[var(--theme-text-muted)] italic">
-                Daftar lengkap program studi lintas fakultas dalam satu tampilan.
-              </DialogDescription>
+              <p className="font-semibold text-sm text-[var(--theme-text)]">Belum Ada Program Studi</p>
+              <p className="text-xs text-[var(--theme-text-muted)]">Fakultas ini belum menaungi program studi apa pun saat ini.</p>
             </div>
-          </DialogHeader>
+          )}
+        </div>
+      </DialogModal>
 
-          <div className="p-6 md:p-8 max-h-[50vh] overflow-y-auto space-y-4">
-            <div className="bg-white rounded-xl shadow-sm border border-[var(--theme-border)] overflow-hidden">
-              <DataTable
-                data={flattenedProdiData}
-                columns={allProdiColumns}
-                searchable={true}
-                searchPlaceholder="Cari program studi atau prodi..."
-                loading={loading}
-              />
-            </div>
-          </div>
+      <DialogModal
+        open={isAllFacultiesOpen}
+        onOpenChange={setIsAllFacultiesOpen}
+        icon="business"
+        subtitle="Daftar Unit Kerja"
+        title="Seluruh Fakultas Universitas Bhakti Kencana"
+        maxWidth="max-w-4xl"
+        footer={
+          <ModalCancelButton onClick={() => setIsAllFacultiesOpen(false)}>Tutup</ModalCancelButton>
+        }
+      >
+        <div className="bg-white rounded-xl shadow-sm border border-[var(--theme-border)] overflow-hidden">
+          <DataTable
+            data={data}
+            columns={allFacultiesColumns}
+            searchable={true}
+            searchPlaceholder="Cari unit kerja / fakultas..."
+            loading={loading}
+          />
+        </div>
+      </DialogModal>
 
-          <DialogFooter>
-            <button onClick={() => setIsAllProdiOpen(false)} className="h-10 px-6 rounded-xl bg-[var(--theme-primary)] text-white text-xs font-semibold uppercase tracking-wider hover:bg-[var(--theme-primary-hover)] transition-all active:scale-95">Tutup</button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DialogModal
+        open={isAllProdiOpen}
+        onOpenChange={setIsAllProdiOpen}
+        icon="grid_view"
+        subtitle="Daftar Program Studi"
+        title="Seluruh Program Studi Universitas Bhakti Kencana"
+        maxWidth="max-w-3xl"
+        footer={
+          <ModalCancelButton onClick={() => setIsAllProdiOpen(false)}>Tutup</ModalCancelButton>
+        }
+      >
+        <div className="bg-white rounded-xl shadow-sm border border-[var(--theme-border)] overflow-hidden">
+          <DataTable
+            data={flattenedProdiData}
+            columns={allProdiColumns}
+            searchable={true}
+            searchPlaceholder="Cari program studi atau prodi..."
+            loading={loading}
+          />
+        </div>
+      </DialogModal>
     </PageContent>
   )
 }

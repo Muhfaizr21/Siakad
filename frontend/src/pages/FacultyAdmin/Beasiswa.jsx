@@ -12,7 +12,7 @@ import { PrimaryStatsCard } from '@/components/ui/StatsCard'
 import DataTable from '@/components/ui/DataTable'
 import { PageContent } from '@/components/ui/page'
 import { DashboardHero } from '@/components/ui/dashboard'
-import Dialog, { DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/Dialog"
+import { DialogModal, ModalCancelButton } from "@/components/ui/DialogModal"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Download = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>download</span>;
@@ -820,22 +820,22 @@ export default function FacultyScholarship() {
       {previewApp && (() => {
         const st = getAppStatus(previewApp.Status);
         return (
-          <Dialog open={!!previewApp} onOpenChange={(open) => !open && setPreviewApp(null)} maxWidth="max-w-md">
-            <DialogContent className="max-w-md p-0 overflow-hidden border border-[var(--theme-border)] shadow-2xl rounded-2xl bg-[var(--theme-surface)] flex flex-col max-h-[90vh]">
-              {/* Header */}
-              <DialogHeader className="shrink-0 relative bg-[var(--theme-bg)]/50 p-6 pb-5 border-b border-[var(--theme-border-muted)]">
-                <div className="relative z-10 flex items-center gap-4">
-                  <StudentAvatar src={previewApp.Mahasiswa?.Foto} name={previewApp.Mahasiswa?.Nama} className="w-14 h-14 rounded-2xl shadow-inner ring-2 ring-[var(--theme-border)]" />
-                  <div className="min-w-0">
-                    <p className="text-[9px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-[0.25em] mb-1">Detail Pendaftaran</p>
-                    <DialogTitle className="text-base font-bold font-headline leading-tight truncate text-[var(--theme-text)]">{previewApp.Mahasiswa?.Nama}</DialogTitle>
-                    <DialogDescription className="text-xs text-[var(--theme-text-muted)] mt-0.5">{previewApp.Mahasiswa?.NIM}</DialogDescription>
-                  </div>
-                </div>
-              </DialogHeader>
-
-              {/* Content */}
-              <div className="p-6 space-y-4 overflow-y-auto flex-1 font-inter">
+          <DialogModal
+            open={!!previewApp}
+            onOpenChange={(open) => !open && setPreviewApp(null)}
+            icon="description"
+            title={previewApp.Mahasiswa?.Nama}
+            subtitle={previewApp.Mahasiswa?.NIM}
+            badgeText="Detail Pendaftaran"
+            maxWidth="max-w-md"
+            footer={
+              <button onClick={() => setPreviewApp(null)}
+                className="w-full h-10 px-6 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-xs font-semibold text-white uppercase tracking-wider transition-all active:scale-95 shadow-md cursor-pointer">
+                Tutup Detail
+              </button>
+            }
+          >
+            <div className="space-y-4 overflow-y-auto flex-1 font-inter max-h-[60vh] no-scrollbar">
                 {/* Scholarship Program */}
                 <div className="space-y-1">
                   <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">PROGRAM BEASISWA</span>
@@ -951,17 +951,8 @@ export default function FacultyScholarship() {
                     {previewApp.Catatan || 'Belum ada catatan dari reviewer.'}
                   </p>
                 </div>
-              </div>
-
-              {/* Footer */}
-              <DialogFooter className="px-5 py-4 border-t border-[var(--theme-border-muted)] bg-transparent flex justify-end gap-3 flex-shrink-0">
-                <button onClick={() => setPreviewApp(null)}
-                  className="w-full h-10 px-6 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-xs font-semibold text-white uppercase tracking-wider transition-all active:scale-95 shadow-md cursor-pointer">
-                  Tutup Detail
-                </button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+            </div>
+          </DialogModal>
         );
       })()}
 
@@ -974,21 +965,34 @@ export default function FacultyScholarship() {
         const pct = current >= capacity ? 100 : Math.min(99, Math.floor((current / capacity) * 100));
         const first5Apps = programApps.slice(0, 5);
         return (
-          <Dialog open={!!selectedProgram} onOpenChange={(open) => !open && setSelectedProgram(null)} maxWidth="max-w-md">
-            <DialogContent className="max-w-md p-0 overflow-hidden border border-[var(--theme-border)] shadow-2xl rounded-2xl bg-[var(--theme-surface)] flex flex-col max-h-[90vh]">
-              {/* Header */}
-              <DialogHeader className="shrink-0 relative bg-[var(--theme-bg)]/50 p-6 pb-5 border-b border-[var(--theme-border-muted)]">
-                <div className="flex items-center gap-3">
-                  <div className="min-w-0">
-                    <p className="text-[9px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-[0.25em] mb-1">Detail Program Beasiswa</p>
-                    <DialogTitle className="text-base font-bold font-headline leading-tight text-[var(--theme-text)]">{selectedProgram.Nama}</DialogTitle>
-                    <DialogDescription className="text-xs text-[var(--theme-text-muted)] mt-0.5">{selectedProgram.Penyelenggara}</DialogDescription>
-                  </div>
-                </div>
-              </DialogHeader>
-
-              {/* Content */}
-              <div className="p-6 space-y-4 overflow-y-auto flex-1 font-inter">
+          <DialogModal
+            open={!!selectedProgram}
+            onOpenChange={(open) => !open && setSelectedProgram(null)}
+            icon="school"
+            title={selectedProgram.Nama}
+            subtitle={selectedProgram.Penyelenggara}
+            badgeText="Detail Program Beasiswa"
+            maxWidth="max-w-md"
+            footer={
+              <>
+                <button onClick={() => setSelectedProgram(null)}
+                  className="flex-1 h-10 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] text-xs font-semibold text-[var(--theme-text)] uppercase tracking-wider hover:bg-[var(--theme-bg)] transition-all cursor-pointer">
+                  Tutup
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedScholarshipFilter(selectedProgram.Nama);
+                    setActiveTab('applications');
+                    setSelectedProgram(null);
+                  }}
+                  className="flex-1 h-10 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-xs font-semibold text-white uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 cursor-pointer">
+                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>visibility</span>
+                  Lihat Selengkapnya
+                </button>
+              </>
+            }
+          >
+            <div className="space-y-4 overflow-y-auto flex-1 font-inter max-h-[60vh] no-scrollbar">
                 {/* Deskripsi */}
                 {selectedProgram.Deskripsi && (
                   <div className="space-y-1">
@@ -1144,27 +1148,8 @@ export default function FacultyScholarship() {
                     </div>
                   )}
                 </div>
-              </div>
-
-              {/* Footer */}
-              <DialogFooter className="px-5 py-4 border-t border-[var(--theme-border-muted)] bg-transparent flex gap-3 flex-shrink-0 sm:flex-row sm:justify-stretch sm:space-x-0">
-                <button onClick={() => setSelectedProgram(null)}
-                  className="flex-1 h-10 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] text-xs font-semibold text-[var(--theme-text)] uppercase tracking-wider hover:bg-[var(--theme-bg)] transition-all cursor-pointer">
-                  Tutup
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectedScholarshipFilter(selectedProgram.Nama);
-                    setActiveTab('applications');
-                    setSelectedProgram(null);
-                  }}
-                  className="flex-1 h-10 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-xs font-semibold text-white uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 cursor-pointer">
-                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>visibility</span>
-                  Lihat Selengkapnya
-                </button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+            </div>
+          </DialogModal>
         );
       })()}
     </PageContent>

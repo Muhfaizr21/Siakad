@@ -125,7 +125,7 @@ export const ManageMaterialsModal = ({ open, onOpenChange, sessionId }) => {
       onOpenChange={onOpenChange}
       title={view === 'list' ? `Kelola Materi: ${session?.title || '...'}` : editingMaterial ? 'Edit Materi' : 'Tambah Materi Baru'}
       description={view === 'list' ? 'Kelola semua materi bacaan, video, atau file presentasi untuk sesi ini.' : 'Isi form sesuai jenis materi. Teks dan link bisa digabung dengan file jika diperlukan.'}
-      maxWidth="max-w-4xl"
+      maxWidth="max-w-2xl"
     >
       <div className="p-6 md:p-8 max-h-[70vh] overflow-y-auto">
         {isLoading ? (

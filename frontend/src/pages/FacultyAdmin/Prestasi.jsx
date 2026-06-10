@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/Button"
 import { PageContent } from '@/components/ui/page'
 import { DashboardHero } from '@/components/ui/dashboard'
 import { Badge } from "@/components/ui/Badge"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/Dialog"
+import { DialogModal, ModalCancelButton, ModalSaveButton } from "@/components/ui/DialogModal"
 import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import { PrimaryStatsCard } from '@/components/ui/StatsCard'
 import DataTable from '@/components/ui/DataTable'
@@ -802,32 +802,39 @@ export default function FacultyPrestasi() {
       </div>
 
       {/* Detail Modal */}
-      <Dialog open={!!selected && !isVerifyOpen} onOpenChange={(open) => !open && setSelected(null)} maxWidth="max-w-lg">
-        <DialogContent className="max-w-lg p-0 overflow-hidden border border-border shadow-2xl rounded-2xl bg-surface animate-in zoom-in-95 duration-200">
-          <DialogHeader className="p-8 pb-5 bg-slate-50/50 border-b border-border relative">
-            <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-              <span className="material-symbols-outlined size-24 rotate-12 text-slate-800">emoji_events</span>
-            </div>
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-1.5">
-                <div className="size-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600">
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>emoji_events</span>
-                </div>
-                <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-slate-200 text-slate-700 border-none rounded-md">
-                  {selected?.Tipe === 'Pengajuan Dana' ? 'DANA LOMBA' : 'PRESTASI MAHASISWA'}
-                </Badge>
-              </div>
-              <DialogTitle className="text-lg md:text-xl font-black font-headline tracking-tighter text-slate-900 line-clamp-2">
-                {selected?.NamaKegiatan}
-              </DialogTitle>
-              <DialogDescription className="text-[11px] font-semibold text-slate-400 mt-0.5">
-                {selected?.Mahasiswa?.Nama} · {selected?.Mahasiswa?.NIM}
-              </DialogDescription>
-            </div>
-          </DialogHeader>
-
-          {/* Body */}
-          <div className="p-8 pt-5 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar">
+      <DialogModal
+        open={!!selected && !isVerifyOpen}
+        onOpenChange={(open) => !open && setSelected(null)}
+        icon="emoji_events"
+        title={selected?.NamaKegiatan}
+        subtitle={`${selected?.Mahasiswa?.Nama || ''} · ${selected?.Mahasiswa?.NIM || ''}`}
+        badgeText={selected?.Tipe === 'Pengajuan Dana' ? 'DANA LOMBA' : 'PRESTASI MAHASISWA'}
+        maxWidth="max-w-lg"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setSelected(null)}>Tutup</ModalCancelButton>
+            {selected && (selected.Status || '').toLowerCase() === 'menunggu' && (
+              <>
+                <Button onClick={() => handleOpenVerify(selected, 'rejected')} disabled={isSubmitting} variant="outline"
+                  className="w-full md:w-auto h-11 px-8 rounded-xl border-rose-200 text-rose-600 hover:bg-rose-50 text-[10px] font-black tracking-widest uppercase cursor-pointer">
+                  Tolak
+                </Button>
+                <Button onClick={() => handleOpenVerify(selected, 'verified')} disabled={isSubmitting}
+                  className="w-full md:w-auto h-11 px-8 rounded-xl bg-primary hover:bg-primary/95 text-white text-[10px] font-black tracking-widest uppercase cursor-pointer">
+                  Validasi
+                </Button>
+              </>
+            )}
+            {selected && ['diverifikasi', 'valid', 'disetujui', 'verified'].includes((selected.Status || '').toLowerCase()) && !selected.SimkatmawaId && (
+              <Button onClick={(e) => handleSyncSimkatmawa(e, selected.ID || selected.id)} disabled={isSubmitting}
+                className="w-full md:w-auto h-11 px-8 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black tracking-widest uppercase cursor-pointer flex items-center justify-center gap-2 border-none">
+                <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>sync</span> Kirim ke SIMKATMAWA
+              </Button>
+            )}
+          </>
+        }
+      >
+        <div className="space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar">
             {selected && (
               <>
                 {/* Status Badges */}
@@ -949,71 +956,30 @@ export default function FacultyPrestasi() {
                 </div>
               </>
             )}
-          </div>
-
-          {/* Footer */}
-          <DialogFooter className="flex flex-col md:flex-row items-center justify-end gap-3 p-8 pt-4 border-t border-slate-100 bg-slate-50/30">
-            <Button onClick={() => setSelected(null)} variant="ghost"
-              className="w-full md:w-auto text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-11 rounded-xl active:scale-95 transition-all shadow-none border-none cursor-pointer font-headline uppercase">
-              Tutup
-            </Button>
-            {selected && (selected.Status || '').toLowerCase() === 'menunggu' && (
-              <>
-                <Button onClick={() => handleOpenVerify(selected, 'rejected')} disabled={isSubmitting} variant="outline"
-                  className="w-full md:w-auto h-11 px-8 rounded-xl border-rose-200 text-rose-600 hover:bg-rose-50 text-[10px] font-black tracking-widest uppercase cursor-pointer">
-                  Tolak
-                </Button>
-                <Button onClick={() => handleOpenVerify(selected, 'verified')} disabled={isSubmitting}
-                  className="w-full md:w-auto h-11 px-8 rounded-xl bg-primary hover:bg-primary/95 text-white text-[10px] font-black tracking-widest uppercase cursor-pointer">
-                  Validasi
-                </Button>
-              </>
-            )}
-            {selected && ['diverifikasi', 'valid', 'disetujui', 'verified'].includes((selected.Status || '').toLowerCase()) && !selected.SimkatmawaId && (
-              <Button onClick={(e) => handleSyncSimkatmawa(e, selected.ID || selected.id)} disabled={isSubmitting}
-                className="w-full md:w-auto h-11 px-8 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black tracking-widest uppercase cursor-pointer flex items-center justify-center gap-2 border-none">
-                <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>sync</span> Kirim ke SIMKATMAWA
-              </Button>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </DialogModal>
 
       {/* Verification Action Dialog */}
-      <Dialog open={isVerifyOpen && !!selected} onOpenChange={setIsVerifyOpen} maxWidth="max-w-md">
-        <DialogContent className="max-w-md p-0 overflow-hidden border border-border shadow-2xl rounded-2xl bg-surface animate-in zoom-in-95 duration-200">
-          <DialogHeader className="p-8 pb-5 bg-slate-50/50 border-b border-border relative">
-            <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-              <span className="material-symbols-outlined size-24 rotate-12 text-slate-800">
-                {verifyStatus === "verified" ? "check_circle" : "cancel"}
-              </span>
-            </div>
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-1.5">
-                <div className={cn("size-8 rounded-xl flex items-center justify-center",
-                  verifyStatus === "verified" ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
-                )}>
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
-                    {verifyStatus === "verified" ? "check_circle" : "close"}
-                  </span>
-                </div>
-                <Badge className={cn("text-[9px] font-black tracking-widest px-2.5 py-0.5 border-none rounded-md",
-                  verifyStatus === "verified" ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
-                )}>
-                  {verifyStatus === "verified" ? "APPROVE" : "REJECT"}
-                </Badge>
-              </div>
-              <DialogTitle className="text-lg md:text-xl font-black font-headline tracking-tighter text-slate-900">
-                {verifyStatus === "verified" ? "Setujui Pengajuan" : "Tolak Pengajuan"}
-              </DialogTitle>
-              <DialogDescription className="text-[11px] font-semibold text-slate-400 mt-0.5">
-                Tuliskan catatan verifikasi hasil peninjauan berkas mahasiswa.
-              </DialogDescription>
-            </div>
-          </DialogHeader>
-
-          <form onSubmit={handleVerifySubmit} className="flex flex-col">
-            <div className="p-8 pt-5 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar">
+      <DialogModal
+        open={isVerifyOpen && !!selected}
+        onOpenChange={setIsVerifyOpen}
+        icon={verifyStatus === "verified" ? "check_circle" : "close"}
+        iconTheme={verifyStatus === "verified" ? "success" : "error"}
+        badgeText={verifyStatus === "verified" ? "APPROVE" : "REJECT"}
+        title={verifyStatus === "verified" ? "Setujui Pengajuan" : "Tolak Pengajuan"}
+        subtitle="Tuliskan catatan verifikasi hasil peninjauan berkas mahasiswa."
+        maxWidth="max-w-md"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setIsVerifyOpen(false)}>Batal</ModalCancelButton>
+            <ModalSaveButton type="submit" form="verifyForm" isSubmitting={isSubmitting} variant={verifyStatus === "verified" ? "success" : "danger"}>
+              {verifyStatus === "verified" ? "Validasi" : "Tolak"}
+            </ModalSaveButton>
+          </>
+        }
+      >
+        <form id="verifyForm" onSubmit={handleVerifySubmit} className="flex flex-col">
+          <div className="space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar">
               <div className="space-y-4">
                 <div className="flex flex-col gap-1.5 text-left">
                   <label className="text-[10px] font-semibold text-[var(--theme-text-muted)] tracking-[0.2em] ml-1 uppercase font-headline">Catatan Verifikator</label>
@@ -1055,37 +1021,9 @@ export default function FacultyPrestasi() {
                   )
                 ))}
               </div>
-            </div>
-
-            <DialogFooter className="flex flex-col md:flex-row items-center justify-end gap-3">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setIsVerifyOpen(false)}
-                className="w-full md:w-auto text-xs font-semibold px-6 h-10 rounded-xl active:scale-95 transition-all text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] border-none cursor-pointer uppercase tracking-wider"
-              >
-                Batal
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className={cn("w-full md:w-auto h-10 px-6 rounded-xl text-white transition-all active:scale-95 flex items-center justify-center gap-2 border-none cursor-pointer text-xs font-semibold uppercase",
-                  verifyStatus === "verified" ? "bg-[var(--theme-success)] hover:bg-[var(--theme-success)]/90" : "bg-[var(--theme-error)] hover:bg-[var(--theme-error)]/90"
-                )}
-              >
-                {isSubmitting ? (
-                  <span className="material-symbols-outlined animate-spin size-4" style={{ fontSize: '15px' }}>sync</span>
-                ) : (
-                  <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>save</span>
-                )}
-                <span>
-                  {verifyStatus === "verified" ? "Validasi" : "Tolak"}
-                </span>
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+          </div>
+        </form>
+      </DialogModal>
     </PageContent>
   )
 }

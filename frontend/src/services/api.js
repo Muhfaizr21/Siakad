@@ -777,6 +777,14 @@ export const adminService = {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
   }),
+  createGamifikasiRule: (data) => fetchWithAuth(`${API_BASE_URL}/admin/ormawa/gamifikasi/rules`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  deleteGamifikasiRule: (id) => fetchWithAuth(`${API_BASE_URL}/admin/ormawa/gamifikasi/rules/${id}`, {
+    method: 'DELETE'
+  }),
   getAdminLpjs: () => fetchWithAuth(`${API_BASE_URL}/admin/ormawa/lpjs`),
   reviewAdminLpj: (id, action, catatan) => fetchWithAuth(`${API_BASE_URL}/admin/ormawa/lpjs/${id}/review`, {
     method: 'PUT',

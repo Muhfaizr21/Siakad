@@ -126,8 +126,8 @@ export const ManageAssignmentsModal = ({ open, onOpenChange, sessionId }) => {
       open={open}
       onOpenChange={onOpenChange}
       title={view === 'list' ? `Kelola Tugas: ${session?.title || '...'}` : editingAssignment ? 'Edit Tugas' : 'Tambah Tugas Baru'}
-      description={view === 'list' ? 'Daftar semua tugas proyek atau individu untuk peserta.' : 'Tulis instruksi, tipe pengumpulan, jadwal buka, dan tenggat tugas.'}
-      maxWidth="max-w-4xl"
+      description={view === 'list' ? 'Kelola daftar tugas untuk sesi ini.' : 'Tentukan detail dan batas waktu pengumpulan tugas.'}
+      maxWidth="max-w-2xl"
     >
       <div className="p-6 md:p-8 max-h-[70vh] overflow-y-auto">
         {isLoading ? (

@@ -17,7 +17,7 @@ import { cn } from '@/lib/utils'
 import { adminService } from '../../services/api'
 import { PageContent, PageCard, PageCardHeader } from '@/components/ui/page'
 import { DashboardHero, DashboardStatGrid, DashboardStatCard } from '@/components/ui/dashboard'
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area, RadarChart, PolarGrid, PolarAngleAxis, Radar, RadialBarChart, RadialBar } from "recharts"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Building = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>business</span>;
@@ -126,12 +126,14 @@ export default function KelolaOrganisasi() {
       };
     });
   };
+  const [proposals, setProposals] = useState([])
   const fetchData = async () => {
     setLoading(true)
     try {
-      const [res, lpjRes] = await Promise.all([
+      const [res, lpjRes, propRes] = await Promise.all([
         adminService.getAllOrmawa(),
-        adminService.getAdminLpjs()
+        adminService.getAdminLpjs(),
+        adminService.getGlobalProposals()
       ])
 
       if (res.status === 'success' && res.data && res.data.length > 0) {
@@ -153,6 +155,10 @@ export default function KelolaOrganisasi() {
       if (lpjRes && lpjRes.status === 'success' && lpjRes.data && lpjRes.data.length > 0) {
         setLpjSubmissions(lpjRes.data)
       }
+
+      if (propRes && propRes.status === 'success' && propRes.data) {
+        setProposals(propRes.data)
+      }
     } catch {
       setData(enrichOrmawaData(offlineOrmawaSeed))
     } finally {
@@ -171,13 +177,13 @@ export default function KelolaOrganisasi() {
   const handleOpenEdit = (row) => {
     setIsEditMode(true)
     const getAnyId = (obj) => {
-        if (!obj) return null;
-        if (obj.id) return obj.id;
-        if (obj.ID) return obj.ID;
-        if (obj.Ormawa && obj.Ormawa.ID) return obj.Ormawa.ID;
-        if (obj.Ormawa && obj.Ormawa.id) return obj.Ormawa.id;
-        const key = Object.keys(obj).find(k => k.toLowerCase() === 'id');
-        return key ? obj[key] : null;
+      if (!obj) return null;
+      if (obj.id) return obj.id;
+      if (obj.ID) return obj.ID;
+      if (obj.Ormawa && obj.Ormawa.ID) return obj.Ormawa.ID;
+      if (obj.Ormawa && obj.Ormawa.id) return obj.Ormawa.id;
+      const key = Object.keys(obj).find(k => k.toLowerCase() === 'id');
+      return key ? obj[key] : null;
     };
     setForm({
       ID: getAnyId(row),
@@ -198,13 +204,13 @@ export default function KelolaOrganisasi() {
     setIsSubmitting(true)
     try {
       const getAnyId = (obj) => {
-          if (!obj) return null;
-          if (obj.id) return obj.id;
-          if (obj.ID) return obj.ID;
-          if (obj.Ormawa && obj.Ormawa.ID) return obj.Ormawa.ID;
-          if (obj.Ormawa && obj.Ormawa.id) return obj.Ormawa.id;
-          const key = Object.keys(obj).find(k => k.toLowerCase() === 'id');
-          return key ? obj[key] : null;
+        if (!obj) return null;
+        if (obj.id) return obj.id;
+        if (obj.ID) return obj.ID;
+        if (obj.Ormawa && obj.Ormawa.ID) return obj.Ormawa.ID;
+        if (obj.Ormawa && obj.Ormawa.id) return obj.Ormawa.id;
+        const key = Object.keys(obj).find(k => k.toLowerCase() === 'id');
+        return key ? obj[key] : null;
       };
       const targetId = getAnyId(form);
       const res = targetId ? await adminService.updateOrmawa(targetId, form) : await adminService.createOrmawa(form)
@@ -257,13 +263,13 @@ export default function KelolaOrganisasi() {
     setIsSubmitting(true)
     try {
       const getAnyId = (obj) => {
-          if (!obj) return null;
-          if (obj.id) return obj.id;
-          if (obj.ID) return obj.ID;
-          if (obj.Ormawa && obj.Ormawa.ID) return obj.Ormawa.ID;
-          if (obj.Ormawa && obj.Ormawa.id) return obj.Ormawa.id;
-          const key = Object.keys(obj).find(k => k.toLowerCase() === 'id');
-          return key ? obj[key] : null;
+        if (!obj) return null;
+        if (obj.id) return obj.id;
+        if (obj.ID) return obj.ID;
+        if (obj.Ormawa && obj.Ormawa.ID) return obj.Ormawa.ID;
+        if (obj.Ormawa && obj.Ormawa.id) return obj.Ormawa.id;
+        const key = Object.keys(obj).find(k => k.toLowerCase() === 'id');
+        return key ? obj[key] : null;
       };
       const targetId = getAnyId(selected);
       await adminService.deleteOrmawa(targetId)
@@ -357,9 +363,9 @@ export default function KelolaOrganisasi() {
     {
       key: 'Singkatan',
       label: 'Kode Unit',
-      className: 'w-[120px]',
+      className: 'w-[100px]',
       render: v => (
-        <Badge className="bg-bku-primary/5 text-bku-primary border-bku-primary/10 px-2 py-0.5 rounded-md font-black text-[10px] tracking-widest uppercase shadow-none font-jakarta">
+        <Badge className="bg-slate-100 text-slate-600 hover:bg-slate-200 border-none px-2 py-0.5 rounded text-[10px] font-bold tracking-wide shadow-none">
           {v || 'UNIT'}
         </Badge>
       )
@@ -367,31 +373,26 @@ export default function KelolaOrganisasi() {
     {
       key: 'Nama',
       label: 'Nama Organisasi Mahasiswa',
-      className: 'w-[400px]',
+      className: 'w-[380px]',
       render: (v, row) => (
-        <div className="flex flex-col gap-1 py-3 group/item">
-          <span className="font-bold text-slate-800 font-jakarta tracking-tight text-[14px] leading-tight uppercase group-hover/item:text-bku-primary transition-colors">{v || '—'}</span>
-          <div className="flex items-center flex-wrap gap-2">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{row.Singkatan || 'Unit Kegiatan'}</span>
-            <div className="size-1 rounded-full bg-slate-200" />
-            <div className="flex items-center gap-0.5 text-amber-500">
+        <div className="flex flex-col gap-1 py-2 group/item">
+          <span className="font-semibold text-slate-800 text-[13px] leading-tight group-hover/item:text-bku-primary transition-colors">{v || '—'}</span>
+          <div className="flex items-center flex-wrap gap-2 mt-0.5">
+            <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">{row.Singkatan || 'Unit Kegiatan'}</span>
+            <div className="size-1 rounded-full bg-slate-300" />
+            <div className="flex items-center gap-0.5">
               {Array.from({ length: row.bintang || 3 }).map((_, i) => (
-                <Star key={i} size={10} className="fill-amber-500 text-amber-500 border-none" />
+                <Star key={i} size={10} className="fill-amber-400 text-amber-400 border-none" />
               ))}
             </div>
-            {row.achievements?.map((ach, idx) => (
-              <React.Fragment key={idx}>
-                <div className="size-1 rounded-full bg-slate-200" />
-                <span className={cn(
-                  "text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-md leading-none border",
-                  ach === 'LPJ Champion' ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
-                    ach === 'Event Master' ? "bg-amber-50 text-amber-600 border-amber-100" :
-                      "bg-sky-50 text-sky-600 border-sky-100"
-                )}>
-                  {ach}
+            {row.achievements?.length > 0 && (
+              <>
+                <div className="size-1 rounded-full bg-slate-300" />
+                <span className="text-[9px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100 uppercase tracking-wider leading-none">
+                  {row.achievements[0]}
                 </span>
-              </React.Fragment>
-            ))}
+              </>
+            )}
           </div>
         </div>
       )
@@ -399,38 +400,40 @@ export default function KelolaOrganisasi() {
     {
       key: 'Email',
       label: 'Kontak Resmi',
-      className: 'w-[230px]',
+      className: 'w-[200px]',
       render: v => (
         <div className="flex items-center gap-2 text-slate-500">
-          <span className="material-symbols-outlined text-slate-300" style={{ fontSize: '14px' }} >mail</span>
-          <span className="text-[12px] font-medium font-inter">{v || '—'}</span>
+          <span className="material-symbols-outlined text-slate-400" style={{ fontSize: '13px' }}>mail</span>
+          <span className="text-[11px] font-medium">{v || '—'}</span>
         </div>
       )
     },
     {
       key: 'poin',
       label: 'Poin Peringkat',
-      className: 'w-[150px] text-center',
+      className: 'w-[140px] text-center',
       cellClassName: 'text-center',
       render: (v, row) => (
-        <Badge className="bg-amber-50 text-amber-700 border-amber-200 px-3 py-1 rounded-lg text-xs font-bold font-jakarta leading-none gap-1 flex items-center justify-center w-fit mx-auto shadow-none">
-          <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>emoji_events</span>
-          {row.Poin || row.poin || 0} Pts
-        </Badge>
+        <div className="flex justify-center">
+          <Badge className="bg-amber-50 text-amber-700 border border-amber-200/50 px-2.5 py-1 rounded-md text-[11px] font-bold leading-none gap-1.5 flex items-center shadow-sm">
+            <span className="material-symbols-outlined text-[13px]" style={{ fontVariationSettings: "'FILL' 1" }}>emoji_events</span>
+            {row.Poin || row.poin || 0} Pts
+          </Badge>
+        </div>
       )
     },
     {
       key: 'xp',
-      label: 'Performance XP',
-      className: 'w-[140px] text-center',
+      label: 'Performance',
+      className: 'w-[120px] text-center',
       cellClassName: 'text-center',
       render: (v, row) => (
-        <div className="flex flex-col items-center gap-1.5">
-          <div className="flex items-center gap-1.5 px-3 py-1 bg-bku-primary/5 text-bku-primary border border-bku-primary/10 rounded-xl leading-none">
-            <Zap size={11} className="fill-bku-primary text-bku-primary" />
-            <span className="text-xs font-black tabular-nums font-headline">{v || 0} XP</span>
+        <div className="flex flex-col items-center justify-center gap-1">
+          <div className="flex items-center justify-center gap-1 px-2.5 py-1 bg-slate-50 text-slate-700 border border-slate-200 rounded-md leading-none shadow-sm">
+            <Zap size={11} className="fill-slate-400 text-slate-400" />
+            <span className="text-[11px] font-bold tabular-nums">{v || 0} XP</span>
           </div>
-          <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest leading-none">LPJ: {row.lpjRate || 100}%</span>
+          <span className="text-[9px] font-semibold text-slate-400 leading-none">LPJ: {row.lpjRate || 100}%</span>
         </div>
       )
     }
@@ -450,8 +453,8 @@ export default function KelolaOrganisasi() {
           <div className={cn(
             "size-8 mx-auto rounded-full flex items-center justify-center shadow-inner border text-[16px]",
             index === 0 ? "bg-amber-50 border-amber-200" :
-            index === 1 ? "bg-slate-100 border-slate-300" :
-            "bg-orange-50 border-orange-200"
+              index === 1 ? "bg-slate-100 border-slate-300" :
+                "bg-orange-50 border-orange-200"
           )}>
             <span title={`Rank ${index + 1}`}>{rankEmblems[index]}</span>
           </div>
@@ -574,6 +577,90 @@ export default function KelolaOrganisasi() {
 
   const PIE_COLORS_ORG = ['#3b82f6', '#f59e0b', '#10b981', '#6366f1', '#ef4444']
 
+  // Proposal Stats
+  const totalProposal = proposals.length;
+  const pending = proposals.filter(p => p.Status === 'Pending' || p.Status === 'Menunggu Review').length;
+  const approvedProposal = proposals.filter(p => p.Status === 'Disetujui').length;
+  const rejectedProposal = proposals.filter(p => p.Status === 'Ditolak').length;
+  const totalBudget = proposals.reduce((acc, curr) => acc + (curr.Anggaran || 0), 0);
+
+  const formatRp = (val) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
+
+  // 1. WHAT Chart
+  const whatChartData = React.useMemo(() => {
+    const map = {};
+    proposals.forEach(p => {
+      const topic = p.Kategori || p.Topik || 'Lainnya';
+      map[topic] = (map[topic] || 0) + 1;
+    });
+    const colors = ['#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe', '#dbeafe'];
+    return Object.entries(map).map(([name, value], idx) => ({
+      name, value, color: colors[idx % colors.length]
+    })).sort((a, b) => b.value - a.value).slice(0, 5);
+  }, [proposals]);
+
+  // 2. WHY Chart
+  const whyChartData = React.useMemo(() => {
+    const map = {};
+    proposals.forEach(p => {
+      const status = p.Status || 'Unknown';
+      map[status] = (map[status] || 0) + 1;
+    });
+    const colorMap = {
+      'Disetujui': '#10b981', 'Pending': '#f59e0b', 'Ditolak': '#ef4444', 'Menunggu Review': '#f59e0b'
+    };
+    return Object.entries(map).map(([name, value], idx) => ({
+      name, value, color: colorMap[name] || '#8b5cf6'
+    })).sort((a, b) => b.value - a.value);
+  }, [proposals]);
+
+  // 3. WHO Chart
+  const whoChartData = React.useMemo(() => {
+    const map = {};
+    proposals.forEach(p => {
+      const name = (p.Ormawa?.Singkatan || p.Ormawa?.Nama || 'Unknown').substring(0, 10);
+      map[name] = (map[name] || 0) + 1;
+    });
+    const colors = ['#059669', '#10b981', '#34d399', '#6ee7b7', '#a7f3d0'];
+    return Object.entries(map).map(([name, value], idx) => ({
+      name, value, fill: colors[idx % colors.length]
+    })).sort((a, b) => b.value - a.value).slice(0, 5);
+  }, [proposals]);
+
+  // 4. WHEN Chart
+  const whenChartData = React.useMemo(() => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    const counts = Array(12).fill(0);
+    proposals.forEach(p => {
+      const d = p.TanggalAcara || p.CreatedAt || p.tanggal;
+      if (d) {
+        const date = new Date(d);
+        counts[date.getMonth()]++;
+      }
+    });
+    return months.map((name, index) => ({ name, value: counts[index] }));
+  }, [proposals]);
+
+  // 5. WHERE Chart
+  const whereChartData = React.useMemo(() => {
+    const map = {};
+    proposals.forEach(p => {
+      const name = (p.Ormawa?.Fakultas || 'Pusat').substring(0, 15);
+      map[name] = (map[name] || 0) + 1;
+    });
+    return Object.entries(map).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 6);
+  }, [proposals]);
+
+  // 6. HOW Chart
+  const howChartData = React.useMemo(() => {
+    const map = {};
+    proposals.forEach(p => {
+      const name = (p.Ormawa?.Singkatan || p.Ormawa?.Nama || 'Lainnya').substring(0, 10);
+      map[name] = (map[name] || 0) + (p.Anggaran || 0);
+    });
+    return Object.entries(map).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 5);
+  }, [proposals]);
+
   return (
     <PageContent>
       <Toaster position="top-right" />
@@ -642,82 +729,132 @@ export default function KelolaOrganisasi() {
         />
       </DashboardStatGrid>
 
-      {/* ── Charts Row (Kategori Pie + Tren Proposal Line) ────────── */}
-      {!loading && data.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Line Chart: Tren Pengajuan LPJ/Proposal Bulanan */}
-          <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm p-6 flex flex-col group">
-            <div className="relative z-10 flex-1 flex flex-col">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-blue-50/50 rounded-lg border border-blue-100 flex justify-center items-center flex-shrink-0">
-                  <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '20px' }}>show_chart</span>
+      {/* ── Analytics Charts ─────────────────────────────────────── */}
+      {!loading && proposals.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
+          {/* 1. KATEGORI ORMAWA */}
+          <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-5 hover:shadow-md transition-all relative overflow-hidden group flex flex-col">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-indigo-50 border border-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 shadow-sm">
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>pie_chart</span>
                 </div>
-                <span className="text-xs font-black text-slate-500 uppercase tracking-widest font-headline">Tren Pengajuan Proposal / LPJ Bulanan</span>
+                <h3 className="text-[13px] font-bold text-[var(--theme-text)]">Kategori Ormawa</h3>
               </div>
-              <div className="h-[210px] w-full">
-                <ResponsiveContainer width="100%" height={210}>
-                  <LineChart data={proposalTrendData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="name" tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                    <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                    <Tooltip contentStyle={{ backgroundColor: "rgba(255, 255, 255, 0.9)", backdropFilter: "blur(8px)", border: "1px solid #e2e8f0", borderRadius: "16px", boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)", fontSize: "11px", fontWeight: "bold", padding: "12px" }} />
-                    <Line type="monotone" dataKey="Pengajuan" stroke="#3b82f6" strokeWidth={4} dot={{ r: 5, strokeWidth: 3, fill: '#ffffff' }} activeDot={{ r: 7, strokeWidth: 0, fill: '#3b82f6' }} />
-                  </LineChart>
+            </div>
+            <div className="flex-1 flex items-center gap-3">
+              <div className="w-[110px]">
+                <ResponsiveContainer width="100%" height={120}>
+                  <PieChart>
+                    <Pie data={kategoriData} cx="50%" cy="50%" innerRadius={35} outerRadius={52} paddingAngle={2} dataKey="value" stroke="none">
+                      {kategoriData.map((_, index) => <Cell key={`kat-${index}`} fill={PIE_COLORS_ORG[index % PIE_COLORS_ORG.length]} />)}
+                    </Pie>
+                    <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', fontSize: '10px', fontWeight: '700' }} />
+                  </PieChart>
                 </ResponsiveContainer>
+              </div>
+              <div className="flex-1 space-y-1">
+                {kategoriData.length === 0 ? <p className="text-[10px] text-slate-400">Belum ada data</p> : kategoriData.map((d, i) => (
+                  <div key={i} className="flex items-center gap-2.5 p-1.5 rounded-lg hover:bg-slate-50 transition-colors">
+                    <div className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: PIE_COLORS_ORG[i % PIE_COLORS_ORG.length] }} />
+                    <span className="text-[10px] font-semibold text-[var(--theme-text-muted)] flex-1 truncate">{d.name}</span>
+                    <span className="text-[11px] font-bold text-[var(--theme-text)] tabular-nums">{d.value}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
 
-          {/* Pie Chart: Distribusi Kategori Ormawa */}
-          <div className="lg:col-span-1 bg-white rounded-xl border border-slate-200 shadow-sm p-6 flex flex-col group">
-            <div className="relative z-10 flex flex-col h-full">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-indigo-50/50 rounded-lg border border-indigo-100 flex justify-center items-center flex-shrink-0">
-                  <span className="material-symbols-outlined text-indigo-600" style={{ fontSize: '20px' }}>donut_large</span>
+          {/* 2. PENGAJU AKTIF (WHO) */}
+          <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-5 hover:shadow-md transition-all relative overflow-hidden group flex flex-col">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-emerald-50 border border-emerald-100 rounded-xl flex items-center justify-center text-emerald-600 shadow-sm">
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>groups</span>
                 </div>
-                <span className="text-xs font-black text-slate-500 uppercase tracking-widest font-headline">Distribusi Kategori Ormawa</span>
-              </div>
-              <div className="flex-1 flex flex-col justify-between">
-                {kategoriData.length > 0 ? (
-                  <>
-                    <ResponsiveContainer width="100%" height={150}>
-                      <PieChart>
-                        <Pie
-                          data={kategoriData}
-                          cx="50%" cy="50%"
-                          innerRadius={42} outerRadius={65}
-                          paddingAngle={6}
-                          dataKey="value"
-                          stroke="none"
-                          cornerRadius={4}
-                        >
-                          {kategoriData.map((_, index) => (
-                            <Cell key={`kat-${index}`} fill={PIE_COLORS_ORG[index % PIE_COLORS_ORG.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip contentStyle={{ backgroundColor: "rgba(255, 255, 255, 0.9)", backdropFilter: "blur(8px)", border: "1px solid #e2e8f0", borderRadius: "12px", fontSize: "11px", fontWeight: "bold", padding: "8px 12px", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)" }} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                    <div className="grid grid-cols-2 gap-2 mt-4">
-                      {kategoriData.map((item, idx) => (
-                        <div key={item.name} className="flex items-center gap-2.5 p-2 rounded-xl bg-white/60 border border-slate-100 shadow-sm transition-all hover:bg-white hover:shadow-md">
-                          <div className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: PIE_COLORS_ORG[idx % PIE_COLORS_ORG.length] }} />
-                          <div className="min-w-0">
-                            <p className="text-[10px] font-bold text-slate-400 truncate leading-none">{item.name}</p>
-                            <p className="text-sm font-extrabold text-slate-800 leading-none mt-1">{item.value} unit</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                ) : (
-                  <div className="h-[150px] flex items-center justify-center">
-                    <span className="text-sm text-slate-400 italic font-medium">Belum ada data ormawa</span>
-                  </div>
-                )}
+                <h3 className="text-[13px] font-bold text-[var(--theme-text)]">Pengaju Aktif</h3>
               </div>
             </div>
+            <div className="flex-1 flex items-center gap-3">
+              {whoChartData.length === 0 ? <p className="text-[10px] text-slate-400">Belum ada data</p> : (
+                <>
+                  <div className="w-[110px]">
+                    <ResponsiveContainer width="100%" height={120}>
+                      <RadialBarChart cx="50%" cy="50%" innerRadius="25%" outerRadius="100%" barSize={7} data={whoChartData}>
+                        <RadialBar minAngle={15} background clockWise dataKey="value" cornerRadius={10} />
+                        <Tooltip formatter={(value, name, props) => [value + ' Proposal', props.payload.name || 'Ormawa']} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', fontSize: '10px', fontWeight: '700' }} />
+                      </RadialBarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    {whoChartData.map((d, i) => (
+                      <div key={i} className="flex items-center gap-2.5 p-1.5 rounded-lg hover:bg-slate-50 transition-colors">
+                        <div className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: d.fill }} />
+                        <span className="text-[10px] font-semibold text-[var(--theme-text-muted)] flex-1 truncate">{d.name}</span>
+                        <span className="text-[11px] font-bold text-[var(--theme-text)] tabular-nums">{d.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
+
+          {/* 3. SEBARAN FAKULTAS (WHERE) */}
+          <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-5 hover:shadow-md transition-all relative overflow-hidden group flex flex-col">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-indigo-50 border border-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 shadow-sm">
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>pin_drop</span>
+                </div>
+                <h3 className="text-[13px] font-bold text-[var(--theme-text)]">Sebaran Fakultas</h3>
+              </div>
+            </div>
+            <div className="flex-1 flex items-center justify-center">
+              {whereChartData.length === 0 ? <p className="text-[10px] text-slate-400">Belum ada data</p> : (
+                <ResponsiveContainer width="100%" height={120}>
+                  <RadarChart cx="50%" cy="50%" outerRadius={45} data={whereChartData}>
+                    <PolarGrid stroke="#e2e8f0" />
+                    <PolarAngleAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 8, fontWeight: 700 }} />
+                    <Radar name="Fakultas" dataKey="value" stroke="#6366f1" strokeWidth={2} fill="#818cf8" fillOpacity={0.4} />
+                    <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', fontSize: '10px', fontWeight: '700' }} />
+                  </RadarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </div>
+
+          {/* 4. LINIMASA KEGIATAN (WHEN) */}
+          <div className="lg:col-span-3 bg-white border border-slate-200 shadow-sm rounded-2xl p-5 hover:shadow-md transition-all relative overflow-hidden group flex flex-col">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-amber-50 border border-amber-100 rounded-xl flex items-center justify-center text-amber-600 shadow-sm">
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>event</span>
+                </div>
+                <h3 className="text-[13px] font-bold text-[var(--theme-text)]">Linimasa Kegiatan Tahunan</h3>
+              </div>
+            </div>
+            <div className="flex-1 flex items-end">
+              {whenChartData.length === 0 ? <p className="text-[10px] text-slate-400 w-full text-center">Belum ada jadwal</p> : (
+                <ResponsiveContainer width="100%" height={200}>
+                  <AreaChart data={whenChartData} margin={{ top: 10, right: 0, left: -25, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorWhen" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#fbbf24" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#fbbf24" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
+                    <Tooltip labelFormatter={(label) => `Bulan: ${label}`} formatter={(value) => [value + ' Proposal', 'Pengajuan']} cursor={{ stroke: '#fbbf24', strokeWidth: 1, strokeDasharray: '3 3', fill: 'transparent' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', fontSize: '11px', fontWeight: '700' }} />
+                    <Area type="monotone" dataKey="value" stroke="#fbbf24" strokeWidth={3} fillOpacity={1} fill="url(#colorWhen)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </div>
+
         </div>
       )}
 
@@ -725,20 +862,22 @@ export default function KelolaOrganisasi() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
         {/* 1. Leaderboard Panel — Spans 2 Cols */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm p-6 flex flex-col space-y-6">
-          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
-            <div className="flex items-center gap-3">
-              <div className="size-10 rounded-lg bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
-                <Trophy size={20} />
+        <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 sm:p-8 flex flex-col space-y-6 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-amber-50/50 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100/80 pb-5">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl border border-amber-100/50 flex justify-center items-center flex-shrink-0 shadow-inner">
+                <Trophy size={24} className="text-amber-600" />
               </div>
               <div>
-                <h3 className="text-lg font-black font-headline leading-none text-slate-800">Peringkat Keaktifan & Prestasi</h3>
-                <p className="text-xs text-slate-500 font-inter mt-2 font-medium">Klasemen kinerja berdasarkan XP, keaktifan proker, dan kepatuhan LPJ</p>
+                <h3 className="text-[17px] font-black text-slate-800 font-headline leading-none mb-1.5">Peringkat Keaktifan & Prestasi</h3>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-headline">Klasemen Kinerja Ormawa</span>
               </div>
             </div>
 
             {/* Sorting Filter Tabs */}
-            <div className="flex bg-slate-100/70 p-1.5 rounded-2xl border border-slate-200/60 select-none shadow-inner">
+            <div className="flex bg-slate-100 p-1 rounded-[14px] border border-slate-200/60 select-none shadow-inner">
               {[
                 { key: 'xp', label: 'Skor XP' },
                 { key: 'lpj', label: 'Kepatuhan LPJ' }
@@ -747,10 +886,10 @@ export default function KelolaOrganisasi() {
                   key={tab.key}
                   onClick={() => setSortBy(tab.key)}
                   className={cn(
-                    "px-4 py-2.5 text-xs font-black uppercase tracking-widest rounded-xl leading-none transition-all duration-300 font-headline cursor-pointer",
+                    "px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl leading-none transition-all duration-300 font-headline cursor-pointer",
                     sortBy === tab.key
-                      ? "bg-white text-bku-primary shadow-md shadow-slate-200/50 font-extrabold transform scale-[1.02]"
-                      : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 font-bold"
+                      ? "bg-white text-bku-primary shadow-[0_2px_10px_rgb(0,0,0,0.06)]"
+                      : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
                   )}
                 >
                   {tab.label}
@@ -763,31 +902,31 @@ export default function KelolaOrganisasi() {
           {loading ? (
             <div className="grid grid-cols-3 gap-5 h-[180px] animate-pulse bg-slate-50/50 rounded-3xl border border-slate-200/50" />
           ) : sortedLeaderboard.length >= 3 ? (
-            <div className="relative z-10 grid grid-cols-3 gap-6 items-end justify-center pt-6 select-none border-b border-slate-200/50 pb-8">
+            <div className="relative z-10 grid grid-cols-3 gap-6 items-end justify-center pt-8 select-none border-b border-slate-100/80 pb-10">
 
               {/* 🥈 Rank 2 (Left Side) */}
               <div className="flex flex-col items-center group/podium">
-                <div className="relative mb-3">
+                <div className="relative mb-4">
                   <div className="w-16 h-16 rounded-full border-[3px] border-slate-300 bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center shadow-[0_0_20px_-5px_rgba(148,163,184,0.4)] font-black font-jakarta text-slate-500 overflow-hidden uppercase text-sm relative z-10 transition-transform duration-500 group-hover/podium:scale-110">
                     {getInitials(top2)}
                   </div>
-                  <span className="absolute -bottom-2 -right-2 px-2.5 py-1 rounded-full bg-slate-400 text-white font-black text-[10px] shadow-sm z-20 ring-2 ring-white">#2</span>
+                  <span className="absolute -bottom-2 -right-2 px-2.5 py-1 rounded-full bg-slate-400 text-white font-black text-[10px] shadow-md z-20 ring-2 ring-white">#2</span>
                 </div>
                 <span className="text-xs font-black text-slate-700 uppercase tracking-wider font-headline leading-tight text-center max-w-[120px] truncate" title={top2?.Nama}>{top2?.Singkatan || top2?.Nama}</span>
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-1.5">{top2?.xp} XP</span>
               </div>
 
               {/* 🥇 Rank 1 (Center - Taller Podium with Gold Highlight) */}
-              <div className="flex flex-col items-center transform -translate-y-4 group/podium">
-                <div className="relative mb-4">
-                  <span className="absolute -top-7 left-1/2 transform -translate-x-1/2 text-[24px] animate-bounce duration-1000 z-20">👑</span>
-                  <div className="w-20 h-20 rounded-full border-[4px] border-amber-400 bg-gradient-to-br from-amber-50 to-amber-100 flex items-center justify-center shadow-[0_0_30px_-5px_rgba(251,191,36,0.6)] font-black font-jakarta text-amber-600 overflow-hidden uppercase ring-4 ring-amber-100 text-base relative z-10 transition-transform duration-500 group-hover/podium:scale-110">
+              <div className="flex flex-col items-center transform -translate-y-6 group/podium">
+                <div className="relative mb-5">
+                  <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 text-[28px] animate-bounce duration-1000 z-20">👑</span>
+                  <div className="w-24 h-24 rounded-full border-[4px] border-amber-400 bg-gradient-to-br from-amber-50 to-amber-100 flex items-center justify-center shadow-[0_0_30px_-5px_rgba(251,191,36,0.6)] font-black font-jakarta text-amber-600 overflow-hidden uppercase ring-4 ring-amber-100/50 text-xl relative z-10 transition-transform duration-500 group-hover/podium:scale-110">
                     {getInitials(top1)}
                   </div>
-                  <span className="absolute -bottom-2 -right-2 px-3 py-1 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-white font-black text-xs shadow-md z-20 ring-2 ring-white">#1</span>
+                  <span className="absolute -bottom-2 -right-2 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-white font-black text-xs shadow-lg z-20 ring-2 ring-white">#1</span>
                 </div>
                 <span className="text-sm font-black text-bku-primary uppercase tracking-wider font-headline leading-tight text-center max-w-[150px] truncate" title={top1?.Nama}>{top1?.Singkatan || top1?.Nama}</span>
-                <div className="flex items-center gap-1.5 mt-2 leading-none bg-amber-50 px-3 py-1.5 rounded-full border border-amber-100/50">
+                <div className="flex items-center gap-1.5 mt-2.5 leading-none bg-amber-50 px-3 py-1.5 rounded-full border border-amber-100/50 shadow-sm">
                   <Zap size={12} className="fill-amber-500 text-amber-500" />
                   <span className="text-[11px] font-black text-amber-600 uppercase tracking-widest">{top1?.xp} XP</span>
                 </div>
@@ -795,11 +934,11 @@ export default function KelolaOrganisasi() {
 
               {/* 🥉 Rank 3 (Right Side) */}
               <div className="flex flex-col items-center group/podium">
-                <div className="relative mb-3">
+                <div className="relative mb-4">
                   <div className="w-16 h-16 rounded-full border-[3px] border-orange-300 bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center shadow-[0_0_20px_-5px_rgba(251,146,60,0.4)] font-black font-jakarta text-orange-700 overflow-hidden uppercase text-sm relative z-10 transition-transform duration-500 group-hover/podium:scale-110">
                     {getInitials(top3)}
                   </div>
-                  <span className="absolute -bottom-2 -right-2 px-2.5 py-1 rounded-full bg-orange-400 text-white font-black text-[10px] shadow-sm z-20 ring-2 ring-white">#3</span>
+                  <span className="absolute -bottom-2 -right-2 px-2.5 py-1 rounded-full bg-orange-400 text-white font-black text-[10px] shadow-md z-20 ring-2 ring-white">#3</span>
                 </div>
                 <span className="text-xs font-black text-slate-700 uppercase tracking-wider font-headline leading-tight text-center max-w-[120px] truncate" title={top3?.Nama}>{top3?.Singkatan || top3?.Nama}</span>
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-1.5">{top3?.xp} XP</span>
@@ -808,138 +947,229 @@ export default function KelolaOrganisasi() {
             </div>
           ) : null}
 
-          {/* List Leaderboard Table */}
-          <div className="flex-1 mt-4">
-            <DataTable
-              columns={leaderboardColumns}
-              data={sortedLeaderboard}
-              loading={loading}
-              searchable={false}
-              pagination={false}
-            />
-          </div>
+          {/* List Leaderboard Custom Table */}
+          <div className="flex-1 mt-6 overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[500px]">
+              <thead>
+                <tr>
+                  <th className="pb-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 px-4 text-center">Rank</th>
+                  <th className="pb-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 px-4">Organisasi</th>
+                  <th className="pb-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 px-4 text-center">Anggota</th>
+                  <th className="pb-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 px-4">Kepatuhan LPJ</th>
+                  <th className="pb-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 px-4 text-right">Skor XP</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50/80">
+                {sortedLeaderboard.map((row, index) => {
+                  const isTop1 = index === 0;
+                  const isTop2 = index === 1;
+                  const isTop3 = index === 2;
+                  return (
+                    <tr key={row.id || index} className="group hover:bg-slate-50/50 transition-colors">
+                      {/* Rank */}
+                      <td className="py-3 px-4 text-center">
+                        <div className="w-10 flex justify-center mx-auto">
+                          {isTop1 || isTop2 || isTop3 ? (
+                            <div className={cn(
+                              "size-8 rounded-full flex items-center justify-center text-sm shadow-sm border border-white",
+                              isTop1 ? "bg-amber-100 text-amber-600" :
+                                isTop2 ? "bg-slate-200 text-slate-500" :
+                                  "bg-orange-100 text-orange-500"
+                            )}>
+                              {isTop1 ? '🥇' : isTop2 ? '🥈' : '🥉'}
+                            </div>
+                          ) : (
+                            <div className="size-7 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-[10px] font-black text-slate-400 tabular-nums shadow-inner">
+                              #{index + 1}
+                            </div>
+                          )}
+                        </div>
+                      </td>
 
+                      {/* Organisasi */}
+                      <td className="py-3 px-4">
+                        <h4 className="text-[13px] font-black text-slate-800 uppercase font-headline leading-tight group-hover:text-bku-primary transition-colors">{row.Singkatan}</h4>
+                        <p className="text-[9px] font-bold text-slate-400 truncate max-w-[180px] mt-0.5">{row.Nama}</p>
+                      </td>
+
+                      {/* Anggota */}
+                      <td className="py-3 px-4">
+                        <div className="flex items-center justify-center gap-1.5 px-2 py-1 bg-slate-50 border border-slate-100 rounded-lg w-fit mx-auto">
+                          <span className="material-symbols-outlined text-[12px] text-slate-400">group</span>
+                          <span className="text-[11px] font-bold text-slate-600 font-inter">{row.jumlahAnggota || 65}</span>
+                        </div>
+                      </td>
+
+                      {/* Kepatuhan LPJ */}
+                      <td className="py-3 px-4 min-w-[140px]">
+                        <div className="flex flex-col w-full max-w-[140px]">
+                          <div className="flex justify-between text-[9px] font-black text-slate-500 mb-1">
+                            <span>{row.selesaiLpj}/{row.totalLpj} LPJ</span>
+                            <span className={cn(
+                              "font-black",
+                              row.lpjRate === 100 ? "text-emerald-500" : row.lpjRate > 80 ? "text-amber-500" : "text-rose-500"
+                            )}>{row.lpjRate || 100}%</span>
+                          </div>
+                          <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden shadow-inner">
+                            <div
+                              style={{ width: `${row.lpjRate || 100}%` }}
+                              className={cn(
+                                "h-full rounded-full transition-all duration-500",
+                                row.lpjRate === 100 ? "bg-emerald-500" : row.lpjRate > 80 ? "bg-amber-500" : "bg-rose-500"
+                              )}
+                            />
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Skor XP */}
+                      <td className="py-3 px-4 text-right">
+                        <div className={cn(
+                          "px-2.5 py-1 rounded-xl border flex items-center justify-center gap-1 shadow-inner transition-colors duration-300 w-fit ml-auto",
+                          sortBy === 'xp' ? "bg-amber-50 border-amber-200 text-amber-600" : "bg-slate-50 border-slate-200 text-slate-600"
+                        )}>
+                          <span className="material-symbols-outlined text-[13px]" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
+                          <span className="text-[13px] font-black font-headline tabular-nums leading-none mt-0.5">{row.xp}</span>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+
+            {sortedLeaderboard.length === 0 && (
+              <div className="py-10 text-center flex flex-col items-center">
+                <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mb-3">
+                  <span className="material-symbols-outlined">sentiment_dissatisfied</span>
+                </div>
+                <p className="text-sm font-bold text-slate-400">Belum ada data klasemen</p>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* 2. LPJ Review Console — Spans 1 Col */}
-        <div className="lg:col-span-1 bg-white rounded-xl border border-slate-200 shadow-sm p-6 flex flex-col space-y-6">
-          <div className="relative z-10 flex items-center gap-3 border-b border-slate-100 pb-5">
-            <div className="size-10 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center">
-              <History size={20} />
+        <div className="lg:col-span-1 bg-white rounded-3xl border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 sm:p-8 flex flex-col space-y-6 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-50/50 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
+
+          <div className="relative z-10 flex items-center gap-4 border-b border-slate-100/80 pb-5">
+            <div className="w-12 h-12 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl border border-emerald-100/50 text-emerald-600 flex items-center justify-center shadow-inner">
+              <History size={24} />
             </div>
             <div>
-              <h3 className="text-lg font-black font-headline leading-none text-slate-800">Console Review LPJ</h3>
-              <p className="text-xs text-slate-500 font-inter mt-2 font-medium">Audit pengajuan berkas pertanggungjawaban kegiatan</p>
+              <h3 className="text-[17px] font-black text-slate-800 font-headline leading-none mb-1.5">Console Review LPJ</h3>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-headline">Antrean Audit</span>
             </div>
           </div>
 
           {/* Submissions List Container */}
-          <div className="relative z-10 flex-1 space-y-4 max-h-[460px] overflow-y-auto pr-2 no-scrollbar select-none animate-in fade-in duration-300">
+          <div className="relative z-10 flex-1 space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar select-none">
             {lpjSubmissions.map((sub) => {
               // Menangani xpReward yang undefined pada live API data
               const xpValue = sub.xpReward !== undefined ? sub.xpReward : (sub.status === 'Overdue' ? -50 : 100);
-              
+
               return (
-              <div
-                key={sub.id}
-                onClick={() => {
-                  setSelectedLpj(sub);
-                  setIsLpjDetailOpen(true);
-                }}
-                className="group flex flex-col p-4 bg-white hover:bg-slate-50 rounded-xl border border-slate-200 transition-all shadow-sm hover:shadow relative overflow-hidden cursor-pointer"
-              >
-                {/* Status Indicator Line */}
-                <div className={cn(
-                  "absolute left-0 top-0 bottom-0 w-1 transition-colors",
-                  sub.status === 'Pending' ? "bg-amber-400 group-hover:bg-amber-500" :
-                  sub.status === 'Approved' ? "bg-emerald-400 group-hover:bg-emerald-500" :
-                  sub.status === 'Overdue' ? "bg-rose-400 group-hover:bg-rose-500" : "bg-slate-300 group-hover:bg-slate-400"
-                )} />
-
-                {/* Top Section: Header & Badge */}
-                <div className="flex justify-between items-start pl-2">
-                  <div className="flex items-start gap-3 pr-2">
-                    {/* File Icon */}
-                    <div className={cn(
-                      "size-8 rounded-lg flex items-center justify-center shrink-0 border",
-                      sub.status === 'Pending' ? "bg-amber-50 border-amber-100 text-amber-600" :
-                      sub.status === 'Approved' ? "bg-emerald-50 border-emerald-100 text-emerald-600" :
-                      sub.status === 'Overdue' ? "bg-rose-50 border-rose-100 text-rose-600" : "bg-slate-50 border-slate-200 text-slate-500"
-                    )}>
-                      <span className="material-symbols-outlined text-[16px]">
-                        {sub.status === 'Approved' ? 'task_alt' : sub.status === 'Overdue' ? 'assignment_late' : 'description'}
-                      </span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline group-hover:text-bku-primary transition-colors mb-0.5">{sub.ormawaSingkatan}</span>
-                      <h4 className="text-sm font-bold text-slate-800 font-headline leading-snug line-clamp-1">{sub.title || sub.NamaProker}</h4>
-                    </div>
-                  </div>
-                  {/* Status Badge */}
-                  <span className={cn(
-                    "text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md border shrink-0 leading-none",
-                    sub.status === 'Pending' ? "bg-amber-50 text-amber-600 border-amber-200" :
-                    sub.status === 'Approved' ? "bg-emerald-50 text-emerald-600 border-emerald-200" :
-                    sub.status === 'Overdue' ? "bg-rose-50 text-rose-600 border-rose-200" :
-                    "bg-slate-50 text-slate-500 border-slate-200"
-                  )}>
-                    {sub.status === 'Pending' ? 'REVIEW' :
-                     sub.status === 'Approved' ? 'DISETUJUI' :
-                     sub.status === 'Overdue' ? 'TELAT' : 'PERINGATAN'}
-                  </span>
-                </div>
-
-                {/* Meta Info */}
-                <div className="flex items-center gap-4 mt-3 pl-2">
-                  <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
-                    <span className="material-symbols-outlined text-[14px]">calendar_today</span>
-                    <span className="font-inter">{sub.date || "2026-06-09"}</span>
-                  </div>
-                  <div className="w-px h-3 bg-slate-200" />
+                <div
+                  key={sub.id}
+                  onClick={() => {
+                    setSelectedLpj(sub);
+                    setIsLpjDetailOpen(true);
+                  }}
+                  className="group flex flex-col p-4 bg-white hover:bg-slate-50/80 rounded-2xl border border-slate-200/80 transition-all shadow-[0_2px_10px_rgb(0,0,0,0.02)] hover:shadow-[0_8px_20px_rgb(0,0,0,0.06)] relative overflow-hidden cursor-pointer"
+                >
+                  {/* Status Indicator Line */}
                   <div className={cn(
-                    "flex items-center gap-1 text-xs font-bold font-inter",
-                    xpValue > 0 ? "text-emerald-600" : "text-rose-600"
-                  )}>
-                    <span className="material-symbols-outlined text-[14px]">
-                      {xpValue > 0 ? 'trending_up' : 'trending_down'}
+                    "absolute left-0 top-0 bottom-0 w-1.5 transition-colors rounded-l-2xl",
+                    sub.status === 'Pending' ? "bg-amber-400 group-hover:bg-amber-500" :
+                      sub.status === 'Approved' ? "bg-emerald-400 group-hover:bg-emerald-500" :
+                        sub.status === 'Overdue' ? "bg-rose-400 group-hover:bg-rose-500" : "bg-slate-300 group-hover:bg-slate-400"
+                  )} />
+
+                  {/* Top Section: Header & Badge */}
+                  <div className="flex justify-between items-start pl-2.5">
+                    <div className="flex items-start gap-3 pr-2">
+                      {/* File Icon */}
+                      <div className={cn(
+                        "size-9 rounded-xl flex items-center justify-center shrink-0 border shadow-inner",
+                        sub.status === 'Pending' ? "bg-gradient-to-br from-amber-50 to-orange-50 border-amber-100/50 text-amber-600" :
+                          sub.status === 'Approved' ? "bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-100/50 text-emerald-600" :
+                            sub.status === 'Overdue' ? "bg-gradient-to-br from-rose-50 to-red-50 border-rose-100/50 text-rose-600" : "bg-gradient-to-br from-slate-50 to-gray-50 border-slate-200/50 text-slate-500"
+                      )}>
+                        <span className="material-symbols-outlined text-[18px]">
+                          {sub.status === 'Approved' ? 'task_alt' : sub.status === 'Overdue' ? 'assignment_late' : 'description'}
+                        </span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline group-hover:text-bku-primary transition-colors mb-0.5">{sub.ormawaSingkatan}</span>
+                        <h4 className="text-sm font-bold text-slate-800 font-headline leading-snug line-clamp-1">{sub.title || sub.NamaProker}</h4>
+                      </div>
+                    </div>
+                    {/* Status Badge */}
+                    <span className={cn(
+                      "text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md border shrink-0 leading-none shadow-sm",
+                      sub.status === 'Pending' ? "bg-amber-50 text-amber-600 border-amber-200" :
+                        sub.status === 'Approved' ? "bg-emerald-50 text-emerald-600 border-emerald-200" :
+                          sub.status === 'Overdue' ? "bg-rose-50 text-rose-600 border-rose-200" :
+                            "bg-slate-50 text-slate-500 border-slate-200"
+                    )}>
+                      {sub.status === 'Pending' ? 'REVIEW' :
+                        sub.status === 'Approved' ? 'DISETUJUI' :
+                          sub.status === 'Overdue' ? 'TELAT' : 'PERINGATAN'}
                     </span>
-                    <span>{xpValue > 0 ? `+${xpValue} XP` : `${xpValue} Penalty`}</span>
+                  </div>
+
+                  {/* Meta Info */}
+                  <div className="flex items-center gap-4 mt-4 pl-2.5">
+                    <div className="flex items-center gap-1.5 text-xs text-slate-500 font-bold">
+                      <span className="material-symbols-outlined text-[16px] text-slate-400">event</span>
+                      <span className="font-inter tracking-tight">{sub.date || "2026-06-09"}</span>
+                    </div>
+                    <div className="w-px h-3.5 bg-slate-200" />
+                    <div className={cn(
+                      "flex items-center gap-1 text-[11px] font-black uppercase tracking-widest font-headline",
+                      xpValue > 0 ? "text-emerald-600" : "text-rose-600"
+                    )}>
+                      <span className="material-symbols-outlined text-[14px]">
+                        {xpValue > 0 ? 'trending_up' : 'trending_down'}
+                      </span>
+                      <span>{xpValue > 0 ? `+${xpValue} XP` : `${xpValue} PNLTY`}</span>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="mt-4 pt-4 border-t border-slate-100 flex gap-2 pl-2.5 relative z-20">
+                    {sub.status === 'Pending' && (
+                      <>
+                        <button onClick={(e) => { e.stopPropagation(); handleApproveLPJ(sub.id, sub.ormawaSingkatan); }} className="flex-1 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:opacity-90 border-none rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 shadow-[0_4px_10px_rgb(16,185,129,0.3)] hover:scale-[1.02]">
+                          <CheckCircle size={14} className="text-white" />
+                          Setujui
+                        </button>
+                        <button onClick={(e) => { e.stopPropagation(); handleWarnLPJ(sub.id, sub.ormawaSingkatan); }} className="px-5 py-2.5 bg-white text-slate-600 hover:bg-rose-50 hover:text-rose-600 border border-slate-200 hover:border-rose-200 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm hover:scale-[1.02]">
+                          Tolak
+                        </button>
+                      </>
+                    )}
+                    {sub.status === 'Overdue' && (
+                      <button onClick={(e) => { e.stopPropagation(); handleWarnLPJ(sub.id, sub.ormawaSingkatan); }} className="flex-1 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:opacity-90 border-none rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 shadow-[0_4px_10px_rgb(245,158,11,0.3)] hover:scale-[1.02]">
+                        <AlertTriangle size={14} className="text-white" />
+                        Kirim Peringatan
+                      </button>
+                    )}
+                    {sub.status === 'Approved' && (
+                      <div className="flex-1 py-2.5 flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50/50 rounded-xl border border-emerald-100/50 border-dashed">
+                        <CheckCircle size={14} />
+                        Terintegrasi Sistem
+                      </div>
+                    )}
+                    {sub.status === 'Warning Sent' && (
+                      <div className="flex-1 py-2.5 flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500 bg-slate-50 rounded-xl border border-slate-200 border-dashed">
+                        <AlertTriangle size={14} />
+                        Peringatan Terkirim
+                      </div>
+                    )}
                   </div>
                 </div>
-
-                {/* Action Buttons */}
-                <div className="mt-4 pt-3 border-t border-slate-100 flex gap-2 pl-2 relative z-20">
-                  {sub.status === 'Pending' && (
-                    <>
-                      <button onClick={(e) => { e.stopPropagation(); handleApproveLPJ(sub.id, sub.ormawaSingkatan); }} className="flex-1 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-500 hover:text-white border border-emerald-200 hover:border-emerald-500 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 shadow-sm">
-                        <CheckCircle size={12} />
-                        Setujui
-                      </button>
-                      <button onClick={(e) => { e.stopPropagation(); handleWarnLPJ(sub.id, sub.ormawaSingkatan); }} className="px-4 py-2 bg-white text-slate-600 hover:bg-rose-50 hover:text-rose-600 border border-slate-200 hover:border-rose-200 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-colors shadow-sm">
-                        Tolak
-                      </button>
-                    </>
-                  )}
-                  {sub.status === 'Overdue' && (
-                    <button onClick={(e) => { e.stopPropagation(); handleWarnLPJ(sub.id, sub.ormawaSingkatan); }} className="flex-1 py-2 bg-amber-50 text-amber-700 hover:bg-amber-500 hover:text-white border border-amber-200 hover:border-amber-500 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 shadow-sm">
-                      <AlertTriangle size={12} />
-                      Kirim Peringatan
-                    </button>
-                  )}
-                  {sub.status === 'Approved' && (
-                    <div className="flex-1 py-2 flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50/50 rounded-lg border border-emerald-100/50 border-dashed">
-                      <CheckCircle size={12} />
-                      Terintegrasi Sistem
-                    </div>
-                  )}
-                  {sub.status === 'Warning Sent' && (
-                    <div className="flex-1 py-2 flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500 bg-slate-50 rounded-lg border border-slate-200 border-dashed">
-                      <AlertTriangle size={12} />
-                      Peringatan Terkirim
-                    </div>
-                  )}
-                </div>
-              </div>
               )
             })}
           </div>
@@ -949,26 +1179,26 @@ export default function KelolaOrganisasi() {
       </div>
 
       {/* ── Table Section ───────────────────────────────────────── */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col mt-4">
+      <div className="bg-white rounded-3xl border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden flex flex-col mt-8">
         <div className="relative z-10">
           <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center">
             <h3 className="text-lg font-bold text-slate-800 font-headline">Data Registrasi & Legalitas Ormawa</h3>
           </div>
-        <div className="p-0">
-          <DataTable
-            columns={columns}
-            data={data}
-            loading={loading}
-            searchPlaceholder="Cari Nama atau Singkatan..."
-            actions={(row) => (
-              <div className="flex items-center gap-1.5">
-                <Button onClick={() => { setSelected(row); setIsDetailOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-bku-primary hover:bg-blue-50 rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '18px' }} >visibility</span></Button>
-                <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >edit</span></Button>
-                <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >delete</span></Button>
-              </div>
-            )}
-          />
-        </div>
+          <div className="p-0">
+            <DataTable
+              columns={columns}
+              data={data}
+              loading={loading}
+              searchPlaceholder="Cari Nama atau Singkatan..."
+              actions={(row) => (
+                <div className="flex items-center gap-1.5">
+                  <Button onClick={() => { setSelected(row); setIsDetailOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-bku-primary hover:bg-blue-50 rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '18px' }} >visibility</span></Button>
+                  <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >edit</span></Button>
+                  <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >delete</span></Button>
+                </div>
+              )}
+            />
+          </div>
         </div>
       </div>
       {/* ── Detail Modal (Glassmorphic Dialog) ────────────────────── */}
@@ -1001,64 +1231,105 @@ export default function KelolaOrganisasi() {
       >
         {selected && (
           <div className="space-y-6 font-inter py-2">
-            <div className="flex items-center gap-6 p-4 bg-slate-50 border border-slate-100 rounded-xl">
-              <div className="flex items-center gap-2 text-slate-600">
-                <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '16px' }}>mail</span>
-                <span className="text-xs font-bold font-inter">{selected.Email || 'No official email'}</span>
+            {/* Header / Contacts - Clean Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex items-center gap-4 bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
+                <div className="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 shrink-0">
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>mail</span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Official Email</p>
+                  <p className="text-xs font-bold text-slate-700 truncate">{selected.Email || 'No official email'}</p>
+                </div>
               </div>
-              <div className="flex items-center gap-2 text-slate-600">
-                <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '16px' }}>call</span>
-                <span className="text-xs font-bold font-inter">{selected.Phone || 'No contact'}</span>
+              <div className="flex items-center gap-4 bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
+                <div className="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 shrink-0">
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>call</span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Kontak Aktif</p>
+                  <p className="text-xs font-bold text-slate-700 truncate">{selected.Phone || 'No contact'}</p>
+                </div>
               </div>
             </div>
 
+            {/* Gamification Stats - Using DashboardStatCard Template */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1.5 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">bolt</span> Performance XP</span>
-                <span className="text-xl font-black text-bku-primary font-jakarta leading-none mt-1">{selected.xp || 0} XP</span>
-              </div>
-              <div className="flex flex-col gap-1.5 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">receipt_long</span> Kepatuhan LPJ</span>
-                <span className="text-xl font-black text-emerald-600 font-jakarta leading-none mt-1">{selected.lpjRate || 100}%</span>
+              <DashboardStatCard
+                title="Performance XP"
+                value={<>{selected.xp || 0} <span className="text-[14px] font-bold text-amber-600/80 uppercase tracking-widest ml-0.5">XP</span></>}
+                icon="bolt"
+                colorClass="text-amber-500"
+                bgClass="bg-amber-50"
+                subtitle="Akumulasi poin keaktifan"
+              />
+              <DashboardStatCard
+                title="Kepatuhan LPJ"
+                value={<>{selected.lpjRate || 100}<span className="text-[16px] font-bold text-emerald-600/80 ml-0.5">%</span></>}
+                icon="receipt_long"
+                colorClass="text-emerald-500"
+                bgClass="bg-emerald-50"
+                subtitle="Rasio penyelesaian laporan"
+              />
+            </div>
+
+            {/* Visi Misi - Clean Timeline */}
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 md:p-8 shadow-sm">
+              <div className="relative border-l-2 border-slate-200 ml-4 space-y-8">
+
+                {/* Visi */}
+                <div className="relative pl-8">
+                  <div className="absolute -left-[17px] top-0 w-8 h-8 rounded-full bg-blue-100 border-4 border-slate-50 flex items-center justify-center text-blue-600 shadow-sm">
+                    <span className="material-symbols-outlined text-[14px]">visibility</span>
+                  </div>
+                  <div>
+                    <h4 className="text-[11px] font-bold text-slate-800 uppercase tracking-widest mb-3">Visi Organisasi</h4>
+                    <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+                      <p className="text-[13px] text-slate-600 leading-relaxed font-medium italic">
+                        "{selected.Visi || 'Visi belum dikonfigurasi.'}"
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Misi */}
+                <div className="relative pl-8">
+                  <div className="absolute -left-[17px] top-0 w-8 h-8 rounded-full bg-indigo-100 border-4 border-slate-50 flex items-center justify-center text-indigo-600 shadow-sm">
+                    <span className="material-symbols-outlined text-[14px]">flag</span>
+                  </div>
+                  <div>
+                    <h4 className="text-[11px] font-bold text-slate-800 uppercase tracking-widest mb-3">Misi & Strategi</h4>
+                    <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+                      <p className="text-[13px] text-slate-600 leading-relaxed font-medium whitespace-pre-wrap">
+                        {selected.Misi || 'Misi belum dikonfigurasi.'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </div>
 
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 leading-none">
-                <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '16px' }}>track_changes</span>
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest font-headline">Visi Organisasi</span>
-              </div>
-              <p className="text-xs font-medium text-slate-600 leading-relaxed font-inter bg-white p-4 rounded-xl border border-slate-200 shadow-sm italic">
-                "{selected.Visi || 'Visi belum dikonfigurasi.'}"
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 leading-none">
-                <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '16px' }}>show_chart</span>
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest font-headline">Misi & Strategi</span>
-              </div>
-              <p className="text-xs font-medium text-slate-600 leading-relaxed font-inter pl-4 border-l-2 border-bku-primary/30 py-1">
-                {selected.Misi || 'Misi belum dikonfigurasi.'}
-              </p>
-            </div>
-
+            {/* Achievements */}
             {selected.achievements && selected.achievements.length > 0 && (
               <div className="space-y-3 pt-2">
-                <div className="flex items-center gap-2 leading-none">
-                  <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '16px' }}>emoji_events</span>
-                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest font-headline">Penghargaan</span>
+                <div className="flex items-center gap-2 leading-none mb-4">
+                  <span className="material-symbols-outlined text-amber-500" style={{ fontSize: '18px' }}>emoji_events</span>
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest font-headline">Penghargaan & Pencapaian</span>
                 </div>
-                <div className="flex items-center flex-wrap gap-2">
+                <div className="flex items-center flex-wrap gap-3">
                   {selected.achievements.map((ach, idx) => (
-                    <span key={idx} className={cn(
-                      "font-black uppercase tracking-widest text-[9px] px-3 py-1.5 rounded-lg border shadow-sm",
-                      ach === 'LPJ Champion' ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
-                      ach === 'Event Master' ? "bg-amber-50 text-amber-700 border-amber-200" :
-                      "bg-sky-50 text-sky-700 border-sky-200"
+                    <div key={idx} className={cn(
+                      "flex items-center gap-2 font-black uppercase tracking-widest text-[10px] px-4 py-2 rounded-xl border shadow-sm transition-transform hover:-translate-y-0.5",
+                      ach === 'LPJ Champion' ? "bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-700 border-emerald-200" :
+                        ach === 'Event Master' ? "bg-gradient-to-r from-amber-50 to-orange-50 text-amber-700 border-amber-200" :
+                          "bg-gradient-to-r from-sky-50 to-blue-50 text-sky-700 border-sky-200"
                     )}>
+                      <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+                        {ach === 'LPJ Champion' ? 'verified' : ach === 'Event Master' ? 'local_fire_department' : 'stars'}
+                      </span>
                       {ach}
-                    </span>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -1091,7 +1362,7 @@ export default function KelolaOrganisasi() {
               disabled={isSubmitting}
               className="px-6 h-10 rounded-xl text-xs font-bold uppercase tracking-wider bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white shadow-md active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer"
             >
-              {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }}>sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>save</span>} 
+              {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }}>sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>save</span>}
               Simpan Unit
             </button>
           </>
@@ -1211,12 +1482,12 @@ export default function KelolaOrganisasi() {
                 <span className={cn(
                   "text-[9px] font-black uppercase tracking-widest leading-none mt-1.5",
                   selectedLpj.status === 'Pending' ? "text-amber-600" :
-                  selectedLpj.status === 'Approved' ? "text-emerald-600" :
-                  selectedLpj.status === 'Overdue' ? "text-rose-600" : "text-slate-600"
+                    selectedLpj.status === 'Approved' ? "text-emerald-600" :
+                      selectedLpj.status === 'Overdue' ? "text-rose-600" : "text-slate-600"
                 )}>
                   {selectedLpj.status === 'Pending' ? 'REVIEW' :
-                   selectedLpj.status === 'Approved' ? 'DISETUJUI' :
-                   selectedLpj.status === 'Overdue' ? 'TERLAMBAT' : 'PERINGATAN'}
+                    selectedLpj.status === 'Approved' ? 'DISETUJUI' :
+                      selectedLpj.status === 'Overdue' ? 'TERLAMBAT' : 'PERINGATAN'}
                 </span>
               </div>
             </div>
