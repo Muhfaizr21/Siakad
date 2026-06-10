@@ -111,6 +111,7 @@ export const ManageAssignmentsModal = ({ open, onOpenChange, sessionId }) => {
         await createAssignmentMutation.mutateAsync(payload);
         toast.success('Tugas berhasil dibuat!');
       }
+      setEditingAssignment(null);
       setView('list');
     } catch (err) {
       toast.error('Gagal menyimpan tugas');
@@ -138,7 +139,10 @@ export const ManageAssignmentsModal = ({ open, onOpenChange, sessionId }) => {
           <div className="space-y-6">
             <div className="flex justify-end">
               <button 
-                onClick={() => setView('form')}
+                onClick={() => {
+                  setEditingAssignment(null);
+                  setView('form');
+                }}
                 className="bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md transition-colors"
               >
                 + Tambah Tugas
@@ -279,7 +283,7 @@ export const ManageAssignmentsModal = ({ open, onOpenChange, sessionId }) => {
             </div>
 
             <div className="flex justify-end gap-3 pt-6 border-t border-[var(--theme-border-muted)] mt-8">
-              <button type="button" onClick={() => setView('list')} className="px-5 py-2.5 rounded-xl font-bold text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg)] transition-colors text-xs">Kembali</button>
+              <button type="button" onClick={() => { setView('list'); setEditingAssignment(null); }} className="px-5 py-2.5 rounded-xl font-bold text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg)] transition-colors text-xs">Kembali</button>
               <button type="submit" disabled={isSaving} className="bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white px-6 py-2.5 rounded-xl font-bold shadow-md disabled:opacity-50 transition-all text-xs">
                 {isSaving ? 'Menyimpan...' : 'Simpan Tugas'}
               </button>

@@ -189,7 +189,7 @@ func GetTimeline(c *fiber.Ctx) error {
 
 	data := make([]fiber.Map, 0, len(stages))
 	for _, s := range stages {
-		payload := stagePayload(s, student.ID)
+		payload := stagePayload(s, student.ID, student.FakultasID)
 
 		phaseType := s.Type
 
@@ -249,10 +249,10 @@ func GetStage(c *fiber.Ctx) error {
 
 	sessions := make([]fiber.Map, 0, len(stage.Sessions))
 	for _, session := range stage.Sessions {
-		sessions = append(sessions, sessionSummaryPayload(session, student.ID))
+		sessions = append(sessions, sessionSummaryPayload(session, student.ID, student.FakultasID))
 	}
 
-	payload := stagePayload(stage, student.ID)
+	payload := stagePayload(stage, student.ID, student.FakultasID)
 
 	// Sync dates with Admin KencanaTimelinePhase
 	var timelinePhase models.KencanaTimelinePhase
@@ -332,9 +332,15 @@ func GetSession(c *fiber.Ctx) error {
 	}
 
 	var session models.KencanaSession
-	if err := config.DB.Preload("Materials", func(db *gorm.DB) *gorm.DB { return db.Order("order_number asc") }).
-		Preload("Quizzes", func(db *gorm.DB) *gorm.DB { return db.Order("created_at asc") }).
-		Preload("Assignments", func(db *gorm.DB) *gorm.DB { return db.Order("created_at asc") }).
+	if err := config.DB.Preload("Materials", func(db *gorm.DB) *gorm.DB {
+			return db.Where("fakultas_id = ? OR fakultas_id IS NULL", student.FakultasID).Order("order_number asc")
+		}).
+		Preload("Quizzes", func(db *gorm.DB) *gorm.DB {
+			return db.Where("fakultas_id = ? OR fakultas_id IS NULL", student.FakultasID).Order("created_at asc")
+		}).
+		Preload("Assignments", func(db *gorm.DB) *gorm.DB {
+			return db.Where("fakultas_id = ? OR fakultas_id IS NULL", student.FakultasID).Order("created_at asc")
+		}).
 		Joins("JOIN mahasiswa.kencana_stages ON mahasiswa.kencana_stages.id = mahasiswa.kencana_sessions.stage_id").
 		Where(`mahasiswa.kencana_sessions.id = ?
 			AND (mahasiswa.kencana_sessions.is_published = ? OR mahasiswa.kencana_sessions.status IN ?)
@@ -769,7 +775,7 @@ func importantNotifications(periodID, studentID uint, blockers []string) []fiber
 	return notifs
 }
 
-func stagePayload(stage models.KencanaStage, studentID uint) fiber.Map {
+func stagePayload(stage models.KencanaStage, studentID uint, fakultasID uint) fiber.Map {
 	sessionsCount := len(stage.Sessions)
 	var sessionIDs []uint
 	for _, s := range stage.Sessions {
@@ -777,17 +783,17 @@ func stagePayload(stage models.KencanaStage, studentID uint) fiber.Map {
 	}
 	var quizCount, assignmentCount int64
 	if len(sessionIDs) > 0 {
-		config.DB.Model(&models.KencanaQuiz{}).Where("session_id IN ?", sessionIDs).Count(&quizCount)
-		config.DB.Model(&models.KencanaAssignment{}).Where("session_id IN ?", sessionIDs).Count(&assignmentCount)
+		config.DB.Model(&models.KencanaQuiz{}).Where("session_id IN ? AND (fakultas_id = ? OR fakultas_id IS NULL)", sessionIDs, fakultasID).Count(&quizCount)
+		config.DB.Model(&models.KencanaAssignment{}).Where("session_id IN ? AND (fakultas_id = ? OR fakultas_id IS NULL)", sessionIDs, fakultasID).Count(&assignmentCount)
 	}
 	return fiber.Map{"id": stage.ID, "name": stage.Name, "type": stage.Type, "description": stage.Description, "start_date": stage.StartDate, "end_date": stage.EndDate, "status": stage.Status, "progress": 0, "session_count": sessionsCount, "quiz_count": quizCount, "assignment_count": assignmentCount, "order_number": stage.OrderNumber}
 }
 
-func sessionSummaryPayload(session models.KencanaSession, studentID uint) fiber.Map {
+func sessionSummaryPayload(session models.KencanaSession, studentID uint, fakultasID uint) fiber.Map {
 	var materialCount, quizCount, assignmentCount int64
-	config.DB.Model(&models.KencanaMaterial{}).Where("session_id = ?", session.ID).Count(&materialCount)
-	config.DB.Model(&models.KencanaQuiz{}).Where("session_id = ?", session.ID).Count(&quizCount)
-	config.DB.Model(&models.KencanaAssignment{}).Where("session_id = ?", session.ID).Count(&assignmentCount)
+	config.DB.Model(&models.KencanaMaterial{}).Where("session_id = ? AND (fakultas_id = ? OR fakultas_id IS NULL)", session.ID, fakultasID).Count(&materialCount)
+	config.DB.Model(&models.KencanaQuiz{}).Where("session_id = ? AND (fakultas_id = ? OR fakultas_id IS NULL)", session.ID, fakultasID).Count(&quizCount)
+	config.DB.Model(&models.KencanaAssignment{}).Where("session_id = ? AND (fakultas_id = ? OR fakultas_id IS NULL)", session.ID, fakultasID).Count(&assignmentCount)
 	return fiber.Map{"id": session.ID, "title": session.Title, "description": session.Description, "start_date": session.StartDate, "end_date": session.EndDate, "deadline": session.EndDate, "status": session.Status, "progress": 0, "material_count": materialCount, "quiz_count": quizCount, "assignment_count": assignmentCount, "order_number": session.OrderNumber}
 }
 

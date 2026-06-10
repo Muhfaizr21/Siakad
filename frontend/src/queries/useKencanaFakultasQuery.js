@@ -27,7 +27,10 @@ export const useUpdateFakultasPhaseMutation = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (payload) => unwrap(await api.put('/kencana-fakultas/phase', payload)),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['kencana-fakultas'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['kencana-fakultas'] });
+      qc.invalidateQueries({ queryKey: ['kencana-admin'] });
+    },
   });
 };
 
@@ -35,7 +38,10 @@ export const useStartFakultasPhaseMutation = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ periodId, ...params }) => unwrap(await api.post('/kencana-fakultas/phase/start', null, { params: { period_id: periodId, ...params } })),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['kencana-fakultas'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['kencana-fakultas'] });
+      qc.invalidateQueries({ queryKey: ['kencana-admin'] });
+    },
   });
 };
 
@@ -43,7 +49,10 @@ export const useCompleteFakultasPhaseMutation = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ periodId, ...params }) => unwrap(await api.post('/kencana-fakultas/phase/complete', null, { params: { period_id: periodId, ...params } })),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['kencana-fakultas'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['kencana-fakultas'] });
+      qc.invalidateQueries({ queryKey: ['kencana-admin'] });
+    },
   });
 };
 
@@ -67,6 +76,22 @@ export const useCreateFakultasSessionMutation = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (payload) => unwrap(await api.post('/kencana-fakultas/sessions', payload)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['kencana-fakultas'] }),
+  });
+};
+
+export const useUpdateFakultasSessionMutation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...payload }) => unwrap(await api.put(`/kencana-fakultas/sessions/${id}`, payload)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['kencana-fakultas'] }),
+  });
+};
+
+export const useDeleteFakultasSessionMutation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id) => unwrap(await api.delete(`/kencana-fakultas/sessions/${id}`)),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['kencana-fakultas'] }),
   });
 };

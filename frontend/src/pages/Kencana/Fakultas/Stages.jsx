@@ -10,6 +10,8 @@ import {
   useStartFakultasPhaseMutation,
   useUpdateFakultasPhaseMutation,
   useUpdateFakultasStageMutation,
+  useUpdateFakultasSessionMutation,
+  useDeleteFakultasSessionMutation,
 } from '../../../queries/useKencanaFakultasQuery';
 import { adminService } from '../../../services/api';
 import useAuthStore from '../../../store/useAuthStore';
@@ -72,6 +74,7 @@ const Stages = () => {
   const [showSessionModal, setShowSessionModal] = useState(false);
   const [activeStage, setActiveStage] = useState(null);
   const [activeSessionId, setActiveSessionId] = useState(null);
+  const [editingSession, setEditingSession] = useState(null);
   const [showMaterialModal, setShowMaterialModal] = useState(false);
   const [showQuizModal, setShowQuizModal] = useState(false);
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
@@ -109,15 +112,19 @@ const Stages = () => {
   const { data: periodPhasesData } = usePeriodPhasesQuery(selectedPeriodId);
   const allFacultyPhases = periodPhasesData?.faculty_phases || [];
 
-  const scopeParams = canPickFaculty && selectedFacultyId ? { fakultas_id: selectedFacultyId } : {};
+  const scopeParams = canPickFaculty && selectedFacultyId ? { fakultas_id: Number(selectedFacultyId) } : {};
   const { data: phaseData } = useFakultasPhaseQuery(selectedPeriodId, scopeParams);
   const { data: stages, isLoading } = useFakultasStagesQuery(selectedPeriodId, scopeParams);
+  const phaseStage = stages?.[0] || null;
+  const sessions = stages?.flatMap(stage => (stage.sessions || []).map(session => ({ ...session, stage }))) || [];
   const updatePhase = useUpdateFakultasPhaseMutation();
   const startPhase = useStartFakultasPhaseMutation();
   const completePhase = useCompleteFakultasPhaseMutation();
   const createStage = useCreateFakultasStageMutation();
   const updateStage = useUpdateFakultasStageMutation();
   const createSession = useCreateFakultasSessionMutation();
+  const updateSession = useUpdateFakultasSessionMutation();
+  const deleteSession = useDeleteFakultasSessionMutation();
 
   const period = phaseData?.period;
   const phase = phaseData?.phase;
@@ -126,26 +133,58 @@ const Stages = () => {
 
   useEffect(() => {
     if (phase) {
+      let minStart = '';
+      let maxEnd = '';
+      if (sessions && sessions.length > 0) {
+        let minD = null;
+        let maxD = null;
+        sessions.forEach(s => {
+          if (s.start_date) {
+            const d = new Date(s.start_date);
+            if (!minD || d < minD) minD = d;
+          }
+          if (s.end_date) {
+            const d = new Date(s.end_date);
+            if (!maxD || d > maxD) maxD = d;
+          }
+        });
+        if (minD) {
+          minStart = `${minD.getFullYear()}-${String(minD.getMonth() + 1).padStart(2, '0')}-${String(minD.getDate()).padStart(2, '0')}`;
+        }
+        if (maxD) {
+          maxEnd = `${maxD.getFullYear()}-${String(maxD.getMonth() + 1).padStart(2, '0')}-${String(maxD.getDate()).padStart(2, '0')}`;
+        }
+      }
+
       setPhaseForm({
-        start_date: phase.start_date ? phase.start_date.slice(0, 10) : '',
-        end_date: phase.end_date ? phase.end_date.slice(0, 10) : '',
+        start_date: phase.start_date ? phase.start_date.slice(0, 10) : minStart,
+        end_date: phase.end_date ? phase.end_date.slice(0, 10) : maxEnd,
         theme: phase.theme || '',
         is_published: phase.is_published ?? true,
       });
     }
-  }, [phase?.id]);
+  }, [phase?.id, sessions.length]);
+
 
   const savePhase = () => {
     updatePhase.mutate({
       period_id: Number(selectedPeriodId),
       ...scopeParams,
-      start_date: phaseForm.start_date || null,
-      end_date: phaseForm.end_date || null,
+      start_date: formatApiDate(phaseForm.start_date),
+      end_date: formatApiDate(phaseForm.end_date),
       theme: phaseForm.theme,
       status: phase?.status === 'not_open' ? 'ready' : phase?.status,
       is_published: phaseForm.is_published,
+    }, {
+      onSuccess: () => {
+        alert('Berhasil menyimpan perubahan timeline!');
+      },
+      onError: (err) => {
+        alert('Gagal menyimpan perubahan: ' + (err.response?.data?.message || err.message));
+      }
     });
   };
+
 
   const openNewStage = () => {
     setActiveStage(null);
@@ -200,7 +239,7 @@ const Stages = () => {
     });
   };
 
-  const openSession = async (stage = null) => {
+  const openSession = async (stage = null, session = null) => {
     if (!selectedPeriodId) {
       alert("Silakan pilih periode Kencana terlebih dahulu di bagian atas halaman!");
       return;
@@ -212,15 +251,29 @@ const Stages = () => {
     const targetStage = stage || await ensureFacultyStage();
     if (!targetStage) return;
     setActiveStage(targetStage);
-    setSessionForm({
-      title: '',
-      description: '',
-      status: phase?.status === 'active' ? 'active' : 'locked',
-      start_date: phase?.start_date ? phase.start_date.slice(0, 10) : '',
-      end_date: phase?.end_date ? phase.end_date.slice(0, 10) : '',
-      is_required: true,
-      is_published: phase?.status === 'active',
-    });
+    if (session) {
+      setEditingSession(session);
+      setSessionForm({
+        title: session.title || '',
+        description: session.description || '',
+        status: session.status || 'locked',
+        start_date: session.start_date ? session.start_date.slice(0, 10) : '',
+        end_date: session.end_date ? session.end_date.slice(0, 10) : '',
+        is_required: Boolean(session.is_required),
+        is_published: Boolean(session.is_published),
+      });
+    } else {
+      setEditingSession(null);
+      setSessionForm({
+        title: '',
+        description: '',
+        status: phase?.status === 'active' ? 'active' : 'locked',
+        start_date: phase?.start_date ? phase.start_date.slice(0, 10) : '',
+        end_date: phase?.end_date ? phase.end_date.slice(0, 10) : '',
+        is_required: true,
+        is_published: phase?.status === 'active',
+      });
+    }
     setShowSessionModal(true);
   };
 
@@ -229,11 +282,19 @@ const Stages = () => {
     const payload = { ...sessionForm, stage_id: activeStage.id };
     payload.start_date = formatApiDate(payload.start_date);
     payload.end_date = formatApiDate(payload.end_date);
-    createSession.mutate(payload, { onSuccess: () => setShowSessionModal(false) });
+    if (editingSession) {
+      updateSession.mutate({ id: editingSession.id, ...payload }, { onSuccess: () => setShowSessionModal(false) });
+    } else {
+      createSession.mutate(payload, { onSuccess: () => setShowSessionModal(false) });
+    }
   };
 
-  const phaseStage = stages?.[0] || null;
-  const sessions = stages?.flatMap(stage => (stage.sessions || []).map(session => ({ ...session, stage }))) || [];
+  const handleDeleteSession = (id) => {
+    if (window.confirm('Hapus sesi ini? Semua kuis, materi, dan tugas di dalamnya akan tetap tersimpan tetapi tidak terasosiasi lagi.')) {
+      deleteSession.mutate(id);
+    }
+  };
+
 
   return (
     <div className="md:max-w-7xl mx-auto space-y-6 font-body">
@@ -568,6 +629,23 @@ const Stages = () => {
                                         >
                                           <span className="material-symbols-outlined text-[16px]">assignment</span> Tugas
                                         </button>
+                                        <div className="border-t border-slate-100 my-1"></div>
+                                        <button
+                                          onClick={() => {
+                                            openSession(item.stage, item);
+                                          }}
+                                          className="text-left px-3 py-2 text-xs font-bold text-blue-600 hover:bg-blue-50 rounded-lg transition-colors flex items-center gap-2"
+                                        >
+                                          <span className="material-symbols-outlined text-[16px]">edit</span> Edit Sesi
+                                        </button>
+                                        <button
+                                          onClick={() => {
+                                            handleDeleteSession(item.id);
+                                          }}
+                                          className="text-left px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-2"
+                                        >
+                                          <span className="material-symbols-outlined text-[16px]">delete</span> Hapus Sesi
+                                        </button>
                                       </div>
                                 </PopoverContent>
                               </Popover>
@@ -668,10 +746,10 @@ const Stages = () => {
                 Sesi Kencana
               </span>
               <DialogTitle className="text-xl font-extrabold font-headline leading-tight truncate text-white mt-0.5">
-                Tambah Sesi Fakultas
+                {editingSession ? 'Edit Sesi Fakultas' : 'Tambah Sesi Fakultas'}
               </DialogTitle>
               <DialogDescription className="text-xs text-blue-100 font-medium mt-1">
-                Buat sesi pembelajaran baru untuk orientasi mahasiswa
+                {editingSession ? 'Perbarui detail sesi pembelajaran orientasi mahasiswa' : 'Buat sesi pembelajaran baru untuk orientasi mahasiswa'}
               </DialogDescription>
             </div>
           </div>

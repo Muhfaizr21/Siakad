@@ -109,6 +109,7 @@ export const ManageMaterialsModal = ({ open, onOpenChange, sessionId }) => {
         await createMaterialMutation.mutateAsync(payload);
         toast.success('Materi berhasil dibuat!');
       }
+      setEditingMaterial(null);
       setView('list');
     } catch (err) {
       toast.error('Gagal menyimpan materi');
@@ -136,7 +137,10 @@ export const ManageMaterialsModal = ({ open, onOpenChange, sessionId }) => {
           <div className="space-y-6">
             <div className="flex justify-end">
               <button 
-                onClick={() => setView('form')}
+                onClick={() => {
+                  setEditingMaterial(null);
+                  setView('form');
+                }}
                 className="bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md transition-colors"
               >
                 + Tambah Materi
@@ -266,7 +270,7 @@ export const ManageMaterialsModal = ({ open, onOpenChange, sessionId }) => {
             </div>
 
             <div className="flex justify-end gap-3 pt-6 border-t border-[var(--theme-border-muted)] mt-8">
-              <button type="button" onClick={() => setView('list')} className="px-5 py-2.5 rounded-xl font-bold text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg)] transition-colors text-xs">Kembali</button>
+              <button type="button" onClick={() => { setView('list'); setEditingMaterial(null); }} className="px-5 py-2.5 rounded-xl font-bold text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg)] transition-colors text-xs">Kembali</button>
               <button type="submit" disabled={isUploading} className="bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white px-6 py-2.5 rounded-xl font-bold shadow-md disabled:opacity-50 transition-all flex items-center justify-center min-w-[140px] text-xs">
                 {isUploading ? (
                   <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
