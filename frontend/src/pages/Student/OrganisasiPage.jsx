@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { PageContent, PageHeader } from '@/components/ui/page';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
-import { 
+import {
   useOrganisasiListQuery,
   useOrmawaListQuery,
   useDaftarOrmawaMutation,
@@ -23,32 +23,32 @@ const ClipboardList = ({ size, className, ...props }) => <span className={`mater
 const Shield = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>security</span>;
 
 const TIPE_COLORS = {
-  UKM:            { bg: 'bg-primary/10', text: 'text-primary' },
+  UKM: { bg: 'bg-primary/10', text: 'text-primary' },
   'Himpunan Prodi': { bg: 'bg-primary/10', text: 'text-primary' },
-  BEM:            { bg: 'bg-primary/10', text: 'text-primary' },
-  DPM:            { bg: 'bg-primary/10', text: 'text-primary' },
-  Komunitas:  { bg: 'bg-background', text: 'text-text-muted' },
-  Lainnya:    { bg: 'bg-background', text: 'text-text-muted' },
+  BEM: { bg: 'bg-primary/10', text: 'text-primary' },
+  DPM: { bg: 'bg-primary/10', text: 'text-primary' },
+  Komunitas: { bg: 'bg-background', text: 'text-text-muted' },
+  Lainnya: { bg: 'bg-background', text: 'text-text-muted' },
 };
 
 export default function OrganisasiPage() {
   const { data: list, isLoading } = useOrganisasiListQuery();
   const { data: ormawaList, isLoading: isOrmawaLoading } = useOrmawaListQuery();
   const { data: pendaftaranList } = usePendaftaranListQuery();
-  
+
   const getRecruitmentStatus = (org) => {
     if (!org.open_recruitment) {
-      return { isOpen: false, text: 'Pendaftaran Ditutup', color: 'bg-error/10 text-error border border-error/20' };
+      return { isOpen: false, text: 'Pendaftaran Ditutup', color: 'bg-error/10 text-error border border-error/20', buttonText: 'Pendaftaran Ditutup' };
     }
     const now = new Date();
     if (org.recruitment_start && new Date(org.recruitment_start) > now) {
       const startDate = new Date(org.recruitment_start).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
-      return { isOpen: false, text: `Buka Sejak ${startDate}`, color: 'bg-warning/10 text-warning border border-warning/20' };
+      return { isOpen: false, text: `Mulai: ${startDate}`, color: 'bg-warning/10 text-warning border border-warning/20', buttonText: 'Belum Dibuka' };
     }
     if (org.recruitment_end && new Date(org.recruitment_end) < now) {
-      return { isOpen: false, text: 'Pendaftaran Selesai', color: 'bg-error/10 text-error border border-error/20' };
+      return { isOpen: false, text: 'Pendaftaran Selesai', color: 'bg-error/10 text-error border border-error/20', buttonText: 'Pendaftaran Selesai' };
     }
-    return { isOpen: true, text: 'Pendaftaran Dibuka', color: 'bg-success/10 text-success border border-success/20 animate-pulse' };
+    return { isOpen: true, text: 'Pendaftaran Dibuka', color: 'bg-success/10 text-success border border-success/20 animate-pulse', buttonText: 'Daftar Sekarang' };
   };
 
   const getPendaftaranRecord = (orgId) => {
@@ -66,7 +66,7 @@ export default function OrganisasiPage() {
   const [mainTab, setMainTab] = useState('portfolio'); // 'portfolio', 'daftar', 'pendaftaran'
   const [selectedOrg, setSelectedOrg] = useState(null);
   const [activeTab, setActiveTab] = useState('ringkasan');
-  
+
   // Registration state
   const [selectedDaftarOrg, setSelectedDaftarOrg] = useState(null);
   const [divisiPilihan, setDivisiPilihan] = useState('');
@@ -281,7 +281,7 @@ export default function OrganisasiPage() {
     <PageContent className="font-body">
 
       <div className="max-w-7xl mx-auto">
-        <PageHeader 
+        <PageHeader
           title="Portfolio Keorganisasian"
           subtitle="Portofolio keaktifan organisasi kemahasiswaan dan pendaftaran Ormawa."
           icon="group"
@@ -296,25 +296,22 @@ export default function OrganisasiPage() {
           <div className="flex gap-6 overflow-x-auto no-scrollbar">
             <button
               onClick={() => setMainTab('portfolio')}
-              className={`pb-3 text-sm font-bold border-b-2 transition-all whitespace-nowrap ${
-                mainTab === 'portfolio' ? 'border-primary text-primary' : 'border-transparent text-text-muted hover:text-bku-text'
-              }`}
+              className={`pb-3 text-sm font-bold border-b-2 transition-all whitespace-nowrap ${mainTab === 'portfolio' ? 'border-primary text-primary' : 'border-transparent text-text-muted hover:text-bku-text'
+                }`}
             >
               Portfolio Saya
             </button>
             <button
               onClick={() => setMainTab('daftar')}
-              className={`pb-3 text-sm font-bold border-b-2 transition-all whitespace-nowrap ${
-                mainTab === 'daftar' ? 'border-primary text-primary' : 'border-transparent text-text-muted hover:text-bku-text'
-              }`}
+              className={`pb-3 text-sm font-bold border-b-2 transition-all whitespace-nowrap ${mainTab === 'daftar' ? 'border-primary text-primary' : 'border-transparent text-text-muted hover:text-bku-text'
+                }`}
             >
               Daftar Ormawa Baru
             </button>
             <button
               onClick={() => setMainTab('pendaftaran')}
-              className={`pb-3 text-sm font-bold border-b-2 transition-all whitespace-nowrap ${
-                mainTab === 'pendaftaran' ? 'border-primary text-primary' : 'border-transparent text-text-muted hover:text-bku-text'
-              }`}
+              className={`pb-3 text-sm font-bold border-b-2 transition-all whitespace-nowrap ${mainTab === 'pendaftaran' ? 'border-primary text-primary' : 'border-transparent text-text-muted hover:text-bku-text'
+                }`}
             >
               Status Pendaftaran ({pendaftaranList?.length || 0})
             </button>
@@ -351,16 +348,16 @@ export default function OrganisasiPage() {
                       {/* Top Badges */}
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex flex-wrap gap-2 items-center">
-                            <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold border ${tc.bg} ${tc.text} border-current/20 uppercase tracking-wide`}>
-                              {item.Tipe}
-                            </span>
+                          <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold border ${tc.bg} ${tc.text} border-current/20 uppercase tracking-wide`}>
+                            {item.Tipe}
+                          </span>
                           {isActive ? (
-                              <span className="px-2.5 py-1 rounded-md text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">Aktif</span>
+                            <span className="px-2.5 py-1 rounded-md text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">Aktif</span>
                           ) : (
-                              <span className="px-2.5 py-1 rounded-md text-[10px] font-bold bg-background text-text-muted border border-border">Selesai/Purna</span>
+                            <span className="px-2.5 py-1 rounded-md text-[10px] font-bold bg-background text-text-muted border border-border">Selesai/Purna</span>
                           )}
                         </div>
-                        
+
                         {isPending ? (
                           <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold shrink-0 text-primary bg-primary/10 border border-primary/20">
                             <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >schedule</span> Menunggu Verifikasi
@@ -401,19 +398,19 @@ export default function OrganisasiPage() {
 
                         <div className="flex text-sm">
                           <span className="w-32 shrink-0 text-text-muted flex items-start gap-1.5 mt-0.5">
-                             <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >group</span> Deskripsi:
+                            <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >group</span> Deskripsi:
                           </span>
                           <span className="text-text-muted leading-relaxed line-clamp-3">
-                             {item.DeskripsiKegiatan || '-'}
+                            {item.DeskripsiKegiatan || '-'}
                           </span>
                         </div>
 
                         <div className="flex text-sm">
                           <span className="w-32 shrink-0 text-text-muted flex items-start gap-1.5 mt-0.5">
-                             <Award size={14} /> Apresiasi:
+                            <Award size={14} /> Apresiasi:
                           </span>
                           <span className="text-primary font-medium leading-relaxed bg-primary/10 px-2 py-1 rounded">
-                             {item.Apresiasi || '-'}
+                            {item.Apresiasi || '-'}
                           </span>
                         </div>
                       </div>
@@ -425,8 +422,8 @@ export default function OrganisasiPage() {
                           <div className="flex flex-col gap-2">
                             {item.Prestasi.map(p => (
                               <div key={p.id || p.ID} className="flex flex-col bg-warning/10 border border-warning/20 p-2.5 rounded-xl">
-                                 <span className="font-bold text-warning text-xs leading-none mb-1">{p.NamaKegiatan}</span>
-                                 <span className="text-[10px] text-warning font-medium leading-none">{p.Tingkat} • {p.Peringkat}</span>
+                                <span className="font-bold text-warning text-xs leading-none mb-1">{p.NamaKegiatan}</span>
+                                <span className="text-[10px] text-warning font-medium leading-none">{p.Tingkat} • {p.Peringkat}</span>
                               </div>
                             ))}
                           </div>
@@ -481,10 +478,10 @@ export default function OrganisasiPage() {
               })}
             </div>
           ) : (
-            <EmptyState 
-              icon="Users" 
-              title="Belum Ada Riwayat Organisasi" 
-              description="Belum ada catatan keaktifan organisasi. Tambahkan riwayat organisasi Anda secara mandiri." 
+            <EmptyState
+              icon="Users"
+              title="Belum Ada Riwayat Organisasi"
+              description="Belum ada catatan keaktifan organisasi. Tambahkan riwayat organisasi Anda secara mandiri."
               iconBgClass="bg-primary/10"
               iconBorderClass="border-primary/20"
               actionLabel="Tambah Riwayat Organisasi"
@@ -529,7 +526,7 @@ export default function OrganisasiPage() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <p className="text-sm text-text-muted leading-relaxed line-clamp-3">
                     {org.Deskripsi || 'Tidak ada deskripsi.'}
                   </p>
@@ -571,7 +568,7 @@ export default function OrganisasiPage() {
                             disabled
                             className="px-4 py-2 rounded-xl bg-background text-text-muted/40 text-xs font-bold border border-border cursor-not-allowed"
                           >
-                            Pendaftaran Ditutup
+                            {status.buttonText || 'Pendaftaran Ditutup'}
                           </button>
                         );
                       }
@@ -589,10 +586,10 @@ export default function OrganisasiPage() {
               ))}
             </div>
           ) : (
-            <EmptyState 
-              icon="Users" 
-              title="Tidak Ada Organisasi" 
-              description="Tidak ada organisasi mahasiswa aktif yang tersedia saat ini." 
+            <EmptyState
+              icon="Users"
+              title="Tidak Ada Organisasi"
+              description="Tidak ada organisasi mahasiswa aktif yang tersedia saat ini."
               iconBgClass="bg-primary/10"
               iconBorderClass="border-primary/20"
             />
@@ -639,7 +636,7 @@ export default function OrganisasiPage() {
                               </div>
                             </div>
                           </td>
-                           <td className="px-6 py-4 font-semibold text-sm text-text-muted">
+                          <td className="px-6 py-4 font-semibold text-sm text-text-muted">
                             <div>{app.Divisi || 'Umum'}</div>
                             {(app.divisi_pilihan_dua || app.DivisiPilihanDua) && (
                               <div className="text-[10px] font-bold text-text-muted mt-0.5 uppercase tracking-wide">Pilihan 2: {app.divisi_pilihan_dua || app.DivisiPilihanDua}</div>
@@ -664,10 +661,10 @@ export default function OrganisasiPage() {
               </div>
             </div>
           ) : (
-            <EmptyState 
-              icon="Users" 
-              title="Belum Ada Pendaftaran" 
-              description="Anda belum mengajukan pendaftaran anggota ke Ormawa manapun." 
+            <EmptyState
+              icon="Users"
+              title="Belum Ada Pendaftaran"
+              description="Anda belum mengajukan pendaftaran anggota ke Ormawa manapun."
               iconBgClass="bg-primary/10"
               iconBorderClass="border-primary/20"
             />
@@ -705,9 +702,8 @@ export default function OrganisasiPage() {
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
-                  className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-t-xl text-xs font-semibold whitespace-nowrap border-b-2 transition-colors ${
-                    isActive ? 'text-[var(--theme-primary)] border-[var(--theme-primary)] bg-[var(--theme-primary-light)]/20' : 'text-[var(--theme-text-muted)] border-transparent hover:text-[var(--theme-text)]'
-                  }`}
+                  className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-t-xl text-xs font-semibold whitespace-nowrap border-b-2 transition-colors ${isActive ? 'text-[var(--theme-primary)] border-[var(--theme-primary)] bg-[var(--theme-primary-light)]/20' : 'text-[var(--theme-text-muted)] border-transparent hover:text-[var(--theme-text)]'
+                    }`}
                 >
                   <Icon size={14} /> {tab.label}
                 </button>
@@ -774,63 +770,52 @@ export default function OrganisasiPage() {
 
       {/* Registration Modal */}
       <Dialog open={!!selectedDaftarOrg} onOpenChange={closeDaftarModal} maxWidth="max-w-xl">
-        <DialogContent>
+        <DialogContent className="p-0 overflow-hidden bg-[var(--theme-surface)] rounded-3xl border-0 shadow-2xl">
           {selectedDaftarOrg && (() => {
             const studentIPK = profile?.IPK || 0;
-            const minIPK = selectedDaftarOrg.min_ipk || selectedDaftarOrg.MinIPK || 0;
-            const isGPAEligible = minIPK === 0 || studentIPK >= minIPK;
-            const fallbackDivisions = ["Umum", "Humas / Media", "PSDM / Keanggotaan", "Acara / Pelaksana Kegiatan", "Kreatif & Desain", "Logistik & Operasional"];
-            const divisionsOptions = divisionsList && divisionsList.length > 0
-              ? divisionsList.map(d => d.Nama || d.nama)
-              : fallbackDivisions;
+        const minIPK = selectedDaftarOrg.min_ipk || selectedDaftarOrg.MinIPK || 0;
+        const isGPAEligible = minIPK === 0 || studentIPK >= minIPK;
+        const hasDivisions = divisionsList && divisionsList.length > 0;
+        const divisionsOptions = hasDivisions ? divisionsList.map(d => d.Nama || d.nama) : [];
 
-            return (
-              <>
-                <DialogHeader>
-                  <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
-                    <span className="material-symbols-outlined text-8xl text-slate-900">assignment</span>
-                  </div>
-                  <div className="text-left relative z-10">
-                    <p className="text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">Formulir Rekrutmen Anggota</p>
-                    <DialogTitle className="text-lg font-extrabold mt-1 text-[var(--theme-text)]">
-                      {selectedDaftarOrg.Nama || selectedDaftarOrg.nama}
-                    </DialogTitle>
-                  </div>
-                </DialogHeader>
+        return (
+          <>
+            <DialogHeader>
+              <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
+                <span className="material-symbols-outlined text-8xl text-slate-900">assignment</span>
+              </div>
+              <div className="text-left relative z-10">
+                <p className="text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">Formulir Rekrutmen Anggota</p>
+                <DialogTitle className="text-lg font-extrabold mt-1 text-[var(--theme-text)]">
+                  {selectedDaftarOrg.Nama || selectedDaftarOrg.nama}
+                </DialogTitle>
+              </div>
+            </DialogHeader>
 
-                <form onSubmit={handleRegisterSubmit} className="flex flex-col">
-                  <div className="p-8 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar">
-                    {/* Requirements & Dates Section */}
-                    {(selectedDaftarOrg.recruitment_requirements || minIPK > 0) && (
-                      <div className="space-y-2">
-                        <label className="text-xs font-semibold text-[var(--theme-text)] uppercase tracking-widest block flex items-center gap-1.5">
-                          <span className="material-symbols-outlined text-warning" style={{ fontSize: 16 }}>assignment_late</span>
-                          Persyaratan Pendaftaran & Kriteria
-                        </label>
-                        <div className="p-4 bg-warning/10 border border-warning/20 rounded-2xl text-xs font-semibold text-warning leading-relaxed space-y-2">
-                          {selectedDaftarOrg.recruitment_requirements && (
-                            <div className="whitespace-pre-wrap font-body">
-                              {selectedDaftarOrg.recruitment_requirements}
-                            </div>
-                          )}
-                          {minIPK > 0 && (
-                            <div className="flex items-center gap-1.5 text-warning font-bold border-t border-warning/10 pt-2 mt-2">
-                              <span className="material-symbols-outlined text-warning" style={{ fontSize: 14 }}>school</span>
-                              <span>IPK Minimal: {minIPK.toFixed(2)}</span>
-                            </div>
-                          )}
+            <form onSubmit={handleRegisterSubmit} className="flex flex-col">
+              <div className="p-8 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar">
+                {/* Requirements & Dates Section */}
+                {(selectedDaftarOrg.recruitment_requirements || minIPK > 0) && (
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-[var(--theme-text)] uppercase tracking-widest block flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-warning" style={{ fontSize: 16 }}>assignment_late</span>
+                      Persyaratan Pendaftaran & Kriteria
+                    </label>
+                    <div className="p-4 bg-warning/10 border border-warning/20 rounded-2xl text-xs font-semibold text-warning leading-relaxed space-y-2">
+                      {selectedDaftarOrg.recruitment_requirements && (
+                        <div className="whitespace-pre-wrap font-body">
+                          {selectedDaftarOrg.recruitment_requirements}
                         </div>
-                      </div>
-                    )}
-
-                    {selectedDaftarOrg.recruitment_start && selectedDaftarOrg.recruitment_end && (
-                      <div className="text-[11px] font-semibold text-[var(--theme-text-muted)] flex items-center gap-1.5 bg-[var(--theme-bg)] border border-[var(--theme-border)] p-2.5 rounded-xl">
-                        <span className="material-symbols-outlined text-[var(--theme-text-muted)]" style={{ fontSize: 14 }}>calendar_month</span>
-                        <span>
-                          Periode: {new Date(selectedDaftarOrg.recruitment_start).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} s.d. {new Date(selectedDaftarOrg.recruitment_end).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
-                        </span>
-                      </div>
-                    )}
+                      )}
+                      {minIPK > 0 && (
+                        <div className="flex items-center gap-1.5 text-warning font-bold border-t border-warning/10 pt-2 mt-2">
+                          <span className="material-symbols-outlined text-warning" style={{ fontSize: 14 }}>school</span>
+                          <span>IPK Minimal: {minIPK.toFixed(2)}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                     {/* Section 1: Profil Pendaftar (Verified) */}
                     <div className="bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-2xl p-4 space-y-3">
@@ -1012,11 +997,10 @@ export default function OrganisasiPage() {
                                 <div className="space-y-2">
                                   <div className="flex items-center gap-3">
                                     <label
-                                      className={`flex items-center gap-2 px-4 h-10 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
-                                        !isGPAEligible
+                                      className={`flex items-center gap-2 px-4 h-10 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${!isGPAEligible
                                           ? 'bg-[var(--theme-bg)] text-[var(--theme-text-muted)] border-[var(--theme-border)] cursor-not-allowed'
                                           : 'bg-[var(--theme-primary-light)]/20 border-[var(--theme-primary)]/20 text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)]/30'
-                                      }`}
+                                        }`}
                                     >
                                       <span className="material-symbols-outlined" style={{ fontSize: 16 }}>upload_file</span>
                                       {fileUploading[fieldId] ? 'Mengunggah...' : 'Pilih File (PDF/Gambar, maks 5 MB)'}
@@ -1086,129 +1070,129 @@ export default function OrganisasiPage() {
                   </div>
 
                   {/* Action Buttons */}
-                  <DialogFooter className="flex gap-3 shrink-0">
-                    <button
-                      type="button"
-                      onClick={closeDaftarModal}
-                      className="flex-1 h-10 bg-[var(--theme-surface)] border border-[var(--theme-border)] text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] font-semibold rounded-xl transition-all uppercase tracking-wide text-xs active:scale-95 cursor-pointer"
-                    >
-                      Batal
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={daftarMutation.isPending || !isGPAEligible}
-                      className={`flex-1 h-10 font-semibold rounded-xl transition-all text-xs uppercase tracking-wide flex items-center justify-center gap-1.5 active:scale-95 text-white border-none cursor-pointer ${
-                        !isGPAEligible 
-                          ? 'bg-[var(--theme-text-subtle)] text-white/50 cursor-not-allowed' 
-                          : 'bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)]'
+                <DialogFooter className="flex gap-3 shrink-0">
+                  <button
+                    type="button"
+                    onClick={closeDaftarModal}
+                    className="flex-1 h-10 bg-[var(--theme-surface)] border border-[var(--theme-border)] text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] font-semibold rounded-xl transition-all uppercase tracking-wide text-xs active:scale-95 cursor-pointer"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={daftarMutation.isPending || !isGPAEligible}
+                    className={`flex-1 h-10 font-semibold rounded-xl transition-all text-xs uppercase tracking-wide flex items-center justify-center gap-1.5 active:scale-95 text-white border-none cursor-pointer ${!isGPAEligible
+                        ? 'bg-[var(--theme-text-subtle)] text-white/50 cursor-not-allowed'
+                        : 'bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)]'
                       }`}
-                    >
-                      {daftarMutation.isPending ? 'Mengirim...' : 'Kirim Pendaftaran'}
-                    </button>
-                  </DialogFooter>
-                </form>
-              </>
-            );
-          })()}
-        </DialogContent>
+                  >
+                    {daftarMutation.isPending ? 'Mengirim...' : 'Kirim Pendaftaran'}
+                  </button>
+                </DialogFooter>
+            </form>
+          </>
+        );
+      })()}
+    </DialogContent>
       </Dialog>
 
-      {/* Certificate Print Preview Modal */}
-      <Dialog open={!!printCertData} onOpenChange={() => setPrintCertData(null)} maxWidth="max-w-4xl">
-        <DialogContent className="print:shadow-none print:border-none print:w-full print:max-w-none print:h-full print:rounded-none">
-          {printCertData && (
-            <>
-              {/* Modal Header (Hidden on Print) */}
-              <div className="bg-[var(--theme-primary)] text-white p-5 flex items-center justify-between print:hidden shrink-0">
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined">badge</span>
-                  <span className="font-semibold text-sm uppercase tracking-wider">Cetak Sertifikat Keaktifan Organisasi</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={triggerPrint}
-                    className="h-10 px-4 bg-[var(--theme-success)] hover:bg-[var(--theme-success)]/90 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors border-none cursor-pointer"
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: 16 }}>print</span> Cetak Sekarang
-                  </button>
-                </div>
-              </div>
+    {/* Certificate Print Preview Modal */ }
+    <Dialog open= {!!printCertData
+} onOpenChange = {() => setPrintCertData(null)} maxWidth = "max-w-4xl" >
+  <DialogContent className="print:shadow-none print:border-none print:w-full print:max-w-none print:h-full print:rounded-none">
+    {printCertData && (
+      <>
+        {/* Modal Header (Hidden on Print) */}
+        <div className="bg-[var(--theme-primary)] text-white p-5 flex items-center justify-between print:hidden shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined">badge</span>
+            <span className="font-semibold text-sm uppercase tracking-wider">Cetak Sertifikat Keaktifan Organisasi</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={triggerPrint}
+              className="h-10 px-4 bg-[var(--theme-success)] hover:bg-[var(--theme-success)]/90 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors border-none cursor-pointer"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>print</span> Cetak Sekarang
+            </button>
+          </div>
+        </div>
 
-              {/* Certificate Print Area */}
-              <div className="p-6 md:p-10 flex-1 flex justify-start lg:justify-center bg-gray-50 print:bg-white print:p-0 overflow-auto">
-                <div
-                  id="certificate-print-area"
-                  className="w-[842px] h-[595px] bg-surface border-[16px] border-double border-warning/30 p-8 relative flex flex-col justify-between shadow-lg print:shadow-none print:border-double print:m-0 shrink-0"
-                  style={{
-                    backgroundImage: 'radial-gradient(circle, #fff 60%, #fffbeb 100%)',
-                  }}
-                >
-                  {/* Certificate Background watermark */}
-                  <div className="absolute inset-0 opacity-[0.03] pointer-events-none flex items-center justify-center">
-                    <span className="material-symbols-outlined text-[350px] text-primary">group</span>
-                  </div>
+        {/* Certificate Print Area */}
+        <div className="p-6 md:p-10 flex-1 flex justify-start lg:justify-center bg-gray-50 print:bg-white print:p-0 overflow-auto">
+          <div
+            id="certificate-print-area"
+            className="w-[842px] h-[595px] bg-surface border-[16px] border-double border-warning/30 p-8 relative flex flex-col justify-between shadow-lg print:shadow-none print:border-double print:m-0 shrink-0"
+            style={{
+              backgroundImage: 'radial-gradient(circle, #fff 60%, #fffbeb 100%)',
+            }}
+          >
+            {/* Certificate Background watermark */}
+            <div className="absolute inset-0 opacity-[0.03] pointer-events-none flex items-center justify-center">
+              <span className="material-symbols-outlined text-[350px] text-primary">group</span>
+            </div>
 
-                  {/* Certificate Inner Border */}
-                  <div className="absolute inset-2 border border-warning/30/50 pointer-events-none"></div>
+            {/* Certificate Inner Border */}
+            <div className="absolute inset-2 border border-warning/30/50 pointer-events-none"></div>
 
-                  {/* Top Section */}
-                  <div className="text-center relative z-10">
-                    <div className="flex justify-center items-center gap-3 mb-2">
-                      <span className="material-symbols-outlined text-4xl text-primary">school</span>
-                      <div className="text-left">
-                        <h2 className="text-lg font-black tracking-widest text-primary leading-none">UNIVERSITAS BHAKTI KENCANA</h2>
-                        <p className="text-[9px] font-bold tracking-widest text-text-muted mt-0.5 uppercase">Lembaga Kemahasiswaan & Hubungan Alumni</p>
-                      </div>
-                    </div>
-                    <div className="h-[2px] w-48 bg-warning mx-auto my-3"></div>
-                    <h1 className="text-3xl font-serif font-black text-primary uppercase tracking-wide">Sertifikat Penghargaan</h1>
-                    <p className="text-[10px] font-bold text-warning uppercase tracking-widest mt-1">Nomor: BKU-CERT/ORG/{printCertData.id || printCertData.ID}/{new Date().getFullYear()}</p>
-                  </div>
-
-                  {/* Body Section */}
-                  <div className="text-center my-6 relative z-10 px-8">
-                    <p className="text-xs text-text-muted font-semibold italic">Sertifikat ini diberikan dengan penuh apresiasi kepada:</p>
-                    <h3 className="text-2xl font-serif font-black text-primary mt-3 border-b border-border pb-2 inline-block px-12">
-                      {profile?.Nama || 'NAMA MAHASISWA'}
-                    </h3>
-                    <p className="text-xs font-bold text-text-muted mt-1.5">NIM: {profile?.NIM || 'NIM MAHASISWA'}</p>
-
-                    <p className="text-xs text-text-muted leading-relaxed max-w-xl mx-auto mt-5">
-                      Atas dedikasi, kontribusi, dan keaktifannya sebagai <strong className="text-bku-text">{printCertData.Jabatan}</strong> dalam organisasi <strong className="text-primary">{printCertData.NamaOrganisasi}</strong> periode <strong className="text-bku-text">{printCertData.PeriodeMulai} - {printCertData.PeriodeSelesai || 'Sekarang'}</strong>.
-                    </p>
-                  </div>
-
-                  {/* Footer Section (Signatures) */}
-                  <div className="flex justify-between items-end px-10 relative z-10 mt-auto">
-                    <div className="text-center w-48">
-                      <p className="text-[9px] font-bold text-text-muted uppercase mb-1">Ketua Umum {printCertData.NamaOrganisasi}</p>
-                      <div className="h-10 flex items-center justify-center">
-                        <span className="font-serif text-[11px] italic text-text-muted">Tanda Tangan Digital</span>
-                      </div>
-                      <div className="h-[1px] bg-[#a3a3a3] w-full mt-2"></div>
-                      <p className="text-[10px] font-extrabold text-bku-text mt-1">Ketua {printCertData.NamaOrganisasi}</p>
-                    </div>
-
-                    {/* Stamp or verification badge */}
-                    <div className="flex flex-col items-center justify-center border-2 border-dashed border-warning/30/50 rounded-full w-20 h-20 bg-warning/5 backdrop-blur-sm shadow-inner">
-                      <span className="material-symbols-outlined text-warning text-2xl">verified</span>
-                      <span className="text-[6px] font-black text-warning tracking-tighter uppercase mt-0.5">BKU Hub</span>
-                      <span className="text-[6px] font-black text-warning tracking-tighter uppercase">Verified</span>
-                    </div>
-
-                    <div className="text-center w-48">
-                      <p className="text-[9px] font-bold text-text-muted uppercase mb-1">Rektor Universitas Bhakti Kencana</p>
-                      <div className="h-10 flex items-center justify-center">
-                        <span className="font-serif text-[11px] italic text-text-muted">Tanda Tangan Digital</span>
-                      </div>
-                      <div className="h-[1px] bg-[#a3a3a3] w-full mt-2"></div>
-                      <p className="text-[10px] font-extrabold text-bku-text mt-1">Dr. Rektor Universitas</p>
-                    </div>
-                  </div>
+            {/* Top Section */}
+            <div className="text-center relative z-10">
+              <div className="flex justify-center items-center gap-3 mb-2">
+                <span className="material-symbols-outlined text-4xl text-primary">school</span>
+                <div className="text-left">
+                  <h2 className="text-lg font-black tracking-widest text-primary leading-none">UNIVERSITAS BHAKTI KENCANA</h2>
+                  <p className="text-[9px] font-bold tracking-widest text-text-muted mt-0.5 uppercase">Lembaga Kemahasiswaan & Hubungan Alumni</p>
                 </div>
               </div>
-              
-              <style>{`
+              <div className="h-[2px] w-48 bg-warning mx-auto my-3"></div>
+              <h1 className="text-3xl font-serif font-black text-primary uppercase tracking-wide">Sertifikat Penghargaan</h1>
+              <p className="text-[10px] font-bold text-warning uppercase tracking-widest mt-1">Nomor: BKU-CERT/ORG/{printCertData.id || printCertData.ID}/{new Date().getFullYear()}</p>
+            </div>
+
+            {/* Body Section */}
+            <div className="text-center my-6 relative z-10 px-8">
+              <p className="text-xs text-text-muted font-semibold italic">Sertifikat ini diberikan dengan penuh apresiasi kepada:</p>
+              <h3 className="text-2xl font-serif font-black text-primary mt-3 border-b border-border pb-2 inline-block px-12">
+                {profile?.Nama || 'NAMA MAHASISWA'}
+              </h3>
+              <p className="text-xs font-bold text-text-muted mt-1.5">NIM: {profile?.NIM || 'NIM MAHASISWA'}</p>
+
+              <p className="text-xs text-text-muted leading-relaxed max-w-xl mx-auto mt-5">
+                Atas dedikasi, kontribusi, dan keaktifannya sebagai <strong className="text-bku-text">{printCertData.Jabatan}</strong> dalam organisasi <strong className="text-primary">{printCertData.NamaOrganisasi}</strong> periode <strong className="text-bku-text">{printCertData.PeriodeMulai} - {printCertData.PeriodeSelesai || 'Sekarang'}</strong>.
+              </p>
+            </div>
+
+            {/* Footer Section (Signatures) */}
+            <div className="flex justify-between items-end px-10 relative z-10 mt-auto">
+              <div className="text-center w-48">
+                <p className="text-[9px] font-bold text-text-muted uppercase mb-1">Ketua Umum {printCertData.NamaOrganisasi}</p>
+                <div className="h-10 flex items-center justify-center">
+                  <span className="font-serif text-[11px] italic text-text-muted">Tanda Tangan Digital</span>
+                </div>
+                <div className="h-[1px] bg-[#a3a3a3] w-full mt-2"></div>
+                <p className="text-[10px] font-extrabold text-bku-text mt-1">Ketua {printCertData.NamaOrganisasi}</p>
+              </div>
+
+              {/* Stamp or verification badge */}
+              <div className="flex flex-col items-center justify-center border-2 border-dashed border-warning/30/50 rounded-full w-20 h-20 bg-warning/5 backdrop-blur-sm shadow-inner">
+                <span className="material-symbols-outlined text-warning text-2xl">verified</span>
+                <span className="text-[6px] font-black text-warning tracking-tighter uppercase mt-0.5">BKU Hub</span>
+                <span className="text-[6px] font-black text-warning tracking-tighter uppercase">Verified</span>
+              </div>
+
+              <div className="text-center w-48">
+                <p className="text-[9px] font-bold text-text-muted uppercase mb-1">Rektor Universitas Bhakti Kencana</p>
+                <div className="h-10 flex items-center justify-center">
+                  <span className="font-serif text-[11px] italic text-text-muted">Tanda Tangan Digital</span>
+                </div>
+                <div className="h-[1px] bg-[#a3a3a3] w-full mt-2"></div>
+                <p className="text-[10px] font-extrabold text-bku-text mt-1">Dr. Rektor Universitas</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <style>{`
                 @page {
                   size: landscape;
                   margin: 0;
@@ -1236,138 +1220,138 @@ export default function OrganisasiPage() {
                   }
                 }
               `}</style>
-            </>
-          )}
-        </DialogContent>
+      </>
+    )}
+  </DialogContent>
       </Dialog>
 
-      {/* Portfolio Add/Edit Modal */}
-      <Dialog open={isPortModalOpen} onOpenChange={(open) => { if(!open) { setIsPortModalOpen(false); setEditingPort(null); } }} maxWidth="max-w-lg">
-        <DialogContent>
-          <DialogHeader>
-            <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
-              <span className="material-symbols-outlined text-8xl text-slate-900">edit_note</span>
-            </div>
-            <div className="text-left relative z-10">
-              <p className="text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">
-                {editingPort ? 'Ubah Riwayat Organisasi' : 'Tambah Riwayat Organisasi'}
-              </p>
-              <DialogTitle className="text-lg font-extrabold mt-1 text-[var(--theme-text)]">
-                {editingPort ? 'Edit Data Keorganisasian' : 'Laporkan Keaktifan Organisasi'}
-              </DialogTitle>
-            </div>
-          </DialogHeader>
+  {/* Portfolio Add/Edit Modal */ }
+  <Dialog open= { isPortModalOpen } onOpenChange = {(open) => { if (!open) { setIsPortModalOpen(false); setEditingPort(null); } }} maxWidth = "max-w-lg" >
+    <DialogContent>
+      <DialogHeader>
+        <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
+          <span className="material-symbols-outlined text-8xl text-slate-900">edit_note</span>
+        </div>
+        <div className="text-left relative z-10">
+          <p className="text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">
+            {editingPort ? 'Ubah Riwayat Organisasi' : 'Tambah Riwayat Organisasi'}
+          </p>
+          <DialogTitle className="text-lg font-extrabold mt-1 text-[var(--theme-text)]">
+            {editingPort ? 'Edit Data Keorganisasian' : 'Laporkan Keaktifan Organisasi'}
+          </DialogTitle>
+        </div>
+      </DialogHeader>
 
-          <form onSubmit={handlePortFormSubmit} className="flex flex-col">
-            <div className="p-8 space-y-4 max-h-[50vh] overflow-y-auto no-scrollbar">
-              <div className="space-y-1">
-                <label className="text-[10px] font-semibold text-[var(--theme-text-muted)] tracking-[0.2em] uppercase block text-left">Nama Organisasi <span className="text-red-500">*</span></label>
-                <input
-                  type="text"
-                  placeholder="Contoh: Himpunan Mahasiswa Informatika"
-                  value={portForm.nama_organisasi}
-                  onChange={(e) => setPortForm({ ...portForm, nama_organisasi: e.target.value })}
-                  className="h-10 w-full px-3 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl font-semibold text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors outline-none text-left"
-                  required
-                />
-              </div>
+      <form onSubmit={handlePortFormSubmit} className="flex flex-col">
+        <div className="p-8 space-y-4 max-h-[50vh] overflow-y-auto no-scrollbar">
+          <div className="space-y-1">
+            <label className="text-[10px] font-semibold text-[var(--theme-text-muted)] tracking-[0.2em] uppercase block text-left">Nama Organisasi <span className="text-red-500">*</span></label>
+            <input
+              type="text"
+              placeholder="Contoh: Himpunan Mahasiswa Informatika"
+              value={portForm.nama_organisasi}
+              onChange={(e) => setPortForm({ ...portForm, nama_organisasi: e.target.value })}
+              className="h-10 w-full px-3 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl font-semibold text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors outline-none text-left"
+              required
+            />
+          </div>
 
-              <div className="grid grid-cols-2 gap-4 text-left">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-semibold text-[var(--theme-text-muted)] tracking-[0.2em] uppercase block">Tipe Organisasi <span className="text-red-500">*</span></label>
-                  <select
-                    value={portForm.tipe}
-                    onChange={(e) => setPortForm({ ...portForm, tipe: e.target.value })}
-                    className="h-10 w-full px-3 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl font-semibold text-xs text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors outline-none"
-                    required
-                  >
-                    <option value="UKM">UKM</option>
-                    <option value="Himpunan Prodi">Himpunan Prodi</option>
-                    <option value="BEM">BEM</option>
-                    <option value="DPM">DPM</option>
-                    <option value="Komunitas">Komunitas</option>
-                    <option value="Lainnya">Lainnya</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-semibold text-[var(--theme-text-muted)] tracking-[0.2em] uppercase block">Jabatan <span className="text-red-500">*</span></label>
-                  <input
-                    type="text"
-                    placeholder="Contoh: Ketua, Anggota"
-                    value={portForm.jabatan}
-                    onChange={(e) => setPortForm({ ...portForm, jabatan: e.target.value })}
-                    className="h-10 w-full px-3 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl font-semibold text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors outline-none"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 text-left">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-semibold text-[var(--theme-text-muted)] tracking-[0.2em] uppercase block">Tahun Mulai <span className="text-red-500">*</span></label>
-                  <input
-                    type="number"
-                    placeholder="Contoh: 2025"
-                    value={portForm.periode_mulai}
-                    onChange={(e) => setPortForm({ ...portForm, periode_mulai: e.target.value })}
-                    className="h-10 w-full px-3 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl font-semibold text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors outline-none"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-semibold text-[var(--theme-text-muted)] tracking-[0.2em] uppercase block">Tahun Selesai (Kosongkan jika aktif)</label>
-                  <input
-                    type="number"
-                    placeholder="Contoh: 2026"
-                    value={portForm.periode_selesai}
-                    onChange={(e) => setPortForm({ ...portForm, periode_selesai: e.target.value })}
-                    className="h-10 w-full px-3 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl font-semibold text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1 text-left">
-                <label className="text-[10px] font-semibold text-[var(--theme-text-muted)] tracking-[0.2em] uppercase block">Deskripsi Kegiatan</label>
-                <textarea
-                  placeholder="Deskripsikan kontribusi atau peran Anda..."
-                  value={portForm.deskripsi_kegiatan}
-                  onChange={(e) => setPortForm({ ...portForm, deskripsi_kegiatan: e.target.value })}
-                  className="w-full p-3 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl font-semibold text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors resize-none h-20"
-                />
-              </div>
-
-              <div className="space-y-1 text-left">
-                <label className="text-[10px] font-semibold text-[var(--theme-text-muted)] tracking-[0.2em] uppercase block">Apresiasi/Penghargaan (Opsional)</label>
-                <input
-                  type="text"
-                  placeholder="Contoh: Anggota Terbaik Periode 2025"
-                  value={portForm.apresiasi}
-                  onChange={(e) => setPortForm({ ...portForm, apresiasi: e.target.value })}
-                  className="h-10 w-full px-3 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl font-semibold text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors outline-none"
-                />
-              </div>
-            </div>
-
-            <DialogFooter className="flex gap-3 shrink-0">
-              <button
-                type="button"
-                onClick={() => { setIsPortModalOpen(false); setEditingPort(null); }}
-                className="flex-1 h-10 bg-[var(--theme-surface)] border border-[var(--theme-border)] text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] font-semibold rounded-xl transition-all uppercase tracking-wide text-xs active:scale-95 cursor-pointer"
+          <div className="grid grid-cols-2 gap-4 text-left">
+            <div className="space-y-1">
+              <label className="text-[10px] font-semibold text-[var(--theme-text-muted)] tracking-[0.2em] uppercase block">Tipe Organisasi <span className="text-red-500">*</span></label>
+              <select
+                value={portForm.tipe}
+                onChange={(e) => setPortForm({ ...portForm, tipe: e.target.value })}
+                className="h-10 w-full px-3 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl font-semibold text-xs text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors outline-none"
+                required
               >
-                Batal
-              </button>
-              <button
-                type="submit"
-                disabled={createMutation.isPending || updateMutation.isPending}
-                className="flex-1 h-10 bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white font-semibold rounded-xl transition-all text-xs uppercase tracking-wide flex items-center justify-center gap-1.5 active:scale-95 border-none cursor-pointer"
-              >
-                {createMutation.isPending || updateMutation.isPending ? 'Menyimpan...' : 'Simpan Riwayat'}
-              </button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
+                <option value="UKM">UKM</option>
+                <option value="Himpunan Prodi">Himpunan Prodi</option>
+                <option value="BEM">BEM</option>
+                <option value="DPM">DPM</option>
+                <option value="Komunitas">Komunitas</option>
+                <option value="Lainnya">Lainnya</option>
+              </select>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-semibold text-[var(--theme-text-muted)] tracking-[0.2em] uppercase block">Jabatan <span className="text-red-500">*</span></label>
+              <input
+                type="text"
+                placeholder="Contoh: Ketua, Anggota"
+                value={portForm.jabatan}
+                onChange={(e) => setPortForm({ ...portForm, jabatan: e.target.value })}
+                className="h-10 w-full px-3 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl font-semibold text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors outline-none"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 text-left">
+            <div className="space-y-1">
+              <label className="text-[10px] font-semibold text-[var(--theme-text-muted)] tracking-[0.2em] uppercase block">Tahun Mulai <span className="text-red-500">*</span></label>
+              <input
+                type="number"
+                placeholder="Contoh: 2025"
+                value={portForm.periode_mulai}
+                onChange={(e) => setPortForm({ ...portForm, periode_mulai: e.target.value })}
+                className="h-10 w-full px-3 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl font-semibold text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors outline-none"
+                required
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-semibold text-[var(--theme-text-muted)] tracking-[0.2em] uppercase block">Tahun Selesai (Kosongkan jika aktif)</label>
+              <input
+                type="number"
+                placeholder="Contoh: 2026"
+                value={portForm.periode_selesai}
+                onChange={(e) => setPortForm({ ...portForm, periode_selesai: e.target.value })}
+                className="h-10 w-full px-3 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl font-semibold text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1 text-left">
+            <label className="text-[10px] font-semibold text-[var(--theme-text-muted)] tracking-[0.2em] uppercase block">Deskripsi Kegiatan</label>
+            <textarea
+              placeholder="Deskripsikan kontribusi atau peran Anda..."
+              value={portForm.deskripsi_kegiatan}
+              onChange={(e) => setPortForm({ ...portForm, deskripsi_kegiatan: e.target.value })}
+              className="w-full p-3 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl font-semibold text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors resize-none h-20"
+            />
+          </div>
+
+          <div className="space-y-1 text-left">
+            <label className="text-[10px] font-semibold text-[var(--theme-text-muted)] tracking-[0.2em] uppercase block">Apresiasi/Penghargaan (Opsional)</label>
+            <input
+              type="text"
+              placeholder="Contoh: Anggota Terbaik Periode 2025"
+              value={portForm.apresiasi}
+              onChange={(e) => setPortForm({ ...portForm, apresiasi: e.target.value })}
+              className="h-10 w-full px-3 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl font-semibold text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors outline-none"
+            />
+          </div>
+        </div>
+
+        <DialogFooter className="flex gap-3 shrink-0">
+          <button
+            type="button"
+            onClick={() => { setIsPortModalOpen(false); setEditingPort(null); }}
+            className="flex-1 h-10 bg-[var(--theme-surface)] border border-[var(--theme-border)] text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] font-semibold rounded-xl transition-all uppercase tracking-wide text-xs active:scale-95 cursor-pointer"
+          >
+            Batal
+          </button>
+          <button
+            type="submit"
+            disabled={createMutation.isPending || updateMutation.isPending}
+            className="flex-1 h-10 bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white font-semibold rounded-xl transition-all text-xs uppercase tracking-wide flex items-center justify-center gap-1.5 active:scale-95 border-none cursor-pointer"
+          >
+            {createMutation.isPending || updateMutation.isPending ? 'Menyimpan...' : 'Simpan Riwayat'}
+          </button>
+        </DialogFooter>
+      </form>
+    </DialogContent>
       </Dialog>
     </PageContent>
   );
