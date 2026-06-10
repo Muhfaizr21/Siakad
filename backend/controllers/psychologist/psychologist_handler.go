@@ -850,20 +850,22 @@ func CreateSessionNote(c *fiber.Ctx) error {
 
 		var mahasiswa models.Mahasiswa
 		if err := config.DB.Preload("Fakultas").Preload("ProgramStudi").Where("id = ?", studentID).First(&mahasiswa).Error; err == nil {
-			suratRujukanURL := generateReferralLetter(psikolog, mahasiswa, refTipe, refAlasan, refPihak, refEmail)
-
 			referral := models.PsikologReferral{
 				PsikologID:       psikolog.ID,
+				Psikolog:         psikolog,
 				MahasiswaID:      uint(studentID),
+				Mahasiswa:        mahasiswa,
 				BookingID:        bookingID,
 				Tipe:             refTipe,
 				Alasan:           refAlasan,
-				SuratRujiukanURL: suratRujukanURL,
 				Status:           "Pending",
 				PihakTujuan:      refPihak,
 				EmailTujuan:      refEmail,
 				TanggalDibuat:    time.Now(),
 			}
+			
+			suratRujukanURL := generateReferralLetter(referral)
+			referral.SuratRujiukanURL = suratRujukanURL
 			_ = config.DB.Create(&referral).Error
 
 			go func() {

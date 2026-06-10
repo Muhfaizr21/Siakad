@@ -5,11 +5,14 @@ import api from "../../lib/axios"
 import { Avatar, AvatarFallback } from "@/components/ui/Avatar"
 import { toast, Toaster } from "react-hot-toast"
 import { cn } from "@/lib/utils"
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/Select"
+import { SelectField, SelectOption } from "@/components/ui/SelectField"
 import { Button } from "@/components/ui/Button"
 import { PageContent } from '@/components/ui/page'
 import { DashboardHero } from '@/components/ui/dashboard'
 import Dialog, { DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/Dialog"
+import { Card, CardContent } from '@/components/ui/Card'
+import { DataTable } from '@/components/ui/DataTable'
+import { PrimaryStatsCard, SecondaryStatsCard } from '@/components/ui/StatsCard'
 
 import { API_BASE_URL } from "../../services/api"
 
@@ -229,6 +232,71 @@ export default function PsikologPage() {
     aktif: psychologists.filter(p => p.IsAktif).length,
   }
 
+  const columns = [
+    {
+      key: 'Nama',
+      label: 'Identitas Psikolog',
+      sortable: true,
+      render: (val, row) => (
+        <div className="flex items-center gap-3.5">
+          <PsikologAvatar src={row.Foto} name={row.Nama} className="w-10 h-10 rounded-full" />
+          <div>
+            <p className="font-semibold text-[var(--theme-text)] font-headline tracking-tight text-[14px]">{row.Nama || '—'}</p>
+            <p className="text-[11px] font-medium text-[var(--theme-text-muted)] font-body tracking-tight mt-0.5">{row.Email}</p>
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'Lokasi',
+      label: 'Lokasi & Bahasa',
+      sortable: true,
+      render: (val, row) => (
+        <div>
+          <p className="font-semibold text-[var(--theme-text)] font-headline tracking-tight text-[13px]">{row.Lokasi || 'Online & Tatap Muka'}</p>
+          <p className="text-[11px] font-medium text-[var(--theme-text-muted)] font-body tracking-tight mt-0.5">Bahasa: {row.Bahasa}</p>
+        </div>
+      )
+    },
+    {
+      key: 'Spesialisasi',
+      label: 'Spesialisasi',
+      sortable: true,
+      className: 'w-[240px] text-center',
+      render: (val, row) => {
+        const spStyle = getSpesialisasiStyle(row.Spesialisasi)
+        return (
+          <div className="flex items-center justify-center">
+            <span className={cn(
+              'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold border uppercase tracking-wider whitespace-nowrap',
+              spStyle.cls
+            )}>
+              <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', spStyle.dot)} />
+              {row.Spesialisasi}
+            </span>
+          </div>
+        )
+      }
+    },
+    {
+      key: 'actions',
+      label: 'Aksi',
+      className: 'w-[80px] text-center',
+      sortable: false,
+      render: (val, row) => (
+        <div className="flex justify-center items-center">
+          <button
+            onClick={() => handleSelectPsikolog(row)}
+            className="w-8 h-8 flex items-center justify-center text-[var(--theme-text-muted)] hover:text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)] rounded-lg transition-colors"
+            title="Lihat Detail"
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >visibility</span>
+          </button>
+        </div>
+      )
+    }
+  ]
+
   return (
     <PageContent>
       <Toaster position="top-right" />
@@ -250,39 +318,52 @@ export default function PsikologPage() {
         />
 
         {/* ── Stat Cards Row 1 ─────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            { label: 'Total Psikolog', value: stats.total, icon: Users, bg: 'bg-[#eef4ff]', color: 'text-primary', desc: 'Konselor terdaftar' },
-            { label: 'Spesialisasi Klinis', value: stats.klinis, icon: Briefcase, bg: 'bg-rose-50', color: 'text-rose-600', desc: 'Psikolog Klinis' },
-            { label: 'Spesialisasi Umum', value: stats.umum, icon: Award, bg: 'bg-indigo-50', color: 'text-indigo-600', desc: 'Konselor Umum' },
-            { label: 'Psikolog Aktif', value: stats.aktif, icon: UserCheck, bg: 'bg-emerald-50', color: 'text-emerald-600', desc: 'Tersedia untuk bimbingan' },
-          ].map(s => (
-            <div key={s.label} className="glass-card border border-slate-200/60 rounded-2xl p-5 shadow-none">
-              <div className="flex items-center gap-3 mb-3">
-                <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0', s.bg, s.color)}>
-                  <s.icon size={18} />
-                </div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</span>
-              </div>
-              <p className="text-2xl font-extrabold text-slate-900 leading-none tabular-nums">
-                {loading ? <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span> : s.value}
-              </p>
-              <p className="text-xs text-slate-400 font-medium mt-1">{s.desc}</p>
-            </div>
-          ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+          <PrimaryStatsCard
+            title="Total Psikolog"
+            value={stats.total}
+            icon={Users}
+            colorTheme="primary"
+            badgeText="Tervalidasi"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">verified</span>}
+          />
+          <PrimaryStatsCard
+            title="Spesialisasi Klinis"
+            value={stats.klinis}
+            icon={Briefcase}
+            colorTheme="error"
+            badgeText="Tersedia"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">health_and_safety</span>}
+          />
+          <PrimaryStatsCard
+            title="Spesialisasi Umum"
+            value={stats.umum}
+            icon={Award}
+            colorTheme="info"
+            badgeText="Tersedia"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">group</span>}
+          />
+          <PrimaryStatsCard
+            title="Psikolog Aktif"
+            value={stats.aktif}
+            icon={UserCheck}
+            colorTheme="success"
+            badgeText="Online"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">bolt</span>}
+          />
         </div>
 
         {/* NEW: 5W1H Charts Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           {/* WHAT → Distribusi Spesialisasi */}
-          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+          <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center text-violet-600">
                 <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>psychology</span>
               </div>
               <div>
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Spesialisasi</h3>
-                <p className="text-[10px] text-slate-400">Distribusi bidang ahli</p>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Spesialisasi</span>
+                <h3 className="text-sm font-bold text-slate-800 leading-tight">Distribusi Bidang Ahli</h3>
               </div>
             </div>
             <div className="space-y-2">
@@ -304,14 +385,14 @@ export default function PsikologPage() {
 
 
           {/* WHERE → Lokasi Praktik */}
-          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+          <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
                 <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>location_on</span>
               </div>
               <div>
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Lokasi Praktik</h3>
-                <p className="text-[10px] text-slate-400">Mode layanan tersedia</p>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Lokasi Praktik</span>
+                <h3 className="text-sm font-bold text-slate-800 leading-tight">Mode Layanan Tersedia</h3>
               </div>
             </div>
             {(() => {
@@ -338,14 +419,14 @@ export default function PsikologPage() {
           </div>
 
           {/* WHEN → Aktivitas Booking */}
-          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+          <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
                 <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>calendar_month</span>
               </div>
               <div>
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Status Booking</h3>
-                <p className="text-[10px] text-slate-400">Kondisi jadwal aktif</p>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Status Booking</span>
+                <h3 className="text-sm font-bold text-slate-800 leading-tight">Kondisi Jadwal Aktif</h3>
               </div>
             </div>
             {(() => {
@@ -369,14 +450,14 @@ export default function PsikologPage() {
 
           
           {/* HOW → Kontak Cepat */}
-          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+          <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600">
                 <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>contact_phone</span>
               </div>
               <div>
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Kontak Cepat</h3>
-                <p className="text-[10px] text-slate-400">Info kontak tersedia</p>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Kontak Cepat</span>
+                <h3 className="text-sm font-bold text-slate-800 leading-tight">Info Kontak Tersedia</h3>
               </div>
             </div>
             <div className="space-y-2">
@@ -392,14 +473,14 @@ export default function PsikologPage() {
           </div>
 
           {/* WHO → Prodi/Fakultas Tersebar */}
-          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+          <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center text-violet-600">
                 <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>school</span>
               </div>
               <div>
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Cakupan</h3>
-                <p className="text-[10px] text-slate-400">Prodi/Fakultas terlayani</p>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Cakupan</span>
+                <h3 className="text-sm font-bold text-slate-800 leading-tight">Prodi/Fakultas Terlayani</h3>
               </div>
             </div>
             <div className="space-y-2">
@@ -416,243 +497,44 @@ export default function PsikologPage() {
         </div>
 
         {/* ── Table Card ─────────────────────────────────────────── */}
-        <div className="glass-card border border-slate-200/60 rounded-2xl shadow-none overflow-hidden">
-
-          {/* Toolbar */}
-          <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+        <Card className="glass-card shadow-sm rounded-xl overflow-hidden mt-6 mb-6">
+          <div className="px-6 py-5 border-b border-[var(--theme-border)] flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-[var(--theme-surface)]">
             <div className="flex-1">
-              <h2 className="font-black text-sm uppercase tracking-tight font-headline" style={{ color: 'var(--theme-h2)' }}>Daftar Praktisi & Psikolog</h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Menampilkan <span className="font-bold text-slate-900">{filtered.length}</span> dari <span className="font-bold text-primary">{psychologists.length}</span> psikolog
+              <h2 className="font-headline font-bold text-lg text-[var(--theme-text)]">Daftar Praktisi & Psikolog</h2>
+              <p className="text-xs text-[var(--theme-text-muted)] mt-1 font-medium">
+                Menampilkan <span className="font-bold text-[var(--theme-text)]">{filtered.length}</span> dari <span className="font-bold text-[var(--theme-primary)]">{psychologists.length}</span> psikolog
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-              {/* Search */}
+            <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
               <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '14px' }} >search</span>
-                <input
-                  type="text"
-                  placeholder="Cari nama, spesialisasi, email..."
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  className="pl-9 pr-4 h-9 w-56 rounded-xl border border-slate-200/60 focus:outline-none focus:border-primary text-sm bg-white"
-                />
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--theme-text-muted)]" style={{ fontSize: '16px' }} >search</span>
+                <input type="text" placeholder="Cari nama atau spesialisasi..." value={search} onChange={e => setSearch(e.target.value)}
+                  className="pl-9 pr-4 h-10 w-64 rounded-xl border border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] text-sm bg-white transition-colors" />
               </div>
-              {/* Filter Spesialisasi */}
-              <select
-                value={filterSpesialisasi}
-                onChange={e => setFilterSpesialisasi(e.target.value)}
-                className="h-9 pl-3 pr-8 rounded-xl border border-slate-200/60 text-xs font-medium bg-white text-slate-600 focus:outline-none focus:border-primary appearance-none cursor-pointer"
-              >
-                <option value="all">Semua Spesialisasi</option>
-                {spesialisasiList.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
-              {/* Reset */}
+              <SelectField value={filterSpesialisasi} onValueChange={setFilterSpesialisasi} placeholder="Semua Spesialisasi" className="w-48">
+                <SelectOption value="all">Semua Spesialisasi</SelectOption>
+                {spesialisasiList.map(s => <SelectOption key={s} value={s}>{s}</SelectOption>)}
+              </SelectField>
               {(search || filterSpesialisasi !== 'all') && (
-                <button
-                  onClick={() => { setSearch(''); setFilterSpesialisasi('all') }}
-                  className="h-9 px-3 text-xs font-semibold text-rose-600 bg-rose-50 rounded-xl border border-rose-200 hover:bg-rose-100 transition-colors"
-                >
-                  Reset
-                </button>
+                <button onClick={() => { setSearch(''); setFilterSpesialisasi('all'); }}
+                  className="h-10 px-4 text-xs font-semibold text-[var(--theme-error)] bg-[var(--theme-error-light)] rounded-xl hover:bg-[var(--theme-error)]/20 transition-colors border border-[var(--theme-error)]/20">Reset</button>
               )}
             </div>
           </div>
 
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full table-fixed min-w-[900px] text-left border-collapse">
-              <thead>
-                <tr className="bg-white border-b border-slate-200/60">
-                  {[
-                    { label: 'No', key: null, sortable: false, className: 'w-[50px]' },
-                    { label: 'Identitas Psikolog', key: 'Nama', sortable: true },
-                    { label: 'Lokasi & Bahasa', key: 'Lokasi', sortable: true },
-                    { label: 'Spesialisasi', key: 'Spesialisasi', sortable: true, className: 'w-[240px] text-center' },
-
-                    { label: 'Aksi', key: null, sortable: false, className: 'text-right w-[100px]' },
-                  ].map(h => (
-                    <th
-                      key={h.label}
-                      onClick={() => h.sortable && handleSort(h.key)}
-                      className={cn(
-                        'px-5 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider select-none',
-                        h.sortable && 'cursor-pointer hover:text-slate-900 group',
-                        h.className
-                      )}
-                    >
-                      <div className={cn('flex items-center gap-1.5', h.className?.includes('text-center') ? 'justify-center' : '', h.className?.includes('text-right') ? 'justify-end' : '')}>
-                        {h.label}
-                        {h.sortable && (
-                          sortConfig.key === h.key ? (
-                            sortConfig.direction === 'asc' ? (
-                              <span className="material-symbols-outlined size-3.5 text-primary" style={{ fontSize: '14px' }}>expand_less</span>
-                            ) : (
-                              <span className="material-symbols-outlined size-3.5 text-primary" style={{ fontSize: '14px' }}>expand_more</span>
-                            )
-                          ) : (
-                            <span className="material-symbols-outlined size-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" style={{ fontSize: '14px' }}>unfold_more</span>
-                          )
-                        )}
-                      </div>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  Array.from({ length: pageSize }).map((_, i) => (
-                    <tr key={i} className="border-b border-slate-100">
-                      {[...Array(5)].map((__, j) => (
-                        <td key={j} className="px-5 py-4">
-                          <div className="h-4 bg-slate-50 rounded animate-pulse" />
-                        </td>
-                      ))}
-                    </tr>
-                  ))
-                ) : paginated.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-5 py-16 text-center">
-                      <div className="flex flex-col items-center gap-3">
-                        <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-primary">
-                          <span className="material-symbols-outlined" style={{ fontSize: '22px' }} >psychology</span>
-                        </div>
-                        <p className="font-bold text-sm text-slate-900">Tidak Ada Data Psikolog</p>
-                        <p className="text-xs text-slate-400">Coba ubah filter atau kata kunci pencarian.</p>
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  <>
-                    {paginated.map((row, i) => {
-                      const spStyle = getSpesialisasiStyle(row.Spesialisasi)
-                      return (
-                        <tr key={row.ID || i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors group">
-                          <td className="px-5 py-3.5 text-sm text-slate-400 font-medium">{(currentPage - 1) * pageSize + i + 1}</td>
-                          <td className="px-5 py-3.5">
-                            <div className="flex items-center gap-3.5">
-                              <PsikologAvatar src={row.Foto} name={row.Nama} className="w-10 h-10 rounded-full" />
-                              <div>
-                                <p className="font-bold text-sm text-slate-900 leading-snug">{row.Nama || '—'}</p>
-                                <p className="text-[11px] text-slate-500 font-medium">{row.Email}</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-5 py-3.5">
-                            <p className="text-sm text-slate-600 font-medium leading-snug">{row.Lokasi || 'Online & Tatap Muka'}</p>
-                            <p className="text-[10px] text-slate-400 font-medium mt-0.5">Bahasa: {row.Bahasa}</p>
-                          </td>
-                          <td className="px-5 py-3.5 text-center">
-                            <span className={cn(
-                              'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider whitespace-nowrap',
-                              spStyle.cls
-                            )}>
-                              <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', spStyle.dot)} />
-                              {row.Spesialisasi}
-                            </span>
-                          </td>
-
-                          <td className="px-5 py-3.5 text-right">
-                            <button
-                               onClick={() => handleSelectPsikolog(row)}
-                              className="p-1.5 text-slate-400 hover:text-primary hover:bg-[#eef4ff] rounded-lg transition-colors"
-                              title="Lihat Detail"
-                            >
-                              <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >visibility</span>
-                            </button>
-                          </td>
-                        </tr>
-                      )
-                    })}
-                    {paginated.length < pageSize && Array.from({ length: pageSize - paginated.length }).map((_, idx) => (
-                      <tr key={`filler-${idx}`} className="border-b border-[#f5f5f5]/30 hover:bg-transparent pointer-events-none select-none">
-                        <td className="px-5 py-3.5 opacity-0"><div className="h-10" /></td>
-                        <td className="px-5 py-3.5 opacity-0" />
-                        <td className="px-5 py-3.5 opacity-0" />
-                        <td className="px-5 py-3.5 opacity-0" />
-                        <td className="px-5 py-3.5 opacity-0" />
-                      </tr>
-                    ))}
-                  </>
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Modern Pagination Footer */}
-          <div className="px-6 py-4 bg-transparent border-t border-slate-200/60 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-              <p className="text-xs text-slate-500 font-medium text-center sm:text-left">
-                Menampilkan <span className="font-semibold text-slate-800">{totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0}</span> sampai <span className="font-semibold text-slate-800">{Math.min(currentPage * pageSize, totalItems)}</span> dari <span className="font-semibold text-slate-800">{totalItems}</span> entri
-              </p>
-
-              <div className="hidden sm:block h-5 w-px bg-slate-200" />
-
-              <div className="flex items-center gap-2.5">
-                <span className="text-xs text-slate-400 font-medium whitespace-nowrap">Baris per halaman:</span>
-                <Select value={String(pageSize)} onValueChange={(val) => { setPageSize(Number(val)); setCurrentPage(1); }}>
-                  <SelectTrigger className="h-8 w-24 rounded-lg border-slate-200 bg-white font-semibold text-xs shadow-sm focus:ring-primary/20 px-2.5 py-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl border-slate-200 shadow-xl p-1 font-body">
-                    {[5, 10, 15, 25, 50].map((size) => (
-                      <SelectItem key={size} value={String(size)} className="rounded-lg text-xs py-1.5 focus:bg-primary/5 focus:text-primary">
-                        {size} Baris
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1 || loading}
-                className="h-8 px-3 rounded-lg border-slate-200 bg-white text-slate-600 font-semibold text-xs shadow-sm disabled:opacity-40 hover:bg-slate-50 transition-all active:scale-95"
-              >
-                <span className="material-symbols-outlined mr-1" style={{ fontSize: '15px' }}>chevron_left</span>
-                Sebelumnya
-              </Button>
-
-              <div className="flex items-center gap-1">
-                {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
-                  let pageNum = i + 1;
-                  if (totalPages > 5 && currentPage > 3) pageNum = currentPage - 3 + i;
-                  if (pageNum > totalPages) return null;
-
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => setCurrentPage(pageNum)}
-                      className={cn(
-                        "w-8 h-8 rounded-lg font-semibold text-xs transition-all duration-200",
-                        currentPage === pageNum
-                          ? "bg-primary text-white shadow-md shadow-primary/25 scale-105"
-                          : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
-                      )}
-                    >
-                      {pageNum}
-                    </button>
-                  )
-                })}
-              </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages || loading || totalPages === 0}
-                className="h-8 px-3 rounded-lg border-slate-200 bg-white text-slate-600 font-semibold text-xs shadow-sm disabled:opacity-40 hover:bg-slate-50 transition-all active:scale-95"
-              >
-                Berikutnya
-                <span className="material-symbols-outlined ml-1" style={{ fontSize: '15px' }}>chevron_right</span>
-              </Button>
-            </div>
-          </div>
-        </div>
+          <CardContent className="p-0">
+            <DataTable
+              data={filtered}
+              columns={columns}
+              loading={loading}
+              searchable={false}
+              pagination={true}
+              pageSize={10}
+              emptyMessage="Tidak Ada Data Psikolog"
+              emptyIcon="psychology"
+            />
+          </CardContent>
+        </Card>
 
       {/* ── Detail Modal ──────────────────────────────────────────── */}
       <Dialog open={!!selectedPsikolog} onOpenChange={(open) => !open && handleSelectPsikolog(null)} maxWidth="max-w-2xl">

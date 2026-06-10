@@ -14,6 +14,8 @@ import { DashboardHero } from '@/components/ui/dashboard'
 import { Badge } from "@/components/ui/Badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/Dialog"
 import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import { PrimaryStatsCard } from '@/components/ui/StatsCard'
+import DataTable from '@/components/ui/DataTable'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Download = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>download</span>;
@@ -462,7 +464,7 @@ export default function FacultyPrestasi() {
       const k = a.Kategori || 'Umum'
       counts[k] = (counts[k] || 0) + 1
     })
-    return Object.entries(counts).sort(([,a],[,b]) => b - a).slice(0, 8).map(([name, value]) => ({ name, value }))
+    return Object.entries(counts).sort(([, a], [, b]) => b - a).slice(0, 8).map(([name, value]) => ({ name, value }))
   }, [achievements])
 
   const monthlyTrendData = useMemo(() => {
@@ -472,19 +474,126 @@ export default function FacultyPrestasi() {
       if (!date) return
       const d = new Date(date)
       if (isNaN(d.getTime())) return
-      const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
       byMonth[key] = (byMonth[key] || 0) + 1
     })
-    const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des']
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des']
     return Object.entries(byMonth)
-      .sort(([a],[b]) => a.localeCompare(b))
+      .sort(([a], [b]) => a.localeCompare(b))
       .map(([m, v]) => {
         const [y, mo] = m.split('-')
-        return { month: `${months[parseInt(mo)-1]} ${y}`, value: v }
+        return { month: `${months[parseInt(mo) - 1]} ${y}`, value: v }
       })
   }, [achievements])
 
   const PIE_COLORS = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444']
+
+  const tableColumns = [
+    {
+      key: 'mahasiswa',
+      label: 'Mahasiswa',
+      sortable: true,
+      render: (val, row) => (
+        <div className="flex items-center gap-3">
+          <StudentAvatar src={getFullUrl(row.Mahasiswa?.FotoURL || row.Mahasiswa?.foto_url || row.Mahasiswa?.Foto || row.Mahasiswa?.Pengguna?.Foto)} name={row.Mahasiswa?.Nama} className="w-9 h-9 rounded-xl" />
+          <div>
+            <p className="font-bold text-sm text-[var(--theme-text)] leading-snug">{row.Mahasiswa?.Nama || '—'}</p>
+            <p className="text-[10px] text-[var(--theme-text-muted)] font-medium">{row.Mahasiswa?.NIM || '—'}</p>
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'NamaKegiatan',
+      label: 'Prestasi / Penghargaan',
+      sortable: true,
+      render: (val, row) => (
+        <div>
+          <p className="font-bold text-sm text-[var(--theme-text)] leading-snug max-w-[200px] truncate">{row.NamaKegiatan || '—'}</p>
+          <div className="flex flex-wrap gap-1 mt-1">
+            <span className="inline-block text-[10px] font-bold text-[var(--theme-primary)] bg-[var(--theme-primary-light)] px-2 py-0.5 rounded-md border border-[var(--theme-primary)]/20">{row.Kategori || 'Umum'}</span>
+            <span className={cn('inline-block text-[10px] font-bold px-2 py-0.5 rounded-md border', row.Tipe === 'Pengajuan Dana' ? 'text-[var(--theme-warning)] bg-[var(--theme-warning-light)] border-[var(--theme-warning)]/20' : 'text-[var(--theme-success)] bg-[var(--theme-success-light)] border-[var(--theme-success)]/20')}>{row.Tipe || 'Laporan Prestasi'}</span>
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'Tingkat',
+      label: 'Tingkat',
+      sortable: true,
+      render: (val, row) => {
+        const tingkat = (row.Tingkat || 'Lokal').toLowerCase();
+        let tingkatCls = 'bg-[var(--theme-surface-hover)] text-[var(--theme-text)] border-[var(--theme-border)]';
+        if (tingkat === 'internasional') tingkatCls = 'bg-[var(--theme-primary-light)] text-[var(--theme-primary)] border-[var(--theme-primary)]/20';
+        else if (tingkat === 'nasional') tingkatCls = 'bg-[var(--theme-info-light)] text-[var(--theme-info)] border-[var(--theme-info)]/20';
+        else if (tingkat === 'regional') tingkatCls = 'bg-[var(--theme-success-light)] text-[var(--theme-success)] border-[var(--theme-success)]/20';
+        
+        return (
+          <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider', tingkatCls)}>
+            {row.Tingkat || 'Lokal'}
+          </span>
+        );
+      }
+    },
+    {
+      key: 'Status',
+      label: 'Status',
+      sortable: true,
+      render: (val, row) => {
+        const st = getStatus(row.Status);
+        let cls = 'bg-[var(--theme-warning-light)] text-[var(--theme-warning)] border-[var(--theme-warning)]/20';
+        let dot = 'bg-[var(--theme-warning)]';
+        if (st.label === 'Terverifikasi' || st.label === 'Disetujui') {
+            cls = 'bg-[var(--theme-success-light)] text-[var(--theme-success)] border-[var(--theme-success)]/20';
+            dot = 'bg-[var(--theme-success)]';
+        } else if (st.label === 'Ditolak') {
+            cls = 'bg-[var(--theme-error-light)] text-[var(--theme-error)] border-[var(--theme-error)]/20';
+            dot = 'bg-[var(--theme-error)]';
+        }
+
+        return (
+          <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider whitespace-nowrap', cls)}>
+            <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', dot)} />{st.label}
+          </span>
+        );
+      }
+    },
+    {
+      key: 'CreatedAt',
+      label: 'Tahun',
+      sortable: true,
+      render: (val, row) => (
+        <span className="text-xs text-[var(--theme-text-muted)] font-medium whitespace-nowrap">
+          {row.CreatedAt ? new Date(row.CreatedAt).getFullYear() : '—'}
+        </span>
+      )
+    },
+    {
+      key: 'actions',
+      label: 'Aksi',
+      sortable: false,
+      render: (val, row) => (
+        <div className="flex items-center gap-1.5">
+          <button onClick={() => setSelected(row)}
+            className="p-1.5 text-[var(--theme-text-muted)] hover:text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)] rounded-lg transition-colors" title="Detail">
+            <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >visibility</span>
+          </button>
+          {(row.Status || '').toLowerCase() === 'menunggu' && (
+            <>
+              <button onClick={() => handleOpenVerify(row, 'verified')} disabled={isSubmitting}
+                className="p-1.5 text-[var(--theme-text-muted)] hover:text-[var(--theme-success)] hover:bg-[var(--theme-success-light)] rounded-lg transition-colors" title="Setujui">
+                <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >check_circle</span>
+              </button>
+              <button onClick={() => handleOpenVerify(row, 'rejected')} disabled={isSubmitting}
+                className="p-1.5 text-[var(--theme-text-muted)] hover:text-[var(--theme-error)] hover:bg-[var(--theme-error-light)] rounded-lg transition-colors" title="Tolak">
+                <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span>
+              </button>
+            </>
+          )}
+        </div>
+      )
+    }
+  ];
 
   return (
     <PageContent>
@@ -513,365 +622,184 @@ export default function FacultyPrestasi() {
         }
       />
 
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-4">
-          {[
-            { label: 'Total Pengajuan', value: stats.total, icon: Trophy, bg: 'bg-[#eef4ff]', color: 'text-primary', desc: 'Prestasi masuk' },
-            { label: 'Tervalidasi', value: stats.verified, icon: CheckCircle2, bg: 'bg-emerald-50', color: 'text-emerald-600', desc: 'Sudah diverifikasi' },
-            { label: 'Menunggu Review', value: stats.pending, icon: Clock, bg: 'bg-amber-50', color: 'text-amber-600', desc: 'Perlu tindak lanjut' },
-          ].map(s => (
-            <div key={s.label} className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
-              <div className="flex items-center gap-3 mb-3">
-                <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', s.bg, s.color)}>
-                  <s.icon size={18} />
-                </div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</span>
-              </div>
-              <p className="text-2xl font-extrabold text-slate-900 leading-none tabular-nums">
-                {loading ? <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span> : s.value}
-              </p>
-              <p className="text-xs text-slate-400 font-medium mt-1">{s.desc}</p>
-            </div>
-          ))}
-        </div>
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <PrimaryStatsCard title="Total Pengajuan" value={loading ? <span className="material-symbols-outlined animate-spin text-[var(--theme-text-subtle)]" style={{ fontSize: '18px' }} >sync</span> : stats.total} icon={Trophy} colorTheme="primary" badgeText="Prestasi masuk" />
+        <PrimaryStatsCard title="Tervalidasi" value={loading ? <span className="material-symbols-outlined animate-spin text-[var(--theme-text-subtle)]" style={{ fontSize: '18px' }} >sync</span> : stats.verified} icon={CheckCircle2} colorTheme="success" badgeText="Sudah diverifikasi" />
+        <PrimaryStatsCard title="Menunggu Review" value={loading ? <span className="material-symbols-outlined animate-spin text-[var(--theme-text-subtle)]" style={{ fontSize: '18px' }} >sync</span> : stats.pending} icon={Clock} colorTheme="warning" badgeText="Perlu tindak lanjut" />
+      </div>
 
-        {/* Charts */}
-        {!loading && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {/* Pie: Tingkat Prestasi */}
-            <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-600 shrink-0">
-                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>pie_chart</span>
+      {/* Charts */}
+      {!loading && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+          {/* Pie: Tingkat Prestasi */}
+          <div className="bg-[var(--theme-surface)] p-6 rounded-2xl border border-[var(--theme-border)] shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+            <div className="flex flex-col h-full">
+              <div className="flex items-center gap-4 mb-4 shrink-0">
+                <div className="w-12 h-12 bg-[var(--theme-info-light)] rounded-xl flex justify-center items-center text-[var(--theme-info)] group-hover:scale-110 group-hover:-rotate-6 transition-all duration-300">
+                  <span className="material-symbols-outlined text-[24px]">pie_chart</span>
                 </div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tingkat Prestasi</span>
+                <div>
+                  <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest block mb-0.5">Analisis Data</span>
+                  <h3 className="text-sm font-bold text-[var(--theme-text)] leading-tight">Tingkat Prestasi</h3>
+                </div>
               </div>
-              <div className="h-[180px] w-full flex items-center justify-center">
+              <div className="flex-1 w-full flex flex-col justify-center">
                 {tingkatData.length > 0 ? (
                   <ResponsiveContainer width="100%" height={180}>
                     <PieChart>
                       <Pie data={tingkatData} cx="50%" cy="50%" innerRadius={45} outerRadius={70} paddingAngle={3} dataKey="value" stroke="none">
                         {tingkatData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
                       </Pie>
-                      <Tooltip contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }} />
+                      <Tooltip contentStyle={{ backgroundColor: "var(--theme-surface)", border: "1px solid var(--theme-border-muted)", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }} />
                     </PieChart>
                   </ResponsiveContainer>
-                ) : <span className="text-xs text-slate-400 italic">Tidak ada data</span>}
+                ) : <span className="text-xs text-[var(--theme-text-subtle)] italic text-center w-full block">Tidak ada data</span>}
               </div>
-              <div className="grid grid-cols-2 gap-1.5 mt-2">
-                {tingkatData.slice(0, 5).map((item, i) => (
-                  <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50 border border-slate-100">
+              <div className="grid grid-cols-2 gap-1.5 mt-4">
+                {tingkatData.slice(0, 4).map((item, i) => (
+                  <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-lg bg-[var(--theme-surface-hover)] border border-[var(--theme-border-muted)]">
                     <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
                     <div className="min-w-0">
-                      <p className="text-[9px] font-bold text-slate-400 truncate leading-none">{item.name}</p>
-                      <p className="text-xs font-extrabold text-slate-800 leading-none mt-1">{item.value}</p>
+                      <p className="text-[9px] font-bold text-[var(--theme-text-muted)] truncate leading-none">{item.name}</p>
+                      <p className="text-xs font-extrabold text-[var(--theme-text)] leading-none mt-1">{item.value}</p>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
+          </div>
 
-            {/* Bar: Kategori Terbanyak */}
-            <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-600 shrink-0">
-                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>bar_chart</span>
+          {/* Bar: Kategori Terbanyak */}
+          <div className="bg-[var(--theme-surface)] p-6 rounded-2xl border border-[var(--theme-border)] shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+            <div className="flex flex-col h-full">
+              <div className="flex items-center gap-4 mb-4 shrink-0">
+                <div className="w-12 h-12 bg-[var(--theme-success-light)] rounded-xl flex justify-center items-center text-[var(--theme-success)] group-hover:scale-110 group-hover:-rotate-6 transition-all duration-300">
+                  <span className="material-symbols-outlined text-[24px]">bar_chart</span>
                 </div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Kategori Terbanyak</span>
+                <div>
+                  <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest block mb-0.5">Demografi</span>
+                  <h3 className="text-sm font-bold text-[var(--theme-text)] leading-tight">Kategori Terbanyak</h3>
+                </div>
               </div>
-              <div className="h-[180px] w-full">
+              <div className="flex-1 w-full flex flex-col justify-center">
                 {kategoriData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={180}>
+                  <ResponsiveContainer width="100%" height={220}>
                     <BarChart data={kategoriData} layout="vertical" margin={{ top: 5, right: 20, left: 5, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
-                      <XAxis type="number" tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                      <YAxis type="category" dataKey="name" tick={{ fontSize: 8, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} width={70} />
-                      <Tooltip contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }} />
-                      <Bar dataKey="value" name="Jumlah" fill="#10b981" radius={[0, 4, 4, 0]} barSize={14} />
+                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--theme-border-muted)" />
+                      <XAxis type="number" tick={{ fontSize: 9, fontWeight: 700, fill: 'var(--theme-text-muted)' }} axisLine={false} tickLine={false} />
+                      <YAxis type="category" dataKey="name" tick={{ fontSize: 8, fontWeight: 700, fill: 'var(--theme-text-muted)' }} axisLine={false} tickLine={false} width={80} />
+                      <Tooltip contentStyle={{ backgroundColor: "var(--theme-surface)", border: "1px solid var(--theme-border-muted)", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }} />
+                      <Bar dataKey="value" name="Jumlah" fill="var(--theme-success)" radius={[0, 4, 4, 0]} barSize={14} />
                     </BarChart>
                   </ResponsiveContainer>
-                ) : <div className="h-full flex items-center justify-center"><span className="text-xs text-slate-400 italic">Tidak ada data</span></div>}
+                ) : <div className="h-full flex items-center justify-center"><span className="text-xs text-[var(--theme-text-subtle)] italic">Tidak ada data</span></div>}
               </div>
             </div>
+          </div>
 
-            {/* Line: Tren Pengajuan */}
-            <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-600 shrink-0">
-                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>trending_up</span>
+          {/* Line: Tren Pengajuan */}
+          <div className="bg-[var(--theme-surface)] p-6 rounded-2xl border border-[var(--theme-border)] shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+            <div className="flex flex-col h-full">
+              <div className="flex items-center gap-4 mb-4 shrink-0">
+                <div className="w-12 h-12 bg-[var(--theme-warning-light)] rounded-xl flex justify-center items-center text-[var(--theme-warning)] group-hover:scale-110 group-hover:-rotate-6 transition-all duration-300">
+                  <span className="material-symbols-outlined text-[24px]">trending_up</span>
                 </div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tren Pengajuan per Bulan</span>
+                <div>
+                  <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest block mb-0.5">Statistik</span>
+                  <h3 className="text-sm font-bold text-[var(--theme-text)] leading-tight">Tren Pengajuan Bulanan</h3>
+                </div>
               </div>
-              <div className="h-[180px] w-full">
+              <div className="flex-1 w-full flex flex-col justify-center">
                 {monthlyTrendData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={180}>
+                  <ResponsiveContainer width="100%" height={220}>
                     <LineChart data={monthlyTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                      <XAxis dataKey="month" tick={{ fontSize: 8, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                      <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                      <Tooltip contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }} />
-                      <Line type="monotone" dataKey="value" name="Prestasi" stroke="#f59e0b" strokeWidth={2.5} dot={{ fill: '#f59e0b', r: 3 }} activeDot={{ r: 5, fill: '#f59e0b' }} />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--theme-border-muted)" />
+                      <XAxis dataKey="month" tick={{ fontSize: 8, fontWeight: 700, fill: 'var(--theme-text-muted)' }} axisLine={false} tickLine={false} />
+                      <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: 'var(--theme-text-muted)' }} axisLine={false} tickLine={false} />
+                      <Tooltip contentStyle={{ backgroundColor: "var(--theme-surface)", border: "1px solid var(--theme-border-muted)", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }} />
+                      <Line type="monotone" dataKey="value" name="Prestasi" stroke="var(--theme-warning)" strokeWidth={2.5} dot={{ fill: 'var(--theme-warning)', r: 3 }} activeDot={{ r: 5, fill: 'var(--theme-warning)' }} />
                     </LineChart>
                   </ResponsiveContainer>
-                ) : <div className="h-full flex items-center justify-center"><span className="text-xs text-slate-400 italic">Tidak ada data</span></div>}
+                ) : <div className="h-full flex items-center justify-center"><span className="text-xs text-[var(--theme-text-subtle)] italic">Tidak ada data</span></div>}
               </div>
-            </div>
-          </div>
-        )}
-
-        {/* Table */}
-        <div className="bg-white border border-slate-100/50 rounded-3xl shadow-sm overflow-hidden">
-          {/* Toolbar */}
-          <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center gap-3">
-            <div className="flex-1">
-              <h2 className="font-bold text-base text-slate-900">Daftar Pengajuan Prestasi</h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Menampilkan <span className="font-bold text-slate-900">{filtered.length}</span> dari <span className="font-bold text-primary">{achievements.length}</span> pengajuan
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2 gap-y-3 w-full sm:w-auto">
-              <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '14px' }} >search</span>
-                <input type="text" placeholder="Cari nama atau prestasi..."
-                  value={search} onChange={e => setSearch(e.target.value)}
-                  className="pl-9 pr-4 h-9 w-52 rounded-xl border border-slate-200/60 focus:outline-none focus:border-primary text-sm bg-white" />
-              </div>
-              <div className="relative">
-                <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
-                  className="h-9 pl-3 pr-8 rounded-xl border border-slate-200/60 text-xs font-medium bg-white text-slate-600 focus:outline-none focus:border-primary appearance-none cursor-pointer">
-                  <option value="all">Semua Status</option>
-                  <option value="verified">Terverifikasi</option>
-                  <option value="pending">Menunggu</option>
-                  <option value="rejected">Ditolak</option>
-                </select>
-                <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none select-none" style={{ fontSize: '16px' }}>keyboard_arrow_down</span>
-              </div>
-              <div className="relative">
-                <select value={filterSemester} onChange={e => setFilterSemester(e.target.value)}
-                  className="h-9 pl-3 pr-8 rounded-xl border border-slate-200/60 text-xs font-medium bg-white text-slate-600 focus:outline-none focus:border-primary appearance-none cursor-pointer">
-                  <option value="all">Semua Semester</option>
-                  {semesterOptions.map(sem => (
-                    <option key={sem} value={sem}>Semester {sem}</option>
-                  ))}
-                </select>
-                <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none select-none" style={{ fontSize: '16px' }}>keyboard_arrow_down</span>
-              </div>
-              <div className="relative">
-                <select value={filterPeriode} onChange={e => setFilterPeriode(e.target.value)}
-                  className="h-9 pl-3 pr-8 rounded-xl border border-slate-200/60 text-xs font-medium bg-white text-slate-600 focus:outline-none focus:border-primary appearance-none cursor-pointer">
-                  <option value="all">Semua Periode</option>
-                  {periodeOptions.map(per => (
-                    <option key={per} value={per}>Periode {per}</option>
-                  ))}
-                </select>
-                <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none select-none" style={{ fontSize: '16px' }}>keyboard_arrow_down</span>
-              </div>
-              <div className="relative">
-                <select value={filterProdi} onChange={e => setFilterProdi(e.target.value)}
-                  className="h-9 pl-3 pr-8 rounded-xl border border-slate-200/60 text-xs font-medium bg-white text-slate-600 focus:outline-none focus:border-primary appearance-none cursor-pointer">
-                  <option value="all">Semua Prodi</option>
-                  {prodiOptions.map(prod => (
-                    <option key={prod} value={prod}>{prod}</option>
-                  ))}
-                </select>
-                <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none select-none" style={{ fontSize: '16px' }}>keyboard_arrow_down</span>
-              </div>
-              {(search || filterStatus !== 'all' || filterSemester !== 'all' || filterPeriode !== 'all' || filterProdi !== 'all') && (
-                <button onClick={() => { setSearch(''); setFilterStatus('all'); setFilterSemester('all'); setFilterPeriode('all'); setFilterProdi('all'); }}
-                  className="h-9 px-3 text-xs font-semibold text-rose-600 bg-rose-50 rounded-xl border border-rose-200 hover:bg-rose-100">Reset</button>
-              )}
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-slate-200/60">
-                  {[
-                    { label: 'No', key: null, sortable: false },
-                    { label: 'Mahasiswa', key: 'mahasiswa', sortable: true },
-                    { label: 'Prestasi / Penghargaan', key: 'NamaKegiatan', sortable: true },
-                    { label: 'Tingkat', key: 'Tingkat', sortable: true },
-                    { label: 'Status', key: 'Status', sortable: true },
-                    { label: 'Tahun', key: 'CreatedAt', sortable: true },
-                    { label: 'Aksi', key: null, sortable: false },
-                  ].map(h => (
-                    <th
-                      key={h.label}
-                      onClick={() => h.sortable && handleSort(h.key)}
-                      className={cn(
-                        'px-5 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap select-none',
-                        h.sortable && 'cursor-pointer hover:text-slate-900 group',
-                        h.className
-                      )}
-                    >
-                      <div className="flex items-center gap-1.5">
-                        {h.label}
-                        {h.sortable && (
-                          sortConfig.key === h.key ? (
-                            sortConfig.direction === 'asc' ? (
-                              <span className="material-symbols-outlined size-3.5 text-primary" style={{ fontSize: '14px' }}>expand_less</span>
-                            ) : (
-                              <span className="material-symbols-outlined size-3.5 text-primary" style={{ fontSize: '14px' }}>expand_more</span>
-                            )
-                          ) : (
-                            <span className="material-symbols-outlined size-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" style={{ fontSize: '14px' }}>unfold_more</span>
-                          )
-                        )}
-                      </div>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? Array.from({ length: pageSize }).map((_, i) => (
-                  <tr key={i} className="border-b border-slate-100">
-                    {[...Array(7)].map((__, j) => <td key={j} className="px-5 py-4"><div className="h-4 bg-slate-50 rounded animate-pulse" /></td>)}
-                  </tr>
-                )) : paginated.length === 0 ? (
-                  <tr><td colSpan={7} className="px-5 py-16 text-center">
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-primary"><Trophy size={22} /></div>
-                      <p className="font-bold text-sm text-slate-900">Tidak Ada Pengajuan</p>
-                      <p className="text-xs text-slate-400">Belum ada mahasiswa yang mengajukan prestasi.</p>
-                    </div>
-                  </td></tr>
-                ) : paginated.map((row, i) => {
-                  const st = getStatus(row.Status)
-                  const tingkatCls = TINGKAT_STYLES[(row.Tingkat || '').toLowerCase()] || 'bg-slate-50 text-slate-600 border-slate-200'
-                  return (
-                    <tr key={row.ID || i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors">
-                      <td className="px-5 py-3.5 text-sm text-slate-400 font-medium">{(currentPage - 1) * pageSize + i + 1}</td>
-                      <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-3">
-                          <StudentAvatar src={getFullUrl(row.Mahasiswa?.FotoURL || row.Mahasiswa?.foto_url || row.Mahasiswa?.Foto || row.Mahasiswa?.Pengguna?.Foto)} name={row.Mahasiswa?.Nama} className="w-9 h-9 rounded-xl" />
-                          <div>
-                            <p className="font-bold text-sm text-slate-900 leading-snug">{row.Mahasiswa?.Nama || '—'}</p>
-                            <p className="text-[10px] text-slate-400 font-medium">{row.Mahasiswa?.NIM || '—'}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <p className="font-bold text-sm text-slate-900 leading-snug max-w-[200px] truncate">{row.NamaKegiatan || '—'}</p>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          <span className="inline-block text-[10px] font-bold text-[#00236F] bg-[#eef4ff] px-2 py-0.5 rounded-md">{row.Kategori || 'Umum'}</span>
-                          <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-md border ${row.Tipe === 'Pengajuan Dana' ? 'text-amber-700 bg-amber-50 border-amber-200' : 'text-emerald-700 bg-emerald-50 border-emerald-200'}`}>{row.Tipe || 'Laporan Prestasi'}</span>
-                        </div>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider', tingkatCls)}>
-                          {row.Tingkat || 'Lokal'}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider whitespace-nowrap', st.cls)}>
-                          <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', st.dot)} />{st.label}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3.5 text-xs text-slate-500 font-medium whitespace-nowrap">
-                        {row.CreatedAt ? new Date(row.CreatedAt).getFullYear() : '—'}
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-1.5">
-                          <button onClick={() => setSelected(row)}
-                            className="p-1.5 text-slate-400 hover:text-primary hover:bg-[#eef4ff] rounded-lg transition-colors" title="Detail">
-                            <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >visibility</span>
-                          </button>
-                          {(row.Status || '').toLowerCase() === 'menunggu' && (
-                            <>
-                              <button onClick={() => handleOpenVerify(row, 'verified')} disabled={isSubmitting}
-                                className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Setujui">
-                                <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >check_circle</span>
-                              </button>
-                              <button onClick={() => handleOpenVerify(row, 'rejected')} disabled={isSubmitting}
-                                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Tolak">
-                                <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span>
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Modern Pagination Footer */}
-          <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-              <p className="text-xs text-slate-500 font-medium text-center sm:text-left">
-                Menampilkan <span className="font-semibold text-slate-800">{totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0}</span> sampai <span className="font-semibold text-slate-800">{Math.min(currentPage * pageSize, totalItems)}</span> dari <span className="font-semibold text-slate-800">{totalItems}</span> entri
-              </p>
-
-              <div className="hidden sm:block h-5 w-px bg-slate-200" />
-
-              <div className="flex items-center gap-2.5">
-                <span className="text-xs text-slate-400 font-medium whitespace-nowrap">Baris per halaman:</span>
-                <Select value={String(pageSize)} onValueChange={(val) => { setPageSize(Number(val)); setCurrentPage(1); }}>
-                  <SelectTrigger className="h-8 w-24 rounded-lg border-slate-200 bg-white font-semibold text-xs shadow-sm focus:ring-primary/20 px-2.5 py-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl border-slate-200 shadow-xl p-1 font-body">
-                    {[5, 10, 15, 25, 50].map((size) => (
-                      <SelectItem key={size} value={String(size)} className="rounded-lg text-xs py-1.5 focus:bg-primary/5 focus:text-primary">
-                        {size} Baris
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1 || loading}
-                className="h-8 px-3 rounded-lg border-slate-200 bg-white text-slate-600 font-semibold text-xs shadow-sm disabled:opacity-40 hover:bg-slate-50 transition-all active:scale-95"
-              >
-                <span className="material-symbols-outlined mr-1" style={{ fontSize: '15px' }}>chevron_left</span>
-                Sebelumnya
-              </Button>
-
-              <div className="flex items-center gap-1">
-                {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
-                  let pageNum = i + 1;
-                  if (totalPages > 5 && currentPage > 3) pageNum = currentPage - 3 + i;
-                  if (pageNum > totalPages) return null;
-
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => setCurrentPage(pageNum)}
-                      className={cn(
-                        "w-8 h-8 rounded-lg font-semibold text-xs transition-all duration-200",
-                        currentPage === pageNum
-                          ? "bg-primary text-white shadow-md shadow-primary/20 scale-105"
-                          : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
-                      )}
-                    >
-                      {pageNum}
-                    </button>
-                  )
-                })}
-              </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages || loading || totalPages === 0}
-                className="h-8 px-3 rounded-lg border-slate-200 bg-white text-slate-600 font-semibold text-xs shadow-sm disabled:opacity-40 hover:bg-slate-50 transition-all active:scale-95"
-              >
-                Berikutnya
-                <span className="material-symbols-outlined ml-1" style={{ fontSize: '15px' }}>chevron_right</span>
-              </Button>
             </div>
           </div>
         </div>
+      )}
+
+      {/* Filters */}
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <Select value={filterStatus} onValueChange={setFilterStatus}>
+          <SelectTrigger className="h-10 w-40 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] px-3 text-xs text-[var(--theme-text-muted)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="rounded-xl border border-[var(--theme-border)] shadow-md bg-[var(--theme-surface)]">
+            <SelectItem value="all" className="text-xs py-1.5 focus:bg-[var(--theme-primary-light)]">Semua Status</SelectItem>
+            <SelectItem value="verified" className="text-xs py-1.5 focus:bg-[var(--theme-primary-light)]">Terverifikasi</SelectItem>
+            <SelectItem value="pending" className="text-xs py-1.5 focus:bg-[var(--theme-primary-light)]">Menunggu</SelectItem>
+            <SelectItem value="rejected" className="text-xs py-1.5 focus:bg-[var(--theme-primary-light)]">Ditolak</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={filterSemester} onValueChange={setFilterSemester}>
+          <SelectTrigger className="h-10 w-40 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] px-3 text-xs text-[var(--theme-text-muted)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="rounded-xl border border-[var(--theme-border)] shadow-md bg-[var(--theme-surface)]">
+            <SelectItem value="all" className="text-xs py-1.5 focus:bg-[var(--theme-primary-light)]">Semua Semester</SelectItem>
+            {semesterOptions.map(sem => (
+              <SelectItem key={sem} value={sem} className="text-xs py-1.5 focus:bg-[var(--theme-primary-light)]">Semester {sem}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select value={filterPeriode} onValueChange={setFilterPeriode}>
+          <SelectTrigger className="h-10 w-40 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] px-3 text-xs text-[var(--theme-text-muted)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="rounded-xl border border-[var(--theme-border)] shadow-md bg-[var(--theme-surface)]">
+            <SelectItem value="all" className="text-xs py-1.5 focus:bg-[var(--theme-primary-light)]">Semua Periode</SelectItem>
+            {periodeOptions.map(per => (
+              <SelectItem key={per} value={per} className="text-xs py-1.5 focus:bg-[var(--theme-primary-light)]">Periode {per}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select value={filterProdi} onValueChange={setFilterProdi}>
+          <SelectTrigger className="h-10 w-40 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] px-3 text-xs text-[var(--theme-text-muted)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="rounded-xl border border-[var(--theme-border)] shadow-md bg-[var(--theme-surface)]">
+            <SelectItem value="all" className="text-xs py-1.5 focus:bg-[var(--theme-primary-light)]">Semua Prodi</SelectItem>
+            {prodiOptions.map(prod => (
+              <SelectItem key={prod} value={prod} className="text-xs py-1.5 focus:bg-[var(--theme-primary-light)]">{prod}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {(filterStatus !== 'all' || filterSemester !== 'all' || filterPeriode !== 'all' || filterProdi !== 'all') && (
+          <button onClick={() => { setFilterStatus('all'); setFilterSemester('all'); setFilterPeriode('all'); setFilterProdi('all'); }}
+            className="h-10 px-4 text-xs font-semibold text-[var(--theme-error)] bg-[var(--theme-error-light)] rounded-xl border border-[var(--theme-error)]/20 hover:bg-[var(--theme-error)]/10 transition-colors">Reset</button>
+        )}
+      </div>
+
+      {/* Table */}
+      <div className="bg-[var(--theme-surface)] rounded-2xl border border-[var(--theme-border)] shadow-sm overflow-hidden mb-6">
+        <DataTable
+          data={filtered}
+          columns={tableColumns}
+          loading={loading}
+          searchable={true}
+          pagination={true}
+          pageSize={10}
+          emptyMessage="Tidak Ada Pengajuan"
+          emptyIcon="emoji_events"
+          searchPlaceholder="Cari nama atau prestasi..."
+          searchValue={search}
+          onSearchChange={setSearch}
+        />
+      </div>
 
       {/* Detail Modal */}
       <Dialog open={!!selected && !isVerifyOpen} onOpenChange={(open) => !open && setSelected(null)} maxWidth="max-w-lg">
@@ -948,7 +876,7 @@ export default function FacultyPrestasi() {
                       <p className="text-blue-600 text-xs mt-0.5 mb-2">ID Simkatmawa: {selected.SimkatmawaId}</p>
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-semibold text-blue-700">Status:</span>
-                        <select 
+                        <select
                           className="bg-white border border-blue-200 text-blue-700 text-xs font-bold rounded-lg px-2 py-1 outline-none cursor-pointer hover:border-blue-300 transition-colors"
                           value={selected.SimkatmawaStatus || "Sukses"}
                           onChange={async (e) => {
@@ -957,8 +885,8 @@ export default function FacultyPrestasi() {
                               await api.put(`/faculty/achievements/${selected.ID || selected.id}/simkatmawa-status`, { simkatmawa_status: newStatus });
                               toast.success("Status SIMKATMAWA diperbarui! ✅");
                               fetchData();
-                              setSelected({...selected, SimkatmawaStatus: newStatus});
-                            } catch(err) {
+                              setSelected({ ...selected, SimkatmawaStatus: newStatus });
+                            } catch (err) {
                               toast.error("Gagal update status");
                             }
                           }}
@@ -1062,7 +990,7 @@ export default function FacultyPrestasi() {
             </div>
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-1.5">
-                <div className={cn("size-8 rounded-xl flex items-center justify-center", 
+                <div className={cn("size-8 rounded-xl flex items-center justify-center",
                   verifyStatus === "verified" ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
                 )}>
                   <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>

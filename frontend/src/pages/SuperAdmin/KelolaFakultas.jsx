@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
 import { Card, CardContent } from '@/components/ui/Card'
+import { PrimaryStatsCard, SecondaryStatsCard } from '@/components/ui/StatsCard'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 
@@ -17,13 +18,16 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { PageContent } from '@/components/ui/page'
 import { DashboardHero } from '@/components/ui/dashboard'
 
-// Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Phone = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>phone</span>;
 const RefreshCw = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>sync</span>;
 const Building2 = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>business</span>;
 const LayoutGrid = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>grid_view</span>;
 const Group = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>group</span>;
 const Award = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>award_star</span>;
+const CorporateFare = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>corporate_fare</span>;
+const School = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>school</span>;
+const Stars = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>stars</span>;
+const GroupAdd = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>group_add</span>;
 
 
 
@@ -63,7 +67,7 @@ export default function KelolaFakultas() {
       const res = await adminService.getAllFaculties()
       if (res.status === 'success') {
         let fetchedData = res.data || []
-        
+
         const activeFakultas = localStorage.getItem('superadmin_fakultas_id')
         if (activeFakultas && activeFakultas !== 'all') {
           fetchedData = fetchedData.filter(f => String(f.id || f.ID) === activeFakultas)
@@ -87,7 +91,7 @@ export default function KelolaFakultas() {
       else toast.error('Gagal memuat sinkronisasi data')
     } catch { toast.error('Koneksi node terputus') } finally { setLoading(false) }
   }
-  
+
   useEffect(() => { fetchData() }, [])
 
   const handleSyncPddikti = async () => {
@@ -101,17 +105,17 @@ export default function KelolaFakultas() {
 
   const handleOpenAdd = () => { setIsEditMode(false); setForm({ Nama: '', Kode: '', Email: '', NoHP: '', Dekan: '' }); setIsCrudOpen(true) }
   const handleOpenEdit = (row) => { setIsEditMode(true); setForm({ ID: row.id || row.ID, Nama: row.Nama || '', Kode: row.Kode || '', Email: row.Email || '', NoHP: row.NoHP || '', Dekan: row.Dekan || '' }); setIsCrudOpen(true) }
-  
+
   const handleSave = async (e) => {
     if (e) e.preventDefault()
     setIsSubmitting(true)
     try {
       const targetId = form.ID || form.id
       const res = targetId ? await adminService.updateFaculty(targetId, form) : await adminService.createFaculty(form)
-      if (res.status === 'success') { 
+      if (res.status === 'success') {
         toast.success(targetId ? 'Data fakultas berhasil diperbarui' : 'Registrasi fakultas baru berhasil')
         setIsCrudOpen(false)
-        fetchData() 
+        fetchData()
       } else {
         toast.error(res.message || 'Gagal menyimpan konfigurasi')
       }
@@ -129,50 +133,50 @@ export default function KelolaFakultas() {
   }
 
   const columns = [
-    { 
-      key: 'Kode', 
-      label: 'Kode Unit', 
-      className: 'w-[120px]', 
-      render: v => <Badge variant="outline" className="font-semibold text-[var(--theme-text-muted)] font-headline uppercase text-[9px] tracking-[0.2em] border-[var(--theme-border)] bg-[var(--theme-bg)] px-2.5 py-1 rounded-md">{v || '—'}</Badge> 
+    {
+      key: 'Kode',
+      label: 'Kode Unit',
+      className: 'w-[120px]',
+      render: v => <Badge variant="outline" className="font-semibold text-[var(--theme-text-muted)] font-headline uppercase text-[9px] tracking-[0.2em] border-[var(--theme-border)] bg-[var(--theme-bg)] px-2.5 py-1 rounded-md">{v || '—'}</Badge>
     },
-    { 
-      key: 'Nama', 
-      label: 'Nama Fakultas', 
-      className: 'min-w-[260px]', 
-      render: v => <span className="font-semibold text-[var(--theme-text)] font-headline tracking-tight text-[14px]">{v || '—'}</span> 
+    {
+      key: 'Nama',
+      label: 'Nama Fakultas',
+      className: 'min-w-[260px]',
+      render: v => <span className="font-semibold text-[var(--theme-text)] font-headline tracking-tight text-[14px]">{v || '—'}</span>
     },
-    { 
-      key: 'Dekan', 
-      label: 'Pimpinan / Dekan', 
-      className: 'w-[220px]', 
-      render: v => <span className="text-[12px] font-medium text-[var(--theme-text-muted)] font-body tracking-tight">{v || '—'}</span> 
+    {
+      key: 'Dekan',
+      label: 'Pimpinan / Dekan',
+      className: 'w-[220px]',
+      render: v => <span className="text-[12px] font-medium text-[var(--theme-text-muted)] font-body tracking-tight">{v || '—'}</span>
     },
-    { 
-      key: 'Email', 
-      label: 'Kontak Resmi', 
-      className: 'w-[200px]', 
+    {
+      key: 'Email',
+      label: 'Kontak Resmi',
+      className: 'w-[200px]',
       render: (v, row) => (
         <div className="flex flex-col leading-tight gap-1.5">
           <div className="flex items-center gap-2 text-[var(--theme-text)]">
-             <div className="size-4 rounded bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)]"><span className="material-symbols-outlined" style={{ fontSize: '10px' }} >mail</span></div>
-             <span className="text-[11px] font-semibold font-body lowercase">{v || '—'}</span>
+            <div className="size-4 rounded bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)]"><span className="material-symbols-outlined" style={{ fontSize: '10px' }} >mail</span></div>
+            <span className="text-[11px] font-semibold font-body lowercase">{v || '—'}</span>
           </div>
           <div className="flex items-center gap-2 text-[var(--theme-text-subtle)]">
-             <div className="size-4 rounded bg-[var(--theme-bg)] flex items-center justify-center"><Phone size={10} /></div>
-             <span className="text-[10px] font-semibold tracking-widest">{row.NoHP || '—'}</span>
+            <div className="size-4 rounded bg-[var(--theme-bg)] flex items-center justify-center"><Phone size={10} /></div>
+            <span className="text-[10px] font-semibold tracking-widest">{row.NoHP || '—'}</span>
           </div>
         </div>
       )
     },
-    { 
-      key: 'JumlahProdi', 
-      label: 'Total Prodi', 
-      className: 'w-[120px] text-center', 
-      cellClassName: 'text-center', 
+    {
+      key: 'JumlahProdi',
+      label: 'Total Prodi',
+      className: 'w-[120px] text-center',
+      cellClassName: 'text-center',
       render: (v, row) => (
         <div className="flex flex-col items-center gap-1">
-           <span className="font-semibold text-[var(--theme-primary)] text-[15px] font-headline leading-none tabular-nums">{v || row.jumlah_prodi || 0}</span>
-           <span className="text-[8px] font-semibold text-[var(--theme-text-subtle)] uppercase tracking-wider">Programs</span>
+          <span className="font-semibold text-[var(--theme-primary)] text-[15px] font-headline leading-none tabular-nums">{v || row.jumlah_prodi || 0}</span>
+          <span className="text-[8px] font-semibold text-[var(--theme-text-subtle)] uppercase tracking-wider">Programs</span>
         </div>
       )
     }
@@ -227,7 +231,7 @@ export default function KelolaFakultas() {
         topFacultyProdiCount = prodis.length
       }
     })
-    
+
     // Shorten faculty name
     let shortTopFaculty = '—'
     if (topFaculty !== '—') {
@@ -274,10 +278,158 @@ export default function KelolaFakultas() {
     }
   }, [data, allProdis])
 
+  const prodiModalColumns = [
+    {
+      key: 'index',
+      label: '#',
+      className: 'w-[60px]',
+      render: (_, __, idx) => <span className="text-[var(--theme-text-subtle)] font-semibold">{idx + 1}</span>
+    },
+    {
+      key: 'Kode',
+      label: 'Kode',
+      className: 'w-[120px]',
+      render: (v, row) => (
+        <code className="text-[11px] font-semibold text-[var(--theme-info)] tracking-wider bg-[var(--theme-info-light)] px-2 py-1 rounded">
+          {v || row.kode || '—'}
+        </code>
+      )
+    },
+    {
+      key: 'Jenjang',
+      label: 'Jenjang',
+      className: 'w-[100px] text-center',
+      cellClassName: 'text-center',
+      render: (v, row) => {
+        const val = v || row.jenjang || '—'
+        const style = JENJANG_STYLES[val] || JENJANG_STYLES.DEFAULT
+        return (
+          <span className={cn("inline-flex items-center px-2.5 py-0.5 rounded-md text-[9px] font-semibold uppercase tracking-wider shadow-sm", style)}>
+            {val}
+          </span>
+        )
+      }
+    },
+    {
+      key: 'Nama',
+      label: 'Nama Program Studi',
+      render: (v, row) => <span className="font-semibold text-[var(--theme-text)] text-sm leading-snug">{v || row.nama || '—'}</span>
+    },
+    {
+      key: 'KepalaProdi',
+      label: 'Pimpinan / Kaprodi',
+      render: (v, row) => <span className="font-medium text-[var(--theme-text-muted)]">{v || row.kepala_prodi || '—'}</span>
+    }
+  ]
+
+  const allFacultiesColumns = [
+    {
+      key: 'index',
+      label: '#',
+      className: 'w-[60px]',
+      render: (_, __, idx) => <span className="text-[var(--theme-text-subtle)] font-semibold">{idx + 1}</span>
+    },
+    {
+      key: 'Kode',
+      label: 'Kode Fakultas',
+      className: 'w-[140px]',
+      render: (v, row) => (
+        <code className="text-[11px] font-semibold text-[var(--theme-primary)] tracking-widest bg-[var(--theme-primary-light)] px-2.5 py-1 rounded">
+          {v || row.kode || '—'}
+        </code>
+      )
+    },
+    {
+      key: 'Nama',
+      label: 'Nama Fakultas',
+      render: (v, row) => <span className="font-semibold text-[var(--theme-text)] text-sm leading-snug">{v || row.nama || '—'}</span>
+    },
+    {
+      key: 'Dekan',
+      label: 'Pimpinan / Dekan',
+      render: (v, row) => <span className="font-medium text-[var(--theme-text-muted)]">{v || row.dekan || '—'}</span>
+    },
+    {
+      key: 'JumlahProdi',
+      label: 'Jumlah Prodi',
+      className: 'w-[140px] text-center',
+      cellClassName: 'text-center',
+      render: (v, row) => (
+        <span className="inline-flex px-3 py-1 rounded-full bg-[var(--theme-primary-light)] text-[var(--theme-primary)] font-semibold text-xs">
+          {v || row.jumlah_prodi || row.ProgramStudi?.length || row.program_studi?.length || 0}
+        </span>
+      )
+    }
+  ]
+
+  const allProdiColumns = [
+    {
+      key: 'index',
+      label: '#',
+      className: 'w-[50px]',
+      render: (_, __, idx) => <span className="text-[var(--theme-text-subtle)] font-semibold">{idx + 1}</span>
+    },
+    {
+      key: 'Kode',
+      label: 'Kode Prodi',
+      className: 'w-[120px]',
+      render: (v, row) => (
+        <code className="text-[11px] font-semibold text-[var(--theme-info)] tracking-wider bg-[var(--theme-info-light)] px-2 py-1 rounded">
+          {v || row.kode || '—'}
+        </code>
+      )
+    },
+    {
+      key: 'Jenjang',
+      label: 'Jenjang',
+      className: 'w-[100px] text-center',
+      cellClassName: 'text-center',
+      render: (v, row) => {
+        const val = v || row.jenjang || '—'
+        const style = JENJANG_STYLES[val] || JENJANG_STYLES.DEFAULT
+        return (
+          <span className={cn("inline-flex items-center px-2.5 py-0.5 rounded-md text-[9px] font-semibold uppercase tracking-wider shadow-sm", style)}>
+            {val}
+          </span>
+        )
+      }
+    },
+    {
+      key: 'Nama',
+      label: 'Nama Program Studi',
+      render: (v, row) => <span className="font-semibold text-[var(--theme-text)] text-sm leading-snug">{v || row.nama || '—'}</span>
+    },
+    {
+      key: 'FakultasNama',
+      label: 'Fakultas',
+      render: (v, row) => (
+        <div className="flex flex-col">
+          <span className="font-semibold text-[var(--theme-text)] text-[11px]">{v || '—'}</span>
+          <span className="text-[9px] font-semibold tracking-wider text-[var(--theme-primary)]">{row.FakultasKode || '—'}</span>
+        </div>
+      )
+    },
+    {
+      key: 'KepalaProdi',
+      label: 'Pimpinan / Kaprodi',
+      render: (v, row) => <span className="font-medium text-[var(--theme-text-muted)]">{v || row.kepala_prodi || '—'}</span>
+    }
+  ]
+
+  const flattenedProdiData = useMemo(() => {
+    return data.flatMap(fac =>
+      (fac.ProgramStudi || fac.program_studi || []).map(prodi => ({
+        ...prodi,
+        FakultasNama: fac.Nama || fac.nama,
+        FakultasKode: fac.Kode || fac.kode
+      }))
+    )
+  }, [data])
+
   return (
     <PageContent>
       <Toaster position="top-right" />
-      
+
       <DashboardHero
         title="Kelola"
         highlightedTitle="Fakultas"
@@ -286,22 +438,22 @@ export default function KelolaFakultas() {
         badges={[{ label: 'Administrative Hierarchy', active: false }]}
         actions={
           <>
-            <Button 
-              onClick={handleSyncPddikti} 
-              variant="outline" 
+            <Button
+              onClick={handleSyncPddikti}
+              variant="outline"
               disabled={isSyncing}
               className="h-11 px-6 rounded-xl border-slate-200 text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-50 gap-2 transition-all active:scale-95 shadow-sm w-full sm:w-auto flex items-center justify-center font-headline"
             >
               {isSyncing ? <span className="material-symbols-outlined animate-spin text-bku-primary" style={{ fontSize: '14px' }} >sync</span> : <RefreshCw size={14} className="text-bku-primary" />}
               {isSyncing ? 'Syncing...' : 'PDDIKTI Sync'}
             </Button>
-            
-            <Button 
+
+            <Button
               onClick={handleOpenAdd}
               className="h-11 px-8 rounded-xl bg-slate-900 text-white hover:bg-bku-primary shadow-xl shadow-slate-900/10 gap-3 transition-all active:scale-95 border-none group w-full sm:w-auto flex items-center justify-center font-headline"
             >
               <div className="size-5 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}  strokeWidth={3}>add</span>
+                <span className="material-symbols-outlined" style={{ fontSize: '14px' }} strokeWidth={3}>add</span>
               </div>
               <span className="text-xs font-bold uppercase tracking-[0.2em]">Registrasi Unit</span>
             </Button>
@@ -309,309 +461,247 @@ export default function KelolaFakultas() {
         }
       />
 
-        {/* ── Enriched Stats Grid ─────────────────────────────────── */}
-        <div className="space-y-6 mb-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {/* Card 1: Total Fakultas */}
-            <div
-              onClick={() => setIsAllFacultiesOpen(true)}
-              className="group relative bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-xl hover:shadow-blue-500/10 hover:border-blue-200 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col justify-between"
-            >
-               <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-150 group-hover:-rotate-12 transition-transform duration-500 text-blue-600 pointer-events-none">
-                  <Building2 size={80} />
-               </div>
-               <div className="flex items-center justify-between mb-4 relative z-10">
-                  <div className="w-12 h-12 bg-blue-50/80 rounded-xl flex justify-center items-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300 shadow-sm">
-                     <Building2 size={24} />
-                  </div>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 text-[10px] font-bold text-blue-600 border border-blue-100">
-                    <span className="material-symbols-outlined text-[12px]">verified</span> Active
-                  </span>
-               </div>
-               <div className="relative z-10">
-                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Fakultas</p>
-                  <p className="text-3xl font-black text-slate-800 tracking-tight">{data.length}</p>
-               </div>
-            </div>
+      {/* ── Enriched Stats Grid ─────────────────────────────────── */}
+      <div className="space-y-6 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <PrimaryStatsCard
+            title="Total Fakultas"
+            value={data.length}
+            icon={Building2}
+            colorTheme="info"
+            badgeText="Active"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">verified</span>}
+            onClick={() => setIsAllFacultiesOpen(true)}
+          />
 
-            {/* Card 2: Total Prodi */}
-            <div
-              onClick={() => setIsAllProdiOpen(true)}
-              className="group relative bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 hover:border-indigo-200 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col justify-between"
-            >
-               <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-150 group-hover:rotate-12 transition-transform duration-500 text-indigo-600 pointer-events-none">
-                  <LayoutGrid size={80} />
-               </div>
-               <div className="flex items-center justify-between mb-4 relative z-10">
-                  <div className="w-12 h-12 bg-indigo-50/80 rounded-xl flex justify-center items-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-300 shadow-sm">
-                     <LayoutGrid size={24} />
-                  </div>
-               </div>
-               <div className="relative z-10">
-                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Prodi</p>
-                  <p className="text-3xl font-black text-slate-800 tracking-tight">{totalProdi}</p>
-               </div>
-            </div>
+          <PrimaryStatsCard
+            title="Total Prodi"
+            value={totalProdi}
+            icon={LayoutGrid}
+            colorTheme="primary"
+            onClick={() => setIsAllProdiOpen(true)}
+          />
 
-            {/* Card 3: Kapasitas Tampung */}
-            <div className="group relative bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-xl hover:shadow-emerald-500/10 hover:border-emerald-200 transition-all duration-300 overflow-hidden flex flex-col justify-between">
-               <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-150 group-hover:-rotate-12 transition-transform duration-500 text-emerald-600 pointer-events-none">
-                  <Group size={80} />
-               </div>
-               <div className="flex items-center justify-between mb-4 relative z-10">
-                  <div className="w-12 h-12 bg-emerald-50/80 rounded-xl flex justify-center items-center text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300 shadow-sm">
-                     <Group size={24} />
-                  </div>
-               </div>
-               <div className="relative z-10">
-                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Kapasitas Tampung</p>
-                  <p className="text-3xl font-black text-slate-800 tracking-tight">{kapasitasTampung.toLocaleString('id-ID')} <span className="text-sm font-bold text-slate-400">Mhs</span></p>
-               </div>
-            </div>
+          <PrimaryStatsCard
+            title="Kapasitas Tampung"
+            value={<>{kapasitasTampung.toLocaleString('id-ID')} <span className="text-sm font-bold text-slate-400">Mhs</span></>}
+            icon={Group}
+            colorTheme="success"
+          />
 
-            {/* Card 4: Prodi Unggul/A */}
-            <div className="group relative bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-xl hover:shadow-amber-500/10 hover:border-amber-200 transition-all duration-300 overflow-hidden flex flex-col justify-between">
-               <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-150 group-hover:rotate-12 transition-transform duration-500 text-amber-600 pointer-events-none">
-                  <Award size={80} />
-               </div>
-               <div className="flex items-center justify-between mb-4 relative z-10">
-                  <div className="w-12 h-12 bg-amber-50/80 rounded-xl flex justify-center items-center text-amber-600 group-hover:bg-amber-500 group-hover:text-white transition-colors duration-300 shadow-sm">
-                     <Award size={24} />
-                  </div>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-[10px] font-bold text-amber-600 border border-amber-100">
-                    <span className="material-symbols-outlined text-[12px]">trending_up</span> {extraStats.rasioUnggulPct}%
-                  </span>
-               </div>
-               <div className="relative z-10">
-                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Prodi Unggul / A</p>
-                  <p className="text-3xl font-black text-slate-800 tracking-tight">{akreditasiA}</p>
-               </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-             <div className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-md hover:border-slate-300 transition-all flex flex-col justify-between">
-                <div className="flex items-center gap-3 mb-4">
-                   <div className="w-10 h-10 bg-cyan-50 rounded-xl flex justify-center items-center text-cyan-600 shrink-0">
-                      <span className="material-symbols-outlined text-cyan-600" style={{ fontSize: '20px' }}>corporate_fare</span>
-                   </div>
-                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Fakultas Terbesar</span>
-                </div>
-                <div>
-                   <p className="text-xl font-black text-slate-800 truncate">{extraStats.topFaculty}</p>
-                   <p className="text-xs text-slate-500 font-medium mt-1">{extraStats.topFacultyProdiCount} Program Studi</p>
-                </div>
-             </div>
-
-             <div className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-md hover:border-slate-300 transition-all flex flex-col justify-between">
-                <div className="flex items-center gap-3 mb-4">
-                   <div className="w-10 h-10 bg-fuchsia-50 rounded-xl flex justify-center items-center text-fuchsia-600 shrink-0">
-                      <span className="material-symbols-outlined text-fuchsia-600" style={{ fontSize: '20px' }}>school</span>
-                   </div>
-                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jenjang Terbanyak</span>
-                </div>
-                <div>
-                   <p className="text-xl font-black text-slate-800">{extraStats.topJenjang}</p>
-                   <p className="text-xs text-slate-500 font-medium mt-1">{extraStats.topJenjangCount} Program Studi</p>
-                </div>
-             </div>
-
-             <div className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-md hover:border-slate-300 transition-all flex flex-col justify-between">
-                <div className="flex items-center gap-3 mb-4">
-                   <div className="w-10 h-10 bg-violet-50 rounded-xl flex justify-center items-center text-violet-600 shrink-0">
-                      <span className="material-symbols-outlined text-violet-600" style={{ fontSize: '20px' }}>stars</span>
-                   </div>
-                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Rasio Unggul</span>
-                </div>
-                <div>
-                   <p className="text-xl font-black text-slate-800">{extraStats.rasioUnggulPct}%</p>
-                   <p className="text-xs text-slate-500 font-medium mt-1">{extraStats.akreditasiA} prodi terakreditasi</p>
-                </div>
-             </div>
-
-             <div className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-md hover:border-slate-300 transition-all flex flex-col justify-between">
-                <div className="flex items-center gap-3 mb-4">
-                   <div className="w-10 h-10 bg-rose-50 rounded-xl flex justify-center items-center text-rose-600 shrink-0">
-                      <span className="material-symbols-outlined text-rose-600" style={{ fontSize: '20px' }}>group_add</span>
-                   </div>
-                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Rata-rata Kapasitas</span>
-                </div>
-                <div>
-                   <p className="text-xl font-black text-slate-800">{extraStats.rataKapasitas} Mhs</p>
-                   <p className="text-xs text-slate-500 font-medium mt-1">Per Program Studi</p>
-                </div>
-             </div>
-          </div>
+          <PrimaryStatsCard
+            title="Prodi Unggul / A"
+            value={akreditasiA}
+            icon={Award}
+            colorTheme="warning"
+            badgeText={`${extraStats.rasioUnggulPct}%`}
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">trending_up</span>}
+          />
         </div>
 
-        {/* ── Enriched Visual Charts Grid ─────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-           {/* Chart 1: Kapasitas Prodi (List) */}
-           <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
-              <div className="flex flex-col h-full">
-                 <div className="flex items-center gap-4 mb-4 shrink-0">
-                    <div className="w-12 h-12 bg-blue-50/80 rounded-xl flex justify-center items-center text-blue-600 group-hover:scale-110 group-hover:-rotate-6 transition-all duration-300">
-                       <span className="material-symbols-outlined text-[24px]">groups</span>
-                    </div>
-                    <div>
-                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Statistik Distribusi</span>
-                       <h3 className="text-sm font-bold text-slate-800 leading-tight">Daya Tampung per Prodi</h3>
-                    </div>
-                 </div>
-                 <div className="h-[200px] w-full mt-2 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
-                    {kapasitasProdiData.length > 0 ? (
-                       kapasitasProdiData.map((item, idx) => {
-                          const percentage = Math.round((item.kapasitas / maxKapasitas) * 100);
-                          const colors = [
-                             { bg: 'bg-blue-500', text: 'text-blue-600', iconBg: 'bg-blue-50 text-blue-600 border-blue-100' },
-                             { bg: 'bg-indigo-500', text: 'text-indigo-600', iconBg: 'bg-indigo-50 text-indigo-600 border-indigo-100' },
-                             { bg: 'bg-emerald-500', text: 'text-emerald-600', iconBg: 'bg-emerald-50 text-emerald-600 border-emerald-100' },
-                             { bg: 'bg-amber-500', text: 'text-amber-600', iconBg: 'bg-amber-50 text-amber-600 border-amber-100' },
-                             { bg: 'bg-rose-500', text: 'text-rose-600', iconBg: 'bg-rose-50 text-rose-600 border-rose-100' }
-                          ];
-                          const color = colors[idx % colors.length];
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <SecondaryStatsCard
+            title="Fakultas Terbesar"
+            value={extraStats.topFaculty}
+            subtitle={`${extraStats.topFacultyProdiCount} Program Studi`}
+            icon={CorporateFare}
+            colorTheme="info"
+          />
 
-                          return (
-                             <div key={idx} className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex flex-col justify-between transition-colors hover:bg-white hover:border-slate-200 hover:shadow-sm cursor-default">
-                                <div className="flex items-start justify-between gap-3 mb-2">
-                                   <div className="flex items-center gap-3 min-w-0">
-                                      <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 border", color.iconBg)}>
-                                         <span className="material-symbols-outlined text-base">school</span>
-                                      </div>
-                                      <div className="text-left min-w-0">
-                                         <span className="text-[11px] font-bold text-slate-800 block truncate" title={item.name}>{item.name}</span>
-                                      </div>
-                                   </div>
-                                   <span className={cn("px-2 py-0.5 rounded-lg text-[9px] font-extrabold tracking-wide shrink-0 border bg-white shadow-sm", color.text, color.iconBg)}>
-                                      {item.kapasitas} Mhs
-                                   </span>
-                                </div>
-                                
-                                <div className="space-y-1">
-                                   <div className="flex justify-between items-center text-[9px] font-bold text-slate-400">
-                                      <span>Rasio terhadap Tertinggi</span>
-                                      <span className={color.text}>{percentage}%</span>
-                                   </div>
-                                   <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                                      <div className={cn("h-full rounded-full transition-all duration-500", color.bg)} style={{ width: `${percentage}%` }} />
-                                   </div>
-                                </div>
-                             </div>
-                          )
-                       })
-                    ) : (
-                       <div className="py-8 text-center text-xs text-slate-400 italic">Tidak ada data program studi</div>
-                    )}
-                 </div>
-              </div>
-           </div>
+          <SecondaryStatsCard
+            title="Jenjang Terbanyak"
+            value={extraStats.topJenjang}
+            subtitle={`${extraStats.topJenjangCount} Program Studi`}
+            icon={School}
+            colorTheme="primary"
+          />
 
-           {/* Chart 2: Donut Chart - Distribusi Jenjang */}
-           <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
-              <div>
-                 <div className="flex items-center gap-4 mb-4">
-                    <div className="w-12 h-12 bg-emerald-50/80 rounded-xl flex justify-center items-center text-emerald-600 group-hover:scale-110 group-hover:-rotate-6 transition-all duration-300">
-                       <span className="material-symbols-outlined text-[24px]">donut_small</span>
-                    </div>
-                    <div>
-                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Komposisi Pendidikan</span>
-                       <h3 className="text-sm font-bold text-slate-800 leading-tight">Sebaran Jenjang Program Studi</h3>
-                    </div>
-                 </div>
-                 <div className="h-[180px] w-full flex items-center justify-center relative">
-                    <ResponsiveContainer width="100%" height="100%">
-                       <PieChart>
-                          <Pie
-                             data={jenjangChartData}
-                             cx="50%"
-                             cy="50%"
-                             innerRadius={50}
-                             outerRadius={75}
-                             paddingAngle={4}
-                             dataKey="value"
-                             stroke="none"
-                          >
-                             {jenjangChartData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                             ))}
-                          </Pie>
-                          <Tooltip contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)", fontSize: "11px", fontWeight: "bold" }} />
-                       </PieChart>
-                    </ResponsiveContainer>
-                 </div>
-              </div>
-              <div className="grid grid-cols-3 gap-2 mt-4">
-                 {jenjangChartData.map((item, idx) => (
-                    <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-md bg-slate-50 border border-slate-100 hover:bg-white transition-colors">
-                       <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
-                       <div className="min-w-0">
-                          <p className="text-[9px] font-bold text-slate-400 truncate leading-none">{item.name}</p>
-                          <p className="text-sm font-black text-slate-700 leading-none mt-1">{item.value}</p>
-                       </div>
-                    </div>
-                 ))}
-              </div>
-           </div>
+          <SecondaryStatsCard
+            title="Rasio Unggul"
+            value={`${extraStats.rasioUnggulPct}%`}
+            subtitle={`${extraStats.akreditasiA} prodi terakreditasi`}
+            icon={Stars}
+            colorTheme="primary"
+          />
 
-           {/* Chart 3: Akreditasi Prodi */}
-           <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
-              <div>
-                 <div className="flex items-center gap-4 mb-4">
-                    <div className="w-12 h-12 bg-indigo-50/80 rounded-xl flex justify-center items-center text-indigo-600 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                       <span className="material-symbols-outlined text-[24px]">workspace_premium</span>
-                    </div>
-                    <div>
-                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Kualitas Mutu</span>
-                       <h3 className="text-sm font-bold text-slate-800 leading-tight">Sebaran Akreditasi Nasional</h3>
-                    </div>
-                 </div>
-                 <div className="h-[200px] w-full mt-2">
-                    <ResponsiveContainer width="100%" height="100%">
-                       <BarChart data={akreditasiChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                          <XAxis dataKey="name" tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                          <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                          <Tooltip
-                             cursor={{ fill: '#f8fafc' }}
-                             contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)", fontSize: "11px", fontWeight: "bold" }}
-                          />
-                          <Bar dataKey="value" name="Jumlah Prodi" fill="#8b5cf6" radius={[4, 4, 0, 0]} barSize={24} />
-                       </BarChart>
-                    </ResponsiveContainer>
-                 </div>
-              </div>
-           </div>
+          <SecondaryStatsCard
+            title="Rata-rata Kapasitas"
+            value={`${extraStats.rataKapasitas} Mhs`}
+            subtitle="Per Program Studi"
+            icon={GroupAdd}
+            colorTheme="error"
+          />
         </div>
+      </div>
 
-        {/* ── Table Section ────────────────────────────────────────── */}
-        <Card className="glass-card shadow-sm rounded-xl overflow-hidden">
-          <CardContent className="p-0">
-            <DataTable
-              columns={columns} 
-              data={data} 
-              loading={loading}
-              searchPlaceholder="Cari nama fakultas atau kode unit..."
-              actions={(row) => (
-                <div className="flex items-center gap-1.5">
-                  <Button 
-                    onClick={() => {
-                      setSelectedFacultyDetails(row)
-                      setIsFacultyDetailsOpen(true)
-                    }} 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8 text-neutral-400 hover:text-primary hover:bg-indigo-50 rounded-lg transition-colors shadow-none"
-                    title="Lihat Detail Program Studi"
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >visibility</span>
-                  </Button>
-                  <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors shadow-none"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >edit</span></Button>
-                  <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors shadow-none"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >delete</span></Button>
-                </div>
+      {/* ── Enriched Visual Charts Grid ─────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        {/* Chart 1: Kapasitas Prodi (List) */}
+        <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+          <div className="flex flex-col h-full">
+            <div className="flex items-center gap-4 mb-4 shrink-0">
+              <div className="w-12 h-12 bg-blue-50/80 rounded-xl flex justify-center items-center text-blue-600 group-hover:scale-110 group-hover:-rotate-6 transition-all duration-300">
+                <span className="material-symbols-outlined text-[24px]">groups</span>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Statistik Distribusi</span>
+                <h3 className="text-sm font-bold text-slate-800 leading-tight">Daya Tampung per Prodi</h3>
+              </div>
+            </div>
+            <div className="h-[200px] w-full mt-2 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+              {kapasitasProdiData.length > 0 ? (
+                kapasitasProdiData.map((item, idx) => {
+                  const percentage = Math.round((item.kapasitas / maxKapasitas) * 100);
+                  const colors = [
+                    { bg: 'bg-blue-500', text: 'text-blue-600', iconBg: 'bg-blue-50 text-blue-600 border-blue-100' },
+                    { bg: 'bg-indigo-500', text: 'text-indigo-600', iconBg: 'bg-indigo-50 text-indigo-600 border-indigo-100' },
+                    { bg: 'bg-emerald-500', text: 'text-emerald-600', iconBg: 'bg-emerald-50 text-emerald-600 border-emerald-100' },
+                    { bg: 'bg-amber-500', text: 'text-amber-600', iconBg: 'bg-amber-50 text-amber-600 border-amber-100' },
+                    { bg: 'bg-rose-500', text: 'text-rose-600', iconBg: 'bg-rose-50 text-rose-600 border-rose-100' }
+                  ];
+                  const color = colors[idx % colors.length];
+
+                  return (
+                    <div key={idx} className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex flex-col justify-between transition-colors hover:bg-white hover:border-slate-200 hover:shadow-sm cursor-default">
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 border", color.iconBg)}>
+                            <span className="material-symbols-outlined text-base">school</span>
+                          </div>
+                          <div className="text-left min-w-0">
+                            <span className="text-[11px] font-bold text-slate-800 block truncate" title={item.name}>{item.name}</span>
+                          </div>
+                        </div>
+                        <span className={cn("px-2 py-0.5 rounded-lg text-[9px] font-extrabold tracking-wide shrink-0 border bg-white shadow-sm", color.text, color.iconBg)}>
+                          {item.kapasitas} Mhs
+                        </span>
+                      </div>
+
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center text-[9px] font-bold text-slate-400">
+                          <span>Rasio terhadap Tertinggi</span>
+                          <span className={color.text}>{percentage}%</span>
+                        </div>
+                        <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                          <div className={cn("h-full rounded-full transition-all duration-500", color.bg)} style={{ width: `${percentage}%` }} />
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })
+              ) : (
+                <div className="py-8 text-center text-xs text-slate-400 italic">Tidak ada data program studi</div>
               )}
-            />
-          </CardContent>
-        </Card>
+            </div>
+          </div>
+        </div>
+
+        {/* Chart 2: Donut Chart - Distribusi Jenjang */}
+        <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+          <div>
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 bg-emerald-50/80 rounded-xl flex justify-center items-center text-emerald-600 group-hover:scale-110 group-hover:-rotate-6 transition-all duration-300">
+                <span className="material-symbols-outlined text-[24px]">donut_small</span>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Komposisi Pendidikan</span>
+                <h3 className="text-sm font-bold text-slate-800 leading-tight">Sebaran Jenjang Program Studi</h3>
+              </div>
+            </div>
+            <div className="h-[180px] w-full flex items-center justify-center relative">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={jenjangChartData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={50}
+                    outerRadius={75}
+                    paddingAngle={4}
+                    dataKey="value"
+                    stroke="none"
+                  >
+                    {jenjangChartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)", fontSize: "11px", fontWeight: "bold" }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-2 mt-4">
+            {jenjangChartData.map((item, idx) => (
+              <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-md bg-slate-50 border border-slate-100 hover:bg-white transition-colors">
+                <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
+                <div className="min-w-0">
+                  <p className="text-[9px] font-bold text-slate-400 truncate leading-none">{item.name}</p>
+                  <p className="text-sm font-black text-slate-700 leading-none mt-1">{item.value}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Chart 3: Akreditasi Prodi */}
+        <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+          <div>
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 bg-indigo-50/80 rounded-xl flex justify-center items-center text-indigo-600 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                <span className="material-symbols-outlined text-[24px]">workspace_premium</span>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Kualitas Mutu</span>
+                <h3 className="text-sm font-bold text-slate-800 leading-tight">Sebaran Akreditasi Nasional</h3>
+              </div>
+            </div>
+            <div className="h-[200px] w-full mt-2">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={akreditasiChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="name" tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                  <Tooltip
+                    cursor={{ fill: '#f8fafc' }}
+                    contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)", fontSize: "11px", fontWeight: "bold" }}
+                  />
+                  <Bar dataKey="value" name="Jumlah Prodi" fill="#8b5cf6" radius={[4, 4, 0, 0]} barSize={24} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Table Section ────────────────────────────────────────── */}
+      <Card className="glass-card shadow-sm rounded-xl overflow-hidden">
+        <CardContent className="p-0">
+          <DataTable
+            columns={columns}
+            data={data}
+            loading={loading}
+            searchPlaceholder="Cari nama fakultas atau kode unit..."
+            actions={(row) => (
+              <div className="flex items-center gap-1.5">
+                <Button
+                  onClick={() => {
+                    setSelectedFacultyDetails(row)
+                    setIsFacultyDetailsOpen(true)
+                  }}
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-neutral-400 hover:text-primary hover:bg-indigo-50 rounded-lg transition-colors shadow-none"
+                  title="Lihat Detail Program Studi"
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >visibility</span>
+                </Button>
+                <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors shadow-none"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >edit</span></Button>
+                <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors shadow-none"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >delete</span></Button>
+              </div>
+            )}
+          />
+        </CardContent>
+      </Card>
 
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
         <DialogContent className="max-w-lg">
@@ -620,7 +710,7 @@ export default function KelolaFakultas() {
             <div className="relative z-10 space-y-1">
               <div className="flex items-center gap-2 mb-2">
                 <div className="size-6 rounded bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)]">
-                  {isEditMode ? <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >edit</span> : <span className="material-symbols-outlined" style={{ fontSize: '12px' }}  strokeWidth={3}>add</span>}
+                  {isEditMode ? <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >edit</span> : <span className="material-symbols-outlined" style={{ fontSize: '12px' }} strokeWidth={3}>add</span>}
                 </div>
                 <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--theme-primary)]">Unit Configuration</span>
               </div>
@@ -662,23 +752,23 @@ export default function KelolaFakultas() {
             </div>
 
             <DialogFooter>
-               <button type="button" onClick={() => setIsCrudOpen(false)} className="flex-1 h-10 rounded-xl border border-[var(--theme-border)] text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg)] transition-colors">Batal</button>
-               <button type="submit" disabled={isSubmitting} className="flex-[2] h-10 rounded-xl bg-[var(--theme-primary)] text-white hover:bg-[var(--theme-primary-hover)] shadow-md transition-all active:scale-95 border-none flex items-center justify-center gap-2">
-                  {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >save</span>}
-                  <span className="text-xs font-semibold uppercase tracking-wider">Simpan Perubahan</span>
-               </button>
+              <button type="button" onClick={() => setIsCrudOpen(false)} className="flex-1 h-10 rounded-xl border border-[var(--theme-border)] text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg)] transition-colors">Batal</button>
+              <button type="submit" disabled={isSubmitting} className="flex-[2] h-10 rounded-xl bg-[var(--theme-primary)] text-white hover:bg-[var(--theme-primary-hover)] shadow-md transition-all active:scale-95 border-none flex items-center justify-center gap-2">
+                {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >save</span>}
+                <span className="text-xs font-semibold uppercase tracking-wider">Simpan Perubahan</span>
+              </button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
-      <DeleteConfirmModal 
-        isOpen={isDelOpen} 
-        onClose={() => setIsDelOpen(false)} 
+      <DeleteConfirmModal
+        isOpen={isDelOpen}
+        onClose={() => setIsDelOpen(false)}
         onConfirm={handleDelete}
-        title="Destroy Faculty Entity?" 
-        description="Aksi ini akan menghapus permanen entitas fakultas dan seluruh relasi program studi di bawahnya. Prosedur ini tidak dapat dibatalkan." 
-        loading={isSubmitting} 
+        title="Destroy Faculty Entity?"
+        description="Aksi ini akan menghapus permanen entitas fakultas dan seluruh relasi program studi di bawahnya. Prosedur ini tidak dapat dibatalkan."
+        loading={isSubmitting}
       />
 
       <Dialog open={isFacultyDetailsOpen} onOpenChange={setIsFacultyDetailsOpen}>
@@ -701,40 +791,14 @@ export default function KelolaFakultas() {
 
           <div className="p-6 md:p-8 max-h-[50vh] overflow-y-auto space-y-4">
             {selectedFacultyDetails?.ProgramStudi?.length > 0 || selectedFacultyDetails?.program_studi?.length > 0 ? (
-              <div className="border border-[var(--theme-border)] rounded-xl overflow-x-auto shadow-sm bg-white">
-                <table className="w-full min-w-[650px] text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="bg-[var(--theme-bg)] border-b border-[var(--theme-border)]">
-                      <th className="px-5 py-3.5 font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider w-[60px] whitespace-nowrap">#</th>
-                      <th className="px-5 py-3.5 font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider w-[120px] whitespace-nowrap">Kode</th>
-                      <th className="px-5 py-3.5 font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider w-[100px] text-center whitespace-nowrap">Jenjang</th>
-                      <th className="px-5 py-3.5 font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider whitespace-nowrap">Nama Program Studi</th>
-                      <th className="px-5 py-3.5 font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider whitespace-nowrap">Pimpinan / Kaprodi</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(selectedFacultyDetails?.ProgramStudi || selectedFacultyDetails?.program_studi || []).map((prodi, idx) => {
-                      const jenjangStyle = JENJANG_STYLES[prodi.Jenjang || prodi.jenjang] || JENJANG_STYLES.DEFAULT
-                      return (
-                        <tr key={prodi.id || prodi.ID || idx} className="border-b border-[var(--theme-border-muted)] hover:bg-[var(--theme-primary-light)] transition-colors">
-                          <td className="px-5 py-4 text-[var(--theme-text-subtle)] font-semibold whitespace-nowrap">{idx + 1}</td>
-                          <td className="px-5 py-4 whitespace-nowrap">
-                            <code className="text-[11px] font-semibold text-[var(--theme-info)] tracking-wider bg-[var(--theme-info-light)] px-2 py-1 rounded">
-                              {prodi.Kode || prodi.kode || '—'}
-                            </code>
-                          </td>
-                          <td className="px-5 py-4 text-center whitespace-nowrap">
-                            <span className={cn("inline-flex items-center px-2.5 py-0.5 rounded-md text-[9px] font-semibold uppercase tracking-wider shadow-sm", jenjangStyle)}>
-                              {prodi.Jenjang || prodi.jenjang || '—'}
-                            </span>
-                          </td>
-                          <td className="px-5 py-4 font-semibold text-[var(--theme-text)] text-sm leading-snug whitespace-nowrap">{prodi.Nama || prodi.nama || '—'}</td>
-                          <td className="px-5 py-4 font-medium text-[var(--theme-text-muted)] whitespace-nowrap">{prodi.KepalaProdi || prodi.kepala_prodi || '—'}</td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
+              <div className="bg-white rounded-xl shadow-sm border border-[var(--theme-border)] overflow-hidden">
+                <DataTable
+                  data={selectedFacultyDetails?.ProgramStudi || selectedFacultyDetails?.program_studi || []}
+                  columns={prodiModalColumns}
+                  searchable={true}
+                  searchPlaceholder="Cari program studi..."
+                  loading={loading}
+                />
               </div>
             ) : (
               <div className="py-12 text-center flex flex-col items-center gap-3">
@@ -772,37 +836,14 @@ export default function KelolaFakultas() {
           </DialogHeader>
 
           <div className="p-6 md:p-8 max-h-[50vh] overflow-y-auto space-y-4">
-            <div className="border border-[var(--theme-border)] rounded-xl overflow-x-auto shadow-sm bg-white">
-              <table className="w-full min-w-[700px] text-left border-collapse text-xs">
-                <thead>
-                  <tr className="bg-[var(--theme-bg)] border-b border-[var(--theme-border)]">
-                    <th className="px-5 py-3.5 font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider w-[60px] whitespace-nowrap">#</th>
-                    <th className="px-5 py-3.5 font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider w-[140px] whitespace-nowrap">Kode Fakultas</th>
-                    <th className="px-5 py-3.5 font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider whitespace-nowrap">Nama Fakultas</th>
-                    <th className="px-5 py-3.5 font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider whitespace-nowrap">Pimpinan / Dekan</th>
-                    <th className="px-5 py-3.5 font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider w-[140px] text-center whitespace-nowrap">Jumlah Prodi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.map((fac, idx) => (
-                    <tr key={fac.id || fac.ID || idx} className="border-b border-[var(--theme-border-muted)] hover:bg-[var(--theme-primary-light)] transition-colors">
-                      <td className="px-5 py-4 text-[var(--theme-text-subtle)] font-semibold whitespace-nowrap">{idx + 1}</td>
-                      <td className="px-5 py-4 whitespace-nowrap">
-                        <code className="text-[11px] font-semibold text-[var(--theme-primary)] tracking-widest bg-[var(--theme-primary-light)] px-2.5 py-1 rounded">
-                          {fac.Kode || fac.kode || '—'}
-                        </code>
-                      </td>
-                      <td className="px-5 py-4 font-semibold text-[var(--theme-text)] text-sm leading-snug whitespace-nowrap">{fac.Nama || fac.nama || '—'}</td>
-                      <td className="px-5 py-4 font-medium text-[var(--theme-text-muted)] whitespace-nowrap">{fac.Dekan || fac.dekan || '—'}</td>
-                      <td className="px-5 py-4 text-center whitespace-nowrap">
-                        <span className="inline-flex px-3 py-1 rounded-full bg-[var(--theme-primary-light)] text-[var(--theme-primary)] font-semibold text-xs">
-                          {fac.JumlahProdi || fac.jumlah_prodi || fac.ProgramStudi?.length || fac.program_studi?.length || 0}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="bg-white rounded-xl shadow-sm border border-[var(--theme-border)] overflow-hidden">
+              <DataTable
+                data={data}
+                columns={allFacultiesColumns}
+                searchable={true}
+                searchPlaceholder="Cari unit kerja / fakultas..."
+                loading={loading}
+              />
             </div>
           </div>
 
@@ -831,46 +872,14 @@ export default function KelolaFakultas() {
           </DialogHeader>
 
           <div className="p-6 md:p-8 max-h-[50vh] overflow-y-auto space-y-4">
-            <div className="border border-[var(--theme-border)] rounded-xl overflow-x-auto shadow-sm bg-white">
-              <table className="w-full min-w-[650px] text-left border-collapse text-xs">
-                <thead>
-                  <tr className="bg-[var(--theme-bg)] border-b border-[var(--theme-border)]">
-                    <th className="px-5 py-3.5 font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider w-[50px] whitespace-nowrap">#</th>
-                    <th className="px-5 py-3.5 font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider w-[120px] whitespace-nowrap">Kode Prodi</th>
-                    <th className="px-5 py-3.5 font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider w-[100px] text-center whitespace-nowrap">Jenjang</th>
-                    <th className="px-5 py-3.5 font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider whitespace-nowrap">Nama Program Studi</th>
-                    <th className="px-5 py-3.5 font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider whitespace-nowrap">Pimpinan / Kaprodi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.flatMap(fac => 
-                    (fac.ProgramStudi || fac.program_studi || []).map(prodi => ({
-                      ...prodi,
-                      FakultasNama: fac.Nama || fac.nama,
-                      FakultasKode: fac.Kode || fac.kode
-                    }))
-                  ).map((prodi, idx) => {
-                    const jenjangStyle = JENJANG_STYLES[prodi.Jenjang || prodi.jenjang] || JENJANG_STYLES.DEFAULT
-                    return (
-                      <tr key={prodi.id || prodi.ID || idx} className="border-b border-[var(--theme-border-muted)] hover:bg-[var(--theme-primary-light)] transition-colors">
-                        <td className="px-5 py-4 text-[var(--theme-text-subtle)] font-semibold whitespace-nowrap">{idx + 1}</td>
-                        <td className="px-5 py-4 whitespace-nowrap">
-                          <code className="text-[11px] font-semibold text-[var(--theme-info)] tracking-wider bg-[var(--theme-info-light)] px-2 py-1 rounded">
-                            {prodi.Kode || prodi.kode || '—'}
-                          </code>
-                        </td>
-                        <td className="px-5 py-4 text-center whitespace-nowrap">
-                          <span className={cn("inline-flex items-center px-2.5 py-0.5 rounded-md text-[9px] font-semibold uppercase tracking-wider shadow-sm", jenjangStyle)}>
-                            {prodi.Jenjang || prodi.jenjang || '—'}
-                          </span>
-                        </td>
-                        <td className="px-5 py-4 font-semibold text-[var(--theme-text)] text-sm leading-snug whitespace-nowrap">{prodi.Nama || prodi.nama || '—'}</td>
-                        <td className="px-5 py-4 font-medium text-[var(--theme-text-muted)] whitespace-nowrap">{prodi.KepalaProdi || prodi.kepala_prodi || '—'}</td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
+            <div className="bg-white rounded-xl shadow-sm border border-[var(--theme-border)] overflow-hidden">
+              <DataTable
+                data={flattenedProdiData}
+                columns={allProdiColumns}
+                searchable={true}
+                searchPlaceholder="Cari program studi atau prodi..."
+                loading={loading}
+              />
             </div>
           </div>
 

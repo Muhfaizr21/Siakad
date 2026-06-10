@@ -33,19 +33,19 @@ const formatDate = (d) => {
 }
 
 const BOOKING_STATUS = {
-  Selesai: {cls:'bg-emerald-50 text-emerald-700 border-emerald-200', dot:'bg-emerald-500', label:'Selesai'},
-  Dikonfirmasi: {cls:'bg-indigo-50 text-indigo-700 border-indigo-200', dot:'bg-indigo-500', label:'Dikonfirmasi'},
-  Menunggu: {cls:'bg-amber-50 text-amber-700 border-amber-200', dot:'bg-amber-500', label:'Menunggu'},
-  Ditolak: {cls:'bg-rose-50 text-rose-700 border-rose-200', dot:'bg-rose-500', label:'Ditolak'},
+  Selesai: { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500', label: 'Selesai' },
+  Dikonfirmasi: { cls: 'bg-indigo-50 text-indigo-700 border-indigo-200', dot: 'bg-indigo-500', label: 'Dikonfirmasi' },
+  Menunggu: { cls: 'bg-amber-50 text-amber-700 border-amber-200', dot: 'bg-amber-500', label: 'Menunggu' },
+  Ditolak: { cls: 'bg-rose-50 text-rose-700 border-rose-200', dot: 'bg-rose-500', label: 'Ditolak' },
 }
-const getStatus = (v='') => BOOKING_STATUS[v] || BOOKING_STATUS.Menunggu
+const getStatus = (v = '') => BOOKING_STATUS[v] || BOOKING_STATUS.Menunggu
 
 export default function PsychologistDashboard() {
   const [dashboard, setDashboard] = useState(null)
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState(null)
   const [isSubmitting, setIsSub] = useState(false)
-  
+
   const [catatan, setCatatan] = useState('')
   const [linkMeeting, setLinkMeeting] = useState('')
   const [filterStatus, setFilter] = useState('all')
@@ -55,10 +55,10 @@ export default function PsychologistDashboard() {
     try {
       const res = await psychologistService.getDashboard()
       setDashboard(res.data)
-    } catch { 
-      toast.error('Gagal mengambil data dashboard psikolog') 
-    } finally { 
-      setLoading(false) 
+    } catch {
+      toast.error('Gagal mengambil data dashboard psikolog')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -67,17 +67,17 @@ export default function PsychologistDashboard() {
     setIsSub(true)
     try {
       const res = await psychologistService.updateBookingStatus(selected.id, status, catatan, linkMeeting)
-      if (res.data) { 
+      if (res.data) {
         toast.success(`Sesi berhasil ${status === 'Dikonfirmasi' ? 'dikonfirmasi' : status === 'Selesai' ? 'diselesaikan' : 'ditolak'}`)
         setSelected(null)
         setCatatan('')
         setLinkMeeting('')
-        fetchData() 
+        fetchData()
       }
-    } catch (e) { 
-      toast.error(e.response?.data?.message || 'Server sibuk') 
-    } finally { 
-      setIsSub(false) 
+    } catch (e) {
+      toast.error(e.response?.data?.message || 'Server sibuk')
+    } finally {
+      setIsSub(false)
     }
   }
 
@@ -204,20 +204,20 @@ export default function PsychologistDashboard() {
       counts['Adaptasi'] = 1
     }
     return Object.entries(counts)
-      .sort(([,a], [,b]) => b - a)
+      .sort(([, a], [, b]) => b - a)
       .slice(0, 5)
       .map(([name, value]) => ({ name, value }))
   }, [rawBookings])
 
   const monthlyTrendData = useMemo(() => {
-    const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des']
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des']
     const currentMonthIdx = new Date().getMonth()
-    
+
     // Fallback logic to show a realistic trend line based on actual completed stats
     const trend = []
-    for(let i=5; i>=0; i--) {
+    for (let i = 5; i >= 0; i--) {
       let mIdx = currentMonthIdx - i
-      if(mIdx < 0) mIdx += 12
+      if (mIdx < 0) mIdx += 12
       trend.push({
         month: months[mIdx],
         value: i === 0 ? (dashboard?.completed_this_month || dashboard?.today_appointments || 5) : Math.floor(Math.random() * 15) + 2
@@ -230,7 +230,7 @@ export default function PsychologistDashboard() {
 
   return (
     <div className="min-h-screen bg-transparent font-inter space-y-6">
-      <Toaster position="top-right"/>
+      <Toaster position="top-right" />
       <PageContent>
         {/* ── Welcome Banner ─────────────────────────────────────────── */}
         <section className="relative overflow-hidden rounded-2xl p-6 md:p-8 flex flex-col xl:flex-row xl:items-center gap-6 group shadow-sm border border-slate-200/60 bg-white mb-6">
@@ -246,25 +246,22 @@ export default function PsychologistDashboard() {
 
           <div className="relative z-10 flex-1 flex flex-col justify-center gap-3">
             <div className="flex items-center gap-4">
-               <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/[0.02] border border-primary/10 flex items-center justify-center text-primary shrink-0 shadow-sm relative overflow-hidden">
-                  <span className="material-symbols-outlined text-primary relative z-10" style={{ fontSize: '26px' }}>psychology</span>
-               </div>
-               <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-primary/5 text-primary border border-primary/10">
-                      Portal BKU Care
-                    </span>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-amber-50 text-amber-600 border border-amber-100">
-                      {antreanMenunggu} Antrean Baru
-                    </span>
-                  </div>
-                  <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight font-headline leading-none">
-                    Dashboard <span className="text-primary font-black">Psikolog</span>
-                  </h1>
-                  <p className="mt-2 text-xs md:text-sm font-medium text-slate-500 leading-relaxed max-w-xl">
-                    Pantau antrean, kelola riwayat sesi konseling mahasiswa, dan tinjau analitik secara terpusat.
-                  </p>
-               </div>
+              <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/[0.02] border border-primary/10 flex items-center justify-center text-primary shrink-0 shadow-sm relative overflow-hidden">
+                <span className="material-symbols-outlined text-primary relative z-10" style={{ fontSize: '26px' }}>psychology</span>
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-primary/5 text-primary border border-primary/10">
+                    Portal BKU Care
+                  </span>
+                </div>
+                <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight font-headline leading-none">
+                  Dashboard <span className="text-primary font-black">Psikolog</span>
+                </h1>
+                <p className="mt-2 text-xs md:text-sm font-medium text-slate-500 leading-relaxed max-w-xl">
+                  Pantau antrean, kelola riwayat sesi konseling mahasiswa, dan tinjau analitik secara terpusat.
+                </p>
+              </div>
             </div>
           </div>
 
@@ -279,19 +276,19 @@ export default function PsychologistDashboard() {
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           {[
-            {label:'Total Pasien',   value:totalPasien,     icon:People,       bg:'bg-[#eef4ff]',  color:'text-primary',   desc:'Pasien terdaftar'},
-            {label:'Sesi Selesai',   value:sesiSelesai,     icon:CheckCircle2, bg:'bg-emerald-50', color:'text-emerald-600', desc:'Bulan ini'},
-            {label:'Antrean Baru',   value:antreanMenunggu, icon:Clock,        bg:'bg-amber-50',   color:'text-amber-600', desc:'Menunggu ACC'},
-            {label:'Sesi Hari Ini',  value:sesiHariIni,     icon:Activity,     bg:'bg-indigo-50',  color:'text-indigo-600', desc:'Total jadwal hari ini'},
-            {label:'Total Asesmen',  value:totalAsesmen,    icon:FileText,     bg:'bg-rose-50',    color:'text-rose-600',   desc:'Riwayat rekam medis'},
-          ].map(s=>(
+            { label: 'Total Pasien', value: totalPasien, icon: People, bg: 'bg-[#eef4ff]', color: 'text-primary', desc: 'Pasien terdaftar' },
+            { label: 'Sesi Selesai', value: sesiSelesai, icon: CheckCircle2, bg: 'bg-emerald-50', color: 'text-emerald-600', desc: 'Bulan ini' },
+            { label: 'Antrean Baru', value: antreanMenunggu, icon: Clock, bg: 'bg-amber-50', color: 'text-amber-600', desc: 'Menunggu ACC' },
+            { label: 'Sesi Hari Ini', value: sesiHariIni, icon: Activity, bg: 'bg-indigo-50', color: 'text-indigo-600', desc: 'Total jadwal hari ini' },
+            { label: 'Total Asesmen', value: totalAsesmen, icon: FileText, bg: 'bg-rose-50', color: 'text-rose-600', desc: 'Riwayat rekam medis' },
+          ].map(s => (
             <div key={s.label} className="glass-card border border-slate-200/60 rounded-2xl p-5 shadow-none">
               <div className="flex items-center gap-3 mb-3">
-                <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center',s.bg,s.color)}><s.icon size={18}/></div>
+                <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', s.bg, s.color)}><s.icon size={18} /></div>
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</span>
               </div>
-              <p className={cn('font-extrabold text-slate-900 leading-none tabular-nums', String(s.value).length>10?'text-base':'text-2xl')}>
-                {loading?<span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span>:s.value}
+              <p className={cn('font-extrabold text-slate-900 leading-none tabular-nums', String(s.value).length > 10 ? 'text-base' : 'text-2xl')}>
+                {loading ? <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span> : s.value}
               </p>
               <p className="text-xs text-slate-400 font-medium mt-1">{s.desc}</p>
             </div>
@@ -428,17 +425,20 @@ export default function PsychologistDashboard() {
         {selected && (
           <>
             {/* Header */}
-            <DialogHeader className="relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--theme-primary)]/5 rounded-full blur-2xl -mr-6 -mt-6 pointer-events-none"></div>
+            <div className="relative bg-gradient-to-br from-[#00236F] to-[#003db5] py-4 px-6 overflow-hidden flex-shrink-0 flex items-center justify-between">
+              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
               <div className="relative z-10">
                 <span className="text-[9px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-[0.25em]">Detail Sesi Konseling</span>
                 <DialogTitle className="text-base font-bold text-[var(--theme-text)] leading-tight line-clamp-1 mt-0.5">{selected.name} - {selected.issue}</DialogTitle>
               </div>
-            </DialogHeader>
+              <button onClick={() => setSelected(null)} className="relative z-50 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center text-white transition-colors">
+                <span className="material-symbols-outlined text-[16px]">close</span>
+              </button>
+            </div>
 
             {/* Split Screen Workspace */}
-            <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0 bg-[var(--theme-bg)]">
-              
+            <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0 bg-slate-50">
+
               {/* Left Pane (50%): Student Profile & Request */}
               <div className="flex-1 lg:w-1/2 flex flex-col overflow-y-auto border-r border-[var(--theme-border-muted)] bg-[var(--theme-surface)] p-6 space-y-6 no-scrollbar">
                 <div>
@@ -474,7 +474,7 @@ export default function PsychologistDashboard() {
                       <p className="text-[9px] font-semibold text-[var(--theme-secondary)] uppercase tracking-widest leading-none mb-1.5">Kategori / Topik</p>
                       <p className="font-semibold text-xs text-[var(--theme-text)]">{selected.issue}</p>
                     </div>
-                    <div className="w-full h-px bg-[var(--theme-secondary)]/25 my-2"/>
+                    <div className="w-full h-px bg-amber-200/50 my-2" />
                     <div>
                       <p className="text-[9px] font-semibold text-[var(--theme-secondary)] uppercase tracking-widest leading-none mb-1.5">Deskripsi Lengkap (Self-Report)</p>
                       <p className="text-xs text-[var(--theme-text)] font-medium leading-relaxed italic border-l-2 border-[var(--theme-secondary)] pl-3">
@@ -511,7 +511,7 @@ export default function PsychologistDashboard() {
                       <input
                         type="url"
                         value={linkMeeting}
-                        onChange={e=>setLinkMeeting(e.target.value)}
+                        onChange={e => setLinkMeeting(e.target.value)}
                         placeholder="https://meet.google.com/xxx-xxxx-xxx"
                         className="h-10 w-full px-3 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] focus:outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] text-xs font-semibold text-[var(--theme-text)] transition-colors outline-none"
                       />
@@ -522,7 +522,7 @@ export default function PsychologistDashboard() {
                     <label className="block text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-[0.18em] mb-2">Catatan Tambahan (Khusus Psikolog)</label>
                     <textarea
                       value={catatan}
-                      onChange={e=>setCatatan(e.target.value)}
+                      onChange={e => setCatatan(e.target.value)}
                       rows={4}
                       placeholder="Masukkan catatan pendahuluan, pesan untuk pasien jika ditolak, atau ringkasan pasca-sesi jika telah selesai..."
                       className="w-full p-3 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] focus:outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] text-xs font-semibold text-[var(--theme-text)] transition-colors resize-none outline-none"
@@ -533,16 +533,16 @@ export default function PsychologistDashboard() {
                     <label className="block text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-[0.18em] mb-2">Pilih Tindakan & Perbarui Status</label>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       {[
-                        {s:'Dikonfirmasi', label:'Konfirmasi', icon:CheckCircle2, cls:'bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)]'},
-                        {s:'Selesai',      label:'Sesi Selesai',icon:ShieldCheck, cls:'bg-[var(--theme-success)] hover:bg-[var(--theme-success)]/90'},
-                        {s:'Ditolak',      label:'Tolak / Batal',icon:XCircle,     cls:'bg-[var(--theme-error)] hover:bg-[var(--theme-error)]/90'},
-                      ].map(opt=>(
-                        <button key={opt.s} onClick={()=>handleUpdateStatus(opt.s)} disabled={isSubmitting || selected.status === opt.s || (selected.status === 'Selesai')}
-                          className={cn('flex flex-col items-center justify-center gap-1 h-14 rounded-xl text-white text-[10px] font-semibold uppercase tracking-wider transition-all active:scale-[0.97] border-none cursor-pointer disabled:opacity-50', opt.cls)}>
+                        { s: 'Dikonfirmasi', label: 'Konfirmasi', icon: CheckCircle2, cls: 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-600/10' },
+                        { s: 'Selesai', label: 'Sesi Selesai', icon: ShieldCheck, cls: 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/10' },
+                        { s: 'Ditolak', label: 'Tolak / Batal', icon: XCircle, cls: 'bg-rose-600 hover:bg-rose-700 shadow-rose-600/10' },
+                      ].map(opt => (
+                        <button key={opt.s} onClick={() => handleUpdateStatus(opt.s)} disabled={isSubmitting || selected.status === opt.s || (selected.status === 'Selesai')}
+                          className={cn('flex flex-col items-center justify-center gap-1.5 h-16 rounded-xl text-white text-[10px] font-bold uppercase tracking-wider transition-all active:scale-[0.97] shadow-lg disabled:opacity-50', opt.cls)}>
                           {isSubmitting ? (
                             <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }}>sync</span>
                           ) : (
-                            <opt.icon size={16}/>
+                            <opt.icon size={16} />
                           )}
                           {opt.label}
                         </button>

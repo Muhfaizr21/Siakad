@@ -1,4 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, 
+  AreaChart, Area, PieChart, Pie, Cell, Legend
+} from 'recharts';
 import { UI } from '../../constants/designSystem';
 import { psychologistService } from '../../services/api';
 
@@ -92,14 +96,17 @@ export default function AnalyticsTrends() {
 
   const monthly = useMemo(() => {
     const source = Array.isArray(analytics?.monthly) ? analytics.monthly : [];
-    return MONTHS.map((_, index) => toNumber(source[index]));
+    return MONTHS.map((month, index) => ({
+      name: month,
+      sesi: toNumber(source[index])
+    }));
   }, [analytics]);
 
   const topIssues = Array.isArray(analytics?.top_issues) ? analytics.top_issues : [];
   const recommendations = Array.isArray(analytics?.recommendations) ? analytics.recommendations : [];
   const activities = Array.isArray(analytics?.activities) ? analytics.activities : [];
-  const maxMonthly = Math.max(...monthly, 1);
-  const totalMonthlySessions = monthly.reduce((sum, item) => sum + item, 0);
+  const maxMonthly = Math.max(...monthly.map(m => m.sesi), 1);
+  const totalMonthlySessions = monthly.reduce((sum, item) => sum + item.sesi, 0);
   const stablePercentage = Math.max(0, Math.min(100, toNumber(analytics?.stable_percentage)));
   const hasAnalytics = Boolean(analytics) && !loading;
 
@@ -109,6 +116,11 @@ export default function AnalyticsTrends() {
   const nonAcademicCount = analytics?.non_academic_count ?? 0;
   const academicPercentage = analytics?.academic_percentage ?? 0;
   const nonAcademicPercentage = analytics?.non_academic_percentage ?? 0;
+
+  const issueCategoriesData = [
+    { name: 'Akademik', value: academicCount, fill: '#3b82f6' },
+    { name: 'Non-Akademik', value: nonAcademicCount, fill: '#f59e0b' }
+  ];
   const dailyTrends = Array.isArray(analytics?.daily_trends) ? analytics.daily_trends : [];
   const maxDaily = Math.max(...dailyTrends.map(d => toNumber(d.count)), 1);
 
@@ -334,24 +346,19 @@ export default function AnalyticsTrends() {
                       </div>
                     </div>
                   ) : (
-                    <div className="grid h-full grid-cols-12 items-end gap-2 sm:gap-3">
-                      {monthly.map((value, index) => {
-                        const height = value > 0 ? Math.max(8, Math.round((value / maxMonthly) * 100)) : 2;
-                        return (
-                          <div key={MONTHS[index]} className="group flex h-full min-w-0 flex-col items-center justify-end gap-2">
-                            <div className="relative flex h-full w-full items-end rounded-full bg-slate-50">
-                              <div
-                                className="w-full rounded-full bg-primary transition-all duration-500 group-hover:bg-indigo-600"
-                                style={{ height: `${height}%` }}
-                              />
-                              <span className="pointer-events-none absolute -top-7 left-1/2 -translate-x-1/2 rounded-full bg-slate-950 px-2 py-1 text-[9px] font-black text-white opacity-0 transition group-hover:opacity-100">
-                                {value}
-                              </span>
-                            </div>
-                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-300">{MONTHS[index]}</span>
-                          </div>
-                        );
-                      })}
+                    <div className="h-full w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={monthly} margin={{ top: 20, right: 0, left: -20, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                          <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 700 }} dy={10} />
+                          <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 700 }} />
+                          <RechartsTooltip 
+                            cursor={{ fill: '#f8fafc' }}
+                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)', fontSize: '12px', fontWeight: 'bold' }}
+                          />
+                          <Bar dataKey="sesi" fill="#3b82f6" radius={[6, 6, 0, 0]} barSize={32} />
+                        </BarChart>
+                      </ResponsiveContainer>
                     </div>
                   )}
                 </div>
@@ -381,24 +388,25 @@ export default function AnalyticsTrends() {
                       <p className="text-xs font-semibold text-slate-400">Belum ada aktivitas harian pada bulan ini.</p>
                     </div>
                   ) : (
-                    <div className="h-full min-w-[700px] flex items-end gap-1.5 sm:gap-2 px-2">
-                      {dailyTrends.map((item, index) => {
-                        const height = item.count > 0 ? Math.max(8, Math.round((item.count / maxDaily) * 100)) : 2;
-                        return (
-                          <div key={`${item.date}-${index}`} className="group flex h-full flex-1 min-w-0 flex-col items-center justify-end gap-1">
-                            <div className="relative flex h-full w-full items-end rounded-full bg-slate-50">
-                              <div
-                                className="w-full rounded-full bg-emerald-500 transition-all duration-300 group-hover:bg-emerald-600"
-                                style={{ height: `${height}%` }}
-                              />
-                              <span className="pointer-events-none absolute -top-5 left-1/2 -translate-x-1/2 rounded-full bg-slate-950 px-2 py-1 text-[8px] font-black text-white opacity-0 transition group-hover:opacity-100 whitespace-nowrap z-10 shadow-lg">
-                                {item.count} Sesi
-                              </span>
-                            </div>
-                            <span className="text-[8px] font-black uppercase tracking-tight text-slate-400 mt-1 whitespace-nowrap rotate-45 origin-left">{item.date}</span>
-                          </div>
-                        );
-                      })}
+                    <div className="h-full w-full min-w-[500px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={dailyTrends} margin={{ top: 20, right: 10, left: -20, bottom: 0 }}>
+                          <defs>
+                            <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                              <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                          <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 700 }} dy={10} />
+                          <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 700 }} />
+                          <RechartsTooltip 
+                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)', fontSize: '12px', fontWeight: 'bold', color: '#10b981' }}
+                            labelStyle={{ color: '#64748b' }}
+                          />
+                          <Area type="monotone" dataKey="count" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorCount)" />
+                        </AreaChart>
+                      </ResponsiveContainer>
                     </div>
                   )}
                 </div>
@@ -498,26 +506,32 @@ export default function AnalyticsTrends() {
                       <span className="material-symbols-outlined text-primary/30 text-3xl shrink-0">category</span>
                     </div>
 
-                    <div className="space-y-6">
-                      <div>
-                        <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-600 mb-2">
-                          <span>Akademik</span>
-                          <span className="text-primary font-bold">{academicCount} Kasus ({academicPercentage}%)</span>
-                        </div>
-                        <div className="h-3 overflow-hidden rounded-full bg-slate-100">
-                          <div className="h-full rounded-full bg-primary" style={{ width: `${academicPercentage}%` }} />
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-600 mb-2">
-                          <span>Non-Akademik</span>
-                          <span className="text-amber-500 font-bold">{nonAcademicCount} Kasus ({nonAcademicPercentage}%)</span>
-                        </div>
-                        <div className="h-3 overflow-hidden rounded-full bg-slate-100">
-                          <div className="h-full rounded-full bg-amber-400" style={{ width: `${nonAcademicPercentage}%` }} />
-                        </div>
-                      </div>
+                    <div className="h-64 w-full flex flex-col items-center justify-center mt-4 pb-4">
+                      {(academicCount === 0 && nonAcademicCount === 0) ? (
+                        <p className="text-xs font-semibold text-slate-400">Belum ada data kategori.</p>
+                      ) : (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={issueCategoriesData}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={65}
+                              outerRadius={85}
+                              paddingAngle={5}
+                              dataKey="value"
+                            >
+                              {issueCategoriesData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={entry.fill} />
+                              ))}
+                            </Pie>
+                            <RechartsTooltip 
+                              contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)', fontSize: '12px', fontWeight: 'bold' }}
+                            />
+                            <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 800, paddingTop: '10px' }} />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      )}
                     </div>
                   </div>
 

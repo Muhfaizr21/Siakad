@@ -13,6 +13,8 @@ import Dialog, { DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogD
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import { PageContent } from '@/components/ui/page'
 import { DashboardHero } from '@/components/ui/dashboard'
+import { PrimaryStatsCard } from '@/components/ui/StatsCard'
+import DataTable from '@/components/ui/DataTable'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Users2 = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>groups</span>;
@@ -192,6 +194,28 @@ export default function FacultyOrganisasi() {
 
   const PIE_COLORS = ['#00236f', '#10b981', '#f59e0b', '#3b82f6', '#8b5cf6', '#ef4444', '#ec4899', '#14b8a6']
 
+  const tableColumns = [
+    { key: 'kode', label: 'Kode', sortable: true, render: (val) => <span className="text-[10px] font-black text-[var(--theme-text-muted)] bg-[var(--theme-surface-hover)] border border-[var(--theme-border)] px-2 py-1 rounded-lg uppercase tracking-wider">{val || '—'}</span> },
+    { key: 'nama', label: 'Nama Organisasi', sortable: true, render: (val) => <span className="font-bold text-sm text-[var(--theme-text)]">{val}</span> },
+    { key: 'deskripsi', label: 'Ketua', sortable: true, render: (val) => <span className="text-sm text-[var(--theme-text-muted)] font-medium">{val || '—'}</span> },
+    { key: 'kategori', label: 'Kategori', sortable: true, render: (val) => <span className="text-[10px] font-bold text-[var(--theme-primary)] bg-[var(--theme-primary-light)] border border-[var(--theme-primary-light)] px-2.5 py-1 rounded-lg">{val || '—'}</span> },
+    { key: 'jumlah_anggota', label: 'Anggota', sortable: true, render: (val) => <div className="flex items-center gap-1.5 text-sm font-black text-[var(--theme-text)]"><span className="material-symbols-outlined text-[var(--theme-text-subtle)]" style={{ fontSize: '12px' }}>group</span>{val || 0}</div> },
+    { key: 'status', label: 'Status', sortable: true, render: (val) => (
+        <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border uppercase tracking-wider',
+          val === 'Aktif' ? 'bg-[var(--theme-success-light)] text-[var(--theme-success)] border-[var(--theme-border-muted)]' : 'bg-[var(--theme-error-light)] text-[var(--theme-error)] border-[var(--theme-border-muted)]')}>
+          <span className={cn('w-1.5 h-1.5 rounded-full', val === 'Aktif' ? 'bg-[var(--theme-success)]' : 'bg-[var(--theme-error)]')} />{val}
+        </span>
+      )
+    },
+    { key: 'actions', label: 'Aksi', noSort: true, align: 'center', render: (_, row) => (
+        <div className="flex items-center justify-center gap-1.5">
+          <button onClick={() => openEdit(row)} className="p-1.5 text-[var(--theme-text-muted)] hover:text-[var(--theme-warning)] hover:bg-[var(--theme-warning-light)] rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >edit</span></button>
+          <button onClick={() => setDelTarget(row)} className="p-1.5 text-[var(--theme-error)] hover:bg-[var(--theme-error-light)] rounded-lg transition-colors" title="Hapus"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >delete</span></button>
+        </div>
+      )
+    }
+  ]
+
   return (
     <PageContent>
       <Toaster position="top-right" />
@@ -213,254 +237,97 @@ export default function FacultyOrganisasi() {
         />
 
         {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {[
-            { label: 'Total ORMAWA', value: stats.total, icon: Users2, bg: 'bg-[#eef4ff]', color: 'text-primary', desc: 'Organisasi terdaftar' },
-            { label: 'Organisasi Aktif', value: stats.aktif, icon: CheckCircle2, bg: 'bg-emerald-50', color: 'text-emerald-600', desc: 'Status aktif beroperasi' },
-            { label: 'Total Anggota', value: stats.anggota, icon: ShieldCheck, bg: 'bg-indigo-50', color: 'text-indigo-600', desc: 'Jangkauan anggota' },
-            { label: 'Total Kategori', value: kategoriData.length, icon: Users2, bg: 'bg-amber-50', color: 'text-amber-600', desc: 'Jenis organisasi' },
-          ].map(s => (
-            <div key={s.label} className="glass-card border border-slate-200/60 rounded-2xl p-5 shadow-none">
-              <div className="flex items-center gap-3 mb-3">
-                <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', s.bg, s.color)}><s.icon size={18} /></div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</span>
-              </div>
-              <p className="text-2xl font-extrabold text-slate-900 leading-none tabular-nums">{loading ? <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span> : s.value}</p>
-              <p className="text-xs text-slate-400 font-medium mt-1">{s.desc}</p>
-            </div>
-          ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <PrimaryStatsCard title="Total ORMAWA" value={loading ? <span className="material-symbols-outlined animate-spin text-[var(--theme-text-subtle)]" style={{ fontSize: '18px' }} >sync</span> : stats.total} icon={Users2} colorTheme="info" badgeText="Organisasi terdaftar" />
+          <PrimaryStatsCard title="Organisasi Aktif" value={loading ? <span className="material-symbols-outlined animate-spin text-[var(--theme-text-subtle)]" style={{ fontSize: '18px' }} >sync</span> : stats.aktif} icon={CheckCircle2} colorTheme="success" badgeText="Status aktif beroperasi" />
+          <PrimaryStatsCard title="Total Anggota" value={loading ? <span className="material-symbols-outlined animate-spin text-[var(--theme-text-subtle)]" style={{ fontSize: '18px' }} >sync</span> : stats.anggota} icon={ShieldCheck} colorTheme="primary" badgeText="Jangkauan anggota" />
+          <PrimaryStatsCard title="Total Kategori" value={loading ? <span className="material-symbols-outlined animate-spin text-[var(--theme-text-subtle)]" style={{ fontSize: '18px' }} >sync</span> : kategoriData.length} icon={Users2} colorTheme="warning" badgeText="Jenis organisasi" />
         </div>
 
         {/* Charts */}
         {!loading && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
             {/* Pie: Distribusi Kategori */}
-            <div className="glass-card border border-slate-200/60 rounded-2xl p-5 shadow-none">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-600 shrink-0">
-                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>pie_chart</span>
+            <div className="bg-[var(--theme-surface)] p-6 rounded-2xl border border-[var(--theme-border)] shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+              <div className="flex flex-col h-full">
+                <div className="flex items-center gap-4 mb-4 shrink-0">
+                  <div className="w-12 h-12 bg-[var(--theme-primary-light)] rounded-xl flex justify-center items-center text-[var(--theme-primary)] group-hover:scale-110 group-hover:-rotate-6 transition-all duration-300">
+                    <span className="material-symbols-outlined text-[24px]">pie_chart</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest block mb-0.5">Analisis Data</span>
+                    <h3 className="text-sm font-bold text-[var(--theme-text)] leading-tight">Distribusi Kategori</h3>
+                  </div>
                 </div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Distribusi Kategori</span>
-              </div>
-              <div className="h-[200px] w-full flex items-center justify-center">
+              <div className="flex-1 w-full flex flex-col justify-center">
                 {kategoriData.length > 0 ? (
                   <ResponsiveContainer width="100%" height={200}>
                     <PieChart>
                       <Pie data={kategoriData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value" stroke="none">
                         {kategoriData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
                       </Pie>
-                      <Tooltip contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }} />
+                      <Tooltip contentStyle={{ backgroundColor: "#ffffff", border: "1px solid var(--theme-border-muted)", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }} />
                     </PieChart>
                   </ResponsiveContainer>
-                ) : <span className="text-xs text-slate-400 italic">Tidak ada data</span>}
+                ) : <span className="text-xs text-[var(--theme-text-subtle)] italic text-center w-full block">Tidak ada data</span>}
               </div>
-              <div className="grid grid-cols-2 gap-1.5 mt-2">
+              <div className="grid grid-cols-2 gap-1.5 mt-4">
                 {kategoriData.slice(0, 6).map((item, i) => (
-                  <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50 border border-slate-100">
+                  <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-lg bg-[var(--theme-surface-hover)] border border-[var(--theme-border-muted)]">
                     <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
                     <div className="min-w-0">
-                      <p className="text-[9px] font-bold text-slate-400 truncate leading-none">{item.name}</p>
-                      <p className="text-xs font-extrabold text-slate-800 leading-none mt-1">{item.value}</p>
+                      <p className="text-[9px] font-bold text-[var(--theme-text-muted)] truncate leading-none">{item.name}</p>
+                      <p className="text-xs font-extrabold text-[var(--theme-text)] leading-none mt-1">{item.value}</p>
                     </div>
                   </div>
                 ))}
               </div>
+              </div>
             </div>
 
             {/* Bar: Top 10 Anggota per Ormawa */}
-            <div className="glass-card border border-slate-200/60 rounded-2xl p-5 shadow-none">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-600 shrink-0">
-                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>bar_chart</span>
+            <div className="bg-[var(--theme-surface)] p-6 rounded-2xl border border-[var(--theme-border)] shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+              <div className="flex flex-col h-full">
+                <div className="flex items-center gap-4 mb-4 shrink-0">
+                  <div className="w-12 h-12 bg-[var(--theme-success-light)] rounded-xl flex justify-center items-center text-[var(--theme-success)] group-hover:scale-110 group-hover:-rotate-6 transition-all duration-300">
+                    <span className="material-symbols-outlined text-[24px]">bar_chart</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest block mb-0.5">Demografi</span>
+                    <h3 className="text-sm font-bold text-[var(--theme-text)] leading-tight">Anggota per Ormawa (Top 10)</h3>
+                  </div>
                 </div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Anggota per Ormawa (Top 10)</span>
-              </div>
-              <div className="h-[200px] w-full">
+              <div className="flex-1 w-full flex flex-col justify-center">
                 {topAnggotaData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={200}>
+                  <ResponsiveContainer width="100%" height={220}>
                     <BarChart data={topAnggotaData} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
-                      <XAxis type="number" tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                      <YAxis type="category" dataKey="name" tick={{ fontSize: 8, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} width={60} />
-                      <Tooltip contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }} />
+                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--theme-border-muted)" />
+                      <XAxis type="number" tick={{ fontSize: 9, fontWeight: 700, fill: 'var(--theme-text-muted)' }} axisLine={false} tickLine={false} />
+                      <YAxis type="category" dataKey="name" tick={{ fontSize: 8, fontWeight: 700, fill: 'var(--theme-text-muted)' }} axisLine={false} tickLine={false} width={60} />
+                      <Tooltip contentStyle={{ backgroundColor: "#ffffff", border: "1px solid var(--theme-border-muted)", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }} />
                       <Bar dataKey="value" name="Anggota" fill="#00236f" radius={[0, 4, 4, 0]} barSize={14} />
                     </BarChart>
                   </ResponsiveContainer>
-                ) : <div className="h-full flex items-center justify-center"><span className="text-xs text-slate-400 italic">Tidak ada data</span></div>}
+                ) : <div className="h-full flex items-center justify-center"><span className="text-xs text-[var(--theme-text-subtle)] italic">Tidak ada data</span></div>}
+              </div>
               </div>
             </div>
           </div>
         )}
 
         {/* Table */}
-        <div className="glass-card border border-slate-200/60 rounded-2xl shadow-none overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center gap-3">
-            <div className="flex-1">
-              <h2 className="font-black text-sm uppercase tracking-tight font-headline" style={{ color: 'var(--theme-h2)' }}>Daftar Organisasi Mahasiswa</h2>
-              <p className="text-xs text-slate-500 mt-0.5">Menampilkan <span className="font-bold text-slate-900">{filtered.length}</span> dari <span className="font-bold text-primary">{organizations.length}</span> organisasi</p>
-            </div>
-            <div className="relative">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '14px' }} >search</span>
-              <input type="text" placeholder="Cari nama atau kode..." value={search} onChange={e => setSearch(e.target.value)}
-                className="pl-9 pr-4 h-9 w-52 rounded-xl border border-slate-200/60 focus:outline-none focus:border-primary text-sm bg-transparent" />
-            </div>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-slate-200/60">
-                  {[
-                    { label: 'Kode', key: 'kode', sortable: true },
-                    { label: 'Nama Organisasi', key: 'nama', sortable: true },
-                    { label: 'Ketua', key: 'deskripsi', sortable: true },
-                    { label: 'Kategori', key: 'kategori', sortable: true },
-                    { label: 'Anggota', key: 'jumlah_anggota', sortable: true },
-                    { label: 'Status', key: 'status', sortable: true },
-                    { label: 'Aksi', key: null, sortable: false },
-                  ].map(h => (
-                    <th
-                      key={h.label}
-                      onClick={() => h.sortable && handleSort(h.key)}
-                      className={cn(
-                        'px-5 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap select-none',
-                        h.sortable && 'cursor-pointer hover:text-slate-900 group',
-                        h.className
-                      )}
-                    >
-                      <div className="flex items-center gap-1.5">
-                        {h.label}
-                        {h.sortable && (
-                          sortConfig.key === h.key ? (
-                            sortConfig.direction === 'asc' ? (
-                              <span className="material-symbols-outlined size-3.5 text-primary" style={{ fontSize: '14px' }}>expand_less</span>
-                            ) : (
-                              <span className="material-symbols-outlined size-3.5 text-primary" style={{ fontSize: '14px' }}>expand_more</span>
-                            )
-                          ) : (
-                            <span className="material-symbols-outlined size-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" style={{ fontSize: '14px' }}>unfold_more</span>
-                          )
-                        )}
-                      </div>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? Array.from({ length: pageSize }).map((_, i) => (
-                  <tr key={i} className="border-b border-slate-100">{[...Array(7)].map((__, j) => <td key={j} className="px-5 py-4"><div className="h-4 bg-slate-50 rounded animate-pulse" /></td>)}</tr>
-                )) : paginated.length === 0 ? (
-                  <tr><td colSpan={7} className="px-5 py-16 text-center">
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-primary"><span className="material-symbols-outlined" style={{ fontSize: '22px' }}>group</span></div>
-                      <p className="font-bold text-sm text-slate-900">Belum Ada Organisasi</p>
-                    </div>
-                  </td></tr>
-                ) : paginated.map((row, i) => {
-                  const getID = (obj) => {
-                    const id = obj.id || obj.ID || obj.Ormawa?.ID;
-                    console.log("Getting ID for row:", obj, "Result:", id);
-                    return id;
-                  };
-
-                  return (
-                    <tr key={row.id || i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors">
-                      <td className="px-5 py-3.5"><span className="text-[10px] font-black text-slate-600 bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg uppercase tracking-wider">{row.kode || '—'}</span></td>
-                      <td className="px-5 py-3.5"><p className="font-bold text-sm text-slate-900">{row.nama}</p></td>
-                      <td className="px-5 py-3.5 text-sm text-slate-600 font-medium">{row.deskripsi || '—'}</td>
-                      <td className="px-5 py-3.5"><span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-lg">{row.kategori || '—'}</span></td>
-                      <td className="px-5 py-3.5"><div className="flex items-center gap-1.5 text-sm font-black text-slate-900"><span className="material-symbols-outlined text-slate-400" style={{ fontSize: '12px' }}>group</span>{row.jumlah_anggota || 0}</div></td>
-                      <td className="px-5 py-3.5">
-                        <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase',
-                          row.status === 'Aktif' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200')}>
-                          <span className={cn('w-1.5 h-1.5 rounded-full', row.status === 'Aktif' ? 'bg-emerald-500' : 'bg-rose-500')} />{row.status}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-1.5">
-                          <button onClick={() => openEdit(row)} className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >edit</span></button>
-                          <button onClick={() => setDelTarget(row)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors group-hover:bg-white" title="Hapus"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >delete</span></button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Modern Pagination Footer */}
-          <div className="px-6 py-4 bg-transparent border-t border-slate-200/60 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-              <p className="text-xs text-slate-500 font-medium text-center sm:text-left">
-                Menampilkan <span className="font-semibold text-slate-800">{totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0}</span> sampai <span className="font-semibold text-slate-800">{Math.min(currentPage * pageSize, totalItems)}</span> dari <span className="font-semibold text-slate-800">{totalItems}</span> entri
-              </p>
-
-              <div className="hidden sm:block h-5 w-px bg-slate-200" />
-
-              <div className="flex items-center gap-2.5">
-                <span className="text-xs text-slate-400 font-medium whitespace-nowrap">Baris per halaman:</span>
-                <Select value={String(pageSize)} onValueChange={(val) => { setPageSize(Number(val)); setCurrentPage(1); }}>
-                  <SelectTrigger className="h-8 w-24 rounded-lg border-slate-200 bg-white font-semibold text-xs shadow-sm focus:ring-primary/20 px-2.5 py-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl border-slate-200 shadow-xl p-1 font-body">
-                    {[5, 10, 15, 25, 50].map((size) => (
-                      <SelectItem key={size} value={String(size)} className="rounded-lg text-xs py-1.5 focus:bg-primary/5 focus:text-primary">
-                        {size} Baris
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1 || loading}
-                className="h-8 px-3 rounded-lg border-slate-200 bg-white text-slate-600 font-semibold text-xs shadow-sm disabled:opacity-40 hover:bg-slate-50 transition-all active:scale-95"
-              >
-                <span className="material-symbols-outlined mr-1" style={{ fontSize: '15px' }}>chevron_left</span>
-                Sebelumnya
-              </Button>
-
-              <div className="flex items-center gap-1">
-                {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
-                  let pageNum = i + 1;
-                  if (totalPages > 5 && currentPage > 3) pageNum = currentPage - 3 + i;
-                  if (pageNum > totalPages) return null;
-
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => setCurrentPage(pageNum)}
-                      className={cn(
-                        "w-8 h-8 rounded-lg font-semibold text-xs transition-all duration-200",
-                        currentPage === pageNum
-                          ? "bg-primary text-white shadow-md shadow-primary/20 scale-105"
-                          : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
-                      )}
-                    >
-                      {pageNum}
-                    </button>
-                  )
-                })}
-              </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages || loading || totalPages === 0}
-                className="h-8 px-3 rounded-lg border-slate-200 bg-white text-slate-600 font-semibold text-xs shadow-sm disabled:opacity-40 hover:bg-slate-50 transition-all active:scale-95"
-              >
-                Berikutnya
-                <span className="material-symbols-outlined ml-1" style={{ fontSize: '15px' }}>chevron_right</span>
-              </Button>
-            </div>
-          </div>
+        <div className="bg-[var(--theme-surface)] rounded-2xl border border-[var(--theme-border)] shadow-sm overflow-hidden mb-6">
+          <DataTable
+            data={organizations}
+            columns={tableColumns}
+            loading={loading}
+            searchable={true}
+            pagination={true}
+            pageSize={10}
+            emptyMessage="Belum Ada Organisasi"
+            emptyIcon="groups"
+            searchPlaceholder="Cari nama atau kode..."
+          />
         </div>
 
       {/* Form Modal */}

@@ -7,11 +7,14 @@ import { toast, Toaster } from 'react-hot-toast'
 import useAuthStore from '../../store/useAuthStore'
 
 import { cn } from '@/lib/utils'
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/Select"
+import { SelectField, SelectOption } from "@/components/ui/SelectField"
 import { Button } from "@/components/ui/Button"
 import { PageContent } from '@/components/ui/page'
 import { DashboardHero } from '@/components/ui/dashboard'
 import Dialog, { DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/Dialog"
+import { Card, CardContent } from '@/components/ui/Card'
+import { PrimaryStatsCard } from '@/components/ui/StatsCard'
+import DataTable from '@/components/ui/DataTable'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Droplet = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>opacity</span>;
@@ -430,477 +433,270 @@ export default function FacultyKesehatan() {
     return (r.BeratBadan / Math.pow(r.TinggiBadan / 100, 2)).toFixed(1)
   }
 
+  // Calculate max values for the new StatsCards
+  const maxGol = useMemo(() => {
+    if (Object.keys(distribusiGol).length === 0) return { name: '—', count: 0 };
+    const max = Object.entries(distribusiGol).reduce((a, b) => b[1] > a[1] ? b : a);
+    return { name: max[0], count: max[1] };
+  }, [distribusiGol]);
+
+  const avgBmi = useMemo(() => {
+    const valid = healthRecords.filter(r => bmi(r));
+    if (valid.length === 0) return 0;
+    return (valid.reduce((a, r) => a + (parseFloat(bmi(r)) || 0), 0) / valid.length).toFixed(1);
+  }, [healthRecords]);
+
+  const maxGender = useMemo(() => {
+    if (genderStats.length === 0) return { gender: '—', total: 0 };
+    return genderStats.reduce((max, curr) => curr.total > max.total ? curr : max, { gender: '—', total: 0 });
+  }, [genderStats]);
+
+  const maxAngkatan = useMemo(() => {
+    if (angkatanStats.length === 0) return { angkatan: '—', count: 0 };
+    return angkatanStats.reduce((max, curr) => curr.count > max.count ? curr : max, { angkatan: '—', count: 0 });
+  }, [angkatanStats]);
+
+  const avgSistole = useMemo(() => {
+    const sys = healthRecords.filter(r => r.Sistole).map(r => parseFloat(r.Sistole));
+    if (sys.length === 0) return 0;
+    return Math.round(sys.reduce((a, b) => a + b, 0) / sys.length);
+  }, [healthRecords]);
+
+  const columns = [
+    {
+      key: 'Mahasiswa.Nama',
+      label: 'Mahasiswa',
+      sortable: true,
+      render: (val, row) => (
+        <div className="flex items-center gap-3">
+          <StudentAvatar src={getFullUrl(row.Mahasiswa?.FotoURL || row.Mahasiswa?.foto_url)} name={row.Mahasiswa?.Nama} className="w-9 h-9 rounded-xl" />
+          <div>
+            <p className="font-semibold text-[var(--theme-text)] font-headline tracking-tight text-[14px]">{row.Mahasiswa?.Nama || '—'}</p>
+            <p className="text-[11px] text-[var(--theme-text-muted)] font-medium mt-0.5">{row.Mahasiswa?.NIM || '—'}</p>
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'Mahasiswa.ProgramStudi.Nama',
+      label: 'Program Studi',
+      sortable: true,
+      render: (val, row) => <span className="text-[12px] font-medium text-[var(--theme-text-subtle)] truncate max-w-[150px] block">{row.Mahasiswa?.ProgramStudi?.Nama || '—'}</span>
+    },
+    {
+      key: 'GolonganDarah',
+      label: 'Gol. Darah',
+      sortable: true,
+      render: (val, row) => (
+        <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-[var(--theme-error-light)] border border-[var(--theme-error)]/20 text-[var(--theme-error)] text-xs font-black">
+          {row.GolonganDarah || '?'}
+        </span>
+      )
+    },
+    {
+      key: 'StatusKesehatan',
+      label: 'Status Kesehatan',
+      sortable: true,
+      render: (val, row) => {
+        const hs = getHealth(row.StatusKesehatan)
+        return (
+          <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold border uppercase tracking-wider whitespace-nowrap', hs.cls)}>
+            <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', hs.dot)} />{row.StatusKesehatan || '—'}
+          </span>
+        )
+      }
+    },
+    {
+      key: 'Tanggal',
+      label: 'Tgl Periksa',
+      sortable: true,
+      render: (val, row) => <span className="text-[12px] font-medium text-[var(--theme-text-muted)] whitespace-nowrap">{formatDate(row.Tanggal)}</span>
+    },
+    {
+      key: 'actions',
+      label: 'Aksi',
+      className: 'w-[80px] text-center',
+      sortable: false,
+      render: (val, row) => (
+        <div className="flex items-center justify-center">
+          <button onClick={() => setSelected(row)}
+            className="w-8 h-8 flex items-center justify-center text-[var(--theme-text-muted)] hover:text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)] rounded-lg transition-colors" title="Detail">
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>visibility</span>
+          </button>
+        </div>
+      )
+    }
+  ];
+
   return (
     <PageContent>
       <Toaster position="top-right" />
-        <DashboardHero
-          title="Pantau "
-          highlightedTitle="Kesehatan"
-          subtitle="Monitoring kesehatan dan hasil skrining medis mahasiswa di lingkungan fakultas secara real-time."
-          icon="monitor_heart"
-          badges={[
-            { label: 'Medical Monitoring System', active: false },
-            { label: `${statsData.condition?.pantauan || 0} Mahasiswa Pantauan`, active: true }
-          ]}
-          actions={
-            <>
-              <div className="hidden lg:flex items-center gap-2 text-right">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Total Skrining</span>
-                <span className="text-sm font-extrabold text-primary px-2 py-0.5 rounded-md bg-[#eef4ff] border border-blue-100">{statsData.total}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <button onClick={exportHealthPDF} disabled={loading || healthRecords.length === 0}
-                  className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-50 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary" style={{ fontSize: 13 }}>download</span> Ekspor PDF
-                </button>
-                <button onClick={fetchData} disabled={loading}
-                  className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-60 flex items-center gap-2">
-                  {loading ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '13px' }} >sync</span> : <span className="material-symbols-outlined text-primary" style={{ fontSize: 13 }}>sync</span>} Refresh Data
-                </button>
-              </div>
-            </>
-          }
-        />
-
-        {/* Stats Row 1 */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          {[
-            { key: 'total', label: 'Total Skrining', value: statsData.total, icon: Activity, bg: 'bg-[#eef4ff]', color: 'text-primary', desc: 'Semua rekam medis' },
-            { key: 'prima', label: 'Kondisi Prima', value: statsData.condition?.prima || 0, icon: HeartPulse, bg: 'bg-emerald-50', color: 'text-emerald-600', desc: 'Status sangat sehat' },
-            { key: 'stabil', label: 'Status Stabil', value: statsData.condition?.stabil || 0, icon: ShieldCheck, bg: 'bg-blue-50', color: 'text-blue-600', desc: 'Kondisi normal' },
-            { key: 'pantauan', label: 'Dalam Pantauan', value: statsData.condition?.pantauan || 0, icon: AlertCircle, bg: 'bg-amber-50', color: 'text-amber-600', desc: 'Butuh pemantauan' },
-            { key: 'kritis', label: 'Kondisi Kritis', value: statsData.condition?.kritis || 0, icon: AlertCircle, bg: 'bg-rose-50', color: 'text-rose-600', desc: 'Penanganan segera' },
-          ].map(s => (
-            <div
-              key={s.label}
-              onClick={() => handleOpenStatsDetail(s.key, s.label)}
-              className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm hover:shadow-md hover:border-slate-200 cursor-pointer transition-all hover:scale-[1.01] duration-200 group flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110', s.bg, s.color)}>
-                      <s.icon size={18} />
-                    </div>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</span>
-                  </div>
-                  <span className="material-symbols-outlined text-slate-300 group-hover:text-primary transition-colors" style={{ fontSize: '16px' }}>arrow_forward</span>
-                </div>
-                <p className="text-2xl font-extrabold text-slate-900 leading-none tabular-nums">
-                  {loading ? (
-                    <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span>
-                  ) : (
-                    s.value
-                  )}
-                </p>
-              </div>
-              <p className="text-xs text-slate-400 font-medium mt-3">{s.desc}</p>
+      <DashboardHero
+        title="Pantau "
+        highlightedTitle="Kesehatan"
+        subtitle="Monitoring kesehatan dan hasil skrining medis mahasiswa di lingkungan fakultas secara real-time."
+        icon="monitor_heart"
+        badges={[
+          { label: 'Medical Monitoring System', active: false },
+          { label: `${statsData.condition?.pantauan || 0} Mahasiswa Pantauan`, active: true }
+        ]}
+        actions={
+          <>
+            <div className="hidden lg:flex items-center gap-2 text-right">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Total Skrining</span>
+              <span className="text-sm font-extrabold text-primary px-2 py-0.5 rounded-md bg-[#eef4ff] border border-blue-100">{statsData.total}</span>
             </div>
-          ))}
-        </div>
-
-        {/* NEW: 5W1H Charts Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {/* WHAT → Distribusi Golongan Darah */}
-          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600">
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>water_drop</span>
-              </div>
-              <div>
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Gol. Darah</h3>
-                <p className="text-[10px] text-slate-400">Distribusi golongan darah</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              {Object.entries(distribusiGol).sort((a,b) => b[1]-a[1]).map(([gol, count]) => (
-                <div key={gol} className="bg-slate-50 rounded-xl p-3 text-center">
-                  <span className="text-2xl font-extrabold text-rose-600">{count}</span>
-                  <p className="text-xs font-bold text-slate-600 mt-1">Gol {gol}</p>
-                  <p className="text-[10px] text-slate-400">{healthRecords.length > 0 ? Math.round((count/healthRecords.length)*100) : 0}%</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* WHAT → Distribusi BMI */}
-          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-cyan-50 flex items-center justify-center text-cyan-600">
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}> straighten</span>
-              </div>
-              <div>
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Distribusi BMI</h3>
-                <p className="text-[10px] text-slate-400">Sebaran indeks massa tubuh</p>
-              </div>
-            </div>
-            <div className="space-y-2">
-              {distribusiBMI.map((item, i) => {
-                const maxCount = Math.max(...distribusiBMI.map(d => d.count), 1)
-                const colors = ['bg-amber-400', 'bg-emerald-400', 'bg-rose-400', 'bg-red-500']
-                return (
-                  <div key={i} className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold text-slate-500 w-16">{item.label}</span>
-                    <div className="flex-1 h-5 bg-slate-100 rounded-full overflow-hidden">
-                      <div className={cn('h-full rounded-full transition-all', colors[i])} style={{width:`${(item.count/maxCount)*100}%`}}/>
-                    </div>
-                    <span className="text-xs font-black text-slate-700 w-8 text-right">{item.count}</span>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* WHO → Per Gender */}
-          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center text-violet-600">
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>group</span>
-              </div>
-              <div>
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Per Gender</h3>
-                <p className="text-[10px] text-slate-400">Breakdown jenis kelamin</p>
-              </div>
-            </div>
-            <div className="space-y-3">
-              {genderStats.length > 0 ? genderStats.map((item, i) => (
-                <div key={i} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">{item.gender === 'Laki-laki' ? '♂' : '♀'}</span>
-                    <span className="text-sm font-bold text-slate-700">{item.gender}</span>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-lg font-extrabold text-slate-900">{item.total}</span>
-                    <span className="text-[10px] text-emerald-600 ml-1">({item.prima} prima)</span>
-                  </div>
-                </div>
-              )) : (
-                <div className="text-center py-6 text-xs text-slate-400">Tidak ada data</div>
-              )}
-            </div>
-          </div>
-
-          {/* WHO → Per Angkatan */}
-          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>calendar_month</span>
-              </div>
-              <div>
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Per Angkatan</h3>
-                <p className="text-[10px] text-slate-400">Jumlah per tahun masuk</p>
-              </div>
-            </div>
-            <div className="space-y-2 max-h-36 overflow-y-auto">
-              {angkatanStats.length > 0 ? angkatanStats.slice(0, 5).map((item, i) => (
-                <div key={i} className="flex items-center justify-between py-1.5 border-b border-slate-50 last:border-0">
-                  <span className="text-sm font-bold text-slate-700">{item.angkatan}</span>
-                  <span className="text-sm font-extrabold text-slate-900">{item.count}</span>
-                </div>
-              )) : (
-                <div className="text-center py-6 text-xs text-slate-400">Tidak ada data</div>
-              )}
-            </div>
-          </div>
-
-          {/* WHEN → Trend Bulanan */}
-          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>timeline</span>
-              </div>
-              <div>
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Trend Bulanan</h3>
-                <p className="text-[10px] text-slate-400">Jumlah skrining per bulan</p>
-              </div>
-            </div>
-            {(() => {
-              const monthly = {}
-              healthRecords.forEach(r => {
-                const d = new Date(r.Tanggal)
-                const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`
-                if (!monthly[key]) monthly[key] = 0
-                monthly[key]++
-              })
-              const sorted = Object.entries(monthly).sort().slice(-6)
-              const maxVal = Math.max(...sorted.map(([,v]) => v), 1)
-              return sorted.length > 0 ? (
-                <div className="flex items-end justify-between gap-1 h-24">
-                  {sorted.map(([month, count]) => (
-                    <div key={month} className="flex flex-col items-center flex-1">
-                      <div className="w-full bg-indigo-100 rounded-t-md relative" style={{height:`${(count/maxVal)*80}px`}}>
-                        <div className="absolute inset-0 bg-gradient-to-t from-indigo-500 to-indigo-300 rounded-t-md"/>
-                      </div>
-                      <span className="text-[9px] text-slate-500 mt-1">{month.split('-')[1]}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : <div className="text-center py-6 text-xs text-slate-400">Tidak ada data</div>
-            })()}
-          </div>
-
-          {/* HOW → Rata-rata Vital Signs */}
-          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center text-teal-600">
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>monitor_heart</span>
-              </div>
-              <div>
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Rata-rata Vital</h3>
-                <p className="text-[10px] text-slate-400">Indikator kesehatan rata-rata</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              {(() => {
-                const systolic = healthRecords.filter(r => r.Sistole).map(r => parseFloat(r.Sistole))
-                const diastolic = healthRecords.filter(r => r.Diastole).map(r => parseFloat(r.Diastole))
-                const gula = healthRecords.filter(r => r.GulaDarah).map(r => parseFloat(r.GulaDarah))
-                const avgSys = systolic.length ? Math.round(systolic.reduce((a,b)=>a+b,0)/systolic.length) : 0
-                const avgDia = diastolic.length ? Math.round(diastolic.reduce((a,b)=>a+b,0)/diastolic.length) : 0
-                const avgGula = gula.length ? Math.round(gula.reduce((a,b)=>a+b,0)/gula.length) : 0
-                return <>
-                  <div className="bg-rose-50 rounded-xl p-3 text-center">
-                    <p className="text-[10px] text-rose-600 font-bold">Sistole</p>
-                    <p className="text-lg font-extrabold text-rose-700">{avgSys}</p>
-                    <p className="text-[9px] text-rose-500">mmHg</p>
-                  </div>
-                  <div className="bg-blue-50 rounded-xl p-3 text-center">
-                    <p className="text-[10px] text-blue-600 font-bold">Diastole</p>
-                    <p className="text-lg font-extrabold text-blue-700">{avgDia}</p>
-                    <p className="text-[9px] text-blue-500">mmHg</p>
-                  </div>
-                  <div className="bg-amber-50 rounded-xl p-3 text-center">
-                    <p className="text-[10px] text-amber-600 font-bold">Gula Darah</p>
-                    <p className="text-lg font-extrabold text-amber-700">{avgGula}</p>
-                    <p className="text-[9px] text-amber-500">mg/dL</p>
-                  </div>
-                  <div className="bg-emerald-50 rounded-xl p-3 text-center">
-                    <p className="text-[10px] text-emerald-600 font-bold">Rata-rata BMI</p>
-                    <p className="text-lg font-extrabold text-emerald-700">
-                      {healthRecords.length ? (healthRecords.reduce((a,r) => a + (parseFloat(bmi(r))||0), 0) / healthRecords.filter(r => bmi(r)).length || 0).toFixed(1) : 0}
-                    </p>
-                    <p className="text-[9px] text-emerald-500">kg/m²</p>
-                  </div>
-                </>
-              })()}
-            </div>
-          </div>
-        </div>
-
-        {/* Table */}
-        <div className="glass-card border border-slate-200/60 rounded-2xl shadow-none overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center gap-3">
-            <div className="flex-1">
-              <h2 className="font-black text-sm uppercase tracking-tight font-headline" style={{ color: 'var(--theme-h2)' }}>Rekam Medis Mahasiswa</h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Menampilkan <span className="font-bold text-slate-900">{filtered.length}</span> dari <span className="font-bold text-primary">{healthRecords.length}</span> data
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-              <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '14px' }} >search</span>
-                <input type="text" placeholder="Cari nama atau NIM..." value={search} onChange={e => setSearch(e.target.value)}
-                  className="pl-9 pr-4 h-9 w-44 rounded-xl border border-slate-200/60 focus:outline-none focus:border-primary text-sm bg-white" />
-              </div>
-              <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
-                className="h-9 pl-3 pr-8 rounded-xl border border-slate-200/60 text-xs font-medium bg-white text-slate-600 focus:outline-none focus:border-primary appearance-none cursor-pointer">
-                <option value="all">Semua Status</option>
-                <option value="prima">Prima</option>
-                <option value="stabil">Stabil</option>
-                <option value="pantauan">Pantauan</option>
-                <option value="kritis">Kritis</option>
-              </select>
-              <select value={filterProdi} onChange={e => setFilterProdi(e.target.value)}
-                className="h-9 pl-3 pr-8 rounded-xl border border-slate-200/60 text-xs font-medium bg-white text-slate-600 focus:outline-none focus:border-primary appearance-none cursor-pointer max-w-[150px]">
-                <option value="all">Semua Prodi</option>
-                {uniqueProdis.map(p => <option key={p} value={p}>{p}</option>)}
-              </select>
-              <select value={filterBlood} onChange={e => setFilterBlood(e.target.value)}
-                className="h-9 pl-3 pr-8 rounded-xl border border-slate-200/60 text-xs font-medium bg-white text-slate-600 focus:outline-none focus:border-primary appearance-none cursor-pointer">
-                <option value="all">Semua Gol. Darah</option>
-                <option value="A">Gol. Darah A</option>
-                <option value="B">Gol. Darah B</option>
-                <option value="AB">Gol. Darah AB</option>
-                <option value="O">Gol. Darah O</option>
-              </select>
-              <select value={filterJenis} onChange={e => setFilterJenis(e.target.value)}
-                className="h-9 pl-3 pr-8 rounded-xl border border-slate-200/60 text-xs font-medium bg-white text-slate-600 focus:outline-none focus:border-primary appearance-none cursor-pointer max-w-[150px]">
-                <option value="all">Semua Jenis Periksa</option>
-                {uniqueJenis.map(j => <option key={j} value={j}>{j}</option>)}
-              </select>
-              {(search || filterStatus !== 'all' || filterProdi !== 'all' || filterBlood !== 'all' || filterJenis !== 'all') && (
-                <button onClick={() => { setSearch(''); setFilterStatus('all'); setFilterProdi('all'); setFilterBlood('all'); setFilterJenis('all'); }}
-                  className="h-9 px-3 text-xs font-semibold text-rose-600 bg-rose-50 rounded-xl border border-rose-200 hover:bg-rose-100">Reset</button>
-              )}
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-slate-200/60">
-                  {[
-                    { label: 'No', key: null, sortable: false },
-                    { label: 'Mahasiswa', key: 'Mahasiswa.Nama', sortable: true },
-                    { label: 'Program Studi', key: 'Mahasiswa.ProgramStudi.Nama', sortable: true },
-                    { label: 'Gol. Darah', key: 'GolonganDarah', sortable: true },
-                    { label: 'Status Kesehatan', key: 'StatusKesehatan', sortable: true },
-                    { label: 'Tgl Periksa', key: 'Tanggal', sortable: true },
-                    { label: 'Aksi', key: null, sortable: false },
-                  ].map(h => (
-                    <th
-                      key={h.label}
-                      onClick={() => h.sortable && handleSort(h.key)}
-                      className={cn(
-                        'px-5 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap select-none',
-                        h.sortable && 'cursor-pointer hover:text-slate-900 group',
-                        h.className
-                      )}
-                    >
-                      <div className="flex items-center gap-1.5">
-                        {h.label}
-                        {h.sortable && (
-                          sortConfig.key === h.key ? (
-                            sortConfig.direction === 'asc' ? (
-                              <span className="material-symbols-outlined size-3.5 text-primary" style={{ fontSize: '14px' }}>expand_less</span>
-                            ) : (
-                              <span className="material-symbols-outlined size-3.5 text-primary" style={{ fontSize: '14px' }}>expand_more</span>
-                            )
-                          ) : (
-                            <span className="material-symbols-outlined size-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" style={{ fontSize: '14px' }}>unfold_more</span>
-                          )
-                        )}
-                      </div>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? Array.from({ length: pageSize }).map((_, i) => (
-                  <tr key={i} className="border-b border-slate-100">
-                    {[...Array(7)].map((__, j) => <td key={j} className="px-5 py-4"><div className="h-4 bg-slate-50 rounded animate-pulse" /></td>)}
-                  </tr>
-                )) : paginated.length === 0 ? (
-                  <tr><td colSpan={7} className="px-5 py-16 text-center">
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-primary"><HeartPulse size={22} /></div>
-                      <p className="font-bold text-sm text-slate-900">Tidak Ada Data Kesehatan</p>
-                      <p className="text-xs text-slate-400">Belum ada rekam medis tersimpan.</p>
-                    </div>
-                  </td></tr>
-                ) : paginated.map((row, i) => {
-                  const hs = getHealth(row.StatusKesehatan)
-                  return (
-                    <tr key={row.ID || i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors">
-                      <td className="px-5 py-3.5 text-sm text-slate-400 font-medium">{(currentPage - 1) * pageSize + i + 1}</td>
-                      <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-3">
-                          <StudentAvatar src={getFullUrl(row.Mahasiswa?.FotoURL || row.Mahasiswa?.foto_url)} name={row.Mahasiswa?.Nama} className="w-9 h-9 rounded-xl" />
-                          <div>
-                            <p className="font-bold text-sm text-slate-900">{row.Mahasiswa?.Nama || '—'}</p>
-                            <p className="text-[10px] text-slate-400 font-medium">{row.Mahasiswa?.NIM || '—'}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-5 py-3.5 text-sm text-slate-600 font-medium">{row.Mahasiswa?.ProgramStudi?.Nama || '—'}</td>
-                      <td className="px-5 py-3.5">
-                        <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 text-xs font-black">
-                          {row.GolonganDarah || '?'}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider whitespace-nowrap', hs.cls)}>
-                          <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', hs.dot)} />{row.StatusKesehatan || '—'}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3.5 text-xs text-slate-500 font-medium whitespace-nowrap">{formatDate(row.Tanggal)}</td>
-                      <td className="px-5 py-3.5">
-                        <button onClick={() => setSelected(row)}
-                          className="p-1.5 text-slate-400 hover:text-primary hover:bg-[#eef4ff] rounded-lg transition-colors" title="Detail">
-                          <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >visibility</span>
-                        </button>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Modern Pagination Footer */}
-          <div className="px-6 py-4 bg-transparent border-t border-slate-200/60 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-              <p className="text-xs text-slate-500 font-medium text-center sm:text-left">
-                Menampilkan <span className="font-semibold text-slate-800">{totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0}</span> sampai <span className="font-semibold text-slate-800">{Math.min(currentPage * pageSize, totalItems)}</span> dari <span className="font-semibold text-slate-800">{totalItems}</span> entri
-              </p>
-
-              <div className="hidden sm:block h-5 w-px bg-slate-200" />
-
-              <div className="flex items-center gap-2.5">
-                <span className="text-xs text-slate-400 font-medium whitespace-nowrap">Baris per halaman:</span>
-                <Select value={String(pageSize)} onValueChange={(val) => { setPageSize(Number(val)); setCurrentPage(1); }}>
-                  <SelectTrigger className="h-8 w-24 rounded-lg border-slate-200 bg-white font-semibold text-xs shadow-sm focus:ring-primary/20 px-2.5 py-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl border-slate-200 shadow-xl p-1 font-body">
-                    {[5, 10, 15, 25, 50].map((size) => (
-                      <SelectItem key={size} value={String(size)} className="rounded-lg text-xs py-1.5 focus:bg-primary/5 focus:text-primary">
-                        {size} Baris
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1 || loading}
-                className="h-8 px-3 rounded-lg border-slate-200 bg-white text-slate-600 font-semibold text-xs shadow-sm disabled:opacity-40 hover:bg-slate-50 transition-all active:scale-95"
-              >
-                <span className="material-symbols-outlined mr-1" style={{ fontSize: '15px' }}>chevron_left</span>
-                Sebelumnya
-              </Button>
-
-              <div className="flex items-center gap-1">
-                {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
-                  let pageNum = i + 1;
-                  if (totalPages > 5 && currentPage > 3) pageNum = currentPage - 3 + i;
-                  if (pageNum > totalPages) return null;
-
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => setCurrentPage(pageNum)}
-                      className={cn(
-                        "w-8 h-8 rounded-lg font-semibold text-xs transition-all duration-200",
-                        currentPage === pageNum
-                          ? "bg-primary text-white shadow-md shadow-primary/20 scale-105"
-                          : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
-                      )}
-                    >
-                      {pageNum}
-                    </button>
-                  )
-                })}
-              </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages || loading || totalPages === 0}
-                className="h-8 px-3 rounded-lg border-slate-200 bg-white text-slate-600 font-semibold text-xs shadow-sm disabled:opacity-40 hover:bg-slate-50 transition-all active:scale-95"
-              >
-                Berikutnya
-                <span className="material-symbols-outlined ml-1" style={{ fontSize: '15px' }}>chevron_right</span>
-              </Button>
+              <button onClick={exportHealthPDF} disabled={loading || healthRecords.length === 0}
+                className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-50 flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary" style={{ fontSize: 13 }}>download</span> Ekspor PDF
+              </button>
+              <button onClick={fetchData} disabled={loading}
+                className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-60 flex items-center gap-2">
+                {loading ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '13px' }} >sync</span> : <span className="material-symbols-outlined text-primary" style={{ fontSize: 13 }}>sync</span>} Refresh Data
+              </button>
             </div>
+          </>
+        }
+      />
+
+      {/* Stats Row 1 */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <PrimaryStatsCard
+          title="Total Skrining"
+          value={statsData.total}
+          badgeText="Semua rekam medis"
+          icon={() => <span className="material-symbols-outlined" style={{ fontSize: 24 }}>show_chart</span>}
+          colorTheme="primary"
+          onClick={() => handleOpenStatsDetail('total', 'Total Skrining')}
+        />
+        <PrimaryStatsCard
+          title="Kondisi Prima"
+          value={statsData.condition?.prima || 0}
+          badgeText="Status sangat sehat"
+          icon={() => <span className="material-symbols-outlined" style={{ fontSize: 24 }}>monitor_heart</span>}
+          colorTheme="success"
+          onClick={() => handleOpenStatsDetail('prima', 'Kondisi Prima')}
+        />
+        <PrimaryStatsCard
+          title="Status Stabil"
+          value={statsData.condition?.stabil || 0}
+          badgeText="Kondisi normal"
+          icon={() => <span className="material-symbols-outlined" style={{ fontSize: 24 }}>verified_user</span>}
+          colorTheme="info"
+          onClick={() => handleOpenStatsDetail('stabil', 'Status Stabil')}
+        />
+        <PrimaryStatsCard
+          title="Dalam Pantauan"
+          value={statsData.condition?.pantauan || 0}
+          badgeText="Butuh pemantauan"
+          icon={() => <span className="material-symbols-outlined" style={{ fontSize: 24 }}>error</span>}
+          colorTheme="warning"
+          onClick={() => handleOpenStatsDetail('pantauan', 'Dalam Pantauan')}
+        />
+        <PrimaryStatsCard
+          title="Kondisi Kritis"
+          value={statsData.condition?.kritis || 0}
+          badgeText="Penanganan segera"
+          icon={() => <span className="material-symbols-outlined" style={{ fontSize: 24 }}>error</span>}
+          colorTheme="error"
+          onClick={() => handleOpenStatsDetail('kritis', 'Kondisi Kritis')}
+        />
+      </div>
+
+      {/* Row 2: Analytics & Trends (5 Cards) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-5 mb-6">
+        <PrimaryStatsCard
+          title="Gol. Darah Mayoritas"
+          value={`Gol ${maxGol.name}`}
+          badgeText={`${maxGol.count} Mahasiswa`}
+          icon={() => <span className="material-symbols-outlined" style={{ fontSize: 24 }}>water_drop</span>}
+          colorTheme="error"
+        />
+        <PrimaryStatsCard
+          title="Rata-rata BMI"
+          value={avgBmi}
+          badgeText="Indeks Massa Tubuh"
+          icon={() => <span className="material-symbols-outlined" style={{ fontSize: 24 }}>straighten</span>}
+          colorTheme="info"
+        />
+        <PrimaryStatsCard
+          title="Gender Dominan"
+          value={maxGender.gender === 'Laki-laki' ? 'Laki-laki' : maxGender.gender === 'Perempuan' ? 'Perempuan' : '—'}
+          badgeText={`${maxGender.total} Mahasiswa`}
+          icon={() => <span className="material-symbols-outlined" style={{ fontSize: 24 }}>group</span>}
+          colorTheme="primary"
+        />
+        <PrimaryStatsCard
+          title="Angkatan Terbanyak"
+          value={maxAngkatan.angkatan}
+          badgeText={`${maxAngkatan.count} Skrining`}
+          icon={() => <span className="material-symbols-outlined" style={{ fontSize: 24 }}>calendar_month</span>}
+          colorTheme="warning"
+        />
+        <PrimaryStatsCard
+          title="Rata-rata Sistolik"
+          value={avgSistole}
+          badgeText="mmHg"
+          icon={() => <span className="material-symbols-outlined" style={{ fontSize: 24 }}>monitor_heart</span>}
+          colorTheme="success"
+        />
+      </div>
+
+      {/* Table */}
+      <Card className="glass-card shadow-sm rounded-xl overflow-hidden mt-6 mb-6">
+        <div className="px-6 py-5 border-b border-[var(--theme-border)] flex flex-col gap-3 bg-[var(--theme-surface)]">
+          <div className="flex-1">
+            <h2 className="font-headline font-bold text-lg text-[var(--theme-text)]">Rekam Medis Mahasiswa</h2>
+          </div>
+          <div className="flex flex-wrap items-center gap-3 w-full">
+            <div className="relative">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--theme-text-muted)]" style={{ fontSize: '16px' }} >search</span>
+              <input type="text" placeholder="Cari nama atau NIM..." value={search} onChange={e => setSearch(e.target.value)}
+                className="pl-9 pr-4 h-10 w-48 rounded-xl border border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] text-sm bg-white transition-colors" />
+            </div>
+            <SelectField value={filterStatus} onValueChange={setFilterStatus} placeholder="Semua Status" className="w-36">
+              <SelectOption value="all">Semua Status</SelectOption>
+              <SelectOption value="prima">Prima</SelectOption>
+              <SelectOption value="stabil">Stabil</SelectOption>
+              <SelectOption value="pantauan">Pantauan</SelectOption>
+              <SelectOption value="kritis">Kritis</SelectOption>
+            </SelectField>
+            <SelectField value={filterProdi} onValueChange={setFilterProdi} placeholder="Semua Prodi" className="w-40">
+              <SelectOption value="all">Semua Prodi</SelectOption>
+              {uniqueProdis.map(p => <SelectOption key={p} value={p}>{p}</SelectOption>)}
+            </SelectField>
+            <SelectField value={filterBlood} onValueChange={setFilterBlood} placeholder="Semua Gol. Darah" className="w-40">
+              <SelectOption value="all">Semua Gol. Darah</SelectOption>
+              <SelectOption value="A">Gol. Darah A</SelectOption>
+              <SelectOption value="B">Gol. Darah B</SelectOption>
+              <SelectOption value="AB">Gol. Darah AB</SelectOption>
+              <SelectOption value="O">Gol. Darah O</SelectOption>
+            </SelectField>
+            <SelectField value={filterJenis} onValueChange={setFilterJenis} placeholder="Semua Jenis Periksa" className="w-44">
+              <SelectOption value="all">Semua Jenis Periksa</SelectOption>
+              {uniqueJenis.map(j => <SelectOption key={j} value={j}>{j}</SelectOption>)}
+            </SelectField>
+            {(search || filterStatus !== 'all' || filterProdi !== 'all' || filterBlood !== 'all' || filterJenis !== 'all') && (
+              <button onClick={() => { setSearch(''); setFilterStatus('all'); setFilterProdi('all'); setFilterBlood('all'); setFilterJenis('all'); }}
+                className="h-10 px-4 text-xs font-semibold text-[var(--theme-error)] bg-[var(--theme-error-light)] rounded-xl hover:bg-[var(--theme-error)]/20 transition-colors border border-[var(--theme-error)]/20">Reset</button>
+            )}
           </div>
         </div>
+
+        <CardContent className="p-0">
+          <DataTable
+            data={filtered}
+            columns={columns}
+            loading={loading}
+            searchable={false}
+            pagination={true}
+            pageSize={10}
+            emptyMessage="Tidak Ada Data Kesehatan"
+            emptyIcon="monitor_heart"
+          />
+        </CardContent>
+      </Card>
 
       {/* Stats Detail Modal (Pop-up rincian dari card stats) */}
       <Dialog open={!!statsDetail} onOpenChange={(open) => !open && setStatsDetail(null)} maxWidth="max-w-4xl">

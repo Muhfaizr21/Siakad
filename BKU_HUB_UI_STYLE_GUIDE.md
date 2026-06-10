@@ -362,6 +362,16 @@ Mengacu pada tampilan halaman `faculty-prestasi`, setiap halaman **wajib** memil
 </div>
 ```
 
+### 3.9 Layout & Spacing (Page Container)
+
+**Aturan Standar Layout Halaman:**
+Semua halaman dashboard/admin **wajib** menggunakan komponen `<PageContent>` sebagai wrapper utama untuk menjaga konsistensi padding dan batas margin (gap) antara konten dengan tepi layar atau sidebar.
+
+- **Wrapper Wajib:** `<PageContent>` (memiliki aturan internal `max-w-7xl mx-auto w-full space-y-6`).
+- **DILARANG:** Membuat container manual seperti `<div className="max-w-[1600px] mx-auto space-y-8">` atau melepas batas `max-w` (full-width) pada halaman admin biasa. Hal ini akan merusak konsistensi margin di layar besar.
+- **Standar Gap Vertikal:** Jarak antar block komponen (misal: Header ke StatGrid, StatGrid ke Table) secara otomatis diatur oleh `space-y-6` dari `PageContent`.
+- **Standar Grid Gap:** Gunakan `gap-6` untuk jarak antar card pada layout dashboard utama agar seragam dengan Kencana Admin.
+
 ---
 
 ## 4. ATURAN ANTI-PATTERN (DILARANG KERAS)

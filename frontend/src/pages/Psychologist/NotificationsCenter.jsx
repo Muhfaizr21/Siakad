@@ -1,17 +1,17 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { UI } from '../../constants/designSystem';
 import { psychologistService } from '../../services/api';
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
-const Bell = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>notifications</span>;
-
-
-
 const iconByType = {
   booking: 'calendar_month',
   assessment: 'assignment',
   alert: 'error',
   report: 'check_circle',
+  referral: 'move_to_inbox',
+  system: 'settings',
+  info: 'info',
 };
 
 const colorByType = {
@@ -19,9 +19,13 @@ const colorByType = {
   assessment: 'bg-indigo-500',
   alert: 'bg-rose-500',
   report: 'bg-emerald-500',
+  referral: 'bg-indigo-500',
+  system: 'bg-slate-500',
+  info: 'bg-sky-500',
 };
 
 export default function NotificationsCenter() {
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -94,6 +98,32 @@ export default function NotificationsCenter() {
       setError(err?.message || 'Gagal menghapus notifikasi.');
     } finally {
       setBusyId('');
+    }
+  };
+
+  const handleNotificationClick = (noti) => {
+    if (noti.unread) {
+      markRead(noti.id);
+    }
+    
+    if (noti.action_url) {
+      navigate(noti.action_url);
+      return;
+    }
+
+    switch (noti.type) {
+      case 'booking':
+        navigate('/psychologist/bookings');
+        break;
+      case 'referral':
+        navigate('/psychologist/referrals');
+        break;
+      case 'assessment':
+      case 'report':
+        navigate('/psychologist/medical-records');
+        break;
+      default:
+        break;
     }
   };
 
@@ -171,52 +201,53 @@ export default function NotificationsCenter() {
                   </div>
                 ))
               : notifications.map((noti) => {
-                  const Icon = iconByType[noti.type] || Bell;
+                  const Icon = iconByType[noti.type] || 'notifications';
                   return (
                     <article
                       key={noti.id}
-                      className={`group relative flex items-start gap-4 rounded-2xl border p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:gap-5 sm:p-5 ${
+                      onClick={() => handleNotificationClick(noti)}
+                      className={`group relative flex items-start gap-3 rounded-xl border p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md cursor-pointer sm:gap-4 sm:p-4 ${
                         noti.unread ? 'border-primary/20' : 'border-[var(--theme-border)] opacity-85'
                       }`}
                       style={{ backgroundColor: 'var(--theme-surface)' }}
                     >
-                      {noti.unread && <span className="absolute left-3 top-1/2 size-2 -translate-y-1/2 rounded-full bg-primary shadow-lg shadow-primary/40" />}
+                      {noti.unread && <span className="absolute left-2.5 top-1/2 size-1.5 -translate-y-1/2 rounded-full bg-primary shadow-lg shadow-primary/40" />}
 
-                      <div className={`flex size-14 shrink-0 items-center justify-center rounded-3xl ${colorByType[noti.type] || 'bg-primary'} text-white shadow-sm`}>
-                        <span className="material-symbols-outlined text-2xl shrink-0">{Icon}</span>
+                      <div className={`flex size-10 shrink-0 items-center justify-center rounded-2xl ${colorByType[noti.type] || 'bg-primary'} text-white shadow-sm`}>
+                        <span className="material-symbols-outlined text-xl shrink-0">{Icon}</span>
                       </div>
 
                       <div className="min-w-0 flex-1">
-                        <div className="mb-1 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                          <h2 className="truncate text-sm font-black uppercase tracking-tight font-headline" style={{ color: 'var(--theme-h2)' }}>{noti.title}</h2>
-                          <span className="inline-flex shrink-0 items-center gap-1 text-[9px] font-black uppercase tracking-widest text-slate-400">
-                            <span className="material-symbols-outlined text-xs shrink-0">schedule</span>
+                        <div className="mb-0.5 flex flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between">
+                          <h2 className="truncate text-xs font-black uppercase tracking-tight font-headline" style={{ color: 'var(--theme-h2)' }}>{noti.title}</h2>
+                          <span className="inline-flex shrink-0 items-center gap-1 text-[8px] font-black uppercase tracking-widest text-slate-400">
+                            <span className="material-symbols-outlined text-[10px] shrink-0">schedule</span>
                             {noti.time}
                           </span>
                         </div>
-                        <p className="line-clamp-2 text-xs font-medium leading-relaxed text-slate-500">{noti.desc}</p>
+                        <p className="line-clamp-2 text-[10px] font-medium leading-relaxed text-slate-500">{noti.desc}</p>
                       </div>
 
                       <div className="flex shrink-0 gap-1">
                         {noti.unread && (
                           <button
                             type="button"
-                            onClick={() => markRead(noti.id)}
+                            onClick={(e) => { e.stopPropagation(); markRead(noti.id); }}
                             disabled={busyId === `read-${noti.id}`}
-                            className="rounded-xl p-2 text-slate-300 transition hover:bg-primary/5 hover:text-primary disabled:cursor-wait"
+                            className="rounded-xl p-1.5 text-slate-300 transition hover:bg-primary/5 hover:text-primary disabled:cursor-wait"
                             aria-label="Tandai dibaca"
                           >
-                            {busyId === `read-${noti.id}` ? <span className="material-symbols-outlined animate-spin text-lg shrink-0">sync</span> : <span className="material-symbols-outlined text-lg shrink-0">check</span>}
+                            {busyId === `read-${noti.id}` ? <span className="material-symbols-outlined animate-spin text-base shrink-0">sync</span> : <span className="material-symbols-outlined text-base shrink-0">check</span>}
                           </button>
                         )}
                         <button
                           type="button"
-                          onClick={() => deleteNotification(noti.id)}
+                          onClick={(e) => { e.stopPropagation(); deleteNotification(noti.id); }}
                           disabled={busyId === `delete-${noti.id}`}
-                          className="rounded-xl p-2 text-slate-300 transition hover:bg-rose-50 hover:text-rose-500 disabled:cursor-wait"
+                          className="rounded-xl p-1.5 text-slate-300 transition hover:bg-rose-50 hover:text-rose-500 disabled:cursor-wait"
                           aria-label="Hapus notifikasi"
                         >
-                          {busyId === `delete-${noti.id}` ? <span className="material-symbols-outlined animate-spin text-lg shrink-0">sync</span> : <span className="material-symbols-outlined text-lg shrink-0">delete</span>}
+                          {busyId === `delete-${noti.id}` ? <span className="material-symbols-outlined animate-spin text-base shrink-0">sync</span> : <span className="material-symbols-outlined text-base shrink-0">delete</span>}
                         </button>
                       </div>
                     </article>

@@ -86,7 +86,23 @@ export default function NotificationDropdown() {
         let defaultLink = raw.link ?? raw.Link ?? '';
         if (!defaultLink) {
           const typeLower = (raw.tipe ?? raw.Tipe ?? raw.type ?? raw.Type ?? 'sistem').toLowerCase();
-          if (isPsychologist) {
+          if (isSuperAdmin) {
+            if (typeLower === 'konseling' || typeLower === 'booking' || typeLower === 'reschedule') {
+              defaultLink = '/admin/psychologists/dashboard';
+            } else if (typeLower === 'beasiswa') {
+              defaultLink = '/admin/scholarships';
+            } else if (typeLower === 'achievement' || typeLower === 'prestasi') {
+              defaultLink = '/admin/achievements';
+            } else if (typeLower === 'student_voice' || typeLower === 'aspirasi') {
+              defaultLink = '/admin/aspirations';
+            } else if (typeLower === 'kencana') {
+              defaultLink = '/admin/kencana-univ';
+            } else if (typeLower === 'ormawa' || typeLower === 'proposal') {
+              defaultLink = '/admin/ormawa-dashboard';
+            } else {
+              defaultLink = '/admin';
+            }
+          } else if (isPsychologist) {
             if (typeLower === 'booking' || typeLower === 'reschedule') {
               defaultLink = '/psychologist/bookings';
             } else {
@@ -129,7 +145,7 @@ export default function NotificationDropdown() {
 
         return {
           ...normalizedRaw,
-          link: isOrmawa || isPsychologist ? normalizedRaw.link : resolveStudentNotificationLink(normalizedRaw)
+          link: isOrmawa || isPsychologist || isSuperAdmin ? normalizedRaw.link : resolveStudentNotificationLink(normalizedRaw)
         };
       });
     },
@@ -327,6 +343,8 @@ export default function NotificationDropdown() {
                   navigate('/ormawa/notifikasi');
                 } else if (isPsychologist) {
                   navigate('/psychologist/notifications');
+                } else if (isSuperAdmin) {
+                  navigate('/admin');
                 } else {
                   navigate('/student/notifikasi');
                 }

@@ -4,6 +4,7 @@ import { useGroupsQuery } from '../../../queries/useKencanaAdminQuery';
 import useAuthStore from '../../../store/useAuthStore';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { DashboardHero } from '@/components/ui/dashboard';
+import { PageContent } from '@/components/ui/page';
 
 // SVG Icons
 const Building2 = ({ size = 24, className = "" }) => <span className={`material-symbols-outlined ${className}`} style={{ fontSize: size }}>business</span>;
@@ -90,8 +91,7 @@ const Dashboard = () => {
   const maxJumlah = Math.max(...chartData.map(d => d.jumlah), 1);
 
   return (
-    <div className="bg-transparent font-body">
-      <div className="max-w-[1600px] mx-auto space-y-8">
+    <PageContent>
         
         {/* ── Page Header ─────────────────────────────────────────── */}
         <DashboardHero 
@@ -346,8 +346,7 @@ const Dashboard = () => {
               </div>
             </div>
         </div>
-      </div>
-    </div>
+    </PageContent>
   );
 };
 

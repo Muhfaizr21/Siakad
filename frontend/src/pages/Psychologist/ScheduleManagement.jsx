@@ -280,23 +280,25 @@ export default function ScheduleManagement() {
                         type="button"
                         onClick={() => setSelectedDay(item.day)}
                         className={`
-                          w-full rounded-2xl border p-4 text-left transition-all duration-300 relative overflow-hidden group/day
+                          w-full rounded-2xl p-4 text-left transition-all duration-300 relative overflow-hidden group/day border-2 flex flex-col gap-1
                           ${isSelected
-                            ? 'border-primary bg-primary text-white shadow-md shadow-primary/20 translate-x-1'
-                            : 'border-slate-100 bg-white text-slate-600 hover:border-slate-200 hover:bg-slate-50'}
+                            ? 'border-primary bg-primary text-white shadow-xl shadow-primary/20 scale-[1.02] ring-4 ring-primary/10 z-10'
+                            : 'border-transparent bg-slate-50/50 text-slate-600 hover:bg-white hover:border-slate-200 hover:shadow-md'}
                         `}
                       >
                         {isSelected && (
-                          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-white rounded-r-full" />
+                          <div className="absolute -right-4 -top-4 w-16 h-16 rounded-full bg-white/10 blur-xl" />
                         )}
-                        <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center justify-between gap-3 w-full relative z-10">
                           <div className="flex items-center gap-2">
-                            <span className={`material-symbols-outlined text-[18px] shrink-0 ${isSelected ? 'text-white' : 'text-primary'}`}>{Icon}</span>
-                            <span className="text-xs font-black">{item.day}</span>
+                            <div className={`flex items-center justify-center w-8 h-8 rounded-xl transition-colors ${isSelected ? 'bg-white/20 text-white' : 'bg-primary/10 text-primary'}`}>
+                              <span className="material-symbols-outlined text-[16px] shrink-0">{Icon}</span>
+                            </div>
+                            <span className="text-sm font-black tracking-tight">{item.day}</span>
                           </div>
-                          <span className={`size-2.5 rounded-full ${item.enabled ? (isSelected ? 'bg-white' : 'bg-emerald-500') : 'bg-slate-300'}`} />
+                          <span className={`size-2.5 rounded-full shadow-sm ${item.enabled ? (isSelected ? 'bg-emerald-300' : 'bg-emerald-500') : 'bg-slate-300'}`} />
                         </div>
-                        <p className={`mt-2 text-[10px] font-bold uppercase tracking-widest ${isSelected ? 'text-white/70' : 'text-slate-400'}`}>
+                        <p className={`mt-1 text-[10px] font-bold uppercase tracking-widest relative z-10 ${isSelected ? 'text-white/80' : 'text-slate-400'}`}>
                           {item.enabled ? `${item.slots.length} slot aktif` : 'Tidak aktif'}
                         </p>
                       </button>
@@ -373,60 +375,78 @@ export default function ScheduleManagement() {
                             const invalidTime = toMinutes(slot.end) <= toMinutes(slot.start);
 
                             return (
-                              <div key={`${selectedDay}-${index}`} className={`rounded-xl border p-4 transition-all duration-300 ${invalidTime ? 'border-amber-200 bg-amber-50/40' : 'border-slate-100 bg-slate-50/40 hover:border-primary/20 hover:bg-white hover:shadow-md'}`}>
-                                <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
-                                  <div className="grid flex-1 grid-cols-2 gap-3">
+                              <div key={`${selectedDay}-${index}`} className={`relative overflow-hidden rounded-2xl border-2 p-5 transition-all duration-300 shadow-sm ${invalidTime ? 'border-rose-300 bg-rose-50/50 ring-4 ring-rose-50' : 'border-slate-100 bg-white hover:border-primary/30 hover:shadow-xl hover:-translate-y-1'}`}>
+                                <div className={`absolute left-0 top-0 bottom-0 w-1.5 transition-colors duration-300 ${slot.kategori === 'Personal' ? 'bg-indigo-500' : slot.kategori === 'Akademik' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                                
+                                <div className="flex flex-col gap-4 xl:flex-row xl:items-center pl-2">
+                                  <div className="grid flex-1 grid-cols-2 gap-4">
                                     <label className="space-y-1.5">
-                                      <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Mulai</span>
-                                      <input
-                                        type="time"
-                                        value={slot.start}
-                                        onChange={(event) => updateSlot(selectedDay, index, 'start', event.target.value)}
-                                        className="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-xs font-black text-slate-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/10"
-                                      />
+                                      <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Jam Mulai</span>
+                                      <div className="relative">
+                                        <input
+                                          type="time"
+                                          value={slot.start}
+                                          onChange={(event) => updateSlot(selectedDay, index, 'start', event.target.value)}
+                                          className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-3 text-xs font-black text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
+                                        />
+                                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[16px] text-slate-400">schedule</span>
+                                      </div>
                                     </label>
                                     <label className="space-y-1.5">
-                                      <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Selesai</span>
-                                      <input
-                                        type="time"
-                                        value={slot.end}
-                                        onChange={(event) => updateSlot(selectedDay, index, 'end', event.target.value)}
-                                        className="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-xs font-black text-slate-800 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/10"
-                                      />
+                                      <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Jam Selesai</span>
+                                      <div className="relative">
+                                        <input
+                                          type="time"
+                                          value={slot.end}
+                                          onChange={(event) => updateSlot(selectedDay, index, 'end', event.target.value)}
+                                          className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-3 text-xs font-black text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
+                                        />
+                                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[16px] text-slate-400">update</span>
+                                      </div>
                                     </label>
                                   </div>
 
-                                  <div className="grid flex-[1.7] grid-cols-1 gap-3 sm:grid-cols-[130px_1fr_90px]">
+                                  <div className="grid flex-[1.7] grid-cols-1 gap-4 sm:grid-cols-[140px_1fr_100px]">
                                     <label className="space-y-1.5">
-                                      <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Jenis</span>
-                                      <select
-                                        value={slot.kategori || 'Personal'}
-                                        onChange={(event) => updateSlot(selectedDay, index, 'kategori', event.target.value)}
-                                        className="h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-[11px] font-black text-slate-700 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/10"
-                                      >
-                                        {scheduleTypes.map((type) => (
-                                          <option key={type} value={type}>{type}</option>
-                                        ))}
-                                      </select>
+                                      <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Jenis Layanan</span>
+                                      <div className="relative">
+                                        <select
+                                          value={slot.kategori || 'Personal'}
+                                          onChange={(event) => updateSlot(selectedDay, index, 'kategori', event.target.value)}
+                                          className="h-10 w-full appearance-none rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-8 text-[11px] font-black text-slate-700 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
+                                        >
+                                          {scheduleTypes.map((type) => (
+                                            <option key={type} value={type}>{type}</option>
+                                          ))}
+                                        </select>
+                                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[16px] text-slate-400">category</span>
+                                        <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-[16px] text-slate-400 pointer-events-none">expand_more</span>
+                                      </div>
                                     </label>
                                     <label className="space-y-1.5">
-                                      <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Lokasi</span>
-                                      <input
-                                        value={slot.lokasi || ''}
-                                        onChange={(event) => updateSlot(selectedDay, index, 'lokasi', event.target.value)}
-                                        placeholder="Ruang Konseling A"
-                                        className="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-[11px] font-bold text-slate-700 outline-none transition-all placeholder:text-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/10"
-                                      />
+                                      <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Lokasi / Ruangan</span>
+                                      <div className="relative">
+                                        <input
+                                          value={slot.lokasi || ''}
+                                          onChange={(event) => updateSlot(selectedDay, index, 'lokasi', event.target.value)}
+                                          placeholder="Ruang Konseling A"
+                                          className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-3 text-[11px] font-bold text-slate-700 outline-none transition-all placeholder:text-slate-300 focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
+                                        />
+                                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[16px] text-slate-400">meeting_room</span>
+                                      </div>
                                     </label>
                                     <label className="space-y-1.5">
-                                      <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Kuota</span>
-                                      <input
-                                        type="number"
-                                        min="1"
-                                        value={slot.kuota || 1}
-                                        onChange={(event) => updateSlot(selectedDay, index, 'kuota', Number(event.target.value))}
-                                        className="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-[11px] font-black text-slate-700 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/10"
-                                      />
+                                      <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Kuota Pasien</span>
+                                      <div className="relative">
+                                        <input
+                                          type="number"
+                                          min="1"
+                                          value={slot.kuota || 1}
+                                          onChange={(event) => updateSlot(selectedDay, index, 'kuota', Number(event.target.value))}
+                                          className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-3 text-[11px] font-black text-slate-700 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
+                                        />
+                                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[16px] text-slate-400">group</span>
+                                      </div>
                                     </label>
                                   </div>
 
@@ -434,14 +454,17 @@ export default function ScheduleManagement() {
                                     type="button"
                                     onClick={() => removeSlot(selectedDay, index)}
                                     aria-label={`Hapus slot ${selectedDay} ${index + 1}`}
-                                    className="inline-flex w-9 h-9 shrink-0 items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-400 transition-all hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 active:scale-95 duration-300 mt-5 xl:mt-0"
+                                    className="inline-flex w-10 h-10 shrink-0 items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-slate-400 transition-all hover:bg-rose-500 hover:text-white hover:border-rose-500 hover:shadow-lg hover:shadow-rose-500/30 active:scale-95 duration-300 mt-5 xl:mt-0"
                                   >
-                                    <span className="material-symbols-outlined text-[18px] shrink-0" >delete</span>
+                                    <span className="material-symbols-outlined text-[20px] shrink-0">delete</span>
                                   </button>
                                 </div>
 
                                 {invalidTime && (
-                                  <p className="mt-3 text-[10px] font-black uppercase tracking-widest text-amber-700">Jam selesai harus setelah jam mulai.</p>
+                                  <div className="mt-4 flex items-center gap-2 rounded-xl bg-rose-50 px-3 py-2 text-rose-700">
+                                    <span className="material-symbols-outlined text-[16px]">error</span>
+                                    <p className="text-[10px] font-black uppercase tracking-widest">Jam selesai harus setelah jam mulai.</p>
+                                  </div>
                                 )}
                               </div>
                             );

@@ -8,7 +8,8 @@ import { cn } from '@/lib/utils'
 import { API_BASE_URL } from '../../services/api'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/Select"
 import { Button } from "@/components/ui/Button"
-import { StatCard } from '@/components/ui/StatCard'
+import { PrimaryStatsCard } from '@/components/ui/StatsCard'
+import DataTable from '@/components/ui/DataTable'
 import { PageContent } from '@/components/ui/page'
 import { DashboardHero } from '@/components/ui/dashboard'
 import Dialog, { DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/Dialog"
@@ -498,6 +499,165 @@ export default function FacultyScholarship() {
     { key: 'applications', label: 'Review Pendaftar', icon: Users },
   ]
 
+  const programColumns = [
+    {
+      key: 'Nama',
+      label: 'Program Beasiswa',
+      sortable: true,
+      render: (val, row) => (
+        <div>
+          <p className="font-bold text-sm text-[var(--theme-text)]">{row.Nama}</p>
+          <div className="flex flex-col gap-0.5 mt-1">
+            <span className="text-[10px] text-[var(--theme-text-muted)] font-medium">Min. IPK {row.MinIPK || '3.00'}</span>
+            <span className="text-[10px] text-[var(--theme-text-muted)] font-semibold">
+              Dibuat: {row.CreatedAt || row.created_at ? formatDateTime(row.CreatedAt || row.created_at) : '—'}
+            </span>
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'Penyelenggara',
+      label: 'Penyelenggara',
+      sortable: true,
+      render: (val, row) => <p className="text-sm text-[var(--theme-text-subtle)] font-medium">{row.Penyelenggara || '—'}</p>
+    },
+    {
+      key: 'Kuota',
+      label: 'Kapasitas',
+      sortable: true,
+      render: (val, row) => {
+        const current = row.acceptedCount || 0;
+        const capacity = row.Kuota || 1;
+        const pct = current >= capacity ? 100 : Math.min(99, Math.floor((current / capacity) * 100));
+        return (
+          <div className="flex items-center gap-4 min-w-[140px] max-w-[180px]">
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] text-[var(--theme-text-muted)] font-bold font-inter">
+                  {current} / {row.Kuota || 0} Mhs
+                </span>
+                <span className="text-[10px] font-black text-[var(--theme-primary)] font-inter">
+                  {pct}%
+                </span>
+              </div>
+              <div className="w-full h-1.5 bg-[var(--theme-bg)] rounded-full overflow-hidden">
+                <div
+                  className={cn(
+                    "h-full rounded-full transition-all duration-500",
+                    pct > 90 ? "bg-[var(--theme-error)]" : "bg-[var(--theme-primary)]"
+                  )}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        );
+      }
+    },
+    {
+      key: 'Deadline',
+      label: 'Deadline',
+      sortable: true,
+      render: (val, row) => (
+        <span className="text-xs font-bold text-[var(--theme-error)] bg-[var(--theme-error-light)] px-2 py-1 rounded-lg border border-[var(--theme-error)]/20">
+          {formatDate(row.Deadline)}
+        </span>
+      )
+    },
+    {
+      key: 'Status',
+      label: 'Status',
+      sortable: false,
+      render: (val, row) => {
+        const isAktif = new Date(row.Deadline) > new Date();
+        return (
+          <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider',
+            isAktif ? 'bg-[var(--theme-success-light)] text-[var(--theme-success)] border-[var(--theme-success)]/20' : 'bg-[var(--theme-surface-hover)] text-[var(--theme-text-muted)] border-[var(--theme-border)]')}>
+            <span className={cn('w-1.5 h-1.5 rounded-full', isAktif ? 'bg-[var(--theme-success)]' : 'bg-[var(--theme-text-muted)]')} />
+            {isAktif ? 'Aktif' : 'Selesai'}
+          </span>
+        );
+      }
+    },
+    {
+      key: 'actions',
+      label: 'Aksi',
+      sortable: false,
+      render: (val, row) => (
+        <button onClick={() => setSelectedProgram(row)}
+          className="p-1.5 text-[var(--theme-text-muted)] hover:text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)] rounded-lg transition-colors" title="Lihat Pendaftar">
+          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>visibility</span>
+        </button>
+      )
+    }
+  ];
+
+  const appColumns = [
+    {
+      key: 'Mahasiswa.Nama',
+      label: 'Pendaftar',
+      sortable: true,
+      render: (val, row) => (
+        <div className="flex items-center gap-3">
+          <StudentAvatar src={row.Mahasiswa?.Foto} name={row.Mahasiswa?.Nama} className="w-9 h-9 rounded-xl" />
+          <div>
+            <p className="font-bold text-sm text-[var(--theme-text)]">{row.Mahasiswa?.Nama || '—'}</p>
+            <div className="flex flex-col gap-0.5 mt-0.5">
+              <span className="text-[10px] text-[var(--theme-text-muted)] font-medium">{row.Mahasiswa?.NIM || '—'}</span>
+              <span className="text-[10px] text-[var(--theme-text-muted)] font-semibold">
+                Mendaftar: {row.CreatedAt || row.created_at ? formatDateTime(row.CreatedAt || row.created_at) : '—'}
+              </span>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'Beasiswa.Nama',
+      label: 'Program Beasiswa',
+      sortable: true,
+      render: (val, row) => <p className="text-sm text-[var(--theme-text-subtle)] font-medium">{row.Beasiswa?.Nama || '—'}</p>
+    },
+    {
+      key: 'berkas',
+      label: 'Berkas',
+      sortable: false,
+      render: (val, row) => (
+        (row.FileURL || row.KtmKtpURL || row.TranskripURL || row.SertifikatURL) ? (
+          <button onClick={() => setPreviewApp(row)}
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--theme-primary)] hover:underline">
+            <span className="material-symbols-outlined" style={{ fontSize: '13px' }} >attachment</span> Lihat Berkas
+          </button>
+        ) : <span className="text-xs text-[var(--theme-text-muted)] italic">Tidak ada</span>
+      )
+    },
+    {
+      key: 'Status',
+      label: 'Status',
+      sortable: true,
+      render: (val, row) => {
+        const st = getAppStatus(row.Status);
+        return (
+          <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider whitespace-nowrap', st.cls)}>
+            <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', st.dot)} />{st.label}
+          </span>
+        );
+      }
+    },
+    {
+      key: 'actions',
+      label: 'Aksi',
+      sortable: false,
+      render: (val, row) => (
+        <button onClick={() => setPreviewApp(row)}
+          className="p-1.5 text-[var(--theme-text-muted)] hover:text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)] rounded-lg transition-colors" title="Lihat Pendaftaran">
+          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>visibility</span>
+        </button>
+      )
+    }
+  ];
+
   return (
     <PageContent>
       <Toaster position="top-right" />
@@ -531,84 +691,68 @@ export default function FacultyScholarship() {
         />
 
         {/* Stats */}
-        <div className="space-y-4 md:space-y-5">
+        <div className="space-y-4 md:space-y-5 mb-6">
           {/* Row 1: Utama (4 Cards) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
-            <StatCard
-              label="Total Beasiswa"
+            <PrimaryStatsCard
+              title="Total Beasiswa"
               value={stats.totalPrograms}
-              description="Program terdaftar"
-              icon="school"
-              color="text-primary"
-              bg="bg-primary/10"
-              loading={loading}
+              badgeText="Program terdaftar"
+              icon={GraduationCap}
+              colorTheme="primary"
             />
-            <StatCard
-              label="Program Aktif"
+            <PrimaryStatsCard
+              title="Program Aktif"
               value={stats.aktif}
-              description="Deadline belum lewat"
-              icon="schedule"
-              color="text-emerald-600"
-              bg="bg-emerald-50"
-              loading={loading}
+              badgeText="Deadline belum lewat"
+              icon={Clock}
+              colorTheme="success"
             />
-            <StatCard
-              label="Pendaftar Baru"
+            <PrimaryStatsCard
+              title="Pendaftar Baru"
               value={stats.pendingApps}
-              description="Sedang diproses"
-              icon="group"
-              color="text-amber-600"
-              bg="bg-amber-50"
-              loading={loading}
+              badgeText="Sedang diproses"
+              icon={Users}
+              colorTheme="warning"
             />
-            <StatCard
-              label="Lolos Seleksi"
+            <PrimaryStatsCard
+              title="Lolos Seleksi"
               value={stats.activeAwardees}
-              description="Diterima beasiswa"
-              icon="check_circle"
-              color="text-indigo-600"
-              bg="bg-indigo-50"
-              loading={loading}
+              badgeText="Diterima beasiswa"
+              icon={UserCheck}
+              colorTheme="info"
             />
           </div>
 
           {/* Row 2: Analytics & Budget (4 Cards) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
-            <StatCard
-              label="Pendaftar Terbanyak"
+            <PrimaryStatsCard
+              title="Pendaftar Terbanyak"
               value={getShortFacultyName(highestApplicantFaculty.name)}
-              description={`${highestApplicantFaculty.count} Pendaftar`}
-              icon="trending_up"
-              color="text-primary"
-              bg="bg-primary/10"
-              loading={loading}
+              badgeText={`${highestApplicantFaculty.count} Pendaftar`}
+              icon={() => <span className="material-symbols-outlined" style={{ fontSize: 24 }}>trending_up</span>}
+              colorTheme="primary"
             />
-            <StatCard
-              label="Pendaftar Terendah"
+            <PrimaryStatsCard
+              title="Pendaftar Terendah"
               value={getShortFacultyName(lowestApplicantFaculty.name)}
-              description={`${lowestApplicantFaculty.count} Pendaftar`}
-              icon="trending_down"
-              color="text-rose-600"
-              bg="bg-rose-50"
-              loading={loading}
+              badgeText={`${lowestApplicantFaculty.count} Pendaftar`}
+              icon={() => <span className="material-symbols-outlined" style={{ fontSize: 24 }}>trending_down</span>}
+              colorTheme="error"
             />
-            <StatCard
-              label="Total Anggaran"
+            <PrimaryStatsCard
+              title="Total Anggaran"
               value={formatCurrency(stats.totalBudget)}
-              description="Proyeksi dana fakultas"
-              icon="payments"
-              color="text-info"
-              bg="bg-info/10"
-              loading={loading}
+              badgeText="Proyeksi dana fakultas"
+              icon={() => <span className="material-symbols-outlined" style={{ fontSize: 24 }}>payments</span>}
+              colorTheme="info"
             />
-            <StatCard
-              label="Realisasi Anggaran"
+            <PrimaryStatsCard
+              title="Realisasi Anggaran"
               value={formatCurrency(absorbedBudget)}
-              description={`${absorptionRate}% Anggaran terserap`}
-              icon="account_balance_wallet"
-              color="text-emerald-600"
-              bg="bg-emerald-50"
-              loading={loading}
+              badgeText={`${absorptionRate}% Anggaran terserap`}
+              icon={() => <span className="material-symbols-outlined" style={{ fontSize: 24 }}>account_balance_wallet</span>}
+              colorTheme="success"
             />
           </div>
         </div>
@@ -628,355 +772,48 @@ export default function FacultyScholarship() {
           ))}
         </div>
 
-        {/* Table */}
-        <div className="glass-card border border-slate-200/60 rounded-2xl shadow-none overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+        {/* Table Wrapper */}
+        <div className="bg-[var(--theme-surface)] rounded-2xl border border-[var(--theme-border)] shadow-sm overflow-hidden mt-6 mb-6">
+          <div className="px-5 py-4 border-b border-[var(--theme-border)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-[var(--theme-bg)]/50">
             <div className="flex-1">
-              <h2 className="font-black text-slate-800 text-sm uppercase tracking-tight font-headline">
+              <h2 className="font-bold text-base text-[var(--theme-text)]">
                 {activeTab === 'programs' ? 'Daftar Program Beasiswa' : 'Daftar Pendaftar Beasiswa'}
               </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Menampilkan <span className="font-bold text-slate-900">
-                  {activeTab === 'programs' ? filteredPrograms.length : filteredApps.length}
-                </span> dari <span className="font-bold text-primary">
-                  {activeTab === 'programs' ? scholarships.length : applications.length}
-                </span> data
-              </p>
             </div>
-            <div className="flex flex-col sm:flex-row items-center gap-3">
-              {activeTab === 'applications' && uniqueScholarships.length > 0 && (
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">Filter Beasiswa:</span>
-                  <Select value={selectedScholarshipFilter} onValueChange={setSelectedScholarshipFilter}>
-                    <SelectTrigger className="h-9 w-48 rounded-xl border-slate-200 bg-white/50 font-semibold text-xs shadow-sm focus:ring-primary/20 px-3 py-1 flex items-center justify-between">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-2xl border-slate-200 shadow-xl p-1 font-inter glass-card">
-                      <SelectItem value="Semua" className="rounded-xl text-xs py-1.5 focus:bg-primary/5 focus:text-primary">
-                        Semua Beasiswa
-                      </SelectItem>
-                      {uniqueScholarships.map((name) => (
-                        <SelectItem key={name} value={name} className="rounded-xl text-xs py-1.5 focus:bg-primary/5 focus:text-primary">
-                          {name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-              <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '14px' }} >search</span>
-                <input type="text" placeholder={activeTab === 'programs' ? 'Cari nama beasiswa...' : 'Cari mahasiswa atau NIM...'}
-                  value={search} onChange={e => setSearch(e.target.value)}
-                  className="pl-9 pr-4 h-9 w-52 rounded-xl border border-slate-200/60 focus:outline-none focus:border-primary text-sm bg-transparent" />
-              </div>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            {activeTab === 'programs' ? (
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="border-b border-slate-200/60">
-                    {[
-                      { label: 'No', key: null, sortable: false },
-                      { label: 'Program Beasiswa', key: 'Nama', sortable: true },
-                      { label: 'Penyelenggara', key: 'Penyelenggara', sortable: true },
-                      { label: 'Kapasitas', key: 'Kuota', sortable: true },
-                      { label: 'Deadline', key: 'Deadline', sortable: true },
-                      { label: 'Status', key: null, sortable: false },
-                      { label: 'Aksi', key: null, sortable: false },
-                    ].map(h => (
-                      <th
-                        key={h.label}
-                        onClick={() => h.sortable && handleSort(h.key)}
-                        className={cn(
-                          'px-5 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap select-none',
-                          h.sortable && 'cursor-pointer hover:text-slate-900 group',
-                          h.className
-                        )}
-                      >
-                        <div className="flex items-center gap-1.5">
-                          {h.label}
-                          {h.sortable && (
-                            sortConfig.key === h.key ? (
-                              sortConfig.direction === 'asc' ? (
-                                <span className="material-symbols-outlined size-3.5 text-primary" style={{ fontSize: '14px' }}>expand_less</span>
-                              ) : (
-                                <span className="material-symbols-outlined size-3.5 text-primary" style={{ fontSize: '14px' }}>expand_more</span>
-                              )
-                            ) : (
-                              <span className="material-symbols-outlined size-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" style={{ fontSize: '14px' }}>unfold_more</span>
-                            )
-                          )}
-                        </div>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {loading ? Array.from({ length: pageSize }).map((_, i) => (
-                    <tr key={i} className="border-b border-slate-100">
-                      {[...Array(7)].map((__, j) => <td key={j} className="px-5 py-4"><div className="h-4 bg-slate-50 rounded animate-pulse" /></td>)}
-                    </tr>
-                  )) : paginatedPrograms.length === 0 ? (
-                    <tr><td colSpan={7} className="px-5 py-16 text-center">
-                      <div className="flex flex-col items-center gap-3">
-                        <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-primary"><span className="material-symbols-outlined" style={{ fontSize: '22px' }} >school</span></div>
-                        <p className="font-bold text-sm text-slate-900">Tidak Ada Program Beasiswa</p>
-                        <p className="text-xs text-slate-400">Belum ada program beasiswa yang terdaftar.</p>
-                      </div>
-                    </td></tr>
-                  ) : paginatedPrograms.map((row, i) => {
-                    const isAktif = new Date(row.Deadline) > new Date()
-                    return (
-                      <tr key={row.ID || i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors">
-                        <td className="px-5 py-3.5 text-sm text-slate-400 font-medium">{(currentPage - 1) * pageSize + i + 1}</td>
-                        <td className="px-5 py-3.5">
-                          <p className="font-bold text-sm text-slate-900">{row.Nama}</p>
-                          <div className="flex flex-col gap-0.5 mt-1">
-                            <span className="text-[10px] text-slate-400 font-medium">Min. IPK {row.MinIPK || '3.00'}</span>
-                            <span className="text-[10px] text-slate-400 font-semibold">
-                              Dibuat: {row.CreatedAt || row.created_at ? formatDateTime(row.CreatedAt || row.created_at) : '—'}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-5 py-3.5">
-                          <p className="text-sm text-slate-600 font-medium">{row.Penyelenggara || '—'}</p>
-                        </td>
-                        <td className="px-5 py-3.5">
-                          {(() => {
-                            const current = row.acceptedCount || 0;
-                            const capacity = row.Kuota || 1;
-                            const pct = current >= capacity
-                              ? 100
-                              : Math.min(99, Math.floor((current / capacity) * 100));
-                            return (
-                              <div className="flex items-center gap-4 min-w-[140px] max-w-[180px]">
-                                <div className="flex-1">
-                                  <div className="flex items-center justify-between mb-1">
-                                    <span className="text-[10px] text-slate-400 font-bold font-inter">
-                                      {current} / {row.Kuota || 0} Mhs
-                                    </span>
-                                    <span className="text-[10px] font-black text-primary font-inter">
-                                      {pct}%
-                                    </span>
-                                  </div>
-                                  <div className="w-full h-1.5 bg-slate-100/80 rounded-full overflow-hidden">
-                                    <div
-                                      className={cn(
-                                        "h-full rounded-full transition-all duration-500",
-                                        pct > 90
-                                          ? "bg-rose-500"
-                                          : "bg-gradient-to-r from-primary to-blue-400"
-                                      )}
-                                      style={{ width: `${pct}%` }}
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })()}
-                        </td>
-                        <td className="px-5 py-3.5">
-                          <span className="text-xs font-bold text-rose-600 bg-rose-50 px-2 py-1 rounded-lg border border-rose-200">
-                            {formatDate(row.Deadline)}
-                          </span>
-                        </td>
-                        <td className="px-5 py-3.5">
-                          <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider',
-                            isAktif ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-500 border-slate-200')}>
-                            <span className={cn('w-1.5 h-1.5 rounded-full', isAktif ? 'bg-emerald-500' : 'bg-slate-400')} />
-                            {isAktif ? 'Aktif' : 'Selesai'}
-                          </span>
-                        </td>
-                        <td className="px-5 py-3.5">
-                          <button onClick={() => setSelectedProgram(row)}
-                            className="p-1.5 text-slate-400 hover:text-primary hover:bg-[#eef4ff] rounded-lg transition-colors" title="Lihat Pendaftar">
-                            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>visibility</span>
-                          </button>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            ) : (
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="border-b border-slate-200/60">
-                    {[
-                      { label: 'No', key: null, sortable: false },
-                      { label: 'Pendaftar', key: 'Mahasiswa.Nama', sortable: true },
-                      { label: 'Program Beasiswa', key: 'Beasiswa.Nama', sortable: true },
-                      { label: 'Berkas', key: null, sortable: false },
-                      { label: 'Status', key: 'Status', sortable: true },
-                      { label: 'Aksi', key: null, sortable: false },
-                    ].map(h => (
-                      <th
-                        key={h.label}
-                        onClick={() => h.sortable && handleSort(h.key)}
-                        className={cn(
-                          'px-5 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap select-none',
-                          h.sortable && 'cursor-pointer hover:text-slate-900 group',
-                          h.className
-                        )}
-                      >
-                        <div className="flex items-center gap-1.5">
-                          {h.label}
-                          {h.sortable && (
-                            sortConfig.key === h.key ? (
-                              sortConfig.direction === 'asc' ? (
-                                <span className="material-symbols-outlined size-3.5 text-primary" style={{ fontSize: '14px' }}>expand_less</span>
-                              ) : (
-                                <span className="material-symbols-outlined size-3.5 text-primary" style={{ fontSize: '14px' }}>expand_more</span>
-                              )
-                            ) : (
-                              <span className="material-symbols-outlined size-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" style={{ fontSize: '14px' }}>unfold_more</span>
-                            )
-                          )}
-                        </div>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {loading ? Array.from({ length: pageSize }).map((_, i) => (
-                    <tr key={i} className="border-b border-slate-100">
-                      {[...Array(6)].map((__, j) => <td key={j} className="px-5 py-4"><div className="h-4 bg-slate-50 rounded animate-pulse" /></td>)}
-                    </tr>
-                  )) : paginatedApps.length === 0 ? (
-                    <tr><td colSpan={6} className="px-5 py-16 text-center">
-                      <div className="flex flex-col items-center gap-3">
-                        <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-primary"><span className="material-symbols-outlined" style={{ fontSize: '22px' }} >group</span></div>
-                        <p className="font-bold text-sm text-slate-900">Belum Ada Pendaftar</p>
-                        <p className="text-xs text-slate-400">Tidak ada mahasiswa yang mendaftar beasiswa.</p>
-                      </div>
-                    </td></tr>
-                  ) : paginatedApps.map((row, i) => {
-                    const st = getAppStatus(row.Status)
-                    return (
-                      <tr key={row.ID || i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors">
-                        <td className="px-5 py-3.5 text-sm text-slate-400 font-medium">{(currentPage - 1) * pageSize + i + 1}</td>
-                        <td className="px-5 py-3.5">
-                          <div className="flex items-center gap-3">
-                            <StudentAvatar src={row.Mahasiswa?.Foto} name={row.Mahasiswa?.Nama} className="w-9 h-9 rounded-xl" />
-                            <div>
-                              <p className="font-bold text-sm text-slate-900">{row.Mahasiswa?.Nama || '—'}</p>
-                              <div className="flex flex-col gap-0.5 mt-0.5">
-                                <span className="text-[10px] text-slate-400 font-medium">{row.Mahasiswa?.NIM || '—'}</span>
-                                <span className="text-[10px] text-slate-400 font-semibold">
-                                  Mendaftar: {row.CreatedAt || row.created_at ? formatDateTime(row.CreatedAt || row.created_at) : '—'}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-5 py-3.5">
-                          <p className="text-sm text-slate-600 font-medium">{row.Beasiswa?.Nama || '—'}</p>
-                        </td>
-                        <td className="px-5 py-3.5">
-                          {(row.FileURL || row.KtmKtpURL || row.TranskripURL || row.SertifikatURL) ? (
-                            <button onClick={() => setPreviewApp(row)}
-                              className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline">
-                              <span className="material-symbols-outlined" style={{ fontSize: '13px' }} >attachment</span> Lihat Berkas
-                            </button>
-                          ) : <span className="text-xs text-[#c4c4c4] italic">Tidak ada</span>}
-                        </td>
-                        <td className="px-5 py-3.5">
-                          <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider whitespace-nowrap', st.cls)}>
-                            <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', st.dot)} />{st.label}
-                          </span>
-                        </td>
-                        <td className="px-5 py-3.5">
-                          <div className="flex items-center gap-1">
-                            <button onClick={() => setPreviewApp(row)}
-                              className="p-1.5 text-slate-400 hover:text-primary hover:bg-[#eef4ff] rounded-lg transition-colors" title="Lihat Pendaftaran">
-                              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>visibility</span>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            )}
-          </div>
-
-          {/* Modern Pagination Footer */}
-          <div className="px-6 py-4 bg-transparent border-t border-slate-200/60 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-              <p className="text-xs text-slate-500 font-medium text-center sm:text-left">
-                Menampilkan <span className="font-semibold text-slate-800">{totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0}</span> sampai <span className="font-semibold text-slate-800">{Math.min(currentPage * pageSize, totalItems)}</span> dari <span className="font-semibold text-slate-800">{totalItems}</span> entri
-              </p>
-
-              <div className="hidden sm:block h-5 w-px bg-slate-200" />
-
-              <div className="flex items-center gap-2.5">
-                <span className="text-xs text-slate-400 font-medium whitespace-nowrap">Baris per halaman:</span>
-                <Select value={String(pageSize)} onValueChange={(val) => { setPageSize(Number(val)); setCurrentPage(1); }}>
-                  <SelectTrigger className="h-8 w-24 rounded-lg border-slate-200 bg-white font-semibold text-xs shadow-sm focus:ring-primary/20 px-2.5 py-1">
+            {activeTab === 'applications' && uniqueScholarships.length > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest whitespace-nowrap">Filter:</span>
+                <Select value={selectedScholarshipFilter} onValueChange={setSelectedScholarshipFilter}>
+                  <SelectTrigger className="h-9 w-48 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] font-semibold text-xs shadow-sm focus:ring-[var(--theme-primary)]/20 px-3 py-1 flex items-center justify-between">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="rounded-xl border-slate-200 shadow-xl p-1 font-body">
-                    {[5, 10, 15, 25, 50].map((size) => (
-                      <SelectItem key={size} value={String(size)} className="rounded-lg text-xs py-1.5 focus:bg-primary/5 focus:text-primary">
-                        {size} Baris
+                  <SelectContent className="rounded-2xl border border-[var(--theme-border)] shadow-xl p-1 bg-[var(--theme-surface)]">
+                    <SelectItem value="Semua" className="rounded-xl text-xs py-1.5 focus:bg-[var(--theme-primary-light)] focus:text-[var(--theme-primary)]">
+                      Semua Beasiswa
+                    </SelectItem>
+                    {uniqueScholarships.map((name) => (
+                      <SelectItem key={name} value={name} className="rounded-xl text-xs py-1.5 focus:bg-[var(--theme-primary-light)] focus:text-[var(--theme-primary)]">
+                        {name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1 || loading}
-                className="h-8 px-3 rounded-lg border-slate-200 bg-white text-slate-600 font-semibold text-xs shadow-sm disabled:opacity-40 hover:bg-slate-50 transition-all active:scale-95"
-              >
-                <span className="material-symbols-outlined mr-1" style={{ fontSize: '15px' }}>chevron_left</span>
-                Sebelumnya
-              </Button>
-
-              <div className="flex items-center gap-1">
-                {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
-                  let pageNum = i + 1;
-                  if (totalPages > 5 && currentPage > 3) pageNum = currentPage - 3 + i;
-                  if (pageNum > totalPages) return null;
-
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => setCurrentPage(pageNum)}
-                      className={cn(
-                        "w-8 h-8 rounded-lg font-semibold text-xs transition-all duration-200",
-                        currentPage === pageNum
-                          ? "bg-primary text-white shadow-md shadow-primary/25 scale-105"
-                          : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
-                      )}
-                    >
-                      {pageNum}
-                    </button>
-                  )
-                })}
-              </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages || loading || totalPages === 0}
-                className="h-8 px-3 rounded-lg border-slate-200 bg-white text-slate-600 font-semibold text-xs shadow-sm disabled:opacity-40 hover:bg-slate-50 transition-all active:scale-95"
-              >
-                Berikutnya
-                <span className="material-symbols-outlined ml-1" style={{ fontSize: '15px' }}>chevron_right</span>
-              </Button>
-            </div>
+            )}
           </div>
+          <DataTable
+            data={activeTab === 'programs' ? filteredPrograms : filteredApps}
+            columns={activeTab === 'programs' ? programColumns : appColumns}
+            loading={loading}
+            searchable={true}
+            pagination={true}
+            pageSize={10}
+            emptyMessage={activeTab === 'programs' ? "Tidak Ada Program Beasiswa" : "Belum Ada Pendaftar"}
+            emptyIcon={activeTab === 'programs' ? "school" : "group"}
+            searchPlaceholder={activeTab === 'programs' ? 'Cari nama beasiswa...' : 'Cari mahasiswa atau NIM...'}
+            searchValue={search}
+            onSearchChange={setSearch}
+          />
         </div>
 
       {/* Read-Only Preview Application Modal */}

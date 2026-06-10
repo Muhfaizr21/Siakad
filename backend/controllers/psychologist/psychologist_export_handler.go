@@ -44,7 +44,7 @@ func ExportSessionNotePDF(c *fiber.Ctx) error {
 	pdf.AddPage()
 
 	pdf.SetTextColor(15, 23, 42) // Slate 900
-	
+
 	// Title
 	pdf.SetFont("Helvetica", "B", 12)
 	pdf.CellFormat(0, 5, "LAPORAN SESI KONSELING MAHASISWA", "", 1, "C", false, 0, "")
@@ -92,7 +92,7 @@ func ExportSessionNotePDF(c *fiber.Ctx) error {
 		pdf.CellFormat(50, 5, row[0], "1", 0, "L", true, 0, "")
 		pdf.SetFont("Helvetica", "", 8)
 		pdf.CellFormat(78, 5, row[1], "1", 0, "L", false, 0, "")
-		
+
 		pdf.SetFont("Helvetica", "B", 8)
 		pdf.CellFormat(50, 5, row[2], "1", 0, "L", true, 0, "")
 		pdf.SetFont("Helvetica", "", 8)
@@ -109,9 +109,9 @@ func ExportSessionNotePDF(c *fiber.Ctx) error {
 	pdf.SetFillColor(241, 245, 249) // Slate 100
 	pdf.SetDrawColor(226, 232, 240) // Slate 200
 	pdf.SetTextColor(15, 23, 42)
-	
+
 	pdf.SetFont("Helvetica", "B", 8.5)
-	headerText := fmt.Sprintf(" Tanggal Sesi: %s  •  Waktu: %s WIB  •  Mode: %s", rec.Tanggal.Format("02 January 2006"), rec.Tanggal.Format("15:04"), rec.JenisSesi)
+	headerText := fmt.Sprintf(" Tanggal Sesi: %s  -  Waktu: %s WIB  -  Mode: %s", rec.Tanggal.Format("02 January 2006"), rec.Tanggal.Format("15:04"), rec.JenisSesi)
 	pdf.CellFormat(257, 5.5, headerText, "1", 1, "L", true, 0, "")
 
 	// Sesi Meta info (Mood / Status Pasien)
@@ -183,7 +183,7 @@ func ExportSessionNotePDF(c *fiber.Ctx) error {
 	colH := float64(maxLines)*3.2 + 2
 
 	// Preemptive check before drawing Aspek Asesmen
-	if pdf.GetY() + colH + 10 > 195 {
+	if pdf.GetY()+colH+10 > 195 {
 		pdf.AddPage()
 	}
 
@@ -245,7 +245,7 @@ func ExportSessionNotePDF(c *fiber.Ctx) error {
 	colHRek := float64(maxLinesRek)*3.2 + 2
 
 	// Preemptive check before drawing Rekomendasi
-	if pdf.GetY() + colHRek + 10 > 195 {
+	if pdf.GetY()+colHRek+10 > 195 {
 		pdf.AddPage()
 	}
 
@@ -287,7 +287,7 @@ func ExportSessionNotePDF(c *fiber.Ctx) error {
 	}
 
 	// Preemptive check for Section + Signature (approx 35mm total)
-	if pdf.GetY() + sectionHeight + 35 > 195 {
+	if pdf.GetY()+sectionHeight+35 > 195 {
 		pdf.AddPage()
 	}
 
@@ -331,21 +331,21 @@ func ExportSessionNotePDF(c *fiber.Ctx) error {
 
 	// ── Signature ────────────────────────────────────────────────────────────
 	sigY := pdf.GetY()
-	
+
 	pdf.SetFont("Helvetica", "", 8)
 	pdf.SetTextColor(15, 23, 42)
 	pdf.SetXY(180, sigY)
 	pdf.CellFormat(0, 4, fmt.Sprintf("Bandung, %s", time.Now().Format("02 January 2006")), "", 1, "C", false, 0, "")
 	pdf.SetX(180)
 	pdf.CellFormat(0, 4, "Psikolog Penanggung Jawab,", "", 1, "C", false, 0, "")
-	
+
 	pdf.SetXY(180, sigY+18)
 	pdf.SetFont("Helvetica", "BU", 8.5)
 	pdf.CellFormat(0, 4, psikolog.Nama, "", 1, "C", false, 0, "")
 	pdf.SetX(180)
 	pdf.SetFont("Helvetica", "", 7.5)
 	pdf.SetTextColor(100, 116, 139)
-	pdf.CellFormat(0, 3.5, fmt.Sprintf("BKU Care Center • NIP/Reg: %d", psikolog.ID), "", 1, "C", false, 0, "")
+	pdf.CellFormat(0, 3.5, fmt.Sprintf("BKU Care Center - NIP/Reg: %d", psikolog.ID), "", 1, "C", false, 0, "")
 
 	// Save and download
 	exportsDir := "uploads/exports"
@@ -489,7 +489,7 @@ func ExportPatientsRecapPDF(c *fiber.Ctx) error {
 		for idx, n := range notes {
 			noStr := fmt.Sprintf("%d", idx+1)
 			tglStr := n.Tanggal.Format("02-01-2006 15:04")
-			
+
 			// Format Student name cleanly (No Truncation)
 			mhsNameClean := n.Mahasiswa.Nama
 			if n.Mahasiswa.NIM != "" {
@@ -512,9 +512,9 @@ func ExportPatientsRecapPDF(c *fiber.Ctx) error {
 			}
 
 			// Full clinical aspects
-			aspek := fmt.Sprintf("Kog: %s\nEmo: %s\nPer: %s", 
-				orElse(n.AspekKognitif, "-"), 
-				orElse(n.AspekEmosional, "-"), 
+			aspek := fmt.Sprintf("Kog: %s\nEmo: %s\nPer: %s",
+				orElse(n.AspekKognitif, "-"),
+				orElse(n.AspekEmosional, "-"),
 				orElse(n.AspekPerilaku, "-"),
 			)
 
@@ -580,12 +580,12 @@ func ExportPatientsRecapPDF(c *fiber.Ctx) error {
 			// Start drawing the row
 			curX := pdf.GetX()
 			curY := pdf.GetY()
-			
+
 			lineHeight := 3.2
 			padding := 1.0 // top/bottom padding inside cells
 
 			// Preemptive page break check before drawing the row
-			if curY + lineHeight + 2*padding > 195 {
+			if curY+lineHeight+2*padding > 195 {
 				pdf.AddPage()
 				headerDraw()
 				pdf.SetFont("Helvetica", "", 7)
@@ -594,13 +594,13 @@ func ExportPatientsRecapPDF(c *fiber.Ctx) error {
 
 			// Draw top boundary line for this row
 			pdf.Line(curX, curY, curX+257, curY)
-			
+
 			rowStartY := curY
 			pdf.SetY(curY + padding)
 
 			for i := 0; i < maxL; i++ {
 				// Mid-row page break check
-				if pdf.GetY() + lineHeight > 195 {
+				if pdf.GetY()+lineHeight > 195 {
 					// Draw bottom line for current page segment
 					pdf.Line(curX, pdf.GetY(), curX+257, pdf.GetY())
 
@@ -688,6 +688,28 @@ func ExportPatientsRecapPDF(c *fiber.Ctx) error {
 			pdf.SetXY(curX, finalY)
 		}
 	}
+
+	// ── Signature ────────────────────────────────────────────────────────────
+	pdf.Ln(8)
+	if pdf.GetY()+30 > 195 {
+		pdf.AddPage()
+	}
+
+	sigY := pdf.GetY()
+	pdf.SetFont("Helvetica", "", 8)
+	pdf.SetTextColor(15, 23, 42)
+	pdf.SetXY(180, sigY)
+	pdf.CellFormat(0, 4, fmt.Sprintf("Bandung, %s", time.Now().Format("02 January 2006")), "", 1, "C", false, 0, "")
+	pdf.SetX(180)
+	pdf.CellFormat(0, 4, "Psikolog Penanggung Jawab,", "", 1, "C", false, 0, "")
+
+	pdf.SetXY(180, sigY+18)
+	pdf.SetFont("Helvetica", "BU", 8.5)
+	pdf.CellFormat(0, 4, psikolog.Nama, "", 1, "C", false, 0, "")
+	pdf.SetX(180)
+	pdf.SetFont("Helvetica", "", 7.5)
+	pdf.SetTextColor(100, 116, 139)
+	pdf.CellFormat(0, 3.5, fmt.Sprintf("BKU Care Center NIP/Reg: %d", psikolog.ID), "", 1, "C", false, 0, "")
 
 	// Save and download
 	exportsDir := "uploads/exports"

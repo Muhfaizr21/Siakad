@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"siakad-backend/config"
+	"siakad-backend/controllers/psychologist"
 	"siakad-backend/models"
 	"siakad-backend/pkg/gamifikasi"
 	"siakad-backend/pkg/notifikasi"
@@ -2794,10 +2795,27 @@ func ApprovePsychologistReferral(c *fiber.Ctx) error {
 	if newStatus == "Selesai" {
 		updates["tanggal_dikirim"] = time.Now()
 		updates["tanggal_diterima"] = time.Now()
+		// Hapus PDF lama agar di-generate ulang dengan tanda tangan ganda saat di-download berikutnya
+		updates["surat_rujiukan_url"] = ""
 	}
 
 	if err := config.DB.Model(&referral).Updates(updates).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+
+	// Jika disetujui, langsung generate ulang PDF-nya agar frontend bisa segera download
+	if newApprovalStatus == "disetujui" {
+		// Reload referral with updated status to pass to generator
+		if err := config.DB.Preload("Mahasiswa.ProgramStudi").Preload("Mahasiswa.Fakultas").Preload("Psikolog").First(&referral, id).Error; err == nil {
+			fullUrl, _, pdfErr := psychologist.BuildReferralLetterPDF(referral)
+			if pdfErr == nil && fullUrl != "" {
+				config.DB.Model(&referral).Update("surat_rujiukan_url", fullUrl)
+			} else {
+				log.Println("Gagal generate PDF referral:", pdfErr)
+			}
+		} else {
+			log.Println("Gagal reload referral untuk PDF:", err)
+		}
 	}
 
 	// Kirim notifikasi ke psikolog dan mahasiswa yang bersangkutan

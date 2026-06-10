@@ -108,12 +108,6 @@ export default function BookingManagement() {
   }, [bookings]);
 
   const filteredBookings = useMemo(() => {
-    const getScheduleTime = (booking) => {
-      const raw = `${booking.raw_date || booking.date || ''} ${booking.time || ''}`;
-      const parsed = Date.parse(raw);
-      return Number.isNaN(parsed) ? raw : parsed;
-    };
-
     return bookings
       .filter((booking) => {
         const status = booking.status || 'Menunggu';
@@ -129,14 +123,9 @@ export default function BookingManagement() {
         return matchesTab && matchesIssue && matchesFakultas && matchesProdi && matchesStartDate && matchesEndDate;
       })
       .sort((a, b) => {
-        const first = getScheduleTime(a);
-        const second = getScheduleTime(b);
-        if (typeof first === 'number' && typeof second === 'number') {
-          return sortOrder === 'Terbaru' ? second - first : first - second;
-        }
-        return sortOrder === 'Terbaru'
-          ? String(second).localeCompare(String(first))
-          : String(first).localeCompare(String(second));
+        const first = new Date(a.created_at || a.date).getTime();
+        const second = new Date(b.created_at || b.date).getTime();
+        return sortOrder === 'Terbaru' ? second - first : first - second;
       });
   }, [bookings, issueFilter, selectedTab, sortOrder, selectedFakultas, selectedProdi, startDate, endDate]);
 

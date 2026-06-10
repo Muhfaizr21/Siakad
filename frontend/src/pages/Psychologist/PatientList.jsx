@@ -24,7 +24,11 @@ export default function PatientList() {
           const sanitized = (res.data || []).map(p => ({
             ...p,
             sessions: Number(p.sessions || 0)
-          }));
+          })).sort((a, b) => {
+            const dateA = a.raw_last_visit || '';
+            const dateB = b.raw_last_visit || '';
+            return dateB.localeCompare(dateA);
+          });
           setPatients(sanitized);
         }
       })
