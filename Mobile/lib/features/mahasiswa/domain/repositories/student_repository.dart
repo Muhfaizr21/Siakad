@@ -7,7 +7,7 @@ import '../entities/health_record.dart';
 import '../entities/organization_history.dart';
 import '../entities/campus_news.dart';
 import '../entities/faculty_progress.dart';
-import '../../../ormawa/domain/entities/ormawa_pkkmb.dart';
+import '../entities/pkkmb_event.dart';
 import 'package:bkuhub_mobile/features/counseling/domain/entities/psychologist.dart';
 
 abstract class StudentRepository {

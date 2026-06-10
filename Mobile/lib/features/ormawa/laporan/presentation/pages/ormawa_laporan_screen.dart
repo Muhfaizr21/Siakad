@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
@@ -18,6 +20,9 @@ class OrmawaLaporanScreen extends StatefulWidget {
 class _OrmawaLaporanScreenState extends State<OrmawaLaporanScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  String _filterStatus = 'Semua';
+
+  final List<String> _statusOptions = ['Semua', 'Diajukan', 'Revisi', 'Disetujui'];
 
   @override
   void initState() {
@@ -59,8 +64,9 @@ class _OrmawaLaporanScreenState extends State<OrmawaLaporanScreen> {
                   _buildSummaryGrid(),
                   const SizedBox(height: 32),
                   _buildHeaderActions(),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 12),
                   _buildLaporanList(),
+                  const SizedBox(height: 80),
                 ],
               ),
             ),
@@ -84,47 +90,78 @@ class _OrmawaLaporanScreenState extends State<OrmawaLaporanScreen> {
       builder: (context, provider, child) {
         final lpjs = provider.lpjs;
         final totalLPJ = lpjs.length;
-        final pendingLPJ = lpjs.where((e) => e.status != 'disetujui').length;
-        final totalAnggaran = lpjs.fold<double>(
+        final approvedLPJ = lpjs.where((e) => e.status == 'disetujui' || e.status == 'selesai').length;
+        final pendingLPJ = lpjs.where((e) => e.status == 'diajukan' || e.status == 'revisi').length;
+        final totalRealisasi = lpjs.fold<double>(
           0,
-          (sum, item) => sum + item.totalAnggaran,
+          (sum, item) => sum + item.realisasiAnggaran,
         );
-        final disetujuiLPJ = lpjs.where((e) => e.status == 'disetujui').length;
+        final totalSavings = lpjs.fold<double>(
+          0,
+          (sum, item) {
+            final diff = item.totalAnggaran - item.realisasiAnggaran;
+            return diff > 0 ? sum + diff : sum;
+          },
+        );
 
-        return GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          childAspectRatio: 1.6,
+        return Column(
           children: [
-            _buildStatCard(
-              'Total Laporan',
-              totalLPJ.toString(),
-              Icons.description_rounded,
-              Colors.blue,
+            Row(
+              children: [
+                Expanded(
+                  child: _buildStatCard(
+                    'Total Laporan',
+                    totalLPJ.toString(),
+                    Icons.description_rounded,
+                    Colors.blue,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildStatCard(
+                    'LPJ Disetujui',
+                    approvedLPJ.toString(),
+                    Icons.verified_rounded,
+                    Colors.indigo,
+                  ),
+                ),
+              ],
             ),
-            _buildStatCard(
-              'Belum Selesai',
-              pendingLPJ.toString(),
-              Icons.pending_actions_rounded,
-              Colors.orange,
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildStatCard(
+                    'Diajukan & Revisi',
+                    pendingLPJ.toString(),
+                    Icons.pending_actions_rounded,
+                    Colors.orange,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildStatCard(
+                    'Realisasi Anggaran',
+                    NumberFormat.compactCurrency(
+                      locale: 'id',
+                      symbol: 'Rp ',
+                    ).format(totalRealisasi),
+                    Icons.payments_rounded,
+                    Colors.teal,
+                  ),
+                ),
+              ],
             ),
+            const SizedBox(height: 12),
             _buildStatCard(
-              'Anggaran Total',
+              'Sisa Saldo Efisiensi',
               NumberFormat.compactCurrency(
                 locale: 'id',
                 symbol: 'Rp ',
-              ).format(totalAnggaran),
-              Icons.account_balance_wallet_rounded,
+              ).format(totalSavings),
+              Icons.savings_rounded,
               Colors.green,
-            ),
-            _buildStatCard(
-              'Telah Disetujui',
-              disetujuiLPJ.toString(),
-              Icons.verified_rounded,
-              Colors.indigo,
+              isFullWidth: true,
             ),
           ],
         );
@@ -136,39 +173,263 @@ class _OrmawaLaporanScreenState extends State<OrmawaLaporanScreen> {
     String label,
     String value,
     IconData icon,
-    Color color,
-  ) {
+    Color color, {
+    bool isFullWidth = false,
+  }) {
     return Container(
+      width: isFullWidth ? double.infinity : null,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: const Color(0xFFF1F5F9)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Row(
+        mainAxisSize: isFullWidth ? MainAxisSize.max : MainAxisSize.min,
         children: [
-          Row(
-            children: [
-              Icon(icon, color: color, size: 16),
-              const SizedBox(width: 8),
-              Text(
-                label,
+          if (isFullWidth) ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color.withAlpha(15),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 24),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    label,
+                    style: AppTextStyles.labelSm.copyWith(
+                      color: const Color(0xFF94A3B8),
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    value,
+                    style: AppTextStyles.titleLg.copyWith(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ] else ...[
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Row(
+                    children: [
+                      Icon(icon, color: color, size: 16),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          label,
+                          style: AppTextStyles.labelSm.copyWith(
+                            color: const Color(0xFF94A3B8),
+                            fontSize: 10,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    value,
+                    style: AppTextStyles.titleLg.copyWith(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'draft':
+        return const Color(0xFF64748B);
+      case 'diajukan':
+        return const Color(0xFF2563EB);
+      case 'disetujui':
+        return const Color(0xFF10B981);
+      case 'revisi':
+        return const Color(0xFFF59E0B);
+      case 'ditolak':
+        return const Color(0xFFEF4444);
+      case 'selesai':
+        return const Color(0xFF6366F1);
+      default:
+        return const Color(0xFF64748B);
+    }
+  }
+
+  String _getStatusLabel(String status) {
+    switch (status.toLowerCase()) {
+      case 'draft':
+        return 'DRAFT';
+      case 'diajukan':
+        return 'DIAJUKAN';
+      case 'disetujui':
+        return 'DISETUJUI';
+      case 'revisi':
+        return 'BUTUH REVISI';
+      case 'ditolak':
+        return 'DITOLAK';
+      case 'selesai':
+        return 'SELESAI';
+      default:
+        return status.toUpperCase();
+    }
+  }
+
+  Widget _buildEfficiencyRow(OrmawaLPJ report) {
+    final diff = report.totalAnggaran - report.realisasiAnggaran;
+    final pct = report.totalAnggaran > 0 ? ((diff / report.totalAnggaran) * 100).round() : 0;
+    
+    final currencyFormatter = NumberFormat.compactCurrency(
+      locale: 'id',
+      symbol: 'Rp ',
+    );
+
+    if (diff > 0) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: const Color(0xFFE8F5E9),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.lightbulb_outline_rounded, color: Colors.green, size: 14),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                'HEMAT $pct% (+${currencyFormatter.format(diff)})',
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
                 style: AppTextStyles.labelSm.copyWith(
-                  color: const Color(0xFF94A3B8),
+                  color: Colors.green.shade800,
+                  fontWeight: FontWeight.bold,
                   fontSize: 10,
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: AppTextStyles.titleLg.copyWith(
-              fontSize: 20,
-              fontWeight: FontWeight.w900,
             ),
+          ],
+        ),
+      );
+    } else if (diff < 0) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFEBEE),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.warning_amber_rounded, color: Colors.red, size: 14),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                'OVER ${pct.abs()}% (-${currencyFormatter.format(diff.abs())})',
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                style: AppTextStyles.labelSm.copyWith(
+                  color: Colors.red.shade800,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 10,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    } else {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF1F5F9),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.gps_fixed_rounded, color: Colors.grey, size: 14),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                '100% EFISIEN',
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                style: AppTextStyles.labelSm.copyWith(
+                  color: Colors.grey.shade700,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 10,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  void _showDeleteConfirmation(BuildContext context, String id) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Hapus Laporan LPJ?', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: const Text('Apakah Anda yakin ingin menghapus data Laporan Pertanggungjawaban ini? Tindakan ini bersifat permanen.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              try {
+                await context.read<OrmawaProvider>().deleteLPJ(id);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('LPJ berhasil dihapus dari sistem'), backgroundColor: Colors.green),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Gagal menghapus LPJ: $e'), backgroundColor: Colors.red),
+                  );
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text('Hapus', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -192,23 +453,26 @@ class _OrmawaLaporanScreenState extends State<OrmawaLaporanScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: _filterStatus != 'Semua' ? AppColors.primary : Colors.white,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: const Color(0xFFE2E8F0)),
               ),
               child: Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.filter_alt_rounded,
                     size: 14,
-                    color: AppColors.primary,
+                    color: _filterStatus != 'Semua' ? Colors.white : AppColors.primary,
                   ),
                   const SizedBox(width: 6),
-                  Text(
-                    'Filter',
-                    style: AppTextStyles.labelSm.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.bold,
+                  GestureDetector(
+                    onTap: () => _showFilterSheet(),
+                    child: Text(
+                      'Filter',
+                      style: AppTextStyles.labelSm.copyWith(
+                        color: _filterStatus != 'Semua' ? Colors.white : AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],
@@ -257,7 +521,10 @@ class _OrmawaLaporanScreenState extends State<OrmawaLaporanScreen> {
       builder: (context, provider, child) {
         final reports =
             provider.lpjs.where((lpj) {
-              return lpj.judul.toLowerCase().contains(_searchQuery);
+              final matchesSearch = lpj.judul.toLowerCase().contains(_searchQuery);
+              final matchesFilter = _filterStatus == 'Semua' ||
+                  lpj.status.toLowerCase() == _filterStatus.toLowerCase();
+              return matchesSearch && matchesFilter;
             }).toList();
 
         if (reports.isEmpty) {
@@ -281,19 +548,14 @@ class _OrmawaLaporanScreenState extends State<OrmawaLaporanScreen> {
         }
 
         return ListView.separated(
+          padding: EdgeInsets.zero,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: reports.length,
           separatorBuilder: (context, index) => const SizedBox(height: 12),
           itemBuilder: (context, index) {
             final report = reports[index];
-            Color statusColor = Colors.grey;
-            if (report.status == 'disetujui') {
-              statusColor = Colors.green;
-            } else if (report.status == 'diajukan')
-              statusColor = Colors.orange;
-            else if (report.status == 'revisi')
-              statusColor = Colors.red;
+            final statusColor = _getStatusColor(report.status);
 
             return _buildLaporanCard(report, statusColor);
           },
@@ -303,6 +565,37 @@ class _OrmawaLaporanScreenState extends State<OrmawaLaporanScreen> {
   }
 
   Widget _buildLaporanCard(OrmawaLPJ report, Color color) {
+    Widget? tenggatWidget;
+    if (report.tenggatLpj != null) {
+      final tenggat = report.tenggatLpj!;
+      final now = DateTime.now();
+      final diffDays = (tenggat.difference(now).inHours / 24).ceil();
+      final isLate = diffDays < 0;
+      final isUrgent = diffDays >= 0 && diffDays <= 3;
+      
+      tenggatWidget = Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.timer_rounded, 
+            size: 13, 
+            color: isLate ? Colors.red : (isUrgent ? Colors.orange : const Color(0xFF64748B))
+          ),
+          const SizedBox(width: 4),
+          Text(
+            isLate 
+                ? 'Telat ${diffDays.abs()} hr' 
+                : (isUrgent ? 'Sisa $diffDays hr' : '$diffDays hr lagi'),
+            style: AppTextStyles.labelSm.copyWith(
+              color: isLate ? Colors.red.shade800 : (isUrgent ? Colors.orange.shade900 : const Color(0xFF64748B)),
+              fontWeight: FontWeight.bold,
+              fontSize: 10,
+            ),
+          ),
+        ],
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -326,7 +619,7 @@ class _OrmawaLaporanScreenState extends State<OrmawaLaporanScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  report.status.toUpperCase(),
+                  _getStatusLabel(report.status),
                   style: AppTextStyles.labelSm.copyWith(
                     color: color,
                     fontWeight: FontWeight.w900,
@@ -334,7 +627,7 @@ class _OrmawaLaporanScreenState extends State<OrmawaLaporanScreen> {
                   ),
                 ),
               ),
-              const Icon(Icons.more_vert_rounded, color: Color(0xFF94A3B8)),
+              if (tenggatWidget != null) tenggatWidget,
             ],
           ),
           const SizedBox(height: 12),
@@ -345,6 +638,16 @@ class _OrmawaLaporanScreenState extends State<OrmawaLaporanScreen> {
               fontSize: 16,
             ),
           ),
+          if (report.proposalTitle != null && report.proposalTitle!.isNotEmpty) ...[
+            const SizedBox(height: 2),
+            Text(
+              report.proposalTitle!,
+              style: AppTextStyles.labelSm.copyWith(
+                color: const Color(0xFF94A3B8),
+                fontSize: 11,
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
           Row(
             children: [
@@ -405,27 +708,38 @@ class _OrmawaLaporanScreenState extends State<OrmawaLaporanScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           const Divider(height: 1, color: Color(0xFFF1F5F9)),
           const SizedBox(height: 12),
           Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildIconButton(
-                Icons.visibility_outlined,
-                Colors.blue,
-                () => _showLaporanDetail(context, report),
+              Flexible(
+                child: _buildEfficiencyRow(report),
               ),
               const SizedBox(width: 8),
-              _buildIconButton(
-                Icons.edit_outlined,
-                Colors.orange,
-                () => _showEditLaporan(context, report),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildIconButton(
+                    Icons.visibility_outlined,
+                    Colors.blue,
+                    () => _showLaporanDetail(context, report),
+                  ),
+                  const SizedBox(width: 8),
+                  _buildIconButton(
+                    Icons.edit_outlined,
+                    Colors.orange,
+                    () => _showEditLaporan(context, report),
+                  ),
+                  const SizedBox(width: 8),
+                  _buildIconButton(
+                    Icons.delete_outline_rounded,
+                    Colors.red,
+                    () => _showDeleteConfirmation(context, report.id),
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
-              _buildIconButton(Icons.delete_outline_rounded, Colors.red, () {
-                // Delete not supported by backend yet for LPJ record
-              }),
             ],
           ),
         ],
@@ -454,127 +768,351 @@ class _OrmawaLaporanScreenState extends State<OrmawaLaporanScreen> {
       backgroundColor: Colors.transparent,
       builder:
           (context) => DraggableScrollableSheet(
-            initialChildSize: 0.6,
-            maxChildSize: 0.9,
+            initialChildSize: 0.7,
+            maxChildSize: 0.95,
             minChildSize: 0.4,
             builder:
-                (_, scrollController) => Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(32),
+                (_, scrollController) {
+                  final double total = report.totalAnggaran;
+                  final double real = report.realisasiAnggaran;
+                  final int pct = total > 0 ? ((real / total) * 100).round() : 0;
+                  final double ratio = total > 0 ? (real / total).clamp(0.0, 1.0) : 0.0;
+                  final diff = total - real;
+                  final isOver = real > total;
+
+                  return Container(
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(32),
+                      ),
                     ),
-                  ),
-                  padding: const EdgeInsets.all(24),
-                  child: ListView(
-                    controller: scrollController,
-                    children: [
-                      Center(
-                        child: Container(
-                          width: 40,
-                          height: 4,
+                    padding: const EdgeInsets.all(24),
+                    child: ListView(
+                      controller: scrollController,
+                      children: [
+                        Center(
+                          child: Container(
+                            width: 40,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[300],
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          'DETAIL LAPORAN',
+                          style: AppTextStyles.labelSm.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          report.judul,
+                          style: AppTextStyles.titleLg.copyWith(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        if (report.proposalTitle != null && report.proposalTitle!.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            report.proposalTitle!,
+                            style: AppTextStyles.labelSm.copyWith(
+                              color: const Color(0xFF64748B),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 24),
+                        _buildDetailItem(
+                          'Status',
+                          _getStatusLabel(report.status),
+                          Icons.info_outline_rounded,
+                        ),
+                        _buildDetailItem(
+                          'Anggaran Terencana',
+                          NumberFormat.currency(
+                            locale: 'id',
+                            symbol: 'Rp ',
+                            decimalDigits: 0,
+                          ).format(report.totalAnggaran),
+                          Icons.account_balance_wallet_outlined,
+                        ),
+                        _buildDetailItem(
+                          'Realisasi Anggaran',
+                          NumberFormat.currency(
+                            locale: 'id',
+                            symbol: 'Rp ',
+                            decimalDigits: 0,
+                          ).format(report.realisasiAnggaran),
+                          Icons.payments_outlined,
+                        ),
+                        const SizedBox(height: 8),
+                        
+                        // Budget Absorption Card (Visual Progress Bar)
+                        Container(
+                          padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Colors.grey[300],
-                            borderRadius: BorderRadius.circular(2),
+                            color: const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'ANALISIS PENYERAPAN ANGGARAN',
+                                style: AppTextStyles.labelSm.copyWith(
+                                  color: const Color(0xFF64748B),
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 9,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Penyerapan Anggaran',
+                                    style: AppTextStyles.bodySm.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color(0xFF334155),
+                                    ),
+                                  ),
+                                  Text(
+                                    '$pct%',
+                                    style: AppTextStyles.bodySm.copyWith(
+                                      fontWeight: FontWeight.w900,
+                                      color: isOver ? Colors.red.shade800 : Colors.green.shade800,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: LinearProgressIndicator(
+                                  value: ratio,
+                                  minHeight: 8,
+                                  backgroundColor: const Color(0xFFE2E8F0),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    isOver ? Colors.red : Colors.green,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Row(
+                                children: [
+                                  Icon(
+                                    isOver ? Icons.warning_amber_rounded : Icons.lightbulb_outline_rounded,
+                                    size: 14,
+                                    color: isOver ? Colors.red : Colors.green,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Text(
+                                      isOver 
+                                          ? 'BENGKAK ${pct - 100}% DARI PAGU ANGGARAN'
+                                          : 'EFISIEN / SISA: ${NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0).format(diff)} (${100 - pct}% Hemat)',
+                                      style: AppTextStyles.labelSm.copyWith(
+                                        color: isOver ? Colors.red.shade900 : Colors.green.shade900,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 9.5,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 24),
-                      Text(
-                        'DETAIL LAPORAN',
-                        style: AppTextStyles.labelSm.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        report.judul,
-                        style: AppTextStyles.titleLg.copyWith(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      _buildDetailItem(
-                        'Status',
-                        report.status.toUpperCase(),
-                        Icons.info_outline_rounded,
-                      ),
-                      _buildDetailItem(
-                        'Anggaran Terencana',
-                        NumberFormat.currency(
-                          locale: 'id',
-                          symbol: 'Rp ',
-                          decimalDigits: 0,
-                        ).format(report.totalAnggaran),
-                        Icons.account_balance_wallet_outlined,
-                      ),
-                      _buildDetailItem(
-                        'Realisasi Anggaran',
-                        NumberFormat.currency(
-                          locale: 'id',
-                          symbol: 'Rp ',
-                          decimalDigits: 0,
-                        ).format(report.realisasiAnggaran),
-                        Icons.payments_outlined,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'CATATAN & EVALUASI',
-                        style: AppTextStyles.labelSm.copyWith(
-                          color: const Color(0xFF64748B),
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
-                        ),
-                        child: Text(
-                          report.catatan.isEmpty
-                              ? 'Tidak ada catatan evaluasi.'
-                              : report.catatan,
-                          style: AppTextStyles.bodyMd.copyWith(
-                            color: const Color(0xFF334155),
+                        const SizedBox(height: 24),
+
+                        Text(
+                          'CATATAN & EVALUASI',
+                          style: AppTextStyles.labelSm.copyWith(
+                            color: const Color(0xFF64748B),
+                            fontWeight: FontWeight.w900,
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 32),
-                      if (report.fileUrl != null && report.fileUrl!.isNotEmpty)
-                        SizedBox(
-                          width: double.infinity,
-                          height: 56,
-                          child: ElevatedButton.icon(
-                            onPressed: () {
-                              // TODO: Open URL
-                            },
-                            icon: const Icon(
-                              Icons.file_download_rounded,
-                              color: Colors.white,
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                          ),
+                          child: Text(
+                            report.catatan.isEmpty
+                                ? 'Tidak ada catatan evaluasi.'
+                                : report.catatan,
+                            style: AppTextStyles.bodyMd.copyWith(
+                              color: const Color(0xFF334155),
                             ),
-                            label: const Text(
-                              'UNDUH DOKUMEN LPJ',
-                              style: TextStyle(
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                        if (report.fileUrl != null && report.fileUrl!.isNotEmpty) ...[
+                          SizedBox(
+                            width: double.infinity,
+                            height: 56,
+                            child: ElevatedButton.icon(
+                              onPressed: () async {
+                                final url = Uri.parse(report.fileUrl!);
+                                if (await canLaunchUrl(url)) {
+                                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                                } else {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Tidak dapat membuka file')),
+                                    );
+                                  }
+                                }
+                              },
+                              icon: const Icon(
+                                Icons.file_download_rounded,
                                 color: Colors.white,
-                                fontWeight: FontWeight.bold,
                               ),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
+                              label: const Text(
+                                'UNDUH DOKUMEN LPJ',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                    ],
-                  ),
-                ),
+                        ],
+                        const SizedBox(height: 20),
+                        if (report.status == 'draft' || report.status == 'revisi') ...[
+                          Row(
+                            children: [
+                              Expanded(
+                                child: SizedBox(
+                                  height: 52,
+                                  child: OutlinedButton.icon(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                      _showEditLaporan(context, report);
+                                    },
+                                    style: OutlinedButton.styleFrom(
+                                      side: const BorderSide(color: Color(0xFFE2E8F0)),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                    ),
+                                    icon: const Icon(Icons.edit_outlined, color: Colors.orange),
+                                    label: const Text(
+                                      'EDIT LPJ',
+                                      style: TextStyle(
+                                        color: Color(0xFF475569),
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: SizedBox(
+                                  height: 52,
+                                  child: ElevatedButton.icon(
+                                    onPressed: () async {
+                                      Navigator.pop(context);
+                                      try {
+                                        final provider = context.read<OrmawaProvider>();
+                                        final payload = {
+                                          'Judul': report.judul,
+                                          'RealisasiAnggaran': report.realisasiAnggaran,
+                                          'TotalAnggaran': report.totalAnggaran,
+                                          'Catatan': report.catatan,
+                                          'Status': 'diajukan',
+                                        };
+                                        await provider.updateLPJ(report.id, payload);
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(
+                                              content: Text('LPJ berhasil dikirim ke kampus'),
+                                              backgroundColor: Colors.green,
+                                            ),
+                                          );
+                                        }
+                                      } catch (e) {
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text('Gagal mengirim LPJ: $e'),
+                                              backgroundColor: Colors.red,
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.primary,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      elevation: 4,
+                                    ),
+                                    icon: const Icon(Icons.send_rounded, color: Colors.white),
+                                    label: const Text(
+                                      'KIRIM LPJ',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ] else ...[
+                          SizedBox(
+                            width: double.infinity,
+                            height: 52,
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                Navigator.pop(context);
+                                _showEditLaporan(context, report);
+                              },
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: Color(0xFFE2E8F0)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              icon: const Icon(Icons.edit_outlined, color: Colors.orange),
+                              label: const Text(
+                                'EDIT LAPORAN LPJ',
+                                style: TextStyle(
+                                  color: Color(0xFF475569),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  );
+                },
           ),
     );
   }
@@ -634,6 +1172,75 @@ class _OrmawaLaporanScreenState extends State<OrmawaLaporanScreen> {
       ),
     );
   }
+
+  void _showFilterSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text('Filter Status', style: AppTextStyles.titleLg.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _statusOptions.map((option) {
+                final isSelected = _filterStatus == option;
+                return GestureDetector(
+                  onTap: () {
+                    setState(() => _filterStatus = option);
+                    Navigator.pop(context);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppColors.primary : AppColors.primary.withAlpha(10),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(option, style: AppTextStyles.labelSm.copyWith(
+                      color: isSelected ? Colors.white : AppColors.primary,
+                      fontWeight: FontWeight.bold,
+                    )),
+                  ),
+                );
+              }).toList(),
+            ),
+            if (_filterStatus != 'Semua')
+              Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: TextButton(
+                  onPressed: () {
+                    setState(() => _filterStatus = 'Semua');
+                    Navigator.pop(context);
+                  },
+                  child: Text('Reset Filter', style: AppTextStyles.labelSm.copyWith(color: Colors.red)),
+                ),
+              ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class OrmawaEditLaporanScreen extends StatefulWidget {
@@ -646,6 +1253,7 @@ class OrmawaEditLaporanScreen extends StatefulWidget {
 }
 
 class _OrmawaEditLaporanScreenState extends State<OrmawaEditLaporanScreen> {
+  late TextEditingController _judulController;
   late TextEditingController _realisasiController;
   late TextEditingController _totalAnggaranController;
   late TextEditingController _catatanController;
@@ -654,32 +1262,47 @@ class _OrmawaEditLaporanScreenState extends State<OrmawaEditLaporanScreen> {
   @override
   void initState() {
     super.initState();
+    _judulController = TextEditingController(text: widget.report.judul);
     _realisasiController = TextEditingController(
-      text: widget.report.realisasiAnggaran.toStringAsFixed(0),
+      text: _formatNumber(widget.report.realisasiAnggaran.toStringAsFixed(0)),
     );
     _totalAnggaranController = TextEditingController(
-      text: widget.report.totalAnggaran.toStringAsFixed(0),
+      text: _formatNumber(widget.report.totalAnggaran.toStringAsFixed(0)),
     );
     _catatanController = TextEditingController(text: widget.report.catatan);
+
+    // Listeners for live Rupiah preview formatting
+    _totalAnggaranController.addListener(() => setState(() {}));
+    _realisasiController.addListener(() => setState(() {}));
   }
 
   @override
   void dispose() {
+    _judulController.dispose();
     _realisasiController.dispose();
     _totalAnggaranController.dispose();
     _catatanController.dispose();
     super.dispose();
   }
 
-  Future<void> _updateLPJ() async {
+  Future<void> _updateLPJ(String status) async {
+    if (_judulController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Masukkan judul laporan terlebih dahulu')),
+      );
+      return;
+    }
+
     setState(() => _isSubmitting = true);
 
     try {
       final provider = context.read<OrmawaProvider>();
       final payload = {
-        'RealisasiAnggaran': double.tryParse(_realisasiController.text) ?? 0.0,
-        'TotalAnggaran': double.tryParse(_totalAnggaranController.text) ?? 0.0,
+        'Judul': _judulController.text.trim(),
+        'RealisasiAnggaran': double.tryParse(_realisasiController.text.replaceAll('.', '')) ?? 0.0,
+        'TotalAnggaran': double.tryParse(_totalAnggaranController.text.replaceAll('.', '')) ?? 0.0,
         'Catatan': _catatanController.text,
+        'Status': status,
       };
 
       await provider.updateLPJ(widget.report.id, payload);
@@ -702,6 +1325,12 @@ class _OrmawaEditLaporanScreenState extends State<OrmawaEditLaporanScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final currencyFormatter = NumberFormat.currency(
+      locale: 'id',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: CustomScrollView(
@@ -721,20 +1350,52 @@ class _OrmawaEditLaporanScreenState extends State<OrmawaEditLaporanScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.report.judul,
+                    'Ubah Laporan Pertanggungjawaban',
                     style: AppTextStyles.titleLg.copyWith(
-                      fontSize: 24,
+                      fontSize: 22,
                       fontWeight: FontWeight.w900,
                     ),
                   ),
+                  if (widget.report.proposalTitle != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      'Proposal: ${widget.report.proposalTitle}',
+                      style: AppTextStyles.labelSm.copyWith(
+                        color: const Color(0xFF64748B),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 32),
+                  _buildInputField(
+                    'JUDUL LAPORAN LPJ',
+                    'Misal: LPJ Seminar Kepemimpinan Mahasiswa 2026...',
+                    Icons.title_rounded,
+                    controller: _judulController,
+                  ),
+                  const SizedBox(height: 20),
                   _buildInputField(
                     'TOTAL ANGGARAN (PLANNED)',
                     'Contoh: 25000000',
                     Icons.account_balance_wallet_rounded,
                     controller: _totalAnggaranController,
                     keyboardType: TextInputType.number,
+                    inputFormatters: [ThousandsSeparatorInputFormatter()],
+                    prefixText: 'Rp ',
                   ),
+                  if (_totalAnggaranController.text.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4),
+                      child: Text(
+                        'Format: ${currencyFormatter.format(double.tryParse(_totalAnggaranController.text.replaceAll('.', '')) ?? 0.0)}',
+                        style: AppTextStyles.labelSm.copyWith(
+                          color: Colors.blue.shade800,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 20),
                   _buildInputField(
                     'REALISASI ANGGARAN (ACTUAL)',
@@ -742,7 +1403,22 @@ class _OrmawaEditLaporanScreenState extends State<OrmawaEditLaporanScreen> {
                     Icons.payments_rounded,
                     controller: _realisasiController,
                     keyboardType: TextInputType.number,
+                    inputFormatters: [ThousandsSeparatorInputFormatter()],
+                    prefixText: 'Rp ',
                   ),
+                  if (_realisasiController.text.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4),
+                      child: Text(
+                        'Format: ${currencyFormatter.format(double.tryParse(_realisasiController.text.replaceAll('.', '')) ?? 0.0)}',
+                        style: AppTextStyles.labelSm.copyWith(
+                          color: Colors.green.shade800,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 20),
                   _buildInputField(
                     'CATATAN & EVALUASI',
@@ -754,12 +1430,68 @@ class _OrmawaEditLaporanScreenState extends State<OrmawaEditLaporanScreen> {
                   const SizedBox(height: 40),
                   if (_isSubmitting)
                     const Center(child: CircularProgressIndicator())
+                  else if (widget.report.status == 'draft' || widget.report.status == 'revisi')
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SizedBox(
+                            height: 56,
+                            child: OutlinedButton.icon(
+                              onPressed: () => _updateLPJ('draft'),
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: Color(0xFFE2E8F0)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              icon: const Icon(Icons.drafts_rounded, color: Color(0xFF64748B)),
+                              label: const Text(
+                                'SIMPAN DRAFT',
+                                style: TextStyle(
+                                  color: Color(0xFF475569),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: SizedBox(
+                            height: 56,
+                            child: ElevatedButton.icon(
+                              onPressed: () => _updateLPJ('diajukan'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                elevation: 8,
+                                shadowColor: AppColors.primary.withAlpha(50),
+                              ),
+                              icon: const Icon(Icons.send_rounded, color: Colors.white),
+                              label: const Text(
+                                'KIRIM LAPORAN',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
                   else
                     SizedBox(
                       width: double.infinity,
                       height: 56,
                       child: ElevatedButton.icon(
-                        onPressed: _updateLPJ,
+                        onPressed: () => _updateLPJ(widget.report.status),
                         icon: const Icon(
                           Icons.save_rounded,
                           color: Colors.white,
@@ -797,6 +1529,8 @@ class _OrmawaEditLaporanScreenState extends State<OrmawaEditLaporanScreen> {
     int maxLines = 1,
     TextInputType keyboardType = TextInputType.text,
     TextEditingController? controller,
+    List<TextInputFormatter>? inputFormatters,
+    String? prefixText,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -834,10 +1568,16 @@ class _OrmawaEditLaporanScreenState extends State<OrmawaEditLaporanScreen> {
                   controller: controller,
                   maxLines: maxLines,
                   keyboardType: keyboardType,
+                  inputFormatters: inputFormatters,
                   decoration: InputDecoration(
                     hintText: hint,
                     hintStyle: AppTextStyles.labelSm.copyWith(
                       color: const Color(0xFF94A3B8),
+                    ),
+                    prefixText: prefixText,
+                    prefixStyle: AppTextStyles.bodyMd.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
                     ),
                     border: InputBorder.none,
                   ),
@@ -860,24 +1600,49 @@ class OrmawaCreateLaporanScreen extends StatefulWidget {
 }
 
 class _OrmawaCreateLaporanScreenState extends State<OrmawaCreateLaporanScreen> {
+  final _judulController = TextEditingController();
+  final _totalAnggaranController = TextEditingController();
   final _realisasiController = TextEditingController();
   final _catatanController = TextEditingController();
   OrmawaProposal? _selectedProposal;
   bool _isSubmitting = false;
 
   @override
+  void initState() {
+    super.initState();
+    _totalAnggaranController.addListener(() => setState(() {}));
+    _realisasiController.addListener(() => setState(() {}));
+  }
+
+  @override
   void dispose() {
+    _judulController.dispose();
+    _totalAnggaranController.dispose();
     _realisasiController.dispose();
     _catatanController.dispose();
     super.dispose();
   }
 
-  Future<void> _submitLPJ() async {
+  Future<void> _submitLPJ(String status) async {
     if (_selectedProposal == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Pilih proposal kegiatan terlebih dahulu'),
         ),
+      );
+      return;
+    }
+
+    if (_judulController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Masukkan judul laporan terlebih dahulu')),
+      );
+      return;
+    }
+
+    if (_totalAnggaranController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Masukkan total anggaran')),
       );
       return;
     }
@@ -895,9 +1660,11 @@ class _OrmawaCreateLaporanScreenState extends State<OrmawaCreateLaporanScreen> {
       final provider = context.read<OrmawaProvider>();
       final payload = {
         'ProposalID': int.parse(_selectedProposal!.id),
-        'RealisasiAnggaran': double.tryParse(_realisasiController.text) ?? 0.0,
+        'Judul': _judulController.text.trim(),
+        'TotalAnggaran': double.tryParse(_totalAnggaranController.text.replaceAll('.', '')) ?? 0.0,
+        'RealisasiAnggaran': double.tryParse(_realisasiController.text.replaceAll('.', '')) ?? 0.0,
         'Catatan': _catatanController.text,
-        'Status': 'diajukan',
+        'Status': status,
       };
 
       await provider.addLPJ(payload);
@@ -1013,25 +1780,72 @@ class _OrmawaCreateLaporanScreenState extends State<OrmawaCreateLaporanScreen> {
                             size: 16,
                           ),
                           const SizedBox(width: 8),
-                          Text(
-                            'Anggaran Terencana: ${NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0).format(_selectedProposal!.budget)}',
-                            style: AppTextStyles.labelSm.copyWith(
-                              color: Colors.blue,
-                              fontWeight: FontWeight.bold,
+                          Expanded(
+                            child: Text(
+                              'Anggaran Terencana (Pagu): ${NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0).format(_selectedProposal!.budget)}',
+                              style: AppTextStyles.labelSm.copyWith(
+                                color: Colors.blue.shade900,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
+                    const SizedBox(height: 20),
+                    _buildInputField(
+                      'JUDUL LAPORAN LPJ',
+                      'Misal: LPJ Seminar Kepemimpinan Mahasiswa 2026...',
+                      Icons.title_rounded,
+                      controller: _judulController,
+                    ),
+                    const SizedBox(height: 20),
+                    _buildInputField(
+                      'TOTAL ANGGARAN (PLANNED)',
+                      'Contoh: 25000000',
+                      Icons.account_balance_wallet_rounded,
+                      controller: _totalAnggaranController,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [ThousandsSeparatorInputFormatter()],
+                      prefixText: 'Rp ',
+                    ),
+                    if (_totalAnggaranController.text.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 4),
+                        child: Text(
+                          'Format: ${NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0).format(double.tryParse(_totalAnggaranController.text.replaceAll('.', '')) ?? 0.0)}',
+                          style: AppTextStyles.labelSm.copyWith(
+                            color: Colors.blue.shade800,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                   const SizedBox(height: 20),
                   _buildInputField(
-                    'REALISASI ANGGARAN',
+                    'REALISASI ANGGARAN (ACTUAL)',
                     'Contoh: 24500000',
                     Icons.payments_rounded,
                     controller: _realisasiController,
                     keyboardType: TextInputType.number,
+                    inputFormatters: [ThousandsSeparatorInputFormatter()],
+                    prefixText: 'Rp ',
                   ),
+                  if (_realisasiController.text.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4),
+                      child: Text(
+                        'Format: ${NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0).format(double.tryParse(_realisasiController.text.replaceAll('.', '')) ?? 0.0)}',
+                        style: AppTextStyles.labelSm.copyWith(
+                          color: Colors.green.shade800,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 20),
                   _buildInputField(
                     'CATATAN & EVALUASI',
@@ -1045,32 +1859,60 @@ class _OrmawaCreateLaporanScreenState extends State<OrmawaCreateLaporanScreen> {
                   if (_isSubmitting)
                     const Center(child: CircularProgressIndicator())
                   else
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: ElevatedButton.icon(
-                        onPressed: _submitLPJ,
-                        icon: const Icon(
-                          Icons.check_circle_rounded,
-                          color: Colors.white,
-                        ),
-                        label: const Text(
-                          'SIMPAN & AJUKAN LPJ',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SizedBox(
+                            height: 56,
+                            child: OutlinedButton.icon(
+                              onPressed: () => _submitLPJ('draft'),
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: Color(0xFFE2E8F0)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              icon: const Icon(Icons.drafts_rounded, color: Color(0xFF64748B)),
+                              label: const Text(
+                                'SIMPAN DRAFT',
+                                style: TextStyle(
+                                  color: Color(0xFF475569),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: SizedBox(
+                            height: 56,
+                            child: ElevatedButton.icon(
+                              onPressed: () => _submitLPJ('diajukan'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                elevation: 8,
+                                shadowColor: AppColors.primary.withAlpha(50),
+                              ),
+                              icon: const Icon(Icons.send_rounded, color: Colors.white),
+                              label: const Text(
+                                'KIRIM LAPORAN',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ),
                           ),
-                          elevation: 8,
-                          shadowColor: AppColors.primary.withAlpha(50),
                         ),
-                      ),
+                      ],
                     ),
                 ],
               ),
@@ -1125,7 +1967,14 @@ class _OrmawaCreateLaporanScreenState extends State<OrmawaCreateLaporanScreen> {
                         );
                       }).toList(),
                   onChanged: (val) {
-                    setState(() => _selectedProposal = val);
+                    setState(() {
+                      _selectedProposal = val;
+                      if (val != null) {
+                        _judulController.text = 'LPJ ${val.title}';
+                        _totalAnggaranController.text = _formatNumber(val.budget.toStringAsFixed(0));
+                        _realisasiController.text = _formatNumber(val.budget.toStringAsFixed(0));
+                      }
+                    });
                   },
                 ),
               ),
@@ -1143,6 +1992,8 @@ class _OrmawaCreateLaporanScreenState extends State<OrmawaCreateLaporanScreen> {
     int maxLines = 1,
     TextInputType keyboardType = TextInputType.text,
     TextEditingController? controller,
+    List<TextInputFormatter>? inputFormatters,
+    String? prefixText,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1180,10 +2031,16 @@ class _OrmawaCreateLaporanScreenState extends State<OrmawaCreateLaporanScreen> {
                   controller: controller,
                   maxLines: maxLines,
                   keyboardType: keyboardType,
+                  inputFormatters: inputFormatters,
                   decoration: InputDecoration(
                     hintText: hint,
                     hintStyle: AppTextStyles.labelSm.copyWith(
                       color: const Color(0xFF94A3B8),
+                    ),
+                    prefixText: prefixText,
+                    prefixStyle: AppTextStyles.bodyMd.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
                     ),
                     border: InputBorder.none,
                   ),
@@ -1193,6 +2050,48 @@ class _OrmawaCreateLaporanScreenState extends State<OrmawaCreateLaporanScreen> {
           ),
         ),
       ],
+    );
+  }
+}
+
+String _formatNumber(String value) {
+  String cleaned = value.replaceAll(RegExp(r'[^0-9]'), '');
+  if (cleaned.isEmpty) return '';
+  final buffer = StringBuffer();
+  for (int i = 0; i < cleaned.length; i++) {
+    if (i > 0 && (cleaned.length - i) % 3 == 0) {
+      buffer.write('.');
+    }
+    buffer.write(cleaned[i]);
+  }
+  return buffer.toString();
+}
+
+class ThousandsSeparatorInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    if (newValue.text.isEmpty) {
+      return newValue.copyWith(text: '');
+    }
+
+    String cleanedText = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (cleanedText.isEmpty) {
+      return newValue.copyWith(text: '');
+    }
+
+    final buffer = StringBuffer();
+    for (int i = 0; i < cleanedText.length; i++) {
+      if (i > 0 && (cleanedText.length - i) % 3 == 0) {
+        buffer.write('.');
+      }
+      buffer.write(cleanedText[i]);
+    }
+
+    final newText = buffer.toString();
+    return newValue.copyWith(
+      text: newText,
+      selection: TextSelection.collapsed(offset: newText.length),
     );
   }
 }

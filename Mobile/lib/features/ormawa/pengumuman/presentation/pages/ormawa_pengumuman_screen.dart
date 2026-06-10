@@ -17,6 +17,41 @@ class OrmawaPengumumanScreen extends StatefulWidget {
 class _OrmawaPengumumanScreenState extends State<OrmawaPengumumanScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  String _filterTarget = 'Semua';
+
+  final List<String> _targetOptions = ['Semua', 'Umum', 'Kegiatan', 'Penting', 'Informasi'];
+
+  Color _getCategoryColor(String target) {
+    switch (target.toLowerCase()) {
+      case 'umum':
+        return const Color(0xFF64748B);
+      case 'kegiatan':
+        return const Color(0xFF2563EB);
+      case 'penting':
+        return const Color(0xFFEF4444);
+      case 'info':
+      case 'informasi':
+        return const Color(0xFF0EA5E9);
+      default:
+        return const Color(0xFF64748B);
+    }
+  }
+
+  String _getCategoryLabel(String target) {
+    switch (target.toLowerCase()) {
+      case 'umum':
+        return 'UMUM';
+      case 'kegiatan':
+        return 'KEGIATAN';
+      case 'penting':
+        return 'PENTING';
+      case 'info':
+      case 'informasi':
+        return 'INFORMASI';
+      default:
+        return target.toUpperCase();
+    }
+  }
 
   @override
   void initState() {
@@ -142,15 +177,21 @@ class _OrmawaPengumumanScreenState extends State<OrmawaPengumumanScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: _filterTarget != 'Semua' ? AppColors.primary : Colors.white,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: const Color(0xFFE2E8F0)),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.category_rounded, size: 14, color: AppColors.primary),
+                  Icon(Icons.category_rounded, size: 14, color: _filterTarget != 'Semua' ? Colors.white : AppColors.primary),
                   const SizedBox(width: 6),
-                  Text('Kategori', style: AppTextStyles.labelSm.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                  GestureDetector(
+                    onTap: () => _showFilterSheet(),
+                    child: Text('Kategori', style: AppTextStyles.labelSm.copyWith(
+                      color: _filterTarget != 'Semua' ? Colors.white : AppColors.primary,
+                      fontWeight: FontWeight.bold,
+                    )),
+                  ),
                 ],
               ),
             ),
@@ -190,7 +231,23 @@ class _OrmawaPengumumanScreenState extends State<OrmawaPengumumanScreen> {
     return Consumer<OrmawaProvider>(
       builder: (context, provider, child) {
         final filteredList = provider.announcements.where((item) {
-          return item.judul.toLowerCase().contains(_searchQuery) || item.isi.toLowerCase().contains(_searchQuery);
+          final matchesSearch = item.judul.toLowerCase().contains(_searchQuery) || item.isi.toLowerCase().contains(_searchQuery);
+          
+          if (_filterTarget == 'Semua') {
+            return matchesSearch;
+          }
+          
+          final String normFilter = _filterTarget.toLowerCase();
+          final String normItem = item.target.toLowerCase();
+          
+          bool matchesFilter = false;
+          if (normFilter == 'informasi') {
+            matchesFilter = (normItem == 'info' || normItem == 'informasi');
+          } else {
+            matchesFilter = (normItem == normFilter);
+          }
+          
+          return matchesSearch && matchesFilter;
         }).toList();
 
         if (filteredList.isEmpty) {
@@ -215,21 +272,19 @@ class _OrmawaPengumumanScreenState extends State<OrmawaPengumumanScreen> {
           separatorBuilder: (context, index) => const SizedBox(height: 12),
           itemBuilder: (context, index) {
             final announcement = filteredList[index];
-            Color statusColor = Colors.blue;
-            if (announcement.target == 'Internal') statusColor = Colors.indigo;
-            if (announcement.target == 'Informasi') statusColor = Colors.orange;
-
-            return _buildPengumumanCard(announcement, statusColor);
+            return _buildPengumumanCard(announcement);
           },
         );
       },
     );
   }
 
-  Widget _buildPengumumanCard(OrmawaAnnouncement announcement, Color color) {
+  Widget _buildPengumumanCard(OrmawaAnnouncement announcement) {
+    final color = _getCategoryColor(announcement.target);
+    final label = _getCategoryLabel(announcement.target);
     String dateStr = 'Beberapa saat lalu';
     if (announcement.createdAt != null) {
-      dateStr = DateFormat('dd MMM yyyy').format(announcement.createdAt!);
+      dateStr = DateFormat('dd MMM yyyy', 'id').format(announcement.createdAt!);
     }
 
     return Container(
@@ -248,12 +303,14 @@ class _OrmawaPengumumanScreenState extends State<OrmawaPengumumanScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(color: color.withAlpha(10), borderRadius: BorderRadius.circular(8)),
-                child: Text(announcement.target.toUpperCase(), style: AppTextStyles.labelSm.copyWith(color: color, fontWeight: FontWeight.w900, fontSize: 10)),
+                child: Text(label, style: AppTextStyles.labelSm.copyWith(color: color, fontWeight: FontWeight.w900, fontSize: 10)),
               ),
               PopupMenuButton<String>(
                 icon: const Icon(Icons.more_horiz_rounded, color: Color(0xFF94A3B8)),
                 onSelected: (value) async {
-                  if (value == 'delete') {
+                  if (value == 'edit') {
+                    _showEditPengumuman(context, announcement);
+                  } else if (value == 'delete') {
                     final confirm = await showDialog<bool>(
                       context: context,
                       builder: (context) => AlertDialog(
@@ -271,6 +328,7 @@ class _OrmawaPengumumanScreenState extends State<OrmawaPengumumanScreen> {
                   }
                 },
                 itemBuilder: (context) => [
+                  const PopupMenuItem(value: 'edit', child: Text('Edit')),
                   const PopupMenuItem(value: 'delete', child: Text('Hapus', style: TextStyle(color: Colors.red))),
                 ],
               ),
@@ -293,7 +351,7 @@ class _OrmawaPengumumanScreenState extends State<OrmawaPengumumanScreen> {
               Text(dateStr, style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF64748B))),
               const Spacer(),
               GestureDetector(
-                onTap: () => _showAnnouncementDetail(announcement, color),
+                onTap: () => _showAnnouncementDetail(announcement),
                 child: _buildIconButton(Icons.visibility_outlined, Colors.blue),
               ),
             ],
@@ -303,58 +361,160 @@ class _OrmawaPengumumanScreenState extends State<OrmawaPengumumanScreen> {
     );
   }
 
-  void _showAnnouncementDetail(OrmawaAnnouncement announcement, Color color) {
+  void _showAnnouncementDetail(OrmawaAnnouncement announcement) {
+    final color = _getCategoryColor(announcement.target);
+    final label = _getCategoryLabel(announcement.target);
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.7,
+        height: MediaQuery.of(context).size.height * 0.8,
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
         ),
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(
               child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
             ),
-            const SizedBox(height: 32),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(color: color.withAlpha(10), borderRadius: BorderRadius.circular(8)),
-              child: Text(announcement.target.toUpperCase(), style: AppTextStyles.labelSm.copyWith(color: color, fontWeight: FontWeight.w900)),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(color: color.withAlpha(10), borderRadius: BorderRadius.circular(8)),
+                  child: Text(label, style: AppTextStyles.labelSm.copyWith(color: color, fontWeight: FontWeight.w900, fontSize: 10)),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'SIARAN ANN-${announcement.id}',
+                  style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8), fontWeight: FontWeight.w900, fontSize: 10, letterSpacing: 1),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
-            Text(announcement.judul, style: AppTextStyles.titleLg.copyWith(fontSize: 24, fontWeight: FontWeight.w900)),
+            Text(announcement.judul, style: AppTextStyles.titleLg.copyWith(fontSize: 20, fontWeight: FontWeight.w900, height: 1.3)),
             const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(Icons.calendar_month_rounded, size: 14, color: Color(0xFF94A3B8)),
+                const SizedBox(width: 6),
+                Text(
+                  announcement.createdAt != null
+                      ? 'Diterbitkan pada ${DateFormat('dd MMMM yyyy, HH:mm', 'id').format(announcement.createdAt!)}'
+                      : '',
+                  style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8), fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('OLEH ORMAWA', style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8), fontSize: 9, fontWeight: FontWeight.w900)),
+                        const SizedBox(height: 4),
+                        Text('Badan Pengurus Harian', style: AppTextStyles.bodyMd.copyWith(color: const Color(0xFF334155), fontWeight: FontWeight.bold, fontSize: 11)),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('TARGET PEMBACA', style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8), fontSize: 9, fontWeight: FontWeight.w900)),
+                        const SizedBox(height: 4),
+                        Text('Seluruh Anggota', style: AppTextStyles.bodyMd.copyWith(color: const Color(0xFF334155), fontWeight: FontWeight.bold, fontSize: 11)),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
             Text(
-              announcement.createdAt != null ? DateFormat('dd MMM yyyy HH:mm').format(announcement.createdAt!) : '',
-              style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8)),
+              'ISI PENGUMUMAN RESMI',
+              style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8), fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.5),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 8),
             Expanded(
-              child: SingleChildScrollView(
-                child: Text(
-                  announcement.isi,
-                  style: AppTextStyles.bodyMd.copyWith(color: const Color(0xFF475569), height: 1.6, fontSize: 16),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Text(
+                    announcement.isi,
+                    style: AppTextStyles.bodyMd.copyWith(color: const Color(0xFF475569), height: 1.6, fontSize: 13),
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 48,
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFFE2E8F0)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: Text('TUTUP', style: AppTextStyles.labelMd.copyWith(color: const Color(0xFF64748B), fontWeight: FontWeight.bold, fontSize: 12)),
+                    ),
+                  ),
                 ),
-                child: const Text('TUTUP', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              ),
+                const SizedBox(width: 10),
+                Expanded(
+                  flex: 2,
+                  child: SizedBox(
+                    height: 48,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _showEditPengumuman(context, announcement);
+                      },
+                      icon: const Icon(Icons.edit_note_rounded, color: Colors.white, size: 20),
+                      label: const Text('EDIT PENGUMUMAN', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0F172A),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        elevation: 0,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -377,10 +537,88 @@ class _OrmawaPengumumanScreenState extends State<OrmawaPengumumanScreen> {
       MaterialPageRoute(builder: (context) => const OrmawaCreatePengumumanScreen()),
     );
   }
+
+  void _showEditPengumuman(BuildContext context, OrmawaAnnouncement announcement) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => OrmawaCreatePengumumanScreen(announcement: announcement)),
+    );
+  }
+
+  void _showFilterSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text('Filter Kategori', style: AppTextStyles.titleLg.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _targetOptions.map((option) {
+                final isSelected = _filterTarget == option;
+                return GestureDetector(
+                  onTap: () {
+                    setState(() => _filterTarget = option);
+                    Navigator.pop(context);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppColors.primary : AppColors.primary.withAlpha(10),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(option, style: AppTextStyles.labelSm.copyWith(
+                      color: isSelected ? Colors.white : AppColors.primary,
+                      fontWeight: FontWeight.bold,
+                    )),
+                  ),
+                );
+              }).toList(),
+            ),
+            if (_filterTarget != 'Semua')
+              Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: TextButton(
+                  onPressed: () {
+                    setState(() => _filterTarget = 'Semua');
+                    Navigator.pop(context);
+                  },
+                  child: Text('Reset Filter', style: AppTextStyles.labelSm.copyWith(color: Colors.red)),
+                ),
+              ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class OrmawaCreatePengumumanScreen extends StatefulWidget {
-  const OrmawaCreatePengumumanScreen({super.key});
+  final OrmawaAnnouncement? announcement;
+
+  const OrmawaCreatePengumumanScreen({super.key, this.announcement});
 
   @override
   State<OrmawaCreatePengumumanScreen> createState() => _OrmawaCreatePengumumanScreenState();
@@ -389,8 +627,28 @@ class OrmawaCreatePengumumanScreen extends StatefulWidget {
 class _OrmawaCreatePengumumanScreenState extends State<OrmawaCreatePengumumanScreen> {
   final TextEditingController _judulController = TextEditingController();
   final TextEditingController _isiController = TextEditingController();
-  String _selectedTarget = 'Umum';
+  String _selectedTarget = 'umum';
   bool _isSubmitting = false;
+
+  bool get isEditing => widget.announcement != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (isEditing) {
+      _judulController.text = widget.announcement!.judul;
+      _isiController.text = widget.announcement!.isi;
+      
+      final originalTarget = widget.announcement!.target.toLowerCase();
+      if (originalTarget == 'informasi') {
+        _selectedTarget = 'info';
+      } else {
+        _selectedTarget = originalTarget;
+      }
+    } else {
+      _selectedTarget = 'umum';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -401,7 +659,7 @@ class _OrmawaCreatePengumumanScreenState extends State<OrmawaCreatePengumumanScr
       body: CustomScrollView(
         slivers: [
           BkuAppBar(
-            title: 'BUAT PENGUMUMAN BARU',
+            title: isEditing ? 'EDIT PENGUMUMAN' : 'BUAT PENGUMUMAN BARU',
             subtitle: 'PUBLIKASI INFORMASI',
             variant: AppBarVariant.ormawa,
             expandedHeight: 160.0,
@@ -442,7 +700,7 @@ class _OrmawaCreatePengumumanScreenState extends State<OrmawaCreatePengumumanScr
                   const SizedBox(height: 32),
                   _buildInputField('JUDUL PENGUMUMAN', 'Masukkan judul pengumuman...', Icons.title_rounded, controller: _judulController),
                   const SizedBox(height: 20),
-                  _buildDropdownField('TARGET AUDIENS', _selectedTarget, Icons.category_rounded, ['Umum', 'Informasi', 'Internal']),
+                  _buildCategorySelector(),
                   const SizedBox(height: 20),
                   _buildInputField('ISI PENGUMUMAN', 'Tuliskan isi pengumuman di sini...', Icons.description_rounded, maxLines: 8, controller: _isiController),
                   const SizedBox(height: 40),
@@ -471,12 +729,21 @@ class _OrmawaCreatePengumumanScreenState extends State<OrmawaCreatePengumumanScr
 
                                 setState(() => _isSubmitting = true);
                                 try {
-                                  await context.read<OrmawaProvider>().createAnnouncement({
-                                    'OrmawaID': int.parse(ormawaId!),
-                                    'Judul': _judulController.text,
-                                    'Isi': _isiController.text,
-                                    'Target': _selectedTarget,
-                                  });
+                                  final provider = context.read<OrmawaProvider>();
+                                  if (isEditing) {
+                                    await provider.updateAnnouncement(widget.announcement!.id, {
+                                      'Judul': _judulController.text,
+                                      'Isi': _isiController.text,
+                                      'Target': _selectedTarget,
+                                    });
+                                  } else {
+                                    await provider.createAnnouncement({
+                                      'OrmawaID': int.parse(ormawaId!),
+                                      'Judul': _judulController.text,
+                                      'Isi': _isiController.text,
+                                      'Target': _selectedTarget,
+                                    });
+                                  }
                                   if (context.mounted) Navigator.pop(context);
                                 } catch (e) {
                                   if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
@@ -484,8 +751,8 @@ class _OrmawaCreatePengumumanScreenState extends State<OrmawaCreatePengumumanScr
                                   setState(() => _isSubmitting = false);
                                 }
                               },
-                              icon: const Icon(Icons.send_rounded, color: Colors.white),
-                              label: const Text('PUBLISH SEKARANG', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              icon: Icon(isEditing ? Icons.save_rounded : Icons.send_rounded, color: Colors.white),
+                              label: Text(isEditing ? 'SIMPAN PERUBAHAN' : 'PUBLISH SEKARANG', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF001F5C),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -544,40 +811,91 @@ class _OrmawaCreatePengumumanScreenState extends State<OrmawaCreatePengumumanScr
     );
   }
 
-  Widget _buildDropdownField(String label, String current, IconData icon, List<String> options) {
+  Widget _buildCategorySelector() {
+    final categories = [
+      {'id': 'umum', 'label': 'UMUM', 'icon': Icons.feed_rounded, 'color': const Color(0xFF64748B)},
+      {'id': 'kegiatan', 'label': 'KEGIATAN', 'icon': Icons.event_rounded, 'color': const Color(0xFF2563EB)},
+      {'id': 'penting', 'label': 'PENTING', 'icon': Icons.warning_rounded, 'color': const Color(0xFFEF4444)},
+      {'id': 'info', 'label': 'INFORMASI', 'icon': Icons.info_rounded, 'color': const Color(0xFF0EA5E9)},
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF475569), fontWeight: FontWeight.w900, fontSize: 10, letterSpacing: 0.5)),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF8FAFC),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
+        Text(
+          'PILIH KATEGORI SIARAN',
+          style: AppTextStyles.labelSm.copyWith(
+            color: const Color(0xFF475569),
+            fontWeight: FontWeight.w900,
+            fontSize: 10,
+            letterSpacing: 0.5,
           ),
-          child: Row(
-            children: [
-              Icon(icon, color: const Color(0xFF94A3B8), size: 20),
-              const SizedBox(width: 12),
-              Expanded(
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: current,
-                    items: options.map((String value) {
-                      return DropdownMenuItem<String>(value: value, child: Text(value));
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() => _selectedTarget = value!);
-                    },
-                    style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF475569)),
-                    icon: const Icon(Icons.expand_more_rounded, color: Color(0xFF94A3B8), size: 20),
+        ),
+        const SizedBox(height: 8),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            mainAxisSpacing: 10,
+            crossAxisSpacing: 10,
+            childAspectRatio: 3.5,
+          ),
+          itemCount: categories.length,
+          itemBuilder: (context, index) {
+            final cat = categories[index];
+            final id = cat['id'] as String;
+            final label = cat['label'] as String;
+            final icon = cat['icon'] as IconData;
+            final baseColor = cat['color'] as Color;
+            final isSelected = _selectedTarget.toLowerCase() == id;
+
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  _selectedTarget = id;
+                });
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isSelected ? baseColor : const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isSelected ? Colors.transparent : const Color(0xFFE2E8F0),
+                    width: 1,
                   ),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: baseColor.withAlpha(50),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          )
+                        ]
+                      : null,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      icon,
+                      size: 16,
+                      color: isSelected ? Colors.white : baseColor,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      label,
+                      style: AppTextStyles.labelSm.copyWith(
+                        color: isSelected ? Colors.white : const Color(0xFF475569),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            );
+          },
         ),
       ],
     );

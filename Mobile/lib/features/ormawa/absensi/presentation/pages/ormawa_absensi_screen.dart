@@ -1,11 +1,13 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:bkuhub_mobile/core/providers/ormawa_provider.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:bkuhub_mobile/core/services/auth_service.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:bkuhub_mobile/features/ormawa/absensi/presentation/pages/ormawa_qr_scan_screen.dart';
 
 class OrmawaAbsensiScreen extends StatefulWidget {
   final bool showBackButton;
@@ -20,6 +22,9 @@ class OrmawaAbsensiScreen extends StatefulWidget {
 }
 
 class _OrmawaAbsensiScreenState extends State<OrmawaAbsensiScreen> {
+  String _searchQuery = '';
+  String _statusFilter = 'Semua';
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,7 +33,7 @@ class _OrmawaAbsensiScreenState extends State<OrmawaAbsensiScreen> {
         slivers: [
           BkuAppBar(
             variant: AppBarVariant.ormawa,
-            title: 'MANAJEMEN PRESENSI',
+            title: 'ABSENSI KEGIATAN',
             subtitle: 'PRESENSI & KEHADIRAN',
             expandedHeight: 160.0,
             showBackButton: widget.showBackButton,
@@ -36,100 +41,293 @@ class _OrmawaAbsensiScreenState extends State<OrmawaAbsensiScreen> {
           ),
           Consumer<OrmawaProvider>(
             builder: (context, provider, child) {
-              final agendas = provider.agendas;
+              final allAgendas = provider.agendas;
               
-              if (provider.isLoading && agendas.isEmpty) {
+              final agendas = allAgendas.where((agenda) {
+                final now = DateTime.now();
+                final isPast = agenda.date.isBefore(now.subtract(const Duration(days: 1)));
+                final status = isPast ? 'SELESAI' : 'AKTIF';
+                
+                final matchesSearch = agenda.title.toLowerCase().contains(_searchQuery.toLowerCase());
+                final matchesFilter = _statusFilter == 'Semua' || _statusFilter.toUpperCase() == status;
+                
+                return matchesSearch && matchesFilter;
+              }).toList();
+              
+              if (provider.isLoading && allAgendas.isEmpty) {
                 return const SliverFillRemaining(
                   child: Center(child: CircularProgressIndicator()),
                 );
               }
 
-              if (agendas.isEmpty) {
-                return SliverFillRemaining(
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.event_busy_rounded, size: 64, color: Colors.grey[300]),
-                        const SizedBox(height: 16),
-                        Text('Belum ada agenda kegiatan', style: AppTextStyles.labelMd.copyWith(color: Colors.grey)),
-                      ],
-                    ),
-                  ),
-                );
-              }
-
-              return SliverPadding(
-                padding: const EdgeInsets.all(20),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final agenda = agendas[index];
-                      // Logic untuk menentukan status berdasarkan waktu
-                      final now = DateTime.now();
-                      final isPast = agenda.date.isBefore(now.subtract(const Duration(days: 1)));
-                      final status = isPast ? 'SELESAI' : 'AKTIF';
-                      final statusColor = isPast ? Colors.blue : Colors.green;
-
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: _buildAbsensiCard(
-                          agenda.id,
-                          agenda.title,
-                          '${agenda.date.day}/${agenda.date.month}/${agenda.date.year} • ${agenda.date.hour}:${agenda.date.minute}',
-                          'Lihat Peserta', // Kita akan fetch jumlah real di detail
-                          status,
-                          statusColor,
+              return SliverMainAxisGroup(
+                slivers: [
+                  _buildQuickStats(provider),
+                  _buildSearchAndFilter(),
+                  if (agendas.isEmpty)
+                    SliverFillRemaining(
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.event_busy_rounded, size: 64, color: Colors.grey[300]),
+                            const SizedBox(height: 16),
+                            Text('Belum ada agenda kegiatan', style: AppTextStyles.labelMd.copyWith(color: Colors.grey)),
+                          ],
                         ),
-                      );
-                    },
-                    childCount: agendas.length,
-                  ),
-                ),
+                      ),
+                    )
+                  else
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            final agenda = agendas[index];
+                            final now = DateTime.now();
+                            final isPast = agenda.date.isBefore(now.subtract(const Duration(days: 1)));
+                            final status = isPast ? 'SELESAI' : 'AKTIF';
+                            final statusColor = isPast ? Colors.blue : Colors.green;
+
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 16),
+                              child: _buildAbsensiCard(
+                                agenda.id,
+                                agenda.title,
+                                '${agenda.date.day}/${agenda.date.month}/${agenda.date.year} • ${agenda.date.hour}:${agenda.date.minute.toString().padLeft(2, '0')}',
+                                status,
+                                statusColor,
+                              ),
+                            );
+                          },
+                          childCount: agendas.length,
+                        ),
+                      ),
+                    ),
+                ],
               );
             },
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showCreateAbsensi(context),
-        backgroundColor: AppColors.primary,
-        elevation: 4,
-        icon: const Icon(Icons.add_a_photo_rounded, color: Colors.white),
-        label: const Text('Presensi Baru', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+    );
+  }
+
+  Widget _buildSearchAndFilter() {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Row(
+          children: [
+            // Search Field
+            Expanded(
+              child: Container(
+                height: 52,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: TextField(
+                  onChanged: (value) => setState(() => _searchQuery = value),
+                  decoration: InputDecoration(
+                    hintText: 'Cari nama kegiatan...',
+                    hintStyle: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8)),
+                    prefixIcon: const Icon(Icons.search_rounded, color: AppColors.primary, size: 24),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            // Filter Button
+            InkWell(
+              onTap: _showFilterBottomSheet,
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: const Icon(Icons.filter_list_rounded, color: AppColors.primary),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  // ignore: unused_element
-  Widget _buildSearchField() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      height: 52,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+  void _showFilterBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      child: Row(
-        children: [
-          const Icon(Icons.search_rounded, color: AppColors.primary, size: 24),
-          const SizedBox(width: 12),
-          Expanded(
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Cari nama kegiatan...',
-                hintStyle: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8)),
-                border: InputBorder.none,
+      backgroundColor: Colors.white,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text('Filter Status', style: AppTextStyles.titleLg.copyWith(fontWeight: FontWeight.bold, color: AppColors.primary)),
+                  const SizedBox(height: 16),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: ['Semua', 'Aktif', 'Selesai'].map((filter) {
+                      final isSelected = _statusFilter == filter;
+                      return ChoiceChip(
+                        label: Text(
+                          filter,
+                          style: TextStyle(
+                            color: isSelected ? Colors.white : AppColors.primary,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                          ),
+                        ),
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          if (selected) {
+                            setState(() => _statusFilter = filter);
+                            setModalState(() => _statusFilter = filter);
+                          }
+                        },
+                        selectedColor: AppColors.primary,
+                        backgroundColor: const Color(0xFFF1F5F9),
+                        side: BorderSide.none,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        showCheckmark: false,
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 24),
+                ],
               ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildQuickStats(OrmawaProvider provider) {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [AppColors.primary, AppColors.primaryContainer],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF003399).withAlpha(60),
+                blurRadius: 15,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildStatItem(
+                    icon: Icons.layers_rounded,
+                    title: 'Sesi Kegiatan',
+                    value: provider.agendas.length.toString(),
+                  ),
+                  Container(width: 1, height: 40, color: Colors.white.withAlpha(50)),
+                  _buildStatItem(
+                    icon: Icons.people_rounded,
+                    title: 'Total Anggota',
+                    value: provider.members.length.toString(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Divider(color: Colors.white.withAlpha(50), height: 1),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildStatItem(
+                    icon: Icons.check_circle_outline_rounded,
+                    title: 'Hadir / Alpa',
+                    value: '0 / 0',
+                  ),
+                  Container(width: 1, height: 40, color: Colors.white.withAlpha(50)),
+                  _buildStatItem(
+                    icon: Icons.percent_rounded,
+                    title: 'Rasio Kehadiran',
+                    value: '0%',
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatItem({
+    required IconData icon,
+    required String title,
+    required String value,
+  }) {
+    return Expanded(
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withAlpha(30),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: Colors.white, size: 20),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: AppTextStyles.titleLg.copyWith(color: Colors.white, fontSize: 20),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            title,
+            style: AppTextStyles.labelSm.copyWith(color: Colors.white70, fontSize: 10),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildAbsensiCard(String id, String title, String time, String attendance, String status, Color statusColor) {
+  Widget _buildAbsensiCard(String id, String title, String time, String status, Color statusColor) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -173,58 +371,69 @@ class _OrmawaAbsensiScreenState extends State<OrmawaAbsensiScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Kehadiran', style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8), fontSize: 10)),
-                    Text(
-                      attendance,
-                      style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.bold, color: AppColors.primary),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => OrmawaAbsensiDetailScreen(title: title, eventId: id),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        'Lihat Peserta',
+                        style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.bold, color: AppColors.primary),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ],
                 ),
               ),
               const SizedBox(width: 8),
-              Row(
-                children: [
-                  OutlinedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => OrmawaAbsensiDetailScreen(title: title, eventId: id),
+              if (status.toUpperCase() != 'SELESAI')
+                Row(
+                  children: [
+                    if (AuthService().currentRole == UserRole.ormawa) ...[
+                      OutlinedButton(
+                        onPressed: () {
+                          _showQrScannerDialog(context, id, title);
+                        },
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          side: const BorderSide(color: AppColors.primary),
                         ),
-                      );
-                    },
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      side: const BorderSide(color: Color(0xFFE2E8F0)),
+                        child: const Text('Tampilkan QR', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => OrmawaQrScanScreen(
+                              eventId: id,
+                              eventTitle: title,
+                            ),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        backgroundColor: AppColors.primary,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        elevation: 0,
+                      ),
+                      child: const Text('Scan QR', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                     ),
-                    child: const Text('Detail', style: TextStyle(fontWeight: FontWeight.bold)),
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => OrmawaAbsensiScannerScreen(title: title, eventId: id),
-                        ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      backgroundColor: AppColors.primary,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      elevation: 0,
-                    ),
-                    child: const Text('Scan QR', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  ),
-                ],
-              ),
+                  ],
+                ),
             ],
           ),
         ],
@@ -232,127 +441,248 @@ class _OrmawaAbsensiScreenState extends State<OrmawaAbsensiScreen> {
     );
   }
 
-  void _showCreateAbsensi(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const OrmawaCreateAbsensiScreen()),
+  void _showQrScannerDialog(BuildContext context, String eventId, String title) {
+    final qrData = 'https://siakad.ubk.ac.id/student/presensi?eventId=$eventId';
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return _QrScannerDialogContent(
+          eventId: eventId,
+          title: title,
+          qrData: qrData,
+        );
+      },
     );
   }
 }
 
-class OrmawaCreateAbsensiScreen extends StatefulWidget {
-  const OrmawaCreateAbsensiScreen({super.key});
+class _QrScannerDialogContent extends StatefulWidget {
+  final String eventId;
+  final String title;
+  final String qrData;
+
+  const _QrScannerDialogContent({
+    required this.eventId,
+    required this.title,
+    required this.qrData,
+  });
 
   @override
-  State<OrmawaCreateAbsensiScreen> createState() => _OrmawaCreateAbsensiScreenState();
+  State<_QrScannerDialogContent> createState() => _QrScannerDialogContentState();
 }
 
-class _OrmawaCreateAbsensiScreenState extends State<OrmawaCreateAbsensiScreen> {
-  String? _selectedEventId;
+class _QrScannerDialogContentState extends State<_QrScannerDialogContent> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<OrmawaProvider>().fetchAttendance(widget.eventId);
+    });
+    // Poll attendance list every 3 seconds to keep UI synced in real-time
+    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      if (mounted) {
+        context.read<OrmawaProvider>().fetchAttendance(widget.eventId);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: Text('Generate QR Presensi', style: AppTextStyles.titleLg.copyWith(fontSize: 18)),
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.primary,
-        elevation: 0,
-      ),
-      body: Consumer<OrmawaProvider>(
-        builder: (context, provider, child) {
-          final agendas = provider.agendas;
-
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Pilih Kegiatan', style: AppTextStyles.titleLg.copyWith(color: AppColors.primary, fontWeight: FontWeight.w900)),
-                const SizedBox(height: 8),
-                Text('Pilih agenda yang ingin diaktifkan presensinya.', style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8))),
-                const SizedBox(height: 32),
-                
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+    return Dialog(
+      elevation: 0,
+      backgroundColor: Colors.transparent,
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 400),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(32),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(20),
+              blurRadius: 30,
+              offset: const Offset(0, 15),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(32),
+          child: Stack(
+            children: [
+              Positioned(
+                top: -60,
+                right: -60,
+                child: Container(
+                  width: 150,
+                  height: 150,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      isExpanded: true,
-                      hint: const Text('Pilih Agenda'),
-                      value: _selectedEventId,
-                      items: agendas.map((e) => DropdownMenuItem(
-                        value: e.id,
-                        child: Text(e.title),
-                      )).toList(),
-                      onChanged: (val) => setState(() => _selectedEventId = val),
-                    ),
+                    shape: BoxShape.circle,
+                    color: AppColors.primary.withAlpha(8),
                   ),
                 ),
+              ),
+              Positioned(
+                bottom: -80,
+                left: -80,
+                child: Container(
+                  width: 200,
+                  height: 200,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.primary.withAlpha(5),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                child: Consumer<OrmawaProvider>(
+                  builder: (context, provider, child) {
+                    final list = provider.attendanceList;
+                    final attendedCount = list.where((e) => e.status == 'hadir').length;
 
-                if (_selectedEventId != null) ...[
-                  const SizedBox(height: 40),
-                  Center(
-                    child: Column(
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
+                            color: AppColors.primary.withAlpha(10),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.qr_code_scanner_rounded,
+                            color: AppColors.primary,
+                            size: 28,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          'PEMINDAI QR PRESENSI',
+                          style: AppTextStyles.labelSm.copyWith(
+                            color: AppColors.primary.withAlpha(150),
+                            letterSpacing: 2,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 11,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          widget.title,
+                          style: AppTextStyles.titleLg.copyWith(
+                            fontSize: 20,
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w900,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Arahkan kamera mahasiswa ke kode QR di bawah ini untuk melakukan presensi secara mandiri.',
+                          style: AppTextStyles.bodySm.copyWith(
+                            color: const Color(0xFF64748B),
+                            height: 1.4,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 20),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withAlpha(15),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.green.withAlpha(30)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.people_alt_rounded, color: Colors.green, size: 16),
+                              const SizedBox(width: 8),
+                              Text(
+                                '$attendedCount Mahasiswa Hadir',
+                                style: AppTextStyles.labelSm.copyWith(
+                                  color: Colors.green.shade800,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(24),
+                            borderRadius: BorderRadius.circular(28),
+                            border: Border.all(color: const Color(0xFFF1F5F9), width: 2),
                             boxShadow: [
-                              BoxShadow(color: Colors.black.withAlpha(5), blurRadius: 20, offset: const Offset(0, 10)),
+                              BoxShadow(
+                                color: AppColors.primary.withAlpha(10),
+                                blurRadius: 25,
+                                offset: const Offset(0, 10),
+                              ),
                             ],
                           ),
                           child: QrImageView(
-                            data: _selectedEventId!,
+                            data: widget.qrData,
                             version: QrVersions.auto,
-                            size: 200.0,
-                            foregroundColor: AppColors.primary,
+                            size: 180.0,
+                            eyeStyle: const QrEyeStyle(
+                              eyeShape: QrEyeShape.square,
+                              color: AppColors.primary,
+                            ),
+                            dataModuleStyle: const QrDataModuleStyle(
+                              dataModuleShape: QrDataModuleShape.square,
+                              color: AppColors.primary,
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 24),
-                        Text(
-                          'Scan QR ini untuk Absensi',
-                          style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.bold, color: const Color(0xFF475569)),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          agendas.firstWhere((e) => e.id == _selectedEventId).title,
-                          style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8)),
+                        const SizedBox(height: 28),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 54,
+                          child: ElevatedButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: const Text(
+                              'TUTUP',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1.2,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
                         ),
                       ],
-                    ),
-                  ),
-                ],
-                
-                const SizedBox(height: 60),
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      elevation: 8,
-                    ),
-                    child: const Text('Selesai', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                  ),
+                    );
+                  },
                 ),
-              ],
-            ),
-          );
-        },
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 }
+
 class OrmawaAbsensiDetailScreen extends StatefulWidget {
   final String title;
   final String eventId;
@@ -363,66 +693,186 @@ class OrmawaAbsensiDetailScreen extends StatefulWidget {
 }
 
 class _OrmawaAbsensiDetailScreenState extends State<OrmawaAbsensiDetailScreen> {
+  bool _isSubmitting = false;
+  Timer? _timer;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<OrmawaProvider>().fetchAttendance(widget.eventId);
     });
+    // Start periodic polling for real-time check-in updates
+    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      if (mounted) {
+        context.read<OrmawaProvider>().fetchAttendance(widget.eventId);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _recordAttendance(String mahasiswaId, String status) async {
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
+    try {
+      await context.read<OrmawaProvider>().submitAttendance(widget.eventId, mahasiswaId, status);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(status == 'hadir' ? 'Kehadiran berhasil dicatat!' : 'Ketidakhadiran dicatat!'),
+            backgroundColor: status == 'hadir' ? Colors.green : Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        // Refresh
+        context.read<OrmawaProvider>().fetchAttendance(widget.eventId);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal mencatat kehadiran: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: Text('Detail Kehadiran', style: AppTextStyles.titleLg.copyWith(fontSize: 18)),
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.primary,
-        elevation: 0,
-        actions: [
-          IconButton(
-            onPressed: () => context.read<OrmawaProvider>().fetchAttendance(widget.eventId),
-            icon: const Icon(Icons.refresh_rounded),
-          ),
-          IconButton(onPressed: () {}, icon: const Icon(Icons.download_rounded)),
-        ],
-      ),
       body: Consumer<OrmawaProvider>(
         builder: (context, provider, child) {
           final list = provider.attendanceList;
           
-          if (provider.isLoading && list.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
-          }
+          final attendedCount = list.where((e) => e.status == 'hadir').length;
+          final absentCount = list.where((e) => e.status == 'tidak_hadir').length;
 
-          return Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(20),
-                color: Colors.white,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
+          return CustomScrollView(
+            slivers: [
+              BkuAppBar(
+                title: 'Konfirmasi Kehadiran',
+                variant: AppBarVariant.ormawa,
+                showBackButton: true,
+                isExpandable: false,
+                showNotification: false,
+                actions: [
+                  IconButton(
+                    onPressed: () => provider.fetchAttendance(widget.eventId),
+                    icon: const Icon(Icons.refresh_rounded, color: Colors.white),
+                  ),
+                ],
+              ),
+              
+              if (provider.isLoading && list.isEmpty)
+                const SliverFillRemaining(
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else ...[
+                // Beautiful Header Card
+                SliverToBoxAdapter(
+                  child: Container(
+                    margin: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withAlpha(5),
+                          blurRadius: 15,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                      border: Border.all(color: const Color(0xFFF1F5F9)),
+                    ),
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(widget.title, style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.w900)),
-                        Text('Total: ${list.length} Peserta Terdeteksi', style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8))),
+                        Text(
+                          widget.title,
+                          style: AppTextStyles.titleMd.copyWith(
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.primary,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Cek lis secara manual untuk memperbarui status kehadiran mahasiswa.',
+                          style: AppTextStyles.labelSm.copyWith(
+                            color: const Color(0xFF64748B),
+                            height: 1.3,
+                          ),
+                        ),
+                        if (list.isNotEmpty) ...[
+                          const SizedBox(height: 18),
+                          const Divider(color: Color(0xFFF1F5F9), height: 1),
+                          const SizedBox(height: 14),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFE8F5E9),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.check_circle_rounded, color: Colors.green, size: 18),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        '$attendedCount Hadir',
+                                        style: AppTextStyles.labelSm.copyWith(
+                                          color: Colors.green.shade800,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFFEBEE),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.cancel_rounded, color: Colors.red, size: 18),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        '$absentCount Alpa',
+                                        style: AppTextStyles.labelSm.copyWith(
+                                          color: Colors.red.shade800,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ],
                     ),
-                    if (list.isNotEmpty)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(color: Colors.green.withAlpha(10), borderRadius: BorderRadius.circular(10)),
-                      child: Text('OK', style: AppTextStyles.labelSm.copyWith(color: Colors.green, fontWeight: FontWeight.w900)),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-              Expanded(
-                child: list.isEmpty 
-                  ? Center(
+                
+                if (list.isEmpty)
+                  SliverFillRemaining(
+                    child: Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -431,193 +881,152 @@ class _OrmawaAbsensiDetailScreenState extends State<OrmawaAbsensiDetailScreen> {
                           Text('Belum ada data kehadiran', style: AppTextStyles.labelSm.copyWith(color: Colors.grey)),
                         ],
                       ),
-                    )
-                  : ListView.separated(
-                      padding: const EdgeInsets.all(20),
-                      itemCount: list.length,
-                      separatorBuilder: (context, index) => const SizedBox(height: 12),
-                      itemBuilder: (context, index) {
-                        final item = list[index];
-                        final timeStr = '${item.waktuHadir.hour.toString().padLeft(2, '0')}:${item.waktuHadir.minute.toString().padLeft(2, '0')}';
-                        
-                        return Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: const Color(0xFFF1F5F9)),
-                          ),
-                          child: Row(
-                            children: [
-                              CircleAvatar(
-                                backgroundColor: AppColors.primary.withAlpha(10),
-                                child: Text('${index + 1}', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 12)),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(item.mahasiswaName ?? 'Mahasiswa #${item.mahasiswaId}', style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.bold)),
-                                    Text('ID: ${item.mahasiswaId}', style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8), fontSize: 11)),
-                                  ],
+                    ),
+                  )
+                else
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final item = list[index];
+                          final isAttended = item.status == 'hadir';
+                          final isAbsent = item.status == 'tidak_hadir';
+                          
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withAlpha(3),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                                border: Border.all(
+                                  color: isAttended 
+                                      ? Colors.green.withAlpha(80) 
+                                      : (isAbsent ? Colors.red.withAlpha(80) : const Color(0xFFF1F5F9)),
+                                  width: 1.5,
                                 ),
                               ),
-                              Text(timeStr, style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF64748B), fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                        );
-                      },
+                              child: Row(
+                                children: [
+                                  // Left status line
+                                  Container(
+                                    width: 4,
+                                    height: 36,
+                                    decoration: BoxDecoration(
+                                      color: isAttended 
+                                          ? Colors.green 
+                                          : (isAbsent ? Colors.red : Colors.grey.shade300),
+                                      borderRadius: BorderRadius.circular(2),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  CircleAvatar(
+                                    radius: 20,
+                                    backgroundColor: isAttended 
+                                        ? Colors.green.withAlpha(30) 
+                                        : (isAbsent ? Colors.red.withAlpha(30) : AppColors.primary.withAlpha(10)),
+                                    child: Text(
+                                      item.mahasiswaName?.isNotEmpty == true ? item.mahasiswaName!.substring(0, 1).toUpperCase() : '?',
+                                      style: TextStyle(
+                                        color: isAttended 
+                                            ? Colors.green 
+                                            : (isAbsent ? Colors.red : AppColors.primary), 
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          item.mahasiswaName ?? 'Mahasiswa #${item.mahasiswaId}', 
+                                          style: AppTextStyles.bodyMd.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.primary,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          'NIM. ${item.nim ?? item.mahasiswaId}', 
+                                          style: AppTextStyles.labelSm.copyWith(
+                                            color: const Color(0xFF64748B), 
+                                            fontSize: 11,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      InkWell(
+                                        onTap: () => _recordAttendance(item.mahasiswaId, 'hadir'),
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: Container(
+                                          padding: const EdgeInsets.all(10),
+                                          decoration: BoxDecoration(
+                                            color: isAttended ? Colors.green : Colors.transparent,
+                                            borderRadius: BorderRadius.circular(12),
+                                            border: Border.all(
+                                              color: isAttended ? Colors.green : const Color(0xFFE2E8F0),
+                                              width: 1.5,
+                                            ),
+                                          ),
+                                          child: Icon(
+                                            Icons.check_rounded, 
+                                            color: isAttended ? Colors.white : const Color(0xFF64748B), 
+                                            size: 18,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      InkWell(
+                                        onTap: () => _recordAttendance(item.mahasiswaId, 'tidak_hadir'),
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: Container(
+                                          padding: const EdgeInsets.all(10),
+                                          decoration: BoxDecoration(
+                                            color: isAbsent ? Colors.red : Colors.transparent,
+                                            borderRadius: BorderRadius.circular(12),
+                                            border: Border.all(
+                                              color: isAbsent ? Colors.red : const Color(0xFFE2E8F0),
+                                              width: 1.5,
+                                            ),
+                                          ),
+                                          child: Icon(
+                                            Icons.close_rounded, 
+                                            color: isAbsent ? Colors.white : const Color(0xFF64748B), 
+                                            size: 18,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                        childCount: list.length,
+                      ),
                     ),
-              ),
+                  ),
+              ]
             ],
           );
         },
-      ),
-    );
-  }
-}
-
-class OrmawaAbsensiScannerScreen extends StatefulWidget {
-  final String title;
-  final String eventId;
-  const OrmawaAbsensiScannerScreen({super.key, required this.title, required this.eventId});
-
-  @override
-  State<OrmawaAbsensiScannerScreen> createState() => _OrmawaAbsensiScannerScreenState();
-}
-
-class _OrmawaAbsensiScannerScreenState extends State<OrmawaAbsensiScannerScreen> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  bool _isScanning = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 2))..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _onDetect(BarcodeCapture capture) async {
-    if (!_isScanning) return;
-    
-    final List<Barcode> barcodes = capture.barcodes;
-    for (final barcode in barcodes) {
-      final code = barcode.rawValue;
-      if (code != null && code == widget.eventId) {
-        setState(() => _isScanning = false);
-        
-        try {
-          await context.read<OrmawaProvider>().submitAttendance(widget.eventId, 'hadir');
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Absensi berhasil dicatat!'), backgroundColor: Colors.green),
-            );
-            Navigator.pop(context);
-          }
-        } catch (e) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Gagal absensi: $e'), backgroundColor: Colors.red),
-            );
-            setState(() => _isScanning = true);
-          }
-        }
-        break;
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          MobileScanner(
-            onDetect: _onDetect,
-          ),
-          // Scanner Overlay
-          Center(
-            child: Container(
-              width: 250,
-              height: 250,
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.white, width: 2),
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: Stack(
-                children: [
-                  AnimatedBuilder(
-                    animation: _controller,
-                    builder: (context, child) {
-                      return Positioned(
-                        top: _controller.value * 250,
-                        left: 0,
-                        right: 0,
-                        child: Container(
-                          height: 2,
-                          decoration: BoxDecoration(
-                            boxShadow: [
-                              BoxShadow(color: AppColors.primary.withAlpha(200), blurRadius: 10, spreadRadius: 2),
-                            ],
-                            gradient: const LinearGradient(colors: [Colors.transparent, AppColors.primary, Colors.transparent]),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-          // Back Button
-          Positioned(
-            top: 50,
-            left: 20,
-            child: IconButton(
-              onPressed: () => Navigator.pop(context),
-              icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-            ),
-          ),
-          // Bottom Info
-          Positioned(
-            bottom: 60,
-            left: 0,
-            right: 0,
-            child: Column(
-              children: [
-                Text(
-                  'SCAN QR CODE',
-                  style: AppTextStyles.labelMd.copyWith(color: Colors.white, letterSpacing: 2, fontWeight: FontWeight.w900),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  widget.title,
-                  style: AppTextStyles.bodyMd.copyWith(color: Colors.white70),
-                ),
-                const SizedBox(height: 40),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  decoration: BoxDecoration(color: Colors.white12, borderRadius: BorderRadius.circular(30)),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.qr_code_scanner_rounded, color: Colors.white, size: 20),
-                      const SizedBox(width: 12),
-                      Text('Arahkan Kamera ke QR', style: AppTextStyles.labelMd.copyWith(color: Colors.white)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

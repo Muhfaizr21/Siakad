@@ -16,6 +16,7 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
   final _descriptionController = TextEditingController();
   final _amountController = TextEditingController();
   String _selectedType = 'pemasukan';
+  String _selectedSource = 'organisasi';
   String _selectedCategory = 'Lainnya';
   bool _isSubmitting = false;
 
@@ -60,7 +61,18 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
                 _buildTypeCard('PENGELUARAN', 'pengeluaran', Icons.arrow_upward_rounded, Colors.red),
               ],
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
+
+            _buildLabel('SUMBER DANA'),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                _buildSourceCard('KAS MANDIRI', 'organisasi', Icons.payments_rounded, const Color(0xFF10B981)),
+                const SizedBox(width: 16),
+                _buildSourceCard('PAGU KAMPUS', 'kampus', Icons.assured_workload_rounded, const Color(0xFF0EA5E9)),
+              ],
+            ),
+            const SizedBox(height: 24),
             
             _buildLabel('DESKRIPSI / KETERANGAN'),
             const SizedBox(height: 12),
@@ -164,6 +176,36 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
     );
   }
 
+  Widget _buildSourceCard(String label, String value, IconData icon, Color color) {
+    final isSelected = _selectedSource == value;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _selectedSource = value),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            color: isSelected ? color.withAlpha(15) : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: isSelected ? color : const Color(0xFFE2E8F0), width: 2),
+          ),
+          child: Column(
+            children: [
+              Icon(icon, color: isSelected ? color : Colors.grey, size: 24),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                style: AppTextStyles.labelSm.copyWith(
+                  color: isSelected ? color : Colors.grey,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildTextField({
     required TextEditingController controller,
     required String hint,
@@ -207,6 +249,7 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
         'nominal': double.parse(_amountController.text.replaceAll('.', '')),
         'category': _selectedCategory,
         'description': _descriptionController.text,
+        'sumber': _selectedSource,
         'date': DateTime.now().toIso8601String(),
       };
 

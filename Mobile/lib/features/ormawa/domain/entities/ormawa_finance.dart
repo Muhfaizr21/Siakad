@@ -5,6 +5,7 @@ class OrmawaFinance {
   final String category;
   final String description;
   final DateTime date;
+  final String sumber;
 
   OrmawaFinance({
     required this.id,
@@ -13,6 +14,7 @@ class OrmawaFinance {
     required this.category,
     required this.description,
     required this.date,
+    required this.sumber,
   });
 
   factory OrmawaFinance.fromJson(Map<String, dynamic> json) {
@@ -23,6 +25,7 @@ class OrmawaFinance {
       category: json['Kategori'] ?? json['category'] ?? '',
       description: json['Deskripsi'] ?? json['description'] ?? '',
       date: DateTime.tryParse(json['Tanggal'] ?? json['tanggal'] ?? '') ?? DateTime.now(),
+      sumber: json['Sumber'] ?? json['sumber'] ?? 'organisasi',
     );
   }
 
@@ -34,6 +37,7 @@ class OrmawaFinance {
       'Kategori': category,
       'Deskripsi': description,
       'Tanggal': date.toIso8601String(),
+      'Sumber': sumber,
     };
   }
 }

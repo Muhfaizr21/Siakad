@@ -9,7 +9,7 @@ import 'package:bkuhub_mobile/features/mahasiswa/domain/entities/health_record.d
 import 'package:bkuhub_mobile/features/mahasiswa/domain/entities/organization_history.dart';
 import 'package:bkuhub_mobile/features/mahasiswa/domain/repositories/student_repository.dart';
 import 'package:bkuhub_mobile/core/services/auth_service.dart';
-import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_pkkmb.dart';
+import 'package:bkuhub_mobile/features/mahasiswa/domain/entities/pkkmb_event.dart';
 import 'package:bkuhub_mobile/features/mahasiswa/domain/entities/campus_news.dart';
 import 'package:bkuhub_mobile/features/mahasiswa/domain/entities/faculty_progress.dart';
 import 'package:bkuhub_mobile/features/mahasiswa/data/models/scholarship_model.dart';

@@ -46,17 +46,17 @@ export default function AbsensiKegiatan() {
     }
   }
 
-  const fetchAttendance = async (eventId) => {
-    setLoadingAtt(true)
+  const fetchAttendance = async (eventId, silent = false) => {
+    if (!silent) setLoadingAtt(true)
     try {
       const data = await fetchWithAuth(`${API}/attendance/${eventId}`)
       if (data.status === 'success') {
         setAttendance(data.data || [])
       }
     } catch (err) {
-      // Slient fail
+      // Silent fail
     } finally {
-      setLoadingAtt(false)
+      if (!silent) setLoadingAtt(false)
     }
   }
 
@@ -64,11 +64,27 @@ export default function AbsensiKegiatan() {
     fetchEvents()
   }, [ormawaId])
 
+  useEffect(() => {
+    let intervalId
+    if (selectedEvent) {
+      const eventId = selectedEvent.id || selectedEvent.ID
+      intervalId = setInterval(() => {
+        fetchAttendance(eventId, true)
+      }, 3000)
+    }
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId)
+      }
+    }
+  }, [selectedEvent])
+
   const handleSelectEvent = (event) => {
     setSelectedEvent(event)
-    const data = `${window.location.origin}/student/presensi?eventId=${event.ID}`
+    const eventId = event.id || event.ID
+    const data = `${window.location.origin}/student/presensi?eventId=${eventId}`
     setQrUrl(`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(data)}`)
-    fetchAttendance(event.ID)
+    fetchAttendance(eventId)
   }
 
   const handleRecordAttendance = async (studentId, status) => {
@@ -87,7 +103,7 @@ export default function AbsensiKegiatan() {
       })
       if (data.status === 'success') {
         toast.success(status === 'hadir' ? 'Kehadiran berhasil dicatat!' : 'Ketidakhadiran berhasil dicatat')
-        fetchAttendance(selectedEvent.ID)
+        fetchAttendance(selectedEvent.id || selectedEvent.ID)
       } else {
         toast.error(data.message || 'Gagal mencatat kehadiran')
       }
@@ -255,7 +271,7 @@ export default function AbsensiKegiatan() {
                 searchPlaceholder="Cari nama sesi..."
                 title=""
                 actions={(row) => {
-                  const isSelected = selectedEvent?.ID === row.ID
+                  const isSelected = (selectedEvent?.id || selectedEvent?.ID) === (row.id || row.ID)
                   return (
                     <Button
                       onClick={() => handleSelectEvent(row)}
@@ -294,9 +310,16 @@ export default function AbsensiKegiatan() {
               <div className="p-6 bg-gradient-to-r from-[var(--theme-primary-light)]/40 via-[var(--theme-primary-light)]/20 to-transparent rounded-2xl border border-[var(--theme-primary)]/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-black text-[var(--theme-primary)] tracking-widest uppercase font-headline">Sesi Aktif</span>
-                    <Badge className="bg-[var(--theme-success-light)] text-[var(--theme-success)] border border-[var(--theme-success)]/20 px-2 py-0.5 text-[8px] font-black tracking-wider uppercase rounded-full">
-                      Ready
+                    <span className="text-[10px] font-black text-[var(--theme-primary)] tracking-widest uppercase font-headline">
+                      {selectedEvent.Status?.toLowerCase() === 'selesai' ? 'Sesi Selesai' : 'Sesi Aktif'}
+                    </span>
+                    <Badge className={cn(
+                      "border px-2 py-0.5 text-[8px] font-black tracking-wider uppercase rounded-full",
+                      selectedEvent.Status?.toLowerCase() === 'selesai'
+                        ? "bg-slate-100 text-slate-600 border-slate-200"
+                        : "bg-[var(--theme-success-light)] text-[var(--theme-success)] border border-[var(--theme-success)]/20"
+                    )}>
+                      {selectedEvent.Status?.toLowerCase() === 'selesai' ? 'Selesai' : 'Ready'}
                     </Badge>
                   </div>
                   <h3 className="text-lg font-black text-[var(--theme-text)] font-headline tracking-tighter leading-tight">
@@ -308,27 +331,29 @@ export default function AbsensiKegiatan() {
                   </p>
                 </div>
 
-                <div className="flex items-center gap-3 w-full sm:w-auto shrink-0">
-                  {/* Dynamic mini QR box inside dashboard */}
-                  <div
-                    onClick={() => setIsQrOpen(true)}
-                    className="p-1.5 bg-[var(--theme-surface)] rounded-xl border border-border/50 shadow-sm cursor-pointer hover:scale-105 active:scale-95 transition-all group relative shrink-0"
-                    title="Perbesar QR Code"
-                  >
-                    <img src={qrUrl} alt="Mini QR" className="size-11 object-contain" />
-                    <div className="absolute inset-0 bg-[var(--theme-primary-light)]/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
-                      <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '14px' }}>zoom_in</span>
+                {selectedEvent.Status?.toLowerCase() !== 'selesai' && (
+                  <div className="flex items-center gap-3 w-full sm:w-auto shrink-0">
+                    {/* Dynamic mini QR box inside dashboard */}
+                    <div
+                      onClick={() => setIsQrOpen(true)}
+                      className="p-1.5 bg-[var(--theme-surface)] rounded-xl border border-border/50 shadow-sm cursor-pointer hover:scale-105 active:scale-95 transition-all group relative shrink-0"
+                      title="Perbesar QR Code"
+                    >
+                      <img src={qrUrl} alt="Mini QR" className="size-11 object-contain" />
+                      <div className="absolute inset-0 bg-[var(--theme-primary-light)]/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
+                        <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '14px' }}>zoom_in</span>
+                      </div>
                     </div>
-                  </div>
 
-                  <Button
-                    onClick={() => setIsQrOpen(true)}
-                    className="flex-1 sm:flex-initial h-11 px-5 rounded-2xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary)]/90 text-white font-bold text-xs tracking-wider gap-2 shadow-lg shadow-[var(--theme-primary)]/10 active:scale-95 transition-all border-none"
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>qr_code_2</span>
-                    <span>BUKA SCANNER</span>
-                  </Button>
-                </div>
+                    <Button
+                      onClick={() => setIsQrOpen(true)}
+                      className="flex-1 sm:flex-initial h-11 px-5 rounded-2xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary)]/90 text-white font-bold text-xs tracking-wider gap-2 shadow-lg shadow-[var(--theme-primary)]/10 active:scale-95 transition-all border-none"
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>qr_code_2</span>
+                      <span>BUKA SCANNER</span>
+                    </Button>
+                  </div>
+                )}
               </div>
 
               {/* Attendance Checklist Control List */}
@@ -379,7 +404,7 @@ export default function AbsensiKegiatan() {
 
                       return (
                         <div
-                          key={att.ID}
+                          key={att.id || att.ID}
                           className={cn(
                             "flex items-center justify-between p-3.5 rounded-2xl border border-border/50 shadow-sm transition-all duration-300",
                             isAttended && "bg-[var(--theme-success-light)]/20 border-[var(--theme-success)]/20",

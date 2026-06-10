@@ -13,6 +13,7 @@ import 'package:bkuhub_mobile/features/mahasiswa/dashboard/presentation/widgets/
 
 import 'package:bkuhub_mobile/core/providers/navigation_provider.dart';
 import 'package:bkuhub_mobile/features/mahasiswa/notifications/presentation/pages/notifications_screen.dart';
+import 'package:bkuhub_mobile/features/ormawa/absensi/presentation/pages/ormawa_qr_scan_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -66,6 +67,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
               showProfileOnCollapse: true,
               profileImage: const Icon(Icons.person_rounded, color: AppColors.primary, size: 28),
               showNotification: true,
+              actions: [
+                IconButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const OrmawaQrScanScreen(
+                          eventId: '',
+                          eventTitle: 'Scan Presensi Mandiri',
+                        ),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.qr_code_scanner_rounded, color: Colors.white),
+                  tooltip: 'Scan Presensi',
+                ),
+              ],
               onNotificationTap: (context, _) {
                 Navigator.push(
                   context,

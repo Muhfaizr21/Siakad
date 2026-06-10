@@ -264,13 +264,115 @@ class _OrmawaStaffScreenState extends State<OrmawaStaffScreen> {
   }
 }
 
-class OrmawaCreateStaffScreen extends StatelessWidget {
+class OrmawaCreateStaffScreen extends StatefulWidget {
   const OrmawaCreateStaffScreen({super.key});
+
+  @override
+  State<OrmawaCreateStaffScreen> createState() => _OrmawaCreateStaffScreenState();
+}
+
+class _OrmawaCreateStaffScreenState extends State<OrmawaCreateStaffScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
+
+  String? _selectedMahasiswaId;
+  String? _selectedMahasiswaName;
+  String? _selectedJabatan;
+  String? _selectedDivisi;
+
+  bool _isLoading = false;
+
+  final List<String> _jabatanOptions = [
+    'Pembina',
+    'Ketua',
+    'Wakil Ketua',
+    'Sekretaris',
+    'Bendahara',
+    'Kepala Divisi',
+    'Staff',
+  ];
+
+  final List<String> _divisiOptions = [
+    'Inti',
+    'Kesekretariatan',
+    'Humas',
+    'Pengembangan Organisasi',
+    'Kerohanian',
+    'Olahraga',
+    'Seni dan Budaya',
+    'Sosial Masyarakat',
+    'Ilmu Pengetahuan dan Teknologi',
+  ];
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _phoneController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _saveStaff() async {
+    if (_selectedMahasiswaId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Pilih mahasiswa terlebih dahulu'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    if (_selectedJabatan == null || _selectedDivisi == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Lengkapi semua field'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      await context.read<OrmawaProvider>().addMember({
+        'mahasiswa_id': _selectedMahasiswaId,
+        'jabatan': _selectedJabatan,
+        'divisi': _selectedDivisi,
+        'email': _emailController.text,
+        'phone': _phoneController.text,
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Staf berhasil ditambahkan'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal menambahkan staf: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8FAFC),
       body: CustomScrollView(
         slivers: [
           BkuAppBar(
@@ -282,44 +384,117 @@ class OrmawaCreateStaffScreen extends StatelessWidget {
             isExpandable: false,
           ),
           SliverToBoxAdapter(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Registrasi Staf & Ahli', style: AppTextStyles.titleLg.copyWith(color: AppColors.primary, fontWeight: FontWeight.w900)),
-                  const SizedBox(height: 8),
-                  Text('Tentukan jabatan dan wewenang untuk staf baru ini.', style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8))),
-                  const SizedBox(height: 32),
-                  _buildDropdownField('Pilih Mahasiswa', 'Pilih dari database...', Icons.person_search_rounded),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(child: _buildDropdownField('Jabatan', 'Contoh: Pembina', Icons.military_tech_rounded)),
-                      const SizedBox(width: 16),
-                      Expanded(child: _buildInputField('Divisi', 'Nama divisi...', Icons.business_center_rounded)),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  _buildInputField('Email Resmi', 'email@bku.ac.id', Icons.email_rounded),
-                  const SizedBox(height: 16),
-                  _buildInputField('Nomor WhatsApp', '08xx-xxxx-xxxx', Icons.phone_android_rounded),
-                  const SizedBox(height: 40),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        elevation: 8,
-                        shadowColor: AppColors.primary.withAlpha(50),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Registrasi Staf & Ahli',
+                      style: AppTextStyles.titleLg.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w900,
                       ),
-                      child: const Text('Simpan Data Staf', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 8),
+                    Text(
+                      'Tentukan jabatan dan wewenang untuk staf baru ini.',
+                      style: AppTextStyles.labelSm.copyWith(
+                        color: const Color(0xFF94A3B8),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Pilih Mahasiswa
+                    _buildDropdownField(
+                      label: 'Pilih Mahasiswa',
+                      hint: _selectedMahasiswaName ?? 'Pilih dari database...',
+                      icon: Icons.person_search_rounded,
+                      onTap: () => _showMahasiswaSelector(),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Jabatan & Divisi Row
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildDropdownField(
+                            label: 'Jabatan',
+                            hint: _selectedJabatan ?? 'Pilih jabatan...',
+                            icon: Icons.military_tech_rounded,
+                            onTap: () => _showJabatanSelector(),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildDropdownField(
+                            label: 'Divisi',
+                            hint: _selectedDivisi ?? 'Pilih divisi...',
+                            icon: Icons.business_center_rounded,
+                            onTap: () => _showDivisiSelector(),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Email
+                    _buildInputField(
+                      controller: _emailController,
+                      label: 'Email Resmi',
+                      hint: 'email@bku.ac.id',
+                      icon: Icons.email_rounded,
+                      keyboardType: TextInputType.emailAddress,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // WhatsApp
+                    _buildInputField(
+                      controller: _phoneController,
+                      label: 'Nomor WhatsApp',
+                      hint: '08xx-xxxx-xxxx',
+                      icon: Icons.phone_android_rounded,
+                      keyboardType: TextInputType.phone,
+                    ),
+                    const SizedBox(height: 40),
+
+                    // Save Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _saveStaff,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 8,
+                          shadowColor: AppColors.primary.withAlpha(50),
+                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Text(
+                                'Simpan Data Staf',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -328,33 +503,233 @@ class OrmawaCreateStaffScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInputField(String label, String hint, IconData icon, {int maxLines = 1}) {
+  void _showMahasiswaSelector() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.7,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Pilih Mahasiswa',
+              style: AppTextStyles.titleLg.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: Consumer<OrmawaProvider>(
+                builder: (context, provider, child) {
+                  // Ambil mahasiswa yang belum jadi staf
+                  final availableMembers = provider.members
+                      .where((m) => m.role.toLowerCase() == 'anggota' || m.role.toLowerCase() == '-')
+                      .toList();
+
+                  if (availableMembers.isEmpty) {
+                    return Center(
+                      child: Text(
+                        'Tidak ada mahasiswa tersedia',
+                        style: AppTextStyles.bodyMd.copyWith(
+                          color: AppColors.neutral600,
+                        ),
+                      ),
+                    );
+                  }
+
+                  return ListView.builder(
+                    itemCount: availableMembers.length,
+                    itemBuilder: (context, index) {
+                      final member = availableMembers[index];
+                      return ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: AppColors.primary.withAlpha(15),
+                          child: Text(
+                            member.initial,
+                            style: TextStyle(color: AppColors.primary),
+                          ),
+                        ),
+                        title: Text(member.name),
+                        subtitle: Text(member.nim),
+                        onTap: () {
+                          setState(() {
+                            _selectedMahasiswaId = member.id;
+                            _selectedMahasiswaName = member.name;
+                          });
+                          Navigator.pop(context);
+                        },
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showJabatanSelector() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Pilih Jabatan',
+              style: AppTextStyles.titleLg.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            ...List.generate(_jabatanOptions.length, (index) {
+              final jabatan = _jabatanOptions[index];
+              return ListTile(
+                leading: Icon(
+                  Icons.military_tech_rounded,
+                  color: AppColors.primary,
+                ),
+                title: Text(jabatan),
+                onTap: () {
+                  setState(() => _selectedJabatan = jabatan);
+                  Navigator.pop(context);
+                },
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showDivisiSelector() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Pilih Divisi',
+              style: AppTextStyles.titleLg.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: _divisiOptions.length,
+                itemBuilder: (context, index) {
+                  final divisi = _divisiOptions[index];
+                  return ListTile(
+                    leading: Icon(
+                      Icons.business_center_rounded,
+                      color: AppColors.primary,
+                    ),
+                    title: Text(divisi),
+                    onTap: () {
+                      setState(() => _selectedDivisi = divisi);
+                      Navigator.pop(context);
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInputField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+    TextInputType? keyboardType,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF475569), fontWeight: FontWeight.bold)),
+        Text(
+          label,
+          style: AppTextStyles.labelSm.copyWith(
+            color: const Color(0xFF475569),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           decoration: BoxDecoration(
-            color: const Color(0xFFF8FAFC),
+            color: Colors.white,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: const Color(0xFFE2E8F0)),
           ),
           child: Row(
-            crossAxisAlignment: maxLines > 1 ? CrossAxisAlignment.start : CrossAxisAlignment.center,
             children: [
-              Padding(
-                padding: EdgeInsets.only(top: maxLines > 1 ? 12 : 0),
-                child: Icon(icon, color: const Color(0xFF94A3B8), size: 20),
-              ),
+              Icon(icon, color: const Color(0xFF94A3B8), size: 20),
               const SizedBox(width: 12),
               Expanded(
                 child: TextField(
-                  maxLines: maxLines,
+                  controller: controller,
+                  keyboardType: keyboardType,
                   decoration: InputDecoration(
                     hintText: hint,
-                    hintStyle: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8)),
+                    hintStyle: AppTextStyles.labelSm.copyWith(
+                      color: const Color(0xFF94A3B8),
+                    ),
                     border: InputBorder.none,
                   ),
                 ),
@@ -366,28 +741,50 @@ class OrmawaCreateStaffScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDropdownField(String label, String hint, IconData icon) {
+  Widget _buildDropdownField({
+    required String label,
+    required String hint,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF475569), fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF8FAFC),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
+        Text(
+          label,
+          style: AppTextStyles.labelSm.copyWith(
+            color: const Color(0xFF475569),
+            fontWeight: FontWeight.bold,
           ),
-          child: Row(
-            children: [
-              Icon(icon, color: const Color(0xFF94A3B8), size: 20),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(hint, style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8))),
-              ),
-              const Icon(Icons.expand_more_rounded, color: Color(0xFF94A3B8), size: 20),
-            ],
+        ),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Row(
+              children: [
+                Icon(icon, color: const Color(0xFF94A3B8), size: 20),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    hint,
+                    style: AppTextStyles.labelSm.copyWith(
+                      color: hint.startsWith('Pilih')
+                          ? const Color(0xFF94A3B8)
+                          : const Color(0xFF1E293B),
+                    ),
+                  ),
+                ),
+                const Icon(Icons.expand_more_rounded, color: Color(0xFF94A3B8), size: 20),
+              ],
+            ),
           ),
         ),
       ],

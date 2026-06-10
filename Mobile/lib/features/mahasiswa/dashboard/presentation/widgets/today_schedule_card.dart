@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 import 'package:bkuhub_mobile/core/providers/student_provider.dart';
-import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_pkkmb.dart';
+import 'package:bkuhub_mobile/features/mahasiswa/domain/entities/pkkmb_event.dart';
 
 class TodayScheduleCard extends StatelessWidget {
   const TodayScheduleCard({super.key});

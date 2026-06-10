@@ -12,6 +12,8 @@ class OrmawaMemberModel extends OrmawaMember {
     super.email,
     super.phone,
     super.joinedAt,
+    super.fotoUrl,
+    super.periode,
   });
 
   factory OrmawaMemberModel.fromJson(Map<String, dynamic> json) {
@@ -27,6 +29,8 @@ class OrmawaMemberModel extends OrmawaMember {
       email: mahasiswa?['email_kampus'] ?? mahasiswa?['EmailKampus'] ?? json['email'] ?? '',
       phone: mahasiswa?['no_hp'] ?? mahasiswa?['NoHP'] ?? json['phone'] ?? '',
       joinedAt: DateTime.tryParse(json['JoinedAt'] ?? json['joinedAt'] ?? json['joined_at'] ?? ''),
+      fotoUrl: mahasiswa?['FotoURL'] ?? mahasiswa?['foto_url'] ?? mahasiswa?['Foto'] ?? json['fotoUrl'] ?? '',
+      periode: json['Periode'] ?? json['periode'] ?? '',
     );
   }
 

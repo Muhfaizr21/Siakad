@@ -7,6 +7,8 @@ class OrmawaLPJ {
   final double realisasiAnggaran;
   final double totalAnggaran;
   final String? fileUrl;
+  final String? proposalTitle;
+  final DateTime? tenggatLpj;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -19,11 +21,22 @@ class OrmawaLPJ {
     required this.realisasiAnggaran,
     required this.totalAnggaran,
     this.fileUrl,
+    this.proposalTitle,
+    this.tenggatLpj,
     this.createdAt,
     this.updatedAt,
   });
 
   factory OrmawaLPJ.fromJson(Map<String, dynamic> json) {
+    DateTime? parsedTenggat;
+    if (json['Proposal'] != null) {
+      final p = json['Proposal'];
+      final rawTenggat = p['TenggatLPJ'] ?? p['tenggat_lpj'];
+      if (rawTenggat != null) {
+        parsedTenggat = DateTime.tryParse(rawTenggat.toString());
+      }
+    }
+
     return OrmawaLPJ(
       id: (json['ID'] ?? json['id'] ?? '').toString(),
       proposalId: (json['ProposalID'] ?? json['proposalId'] ?? '').toString(),
@@ -33,6 +46,8 @@ class OrmawaLPJ {
       realisasiAnggaran: ((json['RealisasiAnggaran'] ?? json['realisasiAnggaran'] ?? 0.0) as num).toDouble(),
       totalAnggaran: ((json['TotalAnggaran'] ?? json['totalAnggaran'] ?? 0.0) as num).toDouble(),
       fileUrl: json['FileURL'] ?? json['fileUrl'] as String?,
+      proposalTitle: json['Proposal'] != null ? (json['Proposal']['Judul'] ?? json['Proposal']['judul'] ?? '').toString() : null,
+      tenggatLpj: parsedTenggat,
       createdAt: DateTime.tryParse(json['CreatedAt'] ?? json['createdAt'] ?? json['created_at'] ?? ''),
       updatedAt: DateTime.tryParse(json['UpdatedAt'] ?? json['updatedAt'] ?? json['updated_at'] ?? ''),
     );

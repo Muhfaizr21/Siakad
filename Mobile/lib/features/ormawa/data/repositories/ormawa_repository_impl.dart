@@ -2,21 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:bkuhub_mobile/core/network/api_client.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/repositories/ormawa_repository.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_member.dart';
+import 'package:dio/dio.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_proposal.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_agenda.dart';
-import 'package:bkuhub_mobile/features/ormawa/domain/entities/pkkmb_mission.dart';
-import 'package:bkuhub_mobile/features/ormawa/domain/entities/banding_appeal.dart';
 import 'package:bkuhub_mobile/features/ormawa/data/models/ormawa_member_model.dart';
 import 'package:bkuhub_mobile/features/ormawa/data/models/ormawa_proposal_model.dart';
 import 'package:bkuhub_mobile/features/ormawa/data/models/ormawa_agenda_model.dart';
-import 'package:bkuhub_mobile/features/ormawa/data/models/pkkmb_mission_model.dart';
 import 'package:bkuhub_mobile/features/ormawa/data/models/ormawa_attendance_model.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_attendance.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_finance.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_lpj.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_aspiration.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_announcement.dart';
-import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_pkkmb.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_role.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_division.dart';
 import 'package:bkuhub_mobile/features/ormawa/data/models/ormawa_role_model.dart';
@@ -30,17 +27,50 @@ class OrmawaRepositoryImpl implements OrmawaRepository {
   final AuthService _authService = AuthService();
 
   @override
-  Future<List<OrmawaMember>> getMembers(String ormawaId) async {
+  Future<Map<String, dynamic>> getMembersData(String ormawaId, {String? periode}) async {
     try {
-      final response = await _apiClient.client.get('/ormawa/members', queryParameters: {'ormawaId': ormawaId});
+      final Map<String, dynamic> query = {'ormawaId': ormawaId};
+      if (periode != null && periode.isNotEmpty) {
+        query['periode'] = periode;
+      }
+      final response = await _apiClient.client.get('/ormawa/members', queryParameters: query);
       if (response.data['status'] == 'success') {
         final List data = response.data['data'] ?? [];
-        return data.map((json) => OrmawaMemberModel.fromJson(json)).toList();
+        final List<OrmawaMember> members = data.map((json) => OrmawaMemberModel.fromJson(json)).toList();
+        final List<String> periods = List<String>.from(response.data['periods'] ?? []);
+        return {
+          'members': members,
+          'periods': periods,
+        };
       }
-      return [];
+      return {'members': <OrmawaMember>[], 'periods': <String>[]};
     } catch (e) {
-      debugPrint('Error fetching members: $e');
-      return [];
+      debugPrint('Error fetching members data: $e');
+      return {'members': <OrmawaMember>[], 'periods': <String>[]};
+    }
+  }
+
+  @override
+  Future<void> regenerateMembers(String ormawaId) async {
+    try {
+      await _apiClient.client.post('/ormawa/members/regenerate');
+    } catch (e) {
+      debugPrint('Error regenerating members: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> createDivisionInline(String ormawaId, String name) async {
+    try {
+      final payload = {
+        'Nama': name,
+        'OrmawaID': int.parse(ormawaId),
+      };
+      await _apiClient.client.post('/ormawa/divisions', data: payload);
+    } catch (e) {
+      debugPrint('Error creating division inline: $e');
+      rethrow;
     }
   }
 
@@ -118,31 +148,20 @@ class OrmawaRepositoryImpl implements OrmawaRepository {
   }
 
   @override
-  Future<List<PKKMBMission>> getPKKMBMissions() async {
+  Future<Map<String, dynamic>> getGamifikasiSummary() async {
     try {
-      final response = await _apiClient.client.get('/ormawa/kencana/materi');
+      final response = await _apiClient.client.get('/ormawa/gamifikasi/summary');
       if (response.data['status'] == 'success') {
-        final List data = response.data['data'] ?? [];
-        return data.map<PKKMBMission>((json) => PKKMBMissionModel.fromJson(json)).toList();
+        return response.data['data'] ?? {};
       }
-      return [];
+      return {};
     } catch (e) {
-      debugPrint('Error getting pkkmb missions (materi): $e');
-      return [];
+      debugPrint('Error getting gamifikasi summary: $e');
+      return {};
     }
   }
 
-  @override
-  Future<List<BandingAppeal>> getAppeals() async {
-    try {
-      final response = await _apiClient.client.get('/ormawa/kencana/banding');
-      final List data = response.data['data'] ?? [];
-      return data.map<BandingAppeal>((json) => BandingAppeal.fromJson(json)).toList();
-    } catch (e) {
-      debugPrint('Error getting pkkmb appeals: $e');
-      return [];
-    }
-  }
+
 
 
   @override
@@ -214,31 +233,7 @@ class OrmawaRepositoryImpl implements OrmawaRepository {
     }
   }
 
-  @override
-  Future<void> addPKKMBMission(PKKMBMission mission) async {
-    try {
-      final payload = {
-        'judul': mission.title,
-        'deskripsi': mission.desc,
-        'tipe': mission.type,
-      };
-      await _apiClient.client.post('/ormawa/kencana/materi', data: payload);
-    } catch (e) {
-      debugPrint('Error adding pkkmb mission: $e');
-      rethrow;
-    }
-  }
 
-  @override
-  Future<void> togglePKKMBMissionStatus(String id) async {
-    // Optional: implement status toggle if supported by backend, or just map to delete for now
-    try {
-      await _apiClient.client.delete('/ormawa/kencana/materi/$id');
-    } catch (e) {
-      debugPrint('Error toggling/deleting pkkmb mission: $e');
-      rethrow;
-    }
-  }
 
   @override
   Future<void> addAgenda(String ormawaId, Map<String, dynamic> data) async {
@@ -315,6 +310,7 @@ class OrmawaRepositoryImpl implements OrmawaRepository {
         'Kategori': data['category'],
         'Deskripsi': data['description'],
         'Tanggal': _formatDate(data['date']),
+        'Sumber': data['sumber'],
       };
       await _apiClient.client.post('/ormawa/kas', data: payload);
     } catch (e) {
@@ -353,6 +349,16 @@ class OrmawaRepositoryImpl implements OrmawaRepository {
       await _apiClient.client.put('/ormawa/lpjs/$id', data: data);
     } catch (e) {
       debugPrint('Error updating LPJ: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> deleteLPJ(String id) async {
+    try {
+      await _apiClient.client.delete('/ormawa/lpjs/$id');
+    } catch (e) {
+      debugPrint('Error deleting LPJ: $e');
       rethrow;
     }
   }
@@ -402,6 +408,16 @@ class OrmawaRepositoryImpl implements OrmawaRepository {
   }
 
   @override
+  Future<void> updateAnnouncement(String id, Map<String, dynamic> data) async {
+    try {
+      await _apiClient.client.put('/ormawa/announcements/$id', data: data);
+    } catch (e) {
+      debugPrint('Error updating announcement: $e');
+      rethrow;
+    }
+  }
+
+  @override
   Future<void> deleteAnnouncement(String id) async {
     try {
       await _apiClient.client.delete('/ormawa/announcements/$id');
@@ -411,113 +427,7 @@ class OrmawaRepositoryImpl implements OrmawaRepository {
     }
   }
 
-  // PKKMB / KENCANA
-  @override
-  Future<PkkmbSummary> getPkkmbSummary() async {
-    try {
-      final response = await _apiClient.client.get('/ormawa/kencana/ringkasan');
-      return PkkmbSummary.fromJson(response.data);
-    } catch (e) {
-      debugPrint('Error getting pkkmb summary: $e');
-      rethrow;
-    }
-  }
 
-  @override
-  Future<List<PkkmbParticipant>> getPkkmbParticipants() async {
-    try {
-      final response = await _apiClient.client.get('/ormawa/kencana/peserta');
-      final List data = response.data['data'] ?? [];
-      return data.map((json) => PkkmbParticipant.fromJson(json)).toList();
-    } catch (e) {
-      debugPrint('Error getting pkkmb participants: $e');
-      rethrow;
-    }
-  }
-
-  @override
-  Future<List<PkkmbEvent>> getPkkmbEvents() async {
-    try {
-      final response = await _apiClient.client.get('/ormawa/kencana/kegiatan');
-      final List data = response.data['data'] ?? [];
-      return data.map((json) => PkkmbEvent.fromJson(json)).toList();
-    } catch (e) {
-      debugPrint('Error getting pkkmb events: $e');
-      rethrow;
-    }
-  }
-
-  @override
-  Future<void> createPkkmbEvent(Map<String, dynamic> data) async {
-    try {
-      await _apiClient.client.post('/ormawa/kencana/kegiatan', data: data);
-    } catch (e) {
-      debugPrint('Error creating pkkmb event: $e');
-      rethrow;
-    }
-  }
-
-  @override
-  Future<void> updatePkkmbEvent(String id, Map<String, dynamic> data) async {
-    try {
-      await _apiClient.client.put('/ormawa/kencana/kegiatan/$id', data: data);
-    } catch (e) {
-      debugPrint('Error updating pkkmb event: $e');
-      rethrow;
-    }
-  }
-
-  @override
-  Future<void> deletePkkmbEvent(String id) async {
-    try {
-      await _apiClient.client.delete('/ormawa/kencana/kegiatan/$id');
-    } catch (e) {
-      debugPrint('Error deleting pkkmb event: $e');
-      rethrow;
-    }
-  }
-
-  @override
-  Future<List<PkkmbQuiz>> getPkkmbQuizzes() async {
-    try {
-      final response = await _apiClient.client.get('/ormawa/kencana/kuis');
-      final List data = response.data['data'] ?? [];
-      return data.map((json) => PkkmbQuiz.fromJson(json)).toList();
-    } catch (e) {
-      debugPrint('Error getting pkkmb quizzes: $e');
-      rethrow;
-    }
-  }
-
-  @override
-  Future<void> createPkkmbQuiz(Map<String, dynamic> data) async {
-    try {
-      await _apiClient.client.post('/ormawa/kencana/kuis', data: data);
-    } catch (e) {
-      debugPrint('Error creating pkkmb quiz: $e');
-      rethrow;
-    }
-  }
-
-  @override
-  Future<void> updatePkkmbQuiz(String id, Map<String, dynamic> data) async {
-    try {
-      await _apiClient.client.put('/ormawa/kencana/kuis/$id', data: data);
-    } catch (e) {
-      debugPrint('Error updating pkkmb quiz: $e');
-      rethrow;
-    }
-  }
-
-  @override
-  Future<void> deletePkkmbQuiz(String id) async {
-    try {
-      await _apiClient.client.delete('/ormawa/kencana/kuis/$id');
-    } catch (e) {
-      debugPrint('Error deleting pkkmb quiz: $e');
-      rethrow;
-    }
-  }
 
   @override
   Future<void> deleteAgenda(String id) async {
@@ -529,10 +439,7 @@ class OrmawaRepositoryImpl implements OrmawaRepository {
     }
   }
 
-  @override
-  Future<void> reviewAppeal(String id, bool approved) async {
-    await _apiClient.client.post('/ormawa/kencana/banding/$id/review', data: {'approved': approved});
-  }
+
 
   @override
   Future<List<OrmawaAttendance>> getAttendance(String eventId) async {
@@ -647,6 +554,124 @@ class OrmawaRepositoryImpl implements OrmawaRepository {
       return null;
     } catch (e) {
       debugPrint('Error getting active academic year in repo: $e');
+      return null;
+    }
+  }
+
+  // RECRUITMENT / OPEN RECRUITMENT
+  @override
+  Future<Map<String, dynamic>> getRecruitmentSettings(String ormawaId) async {
+    try {
+      final response = await _apiClient.client.get('/ormawa/recruitment/settings', queryParameters: {'ormawaId': ormawaId});
+      if (response.data['status'] == 'success' && response.data['data'] != null) {
+        return Map<String, dynamic>.from(response.data['data']);
+      }
+      return {};
+    } catch (e) {
+      debugPrint('Error fetching recruitment settings: $e');
+      return {};
+    }
+  }
+
+  @override
+  Future<void> updateRecruitmentSettings(String ormawaId, Map<String, dynamic> data) async {
+    try {
+      await _apiClient.client.put('/ormawa/recruitment/settings', queryParameters: {'ormawaId': ormawaId}, data: data);
+    } catch (e) {
+      debugPrint('Error updating recruitment settings: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getRecruitmentApplicants(String ormawaId) async {
+    try {
+      final response = await _apiClient.client.get('/ormawa/recruitment/applicants', queryParameters: {'ormawaId': ormawaId});
+      if (response.data['status'] == 'success' && response.data['data'] != null) {
+        final List data = response.data['data'] ?? [];
+        return data.map((json) => Map<String, dynamic>.from(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error fetching recruitment applicants: $e');
+      return [];
+    }
+  }
+
+  @override
+  Future<void> reviewRecruitmentApplicant(String applicantId, String status) async {
+    try {
+      await _apiClient.client.put('/ormawa/recruitment/applicants/$applicantId/review', data: {'status': status});
+    } catch (e) {
+      debugPrint('Error reviewing recruitment applicant: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getRecruitmentFormFields(String ormawaId) async {
+    try {
+      final response = await _apiClient.client.get('/ormawa/recruitment/form-fields', queryParameters: {'ormawaId': ormawaId});
+      if (response.data['status'] == 'success' && response.data['data'] != null) {
+        final List data = response.data['data'] ?? [];
+        return data.map((json) => Map<String, dynamic>.from(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error fetching recruitment form fields: $e');
+      return [];
+    }
+  }
+
+  @override
+  Future<void> saveRecruitmentFormFields(String ormawaId, List<Map<String, dynamic>> fields) async {
+    try {
+      await _apiClient.client.post('/ormawa/recruitment/form-fields', queryParameters: {'ormawaId': ormawaId}, data: {'fields': fields});
+    } catch (e) {
+      debugPrint('Error saving recruitment form fields: $e');
+      rethrow;
+    }
+  }
+
+  // SETTINGS / PREFERENCES
+  @override
+  Future<Map<String, dynamic>> getOrmawaSettings(String ormawaId) async {
+    try {
+      final response = await _apiClient.client.get('/ormawa/settings', queryParameters: {'ormawaId': ormawaId});
+      if (response.data['status'] == 'success' && response.data['data'] != null) {
+        return Map<String, dynamic>.from(response.data['data']);
+      }
+      return {};
+    } catch (e) {
+      debugPrint('Error fetching ormawa settings: $e');
+      return {};
+    }
+  }
+
+  @override
+  Future<void> updateOrmawaSettings(String ormawaId, Map<String, dynamic> data) async {
+    try {
+      await _apiClient.client.put('/ormawa/settings', queryParameters: {'ormawaId': ormawaId}, data: data);
+    } catch (e) {
+      debugPrint('Error updating ormawa settings: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<String?> uploadFile(String filePath) async {
+    try {
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(filePath),
+      });
+
+      final response = await _apiClient.client.post('/ormawa/upload', data: formData);
+      if (response.data != null && response.data['status'] == 'success') {
+        return response.data['url']?.toString();
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error uploading file: $e');
       return null;
     }
   }

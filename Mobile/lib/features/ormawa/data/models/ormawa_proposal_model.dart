@@ -12,6 +12,18 @@ class OrmawaProposalModel extends OrmawaProposal {
     required super.date,
     super.budget,
     super.description,
+    super.landasanKegiatan,
+    super.bentukKegiatan,
+    super.mitra,
+    super.pjKegiatan,
+    super.jadwalPelaksanaan,
+    super.sasaranKegiatan,
+    super.indikatorKeberhasilan,
+    super.sumberDana,
+    super.latarBelakang,
+    super.tujuanKegiatan,
+    super.fileUrl,
+    super.catatan,
   });
 
   factory OrmawaProposalModel.fromJson(Map<String, dynamic> json) {
@@ -23,7 +35,7 @@ class OrmawaProposalModel extends OrmawaProposal {
       fakultasId:
           json['FakultasID']?.toString() ?? json['fakultas_id']?.toString(),
       title: json['Judul'] ?? json['title'] ?? '',
-      code: 'PROP-${json['ID']}',
+      code: json['code'] ?? 'PROP-${json['ID']?.toString() ?? json['id']?.toString() ?? ''}',
       status:
           (json['Status'] ?? json['status'] ?? 'diajukan')
               .toString()
@@ -38,7 +50,19 @@ class OrmawaProposalModel extends OrmawaProposal {
           (json['Anggaran'] as num?)?.toDouble() ??
           (json['budget'] as num?)?.toDouble() ??
           0,
-      description: json['Catatan'] ?? json['description'] ?? '',
+      description: json['Deskripsi'] ?? json['deskripsi'] ?? '',
+      landasanKegiatan: json['LandasanKegiatan'] ?? json['landasan_kegiatan'],
+      bentukKegiatan: json['BentukKegiatan'] ?? json['bentuk_kegiatan'],
+      mitra: json['Mitra'] ?? json['mitra'],
+      pjKegiatan: json['PJKegiatan'] ?? json['pj_kegiatan'],
+      jadwalPelaksanaan: json['JadwalPelaksanaan'] ?? json['jadwal_pelaksanaan'],
+      sasaranKegiatan: json['SasaranKegiatan'] ?? json['sasaran_kegiatan'],
+      indikatorKeberhasilan: json['IndikatorKeberhasilan'] ?? json['indikator_keberhasilan'],
+      sumberDana: json['SumberDana'] ?? json['sumber_dana'],
+      latarBelakang: json['LatarBelakang'] ?? json['latar_belakang'],
+      tujuanKegiatan: json['TujuanKegiatan'] ?? json['tujuan_kegiatan'],
+      fileUrl: json['file_url'] ?? json['FileURL'],
+      catatan: json['Catatan'] ?? json['catatan'],
     );
   }
 
@@ -51,7 +75,20 @@ class OrmawaProposalModel extends OrmawaProposal {
       'Anggaran': budget,
       'Status': status.toLowerCase(),
       'TanggalKegiatan': cleanDate,
-      'Catatan': description ?? '',
+      'Deskripsi': description ?? '',
+      'LandasanKegiatan': landasanKegiatan ?? '',
+      'BentukKegiatan': bentukKegiatan ?? '',
+      'Mitra': mitra ?? '',
+      'PJKegiatan': pjKegiatan ?? '',
+      'JadwalPelaksanaan': jadwalPelaksanaan ?? '',
+      'SasaranKegiatan': sasaranKegiatan ?? '',
+      'IndikatorKeberhasilan': indikatorKeberhasilan ?? '',
+      'SumberDana': sumberDana ?? '',
+      'LatarBelakang': latarBelakang ?? '',
+      'TujuanKegiatan': tujuanKegiatan ?? '',
+      'file_url': fileUrl ?? '',
+      'FileURL': fileUrl ?? '',
+      'Catatan': catatan ?? '',
     };
 
     if (ormawaId != null && ormawaId!.isNotEmpty) {

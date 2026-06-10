@@ -13,8 +13,10 @@ import 'package:bkuhub_mobile/core/widgets/unified_card.dart';
 
 // Modular Widgets
 import 'package:bkuhub_mobile/features/ormawa/dashboard/presentation/widgets/ormawa_quick_stats.dart';
+import 'package:bkuhub_mobile/features/ormawa/dashboard/presentation/widgets/ormawa_gamification_card.dart';
 import 'package:bkuhub_mobile/features/ormawa/dashboard/presentation/widgets/ormawa_service_grid.dart';
 import 'package:bkuhub_mobile/features/ormawa/dashboard/presentation/widgets/ormawa_proposal_list.dart';
+import 'package:bkuhub_mobile/features/ormawa/dashboard/presentation/widgets/ormawa_recent_members.dart';
 import 'package:bkuhub_mobile/features/ormawa/proposal/presentation/pages/ormawa_proposal_screen.dart';
 import 'package:bkuhub_mobile/features/ormawa/kalender/presentation/pages/ormawa_kalender_screen.dart';
 import 'package:bkuhub_mobile/features/ormawa/kalender/presentation/pages/ormawa_agenda_detail_screen.dart';
@@ -50,8 +52,8 @@ class _OrmawaDashboardScreenState extends State<OrmawaDashboardScreen> {
           physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
           slivers: [
             BkuAppBar(
-              title: context.watch<OrmawaProvider>().orgName,
-              subtitle: 'PORTAL ADMINISTRATOR',
+              title: 'Halo, ${context.watch<OrmawaProvider>().currentMember?.name.split(' ').first ?? context.watch<OrmawaProvider>().orgName}!',
+              subtitle: context.watch<OrmawaProvider>().currentMember?.role ?? 'PORTAL ADMINISTRATOR',
               info: 'TAHUN AKADEMIK ${context.watch<OrmawaProvider>().academicYear}',
               variant: AppBarVariant.ormawa,
               expandedHeight: 200.0,
@@ -71,7 +73,7 @@ class _OrmawaDashboardScreenState extends State<OrmawaDashboardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
                   const OrmawaQuickStats(),
                   const SizedBox(height: 32),
                   const Padding(
@@ -80,6 +82,8 @@ class _OrmawaDashboardScreenState extends State<OrmawaDashboardScreen> {
                   ),
                   const SizedBox(height: 10),
                   const OrmawaServiceGrid(),
+                  const SizedBox(height: 32),
+                  const OrmawaGamificationCard(),
                   const SizedBox(height: 32),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -122,6 +126,8 @@ class _OrmawaDashboardScreenState extends State<OrmawaDashboardScreen> {
                                 .toList(),
                           ),
                   ),
+                  const SizedBox(height: 32),
+                  const OrmawaRecentMembers(),
                   const SizedBox(height: 120),
                 ],
               ),

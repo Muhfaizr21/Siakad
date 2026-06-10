@@ -8,8 +8,8 @@ class ApiGate {
     }
     try {
       if (Platform.isAndroid) {
-        // Untuk emulator Android Studio, gunakan 10.0.2.2 (alias untuk localhost komputer host)
-        return 'http://10.0.2.2:8000/api';
+        // Untuk emulator Android Studio ATAU HP fisik dengan adb reverse
+        return 'http://127.0.0.1:8000/api';
       }
     } catch (_) {}
 

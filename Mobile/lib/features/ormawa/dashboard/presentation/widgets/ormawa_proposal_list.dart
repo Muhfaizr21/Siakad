@@ -32,17 +32,28 @@ class OrmawaProposalList extends StatelessWidget {
       itemCount: proposals.length > 3 ? 3 : proposals.length,
       itemBuilder: (context, index) {
         final proposal = proposals[index];
+        final statusLower = proposal.status.toLowerCase();
         
         Color statusColor;
-        switch (proposal.status) {
-          case 'Disetujui':
-            statusColor = Colors.green;
-            break;
-          case 'Ditolak':
-            statusColor = Colors.red;
-            break;
-          default:
-            statusColor = Colors.orange;
+        IconData statusIcon;
+        List<Color> gradientColors;
+
+        if (statusLower.contains('disetujui') || statusLower == 'selesai') {
+          statusColor = const Color(0xFF10B981); // Emerald green
+          statusIcon = Icons.check_circle_rounded;
+          gradientColors = [const Color(0xFFD1FAE5), const Color(0xFFA7F3D0)];
+        } else if (statusLower.contains('tolak') || statusLower == 'batal') {
+          statusColor = const Color(0xFFEF4444); // Red
+          statusIcon = Icons.cancel_rounded;
+          gradientColors = [const Color(0xFFFEE2E2), const Color(0xFFFECACA)];
+        } else if (statusLower.contains('revisi')) {
+          statusColor = const Color(0xFFF59E0B); // Amber
+          statusIcon = Icons.edit_document;
+          gradientColors = [const Color(0xFFFEF3C7), const Color(0xFFFDE68A)];
+        } else {
+          statusColor = const Color(0xFF3B82F6); // Blue
+          statusIcon = Icons.file_present_rounded;
+          gradientColors = [const Color(0xFFDBEAFE), const Color(0xFFBFDBFE)];
         }
 
         return FadeInAnimation(
@@ -50,103 +61,110 @@ class OrmawaProposalList extends StatelessWidget {
           child: UnifiedCard(
             margin: const EdgeInsets.only(bottom: 16),
             borderRadius: 24.0,
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withAlpha(15),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.description_outlined, color: AppColors.primary, size: 22),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            proposal.title,
-                            style: AppTextStyles.bodyMd.copyWith(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                              color: const Color(0xFF1E293B),
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: gradientColors,
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            proposal.code,
-                            style: AppTextStyles.labelSm.copyWith(
-                              color: AppColors.outline,
-                              fontWeight: FontWeight.bold,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(statusIcon, color: statusColor, size: 22),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              proposal.title,
+                              style: AppTextStyles.bodyMd.copyWith(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                color: const Color(0xFF1E293B),
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
+                            const SizedBox(height: 2),
+                            Text(
+                              proposal.code,
+                              style: AppTextStyles.labelSm.copyWith(
+                                color: AppColors.outline,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: statusColor.withAlpha(20),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          proposal.status.toUpperCase(),
+                          style: AppTextStyles.labelSm.copyWith(
+                            color: statusColor.withOpacity(0.9),
+                            fontSize: 9,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.access_time_rounded, size: 14, color: AppColors.outline),
+                          const SizedBox(width: 6),
+                          Text(
+                            DateFormat('dd MMM yyyy, HH:mm').format(proposal.date),
+                            style: AppTextStyles.labelSm.copyWith(color: AppColors.outline, fontSize: 10),
                           ),
                         ],
                       ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: statusColor.withAlpha(20),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        proposal.status.toUpperCase(),
-                        style: AppTextStyles.labelSm.copyWith(
-                          color: statusColor.withOpacity(0.9),
-                          fontSize: 9,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.access_time_rounded, size: 14, color: AppColors.outline),
-                        const SizedBox(width: 6),
-                        Text(
-                          DateFormat('dd MMM yyyy, HH:mm').format(proposal.date),
-                          style: AppTextStyles.labelSm.copyWith(color: AppColors.outline, fontSize: 10),
-                        ),
-                      ],
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => OrmawaProposalDetailScreen(proposal: proposal),
-                          ),
-                        );
-                      },
-                      child: Row(
-                        children: [
-                          Text(
-                            'Lihat Detail',
-                            style: AppTextStyles.labelSm.copyWith(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w800,
-                              fontSize: 11,
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => OrmawaProposalDetailScreen(proposal: proposal),
                             ),
-                          ),
-                          const SizedBox(width: 2),
-                          const Icon(Icons.arrow_forward_rounded, color: AppColors.primary, size: 14),
-                        ],
+                          );
+                        },
+                        child: Row(
+                          children: [
+                            Text(
+                              'Lihat Detail',
+                              style: AppTextStyles.labelSm.copyWith(
+                                color: const Color(0xFF003399),
+                                fontWeight: FontWeight.w800,
+                                fontSize: 11,
+                              ),
+                            ),
+                            const SizedBox(width: 2),
+                            const Icon(Icons.arrow_forward_rounded, color: Color(0xFF003399), size: 14),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         );

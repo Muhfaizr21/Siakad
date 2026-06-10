@@ -4,7 +4,9 @@ class OrmawaAttendanceModel extends OrmawaAttendance {
   OrmawaAttendanceModel({
     required super.mahasiswaId,
     super.mahasiswaName,
+    super.nim,
     required super.waktuHadir,
+    super.status,
   });
 
   factory OrmawaAttendanceModel.fromJson(Map<String, dynamic> json) {
@@ -12,7 +14,9 @@ class OrmawaAttendanceModel extends OrmawaAttendance {
     return OrmawaAttendanceModel(
       mahasiswaId: (json['MahasiswaID'] ?? json['mahasiswaId'] ?? '').toString(),
       mahasiswaName: mahasiswa?['Nama'] ?? mahasiswa?['nama'] ?? json['mahasiswaName'] ?? '',
+      nim: mahasiswa?['NIM'] ?? mahasiswa?['nim'] ?? json['nim'] ?? '',
       waktuHadir: DateTime.tryParse(json['WaktuHadir'] ?? json['waktuHadir'] ?? json['waktu_hadir'] ?? '') ?? DateTime.now(),
+      status: json['Status'] ?? json['status'] ?? 'terdaftar',
     );
   }
 

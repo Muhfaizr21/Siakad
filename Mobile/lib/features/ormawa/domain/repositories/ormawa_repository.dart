@@ -2,24 +2,23 @@ import '../entities/ormawa_notification.dart';
 import '../entities/ormawa_member.dart';
 import '../entities/ormawa_proposal.dart';
 import '../entities/ormawa_agenda.dart';
-import '../entities/pkkmb_mission.dart';
-import '../entities/banding_appeal.dart';
 import '../entities/ormawa_attendance.dart';
 import '../entities/ormawa_finance.dart';
 import '../entities/ormawa_lpj.dart';
 import '../entities/ormawa_aspiration.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_announcement.dart';
-import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_pkkmb.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_role.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_division.dart';
 
 abstract class OrmawaRepository {
   Future<List<OrmawaProposal>> getProposals(String ormawaId);
   Future<List<OrmawaAgenda>> getAgendas(String ormawaId);
-  Future<List<OrmawaMember>> getMembers(String ormawaId);
-  Future<List<PKKMBMission>> getPKKMBMissions();
-  Future<List<BandingAppeal>> getAppeals();
+  Future<Map<String, dynamic>> getMembersData(String ormawaId, {String? periode});
+  Future<void> regenerateMembers(String ormawaId);
+  Future<void> createDivisionInline(String ormawaId, String name);
+
   Future<Map<String, dynamic>> getStats(String ormawaId);
+  Future<Map<String, dynamic>> getGamifikasiSummary();
   
   Future<void> addProposal(OrmawaProposal proposal);
   Future<void> updateProposal(OrmawaProposal proposal);
@@ -30,8 +29,7 @@ abstract class OrmawaRepository {
   Future<void> deleteMember(String id);
 
   Future<List<Map<String, dynamic>>> getStudents();
-  Future<void> addPKKMBMission(PKKMBMission mission);
-  Future<void> togglePKKMBMissionStatus(String id);
+
   Future<void> addAgenda(String ormawaId, Map<String, dynamic> data);
   Future<void> updateAgenda(String id, Map<String, dynamic> data);
   Future<void> deleteAgenda(String id);
@@ -44,6 +42,7 @@ abstract class OrmawaRepository {
   Future<List<OrmawaLPJ>> getLPJs(String ormawaId);
   Future<void> addLPJ(Map<String, dynamic> data);
   Future<void> updateLPJ(String id, Map<String, dynamic> data);
+  Future<void> deleteLPJ(String id);
 
   // Aspirations
   Future<List<OrmawaAspiration>> getAspirations(String ormawaId);
@@ -52,26 +51,16 @@ abstract class OrmawaRepository {
   // Announcements
   Future<List<OrmawaAnnouncement>> getAnnouncements(String ormawaId);
   Future<void> createAnnouncement(Map<String, dynamic> data);
+  Future<void> updateAnnouncement(String id, Map<String, dynamic> data);
   Future<void> deleteAnnouncement(String id);
 
-  // PKKMB / KENCANA
-  Future<PkkmbSummary> getPkkmbSummary();
-  Future<List<PkkmbParticipant>> getPkkmbParticipants();
-  Future<List<PkkmbEvent>> getPkkmbEvents();
-  Future<void> createPkkmbEvent(Map<String, dynamic> data);
-  Future<void> updatePkkmbEvent(String id, Map<String, dynamic> data);
-  Future<void> deletePkkmbEvent(String id);
-  
-  Future<List<PkkmbQuiz>> getPkkmbQuizzes();
-  Future<void> createPkkmbQuiz(Map<String, dynamic> data);
-  Future<void> updatePkkmbQuiz(String id, Map<String, dynamic> data);
-  Future<void> deletePkkmbQuiz(String id);
+
 
   // Attendance
   Future<List<OrmawaAttendance>> getAttendance(String eventId);
   Future<void> submitAttendance(String eventId, String mahasiswaId, String status);
   
-  Future<void> reviewAppeal(String id, bool approved);
+
 
   // ROLES & DIVISIONS
   Future<List<OrmawaRole>> getRoles();
@@ -87,4 +76,19 @@ abstract class OrmawaRepository {
   Future<void> markAllNotificationsAsRead(String ormawaId);
   Future<void> deleteNotification(String id);
   Future<String?> getActiveAcademicYear();
+
+  // RECRUITMENT / OPEN RECRUITMENT
+  Future<Map<String, dynamic>> getRecruitmentSettings(String ormawaId);
+  Future<void> updateRecruitmentSettings(String ormawaId, Map<String, dynamic> data);
+  Future<List<Map<String, dynamic>>> getRecruitmentApplicants(String ormawaId);
+  Future<void> reviewRecruitmentApplicant(String applicantId, String status);
+  Future<List<Map<String, dynamic>>> getRecruitmentFormFields(String ormawaId);
+  Future<void> saveRecruitmentFormFields(String ormawaId, List<Map<String, dynamic>> fields);
+
+  // SETTINGS / PREFERENCES
+  Future<Map<String, dynamic>> getOrmawaSettings(String ormawaId);
+  Future<void> updateOrmawaSettings(String ormawaId, Map<String, dynamic> data);
+
+  // FILE UPLOAD
+  Future<String?> uploadFile(String filePath);
 }

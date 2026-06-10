@@ -7,6 +7,13 @@ import 'package:bkuhub_mobile/core/providers/ormawa_provider.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_member.dart';
 import 'package:bkuhub_mobile/features/ormawa/data/repositories/ormawa_repository_impl.dart';
 
+// Helper for formatting absolute image URLs
+String? getFullImageUrl(String? path) {
+  if (path == null || path.trim().isEmpty) return null;
+  if (path.startsWith('http')) return path;
+  return 'http://127.0.0.1:8080$path';
+}
+
 class OrmawaAnggotaScreen extends StatefulWidget {
   const OrmawaAnggotaScreen({super.key});
 
@@ -18,6 +25,7 @@ class _OrmawaAnggotaScreenState extends State<OrmawaAnggotaScreen> {
   String _searchQuery = '';
   String _selectedFilterRole = 'SEMUA';
   String _selectedFilterDivisi = 'SEMUA';
+  String _selectedFilterStatus = 'SEMUA';
 
   @override
   void initState() {
@@ -30,69 +38,170 @@ class _OrmawaAnggotaScreenState extends State<OrmawaAnggotaScreen> {
   List<OrmawaMember> _getFilteredMembers(List<OrmawaMember> members) {
     return members.where((m) {
       final matchesSearch = m.name.toLowerCase().contains(_searchQuery) || m.nim.toLowerCase().contains(_searchQuery);
-      final matchesRole = _selectedFilterRole == 'SEMUA' || m.role.toUpperCase() == _selectedFilterRole;
-      final matchesDivisi = _selectedFilterFilterDivisi == 'SEMUA' || m.division.toUpperCase() == _selectedFilterFilterDivisi;
-      return matchesSearch && matchesRole && matchesDivisi;
+      final matchesRole = _selectedFilterRole == 'SEMUA' || m.role.toUpperCase() == _selectedFilterRole.toUpperCase();
+      final matchesDivisi = _selectedFilterDivisi == 'SEMUA' || m.division.toUpperCase() == _selectedFilterDivisi.toUpperCase();
+      final matchesStatus = _selectedFilterStatus == 'SEMUA' || m.status.toUpperCase() == _selectedFilterStatus.toUpperCase();
+      return matchesSearch && matchesRole && matchesDivisi && matchesStatus;
     }).toList();
   }
 
-  String get _selectedFilterFilterDivisi => _selectedFilterDivisi;
-
-  void _showFilterSheet(List<OrmawaMember> members) {
-    final roles = ['SEMUA', ...members.map((m) => m.role.toUpperCase()).toSet()];
-    final divisions = ['SEMUA', ...members.map((m) => m.division.toUpperCase()).toSet()];
-
+  void _showFilterSheet(OrmawaProvider provider) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (context) => StatefulBuilder(
-        builder: (context, setModalState) => Container(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('FILTER ANGGOTA', style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.w900)),
-              const SizedBox(height: 20),
-              Text('JABATAN', style: AppTextStyles.labelSm.copyWith(color: Colors.grey, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                children: roles.map((r) => ChoiceChip(
-                  label: Text(r),
-                  selected: _selectedFilterRole == r,
-                  onSelected: (selected) {
-                    setModalState(() => _selectedFilterRole = r);
-                    setState(() {});
-                  },
-                )).toList(),
+        builder: (context, setModalState) {
+          final roles = ['SEMUA', ...provider.roles.map((r) => r.name)];
+          final divisions = ['SEMUA', ...provider.divisions.map((d) => d.name)];
+          final statuses = ['SEMUA', 'AKTIF', 'NONAKTIF', 'ALUMNI'];
+
+          return DraggableScrollableSheet(
+            initialChildSize: 0.7,
+            minChildSize: 0.4,
+            maxChildSize: 0.9,
+            expand: false,
+            builder: (_, controller) => Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('FILTER ANGGOTA', style: AppTextStyles.titleLg.copyWith(color: AppColors.primary, fontWeight: FontWeight.w900)),
+                      IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close)),
+                    ],
+                  ),
+                  const Divider(height: 32),
+                  Expanded(
+                    child: ListView(
+                      controller: controller,
+                      children: [
+                        Text('STATUS KEANGGOTAAN', style: AppTextStyles.labelSm.copyWith(color: Colors.grey, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: statuses.map((s) => ChoiceChip(
+                            label: Text(s),
+                            selected: _selectedFilterStatus == s,
+                            onSelected: (selected) {
+                              setModalState(() => _selectedFilterStatus = s);
+                              setState(() {});
+                            },
+                          )).toList(),
+                        ),
+                        const SizedBox(height: 24),
+                        Text('JABATAN', style: AppTextStyles.labelSm.copyWith(color: Colors.grey, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: roles.map((r) => ChoiceChip(
+                            label: Text(r),
+                            selected: _selectedFilterRole.toUpperCase() == r.toUpperCase(),
+                            onSelected: (selected) {
+                              setModalState(() => _selectedFilterRole = r);
+                              setState(() {});
+                            },
+                          )).toList(),
+                        ),
+                        const SizedBox(height: 24),
+                        Text('DIVISI', style: AppTextStyles.labelSm.copyWith(color: Colors.grey, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: divisions.map((d) => ChoiceChip(
+                            label: Text(d),
+                            selected: _selectedFilterDivisi.toUpperCase() == d.toUpperCase(),
+                            onSelected: (selected) {
+                              setModalState(() => _selectedFilterDivisi = d);
+                              setState(() {});
+                            },
+                          )).toList(),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () {
+                            setModalState(() {
+                              _selectedFilterRole = 'SEMUA';
+                              _selectedFilterDivisi = 'SEMUA';
+                              _selectedFilterStatus = 'SEMUA';
+                            });
+                            setState(() {});
+                          },
+                          style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+                          child: const Text('RESET', style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        flex: 2,
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+                          child: const Text('TERAPKAN FILTER', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-              const SizedBox(height: 20),
-              Text('DIVISI', style: AppTextStyles.labelSm.copyWith(color: Colors.grey, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                children: divisions.map((d) => ChoiceChip(
-                  label: Text(d),
-                  selected: _selectedFilterDivisi == d,
-                  onSelected: (selected) {
-                    setModalState(() => _selectedFilterDivisi = d);
-                    setState(() {});
-                  },
-                )).toList(),
-              ),
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, padding: const EdgeInsets.all(16)),
-                  child: const Text('TERAPKAN', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                ),
-              ),
-            ],
-          ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _confirmRegenerate(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
+            SizedBox(width: 12),
+            Expanded(child: Text('Regenerasi Pengurus', style: TextStyle(fontWeight: FontWeight.w900))),
+          ],
         ),
+        content: const Text(
+          'Apakah Anda yakin ingin mengarsipkan seluruh pengurus aktif saat ini menjadi Demisioner/Alumni?\n\nTindakan ini tidak dapat dibatalkan.',
+          style: TextStyle(height: 1.5),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              try {
+                await context.read<OrmawaProvider>().regenerateMembers();
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Regenerasi kepengurusan berhasil!')));
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal regenerasi: $e')));
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+            child: const Text('Ya, Arsipkan', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
       ),
     );
   }
@@ -111,22 +220,91 @@ class _OrmawaAnggotaScreenState extends State<OrmawaAnggotaScreen> {
                 variant: AppBarVariant.ormawa,
                 title: 'MANAJEMEN ANGGOTA',
                 subtitle: 'DATABASE KEANGGOTAAN',
-                expandedHeight: 160.0,
+                expandedHeight: 115.0,
                 showBackButton: true,
                 isExpandable: false,
               ),
               if (provider.isLoading)
                 const SliverFillRemaining(
-                  child: Center(child: CircularProgressIndicator()),
+                  child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
                 )
               else
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.only(top: 8, left: 20, right: 20, bottom: 20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildSummaryGrid(provider),
+                        _buildSummaryCard(provider),
+                        const SizedBox(height: 20),
+
+                        // Period & Regenerate Header
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                            boxShadow: [BoxShadow(color: Colors.black.withAlpha(5), blurRadius: 10, offset: const Offset(0, 4))],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('PERIODE KEPENGURUSAN', style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF64748B), fontWeight: FontWeight.w900, letterSpacing: 1.0)),
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFF8FAFC),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                                      ),
+                                      child: DropdownButtonHideUnderline(
+                                        child: DropdownButton<String>(
+                                          isExpanded: true,
+                                          value: provider.selectedPeriod,
+                                          icon: const Icon(Icons.expand_more_rounded, color: AppColors.primary),
+                                          items: [
+                                            const DropdownMenuItem(value: 'aktif', child: Text('Aktif (Terbaru)', style: TextStyle(fontWeight: FontWeight.bold))),
+                                            ...provider.availablePeriods.map((p) => DropdownMenuItem(value: p, child: Text('Periode $p', style: const TextStyle(fontWeight: FontWeight.bold)))),
+                                          ],
+                                          onChanged: (val) {
+                                            if (val != null) provider.setMemberPeriod(val);
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  if (provider.selectedPeriod == 'aktif' && provider.hasPermission('edit_members')) ...[
+                                    const SizedBox(width: 12),
+                                    InkWell(
+                                      onTap: () => _confirmRegenerate(context),
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                        decoration: BoxDecoration(
+                                          color: Colors.red.withAlpha(20),
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(color: Colors.red.withAlpha(50)),
+                                        ),
+                                        child: const Row(
+                                          children: [
+                                            Icon(Icons.history_rounded, color: Colors.red, size: 20),
+                                            SizedBox(width: 6),
+                                            Text('Arsipkan', style: TextStyle(color: Colors.red, fontWeight: FontWeight.w900, fontSize: 12)),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ]
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
                         const SizedBox(height: 32),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -140,10 +318,14 @@ class _OrmawaAnggotaScreenState extends State<OrmawaAnggotaScreen> {
                               ),
                             ),
                             TextButton.icon(
-                              onPressed: () => _showFilterSheet(provider.members),
-                              icon: const Icon(Icons.filter_list_rounded, size: 18),
-                              label: const Text('Filter'),
-                              style: TextButton.styleFrom(foregroundColor: AppColors.primary),
+                              onPressed: () => _showFilterSheet(provider),
+                              icon: const Icon(Icons.filter_alt_rounded, size: 18),
+                              label: const Text('Filter Data'),
+                              style: TextButton.styleFrom(
+                                foregroundColor: AppColors.primary,
+                                backgroundColor: AppColors.primary.withAlpha(20),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
                             ),
                           ],
                         ),
@@ -161,7 +343,7 @@ class _OrmawaAnggotaScreenState extends State<OrmawaAnggotaScreen> {
                             separatorBuilder: (_, __) => const SizedBox(height: 12),
                             itemBuilder: (context, index) {
                               final member = filteredMembers[index];
-                              return _buildMemberCard(context, member);
+                              return _buildMemberCard(context, member, provider);
                             },
                           ),
                       ],
@@ -170,12 +352,12 @@ class _OrmawaAnggotaScreenState extends State<OrmawaAnggotaScreen> {
                 ),
             ],
           ),
-          floatingActionButton: FloatingActionButton.extended(
+          floatingActionButton: provider.hasPermission('create_members') && provider.selectedPeriod == 'aktif' ? FloatingActionButton.extended(
             onPressed: () => _showAddMember(context),
             backgroundColor: AppColors.primary,
             icon: const Icon(Icons.person_add_rounded, color: Colors.white),
             label: const Text('Tambah Anggota', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          ),
+          ) : null,
         );
       },
     );
@@ -187,62 +369,121 @@ class _OrmawaAnggotaScreenState extends State<OrmawaAnggotaScreen> {
         padding: const EdgeInsets.symmetric(vertical: 60),
         child: Column(
           children: [
-            Icon(Icons.person_search_rounded, size: 64, color: Colors.grey[300]),
-            const SizedBox(height: 16),
-            Text('Anggota tidak ditemukan', style: AppTextStyles.bodyMd.copyWith(color: Colors.grey[500])),
-            if (_searchQuery.isNotEmpty || _selectedFilterRole != 'SEMUA')
-              TextButton(
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle, boxShadow: [BoxShadow(color: Colors.black.withAlpha(10), blurRadius: 20)]),
+              child: const Icon(Icons.search_off_rounded, size: 64, color: Color(0xFFCBD5E1)),
+            ),
+            const SizedBox(height: 24),
+            Text('Data tidak ditemukan', style: AppTextStyles.titleLg.copyWith(color: const Color(0xFF475569), fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text('Coba gunakan kata kunci pencarian atau\nfilter yang berbeda.', textAlign: TextAlign.center, style: AppTextStyles.bodyMd.copyWith(color: const Color(0xFF94A3B8))),
+            if (_searchQuery.isNotEmpty || _selectedFilterRole != 'SEMUA' || _selectedFilterDivisi != 'SEMUA' || _selectedFilterStatus != 'SEMUA') ...[
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
                 onPressed: () => setState(() {
                   _searchQuery = '';
                   _selectedFilterRole = 'SEMUA';
                   _selectedFilterDivisi = 'SEMUA';
+                  _selectedFilterStatus = 'SEMUA';
                 }),
-                child: const Text('Reset Filter'),
+                icon: const Icon(Icons.refresh_rounded, size: 18, color: AppColors.primary),
+                label: const Text('Reset Filter', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary.withAlpha(20),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
               ),
+            ]
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSummaryGrid(OrmawaProvider provider) {
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 12,
-      crossAxisSpacing: 12,
-      childAspectRatio: 1.6,
-      children: [
-        _buildStatCard('Total Anggota', provider.members.length.toString(), Icons.groups_rounded, Colors.blue),
-        _buildStatCard('Aktif', provider.members.where((m) => m.status.toLowerCase() == 'aktif').length.toString(), Icons.check_circle_rounded, Colors.green),
-        _buildStatCard('Pengurus', provider.members.where((m) => m.role != 'ANGGOTA').length.toString(), Icons.badge_rounded, Colors.indigo),
-        _buildStatCard('Divisi', provider.members.map((m) => m.division).toSet().length.toString(), Icons.account_tree_rounded, Colors.purple),
-      ],
-    );
-  }
+  Widget _buildSummaryCard(OrmawaProvider provider) {
+    final total = provider.members.length.toString();
+    final aktif = provider.members.where((m) => m.status.toLowerCase() == 'aktif').length.toString();
+    final pengurus = provider.members.where((m) => ['KETUA', 'WAKIL KETUA', 'SEKRETARIS', 'BENDAHARA'].contains(m.role.toUpperCase())).length.toString();
+    final divisi = provider.members.map((m) => m.division).toSet().where((d) => d.trim().isNotEmpty).length.toString();
 
-  Widget _buildStatCard(String label, String value, IconData icon, Color color) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFF1F5F9)),
+        gradient: const LinearGradient(
+          colors: [
+            AppColors.primary,
+            Color(0xFF1E3A8A),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withAlpha(50),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Row(
             children: [
-              Icon(icon, color: color, size: 16),
+              const Icon(Icons.analytics_rounded, color: Colors.white70, size: 20),
               const SizedBox(width: 8),
-              Text(label, style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8), fontSize: 10)),
+              Text(
+                'STATISTIK ORGANISASI',
+                style: AppTextStyles.labelSm.copyWith(
+                  color: Colors.white70,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.0,
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: 8),
-          Text(value, style: AppTextStyles.titleLg.copyWith(fontSize: 20, fontWeight: FontWeight.w900)),
+          const Divider(color: Colors.white24, height: 28),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildSummaryItem(total, 'Total Anggota'),
+              _buildSummaryItem(aktif, 'Aktif'),
+              _buildSummaryItem(pengurus, 'Pengurus'),
+              _buildSummaryItem(divisi, 'Divisi'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryItem(String value, String label) {
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white.withAlpha(180),
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ],
       ),
     );
@@ -256,19 +497,21 @@ class _OrmawaAnggotaScreenState extends State<OrmawaAnggotaScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [BoxShadow(color: Colors.black.withAlpha(3), blurRadius: 8, offset: const Offset(0, 2))],
       ),
       child: Row(
         children: [
-          const Icon(Icons.search_rounded, color: AppColors.primary, size: 24),
+          const Icon(Icons.search_rounded, color: AppColors.primary, size: 22),
           const SizedBox(width: 12),
           Expanded(
             child: TextField(
               onChanged: (val) => setState(() => _searchQuery = val.toLowerCase()),
               decoration: InputDecoration(
                 hintText: 'Cari nama atau NIM...',
-                hintStyle: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8)),
+                hintStyle: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8), fontWeight: FontWeight.w500),
                 border: InputBorder.none,
               ),
+              style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
             ),
           ),
         ],
@@ -276,8 +519,20 @@ class _OrmawaAnggotaScreenState extends State<OrmawaAnggotaScreen> {
     );
   }
 
-  Widget _buildMemberCard(BuildContext context, OrmawaMember member) {
-    Color posColor = _getPositionColor(member.role);
+  Color _getRoleColor(String role) {
+    final r = role.toLowerCase();
+    if (r.contains('ketua umum') || r == 'ketua') return AppColors.primary;
+    if (r.contains('wakil ketua')) return Colors.indigo;
+    if (r.contains('sekretaris') || r.contains('bendahara')) return Colors.blue;
+    if (r.contains('kepala') || r.contains('kadiv')) return Colors.orange;
+    if (r.contains('staff') || r.contains('staf') || r == 'anggota') return Colors.green;
+    return Colors.blueGrey;
+  }
+
+  Widget _buildMemberCard(BuildContext context, OrmawaMember member, OrmawaProvider provider) {
+    Color roleColor = _getRoleColor(member.role);
+    String? photoUrl = getFullImageUrl(member.fotoUrl);
+    bool isAktif = member.status.toLowerCase() == 'aktif';
     
     return GestureDetector(
       onTap: () {
@@ -292,15 +547,23 @@ class _OrmawaAnggotaScreenState extends State<OrmawaAnggotaScreen> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: const Color(0xFFF1F5F9)),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: isAktif ? const Color(0xFFF1F5F9) : const Color(0xFFE2E8F0)),
+          boxShadow: [BoxShadow(color: Colors.black.withAlpha(5), blurRadius: 10, offset: const Offset(0, 4))],
         ),
         child: Row(
           children: [
-            CircleAvatar(
-              radius: 24,
-              backgroundColor: posColor.withAlpha(20),
-              child: Text(member.initial, style: TextStyle(color: posColor, fontWeight: FontWeight.bold)),
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: roleColor.withAlpha(50), width: 2),
+              ),
+              child: CircleAvatar(
+                radius: 26,
+                backgroundColor: roleColor.withAlpha(20),
+                backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
+                child: photoUrl == null ? Text(member.initial, style: TextStyle(color: roleColor, fontWeight: FontWeight.bold, fontSize: 18)) : null,
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -310,43 +573,59 @@ class _OrmawaAnggotaScreenState extends State<OrmawaAnggotaScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(member.name, style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.w900)),
-                      PopupMenuButton(
-                        icon: const Icon(Icons.more_vert_rounded, size: 18, color: Color(0xFF94A3B8)),
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(
-                            value: 'edit',
-                            child: Row(children: [Icon(Icons.edit_rounded, size: 18), SizedBox(width: 8), Text('Edit Anggota')]),
-                          ),
-                          const PopupMenuItem(
-                            value: 'delete',
-                            child: Row(children: [Icon(Icons.delete_outline_rounded, size: 18, color: Colors.red), SizedBox(width: 8), Text('Hapus Anggota', style: TextStyle(color: Colors.red))]),
-                          ),
-                        ],
-                        onSelected: (val) {
-                          if (val == 'edit') {
-                            _showEditMember(context, member);
-                          } else if (val == 'delete') {
-                            _confirmDelete(context, member);
-                          }
-                        },
+                      Expanded(
+                        child: Text(member.name, style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.w900, color: const Color(0xFF1E293B)), maxLines: 1, overflow: TextOverflow.ellipsis),
                       ),
+                      if (provider.hasPermission('edit_members') && provider.selectedPeriod == 'aktif')
+                        SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: PopupMenuButton(
+                            padding: EdgeInsets.zero,
+                            icon: const Icon(Icons.more_vert_rounded, size: 20, color: Color(0xFF94A3B8)),
+                            itemBuilder: (context) => [
+                              const PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit_rounded, size: 18, color: Colors.blue), SizedBox(width: 10), Text('Edit Anggota', style: TextStyle(fontWeight: FontWeight.bold))])),
+                              const PopupMenuItem(value: 'delete', child: Row(children: [Icon(Icons.delete_outline_rounded, size: 18, color: Colors.red), SizedBox(width: 10), Text('Hapus Anggota', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold))])),
+                            ],
+                            onSelected: (val) {
+                              if (val == 'edit') {
+                                _showEditMember(context, member);
+                              } else if (val == 'delete') {
+                                _confirmDelete(context, member);
+                              }
+                            },
+                          ),
+                        ),
                     ],
                   ),
-                  Text(member.nim, style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8), fontSize: 11)),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 2),
                   Row(
                     children: [
+                      Text(member.nim, style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF64748B), fontFamily: 'monospace', fontWeight: FontWeight.bold, fontSize: 11)),
+                      if (!isAktif) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(color: Colors.grey.withAlpha(30), borderRadius: BorderRadius.circular(4)),
+                          child: Text(member.status.toUpperCase(), style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.grey, letterSpacing: 0.5)),
+                        ),
+                      ]
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(color: posColor.withAlpha(10), borderRadius: BorderRadius.circular(6)),
-                        child: Text(member.role, style: AppTextStyles.labelSm.copyWith(color: posColor, fontWeight: FontWeight.w900, fontSize: 8)),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(color: roleColor.withAlpha(15), borderRadius: BorderRadius.circular(8), border: Border.all(color: roleColor.withAlpha(30))),
+                        child: Text(member.role.toUpperCase(), style: AppTextStyles.labelSm.copyWith(color: roleColor, fontWeight: FontWeight.w900, fontSize: 9, letterSpacing: 0.5)),
                       ),
-                      const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(6)),
-                        child: Text(member.division, style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF64748B), fontWeight: FontWeight.bold, fontSize: 8)),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(color: AppColors.primary.withAlpha(15), borderRadius: BorderRadius.circular(8), border: Border.all(color: AppColors.primary.withAlpha(30))),
+                        child: Text((member.division.isEmpty ? 'UMUM' : member.division).toUpperCase(), style: AppTextStyles.labelSm.copyWith(color: AppColors.primary, fontWeight: FontWeight.w900, fontSize: 9, letterSpacing: 0.5)),
                       ),
                     ],
                   ),
@@ -363,51 +642,30 @@ class _OrmawaAnggotaScreenState extends State<OrmawaAnggotaScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Hapus Anggota'),
-        content: Text('Apakah Anda yakin ingin menghapus ${member.name} dari keanggotaan?'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(children: [Icon(Icons.delete_forever_rounded, color: Colors.red), SizedBox(width: 10), Text('Hapus Anggota')]),
+        content: Text('Apakah Anda yakin ingin menghapus\n${member.name} dari keanggotaan?', style: const TextStyle(height: 1.5)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
-          TextButton(
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold))),
+          ElevatedButton(
             onPressed: () {
               context.read<OrmawaProvider>().deleteMember(member.id);
               Navigator.pop(context);
             },
-            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Hapus', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
     );
   }
 
-  Color _getPositionColor(String role) {
-    switch (role.toUpperCase()) {
-      case 'KETUA':
-        return Colors.indigo;
-      case 'SEKRETARIS':
-        return Colors.purple;
-      case 'BENDAHARA':
-        return Colors.green;
-      case 'WAKIL KETUA':
-        return Colors.blue;
-      default:
-        return Colors.blueGrey;
-    }
-  }
-
   void _showAddMember(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const OrmawaFormAnggotaScreen()),
-    );
+    Navigator.push(context, MaterialPageRoute(builder: (context) => const OrmawaFormAnggotaScreen()));
   }
 
   void _showEditMember(BuildContext context, OrmawaMember member) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => OrmawaFormAnggotaScreen(initialMember: member),
-      ),
-    );
+    Navigator.push(context, MaterialPageRoute(builder: (context) => OrmawaFormAnggotaScreen(initialMember: member)));
   }
 }
 
@@ -420,49 +678,37 @@ class OrmawaFormAnggotaScreen extends StatefulWidget {
 }
 
 class _OrmawaFormAnggotaScreenState extends State<OrmawaFormAnggotaScreen> {
-  final _divisionController = TextEditingController();
+  Map<String, dynamic>? _selectedStudent;
+  
+  String _selectedRole = 'Anggota';
+  String _selectedDivision = 'Umum';
+  String _selectedStatus = 'Aktif';
+  
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
-  
-  Map<String, dynamic>? _selectedStudent;
-  List<Map<String, dynamic>> _students = [];
-  bool _isLoadingStudents = false;
-  String _selectedRole = 'ANGGOTA';
-  String _selectedStatus = 'Aktif';
 
-  final List<String> _roles = ['KETUA', 'WAKIL KETUA', 'SEKRETARIS', 'BENDAHARA', 'ANGGOTA', 'KADIV'];
-  final List<String> _statuses = ['Aktif', 'Non-Aktif', 'Alumni', 'Cuti'];
+  final List<String> _statuses = ['Aktif', 'Nonaktif', 'Alumni', 'Cuti'];
 
   @override
   void initState() {
     super.initState();
     if (widget.initialMember != null) {
-      _divisionController.text = widget.initialMember!.division;
-      _selectedRole = widget.initialMember!.role.toUpperCase();
-      _selectedStatus = widget.initialMember!.status;
+      _selectedDivision = widget.initialMember!.division.isEmpty ? 'Umum' : widget.initialMember!.division;
+      _selectedRole = widget.initialMember!.role.isEmpty ? 'Anggota' : widget.initialMember!.role;
+      
+      final mStatus = widget.initialMember!.status;
+      if (_statuses.any((s) => s.toLowerCase() == mStatus.toLowerCase())) {
+        _selectedStatus = _statuses.firstWhere((s) => s.toLowerCase() == mStatus.toLowerCase());
+      }
+      
       _emailController.text = widget.initialMember!.email ?? '';
       _phoneController.text = widget.initialMember!.phone ?? '';
-    } else {
-      _fetchStudents();
-    }
-  }
-
-  Future<void> _fetchStudents() async {
-    setState(() => _isLoadingStudents = true);
-    try {
-      final repo = OrmawaRepositoryImpl();
-      final students = await repo.getStudents();
-      setState(() => _students = students);
-    } catch (e) {
-      debugPrint('Error fetching students: $e');
-    } finally {
-      setState(() => _isLoadingStudents = false);
     }
   }
 
   void _submit() async {
     if (widget.initialMember == null && _selectedStudent == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pilih mahasiswa terlebih dahulu')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pilih mahasiswa terlebih dahulu!')));
       return;
     }
 
@@ -472,8 +718,10 @@ class _OrmawaFormAnggotaScreenState extends State<OrmawaFormAnggotaScreen> {
     final data = {
       'MahasiswaID': mahasiswaId,
       'Role': _selectedRole,
-      'Divisi': _divisionController.text,
+      'Divisi': _selectedDivision == 'Umum' ? '' : _selectedDivision,
       'Status': _selectedStatus,
+      'EmailKampus': _emailController.text,
+      'NoHP': _phoneController.text,
     };
 
     try {
@@ -482,10 +730,71 @@ class _OrmawaFormAnggotaScreenState extends State<OrmawaFormAnggotaScreen> {
       } else {
         await context.read<OrmawaProvider>().addMember(data);
       }
-      if (mounted) Navigator.pop(context);
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Data anggota berhasil disimpan')));
+      }
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal: $e')));
     }
+  }
+
+  void _showStudentSearchModal() async {
+    // Import repository manually to fetch students if not in provider
+    // For now, we will simulate the bottom sheet UI
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (context) => const _StudentSearchSheet(),
+    ).then((selected) {
+      if (selected != null) {
+        setState(() {
+          _selectedStudent = selected as Map<String, dynamic>;
+          _emailController.text = _selectedStudent!['email_kampus'] ?? '';
+          _phoneController.text = _selectedStudent!['no_hp'] ?? '';
+        });
+      }
+    });
+  }
+
+  void _showCreateDivisionModal() {
+    final ctrl = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Buat Divisi Baru', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: TextField(
+          controller: ctrl,
+          decoration: InputDecoration(
+            hintText: 'Nama Divisi...',
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            filled: true,
+            fillColor: const Color(0xFFF8FAFC),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold))),
+          ElevatedButton(
+            onPressed: () async {
+              if (ctrl.text.trim().isNotEmpty) {
+                try {
+                  await context.read<OrmawaProvider>().createDivisionInline(ctrl.text.trim());
+                  setState(() => _selectedDivision = ctrl.text.trim());
+                  if (mounted) Navigator.pop(context);
+                } catch (e) {
+                  if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gagal membuat divisi')));
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            child: const Text('Simpan', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -494,192 +803,168 @@ class _OrmawaFormAnggotaScreenState extends State<OrmawaFormAnggotaScreen> {
     
     return Scaffold(
       backgroundColor: Colors.white,
-      body: CustomScrollView(
-        slivers: [
-          BkuAppBar(
-            title: isEdit ? 'EDIT DATA ANGGOTA' : 'TAMBAH ANGGOTA BARU',
-            subtitle: 'REGISTRASI ANGGOTA',
-            variant: AppBarVariant.ormawa,
-            expandedHeight: 160.0,
-            showBackButton: true,
-            isExpandable: false,
-          ),
-          SliverToBoxAdapter(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildSectionHeader(isEdit),
-                  const SizedBox(height: 32),
-                  _buildStudentSelector(isEdit),
-                  const SizedBox(height: 16),
-                  Row(
+      body: Consumer<OrmawaProvider>(
+        builder: (context, provider, child) {
+          final availableRoles = provider.roles.map((r) => r.name).toList();
+          if (!availableRoles.contains('Anggota')) availableRoles.add('Anggota');
+          
+          final availableDivisions = ['Umum', ...provider.divisions.map((d) => d.name)];
+          if (!availableDivisions.contains(_selectedDivision)) availableDivisions.add(_selectedDivision);
+
+          return CustomScrollView(
+            slivers: [
+              BkuAppBar(
+                title: isEdit ? 'EDIT DATA ANGGOTA' : 'TAMBAH ANGGOTA BARU',
+                subtitle: 'REGISTRASI ANGGOTA',
+                variant: AppBarVariant.ormawa,
+                expandedHeight: 160.0,
+                showBackButton: true,
+                isExpandable: false,
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(child: _buildRoleDropdown()),
-                      const SizedBox(width: 16),
-                      Expanded(child: _buildInputField('Divisi', 'Humas, IT, dll', Icons.account_tree_rounded, controller: _divisionController)),
+                      Text(isEdit ? 'Update informasi fungsionaris ormawa.' : 'Daftarkan mahasiswa sebagai anggota aktif ormawa.', style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8))),
+                      const SizedBox(height: 32),
+                      
+                      Text('Pilih Mahasiswa', style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF475569), fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+                      GestureDetector(
+                        onTap: isEdit ? null : _showStudentSearchModal,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                          decoration: BoxDecoration(
+                            color: isEdit ? Colors.grey[100] : const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.person_search_rounded, color: isEdit ? Colors.grey : AppColors.primary, size: 24),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  isEdit ? widget.initialMember!.name : (_selectedStudent != null ? "${_selectedStudent!['nama']} (${_selectedStudent!['nim']})" : 'Cari Nama / NIM Mahasiswa...'),
+                                  style: TextStyle(color: (isEdit || _selectedStudent != null) ? const Color(0xFF1E293B) : const Color(0xFF94A3B8), fontWeight: FontWeight.bold, fontSize: 14),
+                                ),
+                              ),
+                              if (!isEdit) const Icon(Icons.arrow_drop_down_rounded, color: Color(0xFF94A3B8)),
+                            ],
+                          ),
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 24),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Jabatan', style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF475569), fontWeight: FontWeight.bold)),
+                                const SizedBox(height: 8),
+                                _buildDropdown<String>(
+                                  value: availableRoles.contains(_selectedRole) ? _selectedRole : availableRoles.first,
+                                  items: availableRoles,
+                                  onChanged: (val) => setState(() => _selectedRole = val!),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text('Divisi', style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF475569), fontWeight: FontWeight.bold)),
+                                    GestureDetector(
+                                      onTap: _showCreateDivisionModal,
+                                      child: Text('+ Buat Baru', style: AppTextStyles.labelSm.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                _buildDropdown<String>(
+                                  value: availableDivisions.contains(_selectedDivision) ? _selectedDivision : 'Umum',
+                                  items: availableDivisions,
+                                  onChanged: (val) => setState(() => _selectedDivision = val!),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      
+                      const SizedBox(height: 24),
+                      Text('Status Keanggotaan', style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF475569), fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+                      _buildDropdown<String>(
+                        value: _selectedStatus,
+                        items: _statuses,
+                        onChanged: (val) => setState(() => _selectedStatus = val!),
+                      ),
+                      
+                      const SizedBox(height: 24),
+                      _buildInputField('Email Kampus (Opsional)', 'email@kampus.ac.id', Icons.email_rounded, controller: _emailController),
+                      const SizedBox(height: 16),
+                      _buildInputField('Nomor HP / WA (Opsional)', '08123456789', Icons.phone_android_rounded, controller: _phoneController),
+                      
+                      const SizedBox(height: 40),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: ElevatedButton(
+                          onPressed: provider.isLoading ? null : _submit,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            elevation: 8,
+                            shadowColor: AppColors.primary.withAlpha(50),
+                          ),
+                          child: provider.isLoading
+                              ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3))
+                              : Text(isEdit ? 'Perbarui Data Anggota' : 'Simpan Anggota Baru', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 0.5)),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  _buildStatusDropdown(),
-                  const SizedBox(height: 16),
-                  _buildInputField('Email Kampus (Opsional)', 'Email untuk sinkronisasi', Icons.email_rounded, controller: _emailController),
-                  const SizedBox(height: 16),
-                  _buildInputField('Nomor HP (Opsional)', 'Nomor aktif WA', Icons.phone_android_rounded, controller: _phoneController),
-                  const SizedBox(height: 40),
-                  _buildSubmitButton(isEdit),
-                ],
+                ),
               ),
-            ),
-          ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildSectionHeader(bool isEdit) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(isEdit ? 'Pembaruan Data' : 'Registrasi Anggota', style: AppTextStyles.titleLg.copyWith(color: AppColors.primary, fontWeight: FontWeight.w900)),
-        const SizedBox(height: 8),
-        Text(isEdit ? 'Update informasi fungsionaris ormawa.' : 'Daftarkan mahasiswa sebagai anggota aktif ormawa.', style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8))),
-      ],
-    );
-  }
-
-  Widget _buildStudentSelector(bool isEdit) {
-    if (isEdit) {
-      return _buildInputField('Mahasiswa', widget.initialMember!.name, Icons.person_rounded, controller: TextEditingController(text: widget.initialMember!.name), enabled: false);
-    }
-    return _buildStudentDropdown();
-  }
-
-  Widget _buildSubmitButton(bool isEdit) {
-    final isLoading = context.watch<OrmawaProvider>().isLoading;
-    return SizedBox(
-      width: double.infinity,
-      height: 56,
-      child: ElevatedButton(
-        onPressed: isLoading ? null : _submit,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          elevation: 8,
-          shadowColor: AppColors.primary.withAlpha(50),
+  Widget _buildDropdown<T>({required T value, required List<T> items, required void Function(T?) onChanged}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<T>(
+          isExpanded: true,
+          value: value,
+          icon: const Icon(Icons.expand_more_rounded, color: Color(0xFF94A3B8)),
+          items: items.map((item) => DropdownMenuItem<T>(value: item, child: Text(item.toString(), style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B)), maxLines: 1, overflow: TextOverflow.ellipsis))).toList(),
+          onChanged: onChanged,
         ),
-        child: isLoading
-            ? const CircularProgressIndicator(color: Colors.white)
-            : Text(isEdit ? 'Perbarui Data' : 'Simpan Anggota', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
       ),
     );
   }
 
-  Widget _buildStudentDropdown() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Pilih Mahasiswa', style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF475569), fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF8FAFC),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<Map<String, dynamic>>(
-              isExpanded: true,
-              hint: Text(_isLoadingStudents ? 'Memuat mahasiswa...' : 'Cari mahasiswa...', style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8))),
-              value: _selectedStudent,
-              icon: const Icon(Icons.expand_more_rounded, color: Color(0xFF94A3B8)),
-              items: _students.map((student) {
-                return DropdownMenuItem<Map<String, dynamic>>(
-                  value: student,
-                  child: Text('${student['nama']} (${student['nim']})', style: AppTextStyles.bodyMd),
-                );
-              }).toList(),
-              onChanged: (val) {
-                setState(() => _selectedStudent = val);
-                if (val != null) {
-                  _emailController.text = val['email_kampus'] ?? '';
-                  _phoneController.text = val['no_hp'] ?? '';
-                }
-              },
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildRoleDropdown() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Jabatan', style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF475569), fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF8FAFC),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              isExpanded: true,
-              value: _selectedRole,
-              icon: const Icon(Icons.expand_more_rounded, color: Color(0xFF94A3B8)),
-              items: _roles.map((role) {
-                return DropdownMenuItem<String>(
-                  value: role,
-                  child: Text(role, style: AppTextStyles.bodyMd),
-                );
-              }).toList(),
-              onChanged: (val) => setState(() => _selectedRole = val!),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatusDropdown() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Status Keanggotaan', style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF475569), fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF8FAFC),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              isExpanded: true,
-              value: _selectedStatus,
-              icon: const Icon(Icons.expand_more_rounded, color: Color(0xFF94A3B8)),
-              items: _statuses.map((status) {
-                return DropdownMenuItem<String>(
-                  value: status,
-                  child: Text(status, style: AppTextStyles.bodyMd),
-                );
-              }).toList(),
-              onChanged: (val) => setState(() => _selectedStatus = val!),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildInputField(String label, String hint, IconData icon, {required TextEditingController controller, int maxLines = 1, bool enabled = true}) {
+  Widget _buildInputField(String label, String hint, IconData icon, {required TextEditingController controller}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -688,24 +973,18 @@ class _OrmawaFormAnggotaScreenState extends State<OrmawaFormAnggotaScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           decoration: BoxDecoration(
-            color: enabled ? const Color(0xFFF8FAFC) : Colors.grey[100],
-            borderRadius: BorderRadius.circular(12),
+            color: const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(color: const Color(0xFFE2E8F0)),
           ),
           child: Row(
-            crossAxisAlignment: maxLines > 1 ? CrossAxisAlignment.start : CrossAxisAlignment.center,
             children: [
-              Padding(
-                padding: EdgeInsets.only(top: maxLines > 1 ? 12 : 0),
-                child: Icon(icon, color: const Color(0xFF94A3B8), size: 20),
-              ),
+              Icon(icon, color: const Color(0xFF94A3B8), size: 20),
               const SizedBox(width: 12),
               Expanded(
                 child: TextField(
                   controller: controller,
-                  maxLines: maxLines,
-                  enabled: enabled,
-                  style: AppTextStyles.bodyMd,
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
                   decoration: InputDecoration(
                     hintText: hint,
                     hintStyle: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8)),
@@ -721,6 +1000,119 @@ class _OrmawaFormAnggotaScreenState extends State<OrmawaFormAnggotaScreen> {
   }
 }
 
+// Student Search Bottom Sheet Component
+class _StudentSearchSheet extends StatefulWidget {
+  const _StudentSearchSheet();
+  @override
+  State<_StudentSearchSheet> createState() => _StudentSearchSheetState();
+}
+
+class _StudentSearchSheetState extends State<_StudentSearchSheet> {
+  List<Map<String, dynamic>> _students = [];
+  List<Map<String, dynamic>> _filteredStudents = [];
+  bool _isLoading = true;
+  String _query = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchStudents();
+  }
+
+  Future<void> _fetchStudents() async {
+    try {
+      final repo = OrmawaRepositoryImpl();
+      final students = await repo.getStudents();
+      if (mounted) {
+        setState(() {
+          _students = students;
+          _filteredStudents = students;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _filter(String val) {
+    setState(() {
+      _query = val.toLowerCase();
+      _filteredStudents = _students.where((s) {
+        return (s['nama']?.toString().toLowerCase().contains(_query) ?? false) ||
+               (s['nim']?.toString().toLowerCase().contains(_query) ?? false);
+      }).toList();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      initialChildSize: 0.8,
+      minChildSize: 0.5,
+      maxChildSize: 0.95,
+      expand: false,
+      builder: (_, controller) {
+        return Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('PILIH MAHASISWA', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: 0.5)),
+                  IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close)),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFE2E8F0))),
+                child: TextField(
+                  onChanged: _filter,
+                  decoration: const InputDecoration(
+                    icon: Icon(Icons.search_rounded, color: AppColors.primary),
+                    hintText: 'Cari Nama atau NIM...',
+                    border: InputBorder.none,
+                  ),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: _isLoading 
+                    ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                    : _filteredStudents.isEmpty 
+                        ? Center(child: Text('Tidak ada mahasiswa ditemukan', style: TextStyle(color: Colors.grey[500], fontWeight: FontWeight.bold)))
+                        : ListView.separated(
+                            controller: controller,
+                            itemCount: _filteredStudents.length,
+                            separatorBuilder: (_, __) => const Divider(height: 1),
+                            itemBuilder: (context, index) {
+                              final student = _filteredStudents[index];
+                              final photoUrl = getFullImageUrl(student['foto_url'] ?? student['FotoURL']);
+                              return ListTile(
+                                onTap: () => Navigator.pop(context, student),
+                                leading: CircleAvatar(
+                                  backgroundColor: AppColors.primary.withAlpha(20),
+                                  backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
+                                  child: photoUrl == null ? const Icon(Icons.person, color: AppColors.primary) : null,
+                                ),
+                                title: Text(student['nama'] ?? '-', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                subtitle: Text(student['nim'] ?? '-', style: const TextStyle(fontFamily: 'monospace', fontSize: 12, color: Colors.grey)),
+                              );
+                            },
+                          ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
 class OrmawaAnggotaDetailScreen extends StatelessWidget {
   final OrmawaMember member;
 
@@ -729,9 +1121,20 @@ class OrmawaAnggotaDetailScreen extends StatelessWidget {
     required this.member,
   });
 
+  Color _getRoleColor(String role) {
+    final r = role.toLowerCase();
+    if (r.contains('ketua umum') || r == 'ketua') return AppColors.primary;
+    if (r.contains('wakil ketua')) return Colors.indigo;
+    if (r.contains('sekretaris') || r.contains('bendahara')) return Colors.blue;
+    if (r.contains('kepala') || r.contains('kadiv')) return Colors.orange;
+    if (r.contains('staff') || r.contains('staf') || r == 'anggota') return Colors.green;
+    return Colors.blueGrey;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final posColor = _getPositionColor(member.role);
+    final roleColor = _getRoleColor(member.role);
+    final photoUrl = getFullImageUrl(member.fotoUrl);
     
     return Scaffold(
       backgroundColor: Colors.white,
@@ -753,28 +1156,36 @@ class OrmawaAnggotaDetailScreen extends StatelessWidget {
                   Center(
                     child: Column(
                       children: [
-                        CircleAvatar(
-                          radius: 50,
-                          backgroundColor: posColor.withAlpha(10),
-                          child: Text(member.initial, style: TextStyle(color: posColor, fontSize: 32, fontWeight: FontWeight.bold)),
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: roleColor.withAlpha(50), width: 3),
+                          ),
+                          child: CircleAvatar(
+                            radius: 50,
+                            backgroundColor: roleColor.withAlpha(20),
+                            backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
+                            child: photoUrl == null ? Text(member.initial, style: TextStyle(color: roleColor, fontSize: 36, fontWeight: FontWeight.bold)) : null,
+                          ),
                         ),
                         const SizedBox(height: 16),
                         Text(member.name, style: AppTextStyles.titleLg.copyWith(fontWeight: FontWeight.w900)),
-                        Text(member.nim, style: AppTextStyles.bodyMd.copyWith(color: const Color(0xFF94A3B8))),
-                        const SizedBox(height: 12),
+                        Text(member.nim, style: AppTextStyles.bodyMd.copyWith(color: const Color(0xFF94A3B8), fontFamily: 'monospace', fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 16),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(color: posColor.withAlpha(10), borderRadius: BorderRadius.circular(10)),
-                              child: Text(member.role, style: AppTextStyles.labelSm.copyWith(color: posColor, fontWeight: FontWeight.w900)),
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              decoration: BoxDecoration(color: roleColor.withAlpha(15), borderRadius: BorderRadius.circular(12), border: Border.all(color: roleColor.withAlpha(30))),
+                              child: Text(member.role.toUpperCase(), style: AppTextStyles.labelSm.copyWith(color: roleColor, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
                             ),
                             const SizedBox(width: 8),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(10)),
-                              child: Text(member.division, style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF64748B), fontWeight: FontWeight.bold)),
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              decoration: BoxDecoration(color: AppColors.primary.withAlpha(15), borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.primary.withAlpha(30))),
+                              child: Text((member.division.isEmpty ? 'UMUM' : member.division).toUpperCase(), style: AppTextStyles.labelSm.copyWith(color: AppColors.primary, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
                             ),
                           ],
                         ),
@@ -789,13 +1200,16 @@ class OrmawaAnggotaDetailScreen extends StatelessWidget {
                       children: [
                         _buildSectionTitle('KONTAK & DATA'),
                         const SizedBox(height: 16),
-                        _buildDetailRow(Icons.email_outlined, 'Email', member.email ?? 'Tidak tersedia'),
-                        _buildDetailRow(Icons.phone_android_outlined, 'Nomor HP', member.phone ?? 'Tidak tersedia'),
-                        _buildDetailRow(Icons.calendar_today_outlined, 'Bergabung Pada', member.joinedAt?.toString().split(' ')[0] ?? '-'),
+                        _buildDetailRow(Icons.email_rounded, 'Email', member.email?.isNotEmpty == true ? member.email! : 'Tidak tersedia'),
+                        _buildDetailRow(Icons.phone_android_rounded, 'Nomor HP', member.phone?.isNotEmpty == true ? member.phone! : 'Tidak tersedia'),
+                        _buildDetailRow(Icons.calendar_today_rounded, 'Bergabung Pada', member.joinedAt?.toString().split(' ')[0] ?? '-'),
                         const SizedBox(height: 32),
                         _buildSectionTitle('STATUS KEANGGOTAAN'),
                         const SizedBox(height: 16),
-                        _buildActivityItem('Status Saat Ini', member.status.toUpperCase(), member.status.toLowerCase() == 'aktif' ? Colors.green : Colors.red),
+                        _buildActivityItem('Status Saat Ini', member.status.toUpperCase(), member.status.toLowerCase() == 'aktif' ? Colors.green : Colors.grey),
+                        if (member.periode != null && member.periode!.isNotEmpty)
+                          _buildActivityItem('Periode', member.periode!, AppColors.primary),
+                        const SizedBox(height: 40),
                       ],
                     ),
                   ),
@@ -806,21 +1220,6 @@ class OrmawaAnggotaDetailScreen extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  Color _getPositionColor(String role) {
-    switch (role.toUpperCase()) {
-      case 'KETUA':
-        return Colors.indigo;
-      case 'SEKRETARIS':
-        return Colors.purple;
-      case 'BENDAHARA':
-        return Colors.green;
-      case 'WAKIL KETUA':
-        return Colors.blue;
-      default:
-        return Colors.blueGrey;
-    }
   }
 
   Widget _buildSectionTitle(String title) {
@@ -835,14 +1234,21 @@ class OrmawaAnggotaDetailScreen extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 20),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: const Color(0xFF94A3B8)),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFE2E8F0))),
+            child: Icon(icon, size: 20, color: const Color(0xFF64748B)),
+          ),
           const SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8), fontSize: 10)),
-              Text(value, style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.bold)),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8), fontSize: 11, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 2),
+                Text(value, style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.bold, color: const Color(0xFF1E293B))),
+              ],
+            ),
           ),
         ],
       ),
@@ -861,8 +1267,12 @@ class OrmawaAnggotaDetailScreen extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.bold)),
-          Text(value, style: AppTextStyles.bodyMd.copyWith(color: color, fontWeight: FontWeight.w900)),
+          Text(label, style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.bold, color: const Color(0xFF475569))),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(color: color.withAlpha(20), borderRadius: BorderRadius.circular(8)),
+            child: Text(value, style: AppTextStyles.bodyMd.copyWith(color: color, fontWeight: FontWeight.w900, fontSize: 12, letterSpacing: 0.5)),
+          ),
         ],
       ),
     );

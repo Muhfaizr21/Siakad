@@ -18,138 +18,144 @@ class OrmawaSettingsScreen extends StatefulWidget {
 }
 
 class _OrmawaSettingsScreenState extends State<OrmawaSettingsScreen> {
-  bool _notifApproval = true;
-  bool _notifFinance = true;
-  bool _notifAspiration = false;
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<OrmawaProvider>().getOrmawaSettings();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.neutral100,
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          BkuAppBar(
-            variant: AppBarVariant.ormawa,
-            title: 'PENGATURAN PORTAL',
-            subtitle: 'KONFIGURASI SISTEM',
-            expandedHeight: 160.0,
-            showBackButton: widget.showBackButton,
-            isExpandable: false,
-          ),
-          SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 24),
-                _buildSectionHeader('MANAJEMEN ORGANISASI'),
-                _buildSettingTile(
-                  Icons.storefront_rounded,
-                  'Profil Organisasi',
-                  'Nama, Logo, Visi & Misi',
-                  Colors.blue,
-                  () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder:
-                          (context) => const ComingSoonScreen(
-                            featureName: 'Profil Organisasi',
-                          ),
-                    ),
-                  ),
-                ),
-                if (context.watch<OrmawaProvider>().hasPermission(
-                  'ADMIN_PANEL',
-                ))
-                  _buildSettingTile(
-                    Icons.admin_panel_settings_rounded,
-                    'Hak Akses & Role',
-                    'Kelola admin & staf',
-                    Colors.indigo,
-                    () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const OrmawaRoleScreen(),
+      body: Consumer<OrmawaProvider>(
+        builder: (context, provider, child) {
+          return CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              BkuAppBar(
+                variant: AppBarVariant.ormawa,
+                title: 'PENGATURAN PORTAL',
+                subtitle: 'KONFIGURASI SISTEM',
+                expandedHeight: 160.0,
+                showBackButton: widget.showBackButton,
+                isExpandable: false,
+              ),
+              SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 24),
+                    _buildSectionHeader('MANAJEMEN ORGANISASI'),
+                    _buildSettingTile(
+                      Icons.storefront_rounded,
+                      'Profil Organisasi',
+                      'Nama, Logo, Visi & Misi',
+                      Colors.blue,
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => const ComingSoonScreen(
+                                featureName: 'Profil Organisasi',
+                              ),
+                        ),
                       ),
                     ),
-                  ),
-                _buildSettingTile(
-                  Icons.security_rounded,
-                  'Keamanan Portal',
-                  'Password & Autentikasi',
-                  Colors.teal,
-                  () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder:
-                          (context) => const ComingSoonScreen(
-                            featureName: 'Keamanan Portal',
+                    if (provider.hasPermission('ADMIN_PANEL'))
+                      _buildSettingTile(
+                        Icons.admin_panel_settings_rounded,
+                        'Hak Akses & Role',
+                        'Kelola admin & staf',
+                        Colors.indigo,
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const OrmawaRoleScreen(),
                           ),
+                        ),
+                      ),
+                    _buildSettingTile(
+                      Icons.security_rounded,
+                      'Keamanan Portal',
+                      'Password & Autentikasi',
+                      Colors.teal,
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => const ComingSoonScreen(
+                                featureName: 'Keamanan Portal',
+                              ),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
 
-                const SizedBox(height: 32),
-                _buildSectionHeader('PREFERENSI NOTIFIKASI'),
-                _buildSwitchTile(
-                  'Approval Proposal',
-                  'Terima notifikasi status proposal',
-                  _notifApproval,
-                  (v) => setState(() => _notifApproval = v),
-                ),
-                _buildSwitchTile(
-                  'Update Keuangan',
-                  'Notifikasi setiap mutasi kas masuk',
-                  _notifFinance,
-                  (v) => setState(() => _notifFinance = v),
-                ),
-                _buildSwitchTile(
-                  'Aspirasi Anggota',
-                  'Notifikasi setiap ada keluhan baru',
-                  _notifAspiration,
-                  (v) => setState(() => _notifAspiration = v),
-                ),
-
-                const SizedBox(height: 32),
-                _buildSectionHeader('LAINNYA'),
-                _buildSettingTile(
-                  Icons.help_outline_rounded,
-                  'Pusat Bantuan',
-                  'Panduan penggunaan portal',
-                  Colors.orange,
-                  () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder:
-                          (context) => const ComingSoonScreen(
-                            featureName: 'Pusat Bantuan',
-                          ),
+                    const SizedBox(height: 32),
+                    _buildSectionHeader('PREFERENSI NOTIFIKASI'),
+                    _buildSwitchTile(
+                      'Approval Proposal',
+                      'Terima notifikasi status proposal',
+                      provider.notifApproval,
+                      (v) => provider.updateNotificationPreferences(notifApproval: v),
                     ),
-                  ),
-                ),
-                _buildSettingTile(
-                  Icons.info_outline_rounded,
-                  'Tentang BKUhub',
-                  'Informasi versi & pengembang',
-                  Colors.blueGrey,
-                  () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder:
-                          (context) => const ComingSoonScreen(
-                            featureName: 'Tentang BKUhub',
-                          ),
+                    _buildSwitchTile(
+                      'Update Keuangan',
+                      'Notifikasi setiap mutasi kas masuk',
+                      provider.notifFinance,
+                      (v) => provider.updateNotificationPreferences(notifFinance: v),
                     ),
-                  ),
-                ),
+                    _buildSwitchTile(
+                      'Aspirasi Anggota',
+                      'Notifikasi setiap ada keluhan baru',
+                      provider.notifAspiration,
+                      (v) => provider.updateNotificationPreferences(notifAspiration: v),
+                    ),
 
-                const SizedBox(height: 40),
-                _buildLogoutButton(),
-                const SizedBox(height: 60),
-              ],
-            ),
-          ),
-        ],
+                    const SizedBox(height: 32),
+                    _buildSectionHeader('LAINNYA'),
+                    _buildSettingTile(
+                      Icons.help_outline_rounded,
+                      'Pusat Bantuan',
+                      'Panduan penggunaan portal',
+                      Colors.orange,
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => const ComingSoonScreen(
+                                featureName: 'Pusat Bantuan',
+                              ),
+                        ),
+                      ),
+                    ),
+                    _buildSettingTile(
+                      Icons.info_outline_rounded,
+                      'Tentang BKUhub',
+                      'Informasi versi & pengembang',
+                      Colors.blueGrey,
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => const ComingSoonScreen(
+                                featureName: 'Tentang BKUhub',
+                              ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 40),
+                    _buildLogoutButton(),
+                    const SizedBox(height: 60),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

@@ -3,15 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_proposal.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_agenda.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_notification.dart';
-import 'package:bkuhub_mobile/features/ormawa/domain/entities/pkkmb_mission.dart';
-import 'package:bkuhub_mobile/features/ormawa/domain/entities/banding_appeal.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_member.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_attendance.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_finance.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_lpj.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_aspiration.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_announcement.dart';
-import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_pkkmb.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_role.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_division.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/repositories/ormawa_repository.dart';
@@ -32,29 +29,32 @@ class OrmawaProvider extends ChangeNotifier {
   double _balance = 0;
   int _activeProposalsCount = 0;
   int _upcomingAgendasCount = 0;
+  
+  // Gamifikasi
+  int _gamifikasiPoin = 0;
+  int _gamifikasiPeringkat = 0;
+  int _totalOrmawa = 0;
 
   List<OrmawaProposal> _proposals = [];
   List<OrmawaAgenda> _agendas = [];
   List<OrmawaMember> _members = [];
-  List<PKKMBMission> _pkkmbMissions = [];
-  List<BandingAppeal> _appeals = [];
   List<OrmawaFinance> _financeList = [];
   List<OrmawaLPJ> _lpjs = [];
   List<OrmawaAttendance> _attendanceList = [];
   List<OrmawaAspiration> _aspirations = [];
   List<OrmawaAnnouncement> _announcements = [];
-  
-  // PKKMB States
-  PkkmbSummary? _pkkmbSummary;
-  List<PkkmbParticipant> _pkkmbParticipants = [];
-  List<PkkmbEvent> _pkkmbEvents = [];
-  List<PkkmbQuiz> _pkkmbQuizzes = [];
   List<OrmawaRole> _roles = [];
   List<OrmawaDivision> _divisions = [];
 
   List<OrmawaNotification> _notifications = [];
   List<OrmawaNotification> get notifications => _notifications;
   int get unreadNotificationsCount => _notifications.where((n) => !n.isRead).length;
+
+  List<String> _availablePeriods = [];
+  String _selectedPeriod = 'aktif';
+  
+  List<String> get availablePeriods => _availablePeriods;
+  String get selectedPeriod => _selectedPeriod;
 
   bool _isLoading = false;
 
@@ -77,27 +77,28 @@ class OrmawaProvider extends ChangeNotifier {
   }
   int get activeProposalsCount => _activeProposalsCount;
   int get upcomingAgendasCount => _upcomingAgendasCount;
+  int get gamifikasiPoin => _gamifikasiPoin;
+  int get gamifikasiPeringkat => _gamifikasiPeringkat;
+  int get totalOrmawa => _totalOrmawa;
+  
+  int get approvalRate {
+    if (_proposals.isEmpty) return 0;
+    final approved = _proposals.where((p) => 
+      p.status.toLowerCase().contains('disetujui') || 
+      p.status.toLowerCase() == 'selesai'
+    ).length;
+    return ((approved / _proposals.length) * 100).round();
+  }
   List<OrmawaProposal> get proposals => _proposals;
   List<OrmawaAgenda> get agendas => _agendas;
   List<OrmawaMember> get members => _members;
-  List<PKKMBMission> get pkkmbMissions => _pkkmbMissions;
-  List<BandingAppeal> get appeals => _appeals;
   List<OrmawaFinance> get financeList => _financeList;
   List<OrmawaLPJ> get lpjs => _lpjs;
   List<OrmawaAttendance> get attendanceList => _attendanceList;
   List<OrmawaAspiration> get aspirations => _aspirations;
   List<OrmawaAnnouncement> get announcements => _announcements;
-  
-  PkkmbSummary? get pkkmbSummary => _pkkmbSummary;
-  List<PkkmbParticipant> get pkkmbParticipants => _pkkmbParticipants;
-  List<PkkmbEvent> get pkkmbEvents => _pkkmbEvents;
-  List<PkkmbQuiz> get pkkmbQuizzes => _pkkmbQuizzes;
   List<OrmawaRole> get roles => _roles;
   List<OrmawaDivision> get divisions => _divisions;
-  
-  int get totalPKKMBParticipants => _pkkmbSummary?.totalMaba ?? 0;
-  int get passedPKKMBCount => _pkkmbSummary?.totalLulus ?? 0;
-  int get inProgressPKKMBCount => _pkkmbSummary?.totalProses ?? 0;
 
   bool get isLoading => _isLoading;
   
@@ -141,6 +142,11 @@ class OrmawaProvider extends ChangeNotifier {
       _activeProposalsCount = (stats['totalProposals'] as num?)?.toInt() ?? 0;
       _upcomingAgendasCount = (stats['totalEvents'] as num?)?.toInt() ?? 0;
 
+      final gamSummary = await _repository.getGamifikasiSummary();
+      _gamifikasiPoin = (gamSummary['poin'] as num?)?.toInt() ?? 0;
+      _gamifikasiPeringkat = (gamSummary['peringkat'] as num?)?.toInt() ?? 0;
+      _totalOrmawa = (gamSummary['total_ormawa'] as num?)?.toInt() ?? 0;
+
       final activeYear = await _repository.getActiveAcademicYear();
       if (activeYear != null && activeYear.isNotEmpty) {
         _academicYear = activeYear;
@@ -148,9 +154,11 @@ class OrmawaProvider extends ChangeNotifier {
 
       _proposals = await _repository.getProposals(ormawaId);
       _agendas = await _repository.getAgendas(ormawaId);
-      _members = await _repository.getMembers(ormawaId);
-      _pkkmbMissions = await _repository.getPKKMBMissions();
-      _appeals = await _repository.getAppeals();
+      
+      final membersData = await _repository.getMembersData(ormawaId, periode: _selectedPeriod);
+      _members = membersData['members'] as List<OrmawaMember>;
+      _availablePeriods = membersData['periods'] as List<String>;
+      
       _financeList = await _repository.getFinance(ormawaId);
       _lpjs = await _repository.getLPJs(ormawaId);
       _aspirations = await _repository.getAspirations(ormawaId);
@@ -158,12 +166,6 @@ class OrmawaProvider extends ChangeNotifier {
       _roles = await _repository.getRoles();
       _divisions = await _repository.getDivisions();
       _notifications = await _repository.getNotifications(ormawaId);
-      
-      // Load PKKMB data
-      _pkkmbSummary = await _repository.getPkkmbSummary();
-      _pkkmbParticipants = await _repository.getPkkmbParticipants();
-      _pkkmbEvents = await _repository.getPkkmbEvents();
-      _pkkmbQuizzes = await _repository.getPkkmbQuizzes();
     } catch (e) {
       debugPrint('Error refreshing Ormawa data: $e');
     } finally {
@@ -192,6 +194,30 @@ class OrmawaProvider extends ChangeNotifier {
   }
 
   // Members Management
+  Future<void> setMemberPeriod(String periode) async {
+    _selectedPeriod = periode;
+    await refreshData();
+  }
+
+  Future<void> regenerateMembers() async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+      
+      final ormawaId = this.ormawaId;
+      if (ormawaId != null) {
+        await _repository.regenerateMembers(ormawaId);
+        _selectedPeriod = 'aktif';
+        await refreshData();
+      }
+    } catch (e) {
+      debugPrint('Error regenerating members: $e');
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
   Future<void> addMember(Map<String, dynamic> data) async {
     try {
       _isLoading = true;
@@ -296,22 +322,7 @@ class OrmawaProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // PKKMB Methods
-  void addPKKMBMission(PKKMBMission mission) async {
-    await _repository.addPKKMBMission(mission);
-    await refreshData();
-  }
 
-  void togglePKKMBMissionStatus(String id) async {
-    await _repository.togglePKKMBMissionStatus(id);
-    await refreshData();
-  }
-
-  // Banding Methods
-  void reviewAppeal(String id, bool approved) async {
-    await _repository.reviewAppeal(id, approved);
-    await refreshData();
-  }
 
   // Attendance Methods
   Future<void> fetchAttendance(String eventId) async {
@@ -327,11 +338,8 @@ class OrmawaProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> submitAttendance(String eventId, String status) async {
+  Future<void> submitAttendance(String eventId, String mhsId, String status) async {
     try {
-      final mhsId = mahasiswaId;
-      if (mhsId == null) throw Exception("Mahasiswa ID tidak ditemukan");
-      
       await _repository.submitAttendance(eventId, mhsId, status);
       await fetchAttendance(eventId);
     } catch (e) {
@@ -393,6 +401,21 @@ class OrmawaProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> deleteLPJ(String id) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+      await _repository.deleteLPJ(id);
+      await getLPJs();
+    } catch (e) {
+      debugPrint('Error deleting LPJ in provider: $e');
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> getAspirations() async {
     try {
       if (ormawaId == null) return;
@@ -431,6 +454,15 @@ class OrmawaProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> updateAnnouncement(String id, Map<String, dynamic> data) async {
+    try {
+      await _repository.updateAnnouncement(id, data);
+      await getAnnouncements();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<void> deleteAnnouncement(String id) async {
     try {
       await _repository.deleteAnnouncement(id);
@@ -440,54 +472,16 @@ class OrmawaProvider extends ChangeNotifier {
     }
   }
 
-  // PKKMB / KENCANA Actions
-  Future<void> getPkkmbData() async {
-    try {
-      _pkkmbSummary = await _repository.getPkkmbSummary();
-      _pkkmbParticipants = await _repository.getPkkmbParticipants();
-      _pkkmbEvents = await _repository.getPkkmbEvents();
-      _pkkmbQuizzes = await _repository.getPkkmbQuizzes();
-      notifyListeners();
-    } catch (e) {
-      debugPrint('Error loading PKKMB data: $e');
-    }
-  }
 
-  Future<void> createPkkmbEvent(Map<String, dynamic> data) async {
-    try {
-      await _repository.createPkkmbEvent(data);
-      await getPkkmbData();
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  Future<void> deletePkkmbEvent(String id) async {
-    try {
-      await _repository.deletePkkmbEvent(id);
-      await getPkkmbData();
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  Future<void> createPkkmbQuiz(Map<String, dynamic> data) async {
-    try {
-      await _repository.createPkkmbQuiz(data);
-      await getPkkmbData();
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  Future<void> deletePkkmbQuiz(String id) async {
-    await _repository.deletePkkmbQuiz(id);
-    await refreshData();
-  }
 
   // ROLES & DIVISIONS
   Future<void> createRole(Map<String, dynamic> data) async {
     await _repository.createRole(data);
+    await refreshData();
+  }
+
+  Future<void> updateRole(String id, Map<String, dynamic> data) async {
+    await _repository.updateRole(id, data);
     await refreshData();
   }
 
@@ -499,6 +493,19 @@ class OrmawaProvider extends ChangeNotifier {
   Future<void> createDivision(Map<String, dynamic> data) async {
     await _repository.createDivision(data);
     await refreshData();
+  }
+
+  Future<void> createDivisionInline(String name) async {
+    try {
+      final ormawaId = this.ormawaId;
+      if (ormawaId != null) {
+        await _repository.createDivisionInline(ormawaId, name);
+        await refreshData();
+      }
+    } catch (e) {
+      debugPrint('Error inline division creation: $e');
+      rethrow;
+    }
   }
 
   Future<void> deleteDivision(String id) async {
@@ -550,5 +557,126 @@ class OrmawaProvider extends ChangeNotifier {
     await _repository.deleteNotification(id);
     _notifications.removeWhere((n) => n.id == id);
     notifyListeners();
+  }
+
+  // RECRUITMENT / OPEN RECRUITMENT
+  Map<String, dynamic> _recruitmentSettings = {};
+  List<Map<String, dynamic>> _recruitmentApplicants = [];
+  List<Map<String, dynamic>> _recruitmentFormFields = [];
+
+  Map<String, dynamic> get recruitmentSettings => _recruitmentSettings;
+  List<Map<String, dynamic>> get recruitmentApplicants => _recruitmentApplicants;
+  List<Map<String, dynamic>> get recruitmentFormFields => _recruitmentFormFields;
+
+  Future<void> getRecruitmentSettings() async {
+    if (ormawaId == null) return;
+    try {
+      _recruitmentSettings = await _repository.getRecruitmentSettings(ormawaId!);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error loading recruitment settings: $e');
+    }
+  }
+
+  Future<void> updateRecruitmentSettings(Map<String, dynamic> data) async {
+    if (ormawaId == null) return;
+    try {
+      await _repository.updateRecruitmentSettings(ormawaId!, data);
+      await getRecruitmentSettings();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> getRecruitmentApplicants() async {
+    if (ormawaId == null) return;
+    try {
+      _recruitmentApplicants = await _repository.getRecruitmentApplicants(ormawaId!);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error loading recruitment applicants: $e');
+    }
+  }
+
+  Future<void> reviewRecruitmentApplicant(String applicantId, String status) async {
+    try {
+      await _repository.reviewRecruitmentApplicant(applicantId, status);
+      await getRecruitmentApplicants();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> getRecruitmentFormFields() async {
+    if (ormawaId == null) return;
+    try {
+      _recruitmentFormFields = await _repository.getRecruitmentFormFields(ormawaId!);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error loading recruitment form fields: $e');
+    }
+  }
+
+  Future<void> saveRecruitmentFormFields(List<Map<String, dynamic>> fields) async {
+    if (ormawaId == null) return;
+    try {
+      await _repository.saveRecruitmentFormFields(ormawaId!, fields);
+      await getRecruitmentFormFields();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // SETTINGS / PREFERENCES
+  Map<String, dynamic> _ormawaSettings = {};
+
+  Map<String, dynamic> get ormawaSettings => _ormawaSettings;
+
+  bool get notifApproval => _ormawaSettings['notifApproval'] ?? true;
+  bool get notifFinance => _ormawaSettings['notifFinance'] ?? true;
+  bool get notifAspiration => _ormawaSettings['notifAspiration'] ?? false;
+
+  Future<void> getOrmawaSettings() async {
+    if (ormawaId == null) return;
+    try {
+      _ormawaSettings = await _repository.getOrmawaSettings(ormawaId!);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error loading ormawa settings: $e');
+    }
+  }
+
+  Future<void> updateNotificationPreferences({
+    bool? notifApproval,
+    bool? notifFinance,
+    bool? notifAspiration,
+  }) async {
+    if (ormawaId == null) return;
+    try {
+      final data = {
+        if (notifApproval != null) 'notifApproval': notifApproval,
+        if (notifFinance != null) 'notifFinance': notifFinance,
+        if (notifAspiration != null) 'notifAspiration': notifAspiration,
+      };
+      await _repository.updateOrmawaSettings(ormawaId!, data);
+      await getOrmawaSettings();
+    } catch (e) {
+      debugPrint('Error updating notification preferences: $e');
+    }
+  }
+
+  Future<String?> uploadFile(String filePath) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+      final url = await _repository.uploadFile(filePath);
+      return url;
+    } catch (e) {
+      debugPrint('Error uploading file in provider: $e');
+      return null;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 }

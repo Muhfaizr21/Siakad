@@ -8,7 +8,7 @@ import '../../domain/entities/organization_history.dart';
 import '../../domain/entities/campus_news.dart';
 import '../../domain/entities/faculty_progress.dart';
 import '../../domain/repositories/student_repository.dart';
-import '../../../ormawa/domain/entities/ormawa_pkkmb.dart';
+import '../../domain/entities/pkkmb_event.dart';
 import 'package:bkuhub_mobile/features/counseling/domain/entities/psychologist.dart';
 import '../../data/models/achievement_model.dart';
 import '../../data/models/scholarship_model.dart';

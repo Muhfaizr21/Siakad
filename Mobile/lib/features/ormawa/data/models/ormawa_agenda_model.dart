@@ -9,6 +9,17 @@ class OrmawaAgendaModel extends OrmawaAgenda {
     required super.status,
     required super.description,
     required super.location,
+    super.landasanKegiatan,
+    super.bentukKegiatan,
+    super.mitra,
+    super.latarBelakang,
+    super.tujuanKegiatan,
+    super.jadwalPelaksanaan,
+    super.sasaranKegiatan,
+    super.indikatorKeberhasilan,
+    super.sumberDana,
+    super.estimasiDana,
+    super.pjKegiatan,
   });
 
   factory OrmawaAgendaModel.fromJson(Map<String, dynamic> json) {
@@ -26,6 +37,20 @@ class OrmawaAgendaModel extends OrmawaAgenda {
       status: json['Status'] ?? json['status'] ?? 'Persiapan',
       description: json['Deskripsi'] ?? json['description'] ?? '',
       location: json['Lokasi'] ?? json['location'] ?? '',
+      
+      landasanKegiatan: json['landasan_kegiatan'] ?? json['LandasanKegiatan'] ?? '',
+      bentukKegiatan: json['bentuk_kegiatan'] ?? json['BentukKegiatan'] ?? '',
+      mitra: json['mitra'] ?? json['Mitra'] ?? '',
+      latarBelakang: json['latar_belakang'] ?? json['LatarBelakang'] ?? '',
+      tujuanKegiatan: json['tujuan_kegiatan'] ?? json['TujuanKegiatan'] ?? '',
+      jadwalPelaksanaan: json['jadwal_pelaksanaan'] ?? json['JadwalPelaksanaan'] ?? '',
+      sasaranKegiatan: json['sasaran_kegiatan'] ?? json['SasaranKegiatan'] ?? '',
+      indikatorKeberhasilan: json['indikator_keberhasilan'] ?? json['IndikatorKeberhasilan'] ?? '',
+      sumberDana: json['sumber_dana'] ?? json['SumberDana'] ?? '',
+      estimasiDana: (json['estimasi_dana'] ?? json['EstimasiDana']) != null 
+          ? (json['estimasi_dana'] ?? json['EstimasiDana'] as num).toDouble() 
+          : 0.0,
+      pjKegiatan: json['pj_kegiatan'] ?? json['PJKegiatan'] ?? '',
     );
   }
 
@@ -37,6 +62,17 @@ class OrmawaAgendaModel extends OrmawaAgenda {
       'TanggalSelesai': endDate.toIso8601String(),
       'Lokasi': location,
       'Status': status,
+      'LandasanKegiatan': landasanKegiatan ?? '',
+      'BentukKegiatan': bentukKegiatan ?? '',
+      'Mitra': mitra ?? '',
+      'LatarBelakang': latarBelakang ?? '',
+      'TujuanKegiatan': tujuanKegiatan ?? '',
+      'JadwalPelaksanaan': jadwalPelaksanaan ?? '',
+      'SasaranKegiatan': sasaranKegiatan ?? '',
+      'IndikatorKeberhasilan': indikatorKeberhasilan ?? '',
+      'SumberDana': sumberDana ?? '',
+      'EstimasiDana': estimasiDana ?? 0.0,
+      'PJKegiatan': pjKegiatan ?? '',
     };
   }
 }

@@ -21,6 +21,9 @@ class OrmawaProposalScreen extends StatefulWidget {
 class _OrmawaProposalScreenState extends State<OrmawaProposalScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  String _selectedStatus = 'Semua';
+
+  final List<String> _statusOptions = ['Semua', 'Diajukan', 'Diproses', 'Disetujui', 'Ditolak'];
 
   @override
   void dispose() {
@@ -28,14 +31,26 @@ class _OrmawaProposalScreenState extends State<OrmawaProposalScreen> {
     super.dispose();
   }
 
+  String _normalizeStatus(String status) {
+    final s = status.toLowerCase();
+    if (s.contains('disetujui') || s.contains('setuju')) return 'Disetujui';
+    if (s.contains('ditolak') || s.contains('tolak')) return 'Ditolak';
+    if (s.contains('diajukan') || s.contains('proses')) return 'Diproses';
+    return 'Diajukan';
+  }
+
   @override
   Widget build(BuildContext context) {
     final ormawaProvider = context.watch<OrmawaProvider>();
     final allProposals = ormawaProvider.proposals;
-    
+
     final filteredProposals = allProposals.where((p) {
-      return p.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-             p.code.toLowerCase().contains(_searchQuery.toLowerCase());
+      final matchesSearch = _searchQuery.isEmpty ||
+          p.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          p.code.toLowerCase().contains(_searchQuery.toLowerCase());
+      final matchesStatus = _selectedStatus == 'Semua' ||
+          _normalizeStatus(p.status) == _selectedStatus;
+      return matchesSearch && matchesStatus;
     }).toList();
 
     return Scaffold(
@@ -286,14 +301,12 @@ class _OrmawaProposalScreenState extends State<OrmawaProposalScreen> {
         ),
         const SizedBox(width: 12),
         GestureDetector(
-          onTap: () {
-            // Show Filter Bottom Sheet
-          },
+          onTap: () => _showFilterSheet(),
           child: Container(
             height: 50,
             width: 50,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: _selectedStatus != 'Semua' ? AppColors.primary : Colors.white,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
@@ -303,7 +316,10 @@ class _OrmawaProposalScreenState extends State<OrmawaProposalScreen> {
                 ),
               ],
             ),
-            child: const Icon(Icons.filter_list_rounded, color: AppColors.primary),
+            child: Icon(
+              Icons.filter_list_rounded,
+              color: _selectedStatus != 'Semua' ? Colors.white : AppColors.primary,
+            ),
           ),
         ),
       ],
@@ -315,17 +331,30 @@ class _OrmawaProposalScreenState extends State<OrmawaProposalScreen> {
     final dateFormatter = DateFormat('dd MMM yyyy');
 
     Color statusColor;
-    switch (proposal.status.toUpperCase()) {
-      case 'DISETUJUI':
-      case 'DISETUJUI_FAKULTAS':
+    String displayStatus = proposal.status.toUpperCase();
+    
+    switch (proposal.status.toLowerCase()) {
+      case 'disetujui':
+      case 'disetujui_fakultas':
+      case 'disetujui_univ':
+      case 'selesai':
         statusColor = Colors.green;
+        if (proposal.status.toLowerCase() == 'disetujui_fakultas') displayStatus = 'ACC FAKULTAS';
+        if (proposal.status.toLowerCase() == 'disetujui_univ') displayStatus = 'ACC UNIV';
+        if (proposal.status.toLowerCase() == 'selesai') displayStatus = 'SELESAI';
         break;
-      case 'DITOLAK':
+      case 'ditolak':
         statusColor = Colors.red;
+        displayStatus = 'DITOLAK';
         break;
-      case 'PROSES':
-      case 'DIAJUKAN':
+      case 'revisi':
         statusColor = Colors.orange;
+        displayStatus = 'REVISI';
+        break;
+      case 'proses':
+      case 'diajukan':
+        statusColor = Colors.blue;
+        displayStatus = 'MENUNGGU';
         break;
       default:
         statusColor = Colors.blue;
@@ -385,7 +414,7 @@ class _OrmawaProposalScreenState extends State<OrmawaProposalScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    proposal.status.toUpperCase(),
+                    displayStatus,
                     style: AppTextStyles.labelSm.copyWith(color: statusColor, fontSize: 8, fontWeight: FontWeight.w900),
                   ),
                 ),
@@ -475,6 +504,84 @@ class _OrmawaProposalScreenState extends State<OrmawaProposalScreen> {
             child: Text('HAPUS', style: AppTextStyles.labelMd.copyWith(color: Colors.white)),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showFilterSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Filter Status',
+              style: AppTextStyles.titleLg.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _statusOptions.map((status) {
+                final isSelected = _selectedStatus == status;
+                return GestureDetector(
+                  onTap: () {
+                    setState(() => _selectedStatus = status);
+                    Navigator.pop(context);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppColors.primary : AppColors.primary.withAlpha(10),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      status,
+                      style: AppTextStyles.labelSm.copyWith(
+                        color: isSelected ? Colors.white : AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+            if (_selectedStatus != 'Semua')
+              Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: TextButton(
+                  onPressed: () {
+                    setState(() => _selectedStatus = 'Semua');
+                    Navigator.pop(context);
+                  },
+                  child: Text(
+                    'Reset Filter',
+                    style: AppTextStyles.labelSm.copyWith(color: Colors.red),
+                  ),
+                ),
+              ),
+            const SizedBox(height: 16),
+          ],
+        ),
       ),
     );
   }

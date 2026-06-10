@@ -9,6 +9,8 @@ class OrmawaMember {
   final String? email;
   final String? phone;
   final DateTime? joinedAt;
+  final String? fotoUrl;
+  final String? periode;
 
   OrmawaMember({
     required this.id,
@@ -21,6 +23,8 @@ class OrmawaMember {
     this.email,
     this.phone,
     this.joinedAt,
+    this.fotoUrl,
+    this.periode,
   });
 
   String get initial {
