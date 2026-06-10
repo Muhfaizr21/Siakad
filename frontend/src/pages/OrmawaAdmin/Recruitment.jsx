@@ -52,6 +52,15 @@ export default function Recruitment() {
     options: ''
   })
 
+  const [settingsLoading, setSettingsLoading] = useState(false)
+  const [config, setConfig] = useState({
+    open_recruitment: false,
+    recruitment_requirements: '',
+    min_ipk: 0,
+    recruitment_start: '',
+    recruitment_end: ''
+  })
+
   const ormawaId = getOrmawaId()
 
   const fetchApplicants = async () => {
@@ -76,21 +85,14 @@ export default function Recruitment() {
       const data = await fetchWithAuth(`${API_BASE_URL}/ormawa/settings/${ormawaId}`)
       if (data.status === 'success') {
         const d = data.data
-        setOrmawaData(d)
-        setOpenRecruitment(d.open_recruitment || false)
-        setRecruitmentRequirements(d.recruitment_requirements || '')
-        setMinIpk(d.min_ipk || 0)
-
-        if (d.recruitment_start) {
-          setRecruitmentStart(new Date(d.recruitment_start).toISOString().split('T')[0])
-        } else {
-          setRecruitmentStart('')
-        }
-        if (d.recruitment_end) {
-          setRecruitmentEnd(new Date(d.recruitment_end).toISOString().split('T')[0])
-        } else {
-          setRecruitmentEnd('')
-        }
+        setConfig({
+          ...d,
+          open_recruitment: d.open_recruitment || false,
+          recruitment_requirements: d.recruitment_requirements || '',
+          min_ipk: d.min_ipk || 0,
+          recruitment_start: d.recruitment_start ? new Date(d.recruitment_start).toISOString().split('T')[0] : '',
+          recruitment_end: d.recruitment_end ? new Date(d.recruitment_end).toISOString().split('T')[0] : ''
+        })
       }
     } catch (e) {
       console.error('Gagal memuat pengaturan rekrutmen:', e)
@@ -99,17 +101,17 @@ export default function Recruitment() {
     }
   }
 
-  const saveRecruitmentSettings = async (e) => {
+  const handleSaveSettings = async (e) => {
     if (e) e.preventDefault()
     setSettingsLoading(true)
     try {
       const payload = {
-        ...ormawaData,
-        open_recruitment: openRecruitment,
-        recruitment_requirements: recruitmentRequirements,
-        min_ipk: parseFloat(minIpk) || 0,
-        recruitment_start: recruitmentStart ? new Date(recruitmentStart).toISOString() : null,
-        recruitment_end: recruitmentEnd ? new Date(recruitmentEnd).toISOString() : null
+        ...config,
+        open_recruitment: config.open_recruitment,
+        recruitment_requirements: config.recruitment_requirements,
+        min_ipk: parseFloat(config.min_ipk) || 0,
+        recruitment_start: config.recruitment_start ? new Date(config.recruitment_start).toISOString() : null,
+        recruitment_end: config.recruitment_end ? new Date(config.recruitment_end).toISOString() : null
       }
       const response = await fetchWithAuth(`${API_BASE_URL}/ormawa/settings/${ormawaId}`, {
         method: 'PUT',

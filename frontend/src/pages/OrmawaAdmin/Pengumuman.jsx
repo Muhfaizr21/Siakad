@@ -42,7 +42,7 @@ export default function Pengumuman() {
 
   const ormawaId = getOrmawaId()
 
-  const [form, setForm] = useState({ Judul: '', Isi: '', Kategori: 'umum', OrmawaID: ormawaId })
+  const [form, setForm] = useState({ Judul: '', Isi: '', Kategori: 'umum', OrmawaID: ormawaId, TanggalMulai: '' })
 
   const fetchData = async () => {
     setLoading(true)
@@ -66,7 +66,7 @@ export default function Pengumuman() {
 
   const handleOpenAdd = () => {
     setIsEditMode(false)
-    setForm({ Judul: '', Isi: '', Kategori: 'umum', OrmawaID: ormawaId })
+    setForm({ Judul: '', Isi: '', Kategori: 'umum', OrmawaID: ormawaId, TanggalMulai: '' })
     setIsCrudOpen(true)
   }
 
@@ -77,7 +77,8 @@ export default function Pengumuman() {
       Judul: row.Judul || row.judul || '',
       Isi: row.Isi || row.isi || '',
       Kategori: row.Kategori || row.kategori || row.Target || 'umum',
-      OrmawaID: ormawaId
+      OrmawaID: ormawaId,
+      TanggalMulai: row.TanggalMulai ? String(row.TanggalMulai).substring(0, 10) : ''
     })
     setIsCrudOpen(true)
   }
@@ -90,7 +91,12 @@ export default function Pengumuman() {
     try {
       const res = await fetchWithAuth(url, {
         method,
-        body: JSON.stringify({ ...form, Target: form.Kategori, OrmawaID: Number(form.OrmawaID) }),
+        body: JSON.stringify({ 
+          ...form, 
+          Target: form.Kategori, 
+          OrmawaID: Number(form.OrmawaID),
+          TanggalMulai: form.TanggalMulai ? new Date(form.TanggalMulai).toISOString() : undefined
+        }),
         headers: { 'Content-Type': 'application/json' }
       })
       if (res.status === 'success') {
@@ -101,7 +107,7 @@ export default function Pengumuman() {
         toast.error(res.message || 'Gagal menyimpan pengumuman')
       }
     } catch (err) {
-      toast.error('Terjadi kesalahan koneksi backend')
+      console.error(err); toast.error(err.message || 'Terjadi kesalahan koneksi backend')
     } finally {
       setIsSubmitting(false)
     }
@@ -121,7 +127,7 @@ export default function Pengumuman() {
         toast.error('Gagal menghapus pengumuman')
       }
     } catch (err) {
-      toast.error('Terjadi kesalahan koneksi backend')
+      console.error(err); toast.error(err.message || 'Terjadi kesalahan koneksi backend')
     } finally {
       setIsSubmitting(false)
     }
@@ -392,6 +398,18 @@ export default function Pengumuman() {
                   placeholder="Tuliskan isi pengumuman secara lengkap, jelas, dan lugas di sini..."
                   className="min-h-[140px] border-slate-200 bg-white shadow-sm focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-xl p-4 font-medium text-xs leading-relaxed"
                 />
+              </div>
+
+              {/* Tanggal Penjadwalan */}
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Tanggal Rilis (Opsional)</Label>
+                <Input
+                  type="date"
+                  value={form.TanggalMulai}
+                  onChange={e => setForm({ ...form, TanggalMulai: e.target.value })}
+                  className="h-12 border-slate-200 bg-white shadow-sm focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-xl px-4 font-bold text-xs"
+                />
+                <p className="text-[10px] text-slate-400 ml-1 font-medium">Jika diisi, pengumuman & notifikasi akan muncul pada tanggal tersebut.</p>
               </div>
             </div>
 

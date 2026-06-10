@@ -17,6 +17,8 @@ import { Label } from '@/components/ui/Label'
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 import { fetchWithAuth, API_BASE_URL } from '../../services/api'
 import useAuthStore from '../../store/useAuthStore'
@@ -210,7 +212,7 @@ export default function KeuanganKas() {
         toast.error(data.message || 'Gagal menyimpan transaksi')
       }
     } catch (err) {
-      toast.error('Terjadi kesalahan koneksi backend')
+      console.error(err); toast.error(err.message || 'Terjadi kesalahan koneksi backend')
     } finally {
       setIsSubmitting(false)
     }
@@ -230,9 +232,156 @@ export default function KeuanganKas() {
         toast.error('Gagal menghapus transaksi')
       }
     } catch (err) {
-      toast.error('Terjadi kesalahan koneksi backend')
+      console.error(err); toast.error(err.message || 'Terjadi kesalahan koneksi backend')
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const exportToPDF = () => {
+    const loadingToast = toast.loading('Menyiapkan dokumen PDF...');
+    try {
+      const doc = new jsPDF({ orientation: 'landscape' });
+      const img = new Image();
+
+      img.onload = () => {
+        try {
+          const user = useAuthStore.getState().user;
+          const ormawaName = user?.Nama || user?.nama || user?.ormawa_nama || "Organisasi Mahasiswa";
+
+          const targetHeight = 20;
+          const targetWidth = img.height ? (img.width * targetHeight) / img.height : 40;
+          doc.addImage(img, 'PNG', 15, 10, targetWidth, targetHeight);
+
+          doc.setFontSize(10);
+          doc.setTextColor(100, 100, 100);
+          doc.setFont("helvetica", "normal");
+          const pageWidth = doc.internal.pageSize.getWidth();
+          const textRightX = pageWidth - 15;
+          
+          doc.text('Jl. Soekarno Hatta No 754 Bandung', textRightX, 15, { align: 'right' });
+          doc.text('022 7830 760, 022 7830 768', textRightX, 20, { align: 'right' });
+          doc.text('bku.ac.id | contact@bku.ac.id', textRightX, 25, { align: 'right' });
+
+          doc.setDrawColor(200, 200, 200);
+          doc.setLineWidth(0.5);
+          doc.line(15, 35, pageWidth - 15, 35);
+          
+          doc.setFontSize(14);
+          doc.setTextColor(0, 0, 0);
+          doc.setFont("helvetica", "bold");
+          doc.text('LAPORAN TRANSPARANSI KEUANGAN', pageWidth / 2, 20, { align: 'center' });
+          
+          doc.setFontSize(10);
+          doc.setFont("helvetica", "normal");
+          doc.text('Organisasi Mahasiswa Universitas Bhakti Kencana', pageWidth / 2, 26, { align: 'center' });
+
+          doc.setFontSize(12);
+          doc.setFont("helvetica", "bold");
+          doc.text(ormawaName.toUpperCase(), pageWidth / 2, 32, { align: 'center' });
+          
+          const tableColumn = ["No", "Tanggal", "Keterangan", "Sumber", "Jenis", "Nominal (Rp)"];
+          const tableRows = [];
+
+          sortedTransactions.forEach((t, i) => {
+            const dateStr = t.Tanggal ? new Date(t.Tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
+            const nominalStr = formatRp(t.Nominal).replace('Rp', '').trim();
+            const jenis = t.Tipe === 'pemasukan' ? 'Pemasukan' : 'Pengeluaran';
+            const sumber = (t.Sumber === 'kampus' || t.sumber === 'kampus') ? 'Pagu Kampus' : 'Kas Mandiri';
+            tableRows.push([
+              i + 1,
+              dateStr,
+              t.Deskripsi || '-',
+              sumber,
+              jenis,
+              nominalStr
+            ]);
+          });
+
+          autoTable(doc, {
+            head: [tableColumn],
+            body: tableRows,
+            startY: 65,
+            styles: { fontSize: 9, cellPadding: 3 },
+            headStyles: { fillColor: [15, 23, 42], textColor: 255, halign: 'center' },
+            alternateRowStyles: { fillColor: [248, 250, 252] },
+            columnStyles: {
+              0: { cellWidth: 15, halign: 'center' },
+              1: { cellWidth: 35 },
+              2: { cellWidth: 'auto' },
+              3: { cellWidth: 35 },
+              4: { cellWidth: 30 },
+              5: { cellWidth: 40, halign: 'right' }
+            }
+          });
+
+          const finalY = doc.lastAutoTable?.finalY || 60;
+          doc.setFontSize(10);
+          doc.setFont("helvetica", "bold");
+          doc.text(`Total Pemasukan: ${formatRp(filteredIn)}`, 15, finalY + 10);
+          doc.text(`Total Pengeluaran: ${formatRp(filteredOut)}`, 15, finalY + 16);
+          doc.text(`Saldo Akhir: ${formatRp(filteredBalance)}`, 15, finalY + 22);
+
+          doc.save(`Transparansi_Keuangan_${new Date().getTime()}.pdf`);
+          toast.dismiss(loadingToast);
+          toast.success("PDF berhasil diunduh");
+        } catch (err) {
+          console.error("Error drawing PDF:", err);
+          toast.dismiss(loadingToast);
+          toast.error("Terjadi kesalahan saat memproses PDF: " + (err.message || err));
+        }
+      };
+
+      img.onerror = () => {
+        try {
+          toast.dismiss(loadingToast);
+          toast.error("Gagal memuat logo, menggunakan fallback teks");
+          
+          doc.setFontSize(18);
+          doc.setTextColor(0, 0, 0);
+          doc.setFont("helvetica", "bold");
+          doc.text('Universitas Bhakti Kencana', 15, 20);
+          
+          doc.setFontSize(14);
+          doc.text('LAPORAN TRANSPARANSI KEUANGAN', doc.internal.pageSize.getWidth() / 2, 45, { align: 'center' });
+          
+          const tableColumn = ["No", "Tanggal", "Keterangan", "Sumber", "Jenis", "Nominal (Rp)"];
+          const tableRows = [];
+
+          sortedTransactions.forEach((t, i) => {
+            const dateStr = t.Tanggal ? new Date(t.Tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
+            const nominalStr = formatRp(t.Nominal).replace('Rp', '').trim();
+            const jenis = t.Tipe === 'pemasukan' ? 'Pemasukan' : 'Pengeluaran';
+            const sumber = (t.Sumber === 'kampus' || t.sumber === 'kampus') ? 'Pagu Kampus' : 'Kas Mandiri';
+            tableRows.push([
+              i + 1,
+              dateStr,
+              t.Deskripsi || '-',
+              sumber,
+              jenis,
+              nominalStr
+            ]);
+          });
+
+          autoTable(doc, {
+            head: [tableColumn],
+            body: tableRows,
+            startY: 40,
+          });
+
+          doc.save(`Transparansi_Keuangan_${new Date().getTime()}.pdf`);
+        } catch (err) {
+          console.error("Error fallback PDF:", err);
+          toast.error("Gagal membuat PDF fallback: " + (err.message || err));
+        }
+      };
+
+      img.src = '/images/bku%20logo.png';
+      
+    } catch (err) {
+      console.error("Error init PDF:", err);
+      toast.dismiss(loadingToast);
+      toast.error("Gagal menginisialisasi modul PDF");
     }
   }
 
@@ -332,17 +481,27 @@ export default function KeuanganKas() {
         subtitle="Pantau dan kelola seluruh pemasukan serta pengeluaran kas ormawa secara akuntabel."
         icon="account_balance_wallet"
         action={
-          <Button
-            onClick={() => {
-              setForm({ Deskripsi: '', Nominal: '', Tipe: 'pemasukan', Tanggal: '', OrmawaID: ormawaId, Sumber: 'organisasi' })
-              setIsCrudOpen(true)
-            }}
-            className="h-10 px-5 rounded-xl text-white font-bold text-xs tracking-wider shadow-lg transition-all active:scale-95 shrink-0 w-full md:w-auto flex items-center justify-center gap-2"
-            style={{ backgroundColor: 'var(--theme-primary)' }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add_box</span>
-            <span>CATAT TRANSAKSI</span>
-          </Button>
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <Button
+              onClick={exportToPDF}
+              variant="outline"
+              className="h-10 px-4 rounded-xl text-slate-700 font-bold text-xs tracking-wider shadow-sm transition-all active:scale-95 shrink-0 flex items-center justify-center gap-2 border border-slate-200 bg-white hover:bg-slate-50"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>download</span>
+              <span>DOWNLOAD PDF</span>
+            </Button>
+            <Button
+              onClick={() => {
+                setForm({ Deskripsi: '', Nominal: '', Tipe: 'pemasukan', Tanggal: '', OrmawaID: ormawaId, Sumber: 'organisasi' })
+                setIsCrudOpen(true)
+              }}
+              className="h-10 px-5 rounded-xl text-white font-bold text-xs tracking-wider shadow-lg transition-all active:scale-95 shrink-0 flex items-center justify-center gap-2"
+              style={{ backgroundColor: 'var(--theme-primary)' }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add_box</span>
+              <span>CATAT TRANSAKSI</span>
+            </Button>
+          </div>
         }
 
         breadcrumbs={[{ label: 'Dashboard', path: '/ormawa' }, { label: 'Buku Kas & Keuangan', path: '#' }]}

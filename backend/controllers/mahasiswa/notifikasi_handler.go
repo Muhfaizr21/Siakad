@@ -29,7 +29,7 @@ func GetNotifications(c *fiber.Ctx) error {
 	waktu := c.Query("waktu")   // hari_ini, minggu_ini, bulan_ini
 	status := c.Query("status") // unread, read
 
-	query := config.DB.Model(&models.Notifikasi{}).Where("user_id = ?", UserID)
+	query := config.DB.Model(&models.Notifikasi{}).Where("user_id = ? AND created_at <= ?", UserID, time.Now())
 
 	if tipe != "" && tipe != "Semua" {
 		query = query.Where("tipe = ?", tipe)
@@ -72,7 +72,7 @@ func GetUnreadCount(c *fiber.Ctx) error {
 
 	var count int64
 	err = config.DB.Model(&models.Notifikasi{}).
-		Where("user_id = ? AND is_read = ?", UserID, false).
+		Where("user_id = ? AND is_read = ? AND created_at <= ?", UserID, false, time.Now()).
 		Count(&count).Error
 
 	if err != nil {

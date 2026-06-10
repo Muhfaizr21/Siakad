@@ -10,10 +10,11 @@ import { Button } from '@/components/ui/Button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
 import { SelectField, SelectOption } from '@/components/ui/SelectField'
-import { Card, CardContent } from '@/components/ui/Card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import { Textarea } from '@/components/ui/Textarea'
+import { Calendar } from '@/components/ui/Calendar'
 
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
@@ -64,6 +65,8 @@ const parseRupiahInput = (value) => {
 
 export default function JadwalKegiatan() {
   const [data, setData] = useState([])
+  const [proposals, setProposals] = useState([])
+  const [announcements, setAnnouncements] = useState([])
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
@@ -71,6 +74,7 @@ export default function JadwalKegiatan() {
   const [isDelOpen, setIsDelOpen] = useState(false)
   const [isEditMode, setIsEditMode] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [selectedFilterDate, setSelectedFilterDate] = useState(null)
   const ormawaId = getOrmawaId()
   const [form, setForm] = useState({
     Judul: '',
@@ -96,9 +100,14 @@ export default function JadwalKegiatan() {
   const fetchEvents = async () => {
     setLoading(true)
     try {
-      const res = await fetchWithAuth(`${API}/events?ormawaId=${ormawaId}`)
-      if (res.status === 'success') setData(res.data || [])
-      else toast.error('Gagal memuat jadwal')
+      const [resEv, resProp, resAnn] = await Promise.all([
+        fetchWithAuth(`${API}/events?ormawaId=${ormawaId}`),
+        fetchWithAuth(`${API}/proposals?ormawaId=${ormawaId}`),
+        fetchWithAuth(`${API}/announcements?ormawaId=${ormawaId}`)
+      ])
+      if (resEv.status === 'success') setData(resEv.data || [])
+      if (resProp.status === 'success') setProposals(resProp.data || [])
+      if (resAnn.status === 'success') setAnnouncements(resAnn.data || [])
     } catch {
       toast.error('Koneksi gagal')
     } finally {
@@ -274,6 +283,77 @@ export default function JadwalKegiatan() {
   const upcomingEvents = data.filter(e => (e.Status || e.status) === 'terjadwal').length
   const completedEvents = data.filter(e => (e.Status || e.status) === 'selesai').length
 
+  const eventDates = React.useMemo(() => {
+    const dates = [];
+    data.forEach(d => {
+      const dStr = d.TanggalMulai || d.tanggalMulai;
+      if (dStr) dates.push(new Date(dStr));
+    });
+    proposals.forEach(p => {
+      const pStr = p.TanggalKegiatan || p.tanggal_kegiatan || p.CreatedAt || p.created_at;
+      if (pStr) dates.push(new Date(pStr));
+    });
+    announcements.forEach(a => {
+      const aStr = a.TanggalMulai || a.CreatedAt || a.created_at || a.createdat;
+      if (aStr) dates.push(new Date(aStr));
+    });
+    return dates;
+  }, [data, proposals, announcements]);
+
+  const modifiers = {
+    event: eventDates,
+  }
+
+  const modifiersClassNames = {
+    event: 'has-events after:content-[""] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1.5 after:h-1.5 after:bg-[var(--theme-primary)] after:rounded-full font-bold [&:not([data-selected-single=true])]:text-[var(--theme-primary)] [&:not([data-selected-single=true])]:bg-[var(--theme-primary)]/5',
+  }
+
+  const displayedData = React.useMemo(() => {
+    if (!selectedFilterDate) return data;
+    return data.filter(d => {
+      const startStr = d.TanggalMulai || d.tanggalMulai;
+      const endStr = d.TanggalSelesai || d.tanggalSelesai;
+
+      if (!startStr || String(startStr).startsWith('0001')) return false;
+
+      const start = new Date(startStr);
+      const end = (endStr && !String(endStr).startsWith('0001')) ? new Date(endStr) : start;
+      
+      const target = new Date(selectedFilterDate);
+      target.setHours(0, 0, 0, 0);
+      
+      const s = new Date(start);
+      s.setHours(0, 0, 0, 0);
+      
+      const e = new Date(end);
+      e.setHours(23, 59, 59, 999);
+      
+      return target >= s && target <= e;
+    });
+  }, [data, selectedFilterDate]);
+
+  const selectedDateEvents = React.useMemo(() => {
+    if (!selectedFilterDate) return [];
+    
+    const target = new Date(selectedFilterDate);
+    target.setHours(0, 0, 0, 0);
+
+    const isMatch = (startStr, endStr) => {
+      if (!startStr || String(startStr).startsWith('0001')) return false;
+      const s = new Date(startStr);
+      s.setHours(0, 0, 0, 0);
+      const e = (endStr && !String(endStr).startsWith('0001')) ? new Date(endStr) : new Date(s);
+      e.setHours(23, 59, 59, 999);
+      return target >= s && target <= e;
+    };
+
+    const evs = data.filter(d => isMatch(d.TanggalMulai || d.tanggalMulai, d.TanggalSelesai || d.tanggalSelesai)).map(d => ({ ...d, typeLabel: 'Kegiatan', typeCls: 'bg-blue-100 text-blue-700' }));
+    const props = proposals.filter(p => isMatch(p.TanggalKegiatan || p.tanggal_kegiatan || p.CreatedAt || p.created_at, null)).map(p => ({ ...p, Judul: p.JudulKegiatan || p.judul_kegiatan || 'Proposal', typeLabel: 'Proposal', typeCls: 'bg-amber-100 text-amber-700' }));
+    const anns = announcements.filter(a => isMatch(a.TanggalMulai || a.CreatedAt || a.created_at || a.createdat, a.TanggalSelesai)).map(a => ({ ...a, typeLabel: 'Pengumuman', typeCls: 'bg-emerald-100 text-emerald-700' }));
+
+    return [...evs, ...props, ...anns];
+  }, [data, proposals, announcements, selectedFilterDate]);
+
   return (
     <PageContent className="font-body">
       <Toaster position="top-right" />
@@ -340,26 +420,77 @@ export default function JadwalKegiatan() {
       </div>
 
       {/* ── Content Area ───────────────────────────────────────────── */}
-      <Card className="border border-border shadow-sm overflow-hidden bg-surface rounded-2xl">
-        <CardContent className="p-0">
-          <DataTable
-            columns={columns}
-            data={data}
-            loading={loading}
-            searchPlaceholder="Cari nama atau lokasi kegiatan..."
-            onAdd={handleOpenAdd}
-            addLabel="Tambah Kegiatan"
-            filters={[{ key: 'Status', placeholder: 'Filter Status', options: Object.entries(STATUS_CFG).map(([v, { label }]) => ({ label, value: v })) }]}
-            actions={(row) => (
-              <div className="flex items-center gap-2">
-                <Button onClick={() => { setSelected(row); setIsDetailOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 hover:text-primary hover:bg-primary/10 rounded-xl"><span className="material-symbols-outlined normal-case text-[18px]">visibility</span></Button>
-                <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 hover:text-amber-600 hover:bg-amber-50 rounded-xl"><span className="material-symbols-outlined normal-case text-[18px]">edit</span></Button>
-                <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 hover:text-rose-600 hover:bg-rose-50 rounded-xl"><span className="material-symbols-outlined normal-case text-[18px]">delete</span></Button>
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mt-4">
+        <Card className="xl:col-span-1 border border-border shadow-sm overflow-hidden bg-surface rounded-2xl h-fit">
+          <CardHeader className="bg-slate-50/50 border-b border-border p-5 flex flex-row items-center justify-between">
+            <CardTitle className="text-sm font-black font-headline tracking-tight uppercase flex items-center gap-2">
+              <span className="material-symbols-outlined text-[18px] text-primary">calendar_month</span>
+              Kalender Kegiatan
+            </CardTitle>
+            {selectedFilterDate && (
+              <Button variant="ghost" size="sm" onClick={() => setSelectedFilterDate(null)} className="h-7 text-[10px] uppercase tracking-wider text-rose-500 hover:text-rose-600 hover:bg-rose-50 px-2 rounded-lg font-bold">
+                Reset Filter
+              </Button>
+            )}
+          </CardHeader>
+          <CardContent className="p-3 sm:p-4 flex flex-col items-center overflow-x-auto no-scrollbar w-full">
+            <Calendar
+              mode="single"
+              selected={selectedFilterDate}
+              onSelect={setSelectedFilterDate}
+              modifiers={modifiers}
+              modifiersClassNames={modifiersClassNames}
+              className="mx-auto w-max rounded-xl border border-slate-100 shadow-sm p-4 bg-white"
+            />
+            {selectedFilterDate && (
+              <div className="w-full mt-4 flex flex-col gap-2">
+                <h4 className="text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1 border-b border-slate-100 pb-2 text-center">
+                  Acara pada {new Date(selectedFilterDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}
+                </h4>
+                <div className="max-h-[300px] overflow-y-auto pr-1 space-y-2 no-scrollbar">
+                  {selectedDateEvents.length > 0 ? selectedDateEvents.map((d, idx) => (
+                    <div key={idx} onClick={() => { if(d.typeLabel === 'Kegiatan') { setSelected(d); setIsDetailOpen(true); } }} className={cn("bg-slate-50 border border-slate-100 rounded-lg p-3 text-left transition-colors", d.typeLabel === 'Kegiatan' ? 'hover:bg-slate-100 cursor-pointer' : '')}>
+                      <div className="flex items-center justify-between mb-1">
+                        <Badge className={cn('text-[8px] px-1.5 py-0 uppercase border-none tracking-wider', d.typeCls)}>{d.typeLabel}</Badge>
+                      </div>
+                      <p className="text-xs font-bold text-slate-800 leading-tight">{d.Judul || d.judul}</p>
+                      {d.Lokasi && (
+                        <p className="text-[10px] text-slate-500 mt-1 flex items-center gap-1">
+                          <span className="material-symbols-outlined text-[10px]">location_on</span>
+                          {d.Lokasi || d.lokasi || 'Belum ditentukan'}
+                        </p>
+                      )}
+                    </div>
+                  )) : (
+                    <p className="text-[10px] text-slate-400 italic text-center py-4 bg-slate-50 rounded-lg border border-dashed border-slate-200">Tidak ada agenda</p>
+                  )}
+                </div>
               </div>
             )}
-          />
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+
+        <Card className="xl:col-span-2 border border-border shadow-sm overflow-hidden bg-surface rounded-2xl">
+          <CardContent className="p-0">
+            <DataTable
+              columns={columns}
+              data={displayedData}
+              loading={loading}
+              searchPlaceholder="Cari nama atau lokasi kegiatan..."
+              onAdd={handleOpenAdd}
+              addLabel="Tambah Kegiatan"
+              filters={[{ key: 'Status', placeholder: 'Filter Status', options: Object.entries(STATUS_CFG).map(([v, { label }]) => ({ label, value: v })) }]}
+              actions={(row) => (
+                <div className="flex items-center gap-2">
+                  <Button onClick={() => { setSelected(row); setIsDetailOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 hover:text-primary hover:bg-primary/10 rounded-xl"><span className="material-symbols-outlined normal-case text-[18px]">visibility</span></Button>
+                  <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 hover:text-amber-600 hover:bg-amber-50 rounded-xl"><span className="material-symbols-outlined normal-case text-[18px]">edit</span></Button>
+                  <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 hover:text-rose-600 hover:bg-rose-50 rounded-xl"><span className="material-symbols-outlined normal-case text-[18px]">delete</span></Button>
+                </div>
+              )}
+            />
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Detail Modal */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>

@@ -816,7 +816,9 @@ func GetAnnouncements(c *fiber.Ctx) error {
 	var list []models.OrmawaPengumuman
 	query := config.DB.Preload("Ormawa")
 
-	if ormawaId != "" {
+	if tokenOrmawaID, ok := c.Locals("ormawa_id").(uint); ok && tokenOrmawaID != 0 {
+		query = query.Where("ormawa_id = ?", tokenOrmawaID)
+	} else if ormawaId != "" {
 		query = query.Where("ormawa_id = ?", ormawaId)
 	}
 	query.Order("created_at desc").Find(&list)
@@ -834,16 +836,43 @@ func CreateAnnouncement(c *fiber.Ctx) error {
 		payload.OrmawaID = tokenOrmawaID
 	}
 
+	// Default to now if zero
+	if payload.TanggalMulai.IsZero() {
+		payload.TanggalMulai = time.Now()
+	}
+
 	if err := config.DB.Create(&payload).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menyimpan pengumuman: " + err.Error()})
 	}
+
+	createdAt := payload.TanggalMulai
+
 	// Buat notifikasi ormawa
-	config.DB.Create(&models.OrmawaNotifikasi{
+	notifOrmawa := models.OrmawaNotifikasi{
 		OrmawaID: payload.OrmawaID,
 		Tipe:     "pengumuman",
 		Judul:    "Pengumuman Baru",
 		Pesan:    fmt.Sprintf("Pengumuman baru dirilis: '%s'.", payload.Judul),
-	})
+	}
+	notifOrmawa.CreatedAt = createdAt
+	config.DB.Create(&notifOrmawa)
+
+	// Buat notifikasi untuk anggota ormawa
+	var anggota []models.OrmawaAnggota
+	config.DB.Preload("Mahasiswa").Where("ormawa_id = ?", payload.OrmawaID).Find(&anggota)
+	for _, a := range anggota {
+		if a.Mahasiswa.PenggunaID != 0 {
+			notifMember := models.Notifikasi{
+				UserID: a.Mahasiswa.PenggunaID,
+				Tipe:   "pengumuman_ormawa",
+				Judul:  "Pengumuman Ormawa",
+				Deskripsi:  fmt.Sprintf("Ada pengumuman baru: '%s'", payload.Judul),
+			}
+			notifMember.CreatedAt = createdAt
+			config.DB.Create(&notifMember)
+		}
+	}
+
 	return c.JSON(fiber.Map{"status": "success", "data": payload})
 }
 

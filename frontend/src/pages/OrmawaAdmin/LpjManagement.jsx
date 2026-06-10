@@ -191,7 +191,7 @@ export default function LpjManagement() {
         toast.error(res.message || 'Gagal menyimpan Laporan LPJ')
       }
     } catch (err) {
-      toast.error('Terjadi kesalahan koneksi backend')
+      console.error(err); toast.error(err.message || 'Terjadi kesalahan koneksi backend')
     } finally {
       setIsSubmitting(false)
     }
@@ -211,7 +211,7 @@ export default function LpjManagement() {
         toast.error('Gagal menghapus Laporan LPJ')
       }
     } catch (err) {
-      toast.error('Terjadi kesalahan koneksi backend')
+      console.error(err); toast.error(err.message || 'Terjadi kesalahan koneksi backend')
     } finally {
       setIsSubmitting(false)
     }
