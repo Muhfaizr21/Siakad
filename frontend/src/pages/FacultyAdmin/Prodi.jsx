@@ -511,7 +511,7 @@ export default function ProdiPage() {
       )}
 
       {/* Main Data Table */}
-      <Card className="glass-card shadow-sm rounded-xl overflow-hidden mt-6 mb-6">
+      <div className="glass-card shadow-sm rounded-xl overflow-hidden mt-6 mb-6">
         <div className="px-6 py-5 border-b border-[var(--theme-border)] flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-[var(--theme-surface)]">
           <div className="flex-1">
             <h2 className="font-headline font-bold text-lg text-[var(--theme-text)]">Daftar Program Studi</h2>
@@ -520,7 +520,7 @@ export default function ProdiPage() {
             </p>
           </div>
         </div>
-        <CardContent className="p-0">
+        <div className="p-0">
           <DataTable
             columns={prodiColumns}
             data={majors}
@@ -528,8 +528,8 @@ export default function ProdiPage() {
             searchPlaceholder="Cari program studi..."
             actions={renderActions}
           />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* CRUD Modal */}
       <DialogModal

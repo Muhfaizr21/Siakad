@@ -78,9 +78,9 @@ export function DialogModal({
               )}
               
               <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-4 mb-1">
+                <div className="flex flex-col items-start justify-start gap-1">
                   {subtitle && (
-                    <div className="flex flex-wrap items-center gap-3 mb-2">
+                    <div className="flex flex-wrap items-center gap-3 mb-1">
                       <div className="flex items-center gap-2 bg-black/20 border border-white/10 rounded-full px-3 py-1 backdrop-blur-md shadow-inner">
                         <span className="w-1.5 h-1.5 rounded-full bg-white/90 animate-pulse" />
                         <div className="text-[10px] font-black text-white/90 uppercase tracking-widest">
@@ -90,12 +90,12 @@ export function DialogModal({
                     </div>
                   )}
                   {title && (
-                    <Dialog.Title className="text-xl sm:text-2xl font-black font-headline tracking-tighter text-white leading-tight drop-shadow-sm pr-12">
+                    <Dialog.Title className="text-xl sm:text-2xl font-black font-headline tracking-tighter text-white leading-tight drop-shadow-sm pr-8">
                       {title}
                     </Dialog.Title>
                   )}
                   {description && (
-                    <Dialog.Description className="text-sm font-medium text-white/80 font-inter mt-1.5 pr-8">
+                    <Dialog.Description className="text-sm font-medium text-white/80 font-inter mt-0.5 pr-8">
                       {description}
                     </Dialog.Description>
                   )}
@@ -136,9 +136,11 @@ export function ModalCancelButton({ onClick, children = "Batal", className }) {
   );
 }
 
-export function ModalSaveButton({ onClick, disabled, loading, children = "Simpan", icon = "task_alt", className }) {
+export function ModalSaveButton({ onClick, disabled, loading, text, children = "Simpan", icon = "task_alt", className, form, type }) {
   return (
     <button
+      type={type || (form ? "submit" : "button")}
+      form={form}
       onClick={onClick}
       disabled={disabled || loading}
       className={cn(

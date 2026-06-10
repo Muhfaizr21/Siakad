@@ -15,6 +15,7 @@ import { DataTable } from '@/components/ui/DataTable'
 import { PrimaryStatsCard, SecondaryStatsCard } from '@/components/ui/StatsCard'
 
 import { API_BASE_URL } from "../../services/api"
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const RefreshCw = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>sync</span>;
@@ -145,7 +146,27 @@ export default function PsikologPage() {
     setLoading(true)
     try {
       const res = await api.get('/faculty/psychologists')
-      const list = res?.data?.data || []
+      let list = res?.data?.data || []
+      
+      // MOCK DATA INJECTION FOR TESTING LAYOUT
+      const mockSpesialisasi = ['Psikologi Klinis Dewasa', 'Klinis Anak & Remaja', 'Psikologi Pendidikan', 'Konseling Karir', 'Psikologi Industri', 'Perkembangan Anak', 'Psikologi Keluarga', 'Trauma & PTSD', 'Adiksi', 'Psikologi Umum'];
+      const mockLokasi = ['Online', 'Tatap Muka', 'Hybrid', 'Online & Tatap Muka'];
+      const mockNames = ['Budi Santoso', 'Siti Rahma', 'Ahmad Rizal', 'Dewi Lestari', 'Agus Setiawan', 'Rini Yulianti', 'Hendra Wijaya', 'Nina Safitri'];
+      
+      const mockData = Array.from({ length: 120 }).map((_, i) => ({
+        id: `mock-${i}`,
+        nama: `${mockNames[i % mockNames.length]} S.Psi., M.Psi., Psikolog ${i+1}`,
+        email: `psikolog.mock${i+1}@kampus.ac.id`,
+        no_hp: `081234567${String(i).padStart(3, '0')}`,
+        spesialisasi: mockSpesialisasi[i % mockSpesialisasi.length],
+        bio: `Saya adalah psikolog berpengalaman lebih dari ${5 + (i%15)} tahun menangani berbagai kasus mahasiswa...`,
+        foto_url: '',
+        lokasi: mockLokasi[i % mockLokasi.length],
+        bahasa: i % 4 === 0 ? 'Indonesia, Inggris' : 'Indonesia',
+        is_aktif: i % 10 !== 0 // 90% aktif
+      }));
+      
+      list = [...list, ...mockData];
       setPsychologists(list.map((p, i) => ({
         ID: p.id || p.ID,
         Nama: p.nama || p.Nama || '—',
@@ -354,9 +375,9 @@ export default function PsikologPage() {
       </div>
 
       {/* NEW: 5W1H Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-6 gap-6 mb-6">
         {/* WHAT → Distribusi Spesialisasi */}
-        <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+        <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col group hover:shadow-md transition-all duration-300">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center text-violet-600">
               <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>psychology</span>
@@ -366,26 +387,40 @@ export default function PsikologPage() {
               <h3 className="text-sm font-bold text-slate-800 leading-tight">Distribusi Bidang Ahli</h3>
             </div>
           </div>
-          <div className="space-y-2">
-            {distribusiSpes.map((item, i) => {
-              const maxCount = Math.max(...distribusiSpes.map(d => d.count), 1)
-              const colors = ['bg-rose-400', 'bg-blue-400', 'bg-amber-400', 'bg-emerald-400', 'bg-violet-400']
-              return (
-                <div key={i} className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold text-slate-500 w-20 truncate">{item.name}</span>
-                  <div className="flex-1 h-5 bg-slate-100 rounded-full overflow-hidden">
-                    <div className={cn('h-full rounded-full transition-all', colors[i % colors.length])} style={{ width: `${(item.count / maxCount) * 100}%` }} />
-                  </div>
-                  <span className="text-xs font-black text-slate-700 w-6 text-right">{item.count}</span>
-                </div>
-              )
-            })}
+          <div className="h-[220px] w-full mt-2 relative">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={distribusiSpes}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={85}
+                  paddingAngle={2}
+                  dataKey="count"
+                >
+                  {distribusiSpes.map((entry, index) => {
+                    const colors = ['#fb7185', '#60a5fa', '#fbbf24', '#34d399', '#a78bfa', '#2dd4bf', '#f472b6', '#38bdf8', '#a3e635'];
+                    return <Cell key={`cell-${index}`} fill={colors[index % colors.length]} stroke="transparent" />
+                  })}
+                </Pie>
+                <Tooltip 
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px', fontWeight: 'bold' }}
+                  itemStyle={{ color: '#1e293b' }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            {/* Center Label */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <span className="text-2xl font-black text-slate-800 leading-none">{distribusiSpes.length}</span>
+              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Spesialisasi</span>
+            </div>
           </div>
         </div>
 
 
         {/* WHERE → Lokasi Praktik */}
-        <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+        <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col group hover:shadow-md transition-all duration-300">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
               <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>location_on</span>
@@ -399,27 +434,32 @@ export default function PsikologPage() {
             const online = psychologists.filter(p => (p.Lokasi || '').toLowerCase().includes('online')).length
             const offline = psychologists.filter(p => (p.Lokasi || '').toLowerCase().includes('tatap') || (p.Lokasi || '').toLowerCase().includes('kampus')).length
             const hybrid = psychologists.length - online - offline
+            const items = [
+              { name: 'Online (Daring)', count: online, color: 'bg-blue-400' },
+              { name: 'Tatap Muka (Luring)', count: offline, color: 'bg-emerald-400' },
+              { name: 'Hybrid (Campuran)', count: hybrid, color: 'bg-violet-400' }
+            ]
+            const maxCount = Math.max(...items.map(d => d.count), 1)
             return (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-xl">
-                  <span className="text-sm font-bold text-blue-700">Online</span>
-                  <span className="text-lg font-extrabold text-blue-600">{online}</span>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-xl">
-                  <span className="text-sm font-bold text-emerald-700">Tatap Muka</span>
-                  <span className="text-lg font-extrabold text-emerald-600">{offline}</span>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-violet-50 rounded-xl">
-                  <span className="text-sm font-bold text-violet-700">Hybrid</span>
-                  <span className="text-lg font-extrabold text-violet-600">{hybrid}</span>
-                </div>
+              <div className="space-y-5 mt-4">
+                {items.map((item, i) => (
+                  <div key={i} className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wide">{item.name}</span>
+                      <span className="text-sm font-black text-slate-800">{item.count}</span>
+                    </div>
+                    <div className="w-full h-4 bg-slate-100 rounded-full overflow-hidden">
+                      <div className={cn('h-full rounded-full transition-all duration-500 ease-out', item.color)} style={{ width: `${(item.count / maxCount) * 100}%` }} />
+                    </div>
+                  </div>
+                ))}
               </div>
             )
           })()}
         </div>
 
         {/* WHEN → Aktivitas Booking */}
-        <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+        <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col group hover:shadow-md transition-all duration-300">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
               <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>calendar_month</span>
@@ -432,16 +472,42 @@ export default function PsikologPage() {
           {(() => {
             const aktif = psychologists.filter(p => p.IsAktif).length
             const nonaktif = psychologists.length - aktif
+            const total = psychologists.length || 1
+            const aktifPct = Math.round((aktif / total) * 100)
+            
             return (
-              <div className="flex items-center gap-4">
-                <div className="text-center">
-                  <span className="text-3xl font-extrabold text-emerald-600">{aktif}</span>
-                  <p className="text-[10px] text-emerald-600 font-bold mt-1">Aktif</p>
+              <div className="flex flex-col gap-4 mt-3">
+                <div className="flex items-center gap-4 p-4 rounded-xl bg-emerald-50 border border-emerald-100 group-hover:border-emerald-200 transition-colors">
+                  <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white shadow-sm border border-emerald-200">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-20"></span>
+                    <span className="material-symbols-outlined text-emerald-500" style={{ fontSize: '22px' }}>bolt</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-0.5 truncate">Siap Melayani</p>
+                    <div className="flex items-end gap-1.5">
+                      <span className="text-2xl font-black text-emerald-700 leading-none">{aktif}</span>
+                      <span className="text-[11px] font-bold text-emerald-600/70 mb-0.5">Psikolog</span>
+                    </div>
+                  </div>
+                  <div className="text-right pl-2">
+                    <span className="text-lg font-black text-emerald-500">{aktifPct}%</span>
+                  </div>
                 </div>
-                <div className="h-12 w-px bg-slate-200" />
-                <div className="text-center">
-                  <span className="text-3xl font-extrabold text-slate-400">{nonaktif}</span>
-                  <p className="text-[10px] text-slate-400 font-bold mt-1">Nonaktif</p>
+
+                <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100 group-hover:border-slate-200 transition-colors">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white shadow-sm border border-slate-200">
+                    <span className="material-symbols-outlined text-slate-400" style={{ fontSize: '22px' }}>bedtime</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-0.5 truncate">Cuti / Off</p>
+                    <div className="flex items-end gap-1.5">
+                      <span className="text-2xl font-black text-slate-700 leading-none">{nonaktif}</span>
+                      <span className="text-[11px] font-bold text-slate-500/70 mb-0.5">Psikolog</span>
+                    </div>
+                  </div>
+                  <div className="text-right pl-2">
+                    <span className="text-lg font-black text-slate-400">{100 - aktifPct}%</span>
+                  </div>
                 </div>
               </div>
             )
@@ -450,7 +516,7 @@ export default function PsikologPage() {
 
 
         {/* HOW → Kontak Cepat */}
-        <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+        <div className="lg:col-span-3 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col group hover:shadow-md transition-all duration-300">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600">
               <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>contact_phone</span>
@@ -473,7 +539,7 @@ export default function PsikologPage() {
         </div>
 
         {/* WHO → Prodi/Fakultas Tersebar */}
-        <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+        <div className="lg:col-span-3 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col group hover:shadow-md transition-all duration-300">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center text-violet-600">
               <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>school</span>

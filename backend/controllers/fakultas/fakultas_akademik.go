@@ -269,7 +269,7 @@ func AmbilDaftarProdi(c *fiber.Ctx) error {
 
 	var p = []models.ProgramStudi{}
 	query := config.DB.Preload("Fakultas")
-	if role == "faculty_admin" {
+	if role == "faculty_admin" || (role == "super_admin" && fid != 0) {
 		query = query.Where("fakultas_id = ?", fid)
 	} else if role == "prodi_admin" {
 		pid, _ := c.Locals("program_studi_id").(uint)

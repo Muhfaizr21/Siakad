@@ -783,7 +783,7 @@ export default function FacultyKesehatan() {
         title={selected?.Mahasiswa?.Nama}
         subtitle={`${selected?.Mahasiswa?.NIM} · ${selected?.Mahasiswa?.ProgramStudi?.Nama || '—'}`}
         badgeText="Rekam Medis Mahasiswa"
-        maxWidth="max-w-lg"
+        maxWidth="max-w-2xl"
         footer={
           <>
             <button onClick={() => window.print()}
@@ -797,110 +797,121 @@ export default function FacultyKesehatan() {
           </>
         }
       >
-        <div className="flex-1 overflow-y-auto space-y-4 max-h-[60vh] no-scrollbar">
-          {/* Health Status Badges Header (Moved inside Body) */}
-          <div className="flex flex-wrap gap-2 mb-2">
-            <span className="flex items-center gap-1.5 bg-[var(--theme-error-light)] border border-[var(--theme-error)]/10 px-3 py-1 rounded-full text-[10px] font-semibold text-[var(--theme-error)] font-mono tracking-wider">
-              <Droplet size={10} /> Gol. {selected?.GolonganDarah || '?'}
-            </span>
-            {selected?.StatusKesehatan && (() => {
-              const hs = getHealth(selected.StatusKesehatan);
-              return (
-                <span className={cn('flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-semibold border uppercase tracking-wider', hs.cls)}>
-                  <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', hs.dot)} />
-                  {selected.StatusKesehatan}
-                </span>
-              );
-            })()}
-          </div>
-            {/* Data Fisik Grid */}
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-5 h-5 rounded-md bg-[var(--theme-primary-light)] flex items-center justify-center">
-                  <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '11px' }} >show_chart</span>
-                </div>
-                <h3 className="text-[10px] font-bold font-headline uppercase tracking-[0.18em] text-[var(--theme-text)]">Data Fisik & Vital</h3>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { label: 'Tinggi Badan', value: selected?.TinggiBadan ? `${parseFloat(selected.TinggiBadan).toFixed(1)} cm` : '—' },
-                  { label: 'Berat Badan', value: selected?.BeratBadan ? `${parseFloat(selected.BeratBadan).toFixed(1)} kg` : '—' },
-                  { label: 'BMI', value: (selected ? bmi(selected) : null) || '—', highlight: selected && bmi(selected) >= 25 },
-                  { label: 'Tekanan Darah', value: (selected?.Sistole || selected?.Diastole) ? `${selected.Sistole || 0}/${selected.Diastole || 0} mmHg` : '—' },
-                  { label: 'Gula Darah', value: selected?.GulaDarah ? `${selected.GulaDarah} mg/dL` : '—' },
-                  { label: 'Buta Warna', value: selected?.ButaWarna || '—' },
-                  { label: 'Jenis Pemeriksaan', value: selected?.JenisPemeriksaan || '—' },
-                  { label: 'Hasil Medis', value: selected?.Hasil || '—' },
-                ].map(item => (
-                  <div key={item.label} className="bg-[var(--theme-bg)]/50 border border-[var(--theme-border-muted)] rounded-xl p-3">
-                    <p className="text-[9px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-[0.15em] mb-1">{item.label}</p>
-                    <p className={cn('text-sm font-bold text-[var(--theme-text)]', item.highlight && 'text-[var(--theme-error)]')}>
-                      {item.value}
-                    </p>
+            <div className="flex flex-col gap-6 p-1 pb-6 max-h-[70vh] overflow-y-auto no-scrollbar">
+              {/* Main Card */}
+              <div className="flex flex-col bg-white rounded-2xl border border-[var(--theme-border-muted)] overflow-hidden shadow-sm">
+                {/* Header Identity & Status */}
+                <div className="p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[var(--theme-border-muted)] bg-[var(--theme-surface)]">
+                  <div>
+                    <h3 className="text-sm font-bold text-[var(--theme-text)]">{selected?.Mahasiswa?.Nama || '—'}</h3>
+                    <p className="text-xs text-[var(--theme-text-muted)] font-medium mt-0.5">{selected?.Mahasiswa?.NIM || '—'} · {selected?.Mahasiswa?.ProgramStudi?.Nama || '—'}</p>
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Riwayat Penyakit */}
-            {selected?.RiwayatPenyakit && (
-              <div className="bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-2xl p-4">
-                <p className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-[0.18em] mb-1.5">Riwayat Penyakit</p>
-                <p className="text-xs text-[var(--theme-text)] leading-relaxed">{selected.RiwayatPenyakit}</p>
-              </div>
-            )}
-
-            {/* Catatan */}
-            {selected?.Catatan && (
-              <div className="bg-[var(--theme-warning-light)] border border-[var(--theme-warning)]/20 rounded-2xl p-4">
-                <p className="text-[10px] font-semibold text-[var(--theme-warning)] uppercase tracking-[0.18em] mb-1.5">Catatan Medis</p>
-                <p className="text-xs text-[var(--theme-warning)] leading-relaxed">{selected.Catatan}</p>
-              </div>
-            )}
-
-            {/* File Dokumen / Lampiran */}
-            {selected?.FileURL && (
-              <div className="bg-[var(--theme-info-light)] border border-[var(--theme-info)]/20 rounded-2xl p-4 flex items-center justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-semibold text-[var(--theme-info)] uppercase tracking-[0.18em] mb-0.5">Berkas Hasil Medis</p>
-                  <p className="text-[10px] text-[var(--theme-text-muted)] font-medium truncate">Dokumen hasil pemeriksaan resmi (.pdf/.jpg)</p>
+                  <div className="flex items-center gap-2">
+                    <span className="flex items-center gap-1.5 bg-[var(--theme-error-light)] border border-[var(--theme-error)]/10 px-3 py-1 rounded-full text-[10px] font-semibold text-[var(--theme-error)] font-mono tracking-wider">
+                      <span className="material-symbols-outlined text-[13px]">water_drop</span> Gol. {selected?.GolonganDarah || '?'}
+                    </span>
+                    {selected?.StatusKesehatan && (() => {
+                      const hs = getHealth(selected.StatusKesehatan);
+                      return (
+                        <span className={cn('flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-semibold border uppercase tracking-wider', hs.cls)}>
+                          <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', hs.dot)} />
+                          {selected.StatusKesehatan}
+                        </span>
+                      );
+                    })()}
+                  </div>
                 </div>
-                <a href={getFullUrl(selected.FileURL)} target="_blank" rel="noreferrer"
-                  className="h-8 px-3 rounded-lg bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-xs font-semibold uppercase tracking-widest flex items-center gap-1 transition-all shadow-sm shrink-0">
-                  <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>visibility</span> Lihat
-                </a>
-              </div>
-            )}
 
-            {/* Info Tambahan */}
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-5 h-5 rounded-md bg-[var(--theme-primary-light)] flex items-center justify-center">
-                  <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '11px' }} >calendar_month</span>
-                </div>
-                <h3 className="text-[10px] font-bold font-headline uppercase tracking-[0.18em] text-[var(--theme-text)]">Informasi Tambahan</h3>
-              </div>
-              <div className="space-y-1">
-                {[
-                  { icon: Calendar, label: 'Tanggal Periksa', value: selected ? formatDate(selected.Tanggal) : '' },
-                  { icon: GraduationCap, label: 'Program Studi', value: selected?.Mahasiswa?.ProgramStudi?.Nama },
-                  { icon: ShieldCheck, label: 'Status', value: selected?.StatusKesehatan || 'Stabil' },
-                ].map(r => (
-                  <div key={r.label} className="flex items-center gap-3 p-3 rounded-xl bg-[var(--theme-bg)]/50 border border-[var(--theme-border-muted)] hover:bg-[var(--theme-surface)] transition-all">
-                    <div className="w-7 h-7 bg-[var(--theme-surface)] rounded-lg flex items-center justify-center text-[var(--theme-primary)] shadow-sm border border-[var(--theme-border-muted)] flex-shrink-0">
-                      <r.icon size={13} />
+                {/* Data Fisik Grid */}
+                <div className="p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-5 h-5 rounded-md bg-[var(--theme-primary-light)] flex items-center justify-center">
+                      <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '11px' }} >show_chart</span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[9px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-[0.15em]">{r.label}</p>
-                      <p className="text-sm font-semibold text-[var(--theme-text)]">{r.value || '—'}</p>
+                    <h3 className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Data Fisik & Vital</h3>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {[
+                      { label: 'Tinggi Badan', value: selected?.TinggiBadan ? `${parseFloat(selected.TinggiBadan).toFixed(1)} cm` : '—' },
+                      { label: 'Berat Badan', value: selected?.BeratBadan ? `${parseFloat(selected.BeratBadan).toFixed(1)} kg` : '—' },
+                      { label: 'BMI', value: (selected ? bmi(selected) : null) || '—', highlight: selected && bmi(selected) >= 25 },
+                      { label: 'Tekanan Darah', value: (selected?.Sistole || selected?.Diastole) ? `${selected.Sistole || 0}/${selected.Diastole || 0}` : '—' },
+                      { label: 'Gula Darah', value: selected?.GulaDarah ? `${selected.GulaDarah} mg/dL` : '—' },
+                      { label: 'Buta Warna', value: selected?.ButaWarna || '—' },
+                      { label: 'Pemeriksaan', value: selected?.JenisPemeriksaan || '—' },
+                      { label: 'Hasil Medis', value: selected?.Hasil || '—' },
+                    ].map((item, idx) => (
+                      <div key={idx} className="flex flex-col justify-between gap-1 p-3 rounded-xl bg-[var(--theme-bg)]/30 border border-[var(--theme-border)]">
+                        <p className="text-[9px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">{item.label}</p>
+                        <p className={cn('text-sm font-bold text-[var(--theme-text)] line-clamp-2', item.highlight && 'text-[var(--theme-error)]')} title={String(item.value)}>
+                          {item.value}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Medical Notes */}
+                {((selected?.RiwayatPenyakit) || (selected?.Catatan)) && (
+                  <div className="p-5 border-t border-[var(--theme-border-muted)] bg-[var(--theme-surface)] space-y-4">
+                    {selected?.RiwayatPenyakit && (
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="material-symbols-outlined text-[var(--theme-error)]" style={{ fontSize: '14px' }}>medical_information</span>
+                          <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Riwayat Penyakit</span>
+                        </div>
+                        <p className="text-xs text-[var(--theme-text)] font-medium leading-relaxed bg-white border border-[var(--theme-border)] rounded-xl p-3 shadow-sm">{selected.RiwayatPenyakit}</p>
+                      </div>
+                    )}
+                    {selected?.Catatan && (
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="material-symbols-outlined text-[var(--theme-warning)]" style={{ fontSize: '14px' }}>warning</span>
+                          <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Catatan Khusus</span>
+                        </div>
+                        <p className="text-xs text-[var(--theme-text)] font-medium leading-relaxed bg-[var(--theme-warning-light)] border border-[var(--theme-warning)]/20 rounded-xl p-3 shadow-sm">{selected.Catatan}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Document & Info Row */}
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1 bg-white rounded-2xl border border-[var(--theme-border-muted)] shadow-sm p-4 flex items-center justify-between group hover:border-[var(--theme-primary)]/40 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--theme-info-light)] flex items-center justify-center text-[var(--theme-info)]">
+                      <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>assignment</span>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Berkas Medis</p>
+                      <p className="text-sm font-bold text-[var(--theme-text)]">Dokumen Skrining</p>
                     </div>
                   </div>
-                ))}
+                  {selected?.FileURL ? (
+                    <a href={getFullUrl(selected.FileURL)} target="_blank" rel="noreferrer"
+                      className="h-8 px-4 rounded-lg bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-sm">
+                      <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>open_in_new</span> Buka
+                    </a>
+                  ) : (
+                    <span className="h-8 px-3 rounded-lg bg-[var(--theme-bg)] text-[var(--theme-text-muted)] text-xs font-bold flex items-center">
+                      Kosong
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex-1 bg-white rounded-2xl border border-[var(--theme-border-muted)] shadow-sm p-4 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--theme-success-light)] flex items-center justify-center text-[var(--theme-success)]">
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>event_available</span>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Tanggal Periksa</p>
+                    <p className="text-sm font-bold text-[var(--theme-text)]">{selected ? formatDate(selected.Tanggal) : '—'}</p>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-
-      </DialogModal>
+          </DialogModal>
     </PageContent>
   )
 }
