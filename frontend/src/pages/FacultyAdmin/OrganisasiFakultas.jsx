@@ -88,10 +88,10 @@ export default function FacultyOrganisasi() {
   }
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); 
+    e.preventDefault();
     setIsSub(true)
     const payload = { Nama: formData.nama_org, Singkatan: formData.kode_org, Status: formData.status, Kategori: formData.kategori, JumlahAnggota: parseInt(formData.jumlah_anggota) || 0, Deskripsi: formData.ketua_nama, Email: formData.email, Password: formData.password, Phone: formData.phone }
-    
+
     if (formData.KetuaID) {
       payload.KetuaID = parseInt(formData.KetuaID)
       payload.KetuaNama = formData.ketua_nama
@@ -121,14 +121,14 @@ export default function FacultyOrganisasi() {
     finally { setIsSub(false) }
   }
 
-  const openEdit = (org) => { 
+  const openEdit = (org) => {
     console.log('Open Edit ORMAWA:', org);
-    setEdit(org); 
-    setFormData({ kode_org: org.kode || org.Singkatan || '', nama_org: org.nama || org.Nama || '', ketua_nama: org.deskripsi || org.Deskripsi || org.ketua_nama || '', KetuaID: org.ketua_id || org.KetuaID || null, jumlah_anggota: org.jumlah_anggota || org.JumlahAnggota || 0, status: org.status || org.Status || 'Aktif', kategori: org.kategori || org.Kategori || 'Himpunan', email: org.email || org.Email || '', password: '', phone: org.phone || org.Phone || '', fakultas_id: org.fakultas_id || org.FakultasID || '' }); 
+    setEdit(org);
+    setFormData({ kode_org: org.kode || org.Singkatan || '', nama_org: org.nama || org.Nama || '', ketua_nama: org.deskripsi || org.Deskripsi || org.ketua_nama || '', KetuaID: org.ketua_id || org.KetuaID || null, jumlah_anggota: org.jumlah_anggota || org.JumlahAnggota || 0, status: org.status || org.Status || 'Aktif', kategori: org.kategori || org.Kategori || 'Himpunan', email: org.email || org.Email || '', password: '', phone: org.phone || org.Phone || '', fakultas_id: org.fakultas_id || org.FakultasID || '' });
     const facIdToFind = org.fakultas_id || org.FakultasID;
     const foundFac = faculties.find(f => (f.id || f.ID) === facIdToFind)
     setFakultasSearch(foundFac ? (foundFac.nama || foundFac.Nama) : '')
-    setModal(true) 
+    setModal(true)
   }
   const set = (k, v) => setFormData(p => ({ ...p, [k]: v }))
 
@@ -200,14 +200,16 @@ export default function FacultyOrganisasi() {
     { key: 'deskripsi', label: 'Ketua', sortable: true, render: (val) => <span className="text-sm text-[var(--theme-text-muted)] font-medium">{val || '—'}</span> },
     { key: 'kategori', label: 'Kategori', sortable: true, render: (val) => <span className="text-[10px] font-bold text-[var(--theme-primary)] bg-[var(--theme-primary-light)] border border-[var(--theme-primary-light)] px-2.5 py-1 rounded-lg">{val || '—'}</span> },
     { key: 'jumlah_anggota', label: 'Anggota', sortable: true, render: (val) => <div className="flex items-center gap-1.5 text-sm font-black text-[var(--theme-text)]"><span className="material-symbols-outlined text-[var(--theme-text-subtle)]" style={{ fontSize: '12px' }}>group</span>{val || 0}</div> },
-    { key: 'status', label: 'Status', sortable: true, render: (val) => (
+    {
+      key: 'status', label: 'Status', sortable: true, render: (val) => (
         <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border uppercase tracking-wider',
           val === 'Aktif' ? 'bg-[var(--theme-success-light)] text-[var(--theme-success)] border-[var(--theme-border-muted)]' : 'bg-[var(--theme-error-light)] text-[var(--theme-error)] border-[var(--theme-border-muted)]')}>
           <span className={cn('w-1.5 h-1.5 rounded-full', val === 'Aktif' ? 'bg-[var(--theme-success)]' : 'bg-[var(--theme-error)]')} />{val}
         </span>
       )
     },
-    { key: 'actions', label: 'Aksi', noSort: true, align: 'center', render: (_, row) => (
+    {
+      key: 'actions', label: 'Aksi', noSort: true, align: 'center', render: (_, row) => (
         <div className="flex items-center justify-center gap-1.5">
           <button onClick={() => openEdit(row)} className="p-1.5 text-[var(--theme-text-muted)] hover:text-[var(--theme-warning)] hover:bg-[var(--theme-warning-light)] rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >edit</span></button>
           <button onClick={() => setDelTarget(row)} className="p-1.5 text-[var(--theme-error)] hover:bg-[var(--theme-error-light)] rounded-lg transition-colors" title="Hapus"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >delete</span></button>
@@ -219,46 +221,46 @@ export default function FacultyOrganisasi() {
   return (
     <PageContent>
       <Toaster position="top-right" />
-        <DashboardHero
-          title="Organisasi "
-          highlightedTitle="Fakultas"
-          subtitle="Kelola data legalitas dan identitas organisasi mahasiswa di lingkungan fakultas."
-          icon="groups"
-          badges={[
-            { label: 'Master Data ORMAWA', active: false },
-            { label: `${stats.aktif} ORMAWA Aktif`, active: true }
-          ]}
-          actions={
-            <button onClick={() => { setEdit(null); setFormData(EMPTY_FORM); setModal(true) }}
-              className="h-10 px-4 rounded-xl bg-primary hover:bg-bku-hover text-white text-xs font-bold uppercase tracking-wider gap-2 flex items-center transition-all active:scale-95 shadow-lg shadow-bku-primary/20 shrink-0">
-              <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >add</span> Tambah ORMAWA
-            </button>
-          }
-        />
+      <DashboardHero
+        title="Organisasi "
+        highlightedTitle="Fakultas"
+        subtitle="Kelola data legalitas dan identitas organisasi mahasiswa di lingkungan fakultas."
+        icon="groups"
+        badges={[
+          { label: 'Master Data ORMAWA', active: false },
+          { label: `${stats.aktif} ORMAWA Aktif`, active: true }
+        ]}
+        actions={
+          <button onClick={() => { setEdit(null); setFormData(EMPTY_FORM); setModal(true) }}
+            className="h-10 px-4 rounded-xl bg-primary hover:bg-bku-hover text-white text-xs font-bold uppercase tracking-wider gap-2 flex items-center transition-all active:scale-95 shadow-lg shadow-bku-primary/20 shrink-0">
+            <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >add</span> Tambah ORMAWA
+          </button>
+        }
+      />
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <PrimaryStatsCard title="Total ORMAWA" value={loading ? <span className="material-symbols-outlined animate-spin text-[var(--theme-text-subtle)]" style={{ fontSize: '18px' }} >sync</span> : stats.total} icon={Users2} colorTheme="info" badgeText="Organisasi terdaftar" />
-          <PrimaryStatsCard title="Organisasi Aktif" value={loading ? <span className="material-symbols-outlined animate-spin text-[var(--theme-text-subtle)]" style={{ fontSize: '18px' }} >sync</span> : stats.aktif} icon={CheckCircle2} colorTheme="success" badgeText="Status aktif beroperasi" />
-          <PrimaryStatsCard title="Total Anggota" value={loading ? <span className="material-symbols-outlined animate-spin text-[var(--theme-text-subtle)]" style={{ fontSize: '18px' }} >sync</span> : stats.anggota} icon={ShieldCheck} colorTheme="primary" badgeText="Jangkauan anggota" />
-          <PrimaryStatsCard title="Total Kategori" value={loading ? <span className="material-symbols-outlined animate-spin text-[var(--theme-text-subtle)]" style={{ fontSize: '18px' }} >sync</span> : kategoriData.length} icon={Users2} colorTheme="warning" badgeText="Jenis organisasi" />
-        </div>
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <PrimaryStatsCard title="Total ORMAWA" value={loading ? <span className="material-symbols-outlined animate-spin text-[var(--theme-text-subtle)]" style={{ fontSize: '18px' }} >sync</span> : stats.total} icon={Users2} colorTheme="info" badgeText="Organisasi terdaftar" />
+        <PrimaryStatsCard title="Organisasi Aktif" value={loading ? <span className="material-symbols-outlined animate-spin text-[var(--theme-text-subtle)]" style={{ fontSize: '18px' }} >sync</span> : stats.aktif} icon={CheckCircle2} colorTheme="success" badgeText="Status aktif beroperasi" />
+        <PrimaryStatsCard title="Total Anggota" value={loading ? <span className="material-symbols-outlined animate-spin text-[var(--theme-text-subtle)]" style={{ fontSize: '18px' }} >sync</span> : stats.anggota} icon={ShieldCheck} colorTheme="primary" badgeText="Jangkauan anggota" />
+        <PrimaryStatsCard title="Total Kategori" value={loading ? <span className="material-symbols-outlined animate-spin text-[var(--theme-text-subtle)]" style={{ fontSize: '18px' }} >sync</span> : kategoriData.length} icon={Users2} colorTheme="warning" badgeText="Jenis organisasi" />
+      </div>
 
-        {/* Charts */}
-        {!loading && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-            {/* Pie: Distribusi Kategori */}
-            <div className="bg-[var(--theme-surface)] p-6 rounded-2xl border border-[var(--theme-border)] shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
-              <div className="flex flex-col h-full">
-                <div className="flex items-center gap-4 mb-4 shrink-0">
-                  <div className="w-12 h-12 bg-[var(--theme-primary-light)] rounded-xl flex justify-center items-center text-[var(--theme-primary)] group-hover:scale-110 group-hover:-rotate-6 transition-all duration-300">
-                    <span className="material-symbols-outlined text-[24px]">pie_chart</span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest block mb-0.5">Analisis Data</span>
-                    <h3 className="text-sm font-bold text-[var(--theme-text)] leading-tight">Distribusi Kategori</h3>
-                  </div>
+      {/* Charts */}
+      {!loading && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+          {/* Pie: Distribusi Kategori */}
+          <div className="bg-[var(--theme-surface)] p-6 rounded-2xl border border-[var(--theme-border)] shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+            <div className="flex flex-col h-full">
+              <div className="flex items-center gap-4 mb-4 shrink-0">
+                <div className="w-12 h-12 bg-[var(--theme-primary-light)] rounded-xl flex justify-center items-center text-[var(--theme-primary)] group-hover:scale-110 group-hover:-rotate-6 transition-all duration-300">
+                  <span className="material-symbols-outlined text-[24px]">pie_chart</span>
                 </div>
+                <div>
+                  <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest block mb-0.5">Analisis Data</span>
+                  <h3 className="text-sm font-bold text-[var(--theme-text)] leading-tight">Distribusi Kategori</h3>
+                </div>
+              </div>
               <div className="flex-1 w-full flex flex-col justify-center">
                 {kategoriData.length > 0 ? (
                   <ResponsiveContainer width="100%" height={200}>
@@ -282,21 +284,21 @@ export default function FacultyOrganisasi() {
                   </div>
                 ))}
               </div>
-              </div>
             </div>
+          </div>
 
-            {/* Bar: Top 10 Anggota per Ormawa */}
-            <div className="bg-[var(--theme-surface)] p-6 rounded-2xl border border-[var(--theme-border)] shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
-              <div className="flex flex-col h-full">
-                <div className="flex items-center gap-4 mb-4 shrink-0">
-                  <div className="w-12 h-12 bg-[var(--theme-success-light)] rounded-xl flex justify-center items-center text-[var(--theme-success)] group-hover:scale-110 group-hover:-rotate-6 transition-all duration-300">
-                    <span className="material-symbols-outlined text-[24px]">bar_chart</span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest block mb-0.5">Demografi</span>
-                    <h3 className="text-sm font-bold text-[var(--theme-text)] leading-tight">Anggota per Ormawa (Top 10)</h3>
-                  </div>
+          {/* Bar: Top 10 Anggota per Ormawa */}
+          <div className="bg-[var(--theme-surface)] p-6 rounded-2xl border border-[var(--theme-border)] shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+            <div className="flex flex-col h-full">
+              <div className="flex items-center gap-4 mb-4 shrink-0">
+                <div className="w-12 h-12 bg-[var(--theme-success-light)] rounded-xl flex justify-center items-center text-[var(--theme-success)] group-hover:scale-110 group-hover:-rotate-6 transition-all duration-300">
+                  <span className="material-symbols-outlined text-[24px]">bar_chart</span>
                 </div>
+                <div>
+                  <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest block mb-0.5">Demografi</span>
+                  <h3 className="text-sm font-bold text-[var(--theme-text)] leading-tight">Anggota per Ormawa (Top 10)</h3>
+                </div>
+              </div>
               <div className="flex-1 w-full flex flex-col justify-center">
                 {topAnggotaData.length > 0 ? (
                   <ResponsiveContainer width="100%" height={220}>
@@ -310,25 +312,25 @@ export default function FacultyOrganisasi() {
                   </ResponsiveContainer>
                 ) : <div className="h-full flex items-center justify-center"><span className="text-xs text-[var(--theme-text-subtle)] italic">Tidak ada data</span></div>}
               </div>
-              </div>
             </div>
           </div>
-        )}
-
-        {/* Table */}
-        <div className="bg-[var(--theme-surface)] rounded-2xl border border-[var(--theme-border)] shadow-sm overflow-hidden mb-6">
-          <DataTable
-            data={organizations}
-            columns={tableColumns}
-            loading={loading}
-            searchable={true}
-            pagination={true}
-            pageSize={10}
-            emptyMessage="Belum Ada Organisasi"
-            emptyIcon="groups"
-            searchPlaceholder="Cari nama atau kode..."
-          />
         </div>
+      )}
+
+      {/* Table */}
+      <div className="bg-[var(--theme-surface)] rounded-2xl border border-[var(--theme-border)] shadow-sm overflow-hidden mb-6">
+        <DataTable
+          data={organizations}
+          columns={tableColumns}
+          loading={loading}
+          searchable={true}
+          pagination={true}
+          pageSize={10}
+          emptyMessage="Belum Ada Organisasi"
+          emptyIcon="groups"
+          searchPlaceholder="Cari nama atau kode..."
+        />
+      </div>
 
       {/* Form Modal */}
       <Dialog open={showModal} onOpenChange={setModal} maxWidth="max-w-lg">
@@ -341,12 +343,12 @@ export default function FacultyOrganisasi() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Kode Akronim</label>
-                <input 
-                  value={formData.kode_org} 
-                  onChange={e => set('kode_org', e.target.value.toUpperCase())} 
-                  placeholder="BEM-FT" 
-                  required 
-                  className="h-10 w-full rounded-xl border border-[var(--theme-border)] bg-white px-3 text-sm text-[var(--theme-text)] uppercase placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors" 
+                <input
+                  value={formData.kode_org}
+                  onChange={e => set('kode_org', e.target.value.toUpperCase())}
+                  placeholder="BEM-FT"
+                  required
+                  className="h-10 w-full rounded-xl border border-[var(--theme-border)] bg-white px-3 text-sm text-[var(--theme-text)] uppercase placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors"
                 />
               </div>
               <div>
@@ -365,25 +367,25 @@ export default function FacultyOrganisasi() {
                 </Select>
               </div>
             </div>
-            
+
             {isSuperAdmin && (
               <div className="relative">
                 <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Pilih Fakultas</label>
                 <div className="relative">
-                  <div 
+                  <div
                     className="w-full h-10 px-3 rounded-xl border border-[var(--theme-border)] bg-white text-sm text-[var(--theme-text)] flex items-center justify-between cursor-pointer focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none"
                     onClick={() => setIsFakultasDropdownOpen(!isFakultasDropdownOpen)}
                   >
                     <span className={`truncate ${!formData.fakultas_id ? 'text-[var(--theme-text-subtle)]' : ''}`}>{fakultasSearch || '-- Tingkat Universitas --'}</span>
                     <span className="material-symbols-outlined text-[var(--theme-text-subtle)]">expand_more</span>
                   </div>
-                  
+
                   {isFakultasDropdownOpen && (
                     <div className="absolute z-50 mt-1 w-full bg-white border border-[var(--theme-border)] rounded-xl shadow-lg max-h-60 overflow-y-auto overflow-x-hidden">
                       <div className="sticky top-0 bg-white p-2 border-b border-[var(--theme-border-muted)]">
-                        <input 
-                          type="text" 
-                          placeholder="Cari fakultas..." 
+                        <input
+                          type="text"
+                          placeholder="Cari fakultas..."
                           value={fakultasSearch === '-- Tingkat Universitas --' ? '' : fakultasSearch}
                           onChange={e => setFakultasSearch(e.target.value)}
                           className="w-full h-9 px-3 rounded-lg bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm focus:outline-none focus:border-[var(--theme-primary)]"
@@ -391,7 +393,7 @@ export default function FacultyOrganisasi() {
                         />
                       </div>
                       <div className="p-1">
-                        <div 
+                        <div
                           onMouseDown={(e) => e.preventDefault()}
                           onClick={() => {
                             set('fakultas_id', '')
@@ -406,7 +408,7 @@ export default function FacultyOrganisasi() {
                           <div className="px-3 py-2 text-sm text-[var(--theme-text-muted)] text-center">Tidak ada fakultas ditemukan</div>
                         ) : (
                           filteredFaculties.map(f => (
-                            <div 
+                            <div
                               key={f.id || f.ID}
                               onMouseDown={(e) => e.preventDefault()}
                               onClick={() => {
@@ -426,36 +428,36 @@ export default function FacultyOrganisasi() {
                 </div>
               </div>
             )}
-            
+
             <div>
               <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Nama Panjang Organisasi</label>
-              <input 
-                value={formData.nama_org} 
-                onChange={e => set('nama_org', e.target.value)} 
-                placeholder="Nama resmi organisasi..." 
-                required 
-                className="h-10 w-full rounded-xl border border-[var(--theme-border)] bg-white px-3 text-sm text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors" 
+              <input
+                value={formData.nama_org}
+                onChange={e => set('nama_org', e.target.value)}
+                placeholder="Nama resmi organisasi..."
+                required
+                className="h-10 w-full rounded-xl border border-[var(--theme-border)] bg-white px-3 text-sm text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors"
               />
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div className="relative">
                 <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Nama Ketua Umum</label>
                 <div className="relative">
-                  <div 
+                  <div
                     className="w-full h-10 px-3 rounded-xl border border-[var(--theme-border)] bg-white text-sm text-[var(--theme-text)] flex items-center justify-between cursor-pointer"
                     onClick={() => setIsStudentDropdownOpen(!isStudentDropdownOpen)}
                   >
                     <span className={`truncate ${!formData.ketua_nama ? 'text-[var(--theme-text-subtle)]' : ''}`}>{formData.ketua_nama || '-- Pilih Mahasiswa --'}</span>
                     <span className="material-symbols-outlined text-[var(--theme-text-subtle)]">expand_more</span>
                   </div>
-                  
+
                   {isStudentDropdownOpen && (
                     <div className="absolute z-50 mt-1 w-full bg-white border border-[var(--theme-border)] rounded-xl shadow-lg max-h-60 overflow-y-auto overflow-x-hidden">
                       <div className="sticky top-0 bg-white p-2 border-b border-[var(--theme-border-muted)]">
-                        <input 
-                          type="text" 
-                          placeholder="Cari nama atau NIM..." 
+                        <input
+                          type="text"
+                          placeholder="Cari nama atau NIM..."
                           value={studentSearch}
                           onChange={e => setStudentSearch(e.target.value)}
                           className="w-full h-9 px-3 rounded-lg bg-[var(--theme-bg)] border border-[var(--theme-border)] text-sm focus:outline-none focus:border-[var(--theme-primary)]"
@@ -467,7 +469,7 @@ export default function FacultyOrganisasi() {
                           <div className="px-3 py-2 text-sm text-[var(--theme-text-muted)] text-center">Tidak ada mahasiswa ditemukan</div>
                         ) : (
                           filteredStudents.slice(0, 50).map(s => (
-                            <div 
+                            <div
                               key={s.ID}
                               onClick={() => {
                                 set('ketua_nama', s.Nama)
@@ -487,15 +489,15 @@ export default function FacultyOrganisasi() {
               </div>
               <div>
                 <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Jumlah Anggota</label>
-                <input 
-                  type="number" 
-                  value={formData.jumlah_anggota} 
-                  onChange={e => set('jumlah_anggota', parseInt(e.target.value) || 0)} 
-                  className="h-10 w-full rounded-xl border border-[var(--theme-border)] bg-white px-3 text-sm text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors" 
+                <input
+                  type="number"
+                  value={formData.jumlah_anggota}
+                  onChange={e => set('jumlah_anggota', parseInt(e.target.value) || 0)}
+                  className="h-10 w-full rounded-xl border border-[var(--theme-border)] bg-white px-3 text-sm text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors"
                 />
               </div>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Status</label>
@@ -514,39 +516,39 @@ export default function FacultyOrganisasi() {
               </div>
               <div>
                 <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Email Resmi</label>
-                <input 
-                  type="email" 
-                  value={formData.email} 
-                  onChange={e => set('email', e.target.value)} 
-                  placeholder="info@ormawa.com" 
-                  className="h-10 w-full rounded-xl border border-[var(--theme-border)] bg-white px-3 text-sm text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors" 
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={e => set('email', e.target.value)}
+                  placeholder="info@ormawa.com"
+                  className="h-10 w-full rounded-xl border border-[var(--theme-border)] bg-white px-3 text-sm text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors"
                 />
               </div>
             </div>
-            
+
             <div>
               <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">{editingOrg ? 'Password (kosongkan jika tidak diubah)' : 'Password Akun Admin'}</label>
-              <input 
-                type="password" 
-                value={formData.password} 
-                onChange={e => set('password', e.target.value)} 
-                placeholder="Password login admin ormawa..." 
-                required={!editingOrg} 
-                className="h-10 w-full rounded-xl border border-[var(--theme-border)] bg-white px-3 text-sm text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors" 
+              <input
+                type="password"
+                value={formData.password}
+                onChange={e => set('password', e.target.value)}
+                placeholder="Password login admin ormawa..."
+                required={!editingOrg}
+                className="h-10 w-full rounded-xl border border-[var(--theme-border)] bg-white px-3 text-sm text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors"
               />
             </div>
           </DialogContent>
           <DialogFooter>
-            <button 
-              type="button" 
-              onClick={() => setModal(false)} 
+            <button
+              type="button"
+              onClick={() => setModal(false)}
               className="h-10 px-4 rounded-xl border border-[var(--theme-border)] text-sm font-semibold text-[var(--theme-text)] hover:bg-[var(--theme-bg)] transition-colors"
             >
               Batal
             </button>
-            <button 
-              type="submit" 
-              disabled={isSubmitting} 
+            <button
+              type="submit"
+              disabled={isSubmitting}
               className="h-10 px-4 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-sm font-semibold transition-all active:scale-95 disabled:opacity-60 flex items-center justify-center gap-2"
             >
               {isSubmitting ? (

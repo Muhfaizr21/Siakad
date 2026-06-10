@@ -11,11 +11,17 @@ import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import { PageContent } from '@/components/ui/page'
 import { DashboardHero } from '@/components/ui/dashboard'
+import { PrimaryStatsCard } from '@/components/ui/StatsCard'
 
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 
 import { fetchWithAuth, API_BASE_URL } from '../../services/api'
+
+// Auto-injected Material Symbol fallbacks
+const Users = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>group</span>;
+const School = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>school</span>;
+const ShieldCheck = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>security</span>;
 
 const API_ADMINS = `${API_BASE_URL}/faculty/prodi-admins`
 const API_ROLES  = `${API_BASE_URL}/faculty/prodi-roles`
@@ -301,12 +307,12 @@ export default function ProdiUsers() {
       className: 'min-w-[260px]',
       render: (v, row) => (
         <div className="flex items-center gap-3 py-1.5">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md">
-            <span className="material-symbols-outlined text-white" style={{ fontSize: 20 }}>person</span>
+          <div className="w-10 h-10 rounded-xl bg-[var(--theme-primary-light)] flex items-center justify-center shadow-sm">
+            <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: 20 }}>person</span>
           </div>
           <div className="flex flex-col">
-            <span className="font-bold text-neutral-900 text-[13.5px] leading-tight tracking-tight">{v}</span>
-            <span className="text-[10.5px] text-neutral-400 mt-0.5">Prodi Admin</span>
+            <span className="font-semibold text-[var(--theme-text)] font-headline tracking-tight text-[14px] leading-tight tracking-tight">{v}</span>
+            <span className="text-[12px] font-medium text-[var(--theme-text-muted)] tracking-tight mt-0.5">Prodi Admin</span>
           </div>
         </div>
       ),
@@ -316,7 +322,7 @@ export default function ProdiUsers() {
       label: 'Program Studi',
       className: 'w-[200px]',
       render: (v) => (
-        <span className="text-sm font-medium text-neutral-700">{v || '—'}</span>
+        <span className="font-semibold text-[var(--theme-text)] font-headline tracking-tight text-[14px]">{v || '—'}</span>
       ),
     },
     {
@@ -324,9 +330,9 @@ export default function ProdiUsers() {
       label: 'Role / Jabatan',
       className: 'w-[160px]',
       render: (v) => (
-        <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-700 font-semibold text-[11px] px-2.5 py-0.5">
+        <span className="bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider">
           {v || '—'}
-        </Badge>
+        </span>
       ),
     },
     {
@@ -337,7 +343,7 @@ export default function ProdiUsers() {
         if (!v) return '—'
         const d = new Date(v)
         return (
-          <span className="text-xs text-neutral-500">
+          <span className="text-[12px] font-medium text-[var(--theme-text-muted)] tracking-tight">
             {d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
           </span>
         )
@@ -388,44 +394,41 @@ export default function ProdiUsers() {
         />
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="border-0 shadow-md bg-gradient-to-br from-blue-50 to-white">
-          <CardContent className="p-5 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center">
-              <span className="material-symbols-outlined text-blue-600" style={{ fontSize: 24 }}>group</span>
-            </div>
-            <div>
-              <p className="text-2xl font-extrabold text-neutral-900">{users.length}</p>
-              <p className="text-xs text-neutral-500 font-medium">Total Akun Prodi</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-0 shadow-md bg-gradient-to-br from-emerald-50 to-white">
-          <CardContent className="p-5 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center">
-              <span className="material-symbols-outlined text-emerald-600" style={{ fontSize: 24 }}>school</span>
-            </div>
-            <div>
-              <p className="text-2xl font-extrabold text-neutral-900">{prodis.length}</p>
-              <p className="text-xs text-neutral-500 font-medium">Program Studi</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-0 shadow-md bg-gradient-to-br from-violet-50 to-white">
-          <CardContent className="p-5 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-violet-100 flex items-center justify-center">
-              <span className="material-symbols-outlined text-violet-600" style={{ fontSize: 24 }}>security</span>
-            </div>
-            <div>
-              <p className="text-2xl font-extrabold text-neutral-900">{roles.length}</p>
-              <p className="text-xs text-neutral-500 font-medium">Role Tersedia</p>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-6 mt-6">
+        <PrimaryStatsCard
+          title="Total Akun Prodi"
+          value={loading ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span> : users.length}
+          icon={Users}
+          colorTheme="primary"
+          badgeText="Akun Terdaftar"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">manage_accounts</span>}
+        />
+        <PrimaryStatsCard
+          title="Program Studi"
+          value={loading ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span> : prodis.length}
+          icon={School}
+          colorTheme="success"
+          badgeText="Total Prodi"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">account_balance</span>}
+        />
+        <PrimaryStatsCard
+          title="Role Tersedia"
+          value={loading ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span> : roles.length}
+          icon={ShieldCheck}
+          colorTheme="info"
+          badgeText="Hak Akses"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">admin_panel_settings</span>}
+        />
       </div>
 
       {/* Data Table */}
-      <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
+      <Card className="glass-card shadow-sm rounded-xl overflow-hidden mt-6 mb-6">
+        <div className="px-6 py-5 border-b border-[var(--theme-border)] flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-[var(--theme-surface)]">
+          <div className="flex-1">
+            <h2 className="font-headline font-bold text-lg text-[var(--theme-text)]">Daftar Akun Prodi Admin</h2>
+            <p className="text-xs text-[var(--theme-text-muted)] mt-1 font-medium">Data administrator yang terdaftar</p>
+          </div>
+        </div>
         <CardContent className="p-0">
           {loading ? (
             <div className="flex items-center justify-center py-20">
@@ -445,7 +448,7 @@ export default function ProdiUsers() {
               </p>
             </div>
           ) : (
-            <DataTable columns={columns} data={users} />
+            <DataTable columns={columns} data={users} searchPlaceholder="Cari email atau prodi..." itemLabel="akun prodi" />
           )}
         </CardContent>
       </Card>

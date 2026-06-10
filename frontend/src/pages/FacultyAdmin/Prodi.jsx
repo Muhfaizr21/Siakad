@@ -13,6 +13,8 @@ import { DeleteConfirmModal } from "@/components/ui/DeleteConfirmModal"
 import { PageContent } from '@/components/ui/page'
 import { DashboardHero } from '@/components/ui/dashboard'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
+import { Card, CardContent } from '@/components/ui/Card'
+import { PrimaryStatsCard, SecondaryStatsCard } from '@/components/ui/StatsCard'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const RefreshCw = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>sync</span>;
@@ -275,8 +277,8 @@ export default function ProdiPage() {
       label: "Program Studi",
       render: (val, row) => (
         <div className="flex flex-col">
-          <span className="font-bold text-slate-800 font-jakarta text-[13px] tracking-tight">{val}</span>
-          <span className="text-[10px] text-slate-400 font-medium font-inter mt-0.5">{row.Fakultas?.Nama || "Univ. Bhakti Kencana"}</span>
+          <span className="font-semibold text-[var(--theme-text)] font-headline tracking-tight text-[14px]">{val}</span>
+          <span className="text-[11px] font-medium text-[var(--theme-text-muted)] font-body tracking-tight mt-0.5">{row.Fakultas?.Nama || "Univ. Bhakti Kencana"}</span>
         </div>
       )
     },
@@ -376,40 +378,49 @@ export default function ProdiPage() {
         />
 
       {/* Stats Section */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: 'Total Program Studi', value: stats.total, icon: GraduationCap, bg: 'bg-primary/10', color: 'text-primary', desc: 'Prodi terdaftar' },
-          { label: 'Akreditasi Unggul', value: stats.unggul, icon: CheckCircle2, bg: 'bg-emerald-50 text-emerald-600', color: 'text-emerald-600', desc: 'Prodi Unggul / A' },
-          { label: 'Total Mahasiswa', value: totalMahasiswa, icon: Users, bg: 'bg-amber-50 text-amber-600', color: 'text-amber-600', desc: 'Mahasiswa aktif' },
-          { label: 'Total Kapasitas', value: stats.kapasitas, icon: BookOpen, bg: 'bg-indigo-50 text-indigo-600', color: 'text-indigo-600', desc: 'Slot mahasiswa tersedia' },
-        ].map(s => (
-          <div key={s.label} className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
-            <div className="flex items-center gap-3 mb-3">
-              <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', s.bg, s.color)}>
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{s.icon === GraduationCap ? 'school' : s.icon === CheckCircle2 ? 'check_circle' : s.icon === Users ? 'group' : 'menu_book'}</span>
-              </div>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</span>
-            </div>
-            <p className="text-2xl font-extrabold text-slate-900 leading-none tabular-nums">
-              {loading ? <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span> : s.value.toLocaleString()}
-            </p>
-            <p className="text-xs text-slate-400 font-medium mt-1">{s.desc}</p>
-          </div>
-        ))}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+        <PrimaryStatsCard
+          title="Total Program Studi"
+          value={loading ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span> : stats.total}
+          icon={GraduationCap}
+          colorTheme="primary"
+          badgeText="Aktif"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">verified</span>}
+        />
+        <PrimaryStatsCard
+          title="Akreditasi Unggul"
+          value={loading ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span> : stats.unggul}
+          icon={CheckCircle2}
+          colorTheme="success"
+          badgeText="Unggul / A"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">workspace_premium</span>}
+        />
+        <PrimaryStatsCard
+          title="Total Mahasiswa"
+          value={loading ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span> : totalMahasiswa}
+          icon={Users}
+          colorTheme="warning"
+        />
+        <PrimaryStatsCard
+          title="Total Kapasitas"
+          value={loading ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span> : stats.kapasitas}
+          icon={BookOpen}
+          colorTheme="info"
+        />
       </div>
 
       {/* 5W1H Charts */}
       {!loading && majors.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           {/* WHAT → Distribusi Jenjang */}
-          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
-            <div className="flex items-center gap-3 mb-3">
+          <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+            <div className="flex items-center gap-3 mb-4 shrink-0">
               <div className="w-10 h-10 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-600 shrink-0">
                 <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>pie_chart</span>
               </div>
               <div>
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Distribusi Jenjang</h3>
-                <p className="text-[10px] text-slate-400">Rasio S1 / D3 / S2</p>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Rasio S1 / D3 / S2</span>
+                <h3 className="text-sm font-bold text-slate-800 leading-tight">Distribusi Jenjang</h3>
               </div>
             </div>
             <div className="h-[170px] w-full flex items-center justify-center">
@@ -435,14 +446,14 @@ export default function ProdiPage() {
           </div>
 
           {/* WHAT → Distribusi Akreditasi */}
-          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
-            <div className="flex items-center gap-3 mb-3">
+          <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+            <div className="flex items-center gap-3 mb-4 shrink-0">
               <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-600 shrink-0">
                 <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>verified</span>
               </div>
               <div>
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Status Akreditasi</h3>
-                <p className="text-[10px] text-slate-400">Kualitas prodi</p>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Kualitas Prodi</span>
+                <h3 className="text-sm font-bold text-slate-800 leading-tight">Status Akreditasi</h3>
               </div>
             </div>
             <div className="h-[170px] w-full flex items-center justify-center">
@@ -468,14 +479,14 @@ export default function ProdiPage() {
           </div>
 
           {/* HOW → Utilisasi Kapasitas (Top 8) */}
-          <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
-            <div className="flex items-center gap-3 mb-3">
+          <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+            <div className="flex items-center gap-3 mb-4 shrink-0">
               <div className="w-10 h-10 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-600 shrink-0">
                 <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>bar_chart</span>
               </div>
               <div>
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Utilisasi Kapasitas</h3>
-                <p className="text-[10px] text-slate-400">Mahasiswa vs daya tampung</p>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Mahasiswa vs Daya Tampung</span>
+                <h3 className="text-sm font-bold text-slate-800 leading-tight">Utilisasi Kapasitas</h3>
               </div>
             </div>
             <div className="h-[170px] w-full">
@@ -496,17 +507,25 @@ export default function ProdiPage() {
       )}
 
       {/* Main Data Table */}
-      <div className="pt-2">
-        <DataTable
-          columns={prodiColumns}
-          data={majors}
-          loading={loading}
-          searchPlaceholder="Cari program studi..."
-          actions={renderActions}
-          title="Daftar Program Studi"
-          itemLabel="program studi"
-        />
-      </div>
+      <Card className="glass-card shadow-sm rounded-xl overflow-hidden mt-6 mb-6">
+        <div className="px-6 py-5 border-b border-[var(--theme-border)] flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-[var(--theme-surface)]">
+          <div className="flex-1">
+            <h2 className="font-headline font-bold text-lg text-[var(--theme-text)]">Daftar Program Studi</h2>
+            <p className="text-xs text-[var(--theme-text-muted)] mt-1 font-medium">
+              Menampilkan total <span className="font-bold text-[var(--theme-primary)]">{majors.length}</span> program studi terdaftar
+            </p>
+          </div>
+        </div>
+        <CardContent className="p-0">
+          <DataTable
+            columns={prodiColumns}
+            data={majors}
+            loading={loading}
+            searchPlaceholder="Cari program studi..."
+            actions={renderActions}
+          />
+        </CardContent>
+      </Card>
 
       {/* CRUD Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModal} maxWidth="max-w-lg">

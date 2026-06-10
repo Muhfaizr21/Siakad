@@ -8,6 +8,9 @@ import { cn } from "@/lib/utils"
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import { PageContent } from "@/components/ui/page/PageContent"
 import { DashboardHero } from "@/components/ui/dashboard/DashboardHero"
+import { PrimaryStatsCard } from '@/components/ui/StatsCard'
+import { Card, CardContent } from '@/components/ui/Card'
+import { DataTable } from '@/components/ui/DataTable'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const ToggleRight = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>toggle_on</span>;
@@ -82,6 +85,45 @@ export default function TahunAkademikPage() {
 
   const PIE_COLORS = ['#00236f', '#10b981', '#f59e0b', '#3b82f6', '#8b5cf6', '#ef4444']
 
+  const columns = [
+    {
+      key: "Name",
+      label: "Nama Periode",
+      render: (val, row) => <span className="font-semibold text-[var(--theme-text)] font-headline tracking-tight text-[14px]">{val || `${row.Semester} ${row.AcademicYear}`}</span>
+    },
+    {
+      key: "AcademicYear",
+      label: "Tahun",
+      render: (val) => <span className="text-[12px] font-medium text-[var(--theme-text-muted)] tracking-tight">{val || '—'}</span>
+    },
+    {
+      key: "Semester",
+      label: "Semester",
+      render: (val) => <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-lg uppercase tracking-wider">{val || '—'}</span>
+    },
+    {
+      key: "IsActive",
+      label: "Status",
+      render: (val, row) => (
+        <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider',
+          val ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-400 border-slate-200')}>
+          <span className={cn('w-1.5 h-1.5 rounded-full', val ? 'bg-emerald-500' : 'bg-slate-300')} />
+          {val ? 'Aktif' : 'Tidak'}
+        </span>
+      )
+    },
+    {
+      key: "IsKRSOpen",
+      label: "KRS",
+      render: (val, row) => (
+        <span className={cn('text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wider',
+          val ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-500')}>
+          {val ? 'BUKA' : 'TUTUP'}
+        </span>
+      )
+    }
+  ]
+
   useEffect(() => { fetchData() }, [])
 
   const handleOpenAdd = () => {
@@ -143,38 +185,51 @@ export default function TahunAkademikPage() {
       />
 
         {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {[
-            { label: 'Siklus Aktif',  value: current?.activeYear || 'IDLE',     icon: CalendarDays, bg: 'bg-[#eef4ff]',  color: 'text-primary',   desc: 'Tahun akademik berjalan' },
-            { label: 'Semester',      value: current?.activeSemester || '—',     icon: Clock,        bg: 'bg-emerald-50', color: 'text-emerald-600', desc: 'Periode semester saat ini' },
-            { label: 'Portal Beasiswa', value: current?.isKrsOpen ? 'OPEN' : 'CLOSED', icon: Award, bg: current?.isKrsOpen ? 'bg-emerald-50' : 'bg-slate-50', color: current?.isKrsOpen ? 'text-emerald-600' : 'text-slate-500', desc: 'Akses pendaftaran beasiswa' },
-            { label: 'Total Periode', value: allPeriods.length, icon: CalendarDays, bg: 'bg-violet-50', color: 'text-violet-600', desc: 'Riwayat semester' },
-          ].map(s => (
-            <div key={s.label} className="glass-card border border-slate-200/60 rounded-2xl p-5 shadow-none">
-              <div className="flex items-center gap-3 mb-3">
-                <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', s.bg, s.color)}><s.icon size={18} /></div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</span>
-              </div>
-              <p className="text-xl font-extrabold text-slate-900 leading-none tabular-nums uppercase">
-                {loading ? <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span> : s.value}
-              </p>
-              <p className="text-xs text-slate-400 font-medium mt-1">{s.desc}</p>
-            </div>
-          ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6 mt-6">
+          <PrimaryStatsCard
+            title="Siklus Aktif"
+            value={loading ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span> : (current?.activeYear || 'IDLE')}
+            icon={CalendarDays}
+            colorTheme="primary"
+            badgeText="Tahun Berjalan"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">event</span>}
+          />
+          <PrimaryStatsCard
+            title="Semester"
+            value={loading ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span> : (current?.activeSemester || '—')}
+            icon={Clock}
+            colorTheme="success"
+            badgeText="Saat Ini"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">schedule</span>}
+          />
+          <PrimaryStatsCard
+            title="Portal Beasiswa"
+            value={loading ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span> : (current?.isKrsOpen ? 'OPEN' : 'CLOSED')}
+            icon={Award}
+            colorTheme={current?.isKrsOpen ? "success" : "error"}
+            badgeText="Akses Mahasiswa"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">admin_panel_settings</span>}
+          />
+          <PrimaryStatsCard
+            title="Total Periode"
+            value={loading ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span> : allPeriods.length}
+            icon={CalendarDays}
+            colorTheme="info"
+          />
         </div>
 
         {/* 5W1H Charts */}
         {!loading && allPeriods.length > 1 && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             {/* WHAT → Distribusi Semester */}
-            <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
-              <div className="flex items-center gap-3 mb-3">
+            <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+              <div className="flex items-center gap-3 mb-4 shrink-0">
                 <div className="w-10 h-10 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-600 shrink-0">
                   <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>pie_chart</span>
                 </div>
                 <div>
-                  <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Distribusi Semester</h3>
-                  <p className="text-[10px] text-slate-400">Rasio semester Ganjil/Genap</p>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Rasio Ganjil/Genap</span>
+                  <h3 className="text-sm font-bold text-slate-800 leading-tight">Distribusi Semester</h3>
                 </div>
               </div>
               <div className="h-[160px] w-full flex items-center justify-center">
@@ -200,14 +255,14 @@ export default function TahunAkademikPage() {
             </div>
 
             {/* WHAT → Periode per Tahun */}
-            <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
-              <div className="flex items-center gap-3 mb-3">
+            <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+              <div className="flex items-center gap-3 mb-4 shrink-0">
                 <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-600 shrink-0">
                   <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>bar_chart</span>
                 </div>
                 <div>
-                  <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Periode per Tahun</h3>
-                  <p className="text-[10px] text-slate-400">Jumlah periode tiap tahun ajaran</p>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Jumlah Periode</span>
+                  <h3 className="text-sm font-bold text-slate-800 leading-tight">Periode per Tahun</h3>
                 </div>
               </div>
               <div className="h-[160px] w-full">
@@ -226,14 +281,14 @@ export default function TahunAkademikPage() {
             </div>
 
             {/* HOW → Status Aktif vs Tidak */}
-            <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
-              <div className="flex items-center gap-3 mb-3">
+            <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+              <div className="flex items-center gap-3 mb-4 shrink-0">
                 <div className="w-10 h-10 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-600 shrink-0">
                   <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>toggle_on</span>
                 </div>
                 <div>
-                  <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Status Periode</h3>
-                  <p className="text-[10px] text-slate-400">Aktif vs Tidak aktif</p>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Aktif vs Tidak Aktif</span>
+                  <h3 className="text-sm font-bold text-slate-800 leading-tight">Status Periode</h3>
                 </div>
               </div>
               <div className="h-[160px] w-full flex items-center justify-center">
@@ -293,49 +348,25 @@ export default function TahunAkademikPage() {
 
         {/* All Periods Timeline */}
         {!loading && allPeriods.length > 1 && (
-          <div className="glass-card border border-slate-200/60 rounded-2xl shadow-none overflow-hidden">
-            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-              <div>
-                <h2 className="font-black text-sm uppercase tracking-tight font-headline" style={{ color: 'var(--theme-h2)' }}>Riwayat Periode Akademik</h2>
-                <p className="text-xs text-slate-500 mt-0.5">Semua periode yang pernah dikonfigurasi</p>
+          <Card className="glass-card shadow-sm rounded-xl overflow-hidden mt-6 mb-6">
+            <div className="px-6 py-5 border-b border-[var(--theme-border)] flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-[var(--theme-surface)]">
+              <div className="flex-1">
+                <h2 className="font-headline font-bold text-lg text-[var(--theme-text)]">Riwayat Periode Akademik</h2>
+                <p className="text-xs text-[var(--theme-text-muted)] mt-1 font-medium">
+                  Menampilkan total <span className="font-bold text-[var(--theme-primary)]">{allPeriods.length}</span> periode yang pernah dikonfigurasi
+                </p>
               </div>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="border-b border-slate-200/60">
-                    <th className="px-5 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Nama Periode</th>
-                    <th className="px-5 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Tahun</th>
-                    <th className="px-5 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Semester</th>
-                    <th className="px-5 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
-                    <th className="px-5 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">KRS</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {allPeriods.map((p, i) => (
-                    <tr key={p.ID || i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors">
-                      <td className="px-5 py-3.5 font-bold text-sm text-slate-900">{p.Name || `${p.Semester} ${p.AcademicYear}`}</td>
-                      <td className="px-5 py-3.5 text-sm font-medium text-slate-600">{p.AcademicYear || '—'}</td>
-                      <td className="px-5 py-3.5"><span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-lg">{p.Semester || '—'}</span></td>
-                      <td className="px-5 py-3.5">
-                        <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase',
-                          p.IsActive ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-400 border-slate-200')}>
-                          <span className={cn('w-1.5 h-1.5 rounded-full', p.IsActive ? 'bg-emerald-500' : 'bg-slate-300')} />
-                          {p.IsActive ? 'Aktif' : 'Tidak'}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <span className={cn('text-[10px] font-bold px-2.5 py-1 rounded-lg',
-                          p.IsKRSOpen ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-500')}>
-                          {p.IsKRSOpen ? 'BUKA' : 'TUTUP'}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+            <CardContent className="p-0">
+              <DataTable
+                columns={columns}
+                data={allPeriods}
+                loading={loading}
+                searchPlaceholder="Cari periode akademik..."
+                itemLabel="periode akademik"
+              />
+            </CardContent>
+          </Card>
         )}
 
         {/* Empty state */}

@@ -6,9 +6,11 @@ import { toast, Toaster } from "react-hot-toast"
 import useAuthStore from "../../store/useAuthStore"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
 import { cn } from "@/lib/utils"
-import { API_BASE_URL } from "../../services/api"
 import { PageContent } from "@/components/ui/page/PageContent"
 import { DashboardHero } from "@/components/ui/dashboard/DashboardHero"
+import { PrimaryStatsCard } from '@/components/ui/StatsCard'
+import { Card, CardContent } from '@/components/ui/Card'
+import { DataTable } from '@/components/ui/DataTable'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Download = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>download</span>;
@@ -610,6 +612,29 @@ export default function LaporanFakultasPage() {
 
   const prodiWithColors = (data.perProdi || []).map((item, i) => ({ ...item, nama_prodi: item.nama_prodi || "Unknown", value: item.value || 0, color: CHART_COLORS[i % CHART_COLORS.length] }))
 
+  const prodiColumns = [
+    {
+      key: "nama_prodi",
+      label: "Program Studi",
+      render: (val) => <span className="font-semibold text-[var(--theme-text)] font-headline tracking-tight text-[14px]">{val}</span>
+    },
+    {
+      key: "active",
+      label: "Mahasiswa Aktif",
+      render: (val) => <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider">{val || 0}</span>
+    },
+    {
+      key: "graduated",
+      label: "Lulusan",
+      render: (val) => <span className="bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider">{val || 0}</span>
+    },
+    {
+      key: "avgIPK",
+      label: "Rata-rata IPK",
+      render: (val) => <span className="font-black text-sm text-[var(--theme-text)] tabular-nums">{val?.toFixed(2) || '0.00'}</span>
+    }
+  ]
+
   return (
     <PageContent>
       <Toaster position="top-right" />
@@ -636,30 +661,44 @@ export default function LaporanFakultasPage() {
       />
 
         {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-          {[
-            { label: 'Total Mahasiswa', value: data.summary.total, icon: Users, bg: 'bg-[#eef4ff]', color: 'text-primary', desc: 'Terdaftar aktif' },
-            { label: 'Capaian Prestasi', value: data.summary.totalPrestasi, icon: Award, bg: 'bg-emerald-50', color: 'text-emerald-600', desc: 'Kompetisi & penghargaan' },
-            { label: 'Penerima Beasiswa', value: data.summary.totalBeasiswa, icon: Globe, bg: 'bg-indigo-50', color: 'text-indigo-600', desc: 'Bantuan finansial' },
-            { label: 'Layanan Konseling', value: data.summary.totalKonseling || 0, icon: Psychology, bg: 'bg-amber-50', color: 'text-amber-600', desc: 'Sesi konseling terdaftar' },
-            { label: 'Rata-rata IPK', value: data.summary.avgIPK ? data.summary.avgIPK.toFixed(2) : "0.00", icon: HeartPulse, bg: 'bg-rose-50', color: 'text-rose-600', desc: 'IPK Rata-rata Fakultas' },
-          ].map(s => (
-            <div key={s.label} className="glass-card border border-slate-200/60 rounded-2xl p-5 shadow-none">
-              <div className="flex items-center gap-3 mb-3">
-                <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', s.bg, s.color)}><s.icon size={18} /></div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</span>
-              </div>
-              <p className="text-2xl font-extrabold text-slate-900 leading-none tabular-nums">{loading ? <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span> : s.value}</p>
-              <p className="text-xs text-slate-400 font-medium mt-1">{s.desc}</p>
-            </div>
-          ))}
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-5 mb-6 mt-6">
+          <PrimaryStatsCard
+            title="Total Mahasiswa"
+            value={loading ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span> : data.summary.total}
+            icon={Users}
+            colorTheme="primary"
+          />
+          <PrimaryStatsCard
+            title="Capaian Prestasi"
+            value={loading ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span> : data.summary.totalPrestasi}
+            icon={Award}
+            colorTheme="success"
+          />
+          <PrimaryStatsCard
+            title="Penerima Beasiswa"
+            value={loading ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span> : data.summary.totalBeasiswa}
+            icon={Globe}
+            colorTheme="info"
+          />
+          <PrimaryStatsCard
+            title="Layanan Konseling"
+            value={loading ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span> : (data.summary.totalKonseling || 0)}
+            icon={Psychology}
+            colorTheme="warning"
+          />
+          <PrimaryStatsCard
+            title="Rata-rata IPK"
+            value={loading ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span> : (data.summary.avgIPK ? data.summary.avgIPK.toFixed(2) : "0.00")}
+            icon={HeartPulse}
+            colorTheme="error"
+          />
         </div>
 
         {/* Charts */}
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div className="glass-card border border-slate-200/60 rounded-2xl p-6 shadow-none">
-            <h3 className="font-bold text-base font-headline mb-1" style={{ color: 'var(--theme-h3)' }}>Status per Angkatan</h3>
-            <p className="text-xs text-slate-400 mb-5">Distribusi akademik tiap tahun angkatan</p>
+        <div className="grid gap-6 lg:grid-cols-2 mb-6">
+          <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+            <h3 className="font-bold text-base font-headline mb-1 text-[var(--theme-h3)]">Status per Angkatan</h3>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-5">Distribusi akademik tiap tahun angkatan</p>
             <div className="h-64">
               {isMounted && (
                 <ResponsiveContainer width="99%" height="100%" debounce={50}>
@@ -676,9 +715,9 @@ export default function LaporanFakultasPage() {
             </div>
           </div>
 
-          <div className="glass-card border border-slate-200/60 rounded-2xl p-6 shadow-none">
-            <h3 className="font-bold text-base font-headline mb-1" style={{ color: 'var(--theme-h3)' }}>Distribusi Prodi</h3>
-            <p className="text-xs text-slate-400 mb-5">Persentase jumlah mahasiswa per program studi</p>
+          <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+            <h3 className="font-bold text-base font-headline mb-1 text-[var(--theme-h3)]">Distribusi Prodi</h3>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-5">Persentase jumlah mahasiswa per prodi</p>
             <div className="flex flex-col sm:flex-row items-center gap-6">
               <div className="h-56 flex-1 min-w-0">
                 {isMounted && (
@@ -707,7 +746,7 @@ export default function LaporanFakultasPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           {[
             { label: 'Laporan Prestasi', icon: Award, bg: 'bg-emerald-600', light: 'bg-emerald-50', stat: `${data.summary.totalPrestasi} Capaian`, desc: 'Dataset kompetisi & penghargaan mahasiswa.', handler: downloadPrestasiPDF },
             { label: 'Laporan Beasiswa', icon: Globe, bg: 'bg-indigo-600', light: 'bg-indigo-50', stat: `${data.summary.totalBeasiswa} Penerima`, desc: 'Transkrip penerima bantuan finansial.', handler: downloadBeasiswaPDF },
@@ -732,33 +771,23 @@ export default function LaporanFakultasPage() {
         </div>
 
         {/* Per-Prodi Table */}
-        <div className="glass-card border border-slate-200/60 rounded-2xl shadow-none overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-100">
-            <h2 className="font-black text-sm uppercase tracking-tight font-headline" style={{ color: 'var(--theme-h2)' }}>Rekap Per Program Studi</h2>
-            <p className="text-xs text-slate-500 mt-0.5">Data akademik terbaru tiap prodi</p>
+        <Card className="glass-card shadow-sm rounded-xl overflow-hidden mt-6 mb-6">
+          <div className="px-6 py-5 border-b border-[var(--theme-border)] flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-[var(--theme-surface)]">
+            <div className="flex-1">
+              <h2 className="font-headline font-bold text-lg text-[var(--theme-text)]">Rekap Per Program Studi</h2>
+              <p className="text-xs text-[var(--theme-text-muted)] mt-1 font-medium">Data akademik terbaru tiap prodi</p>
+            </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead><tr className="border-b border-slate-200/60">
-                {['Program Studi', 'Mahasiswa Aktif', 'Lulusan', 'Rata-rata IPK'].map(h => (
-                  <th key={h} className="px-5 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap">{h}</th>
-                ))}
-              </tr></thead>
-              <tbody>
-                {loading ? Array.from({ length: 4 }).map((_, i) => (
-                  <tr key={i} className="border-b border-slate-100">{[...Array(4)].map((__, j) => <td key={j} className="px-5 py-4"><div className="h-4 bg-slate-50 rounded animate-pulse" /></td>)}</tr>
-                )) : (data.perProdi || []).map((row, i) => (
-                  <tr key={i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors">
-                    <td className="px-5 py-3.5 font-bold text-sm text-slate-900">{row.nama_prodi}</td>
-                    <td className="px-5 py-3.5"><span className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1 rounded-lg text-xs font-black">{row.active || 0}</span></td>
-                    <td className="px-5 py-3.5"><span className="bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 rounded-lg text-xs font-black">{row.graduated || 0}</span></td>
-                    <td className="px-5 py-3.5 font-black text-sm text-slate-900 tabular-nums">{row.avgIPK?.toFixed(2) || '0.00'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+          <CardContent className="p-0">
+            <DataTable
+              columns={prodiColumns}
+              data={data.perProdi || []}
+              loading={loading}
+              searchPlaceholder="Cari program studi..."
+              itemLabel="program studi"
+            />
+          </CardContent>
+        </Card>
     </PageContent>
   )
 }

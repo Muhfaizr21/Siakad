@@ -5,6 +5,7 @@ import {
 } from 'recharts';
 import { UI } from '../../constants/designSystem';
 import { psychologistService } from '../../services/api';
+import { PrimaryStatsCard } from '@/components/ui/StatsCard';
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Activity = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>show_chart</span>;
@@ -14,10 +15,10 @@ const Activity = ({ size, className, ...props }) => <span className={`material-s
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
 const STAT_SKINS = [
-  { icon: 'group', color: 'text-primary', bg: 'bg-primary/10', ring: 'ring-primary/10' },
-  { icon: 'check_circle', color: 'text-emerald-600', bg: 'bg-emerald-50', ring: 'ring-emerald-100' },
-  { icon: 'error', color: 'text-rose-600', bg: 'bg-rose-50', ring: 'ring-rose-100' },
-  { icon: 'show_chart', color: 'text-amber-600', bg: 'bg-amber-50', ring: 'ring-amber-100' },
+  { icon: 'group', colorTheme: 'primary' },
+  { icon: 'check_circle', colorTheme: 'success' },
+  { icon: 'error', colorTheme: 'error' },
+  { icon: 'show_chart', colorTheme: 'warning' },
 ];
 
 const SOURCE_TABLES = [
@@ -87,10 +88,8 @@ export default function AnalyticsTrends() {
     return rawStats.map((stat, index) => ({
       ...stat,
       value: formatValue(stat.value),
-      icon: STAT_SKINS[index]?.icon || Activity,
-      color: STAT_SKINS[index]?.color || 'text-primary',
-      bg: STAT_SKINS[index]?.bg || 'bg-primary/10',
-      ring: STAT_SKINS[index]?.ring || 'ring-primary/10',
+      iconStr: STAT_SKINS[index]?.icon || 'show_chart',
+      colorTheme: STAT_SKINS[index]?.colorTheme || 'primary',
     }));
   }, [analytics]);
 
@@ -287,33 +286,27 @@ export default function AnalyticsTrends() {
             </div>
           )}
 
-          <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4 mb-6">
             {loading && !analytics
               ? Array.from({ length: 4 }).map((_, index) => (
-                  <div key={index} className="h-36 animate-pulse rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+                  <div key={index} className="h-36 animate-pulse rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-surface)] p-5 shadow-sm">
                     <div className="mb-5 size-12 rounded-2xl bg-slate-100" />
                     <div className="mb-3 h-7 w-20 rounded bg-slate-100" />
                     <div className="h-3 w-32 rounded bg-slate-100" />
                   </div>
                 ))
               : stats.map((stat, index) => {
-                  const Icon = stat.icon;
+                  const IconComponent = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>{stat.iconStr}</span>;
                   return (
-                    <div
+                    <PrimaryStatsCard
                       key={stat.label || index}
-                      className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm ring-1 ring-transparent transition hover:-translate-y-0.5 hover:shadow-md"
-                    >
-                      <div className="mb-5 flex items-center justify-between">
-                        <div className={`flex size-12 items-center justify-center rounded-2xl ${stat.bg} ${stat.color} ring-1 ${stat.ring}`}>
-                          <span className="material-symbols-outlined text-2xl shrink-0">{Icon}</span>
-                        </div>
-                        <span className="rounded-full border border-slate-100 bg-slate-50 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-slate-400">
-                          Live
-                        </span>
-                      </div>
-                      <p className="font-headline text-3xl font-black tracking-tight text-slate-950">{stat.value}</p>
-                      <p className="mt-1 text-[10px] font-black uppercase tracking-widest text-slate-400">{stat.label}</p>
-                    </div>
+                      title={stat.label}
+                      value={stat.value}
+                      icon={IconComponent}
+                      colorTheme={stat.colorTheme}
+                      badgeText="LIVE"
+                      badgeIcon={<span className={`w-1.5 h-1.5 rounded-full animate-pulse ${stat.colorTheme === 'primary' ? 'bg-blue-500' : stat.colorTheme === 'success' ? 'bg-emerald-500' : stat.colorTheme === 'error' ? 'bg-rose-500' : 'bg-amber-500'}`} />}
+                    />
                   );
                 })}
           </section>
