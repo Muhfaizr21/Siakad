@@ -29,7 +29,7 @@ function Calendar({
     <DayPicker
       showOutsideDays={showOutsideDays}
       className={cn(
-        'bg-background group/calendar p-3 [--cell-size:2.25rem] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent',
+        'bg-background group/calendar p-3 w-full [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent',
         String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
         String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
         className
@@ -41,32 +41,32 @@ function Calendar({
         ...formatters,
       }}
       classNames={{
-        root: cn('w-max', defaultClassNames.root),
+        root: cn('w-full', defaultClassNames.root),
         months: cn(
-          'flex gap-4 flex-col md:flex-row relative',
+          'flex flex-col relative w-full',
           defaultClassNames.months
         ),
-        month: cn('flex flex-col gap-4', defaultClassNames.month),
+        month: cn('flex flex-col gap-4 w-full', defaultClassNames.month),
         nav: cn(
           'flex items-center gap-1 w-full absolute top-0 inset-x-0 justify-between',
           defaultClassNames.nav
         ),
         button_previous: cn(
           buttonVariants({ variant: buttonVariant }),
-          'w-[var(--cell-size)] h-[var(--cell-size)] aria-disabled:opacity-70 p-0 select-none',
+          'w-8 h-8 aria-disabled:opacity-70 p-0 select-none',
           defaultClassNames.button_previous
         ),
         button_next: cn(
           buttonVariants({ variant: buttonVariant }),
-          'w-[var(--cell-size)] h-[var(--cell-size)] aria-disabled:opacity-70 p-0 select-none',
+          'w-8 h-8 aria-disabled:opacity-70 p-0 select-none',
           defaultClassNames.button_next
         ),
         month_caption: cn(
-          'flex items-center justify-center h-[var(--cell-size)] w-full px-[var(--cell-size)]',
+          'flex items-center justify-center h-8 w-full',
           defaultClassNames.month_caption
         ),
         dropdowns: cn(
-          'w-full flex items-center text-sm font-medium justify-center h-[var(--cell-size)] gap-1.5',
+          'w-full flex items-center text-sm font-medium justify-center h-8 gap-1.5',
           defaultClassNames.dropdowns
         ),
         dropdown_root: cn(
@@ -84,7 +84,7 @@ function Calendar({
             : 'rounded-md pl-2 pr-1 flex items-center gap-1 text-sm h-8 [&>svg]:text-muted-foreground [&>svg]:size-3.5',
           defaultClassNames.caption_label
         ),
-        table: 'w-max border-collapse',
+        table: 'w-full border-collapse table-fixed',
         weekdays: cn('', defaultClassNames.weekdays),
         weekday: cn(
           'text-muted-foreground font-medium text-[0.7rem] uppercase tracking-wider select-none text-center',
@@ -92,7 +92,7 @@ function Calendar({
         ),
         week: cn('', defaultClassNames.week),
         week_number_header: cn(
-          'select-none w-[var(--cell-size)]',
+          'select-none w-8',
           defaultClassNames.week_number_header
         ),
         week_number: cn(
@@ -100,7 +100,7 @@ function Calendar({
           defaultClassNames.week_number
         ),
         day: cn(
-          'relative w-full h-full p-0 text-center [&:first-child[data-selected=true]_button]:rounded-l-md [&:last-child[data-selected=true]_button]:rounded-r-md group/day aspect-square select-none',
+          'relative w-full aspect-square p-0 text-center [&:first-child[data-selected=true]_button]:rounded-l-md [&:last-child[data-selected=true]_button]:rounded-r-md group/day select-none',
           defaultClassNames.day
         ),
         range_start: cn('rounded-l-md bg-accent', defaultClassNames.range_start),
@@ -153,7 +153,7 @@ function Calendar({
         WeekNumber: ({ children, ...props }) => {
           return (
             <td {...props}>
-              <div className="flex w-[var(--cell-size)] h-[var(--cell-size)] items-center justify-center text-center">
+              <div className="flex w-full h-full aspect-square items-center justify-center text-center">
                 {children}
               </div>
             </td>
@@ -193,7 +193,7 @@ function CalendarDayButton({ className, day, modifiers, ...props }) {
       data-range-end={modifiers?.range_end}
       data-range-middle={modifiers?.range_middle}
       className={cn(
-        'data-[selected-single=true]:bg-[var(--theme-primary)] data-[selected-single=true]:!text-white data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground data-[range-start=true]:bg-[var(--theme-primary)] data-[range-start=true]:!text-white data-[range-end=true]:bg-[var(--theme-primary)] data-[range-end=true]:!text-white group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring/50 dark:hover:text-accent-foreground flex aspect-square size-auto w-full min-w-[var(--cell-size)] flex-col gap-1 leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px] data-[range-end=true]:rounded-md data-[range-end=true]:rounded-r-md data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-md data-[range-start=true]:rounded-l-md [&>span]:text-xs [&>span]:opacity-90 aria-selected:!text-white',
+        'data-[selected-single=true]:bg-[var(--theme-primary)] data-[selected-single=true]:!text-white data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground data-[range-start=true]:bg-[var(--theme-primary)] data-[range-start=true]:!text-white data-[range-end=true]:bg-[var(--theme-primary)] data-[range-end=true]:!text-white group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring/50 dark:hover:text-accent-foreground flex items-center justify-center aspect-square w-full h-full flex-col gap-1 leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px] data-[range-end=true]:rounded-md data-[range-end=true]:rounded-r-md data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-md data-[range-start=true]:rounded-l-md [&>span]:text-xs [&>span]:opacity-90 aria-selected:!text-white',
         defaultClassNames.day,
         className
       )}
