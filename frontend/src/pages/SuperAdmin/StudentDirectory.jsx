@@ -993,6 +993,7 @@ export default function StudentDirectory() {
                         {selected.StatusAkun}
                       </Badge>
                     </div>
+                    </div>
                   </div>
               </DialogHeader>
 
@@ -1410,8 +1411,10 @@ export default function StudentDirectory() {
                   <span>Modify Profile</span>
                 </button>
               </DialogFooter>
-
-            </Dialog>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* ── CRUD Modal ───────────────────────────────────────────── */}
           <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen} maxWidth="max-w-xl">
