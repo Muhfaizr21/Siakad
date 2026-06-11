@@ -1,6 +1,7 @@
 "use client"
 import React, { useState, useEffect } from 'react';
-import { PageContent, PageHeader } from '@/components/ui/page';
+import { PageContent } from '@/components/ui/page';
+import { DashboardHero } from '@/components/ui/dashboard';
 import { DataTable } from '@/components/ui/DataTable'
 
 
@@ -365,22 +366,21 @@ export default function JadwalKegiatan() {
     <PageContent className="font-body">
       <Toaster position="top-right" />
 
-            {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <PageHeader 
-        title="Jadwal Kegiatan"
+      {/* ── Welcome Banner ─────────────────────────────────────────── */}
+      <DashboardHero 
+        title="Jadwal"
+        highlightedTitle="Kegiatan"
         subtitle="Manajemen agenda operasional, sinkronisasi jadwal kegiatan, serta pemantauan jadwal program kerja rutin ormawa."
-        icon="groups"
-        action={
+        icon="event_note"
+        badges={[{ label: 'Kalender Organisasi', active: true }]}
+        actions={
           <Button
             onClick={handleOpenAdd}
-            className="h-10 px-5 rounded-xl text-white hover:bg-opacity-90 font-bold text-[10px] tracking-widest gap-2 w-full md:w-auto shrink-0 border border-transparent uppercase transition-all duration-150 active:scale-95 shadow-lg"
-            style={{ backgroundColor: 'var(--theme-primary)' }}
+            className="h-11 px-6 rounded-xl bg-slate-800 text-white font-black font-headline text-[10px] uppercase tracking-widest gap-2 hover:bg-slate-900 transition-all active:scale-95 shadow-none border-none cursor-pointer"
           >
             <span className="material-symbols-outlined normal-case text-[16px] stroke-[3px]">add</span> Tambah Kegiatan Baru
           </Button>
         }
-       
-        breadcrumbs={[ { label: 'Dashboard', path: '/ormawa' }, { label: 'Jadwal Kegiatan', path: '#' } ]} 
       />
 
       {/* ── Stats Overview ────────────────────────────────────────── */}
@@ -424,7 +424,7 @@ export default function JadwalKegiatan() {
 
       {/* ── Content Area ───────────────────────────────────────────── */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mt-4">
-        <Card className="xl:col-span-1 border border-border shadow-sm overflow-hidden bg-surface rounded-2xl h-fit">
+        <Card className="xl:col-span-1 glass-card shadow-sm rounded-xl overflow-hidden animate-in slide-in-from-bottom-4 duration-500 delay-150 h-fit">
           <CardHeader className="bg-slate-50/50 border-b border-border p-5 flex flex-row items-center justify-between">
             <CardTitle className="text-sm font-black font-headline tracking-tight uppercase flex items-center gap-2">
               <span className="material-symbols-outlined text-[18px] text-primary">calendar_month</span>
@@ -475,7 +475,7 @@ export default function JadwalKegiatan() {
           </CardContent>
         </Card>
 
-        <Card className="xl:col-span-2 border border-border shadow-sm overflow-hidden bg-surface rounded-2xl">
+        <Card className="xl:col-span-2 glass-card shadow-sm rounded-xl overflow-hidden animate-in slide-in-from-bottom-4 duration-500 delay-300">
           <CardContent className="p-0">
             <DataTable
               columns={columns}
@@ -485,9 +485,9 @@ export default function JadwalKegiatan() {
               filters={[{ key: 'Status', placeholder: 'Filter Status', options: Object.entries(STATUS_CFG).map(([v, { label }]) => ({ label, value: v })) }]}
               actions={(row) => (
                 <div className="flex items-center justify-end gap-1">
-                  <button onClick={() => { setSelected(row); setIsDetailOpen(true) }} className="p-1.5 text-[var(--theme-text-subtle)] hover:text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)] rounded-lg transition-colors duration-150" title="Detail"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }}>visibility</span></button>
-                  <button onClick={() => handleOpenEdit(row)} className="p-1.5 text-[var(--theme-text-subtle)] hover:text-[var(--theme-warning)] hover:bg-[var(--theme-warning-light)] rounded-lg transition-colors duration-150" title="Edit"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }}>edit</span></button>
-                  <button onClick={() => { setSelected(row); setIsDelOpen(true) }} className="p-1.5 text-[var(--theme-text-subtle)] hover:text-[var(--theme-error)] hover:bg-[var(--theme-error-light)] rounded-lg transition-colors duration-150" title="Hapus"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }}>delete</span></button>
+                  <Button variant="ghost" size="icon" onClick={() => { setSelected(row); setIsDetailOpen(true) }} title="Detail"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }}>visibility</span></Button>
+                  <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(row)} title="Edit"><span className="material-symbols-outlined block text-[var(--theme-warning)]" style={{ fontSize: '18px' }}>edit</span></Button>
+                  <Button variant="ghost" size="icon" onClick={() => { setSelected(row); setIsDelOpen(true) }} title="Hapus"><span className="material-symbols-outlined block text-[var(--theme-error)]" style={{ fontSize: '18px' }}>delete</span></Button>
                 </div>
               )}
             />
@@ -502,9 +502,20 @@ export default function JadwalKegiatan() {
         subtitle={selected?.Judul}
         icon="calendar_today"
         maxWidth="max-w-4xl"
+        bodyClassName="p-0"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setIsDetailOpen(false)}>
+              Tutup
+            </ModalCancelButton>
+            <Button onClick={() => { setIsDetailOpen(false); handleOpenEdit(selected) }} className="text-[11px] font-bold tracking-wider h-11 px-8 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white shadow-sm active:scale-95 transition-all flex items-center gap-1.5 border-none">
+              <span className="material-symbols-outlined normal-case text-[16px]">edit</span> Edit Agenda
+            </Button>
+          </>
+        }
       >
         {selected && (
-          <div className="flex flex-col">
+          <div className="flex flex-col w-full">
             <div className="flex items-center justify-between gap-4 p-6 border-b border-[var(--theme-border)]">
               <div className="space-y-1">
                 <h2 className="text-xl font-bold font-headline tracking-tight text-[var(--theme-text)]">{selected.Judul}</h2>
@@ -623,15 +634,6 @@ export default function JadwalKegiatan() {
               </div>
             </div>
 
-            {/* Footer Buttons */}
-            <div className="p-6 border-t border-[var(--theme-border)] flex justify-end gap-3 bg-[var(--theme-bg)] rounded-b-2xl">
-              <ModalCancelButton onClick={() => setIsDetailOpen(false)}>
-                Tutup
-              </ModalCancelButton>
-              <Button onClick={() => { setIsDetailOpen(false); handleOpenEdit(selected) }} className="text-[11px] font-bold tracking-wider h-11 px-8 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white shadow-sm active:scale-95 transition-all flex items-center gap-1.5 border-none">
-                <span className="material-symbols-outlined normal-case text-[16px]">edit</span> Edit Agenda
-              </Button>
-            </div>
           </div>
         )}
       </DialogModal>
@@ -643,9 +645,15 @@ export default function JadwalKegiatan() {
         subtitle="Tambahkan agenda dan jadwal pelaksanaan kegiatan resmi organisasi."
         icon={isEditMode ? "edit" : "calendar_add_on"}
         maxWidth="max-w-4xl"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setIsCrudOpen(false)} disabled={isSubmitting} />
+            <ModalSaveButton form="jadwal-form" loading={isSubmitting} label={isEditMode ? 'Simpan Perubahan' : 'Jadwalkan'} />
+          </>
+        }
       >
-        <form onSubmit={handleSave} className="flex flex-col">
-          <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto no-scrollbar">
+        <form id="jadwal-form" onSubmit={handleSave} className="flex flex-col w-full space-y-4">
+          <div className="space-y-4">
             <div className="space-y-2">
               <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">Nama Kegiatan</Label>
               <Input
@@ -820,11 +828,6 @@ export default function JadwalKegiatan() {
                 className="min-h-[80px]"
               />
             </div>
-          </div>
-
-          <div className="p-6 border-t border-[var(--theme-border)] flex justify-end gap-3 bg-[var(--theme-bg)] rounded-b-2xl">
-            <ModalCancelButton onClick={() => setIsCrudOpen(false)} disabled={isSubmitting} />
-            <ModalSaveButton loading={isSubmitting} label={isEditMode ? 'Simpan Perubahan' : 'Jadwalkan'} />
           </div>
         </form>
       </DialogModal>

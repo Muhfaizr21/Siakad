@@ -740,14 +740,14 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
           subtitle: const Text('Kirim notifikasi ke psikolog'),
           value: _eskalasiPsikolog,
           onChanged: (v) => setState(() => _eskalasiPsikolog = v),
-          activeThumbColor: AppColors.primary,
+          activeColor: AppColors.primary,
         ),
         SwitchListTile(
           title: const Text('Lapor ke Admin Fakultas'),
           subtitle: const Text('Untuk kasus kritis'),
           value: _eskalasiFakultas,
           onChanged: (v) => setState(() => _eskalasiFakultas = v),
-          activeThumbColor: AppColors.danger,
+          activeColor: AppColors.danger,
         ),
       ],
     );

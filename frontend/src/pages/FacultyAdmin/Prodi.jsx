@@ -15,6 +15,7 @@ import { PageContent } from '@/components/ui/page'
 import { DashboardHero } from '@/components/ui/dashboard'
 import { DialogModal, ModalCancelButton, ModalSaveButton } from "@/components/ui/DialogModal"
 import { PrimaryStatsCard } from '@/components/ui/StatsCard'
+import { Card, CardContent } from "@/components/ui/Card"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const RefreshCw = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>sync</span>;

@@ -1,16 +1,15 @@
 "use client"
 import React, { useState, useEffect } from 'react';
-import { PageContent, PageHeader } from '@/components/ui/page';
+import { PageContent } from '@/components/ui/page';
+import { DashboardHero } from '@/components/ui/dashboard';
 import { DataTable } from '@/components/ui/DataTable'
 
 
 
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
-import { DialogModal } from '@/components/ui/DialogModal'
+import { DialogModal, ModalCancelButton, ModalSaveButton } from '@/components/ui/DialogModal'
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
-import { Card, CardContent } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 
@@ -420,18 +419,21 @@ export default function RoleBasedAccess() {
       <Toaster position="top-right" />
 
             {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <PageHeader 
-        title="Otoritas & Hak Akses"
+      <DashboardHero
+        title="Otoritas &"
+        highlightedTitle="Hak Akses"
         subtitle="Konfigurasi tata kelola otorisasi modul, hak istimewa role, dan kendali keamanan sistem."
         icon="security"
-       
-        breadcrumbs={[ { label: 'Dashboard', path: '/ormawa' }, { label: 'Otoritas & Hak Akses', path: '#' } ]} 
+        badges={[
+          { label: 'RBAC Portal', active: true }
+        ]}
       />
 
       {/* ── Content Area ───────────────────────────────────────────── */}
-      <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-[var(--theme-surface)]/70 backdrop-blur-md">
-        <CardContent className="p-6">
+      <div className="glass-card mb-8 animate-in slide-in-from-bottom-4 duration-500 fade-in border border-white/20 overflow-hidden">
+        <div className="p-0">
           <DataTable
+            containerClassName="border-0 shadow-none rounded-none"
             columns={columns} 
             data={roles} 
             loading={loading}
@@ -464,44 +466,28 @@ export default function RoleBasedAccess() {
               </div>
             )}
           />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* ── CRUD Dialog (Premium Glassmorphism Style) ── */}
       <DialogModal
         open={isCrudOpen}
         onOpenChange={setIsCrudOpen}
         title={isEditMode ? 'Konfigurasi Hak Akses Role' : 'Daftarkan Role Baru'}
-        subtitle="Definisikan kewenangan akses, tugas tanggung jawab, dan otorisasi modul fungsional ormawa."
-        icon={<span className="material-symbols-outlined" style={{ fontSize: '24px' }}>security</span>}
+        subtitle="Konfigurasi izin akses dan otorisasi modul."
+        icon="security"
         maxWidth="max-w-4xl"
         footer={
-          <>
-            <Button 
-              type="button" 
-              variant="outline"
-              onClick={() => setIsCrudOpen(false)} 
-            >
-              Batal
-            </Button>
-            <Button 
-              type="submit" 
-              form="rbac-form"
-              disabled={isSubmitting} 
-              className="bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white shadow-md flex items-center gap-2"
-            >
-              {isSubmitting ? (
-                <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span>
-              ) : (
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>save</span>
-              )}
-              <span>{isEditMode ? 'Simpan Otoritas' : 'Terbitkan Role'}</span>
-            </Button>
-          </>
+          <div className="flex items-center justify-end gap-2">
+            <ModalCancelButton onClick={() => setIsCrudOpen(false)} />
+            <ModalSaveButton loading={isSubmitting} form="rbac-form">
+              {isEditMode ? 'SIMPAN OTORITAS' : 'TERBITKAN ROLE'}
+            </ModalSaveButton>
+          </div>
         }
       >
-        <form id="rbac-form" onSubmit={handleSave}>
-          <div className="space-y-5">
+        <form id="rbac-form" onSubmit={handleSave} className="flex flex-col">
+          <div className="p-6 md:p-8 space-y-5 max-h-[60vh] overflow-y-auto no-scrollbar font-inter">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Nama Role */}
                 <div className="space-y-1.5">

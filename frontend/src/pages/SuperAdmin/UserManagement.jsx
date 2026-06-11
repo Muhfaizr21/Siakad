@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { DataTable } from '@/components/ui/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
+import { DialogModal, ModalCancelButton, ModalSaveButton } from '@/components/ui/DialogModal'
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
@@ -1296,7 +1296,7 @@ export default function UserManagement() {
       </div>
 
       {/* ── Table Section ────────────────────────────────────────── */}
-      {activeTab === 'identities' && <PageCard>
+      {activeTab === 'identities' && <Card className="glass-card shadow-sm rounded-xl overflow-hidden">
         <CardContent className="p-0">
           <DataTable
             columns={columns}
@@ -1330,14 +1330,14 @@ export default function UserManagement() {
             )}
           />
         </CardContent>
-      </PageCard>}
+      </Card>}
 
       {activeTab === 'roles' && (
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           {roleOptions.map(role => {
             const cfg = ROLE_DETAILS[role.value] || { cls: 'bg-neutral-100 text-neutral-600 shadow-none' }
             return (
-              <Card key={role.value} className="border-neutral-200 shadow-sm rounded-xl bg-white overflow-hidden hover:border-primary/20 transition-all">
+              <Card key={role.value} className="glass-card shadow-sm rounded-xl overflow-hidden hover:border-primary/20 transition-all">
                 <CardContent className="p-6 space-y-5">
                   <div className="flex items-start justify-between gap-4">
                     <div className="space-y-2 flex-1 min-w-0">
@@ -1748,24 +1748,23 @@ export default function UserManagement() {
         </section>
       )}
       {/* ── Create User Modal ───────────────────────────────────── */}
-      <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen} maxWidth="max-w-xl">
-        <DialogContent>
-          <DialogHeader className="relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-[0.05] text-bku-primary pointer-events-none"><span className="material-symbols-outlined" style={{ fontSize: '100px' }} >manage_accounts</span></div>
-            <div className="relative z-10 space-y-1">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
-                  <span className="material-symbols-outlined font-black text-[12px]">add</span>
-                </div>
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-bku-primary/70 font-headline">Account Provisioning</span>
-              </div>
-              <DialogTitle className="text-xl md:text-2xl font-black font-headline tracking-tight text-slate-800">Provision User Account</DialogTitle>
-              <DialogDescription className="text-xs font-semibold text-slate-400">Registrasi identitas digital dan konfigurasi level otorisasi pengguna baru.</DialogDescription>
-            </div>
-          </DialogHeader>
+      <DialogModal
+        open={isCrudOpen}
+        onOpenChange={setIsCrudOpen}
+        icon="manage_accounts"
+        subtitle="Account Provisioning"
+        title="Provision User Account"
+        maxWidth="max-w-xl"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setIsCrudOpen(false)} />
+            <ModalSaveButton onClick={handleCreate} loading={isSubmitting}>Commit New Account</ModalSaveButton>
+          </>
+        }
+      >
 
           <form onSubmit={handleCreate}>
-            <div className="p-6 md:p-8 space-y-6 max-h-[50vh] overflow-y-auto no-scrollbar font-inter">
+            <div className="space-y-6 font-inter">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Identity Handle (Email)</Label>
@@ -1937,46 +1936,25 @@ export default function UserManagement() {
               )}
             </div>
 
-            <DialogFooter>
-              <button
-                type="button"
-                onClick={() => setIsCrudOpen(false)}
-                className="flex-1 h-12 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-headline cursor-pointer"
-              >
-                Batal
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="flex-1 h-12 bg-neutral-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2 font-headline disabled:opacity-50 cursor-pointer border-none"
-              >
-                {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >save</span>}
-                <span>Commit New Account</span>
-              </button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+            </form>
+      </DialogModal>
 
       {/* ── Update Role Modal ────────────────────────────────────── */}
-      <Dialog open={isRoleOpen} onOpenChange={setIsRoleOpen} maxWidth="max-w-md">
-        <DialogContent>
-          <DialogHeader className="relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-[0.05] text-bku-primary pointer-events-none">
-              <span className="material-symbols-outlined font-black" style={{ fontSize: '100px' }}>key</span>
-            </div>
-            <div className="relative z-10 space-y-1">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
-                  <span className="material-symbols-outlined font-black text-[12px]">security</span>
-                </div>
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-bku-primary/70 font-headline">Privilege Node</span>
-              </div>
-              <DialogTitle className="text-xl font-bold font-jakarta tracking-tight text-slate-800 uppercase leading-none">Modify Otoritas</DialogTitle>
-              <DialogDescription className="text-xs font-semibold text-slate-400 mt-1.5">Override account privilege nodes.</DialogDescription>
-            </div>
-          </DialogHeader>
-          <div className="p-6 md:p-8 space-y-6 max-h-[50vh] overflow-y-auto no-scrollbar font-inter">
+      <DialogModal
+        open={isRoleOpen}
+        onOpenChange={setIsRoleOpen}
+        icon="security"
+        subtitle="Privilege Node"
+        title="Modify Otoritas"
+        maxWidth="max-w-md"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setIsRoleOpen(false)} />
+            <ModalSaveButton onClick={handleUpdateRole} loading={isSubmitting}>Commit Authority</ModalSaveButton>
+          </>
+        }
+      >
+          <div className="space-y-6 font-inter">
             <div className="space-y-6 px-1">
               <div className="p-5 rounded-2xl bg-white border border-slate-200/50 flex items-center justify-between group">
                 <div className="space-y-1">
@@ -2130,26 +2108,7 @@ export default function UserManagement() {
             </div>
           </div>
 
-          <DialogFooter>
-            <button
-              type="button"
-              onClick={() => setIsRoleOpen(false)}
-              className="flex-1 h-12 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-headline cursor-pointer"
-            >
-              Batal
-            </button>
-            <button
-              type="button"
-              onClick={handleUpdateRole}
-              disabled={isSubmitting}
-              className="flex-[2] h-12 bg-neutral-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2 font-headline disabled:opacity-50 cursor-pointer border-none"
-            >
-              {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>security</span>}
-              <span>Commit Authority</span>
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </DialogModal>
 
       <DeleteConfirmModal
         isOpen={isDelOpen}
@@ -2161,26 +2120,23 @@ export default function UserManagement() {
       />
 
       {/* ── Create Custom Role Modal ────────────────────────────── */}
-      <Dialog open={isNewRoleOpen} onOpenChange={setIsNewRoleOpen} maxWidth="max-w-md">
-        <DialogContent>
-          <DialogHeader className="relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-[0.05] text-bku-primary pointer-events-none">
-              <span className="material-symbols-outlined font-black" style={{ fontSize: '100px' }}>shield_person</span>
-            </div>
-            <div className="relative z-10 space-y-1">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
-                  {newRoleForm.isEdit ? <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >edit</span> : <span className="material-symbols-outlined" style={{ fontSize: '12px' }} strokeWidth={3}>add</span>}
-                </div>
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-bku-primary/70 font-headline">Dynamic Privilege Node</span>
-              </div>
-              <DialogTitle className="text-xl font-bold font-jakarta tracking-tight text-slate-800 uppercase leading-none">{newRoleForm.isEdit ? 'Update Custom Role' : 'Create Custom Role'}</DialogTitle>
-              <DialogDescription className="text-xs font-semibold text-slate-400 mt-1.5">{newRoleForm.isEdit ? 'Perbarui informasi peran khusus ini' : 'Release dynamic privilege identity node'}</DialogDescription>
-            </div>
-          </DialogHeader>
+      <DialogModal
+        open={isNewRoleOpen}
+        onOpenChange={setIsNewRoleOpen}
+        icon="shield_person"
+        subtitle="Dynamic Privilege Node"
+        title={newRoleForm.isEdit ? 'Update Custom Role' : 'Create Custom Role'}
+        maxWidth="max-w-md"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setIsNewRoleOpen(false)} />
+            <ModalSaveButton onClick={handleCreateCustomRole} loading={isSubmitting}>{newRoleForm.isEdit ? 'Update Role' : 'Commit New Role'}</ModalSaveButton>
+          </>
+        }
+      >
 
           <form onSubmit={handleCreateCustomRole}>
-            <div className="p-6 md:p-8 space-y-6 max-h-[50vh] overflow-y-auto no-scrollbar font-inter">
+            <div className="space-y-6 font-inter">
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Role Identity Name</Label>
@@ -2226,26 +2182,8 @@ export default function UserManagement() {
               </div>
             </div>
 
-            <DialogFooter>
-              <button
-                type="button"
-                onClick={() => setIsNewRoleOpen(false)}
-                className="flex-1 h-12 bg-white hover:bg-slate-55 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-headline cursor-pointer"
-              >
-                Batal
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="flex-[2] h-12 bg-neutral-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2 font-headline disabled:opacity-50 cursor-pointer border-none"
-              >
-                {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>save</span>}
-                <span>{newRoleForm.isEdit ? 'Update Role' : 'Save Custom Role'}</span>
-              </button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+            </form>
+      </DialogModal>
 
     </PageContent>
   )

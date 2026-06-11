@@ -5,7 +5,7 @@ import { DataTable } from '@/components/ui/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { DialogModal, ModalCancelButton, ModalSaveButton } from '@/components/ui/DialogModal'
-import { Card, CardContent } from '@/components/ui/Card'
+
 import { Textarea } from '@/components/ui/Textarea'
 import { Label } from '@/components/ui/Label'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs'
@@ -19,7 +19,7 @@ import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis,
   RadialBarChart, RadialBar, Legend
 } from 'recharts'
-import { PageContent, PageCard } from '@/components/ui/page'
+import { PageContent } from '@/components/ui/page'
 import { DashboardHero, DashboardStatGrid, DashboardStatCard } from '@/components/ui/dashboard'
 import { TitleSubtitleCell } from '@/components/ui/TableCells'
 import { PrimaryStatsCard } from '@/components/ui/StatsCard'
@@ -31,11 +31,6 @@ const AlertTriangle = ({ size, className, ...props }) => <span className={`mater
 const CheckCircle = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>verified</span>;
 const Payments = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>account_balance_wallet</span>;
 const Wallet = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>account_balance_wallet</span>;
-
-// Auto-injected Material Symbol fallbacks for removed Lucide icons
-const Building2 = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>business</span>;
-
-
 
 const STATUS_CFG = {
   diajukan: { label: 'DIAJUKAN', cls: 'bg-neutral-50 text-neutral-500 border-neutral-100' },
@@ -87,7 +82,7 @@ export default function ProposalPipeline() {
       }
     } catch { toast.error('Gagal memproses pengesahan') } finally { setIsSubmitting(false) }
   }
-  useEffect(() => { fetchData() }, [])
+  useEffect(() => { fetchData() }, [activeFacultyId, activeProdiId])
 
   const handleReject = async () => {
     setIsSubmitting(true)
@@ -162,24 +157,7 @@ export default function ProposalPipeline() {
     return Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([name, value], i) => ({ name, value, fill: colors[i % colors.length] }));
   }, [filteredData]);
 
-  // 4. WHEN (Bulan Pelaksanaan)
-  const whenChartData = useMemo(() => {
-    const map = {};
-    filteredData.forEach(p => {
-      if (!p.TanggalKegiatan) return;
-      const d = new Date(p.TanggalKegiatan);
-      const m = d.toLocaleString('id-ID', { month: 'short', year: '2-digit' });
-      map[m] = (map[m] || 0) + 1;
-    });
-    return Object.entries(map).map(([name, value]) => ({ name, value }));
-  }, [filteredData]);
 
-  // 5. WHERE (Sebaran Fakultas)
-  const whereChartData = useMemo(() => {
-    const map = {};
-    filteredData.forEach(p => { const f = (p.Fakultas?.Nama || 'Lainnya').replace('Fakultas ', 'F. '); map[f] = (map[f] || 0) + 1 });
-    return Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([name, value]) => ({ name, value }));
-  }, [filteredData]);
 
   // 6. HOW (Distribusi Anggaran per Ormawa)
   const howChartData = useMemo(() => {
@@ -423,8 +401,7 @@ export default function ProposalPipeline() {
       )}
 
       {/* ── Table Section ────────────────────────────────────────── */}
-      <PageCard>
-        <CardContent className="p-0">
+      <div className="glass-card mt-6">
           <DataTable
             columns={columns}
             data={filteredData}
@@ -436,8 +413,7 @@ export default function ProposalPipeline() {
               </div>
             )}
           />
-        </CardContent>
-      </PageCard>
+      </div>
 
       {/* ── Detail Dialog ─────────────────────────────────────────── */}
       <DialogModal

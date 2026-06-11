@@ -52,9 +52,14 @@ export const fetchWithAuth = (url, options = {}) => {
     ...(selectedFacultyId && selectedFacultyId !== 'all' ? { 'X-Faculty-ID': selectedFacultyId } : {}),
     ...(selectedProdiId && selectedProdiId !== 'all' ? { 'X-Prodi-ID': selectedProdiId } : {}),
     ...(selectedPeriodId && selectedPeriodId !== 'all' ? { 'X-Academic-Period-ID': selectedPeriodId } : {}),
-    ...(impersonatedStudentId ? { 'X-Student-ID': impersonatedStudentId } : {}),
     ...(selectedOrmawaId ? { 'X-Ormawa-ID': selectedOrmawaId } : {})
   };
+
+  if (impersonatedStudentId && impersonatedStudentId !== 'undefined' && impersonatedStudentId !== 'null') {
+    if (!headers['X-Student-ID'] && (!options.headers || !options.headers['X-Student-ID'])) {
+      headers['X-Student-ID'] = impersonatedStudentId;
+    }
+  }
 
   return fetch(url, { ...options, headers }).then(handleResponse);
 };
@@ -109,7 +114,7 @@ export const psychologistService = {
   markNotificationRead: (id) => fetchWithAuth(`${API_BASE_URL}/psychologist/notifications/${id}/read`, { method: 'PUT' }),
   markAllNotificationsRead: () => fetchWithAuth(`${API_BASE_URL}/psychologist/notifications/read-all`, { method: 'PUT' }),
   deleteNotification: (id) => fetchWithAuth(`${API_BASE_URL}/psychologist/notifications/${id}`, { method: 'DELETE' }),
-  
+
   // Tindak Lanjut (Referral)
   getReferrals: () => fetchWithAuth(`${API_BASE_URL}/psychologist/referrals`),
   createReferral: (data) => fetchWithAuth(`${API_BASE_URL}/psychologist/referrals`, {
@@ -756,7 +761,7 @@ export const adminService = {
     }).then(async res => {
       if (!res.ok) {
         let err;
-        try { err = await res.json() } catch(e) { err = { message: 'Koneksi gagal' } }
+        try { err = await res.json() } catch (e) { err = { message: 'Koneksi gagal' } }
         throw new Error(err.message || 'Koneksi gagal')
       }
       return res.json()

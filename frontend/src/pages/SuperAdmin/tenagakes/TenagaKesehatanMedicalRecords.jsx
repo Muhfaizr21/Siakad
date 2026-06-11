@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { DataTable } from '@/components/ui/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
+import { DialogModal, ModalCancelButton } from '@/components/ui/DialogModal'
 import { Card, CardContent } from '@/components/ui/Card'
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
@@ -22,7 +22,7 @@ const getCleanImageUrl = (url) => {
 function StudentAvatar({ src, name, className = "w-9 h-9 rounded-xl" }) {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
-  
+
   const hasNoImage = !src || src.trim() === "" || src.endsWith("/profiles/") || src.endsWith("/students/") || src.endsWith("localhost:8000") || src.endsWith("localhost:8000/");
 
   return (
@@ -44,6 +44,25 @@ function StudentAvatar({ src, name, className = "w-9 h-9 rounded-xl" }) {
       )}
     </div>
   );
+}
+
+
+const parseCatatan = (catatan) => {
+  if (!catatan) return '—';
+  try {
+    const parsed = JSON.parse(catatan);
+    return (
+      <ul className="list-disc pl-4 space-y-1 mt-1 text-xs text-neutral-700">
+        {Object.entries(parsed).map(([k, v]) => {
+          if (v === '' || v === null || v === undefined) return null;
+          if (Array.isArray(v) && v.length === 0) return null;
+          return <li key={k}><strong className="capitalize">{k.replace(/_/g, ' ')}:</strong> {typeof v === 'object' ? JSON.stringify(v) : String(v)}</li>;
+        })}
+      </ul>
+    );
+  } catch (e) {
+    return <p className="text-xs text-neutral-750 font-medium leading-relaxed mt-1">{catatan}</p>;
+  }
 }
 
 export default function TenagaKesehatanMedicalRecords() {
@@ -79,15 +98,16 @@ export default function TenagaKesehatanMedicalRecords() {
 
   useEffect(() => { fetchData() }, [])
 
-  const fakultasOptions = useMemo(() => {
-    const unique = [...new Set(records.map(i => i._fakultas).filter(Boolean))].sort()
-    return unique.map(f => ({ label: f.toUpperCase(), value: f }))
-  }, [records])
-
-  const semesterOptions = useMemo(() => {
-    const unique = [...new Set(records.map(i => i._semester).filter(v => v !== '' && v !== undefined && v !== null))].sort((a, b) => Number(a) - Number(b))
-    return unique.map(s => ({ label: `SEMESTER ${s}`, value: String(s) }))
-  }, [records])
+  const semesterOptions = [
+    { label: 'SEMESTER 1', value: '1' },
+    { label: 'SEMESTER 2', value: '2' },
+    { label: 'SEMESTER 3', value: '3' },
+    { label: 'SEMESTER 4', value: '4' },
+    { label: 'SEMESTER 5', value: '5' },
+    { label: 'SEMESTER 6', value: '6' },
+    { label: 'SEMESTER 7', value: '7' },
+    { label: 'SEMESTER 8', value: '8' },
+  ]
 
   const medicalRecordColumns = [
     {
@@ -113,23 +133,27 @@ export default function TenagaKesehatanMedicalRecords() {
       key: 'tenaga_kes',
       label: 'Tenaga Medis',
       className: 'w-[180px]',
-      render: (v, row) => (
-        <div className="flex flex-col py-1 font-jakarta">
-          <span className="font-bold text-neutral-800 text-xs">{row.tenaga_kes?.nama || '—'}</span>
-          <span className="text-[9px] text-neutral-400 font-bold uppercase tracking-wider">{row.tenaga_kes?.spesialisasi || '—'}</span>
-        </div>
-      )
+      render: (v, row) => {
+        const nakes = row.tenaga_kes || row.TenagaKes || {};
+        return (
+          <div className="flex flex-col py-1 font-jakarta">
+            <span className="font-bold text-neutral-800 text-xs">{nakes.nama || nakes.Nama || row.diperiksa_oleh || row.DiperiksaOleh || 'Tidak Diketahui'}</span>
+            <span className="text-[9px] text-neutral-400 font-bold uppercase tracking-wider">{nakes.spesialisasi || nakes.Spesialisasi || '—'}</span>
+          </div>
+        )
+      }
     },
     {
       key: 'tanggal',
       label: 'Pemeriksaan',
       className: 'w-[150px]',
       render: (v, row) => {
-        const formattedDate = v ? new Date(v).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+        const tanggalStr = row.tanggal || row.Tanggal;
+        const formattedDate = tanggalStr ? new Date(tanggalStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
         return (
           <div className="flex flex-col font-jakarta">
             <span className="font-bold text-xs text-neutral-800">{formattedDate}</span>
-            <span className="text-[9px] text-neutral-400 font-bold uppercase mt-0.5">{row.jenis_pemeriksaan || 'Screening'}</span>
+            <span className="text-[9px] text-neutral-400 font-bold uppercase mt-0.5">{row.jenis_pemeriksaan || row.JenisPemeriksaan || 'Screening'}</span>
           </div>
         )
       }
@@ -138,26 +162,30 @@ export default function TenagaKesehatanMedicalRecords() {
       key: 'hasil',
       label: 'Kondisi & Hasil',
       className: 'w-[180px]',
-      render: (v, row) => (
-        <div className="flex flex-col py-1 gap-1 font-jakarta">
-          <Badge className={cn(
-            'w-fit px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border shadow-none',
-            v?.toLowerCase() === 'sehat' && 'bg-emerald-50 text-emerald-600 border-emerald-100',
-            v?.toLowerCase() === 'pantauan' && 'bg-amber-50 text-amber-600 border-amber-100',
-            v?.toLowerCase() === 'perlu perhatian' && 'bg-rose-50 text-rose-600 border-rose-100'
-          )}>
-            Hasil: {v || '—'}
-          </Badge>
-          <Badge className={cn(
-            'w-fit px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border bg-neutral-50 text-neutral-600 border-neutral-200 shadow-none',
-            row.status_kesehatan?.toLowerCase() === 'prima' && 'bg-success/10 text-success border-success/20',
-            row.status_kesehatan?.toLowerCase() === 'stabil' && 'bg-blue-50 text-blue-600 border-blue-100',
-            row.status_kesehatan?.toLowerCase() === 'kritis' && 'bg-rose-50 text-rose-600 border-rose-100'
-          )}>
-            Kesehatan: {row.status_kesehatan || '—'}
-          </Badge>
-        </div>
-      )
+      render: (v, row) => {
+        const kondisiStr = String(row.hasil_diagnosis || row.HasilDiagnosis || v || '').toLowerCase();
+        const statKesehatan = row.status_kesehatan || row.StatusKesehatan;
+        return (
+          <div className="flex flex-col py-1 gap-1 font-jakarta">
+            <Badge className={cn(
+              'w-fit px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border shadow-none bg-neutral-50 text-neutral-600 border-neutral-200',
+              kondisiStr.includes('sehat') && 'bg-emerald-50 text-emerald-600 border-emerald-100',
+              kondisiStr.includes('pantauan') && 'bg-amber-50 text-amber-600 border-amber-100',
+              kondisiStr.includes('perlu perhatian') && 'bg-rose-50 text-rose-600 border-rose-100'
+            )}>
+              Hasil: {row.hasil_diagnosis || row.HasilDiagnosis || v || '—'}
+            </Badge>
+            <Badge className={cn(
+              'w-fit px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border bg-neutral-50 text-neutral-600 border-neutral-200 shadow-none',
+              statKesehatan?.toLowerCase() === 'prima' && 'bg-emerald-50 text-emerald-600 border-emerald-100',
+              statKesehatan?.toLowerCase() === 'stabil' && 'bg-blue-50 text-blue-600 border-blue-100',
+              statKesehatan?.toLowerCase() === 'kritis' && 'bg-rose-50 text-rose-600 border-rose-100'
+            )}>
+              Kesehatan: {statKesehatan || '—'}
+            </Badge>
+          </div>
+        )
+      }
     },
     {
       key: 'tindakan_diberikan',
@@ -165,8 +193,8 @@ export default function TenagaKesehatanMedicalRecords() {
       className: 'w-[250px]',
       render: (v, row) => (
         <div className="flex flex-col py-1 max-w-[220px] font-jakarta">
-          <span className="text-xs font-semibold text-neutral-800 truncate" title={v}>Tindakan: {v || '—'}</span>
-          <span className="text-[10px] text-neutral-500 font-medium truncate mt-0.5" title={row.rekomendasi}>Rekomendasi: {row.rekomendasi || '—'}</span>
+          <span className="text-xs font-semibold text-neutral-800 truncate" title={v || row.TindakanDiberikan}>Tindakan: {v || row.TindakanDiberikan || '—'}</span>
+          <span className="text-[10px] text-neutral-500 font-medium truncate mt-0.5" title={row.rekomendasi || row.Rekomendasi}>Rekomendasi: {row.rekomendasi || row.Rekomendasi || '—'}</span>
         </div>
       )
     }
@@ -180,7 +208,7 @@ export default function TenagaKesehatanMedicalRecords() {
   return (
     <PageContent>
       <Toaster position="top-right" />
-      
+
       <DashboardHero
         title="Rekam Medis &"
         highlightedTitle="Screening"
@@ -189,70 +217,64 @@ export default function TenagaKesehatanMedicalRecords() {
         badges={[{ label: 'Klinik Kesehatan Kampus', active: false }]}
         actions={
           <div className="px-4 py-2 bg-bku-primary/5 border border-bku-primary/20 rounded-xl flex items-center gap-3 w-full lg:w-auto justify-center">
-             <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '16px' }}>medical_services</span>
-             <div className="flex flex-col leading-tight">
-                <span className="text-[10px] font-bold text-bku-primary/70 uppercase tracking-widest">Akses Validasi</span>
-                <span className="text-[12px] font-bold text-bku-primary font-jakarta">Super Admin Portal</span>
-             </div>
+            <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '16px' }}>medical_services</span>
+            <div className="flex flex-col leading-tight">
+              <span className="text-[10px] font-bold text-bku-primary/70 uppercase tracking-widest">Akses Validasi</span>
+              <span className="text-[12px] font-bold text-bku-primary font-jakarta">Super Admin Portal</span>
+            </div>
           </div>
         }
       />
 
-        {/* ── Table Section ────────────────────────────────────────── */}
-        <Card className="border-neutral-200 shadow-sm rounded-xl bg-white overflow-hidden">
-          <CardContent className="p-0 animate-in fade-in duration-300">
-            <DataTable
-              columns={medicalRecordColumns}
-              data={records}
-              loading={loading}
-              searchPlaceholder="Cari Nama Mahasiswa, NIM, atau Diagnosa..."
-              filters={[
-                { key: '_fakultas', placeholder: 'Pilih Fakultas', options: fakultasOptions },
-                { key: '_semester', placeholder: 'Pilih Semester', options: semesterOptions },
-                { key: 'status_kesehatan', placeholder: 'Pilih Status Kesehatan', options: [{ label: 'Prima', value: 'prima' }, { label: 'Stabil', value: 'stabil' }, { label: 'Pantauan', value: 'pantauan' }, { label: 'Kritis', value: 'kritis' }] }
-              ]}
-              actions={(row) => (
-                <div className="flex items-center gap-1.5">
-                  <Button onClick={() => handleOpenDetail(row)} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-bku-primary hover:bg-bku-primary/10 rounded-lg transition-colors" title="Lihat Detail"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >visibility</span></Button>
-                </div>
-              )}
-            />
-          </CardContent>
-        </Card>
+      {/* ── Table Section ────────────────────────────────────────── */}
+      <div className="bg-[var(--theme-surface)] rounded-2xl border border-[var(--theme-border)] shadow-sm overflow-hidden mb-6">
+        <DataTable
+          columns={medicalRecordColumns}
+          data={records}
+          loading={loading}
+          searchPlaceholder="Cari Nama Mahasiswa, NIM, atau Diagnosa..."
+          filters={[
+            { key: '_semester', placeholder: 'Pilih Semester', options: semesterOptions },
+            { key: 'status_kesehatan', placeholder: 'Pilih Status Kesehatan', options: [{ label: 'Prima', value: 'prima' }, { label: 'Stabil', value: 'stabil' }, { label: 'Pantauan', value: 'pantauan' }, { label: 'Kritis', value: 'kritis' }] }
+          ]}
+          actions={(row) => (
+            <div className="flex items-center gap-1.5">
+              <Button onClick={() => handleOpenDetail(row)} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-bku-primary hover:bg-bku-primary/10 rounded-lg transition-colors" title="Lihat Detail"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >visibility</span></Button>
+            </div>
+          )}
+        />
+      </div>
 
       {/* ── Detail Rekam Medis / Screening Dialog ─────────────── */}
-      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen} maxWidth="max-w-2xl">
-        <DialogContent>
-          <DialogHeader className="relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-5 text-bku-primary"><span className="material-symbols-outlined" style={{ fontSize: '100px' }} >medical_services</span></div>
-            <div className="relative z-10 space-y-1">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
-                  <span className="material-symbols-outlined text-[12px]">medical_services</span>
-                </div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-bku-primary font-jakarta">Medical Records</span>
-              </div>
-              <DialogTitle className="text-xl sm:text-2xl font-black font-jakarta tracking-tight text-slate-800 uppercase">
-                Detail Pemeriksaan & Screening
-              </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm font-medium text-slate-500">Informasi lengkap hasil pemeriksaan fisik mahasiswa.</DialogDescription>
-            </div>
-          </DialogHeader>
-          
-          {detailItem && (
-            <div className="p-6 md:p-8 max-h-[50vh] overflow-y-auto no-scrollbar space-y-6">
+      <DialogModal
+        open={isDetailOpen}
+        onOpenChange={setIsDetailOpen}
+        icon="medical_services"
+        title="Detail Pemeriksaan & Screening"
+        description="Informasi lengkap hasil pemeriksaan fisik mahasiswa."
+        subtitle="Medical Records"
+        maxWidth="max-w-2xl"
+        bodyClassName="p-6 md:p-8 space-y-6 font-jakarta max-h-[60vh] overflow-y-auto no-scrollbar"
+        footer={<ModalCancelButton onClick={() => setIsDetailOpen(false)}>Tutup Detail</ModalCancelButton>}
+      >
+        {detailItem && (() => {
+          const mhs = detailItem.mahasiswa || detailItem.Mahasiswa || {};
+          const nakes = detailItem.tenaga_kes || detailItem.TenagaKes || {};
+          const tanggalStr = detailItem.tanggal || detailItem.Tanggal;
+          return (
+            <>
               {/* Mahasiswa Info Card */}
               <div className="flex gap-4 p-4 bg-slate-50 border border-slate-200/50 rounded-2xl font-jakarta">
                 <StudentAvatar
-                  src={getCleanImageUrl(detailItem.mahasiswa?.foto_url || detailItem.mahasiswa?.FotoURL)}
-                  name={detailItem.mahasiswa?.Nama || detailItem.mahasiswa?.nama}
+                  src={getCleanImageUrl(mhs.foto_url || mhs.FotoURL)}
+                  name={mhs.Nama || mhs.nama}
                   className="w-14 h-14 rounded-xl border border-neutral-200"
                 />
                 <div className="flex flex-col justify-center">
-                  <div className="text-sm font-bold text-neutral-800">{detailItem.mahasiswa?.Nama || detailItem.mahasiswa?.nama}</div>
-                  <div className="text-xs text-neutral-400 font-bold mt-0.5">NIM: {detailItem.mahasiswa?.NIM || detailItem.mahasiswa?.nim}</div>
+                  <div className="text-sm font-bold text-neutral-800">{mhs.Nama || mhs.nama || '—'}</div>
+                  <div className="text-xs text-neutral-400 font-bold mt-0.5">NIM: {mhs.NIM || mhs.nim || '—'}</div>
                   <div className="text-[10px] text-neutral-400 font-medium uppercase tracking-wide mt-0.5">
-                    {detailItem.mahasiswa?.program_studi?.nama || detailItem.mahasiswa?.ProgramStudi?.Nama} • {detailItem.mahasiswa?.fakultas?.Nama || detailItem.mahasiswa?.fakultas?.nama}
+                    {mhs.program_studi?.nama || mhs.ProgramStudi?.Nama || '—'} • {mhs.fakultas?.Nama || mhs.fakultas?.nama || mhs.Fakultas?.Nama || '—'}
                   </div>
                 </div>
               </div>
@@ -263,19 +285,19 @@ export default function TenagaKesehatanMedicalRecords() {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div className="bg-white border p-3 rounded-xl flex flex-col justify-center">
                     <span className="text-[9px] font-bold text-neutral-400 uppercase">Suhu Tubuh</span>
-                    <span className="text-base font-black text-neutral-800 mt-0.5">{detailItem.suhu_tubuh || '—'} °C</span>
+                    <span className="text-base font-black text-neutral-800 mt-0.5">{detailItem.suhu_tubuh || detailItem.SuhuTubuh || '—'} °C</span>
                   </div>
                   <div className="bg-white border p-3 rounded-xl flex flex-col justify-center">
                     <span className="text-[9px] font-bold text-neutral-400 uppercase">Tekanan Darah</span>
-                    <span className="text-base font-black text-neutral-800 mt-0.5">{detailItem.sistole}/{detailItem.diastole || '—'} mmHg</span>
+                    <span className="text-base font-black text-neutral-800 mt-0.5">{detailItem.sistole || detailItem.Sistole || '—'}/{detailItem.diastole || detailItem.Diastole || '—'} mmHg</span>
                   </div>
                   <div className="bg-white border p-3 rounded-xl flex flex-col justify-center">
                     <span className="text-[9px] font-bold text-neutral-400 uppercase">Denyut Nadi</span>
-                    <span className="text-base font-black text-neutral-800 mt-0.5">{detailItem.denyut_nadi || '—'} bpm</span>
+                    <span className="text-base font-black text-neutral-800 mt-0.5">{detailItem.denyut_nadi || detailItem.DenyutNadi || '—'} bpm</span>
                   </div>
                   <div className="bg-white border p-3 rounded-xl flex flex-col justify-center">
                     <span className="text-[9px] font-bold text-neutral-400 uppercase">Saturasi Oksigen</span>
-                    <span className="text-base font-black text-neutral-800 mt-0.5">{detailItem.spo2 || '—'} %</span>
+                    <span className="text-base font-black text-neutral-800 mt-0.5">{detailItem.spo2 || detailItem.SPO2 || '—'} %</span>
                   </div>
                 </div>
               </div>
@@ -284,71 +306,61 @@ export default function TenagaKesehatanMedicalRecords() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 font-jakarta">
                 <div className="border border-neutral-100 p-3.5 rounded-xl bg-neutral-50/20">
                   <span className="text-[9px] font-bold text-neutral-400 uppercase">Tinggi Badan</span>
-                  <div className="text-sm font-bold text-neutral-800 mt-1">{detailItem.tinggi_badan || '—'} cm</div>
+                  <div className="text-sm font-bold text-neutral-800 mt-1">{detailItem.tinggi_badan || detailItem.TinggiBadan || '—'} cm</div>
                 </div>
                 <div className="border border-neutral-100 p-3.5 rounded-xl bg-neutral-50/20">
                   <span className="text-[9px] font-bold text-neutral-400 uppercase">Berat Badan</span>
-                  <div className="text-sm font-bold text-neutral-800 mt-1">{detailItem.berat_badan || '—'} kg</div>
+                  <div className="text-sm font-bold text-neutral-800 mt-1">{detailItem.berat_badan || detailItem.BeratBadan || '—'} kg</div>
                 </div>
                 <div className="border border-neutral-100 p-3.5 rounded-xl bg-neutral-50/20">
                   <span className="text-[9px] font-bold text-neutral-400 uppercase">Golongan Darah</span>
-                  <div className="text-sm font-bold text-neutral-800 mt-1">{detailItem.golongan_darah || '—'}</div>
+                  <div className="text-sm font-bold text-neutral-800 mt-1">{detailItem.golongan_darah || detailItem.GolonganDarah || '—'}</div>
                 </div>
               </div>
 
               {/* Clinical Details */}
               <div className="space-y-4 font-jakarta">
                 <div className="text-[10px] font-black uppercase tracking-widest text-[#737373] border-b pb-1">Detail Diagnosis & Tindakan</div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <span className="text-[9px] font-bold text-neutral-400 uppercase">Keluhan Pasien</span>
-                    <p className="text-xs text-neutral-750 font-medium leading-relaxed mt-1">{detailItem.catatan || '—'}</p>
+                    {parseCatatan(detailItem.catatan || detailItem.Catatan)}
                   </div>
                   <div>
                     <span className="text-[9px] font-bold text-neutral-400 uppercase">Alergi Obat</span>
-                    <p className="text-xs text-neutral-750 font-medium leading-relaxed mt-1">{detailItem.alergi_obat || 'Tidak Ada'}</p>
+                    <p className="text-xs text-neutral-750 font-medium leading-relaxed mt-1">{detailItem.alergi_obat || detailItem.AlergiObat || 'Tidak Ada'}</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <span className="text-[9px] font-bold text-neutral-400 uppercase">Tindakan Diberikan</span>
-                    <p className="text-xs text-neutral-750 font-medium leading-relaxed mt-1">{detailItem.tindakan_diberikan || '—'}</p>
+                    <p className="text-xs text-neutral-750 font-medium leading-relaxed mt-1">{detailItem.tindakan_diberikan || detailItem.TindakanDiberikan || 'Tidak Ada Tindakan Khusus'}</p>
                   </div>
                   <div>
                     <span className="text-[9px] font-bold text-neutral-400 uppercase">Obat Diberikan</span>
-                    <p className="text-xs text-neutral-750 font-medium leading-relaxed mt-1">{detailItem.obat_diberikan || '—'}</p>
+                    <p className="text-xs text-neutral-750 font-medium leading-relaxed mt-1">{detailItem.obat_diberikan || detailItem.ObatDiberikan || 'Tidak Ada Obat Diberikan'}</p>
                   </div>
                 </div>
 
                 <div>
                   <span className="text-[9px] font-bold text-neutral-400 uppercase">Rekomendasi / Saran Medis</span>
                   <p className="text-xs text-neutral-750 font-medium leading-relaxed mt-1 bg-bku-primary/5 p-3 border border-bku-primary/20 rounded-xl">
-                    {detailItem.rekomendasi || '—'}
+                    {detailItem.rekomendasi || detailItem.Rekomendasi || 'Tidak Ada Saran Spesifik'}
                   </p>
                 </div>
               </div>
 
               {/* Officer / Practitioner Info */}
               <div className="border-t pt-4 flex justify-between items-center text-neutral-400 text-[10px] font-medium font-jakarta">
-                <span>Pemeriksa: <strong className="text-neutral-700">{detailItem.tenaga_kes?.nama || 'Petugas Medis'}</strong></span>
-                <span>Tanggal Sesi: <strong className="text-neutral-700">{new Date(detailItem.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</strong></span>
+                <span>Pemeriksa: <strong className="text-neutral-700">{nakes.nama || nakes.Nama || detailItem.diperiksa_oleh || detailItem.DiperiksaOleh || 'Tidak Diketahui'}</strong></span>
+                <span>Tanggal Sesi: <strong className="text-neutral-700">{tanggalStr ? new Date(tanggalStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}</strong></span>
               </div>
-            </div>
-          )}
-
-          <DialogFooter>
-            <button
-              type="button"
-              onClick={() => setIsDetailOpen(false)}
-              className="flex-1 sm:flex-initial h-12 px-6 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-jakarta cursor-pointer"
-            >
-              Tutup Detail
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            </>
+          )
+        })()}
+      </DialogModal>
     </PageContent>
   )
 }

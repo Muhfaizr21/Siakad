@@ -1,14 +1,12 @@
 "use client"
 import React, { useState, useEffect } from 'react';
-import { PageContent, PageHeader } from '@/components/ui/page';
-
-
+import { PageContent } from '@/components/ui/page';
+import { DashboardHero } from '@/components/ui/dashboard';
 
 import { DataTable } from '@/components/ui/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
-import { Card, CardContent } from '@/components/ui/Card'
+import { DialogModal, ModalCancelButton } from '@/components/ui/DialogModal'
 import { PrimaryStatsCard } from '@/components/ui/StatsCard'
 import { Label } from '@/components/ui/Label'
 import { Textarea } from '@/components/ui/Textarea'
@@ -153,12 +151,14 @@ export default function AspirationManagement() {
       <Toaster position="top-right" />
 
       {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <PageHeader 
-        title="Aspirasi Organisasi"
-        subtitle="Tampung gagasan, kritik, dan berikan tanggapan resmi atas aspirasi dari mahasiswa."
+      <DashboardHero
+        title="Aspirasi"
+        highlightedTitle="Organisasi"
+        subtitle="Kelola semua aspirasi, kritik, dan saran dari mahasiswa untuk pengembangan Ormawa yang lebih baik."
         icon="forum"
-       
-        breadcrumbs={[ { label: 'Dashboard', path: '/ormawa' }, { label: 'Aspirasi Organisasi', path: '#' } ]} 
+        badges={[
+          { label: 'Pusat Aspirasi', active: true }
+        ]}
       />
 
       {/* ── Statistics Summary Cards ────────────────────────────────── */}
@@ -201,9 +201,10 @@ export default function AspirationManagement() {
       </div>
 
       {/* ── DataTable Container ──────────────────────────────────────── */}
-      <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface">
-        <CardContent className="p-6">
+      <div className="glass-card mb-8 animate-in slide-in-from-bottom-4 duration-500 fade-in border border-white/20 overflow-hidden">
+        <div className="p-0">
           <DataTable
+            containerClassName="border-0 shadow-none rounded-none"
             columns={columns} 
             data={data} 
             loading={loading}
@@ -230,38 +231,34 @@ export default function AspirationManagement() {
               </Button>
             )}
           />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-2xl p-0 overflow-hidden border border-border shadow-2xl rounded-2xl bg-surface animate-in zoom-in-95 duration-200">
-          {selected && (
-            <div className="flex flex-col">
-              {/* Header */}
-              <DialogHeader className="p-8 pb-6 bg-slate-50/50 border-b border-border relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-                  <span className="material-symbols-outlined size-24 text-slate-850">chat</span>
-                </div>
-                <div className="relative z-10 space-y-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="space-y-0.5">
-                      <p className="text-[10px] font-black text-slate-400 tracking-[0.2em] uppercase font-headline">Aspirasi ID: ASP-{selected.id || selected.ID}</p>
-                      <DialogTitle className="text-xl font-black font-headline tracking-tighter text-slate-900 leading-tight">{selected.Judul}</DialogTitle>
-                    </div>
-                    <Badge className={cn(
-                      'font-bold text-[10px] uppercase tracking-wider px-3.5 py-1 border shrink-0 rounded-full',
-                      selected.Status === 'ditanggapi' 
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
-                        : 'bg-amber-50 text-amber-700 border-amber-200'
-                    )}>
-                      {selected.Status === 'ditanggapi' ? 'Ditanggapi' : 'Menunggu'}
-                    </Badge>
-                  </div>
-                </div>
-              </DialogHeader>
-
-              {/* Dialog Content Grid */}
-              <div className="p-8 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar">
+      <DialogModal
+        open={isDetailOpen}
+        onOpenChange={setIsDetailOpen}
+        title={selected ? selected.Judul : 'Detail Aspirasi'}
+        subtitle={selected ? `ASP-${selected.id || selected.ID} • ${selected.Status === 'ditanggapi' ? 'DITANGGAPI' : 'MENUNGGU'}` : 'Detail'}
+        icon="forum"
+        maxWidth="max-w-2xl"
+        footer={
+          <div className="flex items-center justify-end gap-2">
+            <ModalCancelButton onClick={() => setIsDetailOpen(false)}>TUTUP</ModalCancelButton>
+            {!selected?.Tanggapan && (
+              <Button 
+                onClick={handleTanggapi}
+                disabled={isSubmitting}
+                className="h-11 px-6 sm:px-8 rounded-xl bg-[var(--theme-primary)] text-white hover:opacity-90 shadow-lg active:translate-y-0 transition-all border-none font-black text-[11px] uppercase tracking-[0.1em] flex items-center justify-center cursor-pointer hover:-translate-y-0.5"
+              >
+                {isSubmitting ? 'MENGIRIM...' : 'KIRIM TANGGAPAN RESMI'}
+              </Button>
+            )}
+          </div>
+        }
+      >
+        {selected && (
+          <div className="flex flex-col">
+              <div className="p-6 space-y-6 max-h-[50vh] overflow-y-auto no-scrollbar">
                 {/* Content Box */}
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Konten & Uraian Aspirasi</Label>
@@ -292,36 +289,12 @@ export default function AspirationManagement() {
                       className="min-h-[100px] rounded-xl border border-border bg-slate-50/50 focus:bg-white focus:ring-primary/20 focus:outline-none focus:border-primary shadow-none transition-all font-semibold text-xs leading-relaxed p-4" 
                     />
 
-                    <Button 
-                      disabled={isSubmitting} 
-                      onClick={handleTanggapi} 
-                      className="w-full h-12 rounded-2xl bg-primary text-white hover:bg-primary/95 shadow-xl shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2 border-none"
-                    >
-                      {isSubmitting ? (
-                        <span className="material-symbols-outlined animate-spin size-4" style={{ fontSize: '16px' }}>sync</span>
-                      ) : (
-                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>send</span>
-                      )}
-                      <span className="text-[10px] font-black tracking-widest uppercase">KIRIM TANGGAPAN RESMI</span>
-                    </Button>
                   </div>
                 )}
               </div>
-
-              {/* Footer close button */}
-              <DialogFooter className="p-8 pt-6 border-t border-slate-100 flex justify-end bg-slate-50/30">
-                <Button 
-                  variant="ghost" 
-                  onClick={() => setIsDetailOpen(false)} 
-                  className="text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl active:scale-95 transition-all"
-                >
-                  TUTUP DIALOG
-                </Button>
-              </DialogFooter>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+          </div>
+        )}
+      </DialogModal>
     </PageContent>
   )
 }

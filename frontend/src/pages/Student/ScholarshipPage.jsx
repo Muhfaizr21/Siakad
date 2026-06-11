@@ -1,9 +1,13 @@
 import React, { useState, useRef } from 'react';
-import { PageContent, PageHeader } from '@/components/ui/page';
+import { PageContent, PageHeader, PageCard } from '@/components/ui/page';
+import { CardContent } from '@/components/ui/Card';
+import { DashboardHero } from '@/components/ui/dashboard';
+import { DataTable } from '@/components/ui/DataTable';
 import { useNavigate, NavLink } from 'react-router-dom';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
+import { DialogModal } from '@/components/ui/DialogModal';
+import { PrimaryStatsCard } from '@/components/ui/StatsCard';
 import { 
   useScholarshipKatalogQuery, 
   useScholarshipRiwayatQuery, 
@@ -20,6 +24,10 @@ import { toast } from 'react-hot-toast';
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const ArrowLeft = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>arrow_back</span>;
 const Wallet = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>account_balance_wallet</span>;
+const DescriptionIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>description</span>;
+const ScheduleIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>schedule</span>;
+const EmojiEventsIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>emoji_events</span>;
+const CloseIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>close</span>;
 
 
 
@@ -186,35 +194,65 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
   };
 
   return (
-    <Dialog open={true} onOpenChange={onClose} maxWidth="max-w-4xl">
-      <DialogContent className="max-w-4xl p-0 overflow-hidden border border-border shadow-2xl rounded-2xl bg-surface animate-in zoom-in-95 duration-200">
-        <DialogHeader className="p-8 pb-5 bg-slate-50/50 border-b border-border relative">
-          <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-            <span className="material-symbols-outlined size-24 rotate-12 text-slate-800">workspace_premium</span>
-          </div>
-          <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-1.5">
-              <span className="bg-primary text-white text-[10px] font-black px-2.5 py-0.5 rounded-md uppercase tracking-widest">Langkah {step} dari {totalSteps}</span>
-              <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-slate-200 text-slate-700 border-none rounded-md">PENDAFTARAN BEASISWA</Badge>
-            </div>
-            <DialogTitle className="text-lg md:text-xl font-black font-headline tracking-tighter text-slate-900">
-              Pendaftaran Beasiswa
-            </DialogTitle>
-            <DialogDescription className="text-[11px] font-semibold text-slate-400 mt-0.5 uppercase tracking-wider">
-              {scholarshipNama}
-            </DialogDescription>
-          </div>
-        </DialogHeader>
+    <DialogModal
+      open={true}
+      onOpenChange={(open) => { if (!open) onClose(); }}
+      title="Pendaftaran Beasiswa"
+      subtitle={scholarshipNama}
+      badgeText={`Langkah ${step} dari ${totalSteps}`}
+      icon="workspace_premium"
+      maxWidth="max-w-4xl"
+      bodyClassName="p-0"
+      footer={
+        <>
+          {step > 1 ? (
+            <Button 
+              onClick={() => setStep(s => s - 1)}
+              variant="ghost"
+              className="w-full md:w-auto text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-6 h-11 rounded-xl active:scale-95 transition-all shadow-none border-none cursor-pointer font-headline uppercase"
+            >
+              Sebelumnya
+            </Button>
+          ) : (
+            <div />
+          )}
 
-        {/* Progress Bar */}
-        <div className="h-1.5 bg-slate-100 w-full flex">
-          {Array.from({ length: totalSteps }).map((_, i) => (
-            <div key={i} className={`flex-1 transition-all duration-500 ${step >= (i + 1) ? 'bg-primary' : 'bg-transparent'}`} />
-          ))}
-        </div>
+          {step < totalSteps ? (
+            <Button 
+              disabled={isNextDisabled()}
+              onClick={() => setStep(s => s + 1)}
+              className="w-full md:w-auto h-11 px-8 rounded-xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2 border-none cursor-pointer font-black text-[10px]"
+            >
+              Lanjutkan <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >arrow_forward</span>
+            </Button>
+          ) : (
+            <Button 
+              disabled={!agreed || daftarMutation.isPending}
+              onClick={handleSubmit}
+              className="w-full md:w-auto h-11 px-8 rounded-xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2 border-none cursor-pointer font-black text-[10px]"
+            >
+              {daftarMutation.isPending ? (
+                <span className="material-symbols-outlined animate-spin size-4" style={{ fontSize: '15px' }}>sync</span>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>send</span>
+                  <span className="text-[10px] font-black tracking-widest uppercase">Kirim Pengajuan</span>
+                </>
+              )}
+            </Button>
+          )}
+        </>
+      }
+    >
+      {/* Progress Bar */}
+      <div className="h-1.5 bg-slate-100 w-full flex">
+        {Array.from({ length: totalSteps }).map((_, i) => (
+          <div key={i} className={`flex-1 transition-all duration-500 ${step >= (i + 1) ? 'bg-primary' : 'bg-transparent'}`} />
+        ))}
+      </div>
 
-        {/* Body */}
-        <div className="p-8 pt-5 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar">
+      {/* Body */}
+      <div className="p-8 pt-5 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar">
           {/* STEP 1: DATA PENGAJUAN */}
           {step === 1 && (
             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
@@ -445,47 +483,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
           )}
         </div>
 
-        {/* Footer */}
-        <DialogFooter className="flex flex-col md:flex-row items-center justify-between gap-3 p-8 pt-4 border-t border-slate-100 bg-slate-50/30">
-          {step > 1 ? (
-            <Button 
-              onClick={() => setStep(s => s - 1)}
-              variant="ghost"
-              className="w-full md:w-auto text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-6 h-11 rounded-xl active:scale-95 transition-all shadow-none border-none cursor-pointer font-headline uppercase"
-            >
-              Sebelumnya
-            </Button>
-          ) : (
-            <div />
-          )}
-
-          {step < totalSteps ? (
-            <Button 
-              disabled={isNextDisabled()}
-              onClick={() => setStep(s => s + 1)}
-              className="w-full md:w-auto h-11 px-8 rounded-xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2 border-none cursor-pointer font-black text-[10px]"
-            >
-              Lanjutkan <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >arrow_forward</span>
-            </Button>
-          ) : (
-            <Button 
-              disabled={!agreed || daftarMutation.isPending}
-              onClick={handleSubmit}
-              className="w-full md:w-auto h-11 px-8 rounded-xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2 border-none cursor-pointer font-black text-[10px]"
-            >
-              {daftarMutation.isPending ? (
-                <span className="material-symbols-outlined animate-spin size-4" style={{ fontSize: '15px' }}>sync</span>
-              ) : (
-                <>
-                  <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>send</span>
-                  <span className="text-[10px] font-black tracking-widest uppercase">Kirim Pengajuan</span>
-                </>
-              )}
-            </Button>
-          )}
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    </DialogModal>
   );
 }
 
@@ -520,17 +518,78 @@ export default function ScholarshipPage() {
     return { total, proses, diterima, ditolak };
   }, [riwayatList]);
 
+  const columns = React.useMemo(() => [
+    {
+      key: 'NamaBeasiswa',
+      label: 'Nama Beasiswa',
+      render: (_, row) => (
+        <div className="flex flex-col">
+          <p className="font-black text-[var(--theme-text)]">{row.Beasiswa?.nama || row.Beasiswa?.Nama}</p>
+          <p className="text-[10px] text-[var(--theme-text-muted)] font-bold uppercase tracking-wide">{(row.Beasiswa?.kategori || row.Beasiswa?.Kategori || 'Internal')} Beasiswa</p>
+        </div>
+      )
+    },
+    {
+      key: 'id',
+      label: 'Ref. Number',
+      render: (_, row) => (
+        <code className="text-[10px] font-bold bg-[var(--theme-border-muted)] px-2 py-1 rounded-lg text-[var(--theme-text-muted)]">{row.id || row.ID}</code>
+      )
+    },
+    {
+      key: 'created_at',
+      label: 'Tgl Daftar',
+      className: 'text-center',
+      render: (_, row) => {
+        const createdAt = row.created_at || row.CreatedAt;
+        return <span className="text-sm font-bold text-[var(--theme-text-muted)]">{createdAt ? new Date(createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}</span>;
+      }
+    },
+    {
+      key: 'status',
+      label: 'Tahap Sekarang',
+      className: 'text-center',
+      render: (_, row) => {
+        const badge = STATUS_BADGE[(row.Status || row.status || 'menunggu').toLowerCase()] || STATUS_BADGE.dikirim;
+        return <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${badge.bg} ${badge.color} ${badge.border}`}>{badge.label}</span>;
+      }
+    },
+    {
+      key: 'aksi',
+      label: 'Aksi',
+      className: 'text-center',
+      render: (_, row) => {
+        const itemId = row.id || row.ID;
+        return (
+          <button 
+           onClick={() => {
+             if (itemId) {
+               if (user?.role === 'super_admin') {
+                 navigate(`/admin/student-beasiswa/pengajuan/${itemId}`);
+               } else {
+                 navigate(`/student/scholarship/pengajuan/${itemId}`);
+               }
+             } else {
+               toast.error('ID Pengajuan tidak ditemukan');
+             }
+           }}
+           className="px-4 py-2 rounded-xl bg-surface border border-border text-xs font-black hover:border-[var(--theme-primary)] hover:text-[var(--theme-primary)] transition-all flex items-center justify-center gap-2 mx-auto"
+          >
+            Lihat Progress <span className="material-symbols-outlined" style={{ fontSize: 14 }}>chevron_right</span>
+          </button>
+        );
+      }
+    }
+  ], [navigate, user]);
+
   return (
-    <PageContent className="font-body">
-      <PageHeader 
-        title="Scholarship Hub" 
-        subtitle="Akses Beasiswa Internal & Eksternal BKU" 
-        icon="workspace_premium"
-        breadcrumbs={[
-          { label: 'Student Hub', path: '/student/dashboard' },
-          { label: 'Scholarship', path: '/student/scholarship' }
-        ]}
-        action={
+    <PageContent>
+      <DashboardHero
+        title="Scholarship"
+        highlightedTitle="Hub"
+        subtitle="Akses Beasiswa Internal & Eksternal BKU"
+        badges={[{ label: 'STUDENT HUB > SCHOLARSHIP', color: 'primary' }]}
+        actions={
           <div className="flex p-1 bg-[var(--theme-bg)] rounded-xl shadow-inner border border-border w-fit">
             {[
               { id: 'katalog', label: 'Katalog Aktif', icon: LayoutGrid },
@@ -721,149 +780,95 @@ export default function ScholarshipPage() {
       ) : (
         <div className="space-y-6">
           {/* Stats Bar */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { label: 'Total Diajukan', val: stats.total, color: 'text-[var(--theme-text)]', bg: 'bg-white', icon: 'description' },
-               { label: 'Sedang Proses', val: stats.proses, color: 'text-[var(--theme-primary)]', bg: 'bg-[var(--theme-primary-light)]', icon: 'schedule' },
-              { label: 'Lulus Seleksi', val: stats.diterima, color: 'text-[#16a34a]', bg: 'bg-[#f0fdf4]', icon: 'emoji_events' },
-              { label: 'Ditolak', val: stats.ditolak, color: 'text-[#dc2626]', bg: 'bg-[#fef2f2]', icon: 'close' }
-            ].map(s => (
-              <div key={s.label} className={`${s.bg} p-4 rounded-xl border border-border shadow-sm`}>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className={`p-2 rounded-lg ${s.bg === 'bg-white' ? 'bg-[var(--theme-bg)]' : 'bg-white'} ${s.color} flex items-center justify-center`}>
-                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>{s.icon}</span>
-                  </div>
-                  <span className="text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest">{s.label}</span>
-                </div>
-                <p className={`text-2xl font-black ${s.color}`}>{s.val}</p>
-              </div>
-            ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+            <PrimaryStatsCard
+              title="Total Diajukan"
+              value={stats.total}
+              icon={DescriptionIcon}
+              badgeText="Total"
+              badgeIcon={<span className="material-symbols-outlined text-[12px]">description</span>}
+            />
+            <PrimaryStatsCard
+              title="Sedang Proses"
+              value={stats.proses}
+              colorTheme="primary"
+              icon={ScheduleIcon}
+              badgeText="Proses"
+              badgeIcon={<span className="material-symbols-outlined text-[12px]">schedule</span>}
+            />
+            <PrimaryStatsCard
+              title="Lulus Seleksi"
+              value={stats.diterima}
+              colorTheme="success"
+              icon={EmojiEventsIcon}
+              badgeText="Lulus"
+              badgeIcon={<span className="material-symbols-outlined text-[12px]">emoji_events</span>}
+            />
+            <PrimaryStatsCard
+              title="Ditolak"
+              value={stats.ditolak}
+              colorTheme="error"
+              icon={CloseIcon}
+              badgeText="Ditolak"
+              badgeIcon={<span className="material-symbols-outlined text-[12px]">close</span>}
+            />
           </div>
 
           {/* History Table */}
-          <div className="bg-surface rounded-xl border border-border shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="bg-[var(--theme-bg)] border-b border-[var(--theme-border-muted)]">
-                    <th className="px-4 md:px-6 py-3.5 text-[10px] font-black text-[var(--theme-primary)] uppercase tracking-[0.18em]">Nama Beasiswa</th>
-                    <th className="px-4 md:px-6 py-3.5 text-[10px] font-black text-[var(--theme-primary)] uppercase tracking-[0.18em]">Ref. Number</th>
-                    <th className="px-4 md:px-6 py-3.5 text-[10px] font-black text-[var(--theme-primary)] uppercase tracking-[0.18em] text-center">Tgl Daftar</th>
-                    <th className="px-4 md:px-6 py-3.5 text-[10px] font-black text-[var(--theme-primary)] uppercase tracking-[0.18em] text-center">Tahap Sekarang</th>
-                    <th className="px-4 md:px-6 py-3.5 text-[10px] font-black text-[var(--theme-primary)] uppercase tracking-[0.18em] text-center">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[var(--theme-border-muted)]">
-                  {isRiwayatLoading ? (
-                    <tr><td colSpan="5" className="p-8"><TableSkeleton rows={5} cols={5} /></td></tr>
-                  ) : riwayatList.length > 0 ? (
-                    riwayatList.map((item, idx) => {
-                      const badge = STATUS_BADGE[(item.Status || item.status || 'menunggu').toLowerCase()] || STATUS_BADGE.dikirim;
-                      const itemId = item.id || item.ID;
-                      const createdAt = item.created_at || item.CreatedAt;
-                      return (
-                        <tr key={`riwayat-${itemId || idx}`} className="hover:bg-[var(--theme-primary-light)] transition-colors group">
-                          <td className="px-4 md:px-6 py-3.5">
-                            <div className="flex flex-col">
-                               <p className="font-black text-[var(--theme-text)]">{item.Beasiswa?.nama || item.Beasiswa?.Nama}</p>
-                               <p className="text-[10px] text-[var(--theme-text-muted)] font-bold uppercase tracking-wide">{(item.Beasiswa?.kategori || item.Beasiswa?.Kategori || 'Internal')} Beasiswa</p>
-                            </div>
-                          </td>
-                          <td className="px-4 md:px-6 py-3.5">
-                             <code className="text-[10px] font-bold bg-[var(--theme-border-muted)] px-2 py-1 rounded-lg text-[var(--theme-text-muted)]">{itemId}</code>
-                          </td>
-                          <td className="px-4 md:px-6 py-3.5 text-center">
-                            <span className="text-sm font-bold text-[var(--theme-text-muted)]">
-                              {createdAt ? new Date(createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
-                            </span>
-                          </td>
-                          <td className="px-4 md:px-6 py-3.5 text-center">
-                             <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${badge.bg} ${badge.color} ${badge.border}`}>
-                               {badge.label}
-                             </span>
-                          </td>
-                          <td className="px-4 md:px-6 py-3.5 text-center">
-                              <button 
-                               onClick={() => {
-                                 if (itemId) {
-                                   if (user?.role === 'super_admin') {
-                                     navigate(`/admin/student-beasiswa/pengajuan/${itemId}`);
-                                   } else {
-                                     navigate(`/student/scholarship/pengajuan/${itemId}`);
-                                   }
-                                 } else {
-                                   toast.error('ID Pengajuan tidak ditemukan');
-                                 }
-                               }}
-                               className="px-4 py-2 rounded-xl bg-surface border border-border text-xs font-black hover:border-[var(--theme-primary)] hover:text-[var(--theme-primary)] transition-all flex items-center justify-center gap-2 mx-auto"
-                              >
-                                Lihat Progress <span className="material-symbols-outlined" style={{ fontSize: 14 }}>chevron_right</span>
-                              </button>
-                           </td>
-                        </tr>
-                      );
-                    })
-                  ) : (
-                    <tr>
-                      <td colSpan="5" className="p-12">
-                        <EmptyState 
-                          icon="History" 
-                          iconColor="text-[var(--theme-primary)]"
-                          iconBgClass="bg-[var(--theme-primary-light)]"
-                          iconBorderClass="border-[var(--theme-primary-light)]"
-                          title="Belum Ada Pendaftaran" 
-                          description="Riwayat pengajuan beasiswa kamu akan muncul di sini." 
-                          actionLabel="Buka Katalog"
-                          actionClassName="bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)]"
-                          onAction={() => setActiveTab('katalog')}
-                        />
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <PageCard>
+            <CardContent className="p-0">
+              <DataTable 
+                columns={columns} 
+                data={riwayatList} 
+                loading={isRiwayatLoading}
+                emptyMessage="Belum Ada Pendaftaran Beasiswa"
+                emptyIcon="history"
+                searchPlaceholder="Cari riwayat beasiswa..."
+              />
+            </CardContent>
+          </PageCard>
         </div>
       )}
 
       {/* DETAIL MODAL (Quick View) */}
-      <Dialog open={!!selectedSch} onOpenChange={(open) => !open && setSelectedSch(null)} maxWidth="max-w-2xl">
-        <DialogContent className="max-w-2xl p-0 overflow-hidden border border-border shadow-2xl rounded-2xl bg-surface animate-in zoom-in-95 duration-200">
-          {selectedSch && (() => {
-            const schName = selectedSch.nama || selectedSch.Nama || '';
-            const schOrg = selectedSch.penyelenggara || selectedSch.Penyelenggara || '';
-            const schVal = selectedSch.nilai_bantuan || selectedSch.NilaiBantuan || 5000000;
-            const schQuota = selectedSch.kuota || selectedSch.Kuota || '-';
-            const schIpk = selectedSch.ipk_min || selectedSch.IPKMin || 0;
-            const schDeadline = selectedSch.deadline || selectedSch.Deadline;
-            const schDesc = selectedSch.deskripsi || selectedSch.Deskripsi || '';
-            
-            return (
-              <>
-                <DialogHeader className="p-8 pb-5 bg-slate-50/50 border-b border-border relative">
-                  <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-                    <span className="material-symbols-outlined size-24 rotate-12 text-slate-800">workspace_premium</span>
-                  </div>
-                  <div className="relative z-10">
-                    <div className="flex items-center gap-3 mb-1.5">
-                      <div className="size-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600">
-                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>workspace_premium</span>
-                      </div>
-                      <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-slate-200 text-slate-700 border-none rounded-md">DETAIL BEASISWA</Badge>
-                    </div>
-                    <DialogTitle className="text-lg md:text-xl font-black font-headline tracking-tighter text-slate-900 pr-10">
-                      {schName}
-                    </DialogTitle>
-                    <DialogDescription className="text-[11px] font-semibold text-slate-400 mt-0.5 uppercase tracking-wider">
-                      {schOrg}
-                    </DialogDescription>
-                  </div>
-                </DialogHeader>
-
-                {/* Body */}
-                <div className="p-8 pt-5 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+      <DialogModal
+        open={!!selectedSch}
+        onOpenChange={(open) => !open && setSelectedSch(null)}
+        title={selectedSch?.nama || selectedSch?.Nama || ''}
+        subtitle={selectedSch?.penyelenggara || selectedSch?.Penyelenggara || ''}
+        icon="workspace_premium"
+        badgeText="DETAIL BEASISWA"
+        maxWidth="max-w-2xl"
+        footer={
+          <>
+            <Button 
+              onClick={() => setSelectedSch(null)}
+              variant="ghost"
+              className="w-full md:w-auto text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-11 rounded-xl active:scale-95 transition-all shadow-none border-none cursor-pointer font-headline uppercase"
+            >
+              Tutup
+            </Button>
+            {user?.role !== 'super_admin' && (
+              <Button 
+                onClick={() => setShowApplyModal(true)}
+                className="w-full md:w-auto h-11 px-8 rounded-xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2 border-none cursor-pointer font-black text-[10px]"
+              >
+                Daftar Sekarang
+              </Button>
+            )}
+          </>
+        }
+      >
+        {selectedSch && (() => {
+          const schVal = selectedSch.nilai_bantuan || selectedSch.NilaiBantuan || 5000000;
+          const schQuota = selectedSch.kuota || selectedSch.Kuota || '-';
+          const schIpk = selectedSch.ipk_min || selectedSch.IPKMin || 0;
+          const schDeadline = selectedSch.deadline || selectedSch.Deadline;
+          const schDesc = selectedSch.deskripsi || selectedSch.Deskripsi || '';
+          
+          return (
+            <div className="space-y-5 overflow-y-auto no-scrollbar">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                     <div className="p-3.5 bg-slate-50/50 rounded-xl border border-slate-200">
                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Nilai Bantuan</p>
                       <p className="text-sm font-black text-primary">{formatRupiah(schVal)}</p>
@@ -952,31 +957,10 @@ export default function ScholarshipPage() {
                        </div>
                     </div>
                   </div>
-                </div>
-
-                {/* Footer */}
-                <DialogFooter className="flex flex-col md:flex-row items-center justify-end gap-3 p-8 pt-4 border-t border-slate-100 bg-slate-50/30">
-                   <Button 
-                     onClick={() => setSelectedSch(null)}
-                     variant="ghost"
-                     className="w-full md:w-auto text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-11 rounded-xl active:scale-95 transition-all shadow-none border-none cursor-pointer font-headline uppercase"
-                   >
-                     Tutup
-                   </Button>
-                   {user?.role !== 'super_admin' && (
-                     <Button 
-                       onClick={() => setShowApplyModal(true)}
-                       className="w-full md:w-auto h-11 px-8 rounded-xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2 border-none cursor-pointer font-black text-[10px]"
-                     >
-                       Daftar Sekarang
-                     </Button>
-                   )}
-                </DialogFooter>
-              </>
-            );
-          })()}
-        </DialogContent>
-      </Dialog>
+              </div>
+          );
+        })()}
+      </DialogModal>
 
       {/* APPLICATION WIZARD */}
       <AnimatePresence>

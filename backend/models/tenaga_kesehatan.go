@@ -27,16 +27,16 @@ type JadwalKesehatan struct {
 	TenagaKesID uint            `gorm:"index" json:"tenaga_kes_id"`
 	TenagaKes   TenagaKesehatan `gorm:"foreignKey:TenagaKesID" json:"tenaga_kes,omitempty"`
 
-	Tanggal      time.Time `json:"tanggal"`
-	JamMulai     string    `json:"jam_mulai"`
-	JamSelesai   string    `json:"jam_selesai"`
-	Kuota        int       `json:"kuota"`
-	Lokasi       string    `json:"lokasi"`
-	TipeLayanan  string    `json:"tipe_layanan"` // Pemeriksaan Umum / Konsultasi Gizi / Screening Khusus / Lainnya
-	EventID      *uint     `gorm:"index" json:"event_id,omitempty"`
-	Catatan      string    `json:"catatan"`
-	IsRepeat     bool      `gorm:"default:false" json:"is_repeat"`
-	RepeatDays   string    `json:"repeat_days"` // e.g. "Monday,Wednesday"
+	Tanggal     time.Time `json:"tanggal"`
+	JamMulai    string    `json:"jam_mulai"`
+	JamSelesai  string    `json:"jam_selesai"`
+	Kuota       int       `json:"kuota"`
+	Lokasi      string    `json:"lokasi"`
+	TipeLayanan string    `json:"tipe_layanan"` // Pemeriksaan Umum / Konsultasi Gizi / Screening Khusus / Lainnya
+	EventID     *uint     `gorm:"index" json:"event_id,omitempty"`
+	Catatan     string    `json:"catatan"`
+	IsRepeat    bool      `gorm:"default:false" json:"is_repeat"`
+	RepeatDays  string    `json:"repeat_days"` // e.g. "Monday,Wednesday"
 }
 
 func (JadwalKesehatan) TableName() string {
@@ -45,10 +45,10 @@ func (JadwalKesehatan) TableName() string {
 
 type BookingKesehatan struct {
 	BaseModel
-	JadwalID    uint             `gorm:"index" json:"jadwal_id"`
-	Jadwal      JadwalKesehatan  `gorm:"foreignKey:JadwalID" json:"jadwal,omitempty"`
-	MahasiswaID uint             `gorm:"index" json:"mahasiswa_id"`
-	Mahasiswa   Mahasiswa        `gorm:"foreignKey:MahasiswaID" json:"mahasiswa,omitempty"`
+	JadwalID    uint            `gorm:"index" json:"jadwal_id"`
+	Jadwal      JadwalKesehatan `gorm:"foreignKey:JadwalID" json:"jadwal,omitempty"`
+	MahasiswaID uint            `gorm:"index" json:"mahasiswa_id"`
+	Mahasiswa   Mahasiswa       `gorm:"foreignKey:MahasiswaID" json:"mahasiswa,omitempty"`
 
 	Keluhan         string `json:"keluhan"`
 	Status          string `gorm:"index;default:'Menunggu Konfirmasi'" json:"status"` // Menunggu Konfirmasi / Dikonfirmasi / Ditolak / Selesai

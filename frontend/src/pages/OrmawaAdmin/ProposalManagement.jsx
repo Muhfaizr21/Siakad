@@ -1,6 +1,7 @@
 "use client"
 import React, { useState, useEffect } from 'react';
-import { PageContent, PageHeader } from '@/components/ui/page';
+import { PageContent } from '@/components/ui/page';
+import { DashboardHero } from '@/components/ui/dashboard';
 import { createPortal } from 'react-dom'
 
 
@@ -439,12 +440,12 @@ export default function ProposalManagement() {
       <img src="/images/format_kop_rektorat_landscape.jpg" style={{ display: 'none' }} alt="" />
 
       {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <PageHeader
-        title="Manajemen Proposal"
+      <DashboardHero
+        title="Manajemen"
+        highlightedTitle="Proposal"
         subtitle="Ajukan & Pantau Persetujuan Kegiatan: Ormawa → Fakultas → Universitas"
         icon="description"
-
-        breadcrumbs={[{ label: 'Dashboard', path: '/ormawa' }, { label: 'Manajemen Proposal', path: '#' }]}
+        badges={[{ label: 'Pengajuan Kegiatan', active: true }]}
       />
 
       {/* ── Stats Grid (Glassmorphism stats cards) ──────────────── */}
@@ -498,7 +499,7 @@ export default function ProposalManagement() {
       </div>
 
       {/* ── Content Area ───────────────────────────────────────────── */}
-      <Card className="border border-border shadow-sm overflow-hidden bg-surface rounded-2xl">
+      <Card className="glass-card shadow-sm rounded-xl overflow-hidden animate-in slide-in-from-bottom-4 duration-500 delay-300 mb-6">
         <CardContent className="p-0">
           <DataTable
             columns={columns}
@@ -519,12 +520,12 @@ export default function ProposalManagement() {
               const isLocked = ['disetujui_fakultas', 'disetujui_univ', 'selesai'].includes(statusStr)
               return (
                 <div className="flex items-center justify-end gap-1">
-                  <button onClick={() => handleView(row)} className="p-1.5 text-slate-400 hover:text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)] rounded-lg transition-colors duration-150" title="Detail"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >visibility</span></button>
-                  <button onClick={() => printProposalPDF(row)} className="p-1.5 text-slate-400 hover:text-[var(--theme-success)] hover:bg-[var(--theme-success-light)] rounded-lg transition-colors duration-150" title="Cetak PDF"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >print</span></button>
+                  <Button variant="ghost" size="icon" onClick={() => handleView(row)} title="Detail"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >visibility</span></Button>
+                  <Button variant="ghost" size="icon" onClick={() => printProposalPDF(row)} title="Cetak PDF"><span className="material-symbols-outlined block text-[var(--theme-success)]" style={{ fontSize: '18px' }} >print</span></Button>
                   {!isLocked && (
                     <>
-                      <button onClick={() => handleOpenEdit(row)} className="p-1.5 text-slate-400 hover:text-[var(--theme-warning)] hover:bg-[var(--theme-warning-light)] rounded-lg transition-colors duration-150" title="Edit"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >edit</span></button>
-                      <button onClick={() => { setSelected(row); setIsDelOpen(true) }} className="p-1.5 text-slate-400 hover:text-[var(--theme-error)] hover:bg-[var(--theme-error-light)] rounded-lg transition-colors duration-150" title="Hapus"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >delete</span></button>
+                      <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(row)} title="Edit"><span className="material-symbols-outlined block text-[var(--theme-warning)]" style={{ fontSize: '18px' }} >edit</span></Button>
+                      <Button variant="ghost" size="icon" onClick={() => { setSelected(row); setIsDelOpen(true) }} title="Hapus"><span className="material-symbols-outlined block text-[var(--theme-error)]" style={{ fontSize: '18px' }} >delete</span></Button>
                     </>
                   )}
                 </div>
@@ -541,7 +542,7 @@ export default function ProposalManagement() {
         onClose={() => { setIsDetailOpen(false); setKomentar('') }}
         title={selected ? `PROP-${getProposalId(selected)}: ${selected.Judul}` : 'Detail Proposal'}
         subtitle="Pantau proses persetujuan, anggaran, dan riwayat revisi kegiatan."
-        icon={<span className="material-symbols-outlined">description</span>}
+        icon="description"
         maxWidth="max-w-5xl"
         footer={
           <>
@@ -558,7 +559,7 @@ export default function ProposalManagement() {
         }
       >
         {selected && (
-          <div className="p-6">
+          <div className="w-full">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
               {/* Left Column: Details */}
@@ -819,11 +820,26 @@ export default function ProposalManagement() {
         onClose={() => setIsCrudOpen(false)}
         title={isEditMode ? 'Edit Proposal' : 'Buat Proposal Baru'}
         subtitle="Isi data kegiatan dan anggaran yang dibutuhkan untuk pengajuan."
-        icon={isEditMode ? <span className="material-symbols-outlined">edit</span> : <span className="material-symbols-outlined stroke-[3px]">add</span>}
+        icon={isEditMode ? "edit" : "add"}
         maxWidth="max-w-4xl"
+        footer={
+          <>
+            <Button variant="ghost" type="button" onClick={() => setIsCrudOpen(false)} className="h-10 rounded-xl border border-border text-[var(--theme-text-subtle)] hover:bg-[var(--theme-bg)]">
+              Batalkan
+            </Button>
+            <Button type="submit" form="proposal-form" disabled={isSubmitting} className="h-10 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary)]/90 text-white font-bold gap-2 flex items-center transition-all shadow-sm px-5 border-none">
+              {isSubmitting ? (
+                <span className="material-symbols-outlined animate-spin text-[16px]">sync</span>
+              ) : (
+                <span className="material-symbols-outlined stroke-[3px]" style={{ fontSize: '14px' }}>save</span>
+              )}
+              <span className="uppercase tracking-[0.1em]">{isEditMode ? 'Update Record' : 'Create Record'}</span>
+            </Button>
+          </>
+        }
       >
-        <form onSubmit={handleSave}>
-          <div className="p-6 space-y-4">
+        <form id="proposal-form" onSubmit={handleSave}>
+          <div className="space-y-4">
 
             <div className="space-y-2">
               <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Nama Kegiatan</Label>
@@ -1064,19 +1080,6 @@ export default function ProposalManagement() {
                 </div>
               )}
             </div>
-          </div>
-          <div className="px-6 py-4 border-t border-[var(--theme-border-muted)] flex justify-end gap-3 shrink-0">
-            <Button variant="ghost" type="button" onClick={() => setIsCrudOpen(false)} className="h-10 rounded-xl border border-border text-[var(--theme-text-subtle)] hover:bg-[var(--theme-bg)]">
-              Batalkan
-            </Button>
-            <Button type="submit" disabled={isSubmitting} className="h-10 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary)]/90 text-white font-bold gap-2 flex items-center transition-all shadow-sm px-5">
-              {isSubmitting ? (
-                <span className="material-symbols-outlined animate-spin text-[16px]">sync</span>
-              ) : (
-                <span className="material-symbols-outlined stroke-[3px]" style={{ fontSize: '14px' }}>save</span>
-              )}
-              <span className="uppercase tracking-[0.1em]">{isEditMode ? 'Update Record' : 'Create Record'}</span>
-            </Button>
           </div>
         </form>
       </DialogModal>

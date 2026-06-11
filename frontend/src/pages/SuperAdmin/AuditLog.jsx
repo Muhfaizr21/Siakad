@@ -19,14 +19,14 @@ const Download = ({ size, className, ...props }) => <span className={`material-s
 
 
 const ACTION_STYLES = {
-  LOGIN: 'bg-emerald-50 text-emerald-700 border-emerald-100',
-  LOGOUT: 'bg-neutral-50 text-neutral-500 border-neutral-100',
-  CREATE: 'bg-blue-50 text-blue-700 border-blue-100',
-  UPDATE: 'bg-amber-50 text-amber-700 border-amber-100',
-  DELETE: 'bg-rose-50 text-rose-700 border-rose-100',
-  APPROVE: 'bg-violet-50 text-violet-700 border-violet-100',
-  REJECT: 'bg-rose-50 text-rose-700 border-rose-100',
-  DEFAULT: 'bg-neutral-50 text-neutral-500 border-neutral-100'
+  LOGIN: 'bg-emerald-100 text-emerald-700',
+  LOGOUT: 'bg-neutral-100 text-neutral-500',
+  CREATE: 'bg-blue-100 text-blue-700',
+  UPDATE: 'bg-amber-100 text-amber-700',
+  DELETE: 'bg-rose-100 text-rose-700',
+  APPROVE: 'bg-violet-100 text-violet-700',
+  REJECT: 'bg-rose-100 text-rose-700',
+  DEFAULT: 'bg-neutral-100 text-neutral-500'
 }
 
 const getActionStyle = (action = '') => {
@@ -49,25 +49,25 @@ export default function AuditLog() {
   useEffect(() => { fetchData() }, [])
 
   const columns = [
-    { 
-      key: 'Aktivitas', 
-      label: 'Tindakan', 
+    {
+      key: 'Aktivitas',
+      label: 'Tindakan',
       className: 'w-[180px]',
       render: v => (
-        <Badge className={cn('px-3 py-1 rounded-lg border text-[10px] font-bold uppercase tracking-widest', getActionStyle(v))}>
+        <Badge className={cn('px-3 py-0.5 rounded-lg border-none shadow-none text-[9px] font-black uppercase tracking-widest font-headline', getActionStyle(v))}>
           {(v || '—').replace(/_/g, ' ')}
         </Badge>
       )
     },
-    { 
-      key: 'Deskripsi', 
-      label: 'Detail Aktivitas', 
+    {
+      key: 'Deskripsi',
+      label: 'Detail Aktivitas',
       className: 'min-w-[350px]',
       render: v => <span className="font-medium text-neutral-900 text-[13px] font-inter leading-relaxed">{v || '—'}</span>
     },
-    { 
-      key: 'AdminNama', 
-      label: 'Operator / Alamat IP', 
+    {
+      key: 'AdminNama',
+      label: 'Operator / Alamat IP',
       className: 'w-[250px]',
       render: (v, row) => (
         <div className="flex flex-col">
@@ -79,9 +79,9 @@ export default function AuditLog() {
         </div>
       )
     },
-    { 
-      key: 'CreatedAt', 
-      label: 'Timestamp', 
+    {
+      key: 'CreatedAt',
+      label: 'Timestamp',
       className: 'w-[180px]',
       render: v => (
         <div className="flex flex-col">
@@ -89,7 +89,7 @@ export default function AuditLog() {
             {v ? new Date(v).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
           </span>
           <span className="text-[10px] font-medium text-neutral-400 tabular-nums uppercase">
-             {v ? new Date(v).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '—'} WIB
+            {v ? new Date(v).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '—'} WIB
           </span>
         </div>
       )
@@ -99,9 +99,9 @@ export default function AuditLog() {
   return (
     <PageContent>
       <Toaster position="top-right" />
-      
+
       <div className="max-w-[1600px] mx-auto space-y-10">
-        
+
         {/* ── Page Header ─────────────────────────────────────────── */}
         <DashboardHero
           title="Audit"
@@ -111,24 +111,23 @@ export default function AuditLog() {
           badges={[
             { label: 'Security Forensics', active: true }
           ]}
-          action={
-            <Button 
-              onClick={() => toast.success('Memulai ekspor log forensik...')} 
-              variant="outline"
-              className="h-11 px-5 rounded-xl border-slate-200 text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-50 gap-2 transition-all active:scale-95 font-headline"
+          actions={
+            <Button
+              onClick={() => toast.success('Memulai ekspor log forensik...')}
+              className="h-11 px-6 rounded-xl bg-slate-800 text-white font-black font-headline text-[10px] uppercase tracking-widest gap-2 hover:bg-slate-900 transition-all active:scale-95 shadow-none border-none cursor-pointer"
             >
-              <Download size={14} className="text-bku-primary" />
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }} strokeWidth={3}>download</span>
               Ekspor Forensik
             </Button>
           }
         />
 
         {/* ── Table Section ────────────────────────────────────────── */}
-        <Card className="glass-card shadow-sm rounded-xl overflow-hidden">
+        <Card className="glass-card shadow-sm rounded-xl overflow-hidden animate-in slide-in-from-bottom-4 duration-500 delay-300 mb-6">
           <CardContent className="p-0">
             <DataTable
-              columns={columns} 
-              data={logs} 
+              columns={columns}
+              data={logs}
               loading={loading}
               searchPlaceholder="Cari operator, aktivitas, atau alamat IP..."
               searchWidth="max-w-md"
@@ -136,33 +135,6 @@ export default function AuditLog() {
           </CardContent>
         </Card>
 
-        {/* ── Security Status Banner ────────────────────────────────── */}
-        <div className="bg-gradient-to-br from-bku-primary to-indigo-900 rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl overflow-hidden relative">
-          <div className="absolute top-0 right-0 w-64 h-full bg-white/[0.02] -skew-x-12 translate-x-32 pointer-events-none" />
-          
-          <div className="flex items-center gap-5 relative z-10">
-            <div className="size-12 rounded-xl bg-white/10 flex items-center justify-center text-emerald-400 border border-white/10 shadow-inner">
-              <span className="material-symbols-outlined" style={{ fontSize: '24px' }} >security</span>
-            </div>
-            <div>
-              <p className="text-white font-bold font-headline text-sm leading-tight">Protokol Keamanan Aktif</p>
-              <p className="text-white/60 text-[11px] font-medium uppercase tracking-widest mt-1">Immutable Log Records • Read-Only Integrity Verified</p>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-4 relative z-10">
-             <div className="flex -space-x-2">
-                {[1,2,3].map(i => (
-                   <div key={i} className="size-8 rounded-full border-2 border-indigo-900 bg-bku-primary flex items-center justify-center text-[10px] font-bold text-white/80">
-                      {i}
-                   </div>
-                ))}
-             </div>
-             <div className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
-                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Status: Secured</span>
-             </div>
-          </div>
-        </div>
 
       </div>
     </PageContent>

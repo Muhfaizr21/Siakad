@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { psychologistService } from '../../services/api';
+import { PageContent } from '@/components/ui/page';
 import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
 
 const Mail = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>mail</span>;
@@ -18,7 +19,7 @@ export default function BookingDetail() {
   useEffect(() => {
     let ignore = false;
     psychologistService.getBookingDetail(id).then((res) => {
-      if (!ignore) setBooking({ ...res.data, color: 'bg-primary' });
+      if (!ignore) setBooking({ ...res.data, color: 'bg-[var(--theme-primary)]' });
     });
     return () => { ignore = true; };
   }, [id]);
@@ -48,10 +49,10 @@ export default function BookingDetail() {
 
   if (!booking) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50/30">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-          <p className="text-sm font-semibold text-slate-500 animate-pulse">Memuat Detail Booking...</p>
+      <div className="min-h-screen flex items-center justify-center bg-[var(--theme-surface)]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-[var(--theme-primary)]/20 border-t-[var(--theme-primary)] rounded-full animate-spin shadow-lg shadow-[var(--theme-primary)]/10" />
+          <p className="text-[11px] font-black uppercase tracking-widest text-[var(--theme-text-muted)] animate-pulse">Memuat Detail Booking...</p>
         </div>
       </div>
     );
@@ -65,12 +66,12 @@ export default function BookingDetail() {
   const isLocked = booking.status === 'Dikonfirmasi' || booking.status === 'Selesai';
 
   return (
-    <div className="w-full relative space-y-6 min-h-screen bg-transparent font-inter pb-8">
+    <PageContent>
         
       {/* ── Breadcrumb / Back ────────────────────────────────────────── */}
       <button 
         onClick={() => navigate(-1)}
-        className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl border border-slate-200/60 shadow-sm text-slate-500 hover:text-primary hover:border-primary/30 transition-all group w-fit"
+        className="flex items-center gap-2 px-4 py-2 bg-[var(--theme-surface)] rounded-xl border border-[var(--theme-border)] shadow-sm text-[var(--theme-text-muted)] hover:text-[var(--theme-primary)] hover:border-[var(--theme-primary)]/30 hover:bg-[var(--theme-primary)]/5 transition-all group w-fit"
       >
         <span className="material-symbols-outlined text-[16px] shrink-0 group-hover:-translate-x-1 transition-transform">arrow_back</span>
         <span className="text-[10px] font-black uppercase tracking-widest">Kembali</span>
@@ -82,25 +83,26 @@ export default function BookingDetail() {
         <div className="xl:col-span-2 space-y-6">
           
           {/* Profile Card */}
-          <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden relative">
+          <div className="bg-[var(--theme-surface)] rounded-[2rem] border border-[var(--theme-border)] shadow-sm relative group">
             {/* Header Banner */}
-            <div className="h-28 relative bg-gradient-to-r from-primary to-blue-600 overflow-hidden">
-               <div className="absolute inset-0 bg-white/5" style={{ backgroundImage: `radial-gradient(circle at 20% 50%, white 1px, transparent 1px)`, backgroundSize: '20px 20px' }}></div>
-               <div className="absolute -bottom-16 -right-16 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-               <div className="absolute -top-24 left-10 w-48 h-48 bg-black/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="h-36 relative bg-[var(--theme-primary)] overflow-hidden rounded-t-[2rem]">
+               <div className="absolute inset-0 bg-black/10"></div>
+               <div className="absolute inset-0 bg-white/5" style={{ backgroundImage: `radial-gradient(circle at 20% 50%, white 1px, transparent 1px)`, backgroundSize: '24px 24px' }}></div>
+               <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-white/10 rounded-full blur-3xl pointer-events-none group-hover:bg-white/20 transition-colors duration-700" />
+               <div className="absolute -top-24 left-10 w-64 h-64 bg-black/10 rounded-full blur-3xl pointer-events-none" />
+            </div>
                
-               <div className="absolute -bottom-10 left-6">
-                  <div className={`w-20 h-20 rounded-2xl bg-white text-primary flex items-center justify-center text-3xl font-black border-[3px] border-slate-50 shadow-md`}>
-                    {booking.avatar || booking.name.charAt(0)}
-                  </div>
+            <div className="absolute top-24 left-8 z-20">
+               <div className={`w-24 h-24 rounded-2xl bg-[var(--theme-surface)] text-[var(--theme-primary)] flex items-center justify-center text-4xl font-black border-4 border-[var(--theme-surface)] shadow-xl shadow-black/5 ring-4 ring-black/5`}>
+                 {booking.avatar || booking.name.charAt(0)}
                </div>
             </div>
             
-            <div className="pt-12 pb-6 px-6 relative z-10">
+            <div className="pt-14 pb-8 px-8 relative z-10">
               <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                 <div>
-                  <h2 className="text-2xl font-black text-slate-800 tracking-tight font-headline">{booking.name}</h2>
-                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-1">NIM {booking.nim} • {booking.prodi}</p>
+                  <h2 className="text-3xl font-black text-[var(--theme-text)] tracking-tight font-headline">{booking.name}</h2>
+                  <p className="text-[11px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest mt-1">NIM {booking.nim} &bull; {booking.prodi}</p>
                 </div>
                 <span className={`px-4 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-widest self-start ${
                   booking.status === 'Menunggu' ? 'bg-amber-50 text-amber-600 border-amber-100' :
@@ -118,23 +120,23 @@ export default function BookingDetail() {
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8 pt-6 border-t border-slate-100">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8 pt-6 border-t border-[var(--theme-border)]">
                 {[
                   { label: 'Email', value: booking.email || '-', icon: Mail },
                   { label: 'WhatsApp', value: booking.phone || '-', icon: Phone },
                   { label: 'Akademik', value: `Smt ${booking.semester || '-'}`, icon: 'school' },
                 ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                     <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 shrink-0">
+                  <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50/50 border border-slate-100 hover:bg-[var(--theme-surface)] hover:border-[var(--theme-border)] hover:shadow-sm transition-all group">
+                     <div className="w-12 h-12 rounded-xl bg-[var(--theme-surface)] border border-[var(--theme-border)] flex items-center justify-center text-[var(--theme-text-muted)] shrink-0 shadow-sm group-hover:text-[var(--theme-primary)] group-hover:border-[var(--theme-primary)]/20 transition-all">
                        {typeof item.icon === 'string' ? (
-                         <span className="material-symbols-outlined text-[18px]">{item.icon}</span>
+                         <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
                        ) : (
-                         <item.icon className="text-[18px] shrink-0" />
+                         <item.icon className="text-[20px] shrink-0" />
                        )}
                      </div>
                      <div className="overflow-hidden">
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{item.label}</p>
-                        <p className="text-xs font-bold text-slate-700 truncate mt-0.5">{item.value}</p>
+                        <p className="text-[9px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest">{item.label}</p>
+                        <p className="text-[13px] font-bold text-[var(--theme-text)] truncate mt-0.5">{item.value}</p>
                      </div>
                   </div>
                 ))}
@@ -143,46 +145,46 @@ export default function BookingDetail() {
           </div>
 
           {/* Details Card */}
-          <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-6 space-y-6">
+          <div className="bg-[var(--theme-surface)] rounded-[2rem] border border-[var(--theme-border)] shadow-sm p-8 space-y-8">
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                <div className="space-y-4">
-                  <div className="p-5 rounded-2xl border border-slate-200/60 flex items-center gap-4 bg-slate-50/50 hover:bg-slate-50 transition-colors">
-                      <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-primary shrink-0 shadow-sm">
+                  <div className="p-4 rounded-[1.25rem] border border-[var(--theme-border)] flex items-center gap-4 bg-slate-50/30 hover:bg-[var(--theme-surface)] hover:shadow-sm transition-all group">
+                      <div className="w-12 h-12 rounded-xl bg-[var(--theme-surface)] border border-[var(--theme-border)] flex items-center justify-center text-[var(--theme-primary)] shrink-0 shadow-sm group-hover:scale-105 transition-transform">
                         <span className="material-symbols-outlined text-[24px]">calendar_month</span>
                       </div>
                      <div>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Tanggal Booking</p>
-                        <p className="text-sm font-black text-slate-800 mt-0.5 font-headline">{booking.date}</p>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-[var(--theme-text-muted)]">Tanggal Booking</p>
+                        <p className="text-sm font-black text-[var(--theme-text)] mt-0.5 font-headline">{booking.date}</p>
                      </div>
                   </div>
-                  <div className="p-5 rounded-2xl border border-slate-200/60 flex items-center gap-4 bg-slate-50/50 hover:bg-slate-50 transition-colors">
-                      <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-primary shrink-0 shadow-sm">
+                  <div className="p-4 rounded-[1.25rem] border border-[var(--theme-border)] flex items-center gap-4 bg-slate-50/30 hover:bg-[var(--theme-surface)] hover:shadow-sm transition-all group">
+                      <div className="w-12 h-12 rounded-xl bg-[var(--theme-surface)] border border-[var(--theme-border)] flex items-center justify-center text-[var(--theme-primary)] shrink-0 shadow-sm group-hover:scale-105 transition-transform">
                         <span className="material-symbols-outlined text-[24px]">schedule</span>
                       </div>
                      <div>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Waktu Booking</p>
-                        <p className="text-sm font-black text-slate-800 mt-0.5 font-headline">{booking.time}</p>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-[var(--theme-text-muted)]">Waktu Booking</p>
+                        <p className="text-sm font-black text-[var(--theme-text)] mt-0.5 font-headline">{booking.time}</p>
                      </div>
                   </div>
-                  <div className="p-5 rounded-2xl border border-slate-200/60 flex items-start gap-4 bg-slate-50/50 hover:bg-slate-50 transition-colors">
-                      <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-primary shrink-0 shadow-sm">
+                  <div className="p-4 rounded-[1.25rem] border border-[var(--theme-border)] flex items-start gap-4 bg-slate-50/30 hover:bg-[var(--theme-surface)] hover:shadow-sm transition-all group">
+                      <div className="w-12 h-12 rounded-xl bg-[var(--theme-surface)] border border-[var(--theme-border)] flex items-center justify-center text-[var(--theme-primary)] shrink-0 shadow-sm group-hover:scale-105 transition-transform">
                         <span className="material-symbols-outlined text-[24px]">
                          {booking.mode === 'Online' ? 'videocam' : 'groups'}
                        </span>
                       </div>
                      <div className="flex-1">
-                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Metode & Lokasi</p>
-                        <p className="text-sm font-black text-slate-800 mt-0.5 font-headline">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-[var(--theme-text-muted)]">Metode & Lokasi</p>
+                        <p className="text-sm font-black text-[var(--theme-text)] mt-0.5 font-headline">
                           {booking.mode === 'Online' ? 'Online (Zoom / Meet)' : 'Tatap Muka'}
                         </p>
                         {booking.mode === 'Online' && booking.link_meeting && (
-                          <div className="mt-2 p-3 bg-white border border-slate-200 rounded-xl">
+                          <div className="mt-3 p-3 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl shadow-sm">
                             <a 
                               href={booking.link_meeting.startsWith('http') ? booking.link_meeting : `https://${booking.link_meeting}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-xs text-blue-600 font-bold hover:underline break-all flex items-center gap-2"
+                              className="text-[11px] text-[var(--theme-primary)] font-bold hover:underline break-all flex items-center gap-1.5"
                             >
                               <span className="material-symbols-outlined text-[14px]">link</span>
                               {booking.link_meeting}
@@ -193,22 +195,24 @@ export default function BookingDetail() {
                   </div>
                </div>
 
-               <div className="p-6 rounded-[1.5rem] bg-gradient-to-br from-primary to-[#003db5] text-white relative overflow-hidden flex flex-col justify-center min-h-[200px] shadow-md shadow-primary/10">
-                  <span className="material-symbols-outlined absolute -right-6 -bottom-6 text-[120px] text-white/5 pointer-events-none">psychology</span>
+               <div className="p-5 rounded-[1.25rem] bg-[var(--theme-primary)] text-white relative overflow-hidden flex flex-col justify-center shadow-sm shadow-[var(--theme-primary)]/20">
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-black/20"></div>
+                  <span className="material-symbols-outlined absolute -right-2 -bottom-4 text-[80px] text-white/5 pointer-events-none">psychology</span>
                   <div className="relative z-10">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-blue-200 mb-2">Topik Konseling (Isu)</p>
-                    <p className="text-2xl lg:text-3xl font-black uppercase tracking-tight font-headline leading-tight">{booking.issue}</p>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-white/70 mb-1">Topik Konseling (Isu)</p>
+                    <p className="text-lg lg:text-xl font-black uppercase tracking-tight font-headline leading-tight">{booking.issue}</p>
                   </div>
                </div>
             </div>
 
-            <div className="pt-6 border-t border-slate-100">
-               <h4 className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
-                 <span className="material-symbols-outlined text-[16px]">edit_note</span>
+            <div className="pt-8 border-t border-[var(--theme-border)]">
+               <h4 className="flex items-center gap-2 text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-4">
+                 <span className="material-symbols-outlined text-[18px]">format_quote</span>
                  Catatan Mahasiswa
                </h4>
-               <div className="p-6 rounded-2xl bg-amber-50/50 border border-amber-100/50 text-amber-900">
-                  <p className="text-sm font-medium italic leading-relaxed">"{booking.note || 'Tidak ada catatan tambahan yang diberikan.'}"</p>
+               <div className="p-8 rounded-[1.5rem] bg-amber-50/50 border border-amber-100/50 text-amber-900 relative">
+                  <span className="material-symbols-outlined absolute -top-3 -left-2 text-4xl text-amber-200/50">format_quote</span>
+                  <p className="text-sm font-medium italic leading-relaxed relative z-10">"{booking.note || 'Tidak ada catatan tambahan yang diberikan.'}"</p>
                </div>
             </div>
           </div>
@@ -218,9 +222,9 @@ export default function BookingDetail() {
         <div className="space-y-6">
           
           {/* Actions Card */}
-          <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-6 space-y-6">
-             <h3 className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-4">
-               <span className="material-symbols-outlined text-[16px]">bolt</span>
+          <div className="bg-[var(--theme-surface)] rounded-[2rem] border border-[var(--theme-border)] shadow-sm p-8 space-y-6">
+             <h3 className="flex items-center gap-2 text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-2 border-b border-[var(--theme-border)] pb-4">
+               <span className="material-symbols-outlined text-[18px]">bolt</span>
                Tindakan
              </h3>
              
@@ -228,63 +232,63 @@ export default function BookingDetail() {
                  <button
                    onClick={handleConfirmClick}
                    disabled={isLocked}
-                   className="w-full py-3.5 bg-primary text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-sm hover:bg-primary/90 hover:shadow-md transition-all disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none flex items-center justify-center gap-2"
+                   className="w-full py-4 bg-[var(--theme-primary)] text-white rounded-[1.25rem] text-[11px] font-black uppercase tracking-widest shadow-md shadow-[var(--theme-primary)]/20 hover:bg-[var(--theme-primary)]/90 hover:scale-[1.02] transition-all disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none disabled:hover:scale-100 flex items-center justify-center gap-2"
                  >
-                    <span className="material-symbols-outlined text-[18px]">check_circle</span>
+                    <span className="material-symbols-outlined text-[20px]">check_circle</span>
                     Konfirmasi Sesi
                  </button>
                  <button
                    onClick={() => handleStatus('Ditolak')}
                    disabled={isLocked}
-                   className="w-full py-3.5 bg-rose-50 text-rose-600 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-rose-100 transition-all disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-300 flex items-center justify-center gap-2"
+                   className="w-full py-4 bg-rose-50 text-rose-600 rounded-[1.25rem] text-[11px] font-black uppercase tracking-widest hover:bg-rose-100 hover:scale-[1.02] transition-all disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-300 disabled:hover:scale-100 flex items-center justify-center gap-2"
                  >
-                    <span className="material-symbols-outlined text-[18px]">cancel</span>
+                    <span className="material-symbols-outlined text-[20px]">cancel</span>
                     Tolak Sesi
                  </button>
              </div>
              
              {isLocked && (
-               <div className="rounded-xl p-4 bg-slate-50 border border-slate-100">
-                 <p className="text-[10px] font-bold leading-5 text-slate-500 text-center">
-                   Status booking sudah <span className="uppercase text-slate-800">{booking.status}</span>. Perubahan tidak dapat dilakukan.
+               <div className="rounded-xl p-5 bg-slate-50/50 border border-slate-100">
+                 <p className="text-[10px] font-bold leading-relaxed text-slate-500 text-center">
+                   Status booking sudah <span className="uppercase text-slate-800 tracking-wider font-black">{booking.status}</span>. Perubahan tidak dapat dilakukan.
                  </p>
                </div>
              )}
              
-             <div className="pt-6 border-t border-slate-100">
+             <div className="pt-6 border-t border-[var(--theme-border)]">
                <button
                   onClick={() => navigate(`/psychologist/patients/${booking.mahasiswa_id}/medical-record?bookingId=${booking.id}`)}
-                  className="w-full py-3.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all"
+                  className="w-full py-4 bg-[var(--theme-surface)] border border-[var(--theme-border)] text-[var(--theme-text)] rounded-[1.25rem] text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:border-[var(--theme-primary)]/50 hover:bg-[var(--theme-primary)]/5 hover:text-[var(--theme-primary)] transition-all"
                >
-                   <span className="material-symbols-outlined text-[18px]">description</span> 
+                   <span className="material-symbols-outlined text-[20px]">description</span> 
                    Buka Rekam Medis
                </button>
              </div>
           </div>
 
           {/* History Card */}
-          <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-6">
-             <h3 className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 border-b border-slate-100 pb-4">
-               <span className="material-symbols-outlined text-[16px]">history</span>
+          <div className="bg-[var(--theme-surface)] rounded-[2rem] border border-[var(--theme-border)] shadow-sm p-8">
+             <h3 className="flex items-center gap-2 text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-8 border-b border-[var(--theme-border)] pb-4">
+               <span className="material-symbols-outlined text-[18px]">history</span>
                Riwayat Booking
              </h3>
              
              {history.length > 0 ? (
-               <div className="space-y-6 relative before:absolute before:left-[19px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-100">
+               <div className="space-y-8 relative before:absolute before:left-[23px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-100">
                    {history.map((item, i) => (
-                    <div key={i} className="flex gap-5 relative z-10">
-                       <div className="w-10 h-10 rounded-full bg-white border-2 border-slate-100 flex items-center justify-center shadow-sm shrink-0">
-                           <item.icon className={`text-[16px] shrink-0 ${item.color}`} />
+                    <div key={i} className="flex gap-6 relative z-10 group">
+                       <div className="w-12 h-12 rounded-full bg-[var(--theme-surface)] border-4 border-white shadow-sm flex items-center justify-center shrink-0 ring-1 ring-slate-100 group-hover:scale-110 transition-transform">
+                           <item.icon className={`text-[18px] shrink-0 ${item.color}`} />
                        </div>
-                       <div className="pt-1">
-                          <p className="text-[11px] font-black text-slate-800 uppercase tracking-tight">{item.action}</p>
-                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">{item.time}</p>
+                       <div className="pt-2">
+                          <p className="text-[11px] font-black text-[var(--theme-text)] uppercase tracking-tight">{item.action}</p>
+                          <p className="text-[9px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest mt-1.5">{item.time}</p>
                        </div>
                     </div>
                   ))}
                </div>
              ) : (
-               <p className="text-xs font-medium text-slate-500 text-center py-4">Belum ada riwayat tercatat.</p>
+               <p className="text-[11px] font-bold text-[var(--theme-text-muted)] text-center py-6">Belum ada riwayat tercatat.</p>
              )}
           </div>
         </div>
@@ -309,7 +313,7 @@ export default function BookingDetail() {
               placeholder="https://zoom.us/j/... atau https://meet.google.com/..."
               value={meetingLink}
               onChange={(e) => setMeetingLink(e.target.value)}
-              className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
+              className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-[var(--theme-primary)] focus:bg-white focus:ring-4 focus:ring-primary/10"
             />
           </div>
         </div>
@@ -324,12 +328,12 @@ export default function BookingDetail() {
           <button
             type="button"
             onClick={submitConfirmWithLink}
-            className="flex-1 sm:flex-initial px-8 py-3 bg-primary text-white text-xs font-black uppercase tracking-widest hover:bg-primary/90 transition-all shadow-md shadow-primary/20 rounded-xl"
+            className="flex-1 sm:flex-initial px-8 py-3 bg-[var(--theme-primary)] text-white text-xs font-black uppercase tracking-widest hover:bg-[var(--theme-primary)]/90 transition-all shadow-md shadow-[var(--theme-primary)]/20 rounded-xl"
           >
             Konfirmasi
           </button>
         </DialogFooter>
       </Dialog>
-    </div>
+    </PageContent>
   );
 }

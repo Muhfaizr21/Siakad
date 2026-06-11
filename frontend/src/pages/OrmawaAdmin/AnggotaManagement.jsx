@@ -1,6 +1,7 @@
 "use client"
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { PageContent, PageHeader } from '@/components/ui/page';
+import { PageContent } from '@/components/ui/page';
+import { DashboardHero } from '@/components/ui/dashboard';
 
 
 
@@ -318,21 +319,23 @@ export default function AnggotaManagement() {
       <Toaster position="top-right" containerStyle={{ zIndex: 99999 }} />
 
       {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <PageHeader
-        title="Manajemen Anggota"
+      <DashboardHero
+        title="Manajemen"
+        highlightedTitle="Anggota"
         subtitle="Database keanggotaan dan struktur kepengurusan organisasi mahasiswa."
         icon="groups"
-        breadcrumbs={[{ label: 'Dashboard', path: '/ormawa' }, { label: 'Manajemen Anggota', path: '#' }]}
-        action={canCreate ? (
-          <button onClick={handleOpenAdd} className="h-10 px-5 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-sm flex items-center gap-2 border-none">
-            <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>add</span>
+
+        badges={[{ label: 'Organisasi Kemahasiswaan', active: true }]}
+        actions={canCreate ? (
+          <Button onClick={handleOpenAdd} className="h-11 px-6 rounded-xl bg-slate-800 text-white font-black font-headline text-[10px] uppercase tracking-widest gap-2 hover:bg-slate-900 transition-all active:scale-95 shadow-none border-none cursor-pointer">
+            <span className="material-symbols-outlined" style={{ fontSize: '16px' }} strokeWidth={3}>add</span>
             Tambah Anggota
-          </button>
+          </Button>
         ) : null}
       />
 
       {/* ── Period Filter Bar ────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-[var(--theme-bg)]/50 p-5 rounded-2xl border border-border shadow-sm">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 glass-card shadow-sm rounded-xl border border-border p-5 mb-6">
         <div className="space-y-1">
           <h3 className="text-sm font-black text-[var(--theme-text)] uppercase tracking-tight font-headline">Periode Kepengurusan</h3>
           <p className="text-xs font-semibold text-[var(--theme-text-subtle)]">Tampilkan daftar pengurus berdasarkan tahun periode aktif.</p>
@@ -359,7 +362,7 @@ export default function AnggotaManagement() {
       </div>
 
       {/* ── Content Area ───────────────────────────────────────────── */}
-      <Card className="border border-border shadow-sm overflow-hidden bg-[var(--theme-surface)] rounded-2xl">
+      <Card className="glass-card shadow-sm rounded-xl overflow-hidden animate-in slide-in-from-bottom-4 duration-500 delay-300 mb-6">
         <CardContent className="p-0">
           <DataTable
             columns={columns}
@@ -398,13 +401,13 @@ export default function AnggotaManagement() {
               </div>
             }
             actions={(row) => (
-              <div className="flex items-center justify-end gap-1">
-                <button onClick={() => { setSelected(row); setIsDetailOpen(true) }} className="p-1.5 text-[var(--theme-text-subtle)] hover:text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)] rounded-lg transition-colors duration-150" title="Detail"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >visibility</span></button>
+              <div className="flex items-center justify-end gap-1.5">
+                <Button onClick={() => { setSelected(row); setIsDetailOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)] rounded-lg transition-colors cursor-pointer" title="Detail"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >visibility</span></Button>
                 {canEdit && (
-                  <button onClick={() => handleOpenEdit(row)} className="p-1.5 text-[var(--theme-text-subtle)] hover:text-[var(--theme-warning)] hover:bg-[var(--theme-warning-light)] rounded-lg transition-colors duration-150" title="Edit"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >edit</span></button>
+                  <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-[var(--theme-warning)] hover:bg-[var(--theme-warning-light)] rounded-lg transition-colors cursor-pointer" title="Edit"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >edit</span></Button>
                 )}
                 {canDelete && (
-                  <button onClick={() => { setSelected(row); setIsDelOpen(true) }} className="p-1.5 text-[var(--theme-text-subtle)] hover:text-[var(--theme-error)] hover:bg-[var(--theme-error-light)] rounded-lg transition-colors duration-150" title="Hapus"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >delete</span></button>
+                  <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-[var(--theme-error)] hover:bg-[var(--theme-error-light)] rounded-lg transition-colors cursor-pointer" title="Hapus"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >delete</span></Button>
                 )}
               </div>
             )}
@@ -586,61 +589,61 @@ export default function AnggotaManagement() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between ml-1 h-5">
-                  <Label className="text-[9px] md:text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] font-headline">Jabatan</Label>
-                </div>
-                <SelectField value={form.Role} onValueChange={(val) => setForm({ ...form, Role: val })} className="w-full h-12">
-                  {combinedRoles.map((r) => (
-                    <SelectOption key={r} value={r}>
-                      {r}
-                    </SelectOption>
-                  ))}
-                </SelectField>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between ml-1 h-5">
-                  <Label className="text-[9px] md:text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] font-headline">Divisi</Label>
-                  <button
-                    type="button"
-                    onClick={() => setIsAddingNewDiv(!isAddingNewDiv)}
-                    className="text-[9px] font-black text-[var(--theme-primary)] hover:text-[var(--theme-primary-hover)] tracking-wider uppercase font-headline flex items-center gap-0.5"
-                  >
-                    <span className="material-symbols-outlined text-[12px] block font-black">add</span>
-                    {isAddingNewDiv ? 'Pilih Divisi' : 'Buat Baru'}
-                  </button>
-                </div>
-                {isAddingNewDiv ? (
-                  <div className="flex gap-2">
-                    <Input
-                      value={newDivName}
-                      onChange={e => setNewDivName(e.target.value)}
-                      placeholder="Nama Divisi Baru..."
-                      className="h-12 rounded-2xl border-border bg-[var(--theme-bg)]/50 font-bold text-xs md:text-sm"
-                    />
-                    <Button
-                      type="button"
-                      onClick={handleCreateDivInline}
-                      disabled={isSavingDiv || !newDivName.trim()}
-                      className="h-12 px-4 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white flex items-center justify-center text-xs font-bold shrink-0 border-none shadow-none"
-                    >
-                      {isSavingDiv ? '...' : 'OK'}
-                    </Button>
-                  </div>
-                ) : (
-                  <SelectField value={form.Divisi || 'Umum'} onValueChange={(val) => setForm({ ...form, Divisi: val === 'Umum' ? '' : val })} className="w-full h-12">
-                    <SelectOption value="Umum">
-                      Umum
-                    </SelectOption>
-                    {divisions.map((d) => (
-                      <SelectOption key={d.id || d.ID} value={d.Nama}>
-                        {d.Nama}
-                      </SelectOption>
-                    ))}
-                  </SelectField>
-                )}
-              </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between ml-1 h-5">
+              <Label className="text-[9px] md:text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] font-headline">Jabatan</Label>
             </div>
+            <SelectField value={form.Role} onValueChange={(val) => setForm({ ...form, Role: val })} className="w-full h-12">
+              {combinedRoles.map((r) => (
+                <SelectOption key={r} value={r}>
+                  {r}
+                </SelectOption>
+              ))}
+            </SelectField>
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between ml-1 h-5">
+              <Label className="text-[9px] md:text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] font-headline">Divisi</Label>
+              <button
+                type="button"
+                onClick={() => setIsAddingNewDiv(!isAddingNewDiv)}
+                className="text-[9px] font-black text-[var(--theme-primary)] hover:text-[var(--theme-primary-hover)] tracking-wider uppercase font-headline flex items-center gap-0.5"
+              >
+                <span className="material-symbols-outlined text-[12px] block font-black">add</span>
+                {isAddingNewDiv ? 'Pilih Divisi' : 'Buat Baru'}
+              </button>
+            </div>
+            {isAddingNewDiv ? (
+              <div className="flex gap-2">
+                <Input
+                  value={newDivName}
+                  onChange={e => setNewDivName(e.target.value)}
+                  placeholder="Nama Divisi Baru..."
+                  className="h-12 rounded-2xl border-border bg-[var(--theme-bg)]/50 font-bold text-xs md:text-sm"
+                />
+                <Button
+                  type="button"
+                  onClick={handleCreateDivInline}
+                  disabled={isSavingDiv || !newDivName.trim()}
+                  className="h-12 px-4 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white flex items-center justify-center text-xs font-bold shrink-0 border-none shadow-none"
+                >
+                  {isSavingDiv ? '...' : 'OK'}
+                </Button>
+              </div>
+            ) : (
+              <SelectField value={form.Divisi || 'Umum'} onValueChange={(val) => setForm({ ...form, Divisi: val === 'Umum' ? '' : val })} className="w-full h-12">
+                <SelectOption value="Umum">
+                  Umum
+                </SelectOption>
+                {divisions.map((d) => (
+                  <SelectOption key={d.id || d.ID} value={d.Nama}>
+                    {d.Nama}
+                  </SelectOption>
+                ))}
+              </SelectField>
+            )}
+          </div>
+        </div>
       </DialogModal>
 
       <DeleteConfirmModal isOpen={isDelOpen} onClose={() => setIsDelOpen(false)} onConfirm={handleDelete}

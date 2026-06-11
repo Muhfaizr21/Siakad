@@ -1,13 +1,14 @@
 "use client"
 import React, { useState, useEffect } from 'react';
-import { PageContent, PageHeader } from '@/components/ui/page';
+import { PageContent } from '@/components/ui/page';
+import { DashboardHero } from '@/components/ui/dashboard';
 import { DataTable } from '@/components/ui/DataTable'
 
 
 
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
+import { DialogModal, ModalCancelButton, ModalSaveButton } from '@/components/ui/DialogModal'
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
 import { Card, CardContent } from '@/components/ui/Card'
 import { PrimaryStatsCard } from '@/components/ui/StatsCard'
@@ -379,23 +380,22 @@ export default function LpjManagement() {
     <PageContent className="font-body">
       <Toaster position="top-right" />
 
-            {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <PageHeader 
-        title="Laporan & LPJ"
+      {/* ── Welcome Banner ─────────────────────────────────────────── */}
+      <DashboardHero
+        title="Laporan &"
+        highlightedTitle="LPJ"
         subtitle="Kelola pertanggungjawaban kegiatan, realisasi anggaran, dan evaluasi kepengurusan."
         icon="task"
-        action={
+        badges={[{ label: 'Laporan Pertanggungjawaban', active: true }]}
+        actions={
           <Button
             onClick={handleOpenAdd}
-            className="h-10 px-5 rounded-xl text-white font-bold text-xs tracking-wider shadow-lg transition-all active:scale-95 shrink-0 w-full md:w-auto flex items-center justify-center gap-2"
-            style={{ backgroundColor: 'var(--theme-primary)' }}
+            className="h-11 px-6 rounded-xl bg-slate-900 text-white hover:bg-bku-primary shadow-xl shadow-slate-900/10 gap-3 transition-all active:scale-95 border-none group w-full sm:w-auto flex items-center justify-center font-headline"
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add_task</span>
-            <span>BUAT LPJ BARU</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>add_task</span>
+            <span className="text-xs font-bold uppercase tracking-widest">BUAT LPJ BARU</span>
           </Button>
         }
-       
-        breadcrumbs={[ { label: 'Dashboard', path: '/ormawa' }, { label: 'Laporan & LPJ', path: '#' } ]} 
       />
 
       {/* ── Statistics Summary Cards ────────────────────────────────── */}
@@ -447,8 +447,8 @@ export default function LpjManagement() {
       </div>
 
       {/* ── LPJ DataTable Container ─────────────────────────────────── */}
-      <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-[var(--theme-surface)]/70 backdrop-blur-md">
-        <CardContent className="p-6">
+      <Card className="glass-card shadow-sm rounded-xl overflow-hidden animate-in slide-in-from-bottom-4 duration-500 delay-300 mb-6">
+        <CardContent className="p-0">
           <DataTable
             columns={columns}
             data={data}
@@ -515,28 +515,36 @@ export default function LpjManagement() {
         </CardContent>
       </Card>
 
-      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-xl p-0 border border-border shadow-2xl rounded-2xl bg-surface animate-in zoom-in-95 duration-200 overflow-hidden">
-          {selected && (
-            <div className="flex flex-col">
-              <DialogHeader className="p-8 pb-6 bg-slate-50/50 border-b border-border relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-                  <span className="material-symbols-outlined size-24 text-slate-800">description</span>
+      <DialogModal
+        open={isDetailOpen}
+        onOpenChange={setIsDetailOpen}
+        title={selected?.Judul || 'Detail LPJ'}
+        subtitle={`ID Laporan: LPJ-${selected?.ID}`}
+        icon="description"
+        maxWidth="max-w-xl"
+        footer={
+          <div className="flex items-center justify-end gap-2">
+            <ModalCancelButton onClick={() => setIsDetailOpen(false)}>TUTUP</ModalCancelButton>
+            <Button
+              variant="primary"
+              onClick={() => {
+                setIsDetailOpen(false)
+                handleOpenEdit(selected)
+              }}
+              className="h-11 px-6 sm:px-8 rounded-xl bg-primary text-white hover:bg-primary/95 shadow-lg active:scale-95 transition-all border-none font-black text-[11px] uppercase tracking-[0.1em] flex items-center justify-center cursor-pointer hover:-translate-y-0.5"
+            >
+              EDIT LAPORAN
+            </Button>
+          </div>
+        }
+      >
+        {selected && (
+              <div className="p-6 space-y-6 max-h-[50vh] overflow-y-auto no-scrollbar">
+                <div className="flex justify-end -mt-4 mb-2">
+                  <Badge className={cn('font-bold text-[10px] uppercase tracking-wider px-3.5 py-1 border shrink-0 rounded-full', STATUS_CFG[selected.Status]?.cls || 'bg-slate-50 text-slate-600 border-border')}>
+                    {STATUS_CFG[selected.Status]?.label || selected.Status || 'Draft'}
+                  </Badge>
                 </div>
-                <div className="relative z-10 space-y-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="space-y-0.5">
-                      <p className="text-[10px] font-black text-slate-400 tracking-[0.2em] uppercase font-headline">ID Laporan: LPJ-{selected.ID}</p>
-                      <DialogTitle className="text-xl font-black font-headline tracking-tighter text-slate-900 leading-tight">{selected.Judul}</DialogTitle>
-                    </div>
-                    <Badge className={cn('font-bold text-[10px] uppercase tracking-wider px-3.5 py-1 border shrink-0 rounded-full', STATUS_CFG[selected.Status]?.cls || 'bg-slate-50 text-slate-600 border-border')}>
-                      {STATUS_CFG[selected.Status]?.label || selected.Status || 'Draft'}
-                    </Badge>
-                  </div>
-                </div>
-              </DialogHeader>
-
-              <div className="p-8 space-y-6 max-h-[50vh] overflow-y-auto no-scrollbar">
                 <div className="grid grid-cols-2 gap-6 pb-6 border-b border-slate-100">
                   <div>
                     <p className="text-[9px] font-black text-slate-400 tracking-wider uppercase font-headline">Total Anggaran Proposal</p>
@@ -587,53 +595,44 @@ export default function LpjManagement() {
                 )}
               </div>
 
-              <DialogFooter className="p-8 pt-6 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50/30">
+        )}
+      </DialogModal>
+      <DialogModal
+        open={isCrudOpen}
+        onOpenChange={setIsCrudOpen}
+        title={isEditMode ? 'Edit Laporan LPJ' : 'Buat Laporan LPJ Baru'}
+        subtitle="Lengkapi data laporan dan catat realisasi pengeluaran."
+        icon="assignment_turned_in"
+        maxWidth="max-w-xl"
+        footer={
+          <div className="flex items-center justify-end gap-2">
+            <ModalCancelButton onClick={() => setIsCrudOpen(false)} />
+            {(!isEditMode || form.Status === 'draft' || form.Status === 'revisi') ? (
+              <>
                 <Button
+                  type="button"
                   variant="ghost"
-                  onClick={() => setIsDetailOpen(false)}
-                  className="text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl active:scale-95 transition-all"
+                  disabled={isSubmitting}
+                  onClick={(e) => handleSave(e, 'draft')}
+                  className="h-11 px-6 sm:px-8 rounded-xl text-slate-700 font-black text-[11px] uppercase tracking-[0.1em] transition-all duration-300 flex items-center justify-center cursor-pointer shadow-none hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 border-none"
+                  style={{ backgroundColor: '#f1f5f9', color: '#334155' }}
                 >
-                  TUTUP
+                  SIMPAN DRAFT
                 </Button>
-                <Button
-                  onClick={() => {
-                    setIsDetailOpen(false)
-                    handleOpenEdit(selected)
-                  }}
-                  className="text-[10px] font-black h-12 px-8 rounded-2xl bg-primary text-white hover:bg-primary/95 shadow-lg active:scale-95 transition-all border-none"
-                >
-                  EDIT LAPORAN
-                </Button>
-              </DialogFooter>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
-        <DialogContent className="max-w-xl p-0 border border-border shadow-2xl rounded-2xl bg-surface animate-in zoom-in-95 duration-200 overflow-hidden">
-          <DialogHeader className="p-8 pb-6 bg-slate-50/50 border-b border-border relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-              <span className="material-symbols-outlined size-24 rotate-12 text-[var(--theme-primary)]">description</span>
-            </div>
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="size-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600">
-                  <span className="material-symbols-outlined stroke-[3px]" style={{ fontSize: '16px' }}>assignment_turned_in</span>
-                </div>
-                <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-slate-200 text-slate-700 border-none rounded-md">LPJ REGISTRY</Badge>
-              </div>
-              <DialogTitle className="text-xl font-black font-headline tracking-tighter text-slate-900">
-                {isEditMode ? 'Edit Laporan LPJ' : 'Buat Laporan LPJ Baru'}
-              </DialogTitle>
-              <DialogDescription className="text-xs font-semibold text-slate-400 mt-1">
-                Tautkan proposal, isi judul laporan, dan catat realisasi pengeluaran riil kegiatan.
-              </DialogDescription>
-            </div>
-          </DialogHeader>
-
-          <form onSubmit={handleSave} className="flex flex-col">
-            <div className="p-8 pt-6 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar">
+                <ModalSaveButton loading={isSubmitting} onClick={(e) => handleSave(e, 'diajukan')}>
+                  KIRIM LAPORAN
+                </ModalSaveButton>
+              </>
+            ) : (
+              <ModalSaveButton loading={isSubmitting} onClick={(e) => handleSave(e, form.Status)}>
+                SIMPAN PERUBAHAN
+              </ModalSaveButton>
+            )}
+          </div>
+        }
+      >
+        <form id="lpj-form" onSubmit={handleSave} className="flex flex-col">
+            <div className="p-6 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar">
               {/* Proposal Selection (only editable in creation mode) */}
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Tautkan Proposal Kegiatan</Label>
@@ -727,64 +726,8 @@ export default function LpjManagement() {
                 />
               </div>
             </div>
-
-            {/* Dialog Footer Actions */}
-            <DialogFooter className="p-8 pt-6 border-t border-slate-100 flex flex-col md:flex-row items-center justify-end gap-3 bg-slate-50/30">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setIsCrudOpen(false)}
-                className="w-full md:w-auto text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl active:scale-95 transition-all"
-              >
-                BATAL
-              </Button>
-              {(!isEditMode || form.Status === 'draft' || form.Status === 'revisi') ? (
-                <>
-                  <Button
-                    type="button"
-                    disabled={isSubmitting}
-                    onClick={(e) => handleSave(e, 'draft')}
-                    className="w-full md:w-auto h-12 px-6 rounded-2xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 hover:text-slate-900 active:scale-95 transition-all border-none font-bold text-[10px] tracking-widest"
-                  >
-                    SIMPAN DRAFT
-                  </Button>
-                  <Button
-                    type="button"
-                    disabled={isSubmitting}
-                    onClick={(e) => handleSave(e, 'diajukan')}
-                    className="w-full md:w-auto h-12 px-8 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 border-none"
-                  >
-                    {isSubmitting ? (
-                      <span className="material-symbols-outlined animate-spin size-4" style={{ fontSize: '16px' }}>sync</span>
-                    ) : (
-                      <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>send</span>
-                    )}
-                    <span className="text-[10px] font-black tracking-widest uppercase">
-                      KIRIM LAPORAN
-                    </span>
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  type="button"
-                  disabled={isSubmitting}
-                  onClick={(e) => handleSave(e, form.Status)}
-                  className="w-full md:w-auto h-12 px-8 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 border-none"
-                >
-                  {isSubmitting ? (
-                    <span className="material-symbols-outlined animate-spin size-4" style={{ fontSize: '16px' }}>sync</span>
-                  ) : (
-                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>save</span>
-                  )}
-                  <span className="text-[10px] font-black tracking-widest uppercase">
-                    SIMPAN PERUBAHAN
-                  </span>
-                </Button>
-              )}
-            </DialogFooter>
           </form>
-        </DialogContent>
-      </Dialog>
+      </DialogModal>
 
       {/* Delete Confirmation Modal */}
       <DeleteConfirmModal

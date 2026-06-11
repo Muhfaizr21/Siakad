@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { DataTable } from '@/components/ui/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
+import { DialogModal } from '@/components/ui/DialogModal'
 import { Card, CardContent } from '@/components/ui/Card'
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
@@ -45,21 +45,20 @@ export default function PsychologistMedicalRecords() {
 
   useEffect(() => { fetchData() }, [])
 
-  const fakultasOptions = useMemo(() => {
-    const unique = [...new Set(medicalRecords.map(i => i._fakultas).filter(Boolean))].sort()
-    return unique.map(f => ({ label: f.toUpperCase(), value: f }))
-  }, [medicalRecords])
+  const semesterOptions = Array.from({ length: 8 }, (_, i) => ({
+    label: `SEMESTER ${i + 1}`,
+    value: String(i + 1)
+  }))
 
-  const semesterOptions = useMemo(() => {
-    const unique = [...new Set(medicalRecords.map(i => i._semester).filter(v => v !== '' && v !== undefined && v !== null))].sort((a, b) => Number(a) - Number(b))
-    return unique.map(s => ({ label: `SEMESTER ${s}`, value: String(s) }))
+  const statusOptions = useMemo(() => {
+    const unique = [...new Set(medicalRecords.map(i => i.status_pasien).filter(Boolean))].sort()
+    return unique.map(s => ({ label: s, value: s }))
   }, [medicalRecords])
 
   const medicalRecordColumns = [
     {
       key: 'mahasiswa',
       label: 'Mahasiswa',
-      className: 'w-[250px]',
       render: (v, row) => {
         const mhs = row.mahasiswa || row.Mahasiswa;
         return (
@@ -78,7 +77,6 @@ export default function PsychologistMedicalRecords() {
     {
       key: 'psikolog',
       label: 'Konselor / Psikolog',
-      className: 'w-[180px]',
       render: (v, row) => (
         <div className="flex flex-col py-1 font-jakarta">
           <span className="font-bold text-neutral-800 text-xs">{row.psikolog?.nama || '—'}</span>
@@ -89,7 +87,6 @@ export default function PsychologistMedicalRecords() {
     {
       key: 'tanggal',
       label: 'Pemeriksaan',
-      className: 'w-[150px]',
       render: (v, row) => {
         const formattedDate = v ? new Date(v).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
         return (
@@ -103,7 +100,6 @@ export default function PsychologistMedicalRecords() {
     {
       key: 'mood',
       label: 'Mood',
-      className: 'w-[130px]',
       render: v => (
         <span className="text-xs font-bold text-bku-primary font-jakarta">{v || '—'}</span>
       )
@@ -111,7 +107,6 @@ export default function PsychologistMedicalRecords() {
     {
       key: 'status_pasien',
       label: 'Status Pasien',
-      className: 'w-[150px]',
       render: v => (
         <Badge className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 font-jakarta shadow-none">
           {v || '—'}
@@ -147,17 +142,16 @@ export default function PsychologistMedicalRecords() {
       />
 
         {/* ── Table Section ────────────────────────────────────────── */}
-        <Card className="border-neutral-200 shadow-sm rounded-xl bg-white overflow-hidden">
-          <CardContent className="p-0 animate-in fade-in duration-300">
+        <div className="bg-[var(--theme-surface)] rounded-2xl border border-[var(--theme-border)] shadow-sm overflow-hidden mb-6">
+          <div className="p-0 animate-in fade-in duration-300">
             <DataTable
               columns={medicalRecordColumns}
               data={medicalRecords}
               loading={loading}
               searchPlaceholder="Cari Nama Mahasiswa, Keluhan, atau Observasi..."
               filters={[
-                { key: '_fakultas', placeholder: 'Pilih Fakultas', options: fakultasOptions },
-                { key: '_semester', placeholder: 'Pilih Semester', options: semesterOptions },
-                { key: 'status_pasien', placeholder: 'Pilih Status Pasien', options: [{ label: 'Selesai', value: 'selesai' }, { label: 'Dirujuk', value: 'dirujuk' }, { label: 'Konsultasi Lanjutan', value: 'konsultasi lanjutan' }] }
+                { key: '_semester', placeholder: 'Semester', options: semesterOptions },
+                { key: 'status_pasien', placeholder: 'Status Pasien', options: statusOptions }
               ]}
               actions={(row) => (
                 <div className="flex items-center gap-1.5">
@@ -165,124 +159,114 @@ export default function PsychologistMedicalRecords() {
                 </div>
               )}
             />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
       {/* ── Detail Modal ─────────────────────────────────────────── */}
-      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen} maxWidth="max-w-2xl">
-        <DialogContent>
-          <DialogHeader className="relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-5 text-bku-primary"><span className="material-symbols-outlined" style={{ fontSize: '100px' }} >psychology</span></div>
-            <div className="relative z-10 space-y-1">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
-                  <span className="material-symbols-outlined text-[12px]" >visibility</span>
-                </div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-bku-primary font-jakarta">Detail Catatan Sesi</span>
-              </div>
-              <DialogTitle className="text-xl sm:text-2xl font-black font-jakarta tracking-tight text-slate-800 uppercase">
-                Rekam Medis Mahasiswa
-              </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm font-medium text-slate-500">Informasi lengkap riwayat konseling klinis.</DialogDescription>
-            </div>
-          </DialogHeader>
-
-          <div className="p-6 md:p-8 space-y-6 max-h-[50vh] overflow-y-auto no-scrollbar font-jakarta">
-            {detailItem && (
-              <>
-                {/* Mahasiswa Info Section */}
-                <div className="bg-neutral-50 p-4 rounded-xl border border-neutral-100 space-y-3">
-                  <h4 className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Identitas Mahasiswa</h4>
-                  {(() => {
-                    const mhs = detailItem.mahasiswa || detailItem.Mahasiswa;
-                    return (
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <span className="text-[10px] text-neutral-400 font-bold block">Nama Lengkap</span>
-                          <span className="text-sm font-bold text-neutral-800">{mhs?.Nama || mhs?.nama || '—'}</span>
-                        </div>
-                        <div>
-                          <span className="text-[10px] text-neutral-400 font-bold block">NIM (Nomor Induk Mahasiswa)</span>
-                          <span className="text-sm font-bold text-neutral-800">{mhs?.NIM || mhs?.nim || '—'}</span>
-                        </div>
-                        <div>
-                          <span className="text-[10px] text-neutral-400 font-bold block">Program Studi</span>
-                          <span className="text-xs font-semibold text-neutral-700">{mhs?.program_studi?.nama || mhs?.ProgramStudi?.Nama || mhs?.program_studi?.Nama || '—'}</span>
-                        </div>
-                        <div>
-                          <span className="text-[10px] text-neutral-400 font-bold block">Fakultas</span>
-                          <span className="text-xs font-semibold text-neutral-700">{mhs?.fakultas?.Nama || mhs?.Fakultas?.Nama || mhs?.fakultas?.nama || mhs?.Fakultas?.nama || '—'}</span>
-                        </div>
+      <DialogModal
+        open={isDetailOpen}
+        onOpenChange={setIsDetailOpen}
+        title="Rekam Medis Mahasiswa"
+        description="Informasi lengkap riwayat konseling klinis."
+        icon="psychology"
+        iconBg="bg-bku-primary/10 text-bku-primary"
+        maxWidth="max-w-xl"
+      >
+        <div className="space-y-6 max-h-[60vh] overflow-y-auto no-scrollbar font-jakarta">
+          {detailItem && (
+            <>
+              {/* Mahasiswa Info Section */}
+              <div className="bg-neutral-50 p-4 rounded-xl border border-neutral-100 space-y-3">
+                <h4 className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Identitas Mahasiswa</h4>
+                {(() => {
+                  const mhs = detailItem.mahasiswa || detailItem.Mahasiswa;
+                  return (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <span className="text-[10px] text-neutral-400 font-bold block">Nama Lengkap</span>
+                        <span className="text-sm font-bold text-neutral-800">{mhs?.Nama || mhs?.nama || '—'}</span>
                       </div>
-                    );
-                  })()}
-                </div>
+                      <div>
+                        <span className="text-[10px] text-neutral-400 font-bold block">NIM (Nomor Induk Mahasiswa)</span>
+                        <span className="text-sm font-bold text-neutral-800">{mhs?.NIM || mhs?.nim || '—'}</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-neutral-400 font-bold block">Program Studi</span>
+                        <span className="text-xs font-semibold text-neutral-700">{mhs?.program_studi?.nama || mhs?.ProgramStudi?.Nama || mhs?.program_studi?.Nama || '—'}</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-neutral-400 font-bold block">Fakultas</span>
+                        <span className="text-xs font-semibold text-neutral-700">{mhs?.fakultas?.Nama || mhs?.Fakultas?.Nama || mhs?.fakultas?.nama || mhs?.Fakultas?.nama || '—'}</span>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
 
-                {/* Psychologist Info Section */}
-                <div className="bg-neutral-50 p-4 rounded-xl border border-neutral-100 space-y-3">
-                  <h4 className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Tenaga Profesional</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <span className="text-[10px] text-neutral-400 font-bold block">Nama Psikolog</span>
-                      <span className="text-sm font-bold text-neutral-800">{detailItem.psikolog?.nama || '—'}</span>
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-neutral-400 font-bold block">Spesialisasi</span>
-                      <span className="text-xs font-bold text-bku-primary uppercase tracking-wide">{detailItem.psikolog?.spesialisasi || '—'}</span>
-                    </div>
+              {/* Psychologist Info Section */}
+              <div className="bg-neutral-50 p-4 rounded-xl border border-neutral-100 space-y-3">
+                <h4 className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Tenaga Profesional</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <span className="text-[10px] text-neutral-400 font-bold block">Nama Psikolog</span>
+                    <span className="text-sm font-bold text-neutral-800">{detailItem.psikolog?.nama || '—'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-neutral-400 font-bold block">Spesialisasi</span>
+                    <span className="text-xs font-bold text-bku-primary uppercase tracking-wide">{detailItem.psikolog?.spesialisasi || '—'}</span>
                   </div>
                 </div>
+              </div>
 
-                <div className="space-y-4">
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <span className="text-[10px] text-neutral-400 font-bold block">Tanggal Sesi</span>
-                      <span className="text-xs font-bold text-neutral-800">
-                        {detailItem.tanggal ? new Date(detailItem.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-neutral-400 font-bold block">Mood Mahasiswa</span>
-                      <span className="text-xs font-bold text-bku-primary">{detailItem.mood || '—'}</span>
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-neutral-400 font-bold block">Status Pasien</span>
-                      <Badge className="px-2 py-0.5 mt-1 rounded text-[9px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700">
-                        {detailItem.status_pasien || '—'}
-                      </Badge>
-                    </div>
+              <div className="space-y-4">
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <span className="text-[10px] text-neutral-400 font-bold block">Tanggal Sesi</span>
+                    <span className="text-xs font-bold text-neutral-800">
+                      {detailItem.tanggal ? new Date(detailItem.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}
+                    </span>
                   </div>
-
-                  <div className="space-y-2">
-                    <span className="text-[10px] text-neutral-400 font-bold block">Keluhan Konseling</span>
-                    <p className="text-xs font-medium text-neutral-700 bg-neutral-50/50 p-3 rounded-lg border border-neutral-100 whitespace-pre-wrap leading-relaxed">{detailItem.keluhan || '—'}</p>
+                  <div>
+                    <span className="text-[10px] text-neutral-400 font-bold block">Mood Mahasiswa</span>
+                    <span className="text-xs font-bold text-bku-primary">{detailItem.mood || '—'}</span>
                   </div>
-
-                  <div className="space-y-2">
-                    <span className="text-[10px] text-neutral-400 font-bold block">Hasil Observasi Psikolog</span>
-                    <p className="text-xs font-medium text-neutral-700 bg-neutral-50/50 p-3 rounded-lg border border-neutral-100 whitespace-pre-wrap leading-relaxed">{detailItem.observasi || '—'}</p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <span className="text-[10px] text-neutral-400 font-bold block">Rekomendasi Tindak Lanjut</span>
-                    <p className="text-xs font-medium text-bku-primary bg-bku-primary/5 p-3 rounded-lg border border-bku-primary/20 whitespace-pre-wrap leading-relaxed">{detailItem.rekomendasi || '—'}</p>
+                  <div>
+                    <span className="text-[10px] text-neutral-400 font-bold block">Status Pasien</span>
+                    <Badge className="px-2 py-0.5 mt-1 rounded text-[9px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700">
+                      {detailItem.status_pasien || '—'}
+                    </Badge>
                   </div>
                 </div>
-              </>
-            )}
-          </div>
 
-          <DialogFooter>
-            <button
-              type="button"
-              onClick={() => setIsDetailOpen(false)}
-              className="flex-1 sm:flex-initial h-12 px-6 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-jakarta cursor-pointer"
-            >
-              Tutup Detail
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+                <div className="space-y-2">
+                  <span className="text-[10px] text-neutral-400 font-bold block">Keluhan Konseling</span>
+                  <p className="text-xs font-medium text-neutral-700 bg-neutral-50/50 p-3 rounded-lg border border-neutral-100 whitespace-pre-wrap leading-relaxed">{detailItem.keluhan || '—'}</p>
+                </div>
+
+                <div className="space-y-2">
+                  <span className="text-[10px] text-neutral-400 font-bold block">Hasil Observasi Psikolog</span>
+                  <p className="text-xs font-medium text-neutral-700 bg-neutral-50/50 p-3 rounded-lg border border-neutral-100 whitespace-pre-wrap leading-relaxed">{detailItem.observasi || '—'}</p>
+                </div>
+
+                <div className="space-y-2">
+                  <span className="text-[10px] text-neutral-400 font-bold block">Rekomendasi Tindak Lanjut</span>
+                  <p className="text-xs font-medium text-bku-primary bg-bku-primary/5 p-3 rounded-lg border border-bku-primary/20 whitespace-pre-wrap leading-relaxed">{detailItem.rekomendasi || '—'}</p>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+        
+        <div className="flex justify-end pt-4 mt-6 border-t" style={{ borderColor: 'var(--theme-border-muted)' }}>
+          <button
+            type="button"
+            onClick={() => setIsDetailOpen(false)}
+            className="h-10 px-6 bg-[var(--theme-surface-hover)] hover:bg-[var(--theme-surface-active)] text-[var(--theme-text)] text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200"
+          >
+            Tutup
+          </button>
+        </div>
+      </DialogModal>
     </PageContent>
   )
 }

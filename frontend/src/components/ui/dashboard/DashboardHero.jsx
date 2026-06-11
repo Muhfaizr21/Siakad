@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '../../../lib/utils';
+import { Link } from 'react-router-dom';
 
 export function DashboardHero({ 
   title, 
@@ -7,6 +8,7 @@ export function DashboardHero({
   subtitle, 
   icon = 'admin_panel_settings',
   badges = [], // Array of { label, active: boolean, color: 'emerald' | 'primary' }
+  breadcrumbs = [], // Array of { label, path }
   actions, // ReactNode for buttons
   className 
 }) {
@@ -60,6 +62,26 @@ export function DashboardHero({
                       {badge.active && <span className="w-1.5 h-1.5 rounded-full bg-[var(--theme-success)] animate-pulse" />}
                       {badge.label}
                     </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Breadcrumbs */}
+              {breadcrumbs && breadcrumbs.length > 0 && (
+                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted font-headline mb-1.5">
+                  {breadcrumbs.map((crumb, idx) => (
+                    <React.Fragment key={idx}>
+                      {crumb.path ? (
+                        <Link to={crumb.path} className="hover:text-primary transition-colors">
+                          {crumb.label}
+                        </Link>
+                      ) : (
+                        <span className="text-primary">{crumb.label}</span>
+                      )}
+                      {idx < breadcrumbs.length - 1 && (
+                        <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>chevron_right</span>
+                      )}
+                    </React.Fragment>
                   ))}
                 </div>
               )}

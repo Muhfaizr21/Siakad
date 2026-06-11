@@ -221,7 +221,7 @@ class _CreateReferralScreenState extends State<CreateReferralScreen> {
         }
 
         return DropdownButtonFormField<int>(
-          initialValue: _selectedStudentId,
+          value: _selectedStudentId,
           icon: const Icon(
             Icons.keyboard_arrow_down_rounded,
             color: AppColors.primary,

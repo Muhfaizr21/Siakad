@@ -21,15 +21,15 @@ import (
 
 var rbacPermissionCatalog = []fiber.Map{
 	{"module": "Core Security", "items": []string{
-		"admin.dashboard.view", 
-		"admin.audit.view", 
-		"admin.profile.view", "admin.profile.update", 
-		"rbac.users.view", "rbac.users.create", "rbac.users.update", "rbac.users.delete", 
+		"admin.dashboard.view",
+		"admin.audit.view",
+		"admin.profile.view", "admin.profile.update",
+		"rbac.users.view", "rbac.users.create", "rbac.users.update", "rbac.users.delete",
 		"rbac.roles.view", "rbac.roles.create", "rbac.roles.update", "rbac.roles.delete",
 	}},
 	{"module": "Master Data Akademik", "items": []string{
-		"faculty.view", "faculty.create", "faculty.update", "faculty.delete", 
-		"program_studi.view", "program_studi.create", "program_studi.update", "program_studi.delete", 
+		"faculty.view", "faculty.create", "faculty.update", "faculty.delete",
+		"program_studi.view", "program_studi.create", "program_studi.update", "program_studi.delete",
 		"students.view", "students.create", "students.update", "students.delete",
 	}},
 	{"module": "Ormawa", "items": []string{
@@ -44,7 +44,7 @@ var rbacPermissionCatalog = []fiber.Map{
 		"ormawa.recruitment.view", "ormawa.recruitment.create", "ormawa.recruitment.update", "ormawa.recruitment.delete",
 	}},
 	{"module": "Layanan Mahasiswa", "items": []string{
-		"student.dashboard.view", 
+		"student.dashboard.view",
 		"student.profile.view", "student.profile.update",
 		"achievement.view", "achievement.create", "achievement.update", "achievement.delete",
 		"scholarship.view", "scholarship.create", "scholarship.update", "scholarship.delete",
@@ -327,7 +327,7 @@ func UpdateUserRole(c *fiber.Ctx) error {
 	// ==========================================
 	// ROLE HIERARCHY VALIDATION
 	// ==========================================
-	
+
 	// 5. Super Admin validations
 	if assignerRole == "super_admin" {
 		// Super Admin CANNOT assign org-level roles directly
@@ -338,7 +338,7 @@ func UpdateUserRole(c *fiber.Ctx) error {
 				"message": "Super Admin tidak boleh assign 'pengurus_ormawa' langsung. Role ini harus di-assign oleh admin_ormawa.",
 			})
 		}
-		
+
 		// Super Admin CANNOT assign admin_prodi directly
 		// admin_prodi harus di-assign via admin_fakultas
 		if req.Role == "admin_prodi" && req.FakultasID == 0 {
@@ -416,7 +416,7 @@ func UpdateUserRole(c *fiber.Ctx) error {
 
 	// 9. Check role conflict
 	newRoles := strings.Split(req.Role, ",")
-	
+
 	if hasRoleConflict(newRoles) {
 		return c.Status(400).JSON(fiber.Map{
 			"status":  "error",
@@ -492,7 +492,7 @@ func UpdateUserRole(c *fiber.Ctx) error {
 			err := tx.Where("pengguna_id = ?", targetUser.ID).First(&mhs).Error
 			if err == gorm.ErrRecordNotFound {
 				nim := strings.Split(targetUser.Email, "@")[0]
-				
+
 				isOrmawaOnly := (strings.Contains(roleLower, ",ormawa,") || strings.Contains(roleLower, ",ormawa_admin,") || strings.Contains(roleLower, ",pengurus_ormawa,")) &&
 					!strings.Contains(roleLower, ",mahasiswa,")
 				noFakultas := req.FakultasID == 0
@@ -535,7 +535,7 @@ func UpdateUserRole(c *fiber.Ctx) error {
 				return err
 			}
 
-		// Link to Ormawa
+			// Link to Ormawa
 			if req.OrmawaID != 0 && (strings.Contains(roleLower, ",ormawa_admin,") || strings.Contains(roleLower, ",ormawa,") || strings.Contains(roleLower, ",pengurus_ormawa,")) {
 				var exists bool
 				tx.Raw("SELECT EXISTS(SELECT 1 FROM ormawa.ormawa_anggota WHERE mahasiswa_id = ? AND ormawa_id = ?)", mhs.ID, req.OrmawaID).Scan(&exists)
@@ -591,10 +591,10 @@ func UpdateUserRole(c *fiber.Ctx) error {
 
 		// Log audit trail
 		audit := models.LogAktivitas{
-			UserID:     assignerID,
-			Aktivitas:  "ROLE_ASSIGNMENT",
-			Deskripsi:  fmt.Sprintf("Assign role %s to user %s (%d)", req.Role, targetUser.Email, req.UserID),
-			IPAddress:  c.IP(),
+			UserID:    assignerID,
+			Aktivitas: "ROLE_ASSIGNMENT",
+			Deskripsi: fmt.Sprintf("Assign role %s to user %s (%d)", req.Role, targetUser.Email, req.UserID),
+			IPAddress: c.IP(),
 		}
 		// Gunakan config.DB agar error tidak merusak scope tx utama jika tidak fatal
 		if err := config.DB.Create(&audit).Error; err != nil {
@@ -1063,10 +1063,10 @@ func GetDashboardStats(c *fiber.Ctx) error {
 			"resolved_today":       resolvedToday,
 			"antrean_proposal":     antreanProposal,
 			"total_anggota_ormawa": totalAnggotaOrmawa,
-			"total_berita":        totalBerita,
-			"berita_draft":        beritaDraft,
-			"berita_published":    beritaPublished,
-			"tahun_masuk_list":    tahunMasukList,
+			"total_berita":         totalBerita,
+			"berita_draft":         beritaDraft,
+			"berita_published":     beritaPublished,
+			"tahun_masuk_list":     tahunMasukList,
 			"periods":              periods,
 			"detail_mahasiswa":     detailMhs,
 			"detail_aspirasi":      detailAsp,
@@ -2598,7 +2598,6 @@ func UpdateScholarshipApplicationStatus(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
 	}
 
-
 	// Trigger Notification to student
 	_ = notifikasi.Kirim(config.DB, notifikasi.KirimParams{
 		MahasiswaID: application.MahasiswaID,
@@ -3194,9 +3193,9 @@ func UpdateOrmawaGamifikasiRule(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{
-		"status": "success",
+		"status":  "success",
 		"message": "Aturan gamifikasi berhasil diperbarui",
-		"data":   rule,
+		"data":    rule,
 	})
 }
 
@@ -3239,7 +3238,7 @@ func CreateOrmawaGamifikasiRule(c *fiber.Ctx) error {
 // DeleteOrmawaGamifikasiRule deletes a point rule
 func DeleteOrmawaGamifikasiRule(c *fiber.Ctx) error {
 	id := c.Params("id")
-	
+
 	if err := config.DB.Delete(&models.OrmawaGamifikasiRule{}, id).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
 	}
@@ -3258,18 +3257,18 @@ func GetGlobalLPJs(c *fiber.Ctx) error {
 	}
 
 	type LPJListItem struct {
-		ID                uint      `json:"id"`
-		ProposalID        uint      `json:"proposalId"`
-		OrmawaName        string    `json:"ormawaName"`
-		OrmawaSingkatan   string    `json:"ormawaSingkatan"`
-		Title             string    `json:"title"`
-		Date              string    `json:"date"`
-		Status            string    `json:"status"`
-		Catatan           string    `json:"catatan"`
-		RealisasiAnggaran float64   `json:"realisasiAnggaran"`
-		TotalAnggaran     float64   `json:"totalAnggaran"`
-		FileURL           string    `json:"fileUrl"`
-		CreatedAt         string    `json:"createdAt"`
+		ID                uint    `json:"id"`
+		ProposalID        uint    `json:"proposalId"`
+		OrmawaName        string  `json:"ormawaName"`
+		OrmawaSingkatan   string  `json:"ormawaSingkatan"`
+		Title             string  `json:"title"`
+		Date              string  `json:"date"`
+		Status            string  `json:"status"`
+		Catatan           string  `json:"catatan"`
+		RealisasiAnggaran float64 `json:"realisasiAnggaran"`
+		TotalAnggaran     float64 `json:"totalAnggaran"`
+		FileURL           string  `json:"fileUrl"`
+		CreatedAt         string  `json:"createdAt"`
 	}
 
 	var result []LPJListItem
@@ -3561,5 +3560,3 @@ func DeleteLecturer(c *fiber.Ctx) error {
 	tx.Commit()
 	return c.JSON(fiber.Map{"status": "success", "message": "Data dosen dihapus"})
 }
-
-

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { UI } from '../../constants/designSystem';
 import { psychologistService } from '../../services/api';
+import { DashboardHero } from '@/components/ui/dashboard';
 import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
@@ -61,48 +62,7 @@ export default function AssessmentManagement() {
     <>
       <div className="w-full relative space-y-6 scroll-smooth">
 
-        {/* ── Welcome Banner ─────────────────────────────────────────── */}
-        <section className="relative overflow-hidden rounded-2xl p-6 md:p-8 flex flex-col xl:flex-row xl:items-center gap-6 group shadow-sm border border-slate-200/60 bg-white">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-50/80 via-white to-slate-50/80" />
-          <div className="absolute inset-0 opacity-[0.02]"
-            style={{
-              backgroundImage: `radial-gradient(circle at 20% 50%, black 1px, transparent 1px), radial-gradient(circle at 80% 20%, black 1px, transparent 1px)`,
-              backgroundSize: '40px 40px'
-            }}
-          />
-          <div className="absolute -top-20 -right-20 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
-          <div className="absolute -bottom-10 left-20 w-48 h-48 bg-emerald-400/5 rounded-full blur-2xl" />
-
-          <div className="relative z-10 flex-1 flex flex-col justify-center gap-3">
-            <div className="flex items-center gap-4">
-               <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/[0.02] border border-primary/10 flex items-center justify-center text-primary shrink-0 shadow-sm relative overflow-hidden">
-                  <span className="material-symbols-outlined text-primary relative z-10" style={{ fontSize: '26px' }}>auto_awesome</span>
-               </div>
-               <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-primary/5 text-primary border border-primary/10">
-                      Modul Asesmen
-                    </span>
-                  </div>
-                  <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight font-headline leading-none">
-                    Manajemen Asesmen
-                  </h1>
-                  <p className="mt-2 text-xs md:text-sm font-medium text-slate-500 leading-relaxed max-w-xl">
-                    Konfigurasi dan pantau kuisioner psikologis, uji kepribadian, serta analisis minat bakat mahasiswa secara komprehensif.
-                  </p>
-               </div>
-            </div>
-          </div>
-          
-          <div className="relative z-10 shrink-0 mt-2 xl:mt-0">
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="bg-primary hover:bg-primary/90 text-white px-5 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20 transition-all flex items-center gap-2 hover:shadow-primary/30 active:scale-95 border border-primary/20"
-            >
-              <span className="material-symbols-outlined text-[18px] shrink-0">add</span> Buat Asesmen Baru
-            </button>
-          </div>
-        </section>
+        <DashboardHero title="Manajemen" highlightedTitle="Asesmen" subtitle="Kelola kuesioner dan hasil asesmen awal dari mahasiswa sebelum memulai konseling." icon="assignment" badges={[{ label: 'Layanan Psikologis', active: false }]} />
 
         {/* Categories Stats Cards (4 Column Bento Grid) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 w-full">
@@ -308,3 +268,5 @@ export default function AssessmentManagement() {
     </>
   );
 }
+
+

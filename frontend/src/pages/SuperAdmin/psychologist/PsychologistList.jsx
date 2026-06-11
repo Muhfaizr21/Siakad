@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { DataTable } from '@/components/ui/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
+import { DialogModal, ModalCancelButton, ModalSaveButton } from '@/components/ui/DialogModal'
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
@@ -314,7 +314,7 @@ export default function PsychologistList() {
         })),
       }))
 
-      const res = await adminService.updatePsychologistSchedules(selected.id || selected.ID, payload)
+      const res = await adminService.savePsychologistSchedules(selected.id || selected.ID, payload)
       if (res.status === 'success') {
         toast.success('Jadwal praktik psikolog berhasil diperbarui')
         setIsScheduleOpen(false)
@@ -414,7 +414,7 @@ export default function PsychologistList() {
       />
 
         {/* ── Table Section ────────────────────────────────────────── */}
-        <Card className="border-[var(--theme-border)] shadow-sm rounded-2xl bg-white overflow-hidden">
+        <Card className="glass-card shadow-sm rounded-xl overflow-hidden mt-6 mb-6">
           <CardContent className="p-0 animate-in fade-in duration-300">
             <DataTable
               columns={columns}
@@ -431,9 +431,9 @@ export default function PsychologistList() {
               ]}
               actions={(row) => (
                 <div className="flex items-center gap-1.5">
-                  <Button onClick={() => handleOpenSchedule(row)} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-bku-primary hover:bg-bku-primary/10 rounded-lg transition-colors" title="Kelola Jadwal"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >calendar_month</span></Button>
-                  <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors" title="Edit Profil"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >edit</span></Button>
-                  <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Hapus"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >delete</span></Button>
+                  <Button onClick={() => handleOpenSchedule(row)} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)] rounded-lg transition-colors shadow-none cursor-pointer" title="Kelola Jadwal"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >calendar_month</span></Button>
+                  <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors shadow-none cursor-pointer" title="Edit Profil"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >edit</span></Button>
+                  <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors shadow-none cursor-pointer" title="Hapus"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >delete</span></Button>
                 </div>
               )}
             />
@@ -441,26 +441,22 @@ export default function PsychologistList() {
         </Card>
 
       {/* ── Edit Modal ───────────────────────────────────────────── */}
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen} maxWidth="max-w-xl">
-        <DialogContent>
-          <DialogHeader className="relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-5 text-bku-primary"><BrainCircuit size={100} /></div>
-            <div className="relative z-10 space-y-1">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
-                  <span className="material-symbols-outlined text-[12px]" >edit</span>
-                </div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-bku-primary font-jakarta">Clinical Registry</span>
-              </div>
-              <DialogTitle className="text-xl sm:text-2xl font-black font-jakarta tracking-tight text-slate-800 uppercase">
-                Edit Profil Psikolog
-              </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm font-medium text-slate-500">Pembaruan kualifikasi dan pengaturan operasional tenaga ahli.</DialogDescription>
-            </div>
-          </DialogHeader>
-
-          <form onSubmit={handleSave}>
-            <div className="p-6 md:p-8 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar font-jakarta">
+      <DialogModal
+        open={isEditOpen}
+        onOpenChange={setIsEditOpen}
+        icon="edit"
+        title="Edit Profil Psikolog"
+        description="Pembaruan kualifikasi dan pengaturan operasional tenaga ahli."
+        subtitle="Clinical Registry"
+        maxWidth="max-w-xl"
+        bodyClassName="p-6 md:p-8 space-y-5 font-jakarta max-h-[60vh] overflow-y-auto no-scrollbar"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setIsEditOpen(false)}>Batal</ModalCancelButton>
+            <ModalSaveButton onClick={handleSave} loading={isSubmitting} icon="save">Update Profil</ModalSaveButton>
+          </>
+        }
+      >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">Nama Lengkap & Gelar</Label>
@@ -516,50 +512,25 @@ export default function PsychologistList() {
                 <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">Bio / Deskripsi Singkat</Label>
                 <textarea value={form.Bio} onChange={e => setForm({ ...form, Bio: e.target.value })} placeholder="Tulis deskripsi keahlian, pengalaman, atau latar belakang akademis..." rows={3} className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50/30 text-sm font-semibold text-slate-800 font-jakarta outline-none focus:bg-white focus:border-bku-primary transition-all resize-none" />
               </div>
-            </div>
-
-            <DialogFooter>
-              <button
-                type="button"
-                onClick={() => setIsEditOpen(false)}
-                className="flex-1 sm:flex-initial h-12 px-6 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-jakarta cursor-pointer"
-              >
-                Batal
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="flex-1 sm:flex-initial h-12 px-8 bg-neutral-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2 font-jakarta disabled:opacity-50 cursor-pointer border-none"
-              >
-                {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >save</span>}
-                <span>Update Profil</span>
-              </button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      </DialogModal>
 
       {/* ── Add Modal ───────────────────────────────────────────── */}
-      <Dialog open={isAddOpen} onOpenChange={setIsAddOpen} maxWidth="max-w-md">
-        <DialogContent>
-          <DialogHeader className="relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-5 text-bku-primary"><BrainCircuit size={100} /></div>
-            <div className="relative z-10 space-y-1">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
-                  <span className="material-symbols-outlined text-[12px]" >add_circle</span>
-                </div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-bku-primary font-jakarta">Registry System</span>
-              </div>
-              <DialogTitle className="text-xl sm:text-2xl font-black font-jakarta tracking-tight text-slate-800 uppercase">
-                Tambah Psikolog Baru
-              </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm font-medium text-slate-500">Registrasi akun baru untuk psikolog.</DialogDescription>
-            </div>
-          </DialogHeader>
-
-          <form onSubmit={handleAdd}>
-            <div className="p-6 md:p-8 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar font-jakarta">
+      <DialogModal
+        open={isAddOpen}
+        onOpenChange={setIsAddOpen}
+        icon="add_circle"
+        title="Tambah Psikolog Baru"
+        description="Registrasi akun baru untuk psikolog."
+        subtitle="Registry System"
+        maxWidth="max-w-md"
+        bodyClassName="p-6 md:p-8 space-y-5 font-jakarta max-h-[60vh] overflow-y-auto no-scrollbar"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setIsAddOpen(false)}>Batal</ModalCancelButton>
+            <ModalSaveButton onClick={handleAdd} loading={isSubmitting} icon="save">Daftarkan Akun</ModalSaveButton>
+          </>
+        }
+      >
               <div className="space-y-1.5">
                 <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">Nama Lengkap & Gelar</Label>
                 <Input required value={addForm.Nama} onChange={e => setAddForm({ ...addForm, Nama: e.target.value })} placeholder="Contoh: Budi Santoso, M.Psi." className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-jakarta uppercase" />
@@ -574,28 +545,7 @@ export default function PsychologistList() {
                 <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">Password</Label>
                 <Input type="password" required value={addForm.Password} onChange={e => setAddForm({ ...addForm, Password: e.target.value })} placeholder="Password..." className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-jakarta" />
               </div>
-            </div>
-
-            <DialogFooter>
-              <button
-                type="button"
-                onClick={() => setIsAddOpen(false)}
-                className="flex-1 sm:flex-initial h-12 px-6 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-jakarta cursor-pointer"
-              >
-                Batal
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="flex-1 sm:flex-initial h-12 px-8 bg-neutral-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2 font-jakarta disabled:opacity-50 cursor-pointer border-none"
-              >
-                {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >save</span>}
-                <span>Daftarkan Akun</span>
-              </button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      </DialogModal>
 
       <DeleteConfirmModal
         isOpen={isDelOpen}
@@ -607,23 +557,34 @@ export default function PsychologistList() {
       />
 
       {/* ── Schedule Management Modal ────────────────────────────── */}
-      <Dialog open={isScheduleOpen} onOpenChange={setIsScheduleOpen} maxWidth="max-w-4xl">
-        <DialogContent>
-          <DialogHeader className="relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-5 text-bku-primary"><span className="material-symbols-outlined text-[100px]">calendar_month</span></div>
-            <div className="relative z-10 space-y-1">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
-                  <span className="material-symbols-outlined text-[12px]">calendar_month</span>
-                </div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-bku-primary font-jakarta">Jadwal Praktik</span>
-              </div>
-              <DialogTitle className="text-xl font-bold font-jakarta tracking-tight text-slate-800 uppercase">
-                Kelola Jadwal: {selected?.nama}
-              </DialogTitle>
-              <DialogDescription className="text-xs font-medium text-slate-500">Atur ketersediaan slot konseling mingguan untuk psikolog.</DialogDescription>
+      <DialogModal
+        open={isScheduleOpen}
+        onOpenChange={setIsScheduleOpen}
+        icon="calendar_month"
+        title={`Kelola Jadwal: ${selected?.nama || ''}`}
+        description="Atur ketersediaan slot konseling mingguan untuk psikolog."
+        subtitle="Jadwal Praktik"
+        maxWidth="max-w-4xl"
+        bodyClassName="p-0 font-jakarta overflow-hidden"
+        footer={
+          <div className="flex flex-col sm:flex-row justify-between items-center w-full gap-3">
+            <ModalCancelButton onClick={() => setIsScheduleOpen(false)}>Tutup Panel</ModalCancelButton>
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              <button
+                type="button"
+                onClick={resetScheduleChanges}
+                disabled={isSavingSchedule || scheduleLoading}
+                className="h-12 px-6 bg-white hover:bg-slate-50 border border-slate-200 text-slate-500 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-jakarta cursor-pointer"
+              >
+                Reset
+              </button>
+              <ModalSaveButton onClick={saveSchedule} loading={isSavingSchedule} disabled={isSavingSchedule || scheduleLoading} icon="save">
+                {isSavingSchedule ? 'Menyimpan...' : 'Simpan Jadwal'}
+              </ModalSaveButton>
             </div>
-          </DialogHeader>
+          </div>
+        }
+      >
 
           {scheduleLoading ? (
             <div className="h-[350px] flex items-center justify-center flex-col gap-3 bg-white">
@@ -631,9 +592,9 @@ export default function PsychologistList() {
               <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">Memuat Jadwal...</span>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-12 max-h-[50vh] min-h-[350px] bg-white border-t border-b border-neutral-100">
+            <div className="grid grid-cols-1 md:grid-cols-12 max-h-[70vh] min-h-[450px] bg-white border-t border-b border-neutral-100">
               {/* Day Selector Aside */}
-              <aside className="md:col-span-3 border-r border-neutral-100 p-4 bg-slate-50/30 overflow-y-auto space-y-2 no-scrollbar">
+              <aside className="md:col-span-3 border-r border-neutral-100 p-4 bg-slate-50/30 overflow-y-auto space-y-2">
                 <span className="text-[9px] font-black uppercase tracking-widest text-neutral-400 block px-2 mb-2">Pilih Hari</span>
                 {scheduleData.map((item) => {
                   const isSelected = selectedDay === item.day;
@@ -801,38 +762,7 @@ export default function PsychologistList() {
             </div>
           )}
 
-          <DialogFooter>
-            <div className="flex flex-col sm:flex-row justify-between items-center w-full gap-3">
-              <button
-                type="button"
-                onClick={() => setIsScheduleOpen(false)}
-                className="w-full sm:w-auto h-12 px-6 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-jakarta cursor-pointer"
-              >
-                Tutup Panel
-              </button>
-              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                <button
-                  type="button"
-                  onClick={resetScheduleChanges}
-                  disabled={isSavingSchedule || scheduleLoading}
-                  className="h-12 px-6 bg-white hover:bg-slate-50 border border-slate-200 text-slate-500 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-jakarta cursor-pointer"
-                >
-                  Reset
-                </button>
-                <button
-                  type="button"
-                  onClick={saveSchedule}
-                  disabled={isSavingSchedule || scheduleLoading}
-                  className="h-12 px-8 bg-neutral-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2 font-jakarta disabled:opacity-50 cursor-pointer border-none"
-                >
-                  {isSavingSchedule ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }}>sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>save</span>}
-                  <span>{isSavingSchedule ? 'Menyimpan...' : 'Simpan Jadwal'}</span>
-                </button>
-              </div>
-            </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      </DialogModal>
     </PageContent>
   )
 }

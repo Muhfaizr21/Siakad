@@ -444,7 +444,7 @@ class _TkSettingsScreenState extends State<TkSettingsScreen> {
       trailing: Switch(
         value: value,
         onChanged: onChanged,
-        activeThumbColor: AppColors.primary,
+        activeColor: AppColors.primary,
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
     );

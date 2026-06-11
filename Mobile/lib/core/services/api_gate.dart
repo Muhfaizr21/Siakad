@@ -9,7 +9,7 @@ class ApiGate {
     try {
       if (Platform.isAndroid) {
         // Untuk emulator Android Studio, gunakan 10.0.2.2 (alias untuk localhost komputer host)
-        return 'http://10.0.2.2:8000/api';
+        return 'http://192.168.18.74:8000/api';
       }
     } catch (_) {}
 
