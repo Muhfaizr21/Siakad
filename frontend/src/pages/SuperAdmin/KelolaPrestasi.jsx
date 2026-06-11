@@ -75,7 +75,7 @@ const getCleanImageUrl = (url) => {
 function StudentAvatar({ src, name, className = "w-9 h-9 rounded-xl" }) {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
-  
+
   const hasNoImage = !src || src.trim() === "" || src.endsWith("/profiles/") || src.endsWith("/students/") || src.endsWith("localhost:8000") || src.endsWith("localhost:8000/");
 
   return (
@@ -139,7 +139,7 @@ export default function KelolaPrestasi() {
         setData((res.data || []).map((item, i) => {
           const mhs = item.mahasiswa || {}
           const prodi = mhs.program_studi || mhs.ProgramStudi || {}
-          
+
           const f_mhs = mhs.fakultas || mhs.Fakultas || {}
           const f_prodi = prodi.fakultas || prodi.Fakultas || {}
           const fnama = f_mhs.nama || f_mhs.Nama || f_prodi.nama || f_prodi.Nama || ''
@@ -279,7 +279,7 @@ export default function KelolaPrestasi() {
       } else {
         toast.error(res.message || 'Gagal import')
       }
-    } catch(err) {
+    } catch (err) {
       toast.error(err.message || 'Koneksi gagal saat import')
     } finally {
       setIsSubmitting(false)
@@ -417,7 +417,7 @@ export default function KelolaPrestasi() {
       if (!mapping[facName][prodName]) {
         mapping[facName][prodName] = { total: 0, pending: 0, verified: 0 }
       }
-      
+
       mapping[facName][prodName].total += 1
       if (isPending) mapping[facName][prodName].pending += 1
       if (isVerified) mapping[facName][prodName].verified += 1
@@ -428,7 +428,7 @@ export default function KelolaPrestasi() {
   const fakultasOptions = useMemo(() => {
     const list = []
     const ids = new Set()
-    
+
     // Add all faculties from master data
     allFaculties.forEach(fac => {
       const fid = String(fac.id || fac.ID || '')
@@ -663,326 +663,326 @@ export default function KelolaPrestasi() {
         }
       />
 
-        {/* ── Stat Cards ──────────────────────────────────────────── */}
-        <div className="space-y-4 md:space-y-5">
-          {/* Row 1: Status Portofolio */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            <StatCard
-              label="Total Portofolio"
-              value={stats.total}
-              description="Prestasi terdaftar"
-              icon="emoji_events"
-              color="text-primary"
-              bg="bg-primary/10"
-              loading={loading}
-            />
-            <StatCard
-              label="Menunggu Review"
-              value={stats.pending}
-              description="Perlu tindakan verifikasi"
-              icon="schedule"
-              color="text-warning"
-              bg="bg-warning/10"
-              loading={loading}
-            />
-            <StatCard
-              label="Terverifikasi"
-              value={stats.verified}
-              description="Disetujui universitas"
-              icon="check_circle"
-              color="text-success"
-              bg="bg-success/10"
-              loading={loading}
-            />
-            <StatCard
-              label="Total Ditolak"
-              value={stats.rejected}
-              description="Pengajuan tidak sesuai kriteria"
-              icon="close"
-              color="text-error"
-              bg="bg-error/10"
-              loading={loading}
-            />
-          </div>
-
-          {/* Row 2: 5W 1H Insights */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            <StatCard
-              label="Fakultas Teraktif"
-              value={getShortFacultyName(extraStats.topFaculty)}
-              description={`${extraStats.topFacultyCount} prestasi terdaftar`}
-              icon="group"
-              color="text-primary"
-              bg="bg-primary/10"
-              loading={loading}
-            />
-            <StatCard
-              label="Kategori Terbanyak"
-              value={extraStats.topCategory}
-              description={`${extraStats.topCategoryCount} pengajuan`}
-              icon="military_tech"
-              color="text-emerald-600"
-              bg="bg-emerald-50"
-              loading={loading}
-            />
-            <StatCard
-              label="Tingkat Dominan"
-              value={extraStats.topTingkat}
-              description={`${extraStats.topTingkatPct}% dari total prestasi`}
-              icon="public"
-              color="text-indigo-600"
-              bg="bg-indigo-50"
-              loading={loading}
-            />
-            <StatCard
-              label="Periode Teraktif"
-              value={extraStats.topYear !== '—' ? `Tahun ${extraStats.topYear}` : '—'}
-              description={`${extraStats.topYearCount} prestasi diajukan`}
-              icon="calendar_today"
-              color="text-amber-600"
-              bg="bg-amber-50"
-              loading={loading}
-            />
-          </div>
+      {/* ── Stat Cards ──────────────────────────────────────────── */}
+      <div className="space-y-4 md:space-y-5">
+        {/* Row 1: Status Portofolio */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <StatCard
+            label="Total Portofolio"
+            value={stats.total}
+            description="Prestasi terdaftar"
+            icon="emoji_events"
+            color="text-primary"
+            bg="bg-primary/10"
+            loading={loading}
+          />
+          <StatCard
+            label="Menunggu Review"
+            value={stats.pending}
+            description="Perlu tindakan verifikasi"
+            icon="schedule"
+            color="text-warning"
+            bg="bg-warning/10"
+            loading={loading}
+          />
+          <StatCard
+            label="Terverifikasi"
+            value={stats.verified}
+            description="Disetujui universitas"
+            icon="check_circle"
+            color="text-success"
+            bg="bg-success/10"
+            loading={loading}
+          />
+          <StatCard
+            label="Total Ditolak"
+            value={stats.rejected}
+            description="Pengajuan tidak sesuai kriteria"
+            icon="close"
+            color="text-error"
+            bg="bg-error/10"
+            loading={loading}
+          />
         </div>
 
-        {/* ── Analitik & Distribusi Section ────────────────────────── */}
-        {!loading && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-300">
-            {/* Bar Chart: Leaderboard Fakultas */}
-            <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between">
-              <div>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-50 rounded-xl flex justify-center items-center text-blue-600 flex-shrink-0">
-                      <span className="material-symbols-outlined text-blue-600" style={{ fontSize: '18px' }} >bar_chart</span>
-                    </div>
-                    <div>
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline block">Kontribusi Prestasi</span>
-                      <h3 className="text-sm font-extrabold text-slate-800 leading-tight">
-                        {chartFacultyFilter === "all" ? "Fakultas Paling Berprestasi" : "Program Studi Teraktif"}
-                      </h3>
-                    </div>
+        {/* Row 2: 5W 1H Insights */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <StatCard
+            label="Fakultas Teraktif"
+            value={getShortFacultyName(extraStats.topFaculty)}
+            description={`${extraStats.topFacultyCount} prestasi terdaftar`}
+            icon="group"
+            color="text-primary"
+            bg="bg-primary/10"
+            loading={loading}
+          />
+          <StatCard
+            label="Kategori Terbanyak"
+            value={extraStats.topCategory}
+            description={`${extraStats.topCategoryCount} pengajuan`}
+            icon="military_tech"
+            color="text-emerald-600"
+            bg="bg-emerald-50"
+            loading={loading}
+          />
+          <StatCard
+            label="Tingkat Dominan"
+            value={extraStats.topTingkat}
+            description={`${extraStats.topTingkatPct}% dari total prestasi`}
+            icon="public"
+            color="text-indigo-600"
+            bg="bg-indigo-50"
+            loading={loading}
+          />
+          <StatCard
+            label="Periode Teraktif"
+            value={extraStats.topYear !== '—' ? `Tahun ${extraStats.topYear}` : '—'}
+            description={`${extraStats.topYearCount} prestasi diajukan`}
+            icon="calendar_today"
+            color="text-amber-600"
+            bg="bg-amber-50"
+            loading={loading}
+          />
+        </div>
+      </div>
+
+      {/* ── Analitik & Distribusi Section ────────────────────────── */}
+      {!loading && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-300">
+          {/* Bar Chart: Leaderboard Fakultas */}
+          <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between">
+            <div>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-50 rounded-xl flex justify-center items-center text-blue-600 flex-shrink-0">
+                    <span className="material-symbols-outlined text-blue-600" style={{ fontSize: '18px' }} >bar_chart</span>
                   </div>
-                  
-                  {/* Select Filter Fakultas */}
-                  <div className="w-full sm:w-[200px] shrink-0">
-                    <Select value={chartFacultyFilter} onValueChange={setChartFacultyFilter}>
-                      <SelectTrigger className="w-full h-9 rounded-xl border-[#e5e5e5] bg-[#fafafa] text-xs">
-                        <SelectValue placeholder="Filter Fakultas" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Semua Fakultas</SelectItem>
-                        {fakultasOptions.map(opt => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline block">Kontribusi Prestasi</span>
+                    <h3 className="text-sm font-extrabold text-slate-800 leading-tight">
+                      {chartFacultyFilter === "all" ? "Fakultas Paling Berprestasi" : "Program Studi Teraktif"}
+                    </h3>
                   </div>
                 </div>
-                <p className="text-xs text-neutral-500 font-medium mb-6">
-                  {chartFacultyFilter === "all" 
-                    ? "Peringkat kontribusi jumlah prestasi mahasiswa per Fakultas secara riil." 
-                    : "Peringkat kontribusi jumlah prestasi mahasiswa per Program Studi pada Fakultas terpilih."}
-                </p>
+
+                {/* Select Filter Fakultas */}
+                <div className="w-full sm:w-[200px] shrink-0">
+                  <Select value={chartFacultyFilter} onValueChange={setChartFacultyFilter}>
+                    <SelectTrigger className="w-full h-9 rounded-xl border-[#e5e5e5] bg-[#fafafa] text-xs">
+                      <SelectValue placeholder="Filter Fakultas" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua Fakultas</SelectItem>
+                      {fakultasOptions.map(opt => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              
-              <div className="h-[240px] w-full">
-                {chartData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={240}>
-                    <BarChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                      <XAxis dataKey="name" tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                      <Tooltip
-                        cursor={{ fill: '#f8fafc' }}
-                        formatter={v => [v, 'Jumlah Prestasi']}
-                        contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "11px", fontWeight: "bold" }}
-                      />
-                      <Bar dataKey="value" name="Prestasi" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={28} />
-                    </BarChart>
-                  </ResponsiveContainer>
+              <p className="text-xs text-neutral-500 font-medium mb-6">
+                {chartFacultyFilter === "all"
+                  ? "Peringkat kontribusi jumlah prestasi mahasiswa per Fakultas secara riil."
+                  : "Peringkat kontribusi jumlah prestasi mahasiswa per Program Studi pada Fakultas terpilih."}
+              </p>
+            </div>
+
+            <div className="h-[240px] w-full">
+              {chartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={240}>
+                  <BarChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="name" tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                    <Tooltip
+                      cursor={{ fill: '#f8fafc' }}
+                      formatter={v => [v, 'Jumlah Prestasi']}
+                      contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "11px", fontWeight: "bold" }}
+                    />
+                    <Bar dataKey="value" name="Prestasi" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={28} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex items-center justify-center text-xs text-neutral-400 italic">Tidak ada data kontribusi</div>
+              )}
+            </div>
+          </div>
+
+          {/* Rekapitulasi per Fakultas & Prodi */}
+          <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between">
+            <div>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-indigo-50 rounded-xl flex justify-center items-center text-indigo-600 flex-shrink-0">
+                  <span className="material-symbols-outlined text-indigo-600" style={{ fontSize: '18px' }} >analytics</span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline block">Distribusi Akademik</span>
+                  <h3 className="text-sm font-extrabold text-slate-800 leading-tight">Rekap Fakultas & Prodi</h3>
+                </div>
+              </div>
+
+              <p className="text-xs text-neutral-500 font-medium mb-4">Klik nama fakultas untuk melihat rincian jumlah portofolio per Program Studi.</p>
+
+              <div className="space-y-2.5 overflow-y-auto max-h-[240px] pr-1">
+                {Object.keys(prodiBreakdown).length > 0 ? (
+                  Object.entries(prodiBreakdown).map(([facName, prodis]) => {
+                    const totalFac = Object.values(prodis).reduce((sum, p) => sum + p.total, 0)
+                    const pendingFac = Object.values(prodis).reduce((sum, p) => sum + p.pending, 0)
+                    const verifiedFac = Object.values(prodis).reduce((sum, p) => sum + p.verified, 0)
+                    const isExpanded = expandedFaculty === facName
+
+                    return (
+                      <div key={facName} className="border border-slate-100 rounded-xl overflow-hidden bg-slate-50/50">
+                        <button
+                          type="button"
+                          onClick={() => setExpandedFaculty(isExpanded ? null : facName)}
+                          className="w-full p-3 flex items-center justify-between text-left hover:bg-slate-100/50 transition-colors"
+                        >
+                          <div className="min-w-0 pr-2">
+                            <span className="font-extrabold text-slate-800 text-[11px] tracking-tight block truncate uppercase">{facName}</span>
+                            <span className="text-[9px] font-bold text-slate-400 block mt-0.5">{Object.keys(prodis).length} Program Studi</span>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {pendingFac > 0 && (
+                              <span className="text-[9px] font-black bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded" title="Menunggu Review">
+                                {pendingFac} P
+                              </span>
+                            )}
+                            <span className="text-[9px] font-black bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded" title="Sudah Terverifikasi">
+                              {verifiedFac} V
+                            </span>
+                            <span className="text-[9px] font-black bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded" title="Total Portofolio">
+                              {totalFac} T
+                            </span>
+                            <span className="material-symbols-outlined text-slate-400 transition-transform duration-200" style={{ fontSize: 16, transform: isExpanded ? 'rotate(180deg)' : 'none' }}>
+                              keyboard_arrow_down
+                            </span>
+                          </div>
+                        </button>
+
+                        {isExpanded && (
+                          <div className="border-t border-slate-100 bg-white p-3 space-y-2 animate-in fade-in duration-200">
+                            {Object.entries(prodis).map(([prodName, metrics]) => (
+                              <div key={prodName} className="flex justify-between items-center py-1.5 border-b border-slate-50 last:border-0">
+                                <span className="text-[10px] font-bold text-slate-600 truncate max-w-[150px]">{prodName}</span>
+                                <div className="flex items-center gap-1 shrink-0">
+                                  {metrics.pending > 0 && (
+                                    <span className="text-[8px] font-extrabold text-amber-700 bg-amber-50 px-1 rounded">
+                                      {metrics.pending} Pending
+                                    </span>
+                                  )}
+                                  <span className="text-[8px] font-extrabold text-emerald-700 bg-emerald-50 px-1 rounded">
+                                    {metrics.verified} Verif
+                                  </span>
+                                  <span className="text-[8px] font-extrabold text-slate-500 bg-slate-50 px-1 rounded">
+                                    {metrics.total} Total
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })
                 ) : (
-                  <div className="h-full flex items-center justify-center text-xs text-neutral-400 italic">Tidak ada data kontribusi</div>
+                  <div className="text-center py-8 text-xs text-neutral-400 italic">Belum ada sebaran Fakultas/Prodi</div>
                 )}
               </div>
             </div>
-
-            {/* Rekapitulasi per Fakultas & Prodi */}
-            <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between">
-              <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-indigo-50 rounded-xl flex justify-center items-center text-indigo-600 flex-shrink-0">
-                    <span className="material-symbols-outlined text-indigo-600" style={{ fontSize: '18px' }} >analytics</span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline block">Distribusi Akademik</span>
-                    <h3 className="text-sm font-extrabold text-slate-800 leading-tight">Rekap Fakultas & Prodi</h3>
-                  </div>
-                </div>
-                
-                <p className="text-xs text-neutral-500 font-medium mb-4">Klik nama fakultas untuk melihat rincian jumlah portofolio per Program Studi.</p>
-                
-                <div className="space-y-2.5 overflow-y-auto max-h-[240px] pr-1">
-                  {Object.keys(prodiBreakdown).length > 0 ? (
-                    Object.entries(prodiBreakdown).map(([facName, prodis]) => {
-                      const totalFac = Object.values(prodis).reduce((sum, p) => sum + p.total, 0)
-                      const pendingFac = Object.values(prodis).reduce((sum, p) => sum + p.pending, 0)
-                      const verifiedFac = Object.values(prodis).reduce((sum, p) => sum + p.verified, 0)
-                      const isExpanded = expandedFaculty === facName
-
-                      return (
-                        <div key={facName} className="border border-slate-100 rounded-xl overflow-hidden bg-slate-50/50">
-                          <button
-                            type="button"
-                            onClick={() => setExpandedFaculty(isExpanded ? null : facName)}
-                            className="w-full p-3 flex items-center justify-between text-left hover:bg-slate-100/50 transition-colors"
-                          >
-                            <div className="min-w-0 pr-2">
-                              <span className="font-extrabold text-slate-800 text-[11px] tracking-tight block truncate uppercase">{facName}</span>
-                              <span className="text-[9px] font-bold text-slate-400 block mt-0.5">{Object.keys(prodis).length} Program Studi</span>
-                            </div>
-                            
-                            <div className="flex items-center gap-1.5 shrink-0">
-                              {pendingFac > 0 && (
-                                <span className="text-[9px] font-black bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded" title="Menunggu Review">
-                                  {pendingFac} P
-                                </span>
-                              )}
-                              <span className="text-[9px] font-black bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded" title="Sudah Terverifikasi">
-                                {verifiedFac} V
-                              </span>
-                              <span className="text-[9px] font-black bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded" title="Total Portofolio">
-                                {totalFac} T
-                              </span>
-                              <span className="material-symbols-outlined text-slate-400 transition-transform duration-200" style={{ fontSize: 16, transform: isExpanded ? 'rotate(180deg)' : 'none' }}>
-                                keyboard_arrow_down
-                              </span>
-                            </div>
-                          </button>
-                          
-                          {isExpanded && (
-                            <div className="border-t border-slate-100 bg-white p-3 space-y-2 animate-in fade-in duration-200">
-                              {Object.entries(prodis).map(([prodName, metrics]) => (
-                                <div key={prodName} className="flex justify-between items-center py-1.5 border-b border-slate-50 last:border-0">
-                                  <span className="text-[10px] font-bold text-slate-600 truncate max-w-[150px]">{prodName}</span>
-                                  <div className="flex items-center gap-1 shrink-0">
-                                    {metrics.pending > 0 && (
-                                      <span className="text-[8px] font-extrabold text-amber-700 bg-amber-50 px-1 rounded">
-                                        {metrics.pending} Pending
-                                      </span>
-                                    )}
-                                    <span className="text-[8px] font-extrabold text-emerald-700 bg-emerald-50 px-1 rounded">
-                                      {metrics.verified} Verif
-                                    </span>
-                                    <span className="text-[8px] font-extrabold text-slate-500 bg-slate-50 px-1 rounded">
-                                      {metrics.total} Total
-                                    </span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })
-                  ) : (
-                    <div className="text-center py-8 text-xs text-neutral-400 italic">Belum ada sebaran Fakultas/Prodi</div>
-                  )}
-                </div>
-              </div>
-            </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* ── Data Table Section ───────────────────────────────────── */}
-        <Card className="border-neutral-200 shadow-sm rounded-2xl bg-white overflow-hidden">
-          <CardContent className="p-0">
-            <DataTable
-              columns={columns}
-              data={filteredData}
-              loading={loading}
-              searchPlaceholder="Cari mahasiswa, judul kegiatan, kategori..."
-              externalFilters={tableFilters}
-              onExternalFilterChange={setTableFilters}
-              filters={[
-                {
-                  key: "status",
-                  placeholder: "Status",
-                  options: [
-                    { label: "Menunggu", value: "menunggu" },
-                    { label: "Terverifikasi", value: "diverifikasi" },
-                    { label: "Ditolak", value: "ditolak" },
-                  ]
-                },
-                {
-                  key: "tingkat",
-                  placeholder: "Tingkat",
-                  options: [
-                    { label: "Internasional", value: "internasional" },
-                    { label: "Nasional", value: "nasional" },
-                    { label: "Regional", value: "regional" },
-                    { label: "Lokal", value: "lokal" },
-                  ]
-                },
-                {
-                  key: "kategori_filter",
-                  placeholder: "Kategori",
-                  options: kategoriOptions
-                },
-                {
-                  key: "prodi_id",
-                  placeholder: "Prodi",
-                  options: prodiOptions
-                },
-                {
-                  key: "semester_filter",
-                  placeholder: "Semester",
-                  options: semesterOptions
-                }
-              ]}
-              actions={(row) => (
-                <div className="flex items-center gap-1.5">
-                  <Button
-                    onClick={() => { setSelected(row); setIsDetailOpen(true) }}
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-neutral-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors"
-                    title="Lihat Detail"
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>visibility</span>
-                  </Button>
-                  {(row.status || "").toLowerCase() === "menunggu" && (
-                    <>
-                      <Button
-                        onClick={() => handleOpenVerify(row, "verified")}
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-neutral-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                        title="Setujui"
-                      >
-                        <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>check_circle</span>
-                      </Button>
-                      <Button
-                        onClick={() => handleOpenVerify(row, "rejected")}
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-neutral-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                        title="Tolak"
-                      >
-                        <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>cancel</span>
-                      </Button>
-                    </>
-                  )}
-                </div>
-              )}
-            />
-          </CardContent>
-        </Card>
+      {/* ── Data Table Section ───────────────────────────────────── */}
+      <Card className="border-neutral-200 shadow-sm rounded-2xl bg-white overflow-hidden">
+        <CardContent className="p-0">
+          <DataTable
+            columns={columns}
+            data={filteredData}
+            loading={loading}
+            searchPlaceholder="Cari mahasiswa, judul kegiatan, kategori..."
+            externalFilters={tableFilters}
+            onExternalFilterChange={setTableFilters}
+            filters={[
+              {
+                key: "status",
+                placeholder: "Status",
+                options: [
+                  { label: "Menunggu", value: "menunggu" },
+                  { label: "Terverifikasi", value: "diverifikasi" },
+                  { label: "Ditolak", value: "ditolak" },
+                ]
+              },
+              {
+                key: "tingkat",
+                placeholder: "Tingkat",
+                options: [
+                  { label: "Internasional", value: "internasional" },
+                  { label: "Nasional", value: "nasional" },
+                  { label: "Regional", value: "regional" },
+                  { label: "Lokal", value: "lokal" },
+                ]
+              },
+              {
+                key: "kategori_filter",
+                placeholder: "Kategori",
+                options: kategoriOptions
+              },
+              {
+                key: "prodi_id",
+                placeholder: "Prodi",
+                options: prodiOptions
+              },
+              {
+                key: "semester_filter",
+                placeholder: "Semester",
+                options: semesterOptions
+              }
+            ]}
+            actions={(row) => (
+              <div className="flex items-center gap-1.5">
+                <Button
+                  onClick={() => { setSelected(row); setIsDetailOpen(true) }}
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-neutral-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors"
+                  title="Lihat Detail"
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>visibility</span>
+                </Button>
+                {(row.status || "").toLowerCase() === "menunggu" && (
+                  <>
+                    <Button
+                      onClick={() => handleOpenVerify(row, "verified")}
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-neutral-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                      title="Setujui"
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>check_circle</span>
+                    </Button>
+                    <Button
+                      onClick={() => handleOpenVerify(row, "rejected")}
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-neutral-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                      title="Tolak"
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>cancel</span>
+                    </Button>
+                  </>
+                )}
+              </div>
+            )}
+          />
+        </CardContent>
+      </Card>
 
-        {/* ── Detail Modal ───────────────────────────────────────────── */}
+      {/* ── Detail Modal ───────────────────────────────────────────── */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen} maxWidth="max-w-2xl">
         {selected && (
           <DialogContent>
@@ -990,7 +990,7 @@ export default function KelolaPrestasi() {
               <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
                 <span className="material-symbols-outlined size-24 rotate-12 text-slate-800">emoji_events</span>
               </div>
-              
+
               <div className="relative z-10 flex items-center gap-4 mb-6">
                 <StudentAvatar
                   src={getCleanImageUrl(selected.mahasiswa?.FotoURL || selected.mahasiswa?.foto_url)}
@@ -1007,7 +1007,7 @@ export default function KelolaPrestasi() {
                   </p>
                 </div>
               </div>
-              
+
               <div className="relative z-10 flex flex-wrap gap-2">
                 {selected.kategori && (
                   <Badge className="bg-[var(--theme-bg)] border border-[var(--theme-border)] px-2.5 py-1 rounded-md text-[10px] font-medium text-[var(--theme-text-muted)] uppercase tracking-wider gap-1.5 flex items-center shadow-none">
@@ -1025,8 +1025,8 @@ export default function KelolaPrestasi() {
                   ["verified", "terverifikasi", "disetujui", "diverifikasi"].includes((selected.status || "").toLowerCase())
                     ? "bg-[var(--theme-success-light)] text-[var(--theme-success)] border-[var(--theme-success)]/10"
                     : (selected.status || "").toLowerCase() === "menunggu"
-                    ? "bg-[var(--theme-warning-light)] text-[var(--theme-warning)] border-[var(--theme-warning)]/10"
-                    : "bg-[var(--theme-error-light)] text-[var(--theme-error)] border-[var(--theme-error)]/10"
+                      ? "bg-[var(--theme-warning-light)] text-[var(--theme-warning)] border-[var(--theme-warning)]/10"
+                      : "bg-[var(--theme-error-light)] text-[var(--theme-error)] border-[var(--theme-error)]/10"
                 )}>
                   <span className={cn("w-1.5 h-1.5 rounded-full bg-current", (selected.status || "").toLowerCase() === "menunggu" && "animate-pulse")} />
                   {["verified", "terverifikasi", "disetujui", "diverifikasi"].includes((selected.status || "").toLowerCase()) ? "Terverifikasi" : (selected.status || "").toLowerCase() === "menunggu" ? "Menunggu" : "Ditolak"}
@@ -1169,12 +1169,12 @@ export default function KelolaPrestasi() {
                     {selected.Tipe === 'Pengajuan Dana' ? (
                       <>
                         <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
-                           <p className="text-[9px] font-black text-slate-400 uppercase">Dana Diajukan</p>
-                           <p className="text-xs font-extrabold text-amber-600 mt-0.5">Rp {(selected.DanaDiajukan || 0).toLocaleString('id-ID')}</p>
+                          <p className="text-[9px] font-black text-slate-400 uppercase">Dana Diajukan</p>
+                          <p className="text-xs font-extrabold text-amber-600 mt-0.5">Rp {(selected.DanaDiajukan || 0).toLocaleString('id-ID')}</p>
                         </div>
                         <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
-                           <p className="text-[9px] font-black text-slate-400 uppercase">Dana Disetujui</p>
-                           <p className="text-xs font-extrabold text-emerald-600 mt-0.5">Rp {(selected.DanaDisetujui || 0).toLocaleString('id-ID')}</p>
+                          <p className="text-[9px] font-black text-slate-400 uppercase">Dana Disetujui</p>
+                          <p className="text-xs font-extrabold text-emerald-600 mt-0.5">Rp {(selected.DanaDisetujui || 0).toLocaleString('id-ID')}</p>
                         </div>
                       </>
                     ) : null}
@@ -1189,7 +1189,7 @@ export default function KelolaPrestasi() {
                         <p className="text-blue-600 text-xs mt-0.5 mb-2">ID Simkatmawa: {selected.SimkatmawaId}</p>
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-semibold text-blue-700">Status:</span>
-                          <select 
+                          <select
                             className="bg-white border border-blue-200 text-blue-700 text-xs font-bold rounded-lg px-2 py-1 outline-none cursor-pointer hover:border-blue-300 transition-colors"
                             value={selected.SimkatmawaStatus || "Sukses"}
                             onChange={async (e) => {
@@ -1198,8 +1198,8 @@ export default function KelolaPrestasi() {
                                 await adminService.updateSimkatmawaStatus(selected.id || selected.ID, newStatus);
                                 toast.success("Status SIMKATMAWA diperbarui! ✅");
                                 fetchData();
-                                setSelected({...selected, SimkatmawaStatus: newStatus});
-                              } catch(err) {
+                                setSelected({ ...selected, SimkatmawaStatus: newStatus });
+                              } catch (err) {
                                 toast.error("Gagal update status");
                               }
                             }}
@@ -1272,13 +1272,13 @@ export default function KelolaPrestasi() {
                 </>
               )}
               {['diverifikasi', 'valid', 'disetujui', 'verified'].includes((selected.status || '').toLowerCase()) && !selected.SimkatmawaId && (
-                 <Button 
-                   onClick={(e) => handleSyncSimkatmawa(e, selected.ID || selected.id)} 
-                   disabled={isSubmitting}
-                   className="w-full md:w-auto h-10 px-6 rounded-xl bg-[var(--theme-info)] hover:bg-[var(--theme-info-hover)] text-white text-xs font-semibold uppercase cursor-pointer flex items-center justify-center gap-2 border-none transition-all active:scale-95"
-                 >
-                   <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>sync</span> Kirim ke SIMKATMAWA
-                 </Button>
+                <Button
+                  onClick={(e) => handleSyncSimkatmawa(e, selected.ID || selected.id)}
+                  disabled={isSubmitting}
+                  className="w-full md:w-auto h-10 px-6 rounded-xl bg-[var(--theme-info)] hover:bg-[var(--theme-info-hover)] text-white text-xs font-semibold uppercase cursor-pointer flex items-center justify-center gap-2 border-none transition-all active:scale-95"
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>sync</span> Kirim ke SIMKATMAWA
+                </Button>
               )}
             </DialogFooter>
           </DialogContent>
@@ -1296,13 +1296,13 @@ export default function KelolaPrestasi() {
                 </span>
               </div>
               <DialogTitle className="text-xl font-bold font-jakarta tracking-tight text-neutral-900 leading-tight">
-                {verifyStatus === "verified" 
-                  ? (selected.Tipe === 'Pengajuan Dana' ? 'Setujui Pengajuan Dana' : 'Setujui Pengajuan Prestasi') 
+                {verifyStatus === "verified"
+                  ? (selected.Tipe === 'Pengajuan Dana' ? 'Setujui Pengajuan Dana' : 'Setujui Pengajuan Prestasi')
                   : (selected.Tipe === 'Pengajuan Dana' ? 'Tolak Pengajuan Dana' : 'Tolak Pengajuan Prestasi')
                 }
               </DialogTitle>
               <DialogDescription className="text-xs text-neutral-400 font-medium italic mt-1.5">
-                {verifyStatus === "verified" 
+                {verifyStatus === "verified"
                   ? "Berikan catatan verifikasi kelayakan untuk mahasiswa."
                   : "Berikan alasan penolakan berkas agar mahasiswa dapat memperbaiki pengajuannya."
                 }
@@ -1311,7 +1311,7 @@ export default function KelolaPrestasi() {
 
             <form onSubmit={handleVerifySubmit} className="flex flex-col">
               <div className="p-8 pt-5 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar bg-white">
-                 <div className="space-y-1.5 flex flex-col gap-1.5">
+                <div className="space-y-1.5 flex flex-col gap-1.5">
                   <Label htmlFor="verify_catatan" className="text-[10px] font-semibold text-[var(--theme-text-muted)] tracking-[0.2em] ml-1 uppercase font-headline">Catatan Verifikator</Label>
                   <Textarea
                     id="verify_catatan"
@@ -1390,7 +1390,7 @@ export default function KelolaPrestasi() {
               Upload file Excel berisi rekapitulasi data prestasi mahasiswa
             </DialogDescription>
           </DialogHeader>
-          
+
           <form onSubmit={handleImport} className="p-6 space-y-4">
             <div className="p-4 bg-[var(--theme-warning-light)] rounded-2xl border border-[var(--theme-warning)]/20">
               <p className="text-xs text-[var(--theme-warning)] leading-relaxed font-semibold">

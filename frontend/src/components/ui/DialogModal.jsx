@@ -37,11 +37,11 @@ export function DialogModal({
           {/* ── Premium Dynamic Header ────────────────────────────────────── */}
           <div className={cn(
             "relative pt-8 pb-8 px-8 overflow-hidden flex-shrink-0 border-b border-white/10 bg-gradient-to-br",
-            variant === 'success' ? 'from-emerald-500 via-emerald-600 to-teal-800' :
-              variant === 'info' ? 'from-sky-500 via-blue-600 to-indigo-800' :
-                variant === 'danger' ? 'from-rose-500 via-rose-600 to-red-900' :
-                  variant === 'warning' ? 'from-amber-500 via-orange-500 to-amber-700' :
-                    'from-primary via-primary to-blue-700'
+            variant === 'success' ? 'from-emerald-500 to-emerald-700' :
+              variant === 'info' ? 'from-blue-500 to-blue-700' :
+                variant === 'danger' ? 'from-rose-500 to-rose-700' :
+                  variant === 'warning' ? 'from-amber-500 to-amber-700' :
+                    'bg-[var(--theme-primary)] from-white/15 to-black/20'
           )}>
             <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
             <div className="absolute bottom-0 left-0 w-[200px] h-[200px] bg-white/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/3 pointer-events-none" />

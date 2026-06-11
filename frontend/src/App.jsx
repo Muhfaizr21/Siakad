@@ -144,7 +144,6 @@ import AdminTenagaKesehatanList from './pages/SuperAdmin/tenagakes/TenagaKesehat
 import AdminTenagaKesehatanBookings from './pages/SuperAdmin/tenagakes/TenagaKesehatanBookings'
 import AdminTenagaKesehatanMedicalRecords from './pages/SuperAdmin/tenagakes/TenagaKesehatanMedicalRecords'
 import KelolaFakultas from './pages/SuperAdmin/KelolaFakultas'
-import KelolaProdi from './pages/SuperAdmin/KelolaProdi'
 import LecturerDirectory from './pages/SuperAdmin/LecturerDirectory'
 import KelolaBeasiswa from './pages/SuperAdmin/KelolaBeasiswa'
 import KelolaPrestasi from './pages/SuperAdmin/KelolaPrestasi'
@@ -299,7 +298,11 @@ function App() {
                   <Route path="insurance" element={<InsuranceManagement />} />
                   <Route path="config" element={<AcademicPortal />} />
                   <Route path="faculties" element={<KelolaFakultas />} />
-                  <Route path="prodi" element={<KelolaProdi />} />
+                  <Route path="prodi" element={<FacultyProdi />} />
+                  <Route path="prodi/tambah" element={<FacultyProdiTambah />} />
+                  <Route path="prodi/edit/:id" element={<FacultyProdiEdit />} />
+                  <Route path="prodi/kurikulum" element={<FacultyProdiKurikulum />} />
+                  <Route path="prodi/matakuliah" element={<FacultyProdiMatakuliah />} />
                   <Route path="lecturers" element={<LecturerDirectory />} />
                   <Route path="faculty-mahasiswa" element={<FacultyMahasiswa />} />
                   <Route path="faculty-mahasiswa/import" element={<FacultyMahasiswaImport />} />
@@ -308,11 +311,6 @@ function App() {
                   <Route path="faculty-mahasiswa/edit/:id" element={<FacultyMahasiswaEdit />} />
                   <Route path="faculty-dosen" element={<Navigate to="../faculty-psikolog" replace />} />
                   <Route path="faculty-psikolog" element={<FacultyDosen />} />
-                  <Route path="faculty-prodi" element={<FacultyProdi />} />
-                  <Route path="faculty-prodi/tambah" element={<FacultyProdiTambah />} />
-                  <Route path="faculty-prodi/edit/:id" element={<FacultyProdiEdit />} />
-                  <Route path="faculty-prodi/kurikulum" element={<FacultyProdiKurikulum />} />
-                  <Route path="faculty-prodi/matakuliah" element={<FacultyProdiMatakuliah />} />
                   <Route path="faculty-jadwal" element={<FacultyJadwal />} />
                   <Route path="faculty-ormawa-proposals" element={<FacultyProposalApproval />} />
                   <Route path="faculty-organisasi" element={<FacultyOrganisasi />} />

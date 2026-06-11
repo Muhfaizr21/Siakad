@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { DataTable } from '@/components/ui/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -42,6 +43,7 @@ const JENJANG_STYLES = {
 }
 
 export default function KelolaFakultas() {
+  const navigate = useNavigate()
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [isSyncing, setIsSyncing] = useState(false)
@@ -684,10 +686,7 @@ export default function KelolaFakultas() {
             actions={(row) => (
               <div className="flex items-center gap-1.5">
                 <Button
-                  onClick={() => {
-                    setSelectedFacultyDetails(row)
-                    setIsFacultyDetailsOpen(true)
-                  }}
+                  onClick={() => navigate(`/admin/prodi?fakultas=${row.id || row.ID}`)}
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 text-neutral-400 hover:text-primary hover:bg-indigo-50 rounded-lg transition-colors shadow-none"
@@ -757,40 +756,6 @@ export default function KelolaFakultas() {
         description="Aksi ini akan menghapus permanen entitas fakultas dan seluruh relasi program studi di bawahnya. Prosedur ini tidak dapat dibatalkan."
         loading={isSubmitting}
       />
-
-      <DialogModal
-        open={isFacultyDetailsOpen}
-        onOpenChange={setIsFacultyDetailsOpen}
-        icon="school"
-        subtitle={`Fakultas ${selectedFacultyDetails?.Kode || selectedFacultyDetails?.kode || ''}`}
-        title={selectedFacultyDetails?.Nama || selectedFacultyDetails?.nama || 'Detail Fakultas'}
-        maxWidth="max-w-3xl"
-        footer={
-          <ModalCancelButton onClick={() => setIsFacultyDetailsOpen(false)}>Tutup</ModalCancelButton>
-        }
-      >
-        <div className="space-y-4">
-          {selectedFacultyDetails?.ProgramStudi?.length > 0 || selectedFacultyDetails?.program_studi?.length > 0 ? (
-            <div className="bg-white rounded-xl shadow-sm border border-[var(--theme-border)] overflow-hidden">
-              <DataTable
-                data={selectedFacultyDetails?.ProgramStudi || selectedFacultyDetails?.program_studi || []}
-                columns={prodiModalColumns}
-                searchable={true}
-                searchPlaceholder="Cari program studi..."
-                loading={loading}
-              />
-            </div>
-          ) : (
-            <div className="py-12 text-center flex flex-col items-center gap-3">
-              <div className="w-12 h-12 bg-[var(--theme-bg)] rounded-2xl flex items-center justify-center text-[var(--theme-text-subtle)] border border-[var(--theme-border)] animate-pulse">
-                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>info</span>
-              </div>
-              <p className="font-semibold text-sm text-[var(--theme-text)]">Belum Ada Program Studi</p>
-              <p className="text-xs text-[var(--theme-text-muted)]">Fakultas ini belum menaungi program studi apa pun saat ini.</p>
-            </div>
-          )}
-        </div>
-      </DialogModal>
 
       <DialogModal
         open={isAllFacultiesOpen}

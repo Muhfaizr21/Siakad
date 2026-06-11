@@ -199,13 +199,13 @@ export default function InsuranceManagement() {
       if (!d) return
       const date = new Date(d)
       if (isNaN(date.getTime())) return
-      const key = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
       byMonth[key] = (byMonth[key] || 0) + 1
     })
-    const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des']
-    return Object.entries(byMonth).sort(([a],[b]) => a.localeCompare(b)).map(([m, v]) => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des']
+    return Object.entries(byMonth).sort(([a], [b]) => a.localeCompare(b)).map(([m, v]) => {
       const [y, mo] = m.split('-')
-      return { month: `${months[parseInt(mo)-1]} ${y}`, value: v }
+      return { month: `${months[parseInt(mo) - 1]} ${y}`, value: v }
     })
   }, [claims])
 
@@ -345,7 +345,7 @@ export default function InsuranceManagement() {
           { key: 'jenis_provider', placeholder: 'Provider', options: PROVIDER_OPTIONS },
           { key: 'status', placeholder: 'Status', options: STATUS_OPTIONS }
         ]}
-        onSearch={(data, search) => data.filter(row => 
+        onSearch={(data, search) => data.filter(row =>
           String(row.id).includes(search) ||
           (row.mahasiswa?.nama || '').toLowerCase().includes(search.toLowerCase()) ||
           (row.mahasiswa?.nim || '').toLowerCase().includes(search.toLowerCase())
@@ -449,19 +449,19 @@ export default function InsuranceManagement() {
             <div className="flex-1 overflow-y-auto p-8 grid grid-cols-1 lg:grid-cols-5 gap-8">
               {/* Left Column: Claimant Profile & Claim Details */}
               <div className="lg:col-span-3 space-y-6">
-                
+
                 {/* Claimant Profile Block */}
                 <div className="p-6 rounded-2xl bg-[var(--theme-bg)] border border-[var(--theme-border)] shadow-none flex flex-col md:flex-row gap-5 items-start">
                   <div className="w-16 h-16 rounded-2xl shadow-md ring-4 ring-[var(--theme-border-muted)] shrink-0 flex items-center justify-center bg-[var(--theme-surface)] text-slate-400">
                     <span className="material-symbols-outlined text-[32px]">person</span>
                   </div>
-                  
+
                   <div className="flex-1 space-y-3 w-full">
                     <div className="flex items-center justify-between border-b border-[var(--theme-border-muted)] pb-2">
                       <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Identitas Pengklaim</span>
                       <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[8px] font-bold border border-[var(--theme-border)] text-[var(--theme-text-muted)] bg-[var(--theme-bg)] uppercase tracking-wider">Verified Mahasiswa</span>
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-3 text-xs text-[var(--theme-text)]">
                       <div>
                         <p className="text-[9px] font-semibold text-[var(--theme-text-subtle)] uppercase tracking-wider">Nama Lengkap</p>
@@ -491,7 +491,7 @@ export default function InsuranceManagement() {
                   <h4 className="text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 text-[var(--theme-text-muted)]">
                     <span className="material-symbols-outlined text-[var(--theme-primary)] text-[16px]">health_and_safety</span> Detail Klaim Asuransi
                   </h4>
-                  
+
                   <div className="grid grid-cols-2 gap-4">
                     <div className="p-5 rounded-2xl bg-[var(--theme-bg)] border border-[var(--theme-border)]">
                       <p className="text-[10px] font-semibold text-[var(--theme-text-subtle)] uppercase tracking-wider mb-2">Provider</p>
@@ -542,7 +542,7 @@ export default function InsuranceManagement() {
                       Resolution Control
                     </h3>
                   </div>
-                  
+
                   <div className="p-5 flex-1 flex flex-col gap-4">
                     {/* Status Alert */}
                     <div className="space-y-4">

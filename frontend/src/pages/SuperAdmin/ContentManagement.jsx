@@ -35,9 +35,9 @@ export default function ContentManagement() {
     const [isDelOpen, setIsDelOpen] = useState(false)
     const [isEditMode, setIsEditMode] = useState(false)
     const [selected, setSelected] = useState(null)
-    const [form, setForm] = useState({ 
-        Judul: '', 
-        Isi: '', 
+    const [form, setForm] = useState({
+        Judul: '',
+        Isi: '',
         Status: 'Published',
         target_audience: 'semua',
         target_fakultas_id: '',
@@ -111,8 +111,8 @@ export default function ContentManagement() {
             .sort(([a], [b]) => a.localeCompare(b))
             .map(([month, count]) => {
                 const [y, m] = month.split('-')
-                const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des']
-                return { month: `${months[parseInt(m)-1]} ${y}`, value: count }
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des']
+                return { month: `${months[parseInt(m) - 1]} ${y}`, value: count }
             })
     }, [news])
 
@@ -146,7 +146,7 @@ export default function ContentManagement() {
         }
     }
 
-    useEffect(() => { 
+    useEffect(() => {
         fetchNews()
         fetchMasterData()
     }, [])
@@ -154,9 +154,9 @@ export default function ContentManagement() {
     const handleOpenAdd = () => {
         setIsEditMode(false)
         setSelected(null)
-        setForm({ 
-            Judul: '', 
-            Isi: '', 
+        setForm({
+            Judul: '',
+            Isi: '',
             Status: 'Published',
             target_audience: 'semua',
             target_fakultas_id: '',
@@ -176,9 +176,9 @@ export default function ContentManagement() {
         setSelected(row)
         const mhsIds = row.target_mahasiswa_ids || row.TargetMahasiswaIDs || ''
         const ormIds = row.target_ormawa_ids || row.TargetOrmawaIDs || ''
-        setForm({ 
-            Judul: row.Judul || '', 
-            Isi: row.Isi || '', 
+        setForm({
+            Judul: row.Judul || '',
+            Isi: row.Isi || '',
             Status: row.Status || 'Published',
             target_audience: row.target_audience || row.TargetAudience || 'semua',
             target_fakultas_id: row.target_fakultas_id || row.TargetFakultasID || '',
@@ -186,7 +186,7 @@ export default function ContentManagement() {
             target_mahasiswa_ids: mhsIds,
             target_ormawa_ids: ormIds
         })
-        
+
         const mSub = mhsIds ? 'spesifik' : (row.target_fakultas_id || row.TargetFakultasID ? 'fakultas' : 'global')
         setMahasiswaSubtype(mSub)
 
@@ -274,8 +274,8 @@ export default function ContentManagement() {
 
     const columns = [
         {
-            key: 'Judul', 
-            label: 'Informasi & Pratinjau', 
+            key: 'Judul',
+            label: 'Informasi & Pratinjau',
             className: 'min-w-[350px]',
             render: (v, row) => (
                 <div className="flex flex-col gap-1 py-2">
@@ -285,8 +285,8 @@ export default function ContentManagement() {
             )
         },
         {
-            key: 'TanggalPublish', 
-            label: 'Tgl Publikasi', 
+            key: 'TanggalPublish',
+            label: 'Tgl Publikasi',
             className: 'w-[200px]',
             render: v => (
                 <div className="flex items-center gap-2 text-slate-500">
@@ -298,8 +298,8 @@ export default function ContentManagement() {
             )
         },
         {
-            key: 'target_audience', 
-            label: 'Target Penerima', 
+            key: 'target_audience',
+            label: 'Target Penerima',
             className: 'w-[180px]',
             render: (v, row) => {
                 const aud = v || row.TargetAudience || 'semua'
@@ -354,9 +354,9 @@ export default function ContentManagement() {
             }
         },
         {
-            key: 'Status', 
-            label: 'Status Rilis', 
-            className: 'w-[140px] text-center', 
+            key: 'Status',
+            label: 'Status Rilis',
+            className: 'w-[140px] text-center',
             cellClassName: 'text-center',
             render: v => (
                 <Badge className={cn('px-3 py-0.5 rounded-lg border-none shadow-none text-[9px] font-black uppercase tracking-widest font-headline',
@@ -370,9 +370,9 @@ export default function ContentManagement() {
     return (
         <PageContent>
             <Toaster position="top-right" />
-            
+
             <div className="max-w-[1600px] mx-auto space-y-8 select-none">
-                
+
                 {/* ── Page Header ─────────────────────────────────────────── */}
                 <DashboardHero
                     title="Kelola"
@@ -383,7 +383,7 @@ export default function ContentManagement() {
                         { label: 'Public Relations', active: true }
                     ]}
                     action={
-                        <Button 
+                        <Button
                             onClick={handleOpenAdd}
                             className="h-11 px-6 rounded-xl bg-slate-800 text-white font-black font-headline text-[10px] uppercase tracking-widest gap-2 hover:bg-slate-900 transition-all active:scale-95 shadow-none border-none cursor-pointer"
                         >
@@ -539,40 +539,40 @@ export default function ContentManagement() {
 
                 {/* ── Table Section ────────────────────────────────────────── */}
                 <PageCard className="p-0 overflow-hidden">
-                        <DataTable
-                            columns={columns} 
-                            data={news} 
-                            loading={loading}
-                            searchPlaceholder="Cari judul atau topik berita..."
-                            onAdd={handleOpenAdd} 
-                            addLabel="Tambah Konten"
-                            filters={[
-                                { key: 'Status', placeholder: 'Semua Status', options: [{ label: 'Published', value: 'Published' }, { label: 'Draft', value: 'Draft' }] }
-                            ]}
-                            actions={(row) => (
-                                <div className="flex items-center gap-1.5">
-                                    <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >edit</span></Button>
-                                    <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >delete</span></Button>
-                                </div>
-                            )}
-                        />
+                    <DataTable
+                        columns={columns}
+                        data={news}
+                        loading={loading}
+                        searchPlaceholder="Cari judul atau topik berita..."
+                        onAdd={handleOpenAdd}
+                        addLabel="Tambah Konten"
+                        filters={[
+                            { key: 'Status', placeholder: 'Semua Status', options: [{ label: 'Published', value: 'Published' }, { label: 'Draft', value: 'Draft' }] }
+                        ]}
+                        actions={(row) => (
+                            <div className="flex items-center gap-1.5">
+                                <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >edit</span></Button>
+                                <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >delete</span></Button>
+                            </div>
+                        )}
+                    />
                 </PageCard>
 
                 {/* ── Editorial Banner ──────────────────────────────────────── */}
                 <div className="glass-card border border-slate-200/60 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-none">
-                   <div className="flex items-center gap-5">
-                      <div className="size-12 rounded-xl bg-slate-800 flex items-center justify-center text-white shadow-none">
-                         <span className="material-symbols-outlined" style={{ fontSize: '24px' }} >language</span>
-                      </div>
-                      <div>
-                         <p className="text-[12px] font-black text-slate-800 font-headline uppercase tracking-tight leading-tight">Live Public Broadcasting</p>
-                         <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest mt-1">Konten yang diterbitkan akan langsung tampil di portal mahasiswa & dosen.</p>
-                      </div>
-                   </div>
-                   <div className="flex items-center gap-3">
-                      <div className="size-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-                      <span className="text-[10px] font-black font-headline text-slate-400 uppercase tracking-widest">Broadcaster Status: Online</span>
-                   </div>
+                    <div className="flex items-center gap-5">
+                        <div className="size-12 rounded-xl bg-slate-800 flex items-center justify-center text-white shadow-none">
+                            <span className="material-symbols-outlined" style={{ fontSize: '24px' }} >language</span>
+                        </div>
+                        <div>
+                            <p className="text-[12px] font-black text-slate-800 font-headline uppercase tracking-tight leading-tight">Live Public Broadcasting</p>
+                            <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest mt-1">Konten yang diterbitkan akan langsung tampil di portal mahasiswa & dosen.</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <div className="size-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                        <span className="text-[10px] font-black font-headline text-slate-400 uppercase tracking-widest">Broadcaster Status: Online</span>
+                    </div>
                 </div>
 
             </div>
@@ -585,7 +585,7 @@ export default function ContentManagement() {
                         <div className="relative z-10 space-y-1">
                             <div className="flex items-center gap-2 mb-2">
                                 <div className="size-6 rounded-lg bg-bku-primary/10 flex items-center justify-center text-bku-primary">
-                                    {isEditMode ? <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >edit</span> : <span className="material-symbols-outlined" style={{ fontSize: '12px' }}  strokeWidth={3}>add</span>}
+                                    {isEditMode ? <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >edit</span> : <span className="material-symbols-outlined" style={{ fontSize: '12px' }} strokeWidth={3}>add</span>}
                                 </div>
                                 <span className="text-[10px] font-black uppercase tracking-widest text-bku-primary font-headline">Content Registry</span>
                             </div>
@@ -599,309 +599,309 @@ export default function ContentManagement() {
                     <form onSubmit={handleSave}>
                         <div className="p-6 md:p-8 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar">
                             <div className="space-y-5 px-1">
-                            <div className="space-y-2">
-                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Judul Utama Berita</Label>
-                                <Input required value={form.Judul} onChange={e => setForm({ ...form, Judul: e.target.value })} placeholder="Tulis judul yang informatif..." className="h-11 rounded-xl border-slate-200 bg-white/60 focus:bg-white font-bold text-sm font-headline focus:ring-bku-primary/20" />
-                            </div>
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Judul Utama Berita</Label>
+                                    <Input required value={form.Judul} onChange={e => setForm({ ...form, Judul: e.target.value })} placeholder="Tulis judul yang informatif..." className="h-11 rounded-xl border-slate-200 bg-white focus:bg-white font-bold text-sm font-headline focus:ring-bku-primary/20" />
+                                </div>
 
-                            <div className="space-y-2">
-                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Isi Konten & Informasi</Label>
-                                <Textarea required value={form.Isi} onChange={e => setForm({ ...form, Isi: e.target.value })} placeholder="Tulis narasi berita secara lengkap..." className="min-h-[150px] rounded-2xl border-slate-200 bg-white/60 focus:bg-white p-4 font-medium text-sm font-inter leading-relaxed focus:ring-bku-primary/20" />
-                            </div>
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Isi Konten & Informasi</Label>
+                                    <Textarea required value={form.Isi} onChange={e => setForm({ ...form, Isi: e.target.value })} placeholder="Tulis narasi berita secara lengkap..." className="min-h-[150px] rounded-2xl border-slate-200 bg-white focus:bg-white p-4 font-medium text-sm font-inter leading-relaxed focus:ring-bku-primary/20" />
+                                </div>
 
-                            <div className="space-y-2">
-<Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Target Penerima Berita (Audience)</Label>
-                                <Select value={form.target_audience} onValueChange={handleAudienceChange}>
-                                    <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-white/60 font-bold text-sm font-headline focus:ring-bku-primary/20"><SelectValue /></SelectTrigger>
-                                    <SelectContent className="rounded-xl shadow-xl border-slate-200">
-                                        <SelectItem value="semua" className="text-[11px] font-bold uppercase tracking-widest font-headline">Semua Sivitas</SelectItem>
-                                        <SelectItem value="fakultas" className="text-[11px] font-bold uppercase tracking-widest font-headline">Spesifik Fakultas</SelectItem>
-                                        <SelectItem value="ormawa" className="text-[11px] font-bold uppercase tracking-widest font-headline">Spesifik Ormawa</SelectItem>
-                                        <SelectItem value="mahasiswa" className="text-[11px] font-bold uppercase tracking-widest font-headline">Mahasiswa (Global / Fakultas)</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            {form.target_audience === 'fakultas' && (
-                                <div className="space-y-2 animate-in fade-in duration-200">
-                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Pilih Fakultas Penerima</Label>
-                                    <Select 
-                                        value={form.target_fakultas_id ? String(form.target_fakultas_id) : undefined} 
-                                        onValueChange={v => setForm({ ...form, target_fakultas_id: Number(v) })}
-                                    >
-                                        <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-white/60 font-bold text-sm font-headline focus:ring-bku-primary/20">
-                                            <SelectValue placeholder="PILIH FAKULTAS" />
-                                        </SelectTrigger>
-                                        <SelectContent className="rounded-xl shadow-xl border-slate-200 max-h-[200px] overflow-y-auto">
-                                            {faculties.map(f => (
-                                                <SelectItem key={f.ID || f.id} value={String(f.ID || f.id)} className="text-[11px] font-bold uppercase tracking-widest font-headline">
-                                                    {f.Nama || f.nama}
-                                                </SelectItem>
-                                            ))}
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Target Penerima Berita (Audience)</Label>
+                                    <Select value={form.target_audience} onValueChange={handleAudienceChange}>
+                                        <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-white font-bold text-sm font-headline focus:ring-bku-primary/20"><SelectValue /></SelectTrigger>
+                                        <SelectContent className="rounded-xl shadow-xl border-slate-200">
+                                            <SelectItem value="semua" className="text-[11px] font-bold uppercase tracking-widest font-headline">Semua Sivitas</SelectItem>
+                                            <SelectItem value="fakultas" className="text-[11px] font-bold uppercase tracking-widest font-headline">Spesifik Fakultas</SelectItem>
+                                            <SelectItem value="ormawa" className="text-[11px] font-bold uppercase tracking-widest font-headline">Spesifik Ormawa</SelectItem>
+                                            <SelectItem value="mahasiswa" className="text-[11px] font-bold uppercase tracking-widest font-headline">Mahasiswa (Global / Fakultas)</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
-                            )}
 
-                            {form.target_audience === 'ormawa' && (
-                                <div className="space-y-3 animate-in fade-in duration-200">
-                                    <div className="space-y-2">
-                                        <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Tipe Pengiriman Ormawa</Label>
-                                        <Select value={ormawaSubtype} onValueChange={handleOrmawaSubtypeChange}>
-                                            <SelectTrigger className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 font-medium text-sm"><SelectValue /></SelectTrigger>
-                                            <SelectContent className="rounded-xl shadow-xl">
-                                                <SelectItem value="all" className="text-xs font-medium uppercase">Kirim ke Satu Ormawa Tertentu</SelectItem>
-                                                <SelectItem value="spesifik" className="text-xs font-medium uppercase text-primary">Kirim ke Beberapa Ormawa (Pilih/Ceklis)</SelectItem>
+                                {form.target_audience === 'fakultas' && (
+                                    <div className="space-y-2 animate-in fade-in duration-200">
+                                        <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Pilih Fakultas Penerima</Label>
+                                        <Select
+                                            value={form.target_fakultas_id ? String(form.target_fakultas_id) : undefined}
+                                            onValueChange={v => setForm({ ...form, target_fakultas_id: Number(v) })}
+                                        >
+                                            <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-white font-bold text-sm font-headline focus:ring-bku-primary/20">
+                                                <SelectValue placeholder="PILIH FAKULTAS" />
+                                            </SelectTrigger>
+                                            <SelectContent className="rounded-xl shadow-xl border-slate-200 max-h-[200px] overflow-y-auto">
+                                                {faculties.map(f => (
+                                                    <SelectItem key={f.ID || f.id} value={String(f.ID || f.id)} className="text-[11px] font-bold uppercase tracking-widest font-headline">
+                                                        {f.Nama || f.nama}
+                                                    </SelectItem>
+                                                ))}
                                             </SelectContent>
                                         </Select>
                                     </div>
+                                )}
 
-                                    {ormawaSubtype === 'all' && (
-                                        <div className="space-y-2 animate-in fade-in duration-200">
-                                            <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Pilih Ormawa Penerima</Label>
-                                            <Select
-                                                value={form.target_ormawa_id ? String(form.target_ormawa_id) : undefined}
-                                                onValueChange={v => setForm({ ...form, target_ormawa_id: Number(v) })}
-                                            >
-                                                <SelectTrigger className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 font-medium text-sm">
-                                                    <SelectValue placeholder="PILIH ORMAWA" />
-                                                </SelectTrigger>
-                                                <SelectContent className="rounded-xl shadow-xl max-h-[200px] overflow-y-auto">
-                                                    {ormawas.map(o => (
-                                                        <SelectItem key={o.id || o.ID} value={String(o.id || o.ID)} className="text-xs font-bold uppercase">
-                                                            {o.nama || o.Nama}
-                                                        </SelectItem>
-                                                    ))}
+                                {form.target_audience === 'ormawa' && (
+                                    <div className="space-y-3 animate-in fade-in duration-200">
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Tipe Pengiriman Ormawa</Label>
+                                            <Select value={ormawaSubtype} onValueChange={handleOrmawaSubtypeChange}>
+                                                <SelectTrigger className="h-11 rounded-lg border-neutral-200 bg-white font-medium text-sm"><SelectValue /></SelectTrigger>
+                                                <SelectContent className="rounded-xl shadow-xl">
+                                                    <SelectItem value="all" className="text-xs font-medium uppercase">Kirim ke Satu Ormawa Tertentu</SelectItem>
+                                                    <SelectItem value="spesifik" className="text-xs font-medium uppercase text-primary">Kirim ke Beberapa Ormawa (Pilih/Ceklis)</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
-                                    )}
 
-                                    {ormawaSubtype === 'spesifik' && (
-                                        <div className="space-y-2 animate-in fade-in duration-200">
-                                            <div className="flex items-center justify-between text-xs font-bold text-neutral-500 font-jakarta ml-1">
-                                                <span>Pilih Daftar Ormawa (Ceklis)</span>
-                                                <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-none font-bold text-[10px]">
-                                                    {(form.target_ormawa_ids || '').split(',').filter(Boolean).length} Terpilih
-                                                </Badge>
+                                        {ormawaSubtype === 'all' && (
+                                            <div className="space-y-2 animate-in fade-in duration-200">
+                                                <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Pilih Ormawa Penerima</Label>
+                                                <Select
+                                                    value={form.target_ormawa_id ? String(form.target_ormawa_id) : undefined}
+                                                    onValueChange={v => setForm({ ...form, target_ormawa_id: Number(v) })}
+                                                >
+                                                    <SelectTrigger className="h-11 rounded-lg border-neutral-200 bg-white font-medium text-sm">
+                                                        <SelectValue placeholder="PILIH ORMAWA" />
+                                                    </SelectTrigger>
+                                                    <SelectContent className="rounded-xl shadow-xl max-h-[200px] overflow-y-auto">
+                                                        {ormawas.map(o => (
+                                                            <SelectItem key={o.id || o.ID} value={String(o.id || o.ID)} className="text-xs font-bold uppercase">
+                                                                {o.nama || o.Nama}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
                                             </div>
-                                            <Input
-                                                placeholder="Cari nama ormawa..."
-                                                value={ormawaSearch}
-                                                onChange={e => setOrmawaSearch(e.target.value)}
-                                                className="h-10 rounded-lg border-neutral-200 bg-neutral-50/30 font-medium text-sm font-jakarta"
-                                            />
-                                            <div className="border border-neutral-200 rounded-xl p-3 bg-neutral-50/50 space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
-                                                <div className="flex items-center gap-2 pb-2 border-b border-neutral-200">
-                                                    <input
-                                                        type="checkbox"
-                                                        id="select-all-ormawas"
-                                                        checked={filteredOrmawas.length > 0 && filteredOrmawas.every(o => (form.target_ormawa_ids || '').split(',').includes(String(o.id || o.ID)))}
-                                                        onChange={e => {
-                                                            const checked = e.target.checked
-                                                            const currentIds = (form.target_ormawa_ids || '').split(',').filter(Boolean)
-                                                            let nextIds
-                                                            if (checked) {
-                                                                nextIds = Array.from(new Set([...currentIds, ...filteredOrmawas.map(o => String(o.id || o.ID))]))
-                                                            } else {
-                                                                const filteredSet = new Set(filteredOrmawas.map(o => String(o.id || o.ID)))
-                                                                nextIds = currentIds.filter(id => !filteredSet.has(id))
-                                                            }
-                                                            setForm({ ...form, target_ormawa_ids: nextIds.join(',') })
-                                                        }}
-                                                        className="rounded border-neutral-300 text-primary focus:ring-primary size-4"
-                                                    />
-                                                    <Label htmlFor="select-all-ormawas" className="text-xs font-bold text-neutral-600 cursor-pointer">Pilih Semua Hasil Pencarian</Label>
+                                        )}
+
+                                        {ormawaSubtype === 'spesifik' && (
+                                            <div className="space-y-2 animate-in fade-in duration-200">
+                                                <div className="flex items-center justify-between text-xs font-bold text-neutral-500 font-jakarta ml-1">
+                                                    <span>Pilih Daftar Ormawa (Ceklis)</span>
+                                                    <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-none font-bold text-[10px]">
+                                                        {(form.target_ormawa_ids || '').split(',').filter(Boolean).length} Terpilih
+                                                    </Badge>
                                                 </div>
+                                                <Input
+                                                    placeholder="Cari nama ormawa..."
+                                                    value={ormawaSearch}
+                                                    onChange={e => setOrmawaSearch(e.target.value)}
+                                                    className="h-10 rounded-lg border-neutral-200 bg-white font-medium text-sm font-jakarta"
+                                                />
+                                                <div className="border border-neutral-200 rounded-xl p-3 bg-white space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
+                                                    <div className="flex items-center gap-2 pb-2 border-b border-neutral-200">
+                                                        <input
+                                                            type="checkbox"
+                                                            id="select-all-ormawas"
+                                                            checked={filteredOrmawas.length > 0 && filteredOrmawas.every(o => (form.target_ormawa_ids || '').split(',').includes(String(o.id || o.ID)))}
+                                                            onChange={e => {
+                                                                const checked = e.target.checked
+                                                                const currentIds = (form.target_ormawa_ids || '').split(',').filter(Boolean)
+                                                                let nextIds
+                                                                if (checked) {
+                                                                    nextIds = Array.from(new Set([...currentIds, ...filteredOrmawas.map(o => String(o.id || o.ID))]))
+                                                                } else {
+                                                                    const filteredSet = new Set(filteredOrmawas.map(o => String(o.id || o.ID)))
+                                                                    nextIds = currentIds.filter(id => !filteredSet.has(id))
+                                                                }
+                                                                setForm({ ...form, target_ormawa_ids: nextIds.join(',') })
+                                                            }}
+                                                            className="rounded border-neutral-300 text-primary focus:ring-primary size-4"
+                                                        />
+                                                        <Label htmlFor="select-all-ormawas" className="text-xs font-bold text-neutral-600 cursor-pointer">Pilih Semua Hasil Pencarian</Label>
+                                                    </div>
 
-                                                {filteredOrmawas.length === 0 ? (
-                                                    <p className="text-xs text-neutral-400 italic text-center py-4">Ormawa tidak ditemukan.</p>
-                                                ) : (
-                                                    filteredOrmawas.map(o => {
-                                                        const oid = String(o.id || o.ID)
-                                                        const selectedIds = (form.target_ormawa_ids || '').split(',').filter(Boolean)
-                                                        const isChecked = selectedIds.includes(oid)
-                                                        return (
-                                                            <div key={oid} className="flex items-center gap-2 py-0.5">
-                                                                <input
-                                                                    type="checkbox"
-                                                                    id={`orm-chk-${oid}`}
-                                                                    checked={isChecked}
-                                                                    onChange={() => {
-                                                                        let nextIds
-                                                                        if (isChecked) {
-                                                                            nextIds = selectedIds.filter(id => id !== oid)
-                                                                        } else {
-                                                                            nextIds = [...selectedIds, oid]
-                                                                        }
-                                                                        setForm({ ...form, target_ormawa_ids: nextIds.join(',') })
-                                                                    }}
-                                                                    className="rounded border-neutral-300 text-primary focus:ring-primary size-4"
-                                                                />
-                                                                <Label htmlFor={`orm-chk-${oid}`} className="text-xs font-medium text-neutral-700 cursor-pointer flex flex-1 justify-between items-center">
-                                                                    <span>{o.nama || o.Nama}</span>
-                                                                </Label>
-                                                            </div>
-                                                        )
-                                                    })
-                                                )}
+                                                    {filteredOrmawas.length === 0 ? (
+                                                        <p className="text-xs text-neutral-400 italic text-center py-4">Ormawa tidak ditemukan.</p>
+                                                    ) : (
+                                                        filteredOrmawas.map(o => {
+                                                            const oid = String(o.id || o.ID)
+                                                            const selectedIds = (form.target_ormawa_ids || '').split(',').filter(Boolean)
+                                                            const isChecked = selectedIds.includes(oid)
+                                                            return (
+                                                                <div key={oid} className="flex items-center gap-2 py-0.5">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        id={`orm-chk-${oid}`}
+                                                                        checked={isChecked}
+                                                                        onChange={() => {
+                                                                            let nextIds
+                                                                            if (isChecked) {
+                                                                                nextIds = selectedIds.filter(id => id !== oid)
+                                                                            } else {
+                                                                                nextIds = [...selectedIds, oid]
+                                                                            }
+                                                                            setForm({ ...form, target_ormawa_ids: nextIds.join(',') })
+                                                                        }}
+                                                                        className="rounded border-neutral-300 text-primary focus:ring-primary size-4"
+                                                                    />
+                                                                    <Label htmlFor={`orm-chk-${oid}`} className="text-xs font-medium text-neutral-700 cursor-pointer flex flex-1 justify-between items-center">
+                                                                        <span>{o.nama || o.Nama}</span>
+                                                                    </Label>
+                                                                </div>
+                                                            )
+                                                        })
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {form.target_audience === 'mahasiswa' && (
-                                <div className="space-y-3 animate-in fade-in duration-200">
-                                    <div className="space-y-2">
-                                        <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Tipe Pengiriman Mahasiswa</Label>
-                                        <Select value={mahasiswaSubtype} onValueChange={handleMahasiswaSubtypeChange}>
-                                            <SelectTrigger className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 font-medium text-sm"><SelectValue /></SelectTrigger>
-                                            <SelectContent className="rounded-xl shadow-xl">
-                                                <SelectItem value="global" className="text-xs font-medium uppercase">Kirim ke Semua Mahasiswa (Global)</SelectItem>
-                                                <SelectItem value="fakultas" className="text-xs font-medium uppercase">Kirim ke Mahasiswa Fakultas Tertentu</SelectItem>
-                                                <SelectItem value="spesifik" className="text-xs font-medium uppercase text-primary">Kirim ke Mahasiswa Spesifik (Pilih/Ceklis)</SelectItem>
-                                            </SelectContent>
-                                        </Select>
+                                        )}
                                     </div>
+                                )}
 
-                                    {mahasiswaSubtype === 'fakultas' && (
-                                        <div className="space-y-2 animate-in fade-in duration-200">
-                                            <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Pilih Fakultas Mahasiswa</Label>
-                                            <Select
-                                                value={form.target_fakultas_id ? String(form.target_fakultas_id) : undefined}
-                                                onValueChange={v => setForm({ ...form, target_fakultas_id: Number(v) })}
-                                            >
-                                                <SelectTrigger className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 font-medium text-sm">
-                                                    <SelectValue placeholder="PILIH FAKULTAS" />
-                                                </SelectTrigger>
-                                                <SelectContent className="rounded-xl shadow-xl max-h-[200px] overflow-y-auto">
-                                                    {faculties.map(f => (
-                                                        <SelectItem key={f.ID || f.id} value={String(f.ID || f.id)} className="text-xs font-bold uppercase">
-                                                            {f.Nama || f.nama}
-                                                        </SelectItem>
-                                                    ))}
+                                {form.target_audience === 'mahasiswa' && (
+                                    <div className="space-y-3 animate-in fade-in duration-200">
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Tipe Pengiriman Mahasiswa</Label>
+                                            <Select value={mahasiswaSubtype} onValueChange={handleMahasiswaSubtypeChange}>
+                                                <SelectTrigger className="h-11 rounded-lg border-neutral-200 bg-white font-medium text-sm"><SelectValue /></SelectTrigger>
+                                                <SelectContent className="rounded-xl shadow-xl">
+                                                    <SelectItem value="global" className="text-xs font-medium uppercase">Kirim ke Semua Mahasiswa (Global)</SelectItem>
+                                                    <SelectItem value="fakultas" className="text-xs font-medium uppercase">Kirim ke Mahasiswa Fakultas Tertentu</SelectItem>
+                                                    <SelectItem value="spesifik" className="text-xs font-medium uppercase text-primary">Kirim ke Mahasiswa Spesifik (Pilih/Ceklis)</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
-                                    )}
 
-                                    {mahasiswaSubtype === 'spesifik' && (
-                                        <div className="space-y-2 animate-in fade-in duration-200">
-                                            <div className="flex items-center justify-between text-xs font-bold text-neutral-500 font-jakarta ml-1">
-                                                <span>Pilih Daftar Mahasiswa (Ceklis)</span>
-                                                <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-none font-bold text-[10px]">
-                                                    {(form.target_mahasiswa_ids || '').split(',').filter(Boolean).length} Terpilih
-                                                </Badge>
+                                        {mahasiswaSubtype === 'fakultas' && (
+                                            <div className="space-y-2 animate-in fade-in duration-200">
+                                                <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Pilih Fakultas Mahasiswa</Label>
+                                                <Select
+                                                    value={form.target_fakultas_id ? String(form.target_fakultas_id) : undefined}
+                                                    onValueChange={v => setForm({ ...form, target_fakultas_id: Number(v) })}
+                                                >
+                                                    <SelectTrigger className="h-11 rounded-lg border-neutral-200 bg-white font-medium text-sm">
+                                                        <SelectValue placeholder="PILIH FAKULTAS" />
+                                                    </SelectTrigger>
+                                                    <SelectContent className="rounded-xl shadow-xl max-h-[200px] overflow-y-auto">
+                                                        {faculties.map(f => (
+                                                            <SelectItem key={f.ID || f.id} value={String(f.ID || f.id)} className="text-xs font-bold uppercase">
+                                                                {f.Nama || f.nama}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
                                             </div>
-                                            <Input
-                                                placeholder="Cari nama atau NIM mahasiswa..."
-                                                value={studentSearch}
-                                                onChange={e => setStudentSearch(e.target.value)}
-                                                className="h-10 rounded-lg border-neutral-200 bg-neutral-50/30 font-medium text-sm font-jakarta"
-                                            />
-                                            <div className="border border-neutral-200 rounded-xl p-3 bg-neutral-50/50 space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
-                                                <div className="flex items-center gap-2 pb-2 border-b border-neutral-200">
-                                                    <input
-                                                        type="checkbox"
-                                                        id="select-all-students"
-                                                        checked={filteredStudents.length > 0 && filteredStudents.every(s => (form.target_mahasiswa_ids || '').split(',').includes(String(s.ID || s.id)))}
-                                                        onChange={e => {
-                                                            const checked = e.target.checked
-                                                            const currentIds = (form.target_mahasiswa_ids || '').split(',').filter(Boolean)
-                                                            let nextIds
-                                                            if (checked) {
-                                                                nextIds = Array.from(new Set([...currentIds, ...filteredStudents.map(s => String(s.ID || s.id))]))
-                                                            } else {
-                                                                const filteredSet = new Set(filteredStudents.map(s => String(s.ID || s.id)))
-                                                                nextIds = currentIds.filter(id => !filteredSet.has(id))
-                                                            }
-                                                            setForm({ ...form, target_mahasiswa_ids: nextIds.join(',') })
-                                                        }}
-                                                        className="rounded border-neutral-300 text-primary focus:ring-primary size-4"
-                                                    />
-                                                    <Label htmlFor="select-all-students" className="text-xs font-bold text-neutral-600 cursor-pointer">Pilih Semua Hasil Pencarian</Label>
+                                        )}
+
+                                        {mahasiswaSubtype === 'spesifik' && (
+                                            <div className="space-y-2 animate-in fade-in duration-200">
+                                                <div className="flex items-center justify-between text-xs font-bold text-neutral-500 font-jakarta ml-1">
+                                                    <span>Pilih Daftar Mahasiswa (Ceklis)</span>
+                                                    <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-none font-bold text-[10px]">
+                                                        {(form.target_mahasiswa_ids || '').split(',').filter(Boolean).length} Terpilih
+                                                    </Badge>
                                                 </div>
+                                                <Input
+                                                    placeholder="Cari nama atau NIM mahasiswa..."
+                                                    value={studentSearch}
+                                                    onChange={e => setStudentSearch(e.target.value)}
+                                                    className="h-10 rounded-lg border-neutral-200 bg-white font-medium text-sm font-jakarta"
+                                                />
+                                                <div className="border border-neutral-200 rounded-xl p-3 bg-white space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
+                                                    <div className="flex items-center gap-2 pb-2 border-b border-neutral-200">
+                                                        <input
+                                                            type="checkbox"
+                                                            id="select-all-students"
+                                                            checked={filteredStudents.length > 0 && filteredStudents.every(s => (form.target_mahasiswa_ids || '').split(',').includes(String(s.ID || s.id)))}
+                                                            onChange={e => {
+                                                                const checked = e.target.checked
+                                                                const currentIds = (form.target_mahasiswa_ids || '').split(',').filter(Boolean)
+                                                                let nextIds
+                                                                if (checked) {
+                                                                    nextIds = Array.from(new Set([...currentIds, ...filteredStudents.map(s => String(s.ID || s.id))]))
+                                                                } else {
+                                                                    const filteredSet = new Set(filteredStudents.map(s => String(s.ID || s.id)))
+                                                                    nextIds = currentIds.filter(id => !filteredSet.has(id))
+                                                                }
+                                                                setForm({ ...form, target_mahasiswa_ids: nextIds.join(',') })
+                                                            }}
+                                                            className="rounded border-neutral-300 text-primary focus:ring-primary size-4"
+                                                        />
+                                                        <Label htmlFor="select-all-students" className="text-xs font-bold text-neutral-600 cursor-pointer">Pilih Semua Hasil Pencarian</Label>
+                                                    </div>
 
-                                                {filteredStudents.length === 0 ? (
-                                                    <p className="text-xs text-neutral-400 italic text-center py-4">Mahasiswa tidak ditemukan.</p>
-                                                ) : (
-                                                    filteredStudents.map(s => {
-                                                        const sid = String(s.ID || s.id)
-                                                        const selectedIds = (form.target_mahasiswa_ids || '').split(',').filter(Boolean)
-                                                        const isChecked = selectedIds.includes(sid)
-                                                        return (
-                                                            <div key={sid} className="flex items-center gap-2 py-0.5">
-                                                                <input
-                                                                    type="checkbox"
-                                                                    id={`mhs-chk-${sid}`}
-                                                                    checked={isChecked}
-                                                                    onChange={() => {
-                                                                        let nextIds
-                                                                        if (isChecked) {
-                                                                            nextIds = selectedIds.filter(id => id !== sid)
-                                                                        } else {
-                                                                            nextIds = [...selectedIds, sid]
-                                                                        }
-                                                                        setForm({ ...form, target_mahasiswa_ids: nextIds.join(',') })
-                                                                    }}
-                                                                    className="rounded border-neutral-300 text-primary focus:ring-primary size-4"
-                                                                />
-                                                                <Label htmlFor={`mhs-chk-${sid}`} className="text-xs font-medium text-neutral-700 cursor-pointer flex flex-1 justify-between items-center">
-                                                                    <span>{s.Nama || s.nama}</span>
-                                                                    <span className="text-[10px] text-neutral-400 font-mono">NIM: {s.NIM || s.nim}</span>
-                                                                </Label>
-                                                            </div>
-                                                        )
-                                                    })
-                                                )}
+                                                    {filteredStudents.length === 0 ? (
+                                                        <p className="text-xs text-neutral-400 italic text-center py-4">Mahasiswa tidak ditemukan.</p>
+                                                    ) : (
+                                                        filteredStudents.map(s => {
+                                                            const sid = String(s.ID || s.id)
+                                                            const selectedIds = (form.target_mahasiswa_ids || '').split(',').filter(Boolean)
+                                                            const isChecked = selectedIds.includes(sid)
+                                                            return (
+                                                                <div key={sid} className="flex items-center gap-2 py-0.5">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        id={`mhs-chk-${sid}`}
+                                                                        checked={isChecked}
+                                                                        onChange={() => {
+                                                                            let nextIds
+                                                                            if (isChecked) {
+                                                                                nextIds = selectedIds.filter(id => id !== sid)
+                                                                            } else {
+                                                                                nextIds = [...selectedIds, sid]
+                                                                            }
+                                                                            setForm({ ...form, target_mahasiswa_ids: nextIds.join(',') })
+                                                                        }}
+                                                                        className="rounded border-neutral-300 text-primary focus:ring-primary size-4"
+                                                                    />
+                                                                    <Label htmlFor={`mhs-chk-${sid}`} className="text-xs font-medium text-neutral-700 cursor-pointer flex flex-1 justify-between items-center">
+                                                                        <span>{s.Nama || s.nama}</span>
+                                                                        <span className="text-[10px] text-neutral-400 font-mono">NIM: {s.NIM || s.nim}</span>
+                                                                    </Label>
+                                                                </div>
+                                                            )
+                                                        })
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
+                                        )}
+                                    </div>
+                                )}
 
-                            <div className="space-y-2">
-                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Visibilitas Publikasi</Label>
-                                <Select value={form.Status} onValueChange={v => setForm({ ...form, Status: v })}>
-                                    <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-white/60 font-bold text-sm font-headline focus:ring-bku-primary/20"><SelectValue /></SelectTrigger>
-                                    <SelectContent className="rounded-xl shadow-xl border-slate-200">
-                                        <SelectItem value="Published" className="text-[11px] font-bold uppercase tracking-widest font-headline text-emerald-600">Terbitkan Sekarang</SelectItem>
-                                        <SelectItem value="Draft" className="text-[11px] font-bold uppercase tracking-widest font-headline">Simpan Sebagai Draft</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Visibilitas Publikasi</Label>
+                                    <Select value={form.Status} onValueChange={v => setForm({ ...form, Status: v })}>
+                                        <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-white font-bold text-sm font-headline focus:ring-bku-primary/20"><SelectValue /></SelectTrigger>
+                                        <SelectContent className="rounded-xl shadow-xl border-slate-200">
+                                            <SelectItem value="Published" className="text-[11px] font-bold uppercase tracking-widest font-headline text-emerald-600">Terbitkan Sekarang</SelectItem>
+                                            <SelectItem value="Draft" className="text-[11px] font-bold uppercase tracking-widest font-headline">Simpan Sebagai Draft</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                             </div>
-                        </div>
                         </div>
 
                         <DialogFooter>
-                             <button
-                               type="button"
-                               onClick={() => setIsCrudOpen(false)}
-                               className="flex-1 sm:flex-initial h-12 px-6 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-body cursor-pointer"
-                             >
-                               Batal
-                             </button>
-                             <button
-                               type="submit"
-                               disabled={isSubmitting}
-                               className="flex-1 sm:flex-initial h-12 px-8 bg-neutral-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2 font-body disabled:opacity-50 cursor-pointer border-none"
-                             >
+                            <button
+                                type="button"
+                                onClick={() => setIsCrudOpen(false)}
+                                className="flex-1 sm:flex-initial h-12 px-6 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-body cursor-pointer"
+                            >
+                                Batal
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={isSubmitting}
+                                className="flex-1 sm:flex-initial h-12 px-8 bg-neutral-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2 font-body disabled:opacity-50 cursor-pointer border-none"
+                            >
                                 {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >save</span>}
                                 <span>{isEditMode ? 'Update Konten' : 'Terbitkan Berita'}</span>
-                             </button>
+                            </button>
                         </DialogFooter>
                     </form>
                 </DialogContent>
             </Dialog>
 
-            <DeleteConfirmModal 
-                isOpen={isDelOpen} 
-                onClose={() => setIsDelOpen(false)} 
+            <DeleteConfirmModal
+                isOpen={isDelOpen}
+                onClose={() => setIsDelOpen(false)}
                 onConfirm={handleDelete}
-                title="Hapus Konten Publikasi?" 
-                description="Berita ini akan dihapus secara permanen dari portal mahasiswa dan dosen." 
-                loading={isSubmitting} 
+                title="Hapus Konten Publikasi?"
+                description="Berita ini akan dihapus secara permanen dari portal mahasiswa dan dosen."
+                loading={isSubmitting}
             />
         </PageContent>
     )

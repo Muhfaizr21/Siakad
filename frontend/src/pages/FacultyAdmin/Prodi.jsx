@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useMemo } from "react"
+import { useSearchParams } from "react-router-dom"
 import { toast, Toaster } from "react-hot-toast"
 import { cn } from "@/lib/utils"
 import api from "../../lib/axios"
@@ -50,6 +51,13 @@ export default function ProdiPage() {
   const [deleteTarget, setDelTarget] = useState(null)
   const [formData, setFormData] = useState(EMPTY_FORM)
   const [jenjangOpen, setJenjangOpen] = useState(false)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [filterFakultasID, setFilterFakultasID] = useState(searchParams.get('fakultas') || 'all')
+
+  useEffect(() => {
+    const fak = searchParams.get('fakultas')
+    if (fak) setFilterFakultasID(fak)
+  }, [searchParams])
 
   const fetchMajors = async () => {
     setLoading(true)
@@ -234,32 +242,37 @@ export default function ProdiPage() {
     kapasitas: majors.reduce((a, m) => a + (m.Kapasitas || 0), 0),
   }
 
-  const totalMahasiswa = majors.reduce((a, m) => a + (m.CurrentMahasiswa || 0), 0)
+  const filteredMajors = useMemo(() => {
+    if (filterFakultasID === 'all') return majors;
+    return majors.filter(m => String(m.FakultasID) === filterFakultasID);
+  }, [majors, filterFakultasID])
+
+  const totalMahasiswa = filteredMajors.reduce((a, m) => a + (m.CurrentMahasiswa || 0), 0)
 
   const jenjangData = useMemo(() => {
     const counts = {}
-    majors.forEach(m => {
+    filteredMajors.forEach(m => {
       const j = m.Jenjang || 'Unknown'
       counts[j] = (counts[j] || 0) + 1
     })
     return Object.entries(counts).map(([name, value]) => ({ name, value }))
-  }, [majors])
+  }, [filteredMajors])
 
   const akreditasiData = useMemo(() => {
     const counts = {}
-    majors.forEach(m => {
+    filteredMajors.forEach(m => {
       const a = m.Akreditasi || 'Baik'
       counts[a] = (counts[a] || 0) + 1
     })
     return Object.entries(counts).map(([name, value]) => ({ name, value }))
-  }, [majors])
+  }, [filteredMajors])
 
   const utilisasiData = useMemo(() => {
-    return [...majors].sort((a, b) => ((b.CurrentMahasiswa || 0) / (b.Kapasitas || 1)) - ((a.CurrentMahasiswa || 0) / (a.Kapasitas || 1))).slice(0, 8).map(m => ({
+    return [...filteredMajors].sort((a, b) => ((b.CurrentMahasiswa || 0) / (b.Kapasitas || 1)) - ((a.CurrentMahasiswa || 0) / (a.Kapasitas || 1))).slice(0, 8).map(m => ({
       name: m.Kode || m.Nama?.substring(0, 12),
       utilization: Math.min(100, Math.round(((m.CurrentMahasiswa || 0) / (m.Kapasitas || 1)) * 100))
     }))
-  }, [majors])
+  }, [filteredMajors])
 
   const PIE_COLORS = ['#00236f', '#10b981', '#f59e0b', '#3b82f6', '#8b5cf6']
 
@@ -361,10 +374,24 @@ export default function ProdiPage() {
           icon="school"
           badges={[
             { label: 'Program Studi & Kurikulum', active: false },
-            { label: `${stats.total} Prodi Terdaftar`, active: true }
+            { label: `${filteredMajors.length} Prodi Terdaftar`, active: true }
           ]}
           actions={
             <>
+              {faculties.length > 1 && (
+                <select 
+                  value={filterFakultasID}
+                  onChange={(e) => setFilterFakultasID(e.target.value)}
+                  className="h-10 px-3 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-semibold text-slate-600 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 shadow-sm transition-all"
+                >
+                  <option value="all">Semua Fakultas</option>
+                  {faculties.map(f => (
+                    <option key={f.id || f.ID} value={String(f.id || f.ID)}>
+                      {f.Nama || f.nama}
+                    </option>
+                  ))}
+                </select>
+              )}
               <button onClick={fetchMajors} disabled={loading}
                 className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-60 flex items-center gap-2">
                 {loading ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '13px' }} >sync</span> : <span className="material-symbols-outlined text-primary" style={{ fontSize: 13 }}>sync</span>} Refresh Data
@@ -516,14 +543,14 @@ export default function ProdiPage() {
           <div className="flex-1">
             <h2 className="font-headline font-bold text-lg text-[var(--theme-text)]">Daftar Program Studi</h2>
             <p className="text-xs text-[var(--theme-text-muted)] mt-1 font-medium">
-              Menampilkan total <span className="font-bold text-[var(--theme-primary)]">{majors.length}</span> program studi terdaftar
+              Menampilkan total <span className="font-bold text-[var(--theme-primary)]">{filteredMajors.length}</span> program studi terdaftar
             </p>
           </div>
         </div>
         <div className="p-0">
           <DataTable
             columns={prodiColumns}
-            data={majors}
+            data={filteredMajors}
             loading={loading}
             searchPlaceholder="Cari program studi..."
             actions={renderActions}

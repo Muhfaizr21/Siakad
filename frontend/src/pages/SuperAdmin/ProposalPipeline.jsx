@@ -468,423 +468,423 @@ export default function ProposalPipeline() {
                     <TabsTrigger value="administrasi" className="rounded-lg text-xs sm:text-sm font-semibold text-slate-600 data-[state=active]:text-blue-700 transition-colors">Administrasi</TabsTrigger>
                   </TabsList>
                 </div>
-
+              
                 <div className="p-6 md:p-8 overflow-y-auto font-inter bg-slate-50/50 flex-grow relative">
-                  <TabsContent value="overview" className="mt-0 space-y-8 outline-none animate-in fade-in zoom-in-95 duration-200">
-                    {/* 1. KARTU RINGKASAN ATAS */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                      {/* Anggaran */}
-                      <div className="relative overflow-hidden bg-gradient-to-br from-emerald-500 to-teal-600 p-5 rounded-2xl shadow-lg shadow-emerald-500/20 text-white flex flex-col justify-center transition-all hover:scale-[1.02]">
-                        <div className="absolute -right-4 -bottom-4 opacity-10">
-                          <span className="material-symbols-outlined text-[100px]">payments</span>
-                        </div>
-                        <div className="relative z-10 flex items-center gap-2 mb-3">
-                          <div className="size-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
-                            <span className="material-symbols-outlined text-[16px] text-white">payments</span>
-                          </div>
-                          <p className="text-[10px] font-black text-emerald-50 uppercase tracking-widest font-headline">Proyeksi Anggaran</p>
-                        </div>
-                        <p className="relative z-10 text-2xl font-black font-headline tabular-nums leading-none mb-1">{formatRp(selected.Anggaran)}</p>
-                        <p className="relative z-10 text-[10px] font-medium text-emerald-100 truncate">Sumber: {selected.sumber_dana || selected.SumberDana || 'Tidak disebutkan'}</p>
+                <TabsContent value="overview" className="mt-0 space-y-8 outline-none animate-in fade-in zoom-in-95 duration-200">
+                  {/* 1. KARTU RINGKASAN ATAS */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    {/* Anggaran */}
+                    <div className="relative overflow-hidden bg-gradient-to-br from-emerald-500 to-teal-600 p-5 rounded-2xl shadow-lg shadow-emerald-500/20 text-white flex flex-col justify-center transition-all hover:scale-[1.02]">
+                      <div className="absolute -right-4 -bottom-4 opacity-10">
+                        <span className="material-symbols-outlined text-[100px]">payments</span>
                       </div>
-                      {/* Rekening */}
-                      <div className="relative overflow-hidden bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center transition-all hover:shadow-md hover:border-blue-200">
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="size-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
-                            <span className="material-symbols-outlined text-[16px]">account_balance</span>
-                          </div>
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Rekening Pencairan</p>
+                      <div className="relative z-10 flex items-center gap-2 mb-3">
+                        <div className="size-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
+                          <span className="material-symbols-outlined text-[16px] text-white">payments</span>
                         </div>
-                        <p className="text-sm font-bold text-slate-800 break-all leading-tight mb-1">{selected.Ormawa?.rekening || selected.Ormawa?.Rekening || 'Belum diatur'}</p>
-                        <p className="text-[10px] font-semibold text-slate-500 truncate">A.N. {selected.Ormawa?.Nama || 'Organisasi'}</p>
+                        <p className="text-[10px] font-black text-emerald-50 uppercase tracking-widest font-headline">Proyeksi Anggaran</p>
                       </div>
-                      {/* Status */}
-                      <div className="relative overflow-hidden bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center transition-all hover:shadow-md hover:border-amber-200">
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="size-8 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center">
-                            <span className="material-symbols-outlined text-[16px]">verified</span>
-                          </div>
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Status Validasi</p>
+                      <p className="relative z-10 text-2xl font-black font-headline tabular-nums leading-none mb-1">{formatRp(selected.Anggaran)}</p>
+                      <p className="relative z-10 text-[10px] font-medium text-emerald-100 truncate">Sumber: {selected.sumber_dana || selected.SumberDana || 'Tidak disebutkan'}</p>
+                    </div>
+                    {/* Rekening */}
+                    <div className="relative overflow-hidden bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center transition-all hover:shadow-md hover:border-blue-200">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="size-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                          <span className="material-symbols-outlined text-[16px]">account_balance</span>
                         </div>
-                        <div className="mt-auto">
-                          <Badge className={cn('px-3 py-1.5 rounded-lg border-none shadow-sm text-[10px] font-black uppercase tracking-widest font-headline w-fit', STATUS_CFG[selected.Status]?.cls)}>
-                            {STATUS_CFG[selected.Status]?.label || selected.Status}
-                          </Badge>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Rekening Pencairan</p>
+                      </div>
+                      <p className="text-sm font-bold text-slate-800 break-all leading-tight mb-1">{selected.Ormawa?.rekening || selected.Ormawa?.Rekening || 'Belum diatur'}</p>
+                      <p className="text-[10px] font-semibold text-slate-500 truncate">A.N. {selected.Ormawa?.Nama || 'Organisasi'}</p>
+                    </div>
+                    {/* Status */}
+                    <div className="relative overflow-hidden bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center transition-all hover:shadow-md hover:border-amber-200">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="size-8 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center">
+                          <span className="material-symbols-outlined text-[16px]">verified</span>
                         </div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Status Validasi</p>
+                      </div>
+                      <div className="mt-auto">
+                        <Badge className={cn('px-3 py-1.5 rounded-lg border-none shadow-sm text-[10px] font-black uppercase tracking-widest font-headline w-fit', STATUS_CFG[selected.Status]?.cls)}>
+                          {STATUS_CFG[selected.Status]?.label || selected.Status}
+                        </Badge>
                       </div>
                     </div>
+                  </div>
 
-                    {/* 2. TABEL KARTU (Sejajar Atas & Bawah) */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
-                      {/* KIRI: Informasi Utama */}
-                      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
-                        <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50 shrink-0">
-                          <div className="p-2 rounded-xl bg-primary/10 text-primary">
-                            <span className="material-symbols-outlined text-[18px]">description</span>
-                          </div>
-                          <h3 className="text-sm font-bold text-slate-800 font-headline">Informasi Utama Kegiatan</h3>
+                  {/* 2. TABEL KARTU (Sejajar Atas & Bawah) */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+                    {/* KIRI: Informasi Utama */}
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
+                      <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50 shrink-0">
+                        <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                          <span className="material-symbols-outlined text-[18px]">description</span>
                         </div>
-                        <div className="p-6 flex-grow flex flex-col">
-                          <div className="bg-slate-50/50 rounded-xl border border-slate-100/60 overflow-hidden divide-y divide-slate-100/60 flex-grow flex flex-col shadow-inner">
-                            <div className="flex-1 flex flex-col sm:flex-row sm:items-center p-5 hover:bg-white/50 transition-colors">
-                              <div className="w-full sm:w-2/5 text-xs font-semibold text-slate-500 mb-1 sm:mb-0 flex items-center gap-2">
-                                <span className="material-symbols-outlined text-[16px] text-slate-400">category</span>
-                                Jenis Kegiatan
-                              </div>
-                              <div className="w-full sm:w-3/5 text-sm font-bold text-slate-900">{selected.jenis_kegiatan || selected.JenisKegiatan || selected.Jenis || '-'}</div>
-                            </div>
-                            <div className="flex-1 flex flex-col sm:flex-row sm:items-center p-5 hover:bg-white/50 transition-colors">
-                              <div className="w-full sm:w-2/5 text-xs font-semibold text-slate-500 mb-1 sm:mb-0 flex items-center gap-2">
-                                <span className="material-symbols-outlined text-[16px] text-slate-400">extension</span>
-                                Bentuk Kegiatan
-                              </div>
-                              <div className="w-full sm:w-3/5 text-sm font-bold text-slate-900">{selected.bentuk_kegiatan || selected.BentukKegiatan || '-'}</div>
-                            </div>
-                          </div>
-                        </div>
+                        <h3 className="text-sm font-bold text-slate-800 font-headline">Informasi Utama Kegiatan</h3>
                       </div>
-
-                      {/* KANAN: Waktu & Lokasi */}
-                      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
-                        <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50 shrink-0">
-                          <div className="p-2 rounded-xl bg-amber-50 text-amber-600">
-                            <span className="material-symbols-outlined text-[18px]">event_note</span>
+                      <div className="p-6 flex-grow flex flex-col">
+                        <div className="bg-slate-50/50 rounded-xl border border-slate-100/60 overflow-hidden divide-y divide-slate-100/60 flex-grow flex flex-col shadow-inner">
+                          <div className="flex-1 flex flex-col sm:flex-row sm:items-center p-5 hover:bg-white/50 transition-colors">
+                            <div className="w-full sm:w-2/5 text-xs font-semibold text-slate-500 mb-1 sm:mb-0 flex items-center gap-2">
+                              <span className="material-symbols-outlined text-[16px] text-slate-400">category</span>
+                              Jenis Kegiatan
+                            </div>
+                            <div className="w-full sm:w-3/5 text-sm font-bold text-slate-900">{selected.jenis_kegiatan || selected.JenisKegiatan || selected.Jenis || '-'}</div>
                           </div>
-                          <h3 className="text-sm font-bold text-slate-800 font-headline">Pelaksanaan</h3>
-                        </div>
-                        <div className="p-6 flex-grow flex flex-col">
-                          <div className="bg-slate-50/50 rounded-xl border border-slate-100/60 overflow-hidden divide-y divide-slate-100/60 flex-grow flex flex-col shadow-inner">
-                            <div className="flex-1 flex flex-col sm:flex-row sm:items-center p-5 hover:bg-white/50 transition-colors">
-                              <div className="w-full sm:w-2/5 text-xs font-semibold text-slate-500 flex items-center gap-2 mb-1 sm:mb-0">
-                                <span className="material-symbols-outlined text-[16px] text-slate-400">calendar_today</span>
-                                Tanggal
-                              </div>
-                              <div className="w-full sm:w-3/5 text-sm font-bold text-slate-900 leading-snug">
-                                {selected.TanggalKegiatan ? new Date(selected.TanggalKegiatan).toLocaleDateString('id-ID', { dateStyle: 'long' }) : '-'}
-                              </div>
+                          <div className="flex-1 flex flex-col sm:flex-row sm:items-center p-5 hover:bg-white/50 transition-colors">
+                            <div className="w-full sm:w-2/5 text-xs font-semibold text-slate-500 mb-1 sm:mb-0 flex items-center gap-2">
+                              <span className="material-symbols-outlined text-[16px] text-slate-400">extension</span>
+                              Bentuk Kegiatan
                             </div>
-                            <div className="flex-1 flex flex-col sm:flex-row sm:items-center p-5 hover:bg-white/50 transition-colors">
-                              <div className="w-full sm:w-2/5 text-xs font-semibold text-slate-500 flex items-center gap-2 mb-1 sm:mb-0">
-                                <span className="material-symbols-outlined text-[16px] text-slate-400">location_on</span>
-                                Tempat & Waktu
-                              </div>
-                              <div className="w-full sm:w-3/5 text-sm font-bold text-slate-900 whitespace-pre-wrap leading-snug">
-                                {selected.jadwal_pelaksanaan || selected.JadwalPelaksanaan || '-'}
-                              </div>
-                            </div>
+                            <div className="w-full sm:w-3/5 text-sm font-bold text-slate-900">{selected.bentuk_kegiatan || selected.BentukKegiatan || '-'}</div>
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    {/* 3. RINCIAN & LATAR BELAKANG */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-                      {/* KIRI: Rincian Kegiatan */}
-                      {(selected.deskripsi || selected.Deskripsi || selected.tujuan_kegiatan || selected.TujuanKegiatan || selected.indikator_keberhasilan || selected.IndikatorKeberhasilan) && (
-                        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                          <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50">
-                            <div className="p-2 rounded-xl bg-purple-50 text-purple-600">
-                              <span className="material-symbols-outlined text-[18px]">notes</span>
-                            </div>
-                            <h3 className="text-sm font-bold text-slate-800 font-headline">Rincian Kegiatan</h3>
-                          </div>
-                          <div className="p-6 space-y-6">
-                            {(selected.deskripsi || selected.Deskripsi) && (
-                              <div>
-                                <p className="text-xs font-semibold text-slate-500 mb-2 flex items-center gap-1.5">
-                                  <span className="material-symbols-outlined text-[16px]">subject</span> Deskripsi Singkat
-                                </p>
-                                <div className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
-                                  {selected.deskripsi || selected.Deskripsi}
-                                </div>
-                              </div>
-                            )}
-
-                            {(selected.tujuan_kegiatan || selected.TujuanKegiatan) && (
-                              <div>
-                                <p className="text-xs font-semibold text-slate-500 mb-2 flex items-center gap-1.5">
-                                  <span className="material-symbols-outlined text-[16px]">track_changes</span> Tujuan Kegiatan
-                                </p>
-                                <div className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
-                                  {selected.tujuan_kegiatan || selected.TujuanKegiatan}
-                                </div>
-                              </div>
-                            )}
-
-                            {(selected.indikator_keberhasilan || selected.IndikatorKeberhasilan) && (
-                              <div>
-                                <p className="text-xs font-semibold text-slate-500 mb-2 flex items-center gap-1.5">
-                                  <span className="material-symbols-outlined text-[16px]">analytics</span> Indikator Keberhasilan
-                                </p>
-                                <div className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
-                                  {selected.indikator_keberhasilan || selected.IndikatorKeberhasilan}
-                                </div>
-                              </div>
-                            )}
-                          </div>
+                    {/* KANAN: Waktu & Lokasi */}
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
+                      <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50 shrink-0">
+                        <div className="p-2 rounded-xl bg-amber-50 text-amber-600">
+                          <span className="material-symbols-outlined text-[18px]">event_note</span>
                         </div>
-                      )}
-
-                      {/* KANAN: Latar Belakang */}
-                      {(selected.latar_belakang || selected.LatarBelakang) && (
-                        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                          <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50">
-                            <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
-                              <span className="material-symbols-outlined text-[18px]">history_edu</span>
+                        <h3 className="text-sm font-bold text-slate-800 font-headline">Pelaksanaan</h3>
+                      </div>
+                      <div className="p-6 flex-grow flex flex-col">
+                        <div className="bg-slate-50/50 rounded-xl border border-slate-100/60 overflow-hidden divide-y divide-slate-100/60 flex-grow flex flex-col shadow-inner">
+                          <div className="flex-1 flex flex-col sm:flex-row sm:items-center p-5 hover:bg-white/50 transition-colors">
+                            <div className="w-full sm:w-2/5 text-xs font-semibold text-slate-500 flex items-center gap-2 mb-1 sm:mb-0">
+                              <span className="material-symbols-outlined text-[16px] text-slate-400">calendar_today</span>
+                              Tanggal
                             </div>
-                            <h3 className="text-sm font-bold text-slate-800 font-headline">Latar Belakang</h3>
-                          </div>
-                          <div className="p-6">
-                            <div className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
-                              {selected.latar_belakang || selected.LatarBelakang}
+                            <div className="w-full sm:w-3/5 text-sm font-bold text-slate-900 leading-snug">
+                              {selected.TanggalKegiatan ? new Date(selected.TanggalKegiatan).toLocaleDateString('id-ID', { dateStyle: 'long' }) : '-'}
                             </div>
                           </div>
-                        </div>
-                      )}
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="administrasi" className="mt-0 space-y-8 outline-none animate-in fade-in zoom-in-95 duration-200">
-                    {/* TOP SECTION: Sejajar (items-stretch) */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
-                      {/* KIRI: Penyelenggara */}
-                      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
-                        <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50 shrink-0">
-                          <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600">
-                            <span className="material-symbols-outlined text-[18px]">groups</span>
-                          </div>
-                          <h3 className="text-sm font-bold text-slate-800 font-headline">Penyelenggara</h3>
-                        </div>
-                        <div className="p-6 flex-grow flex flex-col">
-                          <div className="bg-slate-50/50 rounded-xl border border-slate-100/60 overflow-hidden divide-y divide-slate-100/60 flex-grow flex flex-col shadow-inner">
-                            <div className="flex-1 flex flex-col sm:flex-row sm:items-center p-5 hover:bg-white/50 transition-colors">
-                              <div className="w-full sm:w-2/5 text-xs font-semibold text-slate-500 flex items-center gap-2 mb-1 sm:mb-0">
-                                <span className="material-symbols-outlined text-[16px] text-slate-400">person</span>
-                                Penanggung Jawab
-                              </div>
-                              <div className="w-full sm:w-3/5 text-sm font-bold text-slate-900 leading-snug">{selected.pj_kegiatan || selected.PJKegiatan || '-'}</div>
+                          <div className="flex-1 flex flex-col sm:flex-row sm:items-center p-5 hover:bg-white/50 transition-colors">
+                            <div className="w-full sm:w-2/5 text-xs font-semibold text-slate-500 flex items-center gap-2 mb-1 sm:mb-0">
+                              <span className="material-symbols-outlined text-[16px] text-slate-400">location_on</span>
+                              Tempat & Waktu
                             </div>
-                            <div className="flex-1 flex flex-col sm:flex-row sm:items-center p-5 hover:bg-white/50 transition-colors">
-                              <div className="w-full sm:w-2/5 text-xs font-semibold text-slate-500 flex items-center gap-2 mb-1 sm:mb-0">
-                                <span className="material-symbols-outlined text-[16px] text-slate-400">handshake</span>
-                                Mitra
-                              </div>
-                              <div className="w-full sm:w-3/5 text-sm font-bold text-slate-900 leading-snug">{selected.mitra || selected.Mitra || '-'}</div>
+                            <div className="w-full sm:w-3/5 text-sm font-bold text-slate-900 whitespace-pre-wrap leading-snug">
+                              {selected.jadwal_pelaksanaan || selected.JadwalPelaksanaan || '-'}
                             </div>
                           </div>
                         </div>
                       </div>
+                    </div>
+                  </div>
 
-                      {/* KANAN: Berkas Pendukung */}
-                      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
-                        <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50 shrink-0">
-                          <div className="p-2 rounded-xl bg-primary/10 text-primary">
-                            <span className="material-symbols-outlined text-[18px]">folder</span>
+                  {/* 3. RINCIAN & LATAR BELAKANG */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                    {/* KIRI: Rincian Kegiatan */}
+                    {(selected.deskripsi || selected.Deskripsi || selected.tujuan_kegiatan || selected.TujuanKegiatan || selected.indikator_keberhasilan || selected.IndikatorKeberhasilan) && (
+                      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50">
+                          <div className="p-2 rounded-xl bg-purple-50 text-purple-600">
+                            <span className="material-symbols-outlined text-[18px]">notes</span>
                           </div>
-                          <h3 className="text-sm font-bold text-slate-800 font-headline">Berkas Pendukung</h3>
+                          <h3 className="text-sm font-bold text-slate-800 font-headline">Rincian Kegiatan</h3>
                         </div>
-                        <div className="p-6 flex-grow flex flex-col justify-center">
-                          {selected.file_url || selected.FileURL ? (
-                            <a href={selected.file_url || selected.FileURL} target="_blank" rel="noreferrer" className="flex items-center justify-between bg-primary/5 hover:bg-primary/10 border border-primary/10 p-5 rounded-xl transition-all hover:scale-[1.02] group h-full flex-1 max-h-[120px]">
-                              <div className="flex items-center gap-4">
-                                <div className="size-12 rounded-xl bg-primary text-white flex items-center justify-center shadow-md shrink-0">
-                                  <span className="material-symbols-outlined text-2xl">picture_as_pdf</span>
-                                </div>
-                                <div>
-                                  <p className="text-sm font-bold text-slate-900 mb-1">Dokumen Proposal</p>
-                                  <p className="text-xs font-medium text-slate-500 flex items-center gap-1">
-                                    <span className="material-symbols-outlined text-[14px]">download</span> Lihat / Unduh PDF
-                                  </p>
-                                </div>
+                        <div className="p-6 space-y-6">
+                          {(selected.deskripsi || selected.Deskripsi) && (
+                            <div>
+                              <p className="text-xs font-semibold text-slate-500 mb-2 flex items-center gap-1.5">
+                                <span className="material-symbols-outlined text-[16px]">subject</span> Deskripsi Singkat
+                              </p>
+                              <div className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
+                                {selected.deskripsi || selected.Deskripsi}
                               </div>
-                              <span className="material-symbols-outlined text-primary group-hover:translate-x-1 transition-transform text-2xl">arrow_forward_ios</span>
-                            </a>
-                          ) : (
-                            <div className="flex-1 flex flex-col items-center justify-center text-slate-400 gap-2 h-full bg-slate-50/50 rounded-xl border border-dashed border-slate-200 min-h-[100px]">
-                              <span className="material-symbols-outlined text-3xl">cancel</span>
-                              <p className="text-sm font-medium">Tidak ada berkas</p>
+                            </div>
+                          )}
+
+                          {(selected.tujuan_kegiatan || selected.TujuanKegiatan) && (
+                            <div>
+                              <p className="text-xs font-semibold text-slate-500 mb-2 flex items-center gap-1.5">
+                                <span className="material-symbols-outlined text-[16px]">track_changes</span> Tujuan Kegiatan
+                              </p>
+                              <div className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
+                                {selected.tujuan_kegiatan || selected.TujuanKegiatan}
+                              </div>
+                            </div>
+                          )}
+
+                          {(selected.indikator_keberhasilan || selected.IndikatorKeberhasilan) && (
+                            <div>
+                              <p className="text-xs font-semibold text-slate-500 mb-2 flex items-center gap-1.5">
+                                <span className="material-symbols-outlined text-[16px]">analytics</span> Indikator Keberhasilan
+                              </p>
+                              <div className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
+                                {selected.indikator_keberhasilan || selected.IndikatorKeberhasilan}
+                              </div>
                             </div>
                           )}
                         </div>
                       </div>
-                    </div>
+                    )}
 
-                    {/* FULL WIDTH: Sasaran Peserta */}
-                    {(selected.sasaran_kegiatan || selected.SasaranKegiatan) && (
+                    {/* KANAN: Latar Belakang */}
+                    {(selected.latar_belakang || selected.LatarBelakang) && (
                       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                         <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50">
-                          <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600">
-                            <span className="material-symbols-outlined text-[18px]">target</span>
+                          <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
+                            <span className="material-symbols-outlined text-[18px]">history_edu</span>
                           </div>
-                          <h3 className="text-sm font-bold text-slate-800 font-headline">Sasaran Peserta</h3>
+                          <h3 className="text-sm font-bold text-slate-800 font-headline">Latar Belakang</h3>
                         </div>
                         <div className="p-6">
-                          <div className="text-sm text-slate-700 leading-relaxed bg-slate-50/50 p-5 rounded-xl border border-slate-100 whitespace-pre-wrap">
-                            {selected.sasaran_kegiatan || selected.SasaranKegiatan}
+                          <div className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
+                            {selected.latar_belakang || selected.LatarBelakang}
                           </div>
                         </div>
                       </div>
                     )}
+                  </div>
+                </TabsContent>
 
-                    {/* BOTTOM SECTION: Tenggat LPJ & Aksi Persetujuan (Hanya untuk isPendingUniv) */}
-                    {isPendingUniv(selected) && (
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
-                        {/* KIRI: Tetapkan Tenggat LPJ */}
-                        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
-                          <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50 shrink-0">
-                            <div className="p-2 rounded-xl bg-primary/10 text-primary">
-                              <span className="material-symbols-outlined text-[18px]">timer</span>
-                            </div>
-                            <h3 className="text-sm font-bold text-slate-800 font-headline">Tenggat Waktu LPJ</h3>
-                          </div>
-                          <div className="p-6 flex-grow flex flex-col justify-center">
-                            <p className="text-xs font-medium text-slate-600 mb-6 leading-relaxed text-center sm:text-left">
-                              Tentukan batas waktu maksimal bagi ormawa untuk mengunggah Laporan Pertanggungjawaban (LPJ) setelah kegiatan selesai.
-                            </p>
-                            <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl overflow-hidden shadow-inner max-w-xs mx-auto sm:mx-0 w-full">
-                              <input type="number" min={1} max={365}
-                                value={tenggatHari}
-                                onChange={e => setTenggatHari(parseInt(e.target.value) || 14)}
-                                className="flex-1 h-12 px-4 text-lg font-black text-center text-slate-800 border-none bg-transparent focus:outline-none focus:ring-2 focus:ring-primary/20" />
-                              <span className="text-sm font-bold text-slate-500 px-5 bg-slate-100 h-full flex items-center border-l border-slate-200">hari</span>
-                            </div>
-                          </div>
+                <TabsContent value="administrasi" className="mt-0 space-y-8 outline-none animate-in fade-in zoom-in-95 duration-200">
+                  {/* TOP SECTION: Sejajar (items-stretch) */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+                    {/* KIRI: Penyelenggara */}
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
+                      <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50 shrink-0">
+                        <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600">
+                          <span className="material-symbols-outlined text-[18px]">groups</span>
                         </div>
-
-                        {/* KANAN: Aksi Persetujuan */}
-                        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
-                          <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50 shrink-0">
-                            <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
-                              <span className="material-symbols-outlined text-[18px]">verified_user</span>
+                        <h3 className="text-sm font-bold text-slate-800 font-headline">Penyelenggara</h3>
+                      </div>
+                      <div className="p-6 flex-grow flex flex-col">
+                        <div className="bg-slate-50/50 rounded-xl border border-slate-100/60 overflow-hidden divide-y divide-slate-100/60 flex-grow flex flex-col shadow-inner">
+                          <div className="flex-1 flex flex-col sm:flex-row sm:items-center p-5 hover:bg-white/50 transition-colors">
+                            <div className="w-full sm:w-2/5 text-xs font-semibold text-slate-500 flex items-center gap-2 mb-1 sm:mb-0">
+                              <span className="material-symbols-outlined text-[16px] text-slate-400">person</span>
+                              Penanggung Jawab
                             </div>
-                            <h3 className="text-sm font-bold text-slate-800 font-headline">Aksi Persetujuan</h3>
+                            <div className="w-full sm:w-3/5 text-sm font-bold text-slate-900 leading-snug">{selected.pj_kegiatan || selected.PJKegiatan || '-'}</div>
                           </div>
-                          <div className="p-6 flex-grow flex flex-col justify-center items-center gap-4 bg-slate-50/20">
-                            <div className="w-full flex flex-col gap-3">
-                              <Button
-                                type="button"
-                                onClick={() => handleApprove(selected.id || selected.ID)}
-                                disabled={isSubmitting}
-                                className="w-full h-12 rounded-xl bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/30 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 border-none font-black text-[10px] tracking-widest uppercase"
-                              >
-                                {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>security</span>}
-                                SAHKAN PROPOSAL
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => setIsRejectOpen(true)}
-                                className="w-full h-12 rounded-xl border-rose-200 text-rose-600 hover:bg-rose-50 hover:text-rose-700 font-black text-[10px] tracking-widest uppercase transition-all active:scale-95 flex items-center justify-center gap-2 bg-white"
-                              >
-                                <span className="material-symbols-outlined text-[18px]">cancel</span>
-                                TOLAK / KEMBALIKAN
-                              </Button>
+                          <div className="flex-1 flex flex-col sm:flex-row sm:items-center p-5 hover:bg-white/50 transition-colors">
+                            <div className="w-full sm:w-2/5 text-xs font-semibold text-slate-500 flex items-center gap-2 mb-1 sm:mb-0">
+                              <span className="material-symbols-outlined text-[16px] text-slate-400">handshake</span>
+                              Mitra
                             </div>
+                            <div className="w-full sm:w-3/5 text-sm font-bold text-slate-900 leading-snug">{selected.mitra || selected.Mitra || '-'}</div>
                           </div>
                         </div>
                       </div>
-                    )}
-
-                    {/* Catatan Revisi & Peringatan (Jika Ada) */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-                      {selected.Catatan && (
-                        <div className="bg-rose-50 border border-rose-100 rounded-2xl p-6 shadow-sm">
-                          <div className="flex items-center gap-2 text-rose-600 mb-3">
-                            <div className="p-1.5 rounded-lg bg-rose-100 text-rose-600">
-                              <span className="material-symbols-outlined text-[16px]">feedback</span>
-                            </div>
-                            <h3 className="text-xs font-black uppercase tracking-widest font-headline">Catatan Revisi</h3>
-                          </div>
-                          <div className="text-sm font-medium text-rose-700 leading-relaxed whitespace-pre-wrap bg-white/60 p-4 rounded-xl border border-rose-200 shadow-inner">
-                            {selected.Catatan}
-                          </div>
-                        </div>
-                      )}
-
-                      {selected.Status === 'diajukan' && isUnivLevelOrmawa(selected) && (
-                        <div className="flex items-start gap-3 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-5 shadow-sm">
-                          <div className="size-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 shrink-0 shadow-sm">
-                            <span className="material-symbols-outlined text-[16px]">info</span>
-                          </div>
-                          <div className="space-y-1">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-amber-800 font-headline">Peringatan</p>
-                            <p className="text-xs font-medium text-amber-800 leading-relaxed">
-                              Ormawa tingkat Universitas (BEM/UKM/MPM). Proposal ini <strong>langsung diajukan ke Rektorat</strong> tanpa validasi Fakultas.
-                            </p>
-                          </div>
-                        </div>
-                      )}
                     </div>
-                  </TabsContent>
-                </div>
-              </Tabs>
 
-              <DialogFooter className="px-6 py-5 bg-white border-t border-slate-100 flex flex-col sm:flex-row items-center justify-end shadow-[0_-4px_10px_-4px_rgba(0,0,0,0.05)] relative z-10 shrink-0">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setIsDetailOpen(false)}
-                  className="w-full sm:w-auto text-[10px] font-black tracking-widest text-slate-500 hover:text-slate-900 px-6 h-12 rounded-xl hover:bg-slate-100 active:scale-95 transition-all"
-                >
-                  TUTUP
-                </Button>
-              </DialogFooter>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+                    {/* KANAN: Berkas Pendukung */}
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
+                      <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50 shrink-0">
+                        <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                          <span className="material-symbols-outlined text-[18px]">folder</span>
+                        </div>
+                        <h3 className="text-sm font-bold text-slate-800 font-headline">Berkas Pendukung</h3>
+                      </div>
+                      <div className="p-6 flex-grow flex flex-col justify-center">
+                        {selected.file_url || selected.FileURL ? (
+                          <a href={selected.file_url || selected.FileURL} target="_blank" rel="noreferrer" className="flex items-center justify-between bg-primary/5 hover:bg-primary/10 border border-primary/10 p-5 rounded-xl transition-all hover:scale-[1.02] group h-full flex-1 max-h-[120px]">
+                            <div className="flex items-center gap-4">
+                              <div className="size-12 rounded-xl bg-primary text-white flex items-center justify-center shadow-md shrink-0">
+                                <span className="material-symbols-outlined text-2xl">picture_as_pdf</span>
+                              </div>
+                              <div>
+                                <p className="text-sm font-bold text-slate-900 mb-1">Dokumen Proposal</p>
+                                <p className="text-xs font-medium text-slate-500 flex items-center gap-1">
+                                  <span className="material-symbols-outlined text-[14px]">download</span> Lihat / Unduh PDF
+                                </p>
+                              </div>
+                            </div>
+                            <span className="material-symbols-outlined text-primary group-hover:translate-x-1 transition-transform text-2xl">arrow_forward_ios</span>
+                          </a>
+                        ) : (
+                          <div className="flex-1 flex flex-col items-center justify-center text-slate-400 gap-2 h-full bg-slate-50/50 rounded-xl border border-dashed border-slate-200 min-h-[100px]">
+                            <span className="material-symbols-outlined text-3xl">cancel</span>
+                            <p className="text-sm font-medium">Tidak ada berkas</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
 
-      {/* ── Reject Reason Dialog ──────────────────────────────────── */}
-      <Dialog open={isRejectOpen} onOpenChange={setIsRejectOpen} maxWidth="max-w-md">
-        <DialogContent className="w-full h-full p-0 overflow-hidden border-none shadow-none rounded-2xl bg-white animate-in zoom-in-95 duration-200">
-          <DialogHeader className="relative bg-gradient-to-br from-rose-500 via-rose-600 to-rose-700 pt-6 pb-7 px-6 overflow-hidden flex-shrink-0 border-b-0 text-left">
-            <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
-            <div className="absolute -bottom-6 right-16 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
-            <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
-              <span className="material-symbols-outlined size-24 rotate-12 text-white">error</span>
-            </div>
-            <div className="relative z-10 space-y-1">
-              <div className="flex items-center gap-2 mb-2">
-                <Badge className="bg-white/10 text-white px-2.5 py-0.5 text-[9px] font-black tracking-widest uppercase rounded-md border-none backdrop-blur-sm">
-                  Tolak Proposal
-                </Badge>
+                  {/* FULL WIDTH: Sasaran Peserta */}
+                  {(selected.sasaran_kegiatan || selected.SasaranKegiatan) && (
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                      <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50">
+                        <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600">
+                          <span className="material-symbols-outlined text-[18px]">target</span>
+                        </div>
+                        <h3 className="text-sm font-bold text-slate-800 font-headline">Sasaran Peserta</h3>
+                      </div>
+                      <div className="p-6">
+                        <div className="text-sm text-slate-700 leading-relaxed bg-slate-50/50 p-5 rounded-xl border border-slate-100 whitespace-pre-wrap">
+                          {selected.sasaran_kegiatan || selected.SasaranKegiatan}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* BOTTOM SECTION: Tenggat LPJ & Aksi Persetujuan (Hanya untuk isPendingUniv) */}
+                  {isPendingUniv(selected) && (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+                      {/* KIRI: Tetapkan Tenggat LPJ */}
+                      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
+                        <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50 shrink-0">
+                          <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                            <span className="material-symbols-outlined text-[18px]">timer</span>
+                          </div>
+                          <h3 className="text-sm font-bold text-slate-800 font-headline">Tenggat Waktu LPJ</h3>
+                        </div>
+                        <div className="p-6 flex-grow flex flex-col justify-center">
+                          <p className="text-xs font-medium text-slate-600 mb-6 leading-relaxed text-center sm:text-left">
+                            Tentukan batas waktu maksimal bagi ormawa untuk mengunggah Laporan Pertanggungjawaban (LPJ) setelah kegiatan selesai.
+                          </p>
+                          <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl overflow-hidden shadow-inner max-w-xs mx-auto sm:mx-0 w-full">
+                            <input type="number" min={1} max={365}
+                              value={tenggatHari}
+                              onChange={e => setTenggatHari(parseInt(e.target.value) || 14)}
+                              className="flex-1 h-12 px-4 text-lg font-black text-center text-slate-800 border-none bg-transparent focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                            <span className="text-sm font-bold text-slate-500 px-5 bg-slate-100 h-full flex items-center border-l border-slate-200">hari</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* KANAN: Aksi Persetujuan */}
+                      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
+                        <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50 shrink-0">
+                          <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
+                            <span className="material-symbols-outlined text-[18px]">verified_user</span>
+                          </div>
+                          <h3 className="text-sm font-bold text-slate-800 font-headline">Aksi Persetujuan</h3>
+                        </div>
+                        <div className="p-6 flex-grow flex flex-col justify-center items-center gap-4 bg-slate-50/20">
+                          <div className="w-full flex flex-col gap-3">
+                            <Button
+                              type="button"
+                              onClick={() => handleApprove(selected.id || selected.ID)}
+                              disabled={isSubmitting}
+                              className="w-full h-12 rounded-xl bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/30 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 border-none font-black text-[10px] tracking-widest uppercase"
+                            >
+                              {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>security</span>}
+                              SAHKAN PROPOSAL
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => setIsRejectOpen(true)}
+                              className="w-full h-12 rounded-xl border-rose-200 text-rose-600 hover:bg-rose-50 hover:text-rose-700 font-black text-[10px] tracking-widest uppercase transition-all active:scale-95 flex items-center justify-center gap-2 bg-white"
+                            >
+                              <span className="material-symbols-outlined text-[18px]">cancel</span>
+                              TOLAK / KEMBALIKAN
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Catatan Revisi & Peringatan (Jika Ada) */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                    {selected.Catatan && (
+                      <div className="bg-rose-50 border border-rose-100 rounded-2xl p-6 shadow-sm">
+                        <div className="flex items-center gap-2 text-rose-600 mb-3">
+                          <div className="p-1.5 rounded-lg bg-rose-100 text-rose-600">
+                            <span className="material-symbols-outlined text-[16px]">feedback</span>
+                          </div>
+                          <h3 className="text-xs font-black uppercase tracking-widest font-headline">Catatan Revisi</h3>
+                        </div>
+                        <div className="text-sm font-medium text-rose-700 leading-relaxed whitespace-pre-wrap bg-white/60 p-4 rounded-xl border border-rose-200 shadow-inner">
+                          {selected.Catatan}
+                        </div>
+                      </div>
+                    )}
+
+                    {selected.Status === 'diajukan' && isUnivLevelOrmawa(selected) && (
+                      <div className="flex items-start gap-3 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-5 shadow-sm">
+                        <div className="size-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 shrink-0 shadow-sm">
+                          <span className="material-symbols-outlined text-[16px]">info</span>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-amber-800 font-headline">Peringatan</p>
+                          <p className="text-xs font-medium text-amber-800 leading-relaxed">
+                            Ormawa tingkat Universitas (BEM/UKM/MPM). Proposal ini <strong>langsung diajukan ke Rektorat</strong> tanpa validasi Fakultas.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
               </div>
-              <DialogTitle className="text-xl sm:text-2xl font-black font-headline tracking-tighter text-white uppercase pr-8 leading-tight">
-                Tolak Proposal
-              </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm font-medium text-white/70 font-inter mt-1.5">
-                Berikan alasan formal penangguhan anggaran.
-              </DialogDescription>
-            </div>
-          </DialogHeader>
-          <div className="p-6 md:p-8 space-y-6">
-            <div className="space-y-2">
-              <Label className="text-[10px] font-black text-slate-500 font-headline uppercase tracking-widest ml-1">Justifikasi Penolakan</Label>
-              <Textarea required value={rejectNote} onChange={e => setRejectNote(e.target.value)} placeholder="Tuliskan alasan penolakan atau instruksi revisi..."
-                className="min-h-[120px] rounded-xl border-slate-200 bg-white shadow-sm focus:border-rose-500 focus:ring-1 focus:ring-rose-500/20 p-4 font-medium text-xs font-inter transition-all" />
-            </div>
-          </div>
-          <DialogFooter className="px-6 py-5 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row justify-end sm:space-x-3 gap-3 sm:gap-0">
+            </Tabs>
+
+          <DialogFooter className="px-6 py-5 bg-white border-t border-slate-100 flex flex-col sm:flex-row items-center justify-end shadow-[0_-4px_10px_-4px_rgba(0,0,0,0.05)] relative z-10 shrink-0">
             <Button
               type="button"
               variant="ghost"
-              onClick={() => setIsRejectOpen(false)}
-              className="w-full sm:w-auto text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl active:scale-95 transition-all"
+              onClick={() => setIsDetailOpen(false)}
+              className="w-full sm:w-auto text-[10px] font-black tracking-widest text-slate-500 hover:text-slate-900 px-6 h-12 rounded-xl hover:bg-slate-100 active:scale-95 transition-all"
             >
-              BATAL
-            </Button>
-            <Button
-              type="button"
-              onClick={handleReject}
-              disabled={isSubmitting || !rejectNote.trim()}
-              className="w-full sm:w-auto h-12 px-8 rounded-2xl bg-rose-600 text-white hover:bg-rose-700 shadow-xl shadow-rose-600/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 border-none"
-            >
-              {isSubmitting ? <span className="material-symbols-outlined animate-spin size-4" style={{ fontSize: '16px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >save</span>}
-              <span className="text-[10px] font-black tracking-widest uppercase">KONFIRMASI TOLAK</span>
+              TUTUP
             </Button>
           </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </PageContent>
+        </>
+          )}
+      </DialogContent>
+    </Dialog>
+
+      {/* ── Reject Reason Dialog ──────────────────────────────────── */ }
+  <Dialog open={isRejectOpen} onOpenChange={setIsRejectOpen} maxWidth="max-w-md">
+    <DialogContent className="w-full h-full p-0 overflow-hidden border-none shadow-none rounded-2xl bg-white animate-in zoom-in-95 duration-200">
+      <DialogHeader className="relative bg-gradient-to-br from-rose-500 via-rose-600 to-rose-700 pt-6 pb-7 px-6 overflow-hidden flex-shrink-0 border-b-0 text-left">
+        <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
+        <div className="absolute -bottom-6 right-16 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
+        <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
+          <span className="material-symbols-outlined size-24 rotate-12 text-white">error</span>
+        </div>
+        <div className="relative z-10 space-y-1">
+          <div className="flex items-center gap-2 mb-2">
+            <Badge className="bg-white/10 text-white px-2.5 py-0.5 text-[9px] font-black tracking-widest uppercase rounded-md border-none backdrop-blur-sm">
+              Tolak Proposal
+            </Badge>
+          </div>
+          <DialogTitle className="text-xl sm:text-2xl font-black font-headline tracking-tighter text-white uppercase pr-8 leading-tight">
+            Tolak Proposal
+          </DialogTitle>
+          <DialogDescription className="text-xs sm:text-sm font-medium text-white/70 font-inter mt-1.5">
+            Berikan alasan formal penangguhan anggaran.
+          </DialogDescription>
+        </div>
+      </DialogHeader>
+      <div className="p-6 md:p-8 space-y-6">
+        <div className="space-y-2">
+          <Label className="text-[10px] font-black text-slate-500 font-headline uppercase tracking-widest ml-1">Justifikasi Penolakan</Label>
+          <Textarea required value={rejectNote} onChange={e => setRejectNote(e.target.value)} placeholder="Tuliskan alasan penolakan atau instruksi revisi..."
+            className="min-h-[120px] rounded-xl border-slate-200 bg-white shadow-sm focus:border-rose-500 focus:ring-1 focus:ring-rose-500/20 p-4 font-medium text-xs font-inter transition-all" />
+        </div>
+      </div>
+      <DialogFooter className="px-6 py-5 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row justify-end sm:space-x-3 gap-3 sm:gap-0">
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={() => setIsRejectOpen(false)}
+          className="w-full sm:w-auto text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl active:scale-95 transition-all"
+        >
+          BATAL
+        </Button>
+        <Button
+          type="button"
+          onClick={handleReject}
+          disabled={isSubmitting || !rejectNote.trim()}
+          className="w-full sm:w-auto h-12 px-8 rounded-2xl bg-rose-600 text-white hover:bg-rose-700 shadow-xl shadow-rose-600/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 border-none"
+        >
+          {isSubmitting ? <span className="material-symbols-outlined animate-spin size-4" style={{ fontSize: '16px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >save</span>}
+          <span className="text-[10px] font-black tracking-widest uppercase">KONFIRMASI TOLAK</span>
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+    </PageContent >
   )
 }

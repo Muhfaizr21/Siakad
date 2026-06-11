@@ -175,7 +175,7 @@ export const PORTAL_CONFIG = {
               { name: 'Beasiswa', icon: 'payments', path: '/admin/faculty-beasiswa' },
               { name: 'Kesehatan', icon: 'favorite', path: '/admin/faculty-kesehatan' },
               { name: 'Dosen / Psikolog', icon: 'psychology', path: '/admin/faculty-psikolog' },
-              { name: 'Program Studi', icon: 'database', path: '/admin/faculty-prodi' },
+              { name: 'Program Studi', icon: 'database', path: '/admin/prodi' },
               { name: 'Periode Akademik', icon: 'calendar_month', path: '/admin/faculty-jadwal' },
               { name: 'Laporan', icon: 'description', path: '/admin/faculty-laporan' },
               { name: 'Role & Akses (RBAC)', icon: 'security', path: '/admin/faculty-rbac' },
