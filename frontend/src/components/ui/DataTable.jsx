@@ -36,6 +36,7 @@ export default function DataTable({
   onSortChange,
   onPageSizeChange,
   tableFooter,
+  toolbarActions,
 }) {
   const [search, setSearch] = useState('');
   const [internalPage, setInternalPage] = useState(1);
@@ -197,6 +198,7 @@ export default function DataTable({
 
           {/* Actions & Add Button */}
           <div className="flex items-center gap-2 sm:ml-auto">
+            {toolbarActions && toolbarActions}
             {onAdd && (
               <button
                 type="button"

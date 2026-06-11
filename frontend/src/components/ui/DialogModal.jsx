@@ -43,20 +43,20 @@ export function DialogModal({
                   variant === 'warning' ? 'from-amber-500 to-amber-700' :
                     'bg-[var(--theme-primary)] from-white/15 to-black/20'
           )}>
-            <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-[200px] h-[200px] bg-white/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/3 pointer-events-none" />
-            
+            <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/10 rounded-full pointer-events-none" />
+            <div className="absolute -bottom-6 right-16 w-28 h-28 bg-white/10 rounded-full pointer-events-none" />
+
             {/* Optional Header Watermark Icon */}
             {icon && typeof icon === 'string' && (
               <div className="absolute -top-6 -right-2 opacity-10 pointer-events-none">
-                <span className="material-symbols-outlined text-[140px] drop-shadow-xl">{icon}</span>
+                <span className="material-symbols-outlined -rotate-12 text-white" style={{ fontSize: "140px" }}>{icon}</span>
               </div>
             )}
-            
+
             <Dialog.Close asChild>
-              <button 
-                type="button" 
-                onClick={(e) => { e.stopPropagation(); handleOpenChange(false); }} 
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); handleOpenChange(false); }}
                 className="absolute z-50 top-6 right-6 w-10 h-10 bg-white/10 backdrop-blur-md hover:bg-white/20 rounded-full flex items-center justify-center transition-all text-white border border-white/20 cursor-pointer shadow-xl hover:scale-105 active:scale-95"
               >
                 <X className="h-5 w-5" strokeWidth={2.5} />
@@ -76,7 +76,7 @@ export function DialogModal({
                   )}
                 </div>
               )}
-              
+
               <div className="flex-1 min-w-0">
                 <div className="flex flex-col items-start justify-start gap-1">
                   {subtitle && (
@@ -103,12 +103,12 @@ export function DialogModal({
               </div>
             </div>
           </div>
-          
+
           {/* ── Body ────────────────────────────────────────────── */}
           <div className={cn("flex-1 overflow-y-auto bg-[var(--theme-bg)]/20", bodyClassName || "p-6 sm:p-8 space-y-6")}>
             {children}
           </div>
-          
+
           {/* ── Footer ───────────────────────────────────────────── */}
           {footer && (
             <div className="px-6 sm:px-8 py-5 border-t border-[var(--theme-border)] bg-[var(--theme-surface)]/80 backdrop-blur-md flex justify-end gap-3 flex-shrink-0">
@@ -127,11 +127,11 @@ export function ModalCancelButton({ onClick, children = "Batal", className }) {
       type="button"
       onClick={onClick}
       className={cn(
-        "h-11 px-6 sm:px-8 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] text-[11px] font-black text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] hover:border-[var(--theme-border-muted)] hover:bg-[var(--theme-bg)] uppercase tracking-[0.1em] transition-all duration-300 active:scale-95 cursor-pointer shadow-sm",
+        "group h-11 px-6 sm:px-8 rounded-xl bg-[var(--theme-primary)] hover:opacity-90 text-white font-black text-[11px] uppercase tracking-[0.1em] transition-all duration-300 flex items-center justify-center cursor-pointer shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 border-none",
         className
       )}
     >
-      {children}
+      <span>{children}</span>
     </button>
   );
 }

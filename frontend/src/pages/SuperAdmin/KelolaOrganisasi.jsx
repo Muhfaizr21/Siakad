@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { DialogModal } from '@/components/ui/DialogModal'
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
 import { Card, CardContent } from '@/components/ui/Card'
+import { PrimaryStatsCard } from '@/components/ui/StatsCard'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import { Textarea } from '@/components/ui/Textarea'
@@ -16,7 +17,7 @@ import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import { adminService } from '../../services/api'
 import { PageContent, PageCard, PageCardHeader } from '@/components/ui/page'
-import { DashboardHero, DashboardStatGrid, DashboardStatCard } from '@/components/ui/dashboard'
+import { DashboardHero, DashboardStatCard } from '@/components/ui/dashboard'
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area, RadarChart, PolarGrid, PolarAngleAxis, Radar, RadialBarChart, RadialBar } from "recharts"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
@@ -41,9 +42,10 @@ const Star = ({ size, className, filled = true, ...props }) => (
     star
   </span>
 );
-const CheckCircle = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 16, ...props.style }} {...props}>check_circle</span>;
-const AlertTriangle = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 16, ...props.style }} {...props}>warning</span>;
-const History = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 18, ...props.style }} {...props}>history</span>;
+const CheckCircle = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>check_circle</span>;
+const AlertTriangle = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>warning</span>;
+const History = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>history</span>;
+const Group = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>group</span>;
 
 // Offline Seed Data for System Resiliency
 const offlineOrmawaSeed = [
@@ -686,48 +688,54 @@ export default function KelolaOrganisasi() {
       />
 
       {/* ── Stats Grid (Glassmorphism stats cards) ──────────────── */}
-      <DashboardStatGrid className="xl:grid-cols-5">
-        <DashboardStatCard
-          label="Total Ormawa"
-          value={totalOrmawa}
-          icon="layers"
-          colorClass="text-primary"
-          bgClass="bg-primary/10 border-primary/20"
-          badge={{ text: 'Unit terdaftar resmi' }}
-        />
-        <DashboardStatCard
-          label="Member Aktif"
-          value={activeMembers}
-          icon="group"
-          colorClass="text-indigo-600"
-          bgClass="bg-indigo-50 border-indigo-200"
-          badge={{ text: 'Partisipan gabungan' }}
-        />
-        <DashboardStatCard
-          label="Rerata Kepatuhan"
-          value={`${avgCompliance}%`}
-          icon="check_circle"
-          colorClass="text-emerald-600"
-          bgClass="bg-emerald-50 border-emerald-200"
-          badge={{ text: 'LPJ tepat waktu' }}
-        />
-        <DashboardStatCard
-          label="Total Poin XP"
-          value={totalXP.toLocaleString('id-ID')}
-          icon="bolt"
-          colorClass="text-amber-600"
-          bgClass="bg-amber-50 border-amber-200"
-          badge={{ text: 'Akumulatif' }}
-        />
-        <DashboardStatCard
-          label="Ormawa Teraktif"
-          value={topOrmawa?.Singkatan || topOrmawa?.Nama?.substring(0, 8) || '—'}
-          icon="emoji_events"
-          colorClass="text-amber-500"
-          bgClass="bg-amber-50 border-amber-200"
-          badge={{ text: `${topOrmawa?.xp || 0} XP tertinggi` }}
-        />
-      </DashboardStatGrid>
+      <div className="space-y-6 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
+          <PrimaryStatsCard
+            title="Total Ormawa"
+            value={totalOrmawa}
+            icon={Layers}
+            colorTheme="info"
+            badgeText="Unit terdaftar"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">verified</span>}
+          />
+
+          <PrimaryStatsCard
+            title="Member Aktif"
+            value={activeMembers}
+            icon={Group}
+            colorTheme="primary"
+            badgeText="Total"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">group_add</span>}
+          />
+
+          <PrimaryStatsCard
+            title="Kepatuhan LPJ"
+            value={`${avgCompliance}%`}
+            icon={CheckCircle}
+            colorTheme="success"
+            badgeText="Tepat Waktu"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">task_alt</span>}
+          />
+
+          <PrimaryStatsCard
+            title="Total Poin XP"
+            value={totalXP.toLocaleString('id-ID')}
+            icon={Zap}
+            colorTheme="warning"
+            badgeText="Akumulatif"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">trending_up</span>}
+          />
+
+          <PrimaryStatsCard
+            title="Ormawa Teraktif"
+            value={topOrmawa?.Singkatan || topOrmawa?.Nama?.substring(0, 8) || '—'}
+            icon={Trophy}
+            colorTheme="danger"
+            badgeText={`${topOrmawa?.xp || 0} XP`}
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">workspace_premium</span>}
+          />
+        </div>
+      </div>
 
       {/* ── Analytics Charts ─────────────────────────────────────── */}
       {!loading && proposals.length > 0 && (
@@ -1208,7 +1216,7 @@ export default function KelolaOrganisasi() {
         onOpenChange={setIsDetailOpen}
         title={selected?.Singkatan || 'Detail Unit'}
         subtitle={selected?.Nama || 'Informasi Organisasi'}
-        icon={<span className="material-symbols-outlined">corporate_fare</span>}
+        icon="corporate_fare"
         maxWidth="max-w-2xl"
         footer={
           <>
@@ -1345,7 +1353,7 @@ export default function KelolaOrganisasi() {
         onOpenChange={setIsCrudOpen}
         title={isEditMode ? 'Update Ormawa' : 'Registrasi Ormawa'}
         subtitle="Pendaftaran entitas organisasi mahasiswa tingkat universitas."
-        icon={<span className="material-symbols-outlined">{isEditMode ? 'edit' : 'add_business'}</span>}
+        icon={isEditMode ? 'edit' : 'add_business'}
         maxWidth="max-w-2xl"
         footer={
           <>

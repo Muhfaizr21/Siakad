@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/Button'
 import { DialogModal } from '@/components/ui/DialogModal'
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
 import { Card, CardContent } from '@/components/ui/Card'
+import { PrimaryStatsCard } from '@/components/ui/StatsCard'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import { Textarea } from '@/components/ui/Textarea'
@@ -31,6 +32,13 @@ const STATUS_CONFIG = {
   ditolak: { label: 'Ditolak', cls: 'bg-rose-50 text-rose-700 ring-1 ring-rose-500/20 border-rose-200', icon: 'cancel' },
   selesai: { label: 'Selesai', cls: 'bg-slate-100 text-slate-600 ring-1 ring-slate-400/20 border-border', icon: 'check_circle' },
 }
+
+const Layers = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>description</span>;
+const Clock = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>schedule</span>;
+const AlertTriangle = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>error</span>;
+const CheckCircle = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>check_circle</span>;
+const Payments = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>payments</span>;
+
 
 const getProposalId = (p) => p?.id || p?.ID
 
@@ -410,19 +418,84 @@ export default function ProposalManagement() {
     }
   ]
 
+  const totalProposal = proposals.length;
+  const menunggu = proposals.filter(p => {
+    const s = String(p.Status || 'diajukan').toLowerCase().trim();
+    return s === 'diajukan';
+  }).length;
+  const butuhRevisi = proposals.filter(p => {
+    const s = String(p.Status || 'diajukan').toLowerCase().trim();
+    return s === 'revisi';
+  }).length;
+  const disetujui = proposals.filter(p => {
+    const s = String(p.Status || 'diajukan').toLowerCase().trim();
+    return ['disetujui_fakultas', 'disetujui_univ', 'selesai'].includes(s);
+  }).length;
+  const totalAnggaran = proposals.reduce((acc, curr) => acc + (curr.Anggaran || 0), 0);
+
   return (
     <PageContent className="font-body">
       <Toaster position="top-right" containerStyle={{ zIndex: 99999 }} />
       <img src="/images/format_kop_rektorat_landscape.jpg" style={{ display: 'none' }} alt="" />
 
-            {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <PageHeader 
+      {/* ── Welcome Banner ─────────────────────────────────────────── */}
+      <PageHeader
         title="Manajemen Proposal"
         subtitle="Ajukan & Pantau Persetujuan Kegiatan: Ormawa → Fakultas → Universitas"
         icon="description"
-       
-        breadcrumbs={[ { label: 'Dashboard', path: '/ormawa' }, { label: 'Manajemen Proposal', path: '#' } ]} 
+
+        breadcrumbs={[{ label: 'Dashboard', path: '/ormawa' }, { label: 'Manajemen Proposal', path: '#' }]}
       />
+
+      {/* ── Stats Grid (Glassmorphism stats cards) ──────────────── */}
+      <div className="space-y-6 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
+          <PrimaryStatsCard
+            title="Total Proposal"
+            value={totalProposal}
+            icon={Layers}
+            colorTheme="info"
+            badgeText="Semua pengajuan"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">description</span>}
+          />
+
+          <PrimaryStatsCard
+            title="Menunggu"
+            value={menunggu}
+            icon={Clock}
+            colorTheme="primary"
+            badgeText="Dalam antrean"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">pending</span>}
+          />
+
+          <PrimaryStatsCard
+            title="Butuh Revisi"
+            value={butuhRevisi}
+            icon={AlertTriangle}
+            colorTheme="warning"
+            badgeText="Perlu perbaikan"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">edit_note</span>}
+          />
+
+          <PrimaryStatsCard
+            title="Disetujui"
+            value={disetujui}
+            icon={CheckCircle}
+            colorTheme="success"
+            badgeText="Telah di-ACC"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">verified</span>}
+          />
+
+          <PrimaryStatsCard
+            title="Total Anggaran"
+            value={formatRupiah(totalAnggaran)}
+            icon={Payments}
+            colorTheme="success"
+            badgeText="Diajukan"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">account_balance_wallet</span>}
+          />
+        </div>
+      </div>
 
       {/* ── Content Area ───────────────────────────────────────────── */}
       <Card className="border border-border shadow-sm overflow-hidden bg-surface rounded-2xl">
@@ -752,246 +825,246 @@ export default function ProposalManagement() {
         <form onSubmit={handleSave}>
           <div className="p-6 space-y-4">
 
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Nama Kegiatan</Label>
+              <Input
+                required
+                value={formData.Judul}
+                onChange={(e) => setFormData({ ...formData, Judul: e.target.value })}
+                placeholder="Contoh: Pekan Olahraga Fakultas..."
+                className="h-12 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 transition-all font-bold text-sm font-headline"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Nama Kegiatan</Label>
+                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Landasan Kegiatan</Label>
                 <Input
                   required
-                  value={formData.Judul}
-                  onChange={(e) => setFormData({ ...formData, Judul: e.target.value })}
-                  placeholder="Contoh: Pekan Olahraga Fakultas..."
-                  className="h-12 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 transition-all font-bold text-sm font-headline"
+                  value={formData.LandasanKegiatan}
+                  onChange={(e) => setFormData({ ...formData, LandasanKegiatan: e.target.value })}
+                  placeholder="Contoh: Program Kerja Himpunan 2026..."
+                  className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 transition-all text-xs font-bold font-headline"
                 />
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Landasan Kegiatan</Label>
-                  <Input
-                    required
-                    value={formData.LandasanKegiatan}
-                    onChange={(e) => setFormData({ ...formData, LandasanKegiatan: e.target.value })}
-                    placeholder="Contoh: Program Kerja Himpunan 2026..."
-                    className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 transition-all text-xs font-bold font-headline"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Bentuk Kegiatan</Label>
-                  <Input
-                    value={formData.BentukKegiatan}
-                    onChange={(e) => setFormData({ ...formData, BentukKegiatan: e.target.value })}
-                    placeholder="Contoh: Kompetisi & Seminar..."
-                    className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 transition-all text-xs font-bold font-headline"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Mitra</Label>
-                  <Input
-                    value={formData.Mitra}
-                    onChange={(e) => setFormData({ ...formData, Mitra: e.target.value })}
-                    placeholder="Contoh: Seluruh LK dan UKM KEMA UBK"
-                    className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 transition-all text-xs font-bold font-headline"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">PJ Kegiatan</Label>
-                  <Input
-                    value={formData.PJKegiatan}
-                    onChange={(e) => setFormData({ ...formData, PJKegiatan: e.target.value })}
-                    placeholder="Contoh: Budi Santoso (Ketua Panitia)..."
-                    className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 transition-all text-xs font-bold font-headline"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Jadwal Pelaksanaan (Hari, Tanggal Bulan Tahun, Waktu)</Label>
-                  <Input
-                    value={formData.JadwalPelaksanaan}
-                    onChange={(e) => setFormData({ ...formData, JadwalPelaksanaan: e.target.value })}
-                    placeholder="Contoh: Senin, 15 Juli 2026, 09.00 - 15.00 WIB..."
-                    className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 transition-all text-xs font-bold font-headline"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Sasaran Kegiatan</Label>
-                  <Input
-                    value={formData.SasaranKegiatan}
-                    onChange={(e) => setFormData({ ...formData, SasaranKegiatan: e.target.value })}
-                    placeholder="Contoh: Seluruh Mahasiswa Fakultas Teknik..."
-                    className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 transition-all text-xs font-bold font-headline"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Sumber Dana</Label>
-                  <Input
-                    value={formData.SumberDana}
-                    onChange={(e) => setFormData({ ...formData, SumberDana: e.target.value })}
-                    placeholder="Contoh: Dana Kemahasiswaan & Sponsor..."
-                    className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 transition-all text-xs font-bold font-headline"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Indikator Keberhasilan</Label>
-                  <Input
-                    value={formData.IndikatorKeberhasilan}
-                    onChange={(e) => setFormData({ ...formData, IndikatorKeberhasilan: e.target.value })}
-                    placeholder="Contoh: Target 200 Peserta Hadir..."
-                    className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 transition-all text-xs font-bold font-headline"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Tanggal Pelaksanaan Utama</Label>
-                  <Input
-                    required
-                    type="date"
-                    value={formData.TanggalKegiatan}
-                    onChange={(e) => setFormData({ ...formData, TanggalKegiatan: e.target.value })}
-                    className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 transition-all text-xs font-bold font-headline cursor-pointer"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Estimasi Dana / Anggaran (Rp)</Label>
-                  <Input
-                    required
-                    type="text"
-                    value={formatRupiahInput(formData.Anggaran)}
-                    onChange={(e) => {
-                      const rawVal = parseRupiahInput(e.target.value)
-                      setFormData({ ...formData, Anggaran: rawVal })
-                    }}
-                    placeholder="Cth: 10.000.000"
-                    className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 transition-all text-xs font-bold font-headline"
-                  />
-                </div>
-              </div>
-
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Latar Belakang</Label>
-                <Textarea
-                  value={formData.LatarBelakang}
-                  onChange={(e) => setFormData({ ...formData, LatarBelakang: e.target.value })}
-                  placeholder="Deskripsikan latar belakang pengajuan kegiatan..."
-                  className="min-h-[80px] rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white p-4 text-xs font-medium leading-relaxed font-headline"
+                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Bentuk Kegiatan</Label>
+                <Input
+                  value={formData.BentukKegiatan}
+                  onChange={(e) => setFormData({ ...formData, BentukKegiatan: e.target.value })}
+                  placeholder="Contoh: Kompetisi & Seminar..."
+                  className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 transition-all text-xs font-bold font-headline"
                 />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Tujuan Kegiatan</Label>
-                <Textarea
-                  value={formData.TujuanKegiatan}
-                  onChange={(e) => setFormData({ ...formData, TujuanKegiatan: e.target.value })}
-                  placeholder="Deskripsikan tujuan dari kegiatan..."
-                  className="min-h-[80px] rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white p-4 text-xs font-medium leading-relaxed font-headline"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Deskripsi Detail Kegiatan</Label>
-                <Textarea
-                  value={formData.Deskripsi}
-                  onChange={(e) => setFormData({ ...formData, Deskripsi: e.target.value })}
-                  placeholder="Deskripsikan rincian detail/mekanisme kegiatan..."
-                  className="min-h-[80px] rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white p-4 text-xs font-medium leading-relaxed font-headline"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Catatan Reviewer / Keterangan Lainnya</Label>
-                <Textarea
-                  required
-                  value={formData.Catatan}
-                  onChange={(e) => setFormData({ ...formData, Catatan: e.target.value })}
-                  placeholder="Tambahkan catatan atau keterangan pelengkap..."
-                  className="min-h-[80px] rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white p-4 text-xs font-medium leading-relaxed font-headline"
-                />
-              </div>
-              <div className="space-y-2.5">
-                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase">Upload Dokumen Proposal</Label>
-                <div className="border-2 border-dashed border-border hover:border-[var(--theme-primary)]/50 rounded-2xl p-6 text-center hover:bg-[var(--theme-bg)]/50 transition-all duration-150 relative group">
-                  <input
-                    type="file"
-                    multiple
-                    accept=".pdf,.doc,.docx,.xls,.xlsx"
-                    onChange={handleFileChange}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                  />
-                  <div className="pointer-events-none flex flex-col items-center">
-                    <div className="w-12 h-12 rounded-xl bg-[var(--theme-bg)] group-hover:bg-[var(--theme-primary-light)] text-[var(--theme-text-subtle)] group-hover:text-[var(--theme-primary)] flex items-center justify-center mb-3 transition-colors duration-150 border border-border/50">
-                      <span className="material-symbols-outlined normal-case" style={{ fontSize: '24px' }}>upload_file</span>
-                    </div>
-                    <p className="text-xs font-black text-[var(--theme-primary)] uppercase tracking-wider">Klik untuk Upload Dokumen</p>
-                    <p className="text-[10px] text-[var(--theme-text-subtle)] font-semibold mt-1">Bisa pilih lebih dari 1 file (PDF, Word, Excel, Maks. 5MB per file)</p>
-                  </div>
-                </div>
-
-                {/* List of newly selected files */}
-                {dokumenList.length > 0 && (
-                  <div className="space-y-1.5">
-                    <p className="text-[9px] font-black text-[var(--theme-success)] tracking-wider uppercase ml-1">File Baru Terpilih ({dokumenList.length})</p>
-                    <div className="space-y-1.5">
-                      {dokumenList.map((file, idx) => (
-                        <div key={idx} className="px-3.5 py-2.5 bg-[var(--theme-success-light)] border border-[var(--theme-success)]/20 rounded-2xl flex items-center justify-between gap-2 shadow-sm">
-                          <div className="flex items-center gap-2 truncate min-w-0">
-                            <span className="material-symbols-outlined normal-case text-[var(--theme-success)] text-[16px] shrink-0">check_circle</span>
-                            <span className="text-[11px] font-bold text-[var(--theme-success)] truncate">{file.name}</span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveNewFile(idx)}
-                            className="w-6 h-6 rounded-lg hover:bg-[var(--theme-success-light)]/80 text-[var(--theme-success)] flex items-center justify-center transition-colors shrink-0"
-                          >
-                            <span className="material-symbols-outlined normal-case text-[14px]">close</span>
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* List of previously uploaded files */}
-                {existingFileList.length > 0 && (
-                  <div className="space-y-1.5">
-                    <p className="text-[9px] font-black text-[var(--theme-primary)] tracking-wider uppercase ml-1">Dokumen Aktif Saat Ini ({existingFileList.length})</p>
-                    <div className="space-y-1.5">
-                      {existingFileList.map((file, idx) => {
-                        const filename = file.split('/').pop() || `Berkas_${idx + 1}`
-                        const cleanName = filename.substring(filename.indexOf('_') + 1)
-                        return (
-                          <div key={idx} className="px-3.5 py-2.5 bg-[var(--theme-primary-light)]/60 border border-[var(--theme-primary)]/20 rounded-2xl flex items-center justify-between gap-2 shadow-sm">
-                            <a
-                              href={`${API_BASE_URL.replace('/api', '')}${file}`}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="flex items-center gap-2 hover:underline truncate min-w-0"
-                            >
-                              <span className="material-symbols-outlined normal-case text-[var(--theme-primary)] text-[16px] shrink-0">description</span>
-                              <span className="text-[11px] font-bold text-[var(--theme-primary)] truncate">{cleanName}</span>
-                            </a>
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveExistingFile(idx)}
-                              className="w-6 h-6 rounded-lg hover:bg-[var(--theme-primary-light)] text-[var(--theme-error)] flex items-center justify-center transition-colors shrink-0"
-                            >
-                              <span className="material-symbols-outlined normal-case text-[14px]">delete</span>
-                            </button>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Mitra</Label>
+                <Input
+                  value={formData.Mitra}
+                  onChange={(e) => setFormData({ ...formData, Mitra: e.target.value })}
+                  placeholder="Contoh: Seluruh LK dan UKM KEMA UBK"
+                  className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 transition-all text-xs font-bold font-headline"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">PJ Kegiatan</Label>
+                <Input
+                  value={formData.PJKegiatan}
+                  onChange={(e) => setFormData({ ...formData, PJKegiatan: e.target.value })}
+                  placeholder="Contoh: Budi Santoso (Ketua Panitia)..."
+                  className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 transition-all text-xs font-bold font-headline"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Jadwal Pelaksanaan (Hari, Tanggal Bulan Tahun, Waktu)</Label>
+                <Input
+                  value={formData.JadwalPelaksanaan}
+                  onChange={(e) => setFormData({ ...formData, JadwalPelaksanaan: e.target.value })}
+                  placeholder="Contoh: Senin, 15 Juli 2026, 09.00 - 15.00 WIB..."
+                  className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 transition-all text-xs font-bold font-headline"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Sasaran Kegiatan</Label>
+                <Input
+                  value={formData.SasaranKegiatan}
+                  onChange={(e) => setFormData({ ...formData, SasaranKegiatan: e.target.value })}
+                  placeholder="Contoh: Seluruh Mahasiswa Fakultas Teknik..."
+                  className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 transition-all text-xs font-bold font-headline"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Sumber Dana</Label>
+                <Input
+                  value={formData.SumberDana}
+                  onChange={(e) => setFormData({ ...formData, SumberDana: e.target.value })}
+                  placeholder="Contoh: Dana Kemahasiswaan & Sponsor..."
+                  className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 transition-all text-xs font-bold font-headline"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Indikator Keberhasilan</Label>
+                <Input
+                  value={formData.IndikatorKeberhasilan}
+                  onChange={(e) => setFormData({ ...formData, IndikatorKeberhasilan: e.target.value })}
+                  placeholder="Contoh: Target 200 Peserta Hadir..."
+                  className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 transition-all text-xs font-bold font-headline"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Tanggal Pelaksanaan Utama</Label>
+                <Input
+                  required
+                  type="date"
+                  value={formData.TanggalKegiatan}
+                  onChange={(e) => setFormData({ ...formData, TanggalKegiatan: e.target.value })}
+                  className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 transition-all text-xs font-bold font-headline cursor-pointer"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Estimasi Dana / Anggaran (Rp)</Label>
+                <Input
+                  required
+                  type="text"
+                  value={formatRupiahInput(formData.Anggaran)}
+                  onChange={(e) => {
+                    const rawVal = parseRupiahInput(e.target.value)
+                    setFormData({ ...formData, Anggaran: rawVal })
+                  }}
+                  placeholder="Cth: 10.000.000"
+                  className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 transition-all text-xs font-bold font-headline"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Latar Belakang</Label>
+              <Textarea
+                value={formData.LatarBelakang}
+                onChange={(e) => setFormData({ ...formData, LatarBelakang: e.target.value })}
+                placeholder="Deskripsikan latar belakang pengajuan kegiatan..."
+                className="min-h-[80px] rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white p-4 text-xs font-medium leading-relaxed font-headline"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Tujuan Kegiatan</Label>
+              <Textarea
+                value={formData.TujuanKegiatan}
+                onChange={(e) => setFormData({ ...formData, TujuanKegiatan: e.target.value })}
+                placeholder="Deskripsikan tujuan dari kegiatan..."
+                className="min-h-[80px] rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white p-4 text-xs font-medium leading-relaxed font-headline"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Deskripsi Detail Kegiatan</Label>
+              <Textarea
+                value={formData.Deskripsi}
+                onChange={(e) => setFormData({ ...formData, Deskripsi: e.target.value })}
+                placeholder="Deskripsikan rincian detail/mekanisme kegiatan..."
+                className="min-h-[80px] rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white p-4 text-xs font-medium leading-relaxed font-headline"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Catatan Reviewer / Keterangan Lainnya</Label>
+              <Textarea
+                required
+                value={formData.Catatan}
+                onChange={(e) => setFormData({ ...formData, Catatan: e.target.value })}
+                placeholder="Tambahkan catatan atau keterangan pelengkap..."
+                className="min-h-[80px] rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white p-4 text-xs font-medium leading-relaxed font-headline"
+              />
+            </div>
+            <div className="space-y-2.5">
+              <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase">Upload Dokumen Proposal</Label>
+              <div className="border-2 border-dashed border-border hover:border-[var(--theme-primary)]/50 rounded-2xl p-6 text-center hover:bg-[var(--theme-bg)]/50 transition-all duration-150 relative group">
+                <input
+                  type="file"
+                  multiple
+                  accept=".pdf,.doc,.docx,.xls,.xlsx"
+                  onChange={handleFileChange}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                />
+                <div className="pointer-events-none flex flex-col items-center">
+                  <div className="w-12 h-12 rounded-xl bg-[var(--theme-bg)] group-hover:bg-[var(--theme-primary-light)] text-[var(--theme-text-subtle)] group-hover:text-[var(--theme-primary)] flex items-center justify-center mb-3 transition-colors duration-150 border border-border/50">
+                    <span className="material-symbols-outlined normal-case" style={{ fontSize: '24px' }}>upload_file</span>
+                  </div>
+                  <p className="text-xs font-black text-[var(--theme-primary)] uppercase tracking-wider">Klik untuk Upload Dokumen</p>
+                  <p className="text-[10px] text-[var(--theme-text-subtle)] font-semibold mt-1">Bisa pilih lebih dari 1 file (PDF, Word, Excel, Maks. 5MB per file)</p>
+                </div>
+              </div>
+
+              {/* List of newly selected files */}
+              {dokumenList.length > 0 && (
+                <div className="space-y-1.5">
+                  <p className="text-[9px] font-black text-[var(--theme-success)] tracking-wider uppercase ml-1">File Baru Terpilih ({dokumenList.length})</p>
+                  <div className="space-y-1.5">
+                    {dokumenList.map((file, idx) => (
+                      <div key={idx} className="px-3.5 py-2.5 bg-[var(--theme-success-light)] border border-[var(--theme-success)]/20 rounded-2xl flex items-center justify-between gap-2 shadow-sm">
+                        <div className="flex items-center gap-2 truncate min-w-0">
+                          <span className="material-symbols-outlined normal-case text-[var(--theme-success)] text-[16px] shrink-0">check_circle</span>
+                          <span className="text-[11px] font-bold text-[var(--theme-success)] truncate">{file.name}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveNewFile(idx)}
+                          className="w-6 h-6 rounded-lg hover:bg-[var(--theme-success-light)]/80 text-[var(--theme-success)] flex items-center justify-center transition-colors shrink-0"
+                        >
+                          <span className="material-symbols-outlined normal-case text-[14px]">close</span>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* List of previously uploaded files */}
+              {existingFileList.length > 0 && (
+                <div className="space-y-1.5">
+                  <p className="text-[9px] font-black text-[var(--theme-primary)] tracking-wider uppercase ml-1">Dokumen Aktif Saat Ini ({existingFileList.length})</p>
+                  <div className="space-y-1.5">
+                    {existingFileList.map((file, idx) => {
+                      const filename = file.split('/').pop() || `Berkas_${idx + 1}`
+                      const cleanName = filename.substring(filename.indexOf('_') + 1)
+                      return (
+                        <div key={idx} className="px-3.5 py-2.5 bg-[var(--theme-primary-light)]/60 border border-[var(--theme-primary)]/20 rounded-2xl flex items-center justify-between gap-2 shadow-sm">
+                          <a
+                            href={`${API_BASE_URL.replace('/api', '')}${file}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex items-center gap-2 hover:underline truncate min-w-0"
+                          >
+                            <span className="material-symbols-outlined normal-case text-[var(--theme-primary)] text-[16px] shrink-0">description</span>
+                            <span className="text-[11px] font-bold text-[var(--theme-primary)] truncate">{cleanName}</span>
+                          </a>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveExistingFile(idx)}
+                            className="w-6 h-6 rounded-lg hover:bg-[var(--theme-primary-light)] text-[var(--theme-error)] flex items-center justify-center transition-colors shrink-0"
+                          >
+                            <span className="material-symbols-outlined normal-case text-[14px]">delete</span>
+                          </button>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
           <div className="px-6 py-4 border-t border-[var(--theme-border-muted)] flex justify-end gap-3 shrink-0">
             <Button variant="ghost" type="button" onClick={() => setIsCrudOpen(false)} className="h-10 rounded-xl border border-border text-[var(--theme-text-subtle)] hover:bg-[var(--theme-bg)]">
               Batalkan

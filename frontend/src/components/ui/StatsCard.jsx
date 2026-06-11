@@ -9,7 +9,8 @@ export function PrimaryStatsCard({
   badgeText,
   badgeIcon,
   onClick,
-  className
+  className,
+  subtitle
 }) {
   return (
     <div
@@ -63,6 +64,7 @@ export function PrimaryStatsCard({
         <p className="text-2xl font-black text-[var(--theme-text)] tracking-tight font-headline truncate">
           {value}
         </p>
+        {subtitle && <p className="text-[9px] text-[var(--theme-text-subtle)] font-bold mt-1 truncate">{subtitle}</p>}
       </div>
     </div>
   )

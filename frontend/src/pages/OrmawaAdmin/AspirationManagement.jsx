@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
 import { Card, CardContent } from '@/components/ui/Card'
+import { PrimaryStatsCard } from '@/components/ui/StatsCard'
 import { Label } from '@/components/ui/Label'
 import { Textarea } from '@/components/ui/Textarea'
 
@@ -21,6 +22,11 @@ import useAuthStore from '../../store/useAuthStore'
 import { getOrmawaId } from '../../utils/getOrmawaId'
 
 const API = `${API_BASE_URL}/ormawa`
+
+const QuestionAnswerIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>question_answer</span>;
+const MarkChatReadIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>mark_chat_read</span>;
+const QuickreplyIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>quickreply</span>;
+const TrendingUpIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>trending_up</span>;
 
 export default function AspirationManagement() {
   const [data, setData] = useState([])
@@ -85,9 +91,17 @@ export default function AspirationManagement() {
       label: 'Topik Aspirasi',
       className: 'min-w-[280px]',
       render: (v, row) => (
-        <div className="flex flex-col leading-tight">
-          <span className="font-bold text-slate-900 text-[13px] font-headline tracking-tighter">{v || '—'}</span>
-          <span className="text-[10px] text-slate-400 font-bold tracking-tight mt-0.5">{row.OrmawaNama || 'Organisasi Mahasiswa'}</span>
+        <div className="flex items-center gap-3 py-1">
+          <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100/50">
+            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>forum</span>
+          </div>
+          <div className="flex flex-col leading-tight min-w-0">
+            <span className="font-bold text-slate-900 text-[13px] font-headline tracking-tighter truncate">{v || '—'}</span>
+            <span className="text-[10px] text-slate-500 font-bold tracking-tight mt-0.5 truncate flex items-center gap-1">
+              <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>group</span>
+              {row.OrmawaNama || 'Organisasi Mahasiswa'}
+            </span>
+          </div>
         </div>
       )
     },
@@ -100,11 +114,14 @@ export default function AspirationManagement() {
         const isDitanggapi = v === 'ditanggapi'
         return (
           <Badge className={cn(
-            'font-bold text-[10px] uppercase tracking-wider px-3.5 py-1 border rounded-full',
+            'inline-flex items-center justify-center gap-1 font-bold text-[10px] uppercase tracking-wider px-3 py-1 border rounded-full',
             isDitanggapi 
               ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
               : 'bg-amber-50 text-amber-700 border-amber-200'
           )}>
+            <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>
+              {isDitanggapi ? 'mark_chat_read' : 'quickreply'}
+            </span>
             {isDitanggapi ? 'Ditanggapi' : 'Menunggu'}
           </Badge>
         )
@@ -115,9 +132,12 @@ export default function AspirationManagement() {
       label: 'Tanggal Dikirim',
       className: 'w-[160px]',
       render: v => (
-        <span className="font-bold text-slate-400 text-[11px] font-headline">
-          {v ? new Date(v).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
-        </span>
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Masuk Pada</span>
+          <span className="font-bold text-slate-700 text-[12px] font-headline">
+            {v ? new Date(v).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+          </span>
+        </div>
       )
     }
   ]
@@ -142,58 +162,42 @@ export default function AspirationManagement() {
       />
 
       {/* ── Statistics Summary Cards ────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {/* Total Aspirasi */}
-        <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface hover:shadow-md transition-all duration-300">
-          <CardContent className="p-6 flex items-center gap-4.5">
-            <div className="w-12 h-12 rounded-2xl bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)]">
-              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>question_answer</span>
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-[var(--theme-text-muted)] tracking-wider uppercase font-headline">Total Aspirasi Masuk</p>
-              <p className="text-2xl font-black text-[var(--theme-text)] tracking-tight font-headline">{totalAspirasi}</p>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+        <PrimaryStatsCard
+          title="Total Aspirasi Masuk"
+          value={totalAspirasi}
+          icon={QuestionAnswerIcon}
+          colorTheme="primary"
+          badgeText="Semua"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">forum</span>}
+        />
 
-        {/* Ditanggapi */}
-        <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface hover:shadow-md transition-all duration-300">
-          <CardContent className="p-6 flex items-center gap-4.5">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600">
-              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>mark_chat_read</span>
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-[var(--theme-text-muted)] tracking-wider uppercase font-headline">Sudah Ditanggapi</p>
-              <p className="text-2xl font-black text-[var(--theme-text)] tracking-tight font-headline">{answeredAspirasi}</p>
-            </div>
-          </CardContent>
-        </Card>
+        <PrimaryStatsCard
+          title="Sudah Ditanggapi"
+          value={answeredAspirasi}
+          icon={MarkChatReadIcon}
+          colorTheme="success"
+          badgeText="Selesai"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">verified</span>}
+        />
 
-        {/* Menunggu */}
-        <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface hover:shadow-md transition-all duration-300">
-          <CardContent className="p-6 flex items-center gap-4.5">
-            <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600">
-              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>quickreply</span>
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-[var(--theme-text-muted)] tracking-wider uppercase font-headline">Menunggu Tanggapan</p>
-              <p className="text-2xl font-black text-[var(--theme-text)] tracking-tight font-headline">{pendingAspirasi}</p>
-            </div>
-          </CardContent>
-        </Card>
+        <PrimaryStatsCard
+          title="Menunggu Tanggapan"
+          value={pendingAspirasi}
+          icon={QuickreplyIcon}
+          colorTheme="warning"
+          badgeText="Pending"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">schedule</span>}
+        />
 
-        {/* Rasio Respon */}
-        <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface hover:shadow-md transition-all duration-300">
-          <CardContent className="p-6 flex items-center gap-4.5">
-            <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
-              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>trending_up</span>
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-[var(--theme-text-muted)] tracking-wider uppercase font-headline">Rasio Respon</p>
-              <p className="text-2xl font-black text-[var(--theme-text)] tracking-tight font-headline">{responseRatio}%</p>
-            </div>
-          </CardContent>
-        </Card>
+        <PrimaryStatsCard
+          title="Rasio Respon"
+          value={`${responseRatio}%`}
+          icon={TrendingUpIcon}
+          colorTheme="info"
+          badgeText="Performa"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">analytics</span>}
+        />
       </div>
 
       {/* ── DataTable Container ──────────────────────────────────────── */}

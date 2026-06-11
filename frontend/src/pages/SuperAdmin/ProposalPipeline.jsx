@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { DataTable } from '@/components/ui/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
+import { DialogModal, ModalCancelButton, ModalSaveButton } from '@/components/ui/DialogModal'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Textarea } from '@/components/ui/Textarea'
 import { Label } from '@/components/ui/Label'
@@ -22,11 +22,15 @@ import {
 import { PageContent, PageCard } from '@/components/ui/page'
 import { DashboardHero, DashboardStatGrid, DashboardStatCard } from '@/components/ui/dashboard'
 import { TitleSubtitleCell } from '@/components/ui/TableCells'
+import { PrimaryStatsCard } from '@/components/ui/StatsCard'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Layers = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>description</span>;
+const Clock = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>schedule</span>;
+const AlertTriangle = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>cancel</span>;
+const CheckCircle = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>verified</span>;
+const Payments = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>account_balance_wallet</span>;
 const Wallet = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>account_balance_wallet</span>;
-
-
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Building2 = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>business</span>;
@@ -263,52 +267,54 @@ export default function ProposalPipeline() {
       />
 
       {/* ── Stats Summary ────────────────────────────────────────── */}
-      <DashboardStatGrid className="lg:grid-cols-5 xl:grid-cols-5">
-        <DashboardStatCard
-          title="Total Proposal"
-          value={totalProposal}
-          icon="description"
-          iconColor="text-blue-600"
-          iconBg="bg-blue-50"
-          subtitle="Semua proposal diajukan"
-        />
+      <div className="space-y-6 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
+          <PrimaryStatsCard
+            title="Total Proposal"
+            value={totalProposal}
+            icon={Layers}
+            colorTheme="info"
+            badgeText="Semua pengajuan"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">description</span>}
+          />
 
-        <DashboardStatCard
-          title="Menunggu Review"
-          value={pending}
-          icon="schedule"
-          iconColor="text-amber-600"
-          iconBg="bg-amber-50"
-          subtitle="Butuh aksi universitas"
-        />
+          <PrimaryStatsCard
+            title="Menunggu Review"
+            value={pending}
+            icon={Clock}
+            colorTheme="primary"
+            badgeText="Butuh aksi universitas"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">pending</span>}
+          />
 
-        <DashboardStatCard
-          title="Disetujui Universitas"
-          value={approvedProposal}
-          icon="verified"
-          iconColor="text-emerald-600"
-          iconBg="bg-emerald-50"
-          subtitle="Telah disyahkan"
-        />
+          <PrimaryStatsCard
+            title="Disetujui Universitas"
+            value={approvedProposal}
+            icon={CheckCircle}
+            colorTheme="success"
+            badgeText="Telah disyahkan"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">verified</span>}
+          />
 
-        <DashboardStatCard
-          title="Total Ditolak"
-          value={rejectedProposal}
-          icon="cancel"
-          iconColor="text-red-600"
-          iconBg="bg-red-50"
-          subtitle="Proposal yang ditolak"
-        />
+          <PrimaryStatsCard
+            title="Total Ditolak"
+            value={rejectedProposal}
+            icon={AlertTriangle}
+            colorTheme="error"
+            badgeText="Proposal ditolak"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">cancel</span>}
+          />
 
-        <DashboardStatCard
-          title="Anggaran Pending"
-          value={formatRp(totalBudget)}
-          icon="account_balance_wallet"
-          iconColor="text-rose-600"
-          iconBg="bg-rose-50"
-          subtitle="Total dana menunggu persetujuan"
-        />
-      </DashboardStatGrid>
+          <PrimaryStatsCard
+            title="Anggaran Pending"
+            value={formatRp(totalBudget)}
+            icon={Payments}
+            colorTheme="warning"
+            badgeText="Menunggu persetujuan"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">account_balance_wallet</span>}
+          />
+        </div>
+      </div>
 
       {/* ── Analytics Charts ─────────────────────────────────────── */}
       {!loading && filteredData.length > 0 && (
@@ -434,34 +440,29 @@ export default function ProposalPipeline() {
       </PageCard>
 
       {/* ── Detail Dialog ─────────────────────────────────────────── */}
-      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen} maxWidth="max-w-4xl" className="flex flex-col max-h-[90vh] overflow-hidden">
-        <DialogContent className="w-full flex flex-col flex-grow p-0 overflow-hidden border-none shadow-none rounded-2xl bg-white animate-in zoom-in-95 duration-200">
-          {selected && (
-            <>
-              <DialogHeader className="relative bg-gradient-to-br from-primary via-primary to-blue-700 pt-6 pb-7 px-6 overflow-hidden flex-shrink-0 border-b-0 text-left">
-                <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
-                <div className="absolute -bottom-6 right-16 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
-                <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
-                  <span className="material-symbols-outlined size-24 rotate-12 text-white">account_balance_wallet</span>
-                </div>
-                <div className="relative z-10 space-y-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Badge className="bg-white/10 text-white px-2.5 py-0.5 text-[9px] font-black tracking-widest uppercase rounded-md border-none backdrop-blur-sm">
-                      Detail Proposal Kegiatan
-                    </Badge>
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">PRP-{selected.id || selected.ID}</span>
-                  </div>
-                  <DialogTitle className="text-xl sm:text-2xl font-black font-headline tracking-tighter text-white uppercase pr-8 leading-tight">
-                    {selected.Judul}
-                  </DialogTitle>
-                  <DialogDescription className="text-xs sm:text-sm font-medium text-white/70 font-inter flex items-center gap-2 mt-1.5">
-                    <span className="material-symbols-outlined text-[14px]">corporate_fare</span>
-                    Pengaju: {selected.Ormawa?.Nama || 'Unit Mahasiswa'} | {selected.Fakultas?.Nama || 'Institusi'}
-                  </DialogDescription>
-                </div>
-              </DialogHeader>
-
-              <Tabs defaultValue="overview" className="w-full flex flex-col flex-grow overflow-hidden">
+      <DialogModal
+        open={isDetailOpen}
+        onOpenChange={setIsDetailOpen}
+        title={selected?.Judul}
+        subtitle={`Detail Proposal Kegiatan • PRP-${selected?.id || selected?.ID}`}
+        description={
+          <span className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-[14px]">corporate_fare</span>
+            Pengaju: {selected?.Ormawa?.Nama || 'Unit Mahasiswa'} | {selected?.Fakultas?.Nama || 'Institusi'}
+          </span>
+        }
+        icon="account_balance_wallet"
+        maxWidth="max-w-4xl"
+        variant="default"
+        bodyClassName="p-0 flex flex-col"
+        footer={
+          <ModalCancelButton onClick={() => setIsDetailOpen(false)}>
+            TUTUP
+          </ModalCancelButton>
+        }
+      >
+        {selected && (
+          <Tabs defaultValue="overview" className="w-full flex flex-col flex-grow overflow-hidden">
                 <div className="px-6 md:px-8 pt-4 pb-0 bg-white border-b border-slate-100 shrink-0 z-10 relative">
                   <TabsList className="grid w-full max-w-md grid-cols-2 bg-slate-100/80 p-1 rounded-xl mb-4">
                     <TabsTrigger value="overview" className="rounded-lg text-xs sm:text-sm font-semibold text-slate-600 data-[state=active]:text-blue-700 transition-colors">Overview</TabsTrigger>
@@ -818,73 +819,47 @@ export default function ProposalPipeline() {
                 </TabsContent>
               </div>
             </Tabs>
-
-          <DialogFooter className="px-6 py-5 bg-white border-t border-slate-100 flex flex-col sm:flex-row items-center justify-end shadow-[0_-4px_10px_-4px_rgba(0,0,0,0.05)] relative z-10 shrink-0">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => setIsDetailOpen(false)}
-              className="w-full sm:w-auto text-[10px] font-black tracking-widest text-slate-500 hover:text-slate-900 px-6 h-12 rounded-xl hover:bg-slate-100 active:scale-95 transition-all"
-            >
-              TUTUP
-            </Button>
-          </DialogFooter>
-        </>
-          )}
-      </DialogContent>
-    </Dialog>
+        )}
+      </DialogModal>
 
       {/* ── Reject Reason Dialog ──────────────────────────────────── */ }
-  <Dialog open={isRejectOpen} onOpenChange={setIsRejectOpen} maxWidth="max-w-md">
-    <DialogContent className="w-full h-full p-0 overflow-hidden border-none shadow-none rounded-2xl bg-white animate-in zoom-in-95 duration-200">
-      <DialogHeader className="relative bg-gradient-to-br from-rose-500 via-rose-600 to-rose-700 pt-6 pb-7 px-6 overflow-hidden flex-shrink-0 border-b-0 text-left">
-        <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
-        <div className="absolute -bottom-6 right-16 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
-        <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
-          <span className="material-symbols-outlined size-24 rotate-12 text-white">error</span>
-        </div>
-        <div className="relative z-10 space-y-1">
-          <div className="flex items-center gap-2 mb-2">
-            <Badge className="bg-white/10 text-white px-2.5 py-0.5 text-[9px] font-black tracking-widest uppercase rounded-md border-none backdrop-blur-sm">
-              Tolak Proposal
-            </Badge>
-          </div>
-          <DialogTitle className="text-xl sm:text-2xl font-black font-headline tracking-tighter text-white uppercase pr-8 leading-tight">
-            Tolak Proposal
-          </DialogTitle>
-          <DialogDescription className="text-xs sm:text-sm font-medium text-white/70 font-inter mt-1.5">
-            Berikan alasan formal penangguhan anggaran.
-          </DialogDescription>
-        </div>
-      </DialogHeader>
-      <div className="p-6 md:p-8 space-y-6">
+      <DialogModal
+        open={isRejectOpen}
+        onOpenChange={setIsRejectOpen}
+        title="Tolak Proposal"
+        subtitle="Tolak Proposal"
+        description="Berikan alasan formal penangguhan anggaran."
+        icon="error"
+        variant="danger"
+        maxWidth="max-w-md"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setIsRejectOpen(false)}>
+              Batal
+            </ModalCancelButton>
+            <ModalSaveButton 
+              onClick={handleReject} 
+              disabled={isSubmitting || !rejectNote.trim()} 
+              loading={isSubmitting} 
+              icon="save" 
+              className="bg-rose-600 hover:bg-rose-700 border-none shadow-xl shadow-rose-600/20 text-white"
+            >
+              KONFIRMASI TOLAK
+            </ModalSaveButton>
+          </>
+        }
+      >
         <div className="space-y-2">
           <Label className="text-[10px] font-black text-slate-500 font-headline uppercase tracking-widest ml-1">Justifikasi Penolakan</Label>
-          <Textarea required value={rejectNote} onChange={e => setRejectNote(e.target.value)} placeholder="Tuliskan alasan penolakan atau instruksi revisi..."
-            className="min-h-[120px] rounded-xl border-slate-200 bg-white shadow-sm focus:border-rose-500 focus:ring-1 focus:ring-rose-500/20 p-4 font-medium text-xs font-inter transition-all" />
+          <Textarea 
+            required 
+            value={rejectNote} 
+            onChange={e => setRejectNote(e.target.value)} 
+            placeholder="Tuliskan alasan penolakan atau instruksi revisi..."
+            className="min-h-[120px] rounded-xl border-slate-200 bg-white shadow-sm focus:border-rose-500 focus:ring-1 focus:ring-rose-500/20 p-4 font-medium text-xs font-inter transition-all" 
+          />
         </div>
-      </div>
-      <DialogFooter className="px-6 py-5 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row justify-end sm:space-x-3 gap-3 sm:gap-0">
-        <Button
-          type="button"
-          variant="ghost"
-          onClick={() => setIsRejectOpen(false)}
-          className="w-full sm:w-auto text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl active:scale-95 transition-all"
-        >
-          BATAL
-        </Button>
-        <Button
-          type="button"
-          onClick={handleReject}
-          disabled={isSubmitting || !rejectNote.trim()}
-          className="w-full sm:w-auto h-12 px-8 rounded-2xl bg-rose-600 text-white hover:bg-rose-700 shadow-xl shadow-rose-600/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 border-none"
-        >
-          {isSubmitting ? <span className="material-symbols-outlined animate-spin size-4" style={{ fontSize: '16px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >save</span>}
-          <span className="text-[10px] font-black tracking-widest uppercase">KONFIRMASI TOLAK</span>
-        </Button>
-      </DialogFooter>
-    </DialogContent>
-  </Dialog>
+      </DialogModal>
     </PageContent >
   )
 }

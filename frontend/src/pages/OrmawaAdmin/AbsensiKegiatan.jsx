@@ -13,6 +13,7 @@ import {
   DialogDescription,
 } from "@/components/ui/Dialog";
 import { Card, CardContent } from "@/components/ui/Card";
+import { PrimaryStatsCard } from '@/components/ui/StatsCard';
 import { Avatar, AvatarFallback } from "@/components/ui/Avatar";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
@@ -26,6 +27,11 @@ import useAuthStore from "../../store/useAuthStore";
 import { getOrmawaId } from "../../utils/getOrmawaId";
 
 const API = `${API_BASE_URL}/ormawa`;
+
+const LayersIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>layers</span>;
+const GroupIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>group</span>;
+const CheckCircleIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>check_circle</span>;
+const PercentIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>percent</span>;
 
 const STATUS_CFG = {
   terjadwal: { label: 'Terjadwal', cls: 'bg-blue-50 text-blue-700 border-blue-100/60 shadow-sm', icon: 'schedule' },
@@ -279,94 +285,42 @@ export default function AbsensiKegiatan() {
       />
 
       {/* ── Overview Statistics Cards Grid ────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {/* Total Kegiatan */}
-        <Card className="border border-border/50 shadow-sm rounded-2xl overflow-hidden bg-[var(--theme-surface)] hover:shadow-md transition-all duration-300">
-          <CardContent className="p-6 flex items-center gap-4.5">
-            <div className="w-12 h-12 rounded-xl bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)] border border-[var(--theme-primary)]/20">
-              <span
-                className="material-symbols-outlined"
-                style={{ fontSize: "24px" }}
-              >
-                layers
-              </span>
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-wider uppercase font-headline">
-                Total Sesi Kegiatan
-              </p>
-              <p className="text-2xl font-black text-[var(--theme-text)] tracking-tight font-headline">
-                {events.length}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+        <PrimaryStatsCard
+          title="Total Sesi Kegiatan"
+          value={events.length}
+          icon={LayersIcon}
+          colorTheme="info"
+          badgeText="Sesi"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">list_alt</span>}
+        />
 
-        {/* Total Anggota Terdaftar */}
-        <Card className="border border-border/50 shadow-sm rounded-2xl overflow-hidden bg-[var(--theme-surface)] hover:shadow-md transition-all duration-300">
-          <CardContent className="p-6 flex items-center gap-4.5">
-            <div className="w-12 h-12 rounded-xl bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)] border border-[var(--theme-primary)]/20">
-              <span
-                className="material-symbols-outlined"
-                style={{ fontSize: "24px" }}
-              >
-                group
-              </span>
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-wider uppercase font-headline">
-                Anggota Terdaftar
-              </p>
-              <p className="text-2xl font-black text-[var(--theme-text)] tracking-tight font-headline">
-                {selectedEvent ? attendance.length : 0}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <PrimaryStatsCard
+          title="Anggota Terdaftar"
+          value={selectedEvent ? attendance.length : 0}
+          icon={GroupIcon}
+          colorTheme="primary"
+          badgeText="Total Anggota"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">group_add</span>}
+        />
 
-        {/* Kehadiran Terpenuhi */}
-        <Card className="border border-border/50 shadow-sm rounded-2xl overflow-hidden bg-[var(--theme-surface)] hover:shadow-md transition-all duration-300">
-          <CardContent className="p-6 flex items-center gap-4.5">
-            <div className="w-12 h-12 rounded-xl bg-[var(--theme-success-light)] flex items-center justify-center text-[var(--theme-success)] border border-[var(--theme-success)]/20">
-              <span
-                className="material-symbols-outlined"
-                style={{ fontSize: "24px" }}
-              >
-                check_circle
-              </span>
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-wider uppercase font-headline">
-                Hadir / Tidak Hadir
-              </p>
-              <p className="text-2xl font-black text-[var(--theme-text)] tracking-tight font-headline">
-                {selectedEvent ? `${attendedCount} / ${absentCount}` : "0 / 0"}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <PrimaryStatsCard
+          title="Hadir / Tidak Hadir"
+          value={selectedEvent ? `${attendedCount} / ${absentCount}` : "0 / 0"}
+          icon={CheckCircleIcon}
+          colorTheme="success"
+          badgeText="Perbandingan"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">pie_chart</span>}
+        />
 
-        {/* Kehadiran Rate */}
-        <Card className="border border-border/50 shadow-sm rounded-2xl overflow-hidden bg-[var(--theme-surface)] hover:shadow-md transition-all duration-300">
-          <CardContent className="p-6 flex items-center gap-4.5">
-            <div className="w-12 h-12 rounded-xl bg-[var(--theme-warning-light)] flex items-center justify-center text-[var(--theme-warning)] border border-[var(--theme-warning)]/20">
-              <span
-                className="material-symbols-outlined"
-                style={{ fontSize: "24px" }}
-              >
-                percent
-              </span>
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-wider uppercase font-headline">
-                Rasio Kehadiran
-              </p>
-              <p className="text-2xl font-black text-[var(--theme-text)] tracking-tight font-headline">
-                {selectedEvent ? `${attendanceRate}%` : "0%"}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <PrimaryStatsCard
+          title="Rasio Kehadiran"
+          value={selectedEvent ? `${attendanceRate}%` : "0%"}
+          icon={PercentIcon}
+          colorTheme="warning"
+          badgeText="Persentase"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">trending_up</span>}
+        />
       </div>
 
       {/* ── Content Grid Area ────────────────────────────────────────── */}
@@ -448,9 +402,9 @@ export default function AbsensiKegiatan() {
           ) : (
             <div className="flex flex-col h-full space-y-6">
               {/* Event Quick Info Banner */}
-              <div className="relative overflow-hidden p-6 bg-gradient-to-br from-primary via-primary to-blue-700 rounded-2xl border-none shadow-lg shadow-[var(--theme-primary)]/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 shrink-0">
-                <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
-                <div className="absolute -bottom-6 right-32 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
+              <div className="relative overflow-hidden p-6 bg-gradient-to-br from-primary to-primary rounded-2xl border-none shadow-lg shadow-[var(--theme-primary)]/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 shrink-0">
+                <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/10 rounded-full pointer-events-none" />
+                <div className="absolute -bottom-6 right-32 w-28 h-28 bg-white/10 rounded-full pointer-events-none" />
                 <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
                   <span className="material-symbols-outlined size-24 rotate-12 text-white">
                     qr_code_scanner
@@ -711,9 +665,9 @@ export default function AbsensiKegiatan() {
       {/* ── QR Scanner Popup Dialog ───────────────────────────────── */}
       <Dialog open={isQrOpen} onOpenChange={setIsQrOpen} maxWidth="max-w-md">
         <DialogContent className="w-full h-full p-0 overflow-hidden border-none shadow-none rounded-2xl bg-white animate-in zoom-in-95 duration-200">
-          <DialogHeader className="relative bg-gradient-to-br from-primary via-primary to-blue-700 pt-6 pb-7 px-6 overflow-hidden flex-shrink-0 border-b-0 text-left">
-            <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
-            <div className="absolute -bottom-6 right-16 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
+          <DialogHeader className="relative bg-gradient-to-br from-primary to-primary pt-6 pb-7 px-6 overflow-hidden flex-shrink-0 border-b-0 text-left">
+            <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/10 rounded-full pointer-events-none" />
+            <div className="absolute -bottom-6 right-16 w-28 h-28 bg-white/10 rounded-full pointer-events-none" />
             <div className="absolute -top-6 -right-2 opacity-10 pointer-events-none">
               <span
                 className="material-symbols-outlined -rotate-12 text-white"

@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
 import { Card, CardContent } from '@/components/ui/Card'
+import { PrimaryStatsCard } from '@/components/ui/StatsCard'
 import { SelectField, SelectOption } from '@/components/ui/SelectField'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
@@ -25,6 +26,10 @@ import useAuthStore from '../../store/useAuthStore'
 import { getOrmawaId } from '../../utils/getOrmawaId'
 
 const API = `${API_BASE_URL}/ormawa`
+
+const AccountBalanceIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>account_balance</span>;
+const AssuredWorkloadIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>assured_workload</span>;
+const PaymentsIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>payments</span>;
 
 // Premium Rupiah Formatter
 const formatRp = (n) => {
@@ -508,60 +513,36 @@ export default function KeuanganKas() {
       />
 
       {/* ── Financial Summary Cards ─────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        {/* Saldo Kas Gabungan */}
-        <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface hover:shadow-md transition-all duration-300">
-          <CardContent className="p-6 flex flex-col items-start gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)] shrink-0 shadow-sm">
-              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>account_balance</span>
-            </div>
-            <div className="space-y-1 w-full min-w-0">
-              <p className="text-[10px] font-black text-[var(--theme-text-muted)] tracking-wider uppercase font-headline">Saldo Kas Gabungan</p>
-              <p className="text-2xl lg:text-3xl font-black text-[var(--theme-primary)] tracking-tight font-headline truncate">
-                {formatRp(saldo)}
-              </p>
-              <p className="text-[9px] font-bold text-[var(--theme-text-muted)] truncate">
-                Pemasukan: {formatRp(totalIn)} | Pengeluaran: {formatRp(totalOut)}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-6">
+        <PrimaryStatsCard
+          title="Saldo Kas Gabungan"
+          value={formatRp(saldo)}
+          subtitle={`Pemasukan: ${formatRp(totalIn)} | Pengeluaran: ${formatRp(totalOut)}`}
+          icon={AccountBalanceIcon}
+          colorTheme="primary"
+          badgeText="Total"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">wallet</span>}
+        />
 
-        {/* Saldo Pagu Kampus (🏛️ Duit Kampus) */}
-        <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface hover:shadow-md transition-all duration-300">
-          <CardContent className="p-6 flex flex-col items-start gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-sky-50 flex items-center justify-center text-sky-600 shrink-0 shadow-sm">
-              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>assured_workload</span>
-            </div>
-            <div className="space-y-1 w-full min-w-0">
-              <p className="text-[10px] font-black text-[var(--theme-text-muted)] tracking-wider uppercase font-headline">Sisa Pagu (Duit Kampus)</p>
-              <p className="text-2xl lg:text-3xl font-black text-sky-600 tracking-tight font-headline truncate">
-                {formatRp(campusSaldo)}
-              </p>
-              <p className="text-[9px] font-bold text-sky-500 truncate">
-                Hibah Masuk: {formatRp(campusIn)} | Penggunaan LPJ: {formatRp(campusOut)}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <PrimaryStatsCard
+          title="Sisa Pagu (Duit Kampus)"
+          value={formatRp(campusSaldo)}
+          subtitle={`Hibah Masuk: ${formatRp(campusIn)} | Penggunaan LPJ: ${formatRp(campusOut)}`}
+          icon={AssuredWorkloadIcon}
+          colorTheme="info"
+          badgeText="Kampus"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">account_balance</span>}
+        />
 
-        {/* Saldo Kas Organisasi (💼 Kas Mandiri) */}
-        <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface hover:shadow-md transition-all duration-300">
-          <CardContent className="p-6 flex flex-col items-start gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0 shadow-sm">
-              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>payments</span>
-            </div>
-            <div className="space-y-1 w-full min-w-0">
-              <p className="text-[10px] font-black text-[var(--theme-text-muted)] tracking-wider uppercase font-headline">Kas Mandiri Organisasi</p>
-              <p className="text-2xl lg:text-3xl font-black text-emerald-600 tracking-tight font-headline truncate">
-                {formatRp(orgSaldo)}
-              </p>
-              <p className="text-[9px] font-bold text-emerald-500 truncate">
-                Iuran/Sponsor: {formatRp(orgIn)} | Pengeluaran Mandiri: {formatRp(orgOut)}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <PrimaryStatsCard
+          title="Kas Mandiri Organisasi"
+          value={formatRp(orgSaldo)}
+          subtitle={`Iuran/Sponsor: ${formatRp(orgIn)} | Pengeluaran: ${formatRp(orgOut)}`}
+          icon={PaymentsIcon}
+          colorTheme="success"
+          badgeText="Mandiri"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">savings</span>}
+        />
       </div>
 
       {/* ── Filter Bar ─────────────────────────────────────────────── */}

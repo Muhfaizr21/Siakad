@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
 import { Card, CardContent } from '@/components/ui/Card'
+import { PrimaryStatsCard } from '@/components/ui/StatsCard'
 import { SelectField, SelectOption } from '@/components/ui/SelectField'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
@@ -24,6 +25,12 @@ import { getOrmawaId } from '../../utils/getOrmawaId'
 
 const API = `${API_BASE_URL}/ormawa`
 
+const AssignmentTurnedInIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>assignment_turned_in</span>;
+const CheckCircleIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>check_circle</span>;
+const PendingActionsIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>pending_actions</span>;
+const PaymentsIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>payments</span>;
+const SavingsIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>savings</span>;
+
 // Premium Rupiah Formatter
 const formatRp = (n) => {
   return new Intl.NumberFormat('id-ID', {
@@ -34,12 +41,12 @@ const formatRp = (n) => {
 }
 
 const STATUS_CFG = {
-  draft: { label: 'Draft', cls: 'bg-slate-50 text-slate-600 border-border' },
-  diajukan: { label: 'Diajukan', cls: 'bg-blue-50 text-blue-700 border-blue-200' },
-  disetujui: { label: 'Disetujui', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-  revisi: { label: 'Butuh Revisi', cls: 'bg-amber-50 text-amber-700 border-amber-200' },
-  ditolak: { label: 'Ditolak', cls: 'bg-rose-50 text-rose-700 border-rose-200' },
-  selesai: { label: 'Selesai', cls: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
+  draft: { label: 'Draft', cls: 'bg-slate-50 text-slate-600 border-border', icon: 'edit_document' },
+  diajukan: { label: 'Diajukan', cls: 'bg-blue-50 text-blue-700 border-blue-200', icon: 'send' },
+  disetujui: { label: 'Disetujui', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', icon: 'verified' },
+  revisi: { label: 'Butuh Revisi', cls: 'bg-amber-50 text-amber-700 border-amber-200', icon: 'rate_review' },
+  ditolak: { label: 'Ditolak', cls: 'bg-rose-50 text-rose-700 border-rose-200', icon: 'cancel' },
+  selesai: { label: 'Selesai', cls: 'bg-indigo-50 text-indigo-700 border-indigo-200', icon: 'task_alt' },
 }
 
 export default function LpjManagement() {
@@ -239,25 +246,41 @@ export default function LpjManagement() {
       label: 'Nama Kegiatan LPJ',
       className: 'min-w-[280px]',
       render: (v, row) => (
-        <div className="flex flex-col leading-tight">
-          <span className="font-bold text-slate-900 text-[13px] font-headline tracking-tighter">{v || '—'}</span>
-          <span className="text-[10px] text-slate-400 font-bold tracking-tight mt-0.5">
-            {row.Proposal?.Judul || 'Laporan Pertanggungjawaban'}
-          </span>
+        <div className="flex items-center gap-3 py-1">
+          <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100/50">
+            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>assignment</span>
+          </div>
+          <div className="flex flex-col leading-tight min-w-0">
+            <span className="font-bold text-slate-900 text-[13px] font-headline tracking-tighter truncate">{v || '—'}</span>
+            <span className="text-[10px] text-slate-500 font-bold tracking-tight mt-0.5 truncate flex items-center gap-1">
+              <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>topic</span>
+              {row.Proposal?.Judul || 'Laporan Pertanggungjawaban'}
+            </span>
+          </div>
         </div>
       )
     },
     {
       key: 'TotalAnggaran',
       label: 'Total Anggaran',
-      className: 'w-[150px]',
-      render: v => <span className="font-bold text-slate-600 text-[12px] font-headline">{formatRp(v)}</span>
+      className: 'w-[140px]',
+      render: v => (
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Pagu Awal</span>
+          <span className="font-bold text-slate-600 text-[12px] font-headline">{formatRp(v)}</span>
+        </div>
+      )
     },
     {
       key: 'RealisasiAnggaran',
       label: 'Realisasi Anggaran',
-      className: 'w-[150px]',
-      render: v => <span className="font-black text-slate-900 text-[12px] font-headline">{formatRp(v)}</span>
+      className: 'w-[140px]',
+      render: v => (
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Digunakan</span>
+          <span className="font-black text-slate-900 text-[12px] font-headline">{formatRp(v)}</span>
+        </div>
+      )
     },
     {
       key: 'Efisiensi',
@@ -268,23 +291,29 @@ export default function LpjManagement() {
         const pct = row.TotalAnggaran ? Math.round((diff / row.TotalAnggaran) * 100) : 0
         if (diff > 0) {
           return (
-            <div className="flex flex-col gap-0.5">
+            <div className="flex flex-col gap-1 py-1">
               <span className="font-bold text-emerald-600 text-[12px] font-headline">+{formatRp(diff)}</span>
-              <span className="text-[9px] font-black text-emerald-500 uppercase tracking-wider">💡 HEMAT {pct}%</span>
+              <div className="flex items-center gap-1 text-[9px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded uppercase tracking-wider w-fit border border-emerald-100/50">
+                <span className="material-symbols-outlined" style={{ fontSize: '11px' }}>eco</span> HEMAT {pct}%
+              </div>
             </div>
           )
         } else if (diff < 0) {
           return (
-            <div className="flex flex-col gap-0.5">
+            <div className="flex flex-col gap-1 py-1">
               <span className="font-bold text-rose-600 text-[12px] font-headline">-{formatRp(Math.abs(diff))}</span>
-              <span className="text-[9px] font-black text-rose-500 uppercase tracking-wider">⚠️ OVER {Math.abs(pct)}%</span>
+              <div className="flex items-center gap-1 text-[9px] font-black text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded uppercase tracking-wider w-fit border border-rose-100/50">
+                <span className="material-symbols-outlined" style={{ fontSize: '11px' }}>warning</span> OVER {Math.abs(pct)}%
+              </div>
             </div>
           )
         } else {
           return (
-            <div className="flex flex-col gap-0.5">
+            <div className="flex flex-col gap-1 py-1">
               <span className="font-bold text-slate-500 text-[12px] font-headline">Rp0</span>
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider">🎯 100% EFISIEN</span>
+              <div className="flex items-center gap-1 text-[9px] font-black text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded uppercase tracking-wider w-fit border border-blue-100/50">
+                <span className="material-symbols-outlined" style={{ fontSize: '11px' }}>check_circle</span> 100% EFISIEN
+              </div>
             </div>
           )
         }
@@ -293,7 +322,7 @@ export default function LpjManagement() {
     {
       key: 'TenggatLPJ',
       label: 'Tenggat LPJ',
-      className: 'w-[130px]',
+      className: 'w-[140px]',
       render: (v, row) => {
         const val = row.Proposal?.tenggat_lpj || row.Proposal?.TenggatLPJ || v;
         if (!val) return <span className="text-[10px] text-slate-300 italic">—</span>
@@ -303,13 +332,19 @@ export default function LpjManagement() {
         const isLate = diffDays < 0
         const isUrgent = diffDays >= 0 && diffDays <= 3
         return (
-          <div className="flex flex-col gap-0.5">
+          <div className="flex flex-col gap-1 py-1">
             <span className={cn('text-[11px] font-bold', isLate ? 'text-rose-600' : isUrgent ? 'text-amber-600' : 'text-slate-700')}>
               {tenggat.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}
             </span>
-            <span className={cn('text-[9px] font-black uppercase tracking-wider', isLate ? 'text-rose-500' : isUrgent ? 'text-amber-500' : 'text-slate-400')}>
-              {isLate ? `🔴 Telat ${Math.abs(diffDays)} hr` : isUrgent ? `🟡 Sisa ${diffDays} hr` : `✅ ${diffDays} hr`}
-            </span>
+            <div className={cn(
+              "flex items-center gap-1 text-[8.5px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded w-fit border",
+              isLate ? 'text-rose-600 bg-rose-50 border-rose-100/50' : isUrgent ? 'text-amber-600 bg-amber-50 border-amber-100/50' : 'text-emerald-600 bg-emerald-50 border-emerald-100/50'
+            )}>
+              <span className="material-symbols-outlined" style={{ fontSize: '11px' }}>
+                {isLate ? 'error' : isUrgent ? 'schedule' : 'task_alt'}
+              </span>
+              {isLate ? `Telat ${Math.abs(diffDays)} hr` : isUrgent ? `Sisa ${diffDays} hr` : `${diffDays} hr lagi`}
+            </div>
           </div>
         )
       }
@@ -317,12 +352,13 @@ export default function LpjManagement() {
     {
       key: 'Status',
       label: 'Status LPJ',
-      className: 'w-[140px] text-center',
+      className: 'w-[150px] text-center',
       cellClassName: 'text-center',
       render: v => {
-        const cfg = STATUS_CFG[v] || { label: v || 'Draft', cls: 'bg-slate-50 text-slate-600 border-border' }
+        const cfg = STATUS_CFG[v] || { label: v || 'Draft', cls: 'bg-slate-50 text-slate-600 border-border', icon: 'edit_document' }
         return (
-          <Badge className={cn('font-bold text-[10px] uppercase tracking-wider px-3.5 py-1 border rounded-full', cfg.cls)}>
+          <Badge className={cn('inline-flex items-center justify-center gap-1 font-bold text-[10px] uppercase tracking-wider px-3 py-1 border rounded-full', cfg.cls)}>
+            <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>{cfg.icon}</span>
             {cfg.label}
           </Badge>
         )
@@ -363,71 +399,51 @@ export default function LpjManagement() {
       />
 
       {/* ── Statistics Summary Cards ────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
-        {/* Total LPJ */}
-        <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface hover:shadow-md transition-all duration-300">
-          <CardContent className="p-6 flex items-center gap-4.5">
-            <div className="w-12 h-12 rounded-2xl bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)]">
-              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>assignment_turned_in</span>
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-[var(--theme-text-muted)] tracking-wider uppercase font-headline">Total Laporan LPJ</p>
-              <p className="text-2xl font-black text-[var(--theme-text)] tracking-tight font-headline">{data.length}</p>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-6">
+        <PrimaryStatsCard
+          title="Total Laporan LPJ"
+          value={data.length}
+          icon={AssignmentTurnedInIcon}
+          colorTheme="primary"
+          badgeText="Total"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">folder</span>}
+        />
 
-        {/* Disetujui */}
-        <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface hover:shadow-md transition-all duration-300">
-          <CardContent className="p-6 flex items-center gap-4.5">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600">
-              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>check_circle</span>
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-[var(--theme-text-muted)] tracking-wider uppercase font-headline">LPJ Disetujui</p>
-              <p className="text-2xl font-black text-[var(--theme-text)] tracking-tight font-headline">{approvedLpjCount}</p>
-            </div>
-          </CardContent>
-        </Card>
+        <PrimaryStatsCard
+          title="LPJ Disetujui"
+          value={approvedLpjCount}
+          icon={CheckCircleIcon}
+          colorTheme="success"
+          badgeText="Disetujui"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">verified</span>}
+        />
 
-        {/* Butuh Review */}
-        <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface hover:shadow-md transition-all duration-300">
-          <CardContent className="p-6 flex items-center gap-4.5">
-            <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600">
-              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>pending_actions</span>
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-[var(--theme-text-muted)] tracking-wider uppercase font-headline">Diajukan & Revisi</p>
-              <p className="text-2xl font-black text-[var(--theme-text)] tracking-tight font-headline">{pendingLpjCount}</p>
-            </div>
-          </CardContent>
-        </Card>
+        <PrimaryStatsCard
+          title="Diajukan & Revisi"
+          value={pendingLpjCount}
+          icon={PendingActionsIcon}
+          colorTheme="warning"
+          badgeText="Pending"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">schedule</span>}
+        />
 
-        {/* Realisasi Keuangan */}
-        <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface hover:shadow-md transition-all duration-300">
-          <CardContent className="p-6 flex items-center gap-4.5">
-            <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
-              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>payments</span>
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-[var(--theme-text-muted)] tracking-wider uppercase font-headline">Realisasi Anggaran</p>
-              <p className="text-xl font-black text-[var(--theme-text)] tracking-tight font-headline">{formatRp(totalRealisasi)}</p>
-            </div>
-          </CardContent>
-        </Card>
+        <PrimaryStatsCard
+          title="Realisasi Anggaran"
+          value={formatRp(totalRealisasi)}
+          icon={PaymentsIcon}
+          colorTheme="info"
+          badgeText="Pengeluaran"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">receipt_long</span>}
+        />
 
-        {/* Efisiensi Tabungan */}
-        <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface hover:shadow-md transition-all duration-300">
-          <CardContent className="p-6 flex items-center gap-4.5">
-            <div className="w-12 h-12 rounded-2xl bg-teal-50 flex items-center justify-center text-teal-600">
-              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>savings</span>
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-[var(--theme-text-muted)] tracking-wider uppercase font-headline">Sisa Saldo Efisiensi</p>
-              <p className="text-xl font-black text-[var(--theme-text)] tracking-tight font-headline">{formatRp(totalSavings)}</p>
-            </div>
-          </CardContent>
-        </Card>
+        <PrimaryStatsCard
+          title="Sisa Saldo Efisiensi"
+          value={formatRp(totalSavings)}
+          icon={SavingsIcon}
+          colorTheme="primary"
+          badgeText="Hemat"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">eco</span>}
+        />
       </div>
 
       {/* ── LPJ DataTable Container ─────────────────────────────────── */}
@@ -438,8 +454,6 @@ export default function LpjManagement() {
             data={data}
             loading={loading}
             searchPlaceholder="Cari berdasarkan nama kegiatan atau proposal..."
-            onAdd={handleOpenAdd}
-            addLabel="Buat LPJ"
             filters={[
               {
                 key: 'Status',
