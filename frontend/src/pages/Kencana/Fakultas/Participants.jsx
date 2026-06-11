@@ -51,8 +51,7 @@ const Participants = () => {
         ]}
       />
 
-      <Card className="glass-card shadow-sm rounded-xl overflow-hidden border-slate-100/60">
-        <CardContent className="p-0">
+      <div>
           <DataTable
             columns={columns}
             data={participants || []}
@@ -61,8 +60,7 @@ const Participants = () => {
             title="Daftar Peserta Terdaftar"
             itemLabel="peserta"
           />
-        </CardContent>
-      </Card>
+      </div>
     </div>
   );
 };

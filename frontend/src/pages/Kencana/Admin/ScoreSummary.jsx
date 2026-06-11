@@ -8,7 +8,7 @@ import { SelectField, SelectOption } from '../../../components/ui/SelectField';
 import { DataTable } from '@/components/ui/DataTable';
 import { Card, CardContent } from '@/components/ui/Card';
 import { TitleSubtitleCell, ActionButton } from '@/components/ui/TableCells';
-
+import { PrimaryStatsCard } from '@/components/ui/StatsCard';
 const unwrap = (res) => res.data;
 
 const useScoreSummaryQuery = (periodId) => useQuery({
@@ -169,43 +169,22 @@ const ScoreSummary = () => {
       {/* Stats Cards - Clean UI */}
       {!isLoading && totals.total > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          {[
-            { label: 'Lulus', value: totals.lulus, pct: pct(totals.lulus, totals.total), theme: 'success' },
-            { label: 'Lulus Bersyarat', value: totals.bersyarat, pct: pct(totals.bersyarat, totals.total), theme: 'warning' },
-            { label: 'Tidak Lulus', value: totals.tidak_lulus, pct: pct(totals.tidak_lulus, totals.total), theme: 'error' },
-            { label: 'Belum Lengkap', value: totals.belum_mulai, pct: pct(totals.belum_mulai, totals.total), theme: 'subtle' },
-            { label: 'Keluar', value: totals.keluar, pct: pct(totals.keluar, totals.total), theme: 'subtle' },
-            { label: 'Total Peserta', value: totals.total, pct: 100, theme: 'primary' },
-          ].map(card => {
-            const colors = {
-              success: 'bg-[var(--theme-success-light)] text-[var(--theme-success)] border-[var(--theme-success-light)]',
-              warning: 'bg-[var(--theme-warning-light)] text-[var(--theme-warning)] border-[var(--theme-warning-light)]',
-              error: 'bg-[var(--theme-error-light)] text-[var(--theme-error)] border-[var(--theme-error-light)]',
-              primary: 'bg-[var(--theme-primary-light)] text-[var(--theme-primary)] border-[var(--theme-primary-light)]',
-              subtle: 'bg-[var(--theme-bg)] text-[var(--theme-text-muted)] border-[var(--theme-border)]'
-            };
-            return (
-              <div key={card.label} className={`rounded-2xl p-5 border shadow-sm flex flex-col justify-center ${colors[card.theme] || colors.subtle}`}>
-                <p className="text-[10px] font-bold uppercase tracking-wider mb-1 opacity-90">{card.label}</p>
-                <div className="flex items-end gap-1.5">
-                  <p className="text-2xl font-bold">{card.value ?? 0}</p>
-                  {card.label !== 'Total Peserta' && (
-                    <p className="text-xs font-semibold opacity-70 mb-0.5">({card.pct}%)</p>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+          <PrimaryStatsCard title="Lulus" value={totals.lulus ?? 0} subtitle={`(${pct(totals.lulus, totals.total)}%)`} icon="check_circle" colorTheme="success" />
+          <PrimaryStatsCard title="Lulus Bersyarat" value={totals.bersyarat ?? 0} subtitle={`(${pct(totals.bersyarat, totals.total)}%)`} icon="stars" colorTheme="warning" />
+          <PrimaryStatsCard title="Tidak Lulus" value={totals.tidak_lulus ?? 0} subtitle={`(${pct(totals.tidak_lulus, totals.total)}%)`} icon="cancel" colorTheme="error" />
+          <PrimaryStatsCard title="Belum Lengkap" value={totals.belum_mulai ?? 0} subtitle={`(${pct(totals.belum_mulai, totals.total)}%)`} icon="pending_actions" colorTheme="info" />
+          <PrimaryStatsCard title="Keluar" value={totals.keluar ?? 0} subtitle={`(${pct(totals.keluar, totals.total)}%)`} icon="logout" colorTheme="warning" />
+          <PrimaryStatsCard title="Total Peserta" value={totals.total ?? 0} subtitle="(100%)" icon="groups" colorTheme="primary" />
         </div>
       )}
 
       {/* Table Section */}
-      <Card className="glass-card shadow-sm rounded-xl overflow-hidden border-slate-100/60">
+      <div className="rounded-xl overflow-hidden mt-6">
         <div className="p-5 border-b border-[var(--theme-border-muted)] bg-[var(--theme-bg)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <h2 className="text-base font-bold text-[var(--theme-text)]">Detail Per Kelompok</h2>
         </div>
         
-        <CardContent className="p-0 border-none shadow-none bg-transparent">
+        <div>
           <DataTable
             columns={columns}
             data={rawRows}
@@ -218,8 +197,8 @@ const ScoreSummary = () => {
             emptyIcon="inbox"
             tableFooter={tableFooter}
           />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };

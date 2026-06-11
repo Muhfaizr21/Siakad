@@ -63,46 +63,40 @@ export function DialogModal({
                             </button>
                         </Dialog.Close>
 
-                        <div className="relative z-10 flex gap-5 items-start">
-                            {/* Premium Icon Box */}
-                            {icon && (
-                                <div className="hidden sm:flex flex-shrink-0 w-16 h-16 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-md items-center justify-center shadow-inner">
-                                    {typeof icon === 'string' ? (
-                                        <span className="material-symbols-outlined text-white text-[32px] drop-shadow-md transition-transform group-hover:scale-110">{icon}</span>
-                                    ) : (
-                                        <div className="text-white drop-shadow-md transition-transform group-hover:scale-110 [&>svg]:w-8 [&>svg]:h-8 [&>span]:text-[32px]">
-                                            {icon}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            <div className="flex-1 min-w-0">
-                                <div className="flex flex-col items-start justify-start gap-1">
-                                    {subtitle && (
-                                        <div className="flex flex-wrap items-center gap-3 mb-1">
-                                            <div className="flex items-center gap-2 bg-black/20 border border-white/10 rounded-full px-3 py-1 backdrop-blur-md shadow-inner">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-white/90 animate-pulse" />
-                                                <div className="text-[10px] font-black text-white/90 uppercase tracking-widest">
-                                                    {subtitle}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                    {title && (
-                                        <Dialog.Title className="text-xl sm:text-2xl font-black font-headline tracking-tighter text-white leading-tight drop-shadow-sm pr-8">
-                                            {title}
-                                        </Dialog.Title>
-                                    )}
-                                    {description && (
-                                        <Dialog.Description className="text-sm font-medium text-white/80 font-inter mt-0.5 pr-8">
-                                            {description}
-                                        </Dialog.Description>
-                                    )}
-                                </div>
-                            </div>
+            <div className="relative z-10">
+              {(icon || subtitle) && (
+                <div className="flex items-center gap-3 mb-2">
+                  {icon && (
+                    <div className="size-8 rounded-xl bg-white/10 flex items-center justify-center text-white backdrop-blur-sm border border-white/20 shadow-inner flex-shrink-0">
+                      {typeof icon === 'string' ? (
+                        <span className="material-symbols-outlined stroke-[3px] whitespace-nowrap" style={{ fontSize: "16px", fontVariationSettings: "'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24" }}>
+                          {icon}
+                        </span>
+                      ) : (
+                        <div className="[&>svg]:w-4 [&>svg]:h-4">
+                          {icon}
                         </div>
+                      )}
                     </div>
+                  )}
+                  {subtitle && (
+                    <div className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-white/10 text-white border border-white/20 rounded-md backdrop-blur-sm shadow-sm uppercase">
+                      {subtitle}
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              <Dialog.Title className="text-xl font-black text-white font-headline tracking-tighter pr-8 drop-shadow-sm">
+                {title}
+              </Dialog.Title>
+              {description && (
+                <Dialog.Description className="text-xs font-semibold text-white/70 mt-1 max-w-xl">
+                  {description}
+                </Dialog.Description>
+              )}
+            </div>
+          </div>
 
                     {/* ── Body ────────────────────────────────────────────── */}
                     <div className={cn("flex-1 overflow-y-auto bg-[var(--theme-bg)]/20", bodyClassName || "p-6 sm:p-8 space-y-6")}>

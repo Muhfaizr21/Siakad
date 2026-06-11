@@ -498,8 +498,9 @@ export default function JadwalKegiatan() {
       <DialogModal
         open={isDetailOpen}
         onOpenChange={setIsDetailOpen}
-        title="Detail Agenda"
-        subtitle={selected?.Judul}
+        title={selected?.Judul || "Detail Agenda"}
+        subtitle="DETAIL AGENDA"
+        description="Informasi rincian jadwal dan rencana agenda."
         icon="calendar_today"
         maxWidth="max-w-4xl"
         bodyClassName="p-0"
@@ -515,8 +516,8 @@ export default function JadwalKegiatan() {
         }
       >
         {selected && (
-          <div className="flex flex-col w-full">
-            <div className="flex items-center justify-between gap-4 p-6 border-b border-[var(--theme-border)]">
+          <div className="flex flex-col">
+            <div className="flex items-center justify-between gap-4 p-6 sm:p-8 border-b border-[var(--theme-border)]">
               <div className="space-y-1">
                 <h2 className="text-xl font-bold font-headline tracking-tight text-[var(--theme-text)]">{selected.Judul}</h2>
               </div>
@@ -527,7 +528,7 @@ export default function JadwalKegiatan() {
             </div>
 
             {/* Quick Info Grid */}
-            <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto no-scrollbar bg-[var(--theme-bg)]/30">
+            <div className="p-6 sm:p-8 space-y-6 bg-[var(--theme-bg)]/30">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-2xl p-4 flex items-center gap-3.5 shadow-sm">
                   <div className="w-10 h-10 rounded-xl bg-[var(--theme-bg)] text-[var(--theme-text-muted)] flex items-center justify-center shrink-0">
@@ -633,7 +634,6 @@ export default function JadwalKegiatan() {
                 </div>
               </div>
             </div>
-
           </div>
         )}
       </DialogModal>
@@ -642,17 +642,17 @@ export default function JadwalKegiatan() {
         open={isCrudOpen}
         onOpenChange={setIsCrudOpen}
         title={isEditMode ? 'Edit Kegiatan' : 'Jadwalkan Kegiatan'}
-        subtitle="Tambahkan agenda dan jadwal pelaksanaan kegiatan resmi organisasi."
+        description="Tambahkan agenda dan jadwal pelaksanaan kegiatan resmi organisasi."
         icon={isEditMode ? "edit" : "calendar_add_on"}
-        maxWidth="max-w-4xl"
+        maxWidth="max-w-3xl"
         footer={
           <>
             <ModalCancelButton onClick={() => setIsCrudOpen(false)} disabled={isSubmitting} />
-            <ModalSaveButton form="jadwal-form" loading={isSubmitting} label={isEditMode ? 'Simpan Perubahan' : 'Jadwalkan'} />
+            <ModalSaveButton loading={isSubmitting} label={isEditMode ? 'Simpan Perubahan' : 'Jadwalkan'} onClick={handleSave} />
           </>
         }
       >
-        <form id="jadwal-form" onSubmit={handleSave} className="flex flex-col w-full space-y-4">
+        <form id="crud-form" onSubmit={handleSave} className="flex flex-col">
           <div className="space-y-4">
             <div className="space-y-2">
               <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">Nama Kegiatan</Label>

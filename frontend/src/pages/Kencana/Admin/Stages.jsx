@@ -8,7 +8,8 @@ import {
 } from '../../../queries/useKencanaAdminQuery';
 import { SelectField, SelectOption } from '../../../components/ui/SelectField';
 import { DashboardHero } from '@/components/ui/dashboard';
-import { DialogModal } from '@/components/ui/DialogModal';
+import { DialogModal, ModalCancelButton, ModalSaveButton } from '@/components/ui/DialogModal';
+import { PrimaryStatsCard } from '@/components/ui/StatsCard';
 import { Popover, PopoverContent, PopoverTrigger } from '../../../components/ui/Popover';
 import { DataTable } from '@/components/ui/DataTable';
 import { Settings2 } from 'lucide-react';
@@ -234,27 +235,36 @@ const Stages = ({ phaseType = 'kencana_universitas' }) => {
         }
       />
 
-      {/* Stats Section (using Faculty Admin Stat Card styling) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-        {[
-          { label: 'Timeline', value: `${formatDate(phaseTimeline?.start_date)} - ${formatDate(phaseTimeline?.end_date)}`, icon: 'event', bg: 'bg-primary/10', color: 'text-primary', desc: 'Jadwal pelaksanaan' },
-          { label: 'Total Sesi', value: phaseSessions.length, icon: 'view_agenda', bg: 'bg-emerald-50 text-emerald-600', color: 'text-emerald-600', desc: 'Sesi pembelajaran' },
-          { label: 'Materi & Kuis', value: totalMaterials + totalQuizzes, icon: 'library_books', bg: 'bg-amber-50 text-amber-600', color: 'text-amber-600', desc: 'Konten aktif' },
-          { label: 'Tugas', value: totalAssignments, icon: 'assignment', bg: 'bg-indigo-50 text-indigo-600', color: 'text-indigo-600', desc: 'Tagihan utama' },
-        ].map(s => (
-          <div key={s.label} className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
-            <div className="flex items-center gap-3 mb-3">
-              <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', s.bg, s.color)}>
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{s.icon}</span>
-              </div>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</span>
-            </div>
-            <p className={`font-extrabold text-slate-900 leading-none tabular-nums ${s.label === 'Timeline' ? 'text-sm mt-1' : 'text-2xl'}`}>
-              {loadingStages ? <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span> : s.value}
-            </p>
-            <p className="text-xs text-slate-400 font-medium mt-2">{s.desc}</p>
-          </div>
-        ))}
+      {/* Stats Section */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+        <PrimaryStatsCard
+          title="Timeline"
+          value={loadingStages ? <span className="material-symbols-outlined animate-spin">sync</span> : `${formatDate(phaseTimeline?.start_date)} - ${formatDate(phaseTimeline?.end_date)}`}
+          icon="event"
+          colorTheme="primary"
+          subtitle="Jadwal pelaksanaan"
+        />
+        <PrimaryStatsCard
+          title="Total Sesi"
+          value={loadingStages ? <span className="material-symbols-outlined animate-spin">sync</span> : phaseSessions.length}
+          icon="view_agenda"
+          colorTheme="success"
+          subtitle="Sesi pembelajaran"
+        />
+        <PrimaryStatsCard
+          title="Materi & Kuis"
+          value={loadingStages ? <span className="material-symbols-outlined animate-spin">sync</span> : (totalMaterials + totalQuizzes)}
+          icon="library_books"
+          colorTheme="warning"
+          subtitle="Konten aktif"
+        />
+        <PrimaryStatsCard
+          title="Tugas"
+          value={loadingStages ? <span className="material-symbols-outlined animate-spin">sync</span> : totalAssignments}
+          icon="assignment"
+          colorTheme="info"
+          subtitle="Tagihan utama"
+        />
       </div>
 
       {/* Content */}
@@ -300,13 +310,16 @@ const Stages = ({ phaseType = 'kencana_universitas' }) => {
                         {item.description || 'Tidak ada deskripsi.'}
                       </p>
                       <div className="flex gap-2 mt-2">
-                        <span className="text-[10px] font-bold text-slate-500 bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
+                        <span className="flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
+                          <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>library_books</span>
                           Materi: {getContentCount(item, 'materials')}
                         </span>
-                        <span className="text-[10px] font-bold text-slate-500 bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
+                        <span className="flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
+                          <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>quiz</span>
                           Kuis: {getContentCount(item, 'quizzes')}
                         </span>
-                        <span className="text-[10px] font-bold text-slate-500 bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
+                        <span className="flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
+                          <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>assignment</span>
                           Tugas: {getContentCount(item, 'assignments')}
                         </span>
                       </div>
@@ -327,8 +340,8 @@ const Stages = ({ phaseType = 'kencana_universitas' }) => {
                     
                     return (
                       <div className="flex flex-col gap-1.5 py-1">
-                        <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-600 bg-slate-50 w-fit px-2 py-0.5 rounded-md border border-slate-100">
-                          <span className="material-symbols-outlined text-[12px] text-slate-400">calendar_today</span>
+                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-600 bg-slate-50 w-fit px-2.5 py-1 rounded-md border border-slate-100">
+                          <span className="material-symbols-outlined text-slate-400" style={{ fontSize: '14px' }}>calendar_today</span>
                           {start.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} - {end.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </div>
                         {now > end ? (
@@ -373,7 +386,7 @@ const Stages = ({ phaseType = 'kencana_universitas' }) => {
                         title="Edit Sesi"
                         className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 transition-colors"
                       >
-                        <span className="material-symbols-outlined text-[18px]">edit</span>
+                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>edit</span>
                       </button>
                       <Popover>
                         <PopoverTrigger asChild>
@@ -381,7 +394,7 @@ const Stages = ({ phaseType = 'kencana_universitas' }) => {
                             title="Kelola Konten"
                             className="px-3 py-1.5 rounded-lg text-white bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm active:scale-95 text-[11px] font-bold ml-1"
                           >
-                            <Settings2 className="w-[14px] h-[14px]" strokeWidth={2.5} />
+                            <Settings2 className="w-[12px] h-[12px]" strokeWidth={2.5} />
                             Kelola
                           </button>
                         </PopoverTrigger>
@@ -416,96 +429,88 @@ const Stages = ({ phaseType = 'kencana_universitas' }) => {
         onOpenChange={setShowAddSessionModal}
         title="Buat Sesi Baru"
         subtitle="Isi semua detail sesi di bawah ini dengan lengkap."
-        icon={<span className="material-symbols-outlined">add_box</span>}
+        icon="add_box"
         maxWidth="max-w-lg"
         footer={
           <>
-            <button
-              type="button"
-              onClick={() => setShowAddSessionModal(false)}
-              className="px-5 h-10 rounded-xl border border-[var(--theme-border)] text-xs font-bold uppercase tracking-wider text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg)] transition-colors"
-            >
-              Batal
-            </button>
-            <button
-              type="submit"
+            <ModalCancelButton onClick={() => setShowAddSessionModal(false)} />
+            <ModalSaveButton
               form="createSessionForm"
-              disabled={createSessionMutation.isPending}
-              className="px-6 h-10 rounded-xl text-xs font-bold uppercase tracking-wider bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white shadow-md active:scale-95 transition-all flex items-center gap-2"
+              loading={createSessionMutation.isPending}
+              icon="save"
             >
-              {createSessionMutation.isPending ? <span className="material-symbols-outlined animate-spin text-[16px]">sync</span> : <span className="material-symbols-outlined text-[16px]">save</span>}
-              <span>Simpan Sesi</span>
-            </button>
+              Simpan Sesi
+            </ModalSaveButton>
           </>
         }
       >
-        <form id="createSessionForm" onSubmit={handleCreateSession} className="space-y-5">
-          <div>
-            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Judul Sesi</label>
+        <form id="createSessionForm" onSubmit={handleCreateSession} className="space-y-4">
+          <label className="block space-y-1.5">
+            <span className="text-sm font-bold text-[var(--theme-text)]">Judul Sesi</span>
             <input
               value={sessionForm.title}
               onChange={e => set('title', e.target.value)}
               placeholder="Contoh: Sesi 1 - Pengenalan Kampus..."
               required
-              className="w-full h-12 px-4 rounded-2xl border border-slate-200/60 bg-transparent/50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-transparent focus:ring-4 focus:ring-primary/10 transition-all"
+              className="w-full h-11 px-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-medium outline-none focus:ring-4 focus:ring-[var(--theme-primary)]/10 focus:border-[var(--theme-primary)] transition-all"
             />
-          </div>
+          </label>
           
-          <div>
-            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Deskripsi Sesi</label>
+          <label className="block space-y-1.5">
+            <span className="text-sm font-bold text-[var(--theme-text)]">Deskripsi Sesi</span>
             <textarea
               value={sessionForm.description}
               onChange={e => set('description', e.target.value)}
               placeholder="Materi yang akan dibahas..."
               rows="3"
-              className="w-full px-4 py-3 rounded-2xl border border-slate-200/60 bg-transparent/50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-transparent focus:ring-4 focus:ring-primary/10 transition-all resize-none"
+              className="w-full py-3 px-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-medium outline-none focus:ring-4 focus:ring-[var(--theme-primary)]/10 focus:border-[var(--theme-primary)] transition-all resize-none"
             />
-          </div>
+          </label>
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Tanggal Mulai</label>
+            <label className="block space-y-1.5">
+              <span className="text-sm font-bold text-[var(--theme-text)]">Tanggal Mulai</span>
               <input
                 type="date"
                 value={sessionForm.start_date}
                 onChange={e => set('start_date', e.target.value)}
-                className="w-full h-12 px-4 rounded-2xl border border-slate-200/60 bg-transparent/50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-transparent focus:ring-4 focus:ring-primary/10 transition-all"
+                className="w-full h-11 px-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-medium outline-none focus:ring-4 focus:ring-[var(--theme-primary)]/10 focus:border-[var(--theme-primary)] transition-all"
               />
-            </div>
-            <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Tanggal Berakhir</label>
+            </label>
+            <label className="block space-y-1.5">
+              <span className="text-sm font-bold text-[var(--theme-text)]">Tanggal Berakhir</span>
               <input
                 type="date"
                 value={sessionForm.end_date}
                 onChange={e => set('end_date', e.target.value)}
-                className="w-full h-12 px-4 rounded-2xl border border-slate-200/60 bg-transparent/50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-transparent focus:ring-4 focus:ring-primary/10 transition-all"
+                className="w-full h-11 px-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-medium outline-none focus:ring-4 focus:ring-[var(--theme-primary)]/10 focus:border-[var(--theme-primary)] transition-all"
               />
-            </div>
+            </label>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Status Sesi</label>
+            <label className="block space-y-1.5">
+              <span className="text-sm font-bold text-[var(--theme-text)]">Status Sesi</span>
               <select
                 value={sessionForm.status}
                 onChange={e => set('status', e.target.value)}
-                className="w-full h-12 px-4 rounded-2xl border border-slate-200/60 bg-transparent/50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-transparent focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer"
+                className="w-full h-11 px-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-medium outline-none focus:ring-4 focus:ring-[var(--theme-primary)]/10 focus:border-[var(--theme-primary)] transition-all appearance-none cursor-pointer"
               >
                 <option value="active">Aktif</option>
                 <option value="locked">Terkunci</option>
               </select>
-            </div>
-            <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Sifat Sesi</label>
+            </label>
+            <label className="block space-y-1.5">
+              <span className="text-sm font-bold text-[var(--theme-text)]">Sifat Sesi</span>
               <select
                 value={String(sessionForm.is_required)}
                 onChange={e => set('is_required', e.target.value === 'true')}
-                className="w-full h-12 px-4 rounded-2xl border border-slate-200/60 bg-transparent/50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-transparent focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer"
+                className="w-full h-11 px-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-medium outline-none focus:ring-4 focus:ring-[var(--theme-primary)]/10 focus:border-[var(--theme-primary)] transition-all appearance-none cursor-pointer"
               >
                 <option value="true">Wajib</option>
                 <option value="false">Opsional</option>
               </select>
-            </div>
+            </label>
           </div>
         </form>
       </DialogModal>
@@ -516,95 +521,87 @@ const Stages = ({ phaseType = 'kencana_universitas' }) => {
         onOpenChange={setShowEditSessionModal}
         title="Update Detail Sesi"
         subtitle="Perbarui informasi sesi di bawah ini."
-        icon={<span className="material-symbols-outlined">edit_square</span>}
+        icon="edit_square"
         maxWidth="max-w-lg"
         footer={
           <>
-            <button
-              type="button"
-              onClick={() => setShowEditSessionModal(false)}
-              className="px-5 h-10 rounded-xl border border-[var(--theme-border)] text-xs font-bold uppercase tracking-wider text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg)] transition-colors"
-            >
-              Batal
-            </button>
-            <button
-              type="submit"
+            <ModalCancelButton onClick={() => setShowEditSessionModal(false)} />
+            <ModalSaveButton
               form="editSessionForm"
-              disabled={updateSessionMutation.isPending}
-              className="px-6 h-10 rounded-xl text-xs font-bold uppercase tracking-wider bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white shadow-md active:scale-95 transition-all flex items-center gap-2"
+              loading={updateSessionMutation.isPending}
+              icon="save"
             >
-              {updateSessionMutation.isPending ? <span className="material-symbols-outlined animate-spin text-[16px]">sync</span> : <span className="material-symbols-outlined text-[16px]">save</span>}
-              <span>Update Sesi</span>
-            </button>
+              Update Sesi
+            </ModalSaveButton>
           </>
         }
       >
-        <form id="editSessionForm" onSubmit={handleUpdateSession} className="space-y-5">
-          <div>
-            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Judul Sesi</label>
+        <form id="editSessionForm" onSubmit={handleUpdateSession} className="space-y-4">
+          <label className="block space-y-1.5">
+            <span className="text-sm font-bold text-[var(--theme-text)]">Judul Sesi</span>
             <input
               value={sessionForm.title}
               onChange={e => set('title', e.target.value)}
               required
-              className="w-full h-12 px-4 rounded-2xl border border-slate-200/60 bg-transparent/50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-transparent focus:ring-4 focus:ring-primary/10 transition-all"
+              className="w-full h-11 px-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-medium outline-none focus:ring-4 focus:ring-[var(--theme-primary)]/10 focus:border-[var(--theme-primary)] transition-all"
             />
-          </div>
+          </label>
           
-          <div>
-            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Deskripsi Sesi</label>
+          <label className="block space-y-1.5">
+            <span className="text-sm font-bold text-[var(--theme-text)]">Deskripsi Sesi</span>
             <textarea
               value={sessionForm.description}
               onChange={e => set('description', e.target.value)}
               rows="3"
-              className="w-full px-4 py-3 rounded-2xl border border-slate-200/60 bg-transparent/50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-transparent focus:ring-4 focus:ring-primary/10 transition-all resize-none"
+              className="w-full py-3 px-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-medium outline-none focus:ring-4 focus:ring-[var(--theme-primary)]/10 focus:border-[var(--theme-primary)] transition-all resize-none"
             />
-          </div>
+          </label>
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Tanggal Mulai</label>
+            <label className="block space-y-1.5">
+              <span className="text-sm font-bold text-[var(--theme-text)]">Tanggal Mulai</span>
               <input
                 type="date"
                 value={sessionForm.start_date}
                 onChange={e => set('start_date', e.target.value)}
-                className="w-full h-12 px-4 rounded-2xl border border-slate-200/60 bg-transparent/50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-transparent focus:ring-4 focus:ring-primary/10 transition-all"
+                className="w-full h-11 px-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-medium outline-none focus:ring-4 focus:ring-[var(--theme-primary)]/10 focus:border-[var(--theme-primary)] transition-all"
               />
-            </div>
-            <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Tanggal Berakhir</label>
+            </label>
+            <label className="block space-y-1.5">
+              <span className="text-sm font-bold text-[var(--theme-text)]">Tanggal Berakhir</span>
               <input
                 type="date"
                 value={sessionForm.end_date}
                 onChange={e => set('end_date', e.target.value)}
-                className="w-full h-12 px-4 rounded-2xl border border-slate-200/60 bg-transparent/50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-transparent focus:ring-4 focus:ring-primary/10 transition-all"
+                className="w-full h-11 px-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-medium outline-none focus:ring-4 focus:ring-[var(--theme-primary)]/10 focus:border-[var(--theme-primary)] transition-all"
               />
-            </div>
+            </label>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Status Sesi</label>
+            <label className="block space-y-1.5">
+              <span className="text-sm font-bold text-[var(--theme-text)]">Status Sesi</span>
               <select
                 value={sessionForm.status}
                 onChange={e => set('status', e.target.value)}
-                className="w-full h-12 px-4 rounded-2xl border border-slate-200/60 bg-transparent/50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-transparent focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer"
+                className="w-full h-11 px-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-medium outline-none focus:ring-4 focus:ring-[var(--theme-primary)]/10 focus:border-[var(--theme-primary)] transition-all appearance-none cursor-pointer"
               >
                 <option value="active">Aktif</option>
                 <option value="locked">Terkunci</option>
                 <option value="published">Diterbitkan</option>
               </select>
-            </div>
-            <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Sifat Sesi</label>
+            </label>
+            <label className="block space-y-1.5">
+              <span className="text-sm font-bold text-[var(--theme-text)]">Sifat Sesi</span>
               <select
                 value={String(sessionForm.is_required)}
                 onChange={e => set('is_required', e.target.value === 'true')}
-                className="w-full h-12 px-4 rounded-2xl border border-slate-200/60 bg-transparent/50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-transparent focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer"
+                className="w-full h-11 px-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-medium outline-none focus:ring-4 focus:ring-[var(--theme-primary)]/10 focus:border-[var(--theme-primary)] transition-all appearance-none cursor-pointer"
               >
                 <option value="true">Wajib</option>
                 <option value="false">Opsional</option>
               </select>
-            </div>
+            </label>
           </div>
         </form>
       </DialogModal>

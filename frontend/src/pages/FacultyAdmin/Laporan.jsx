@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react"
 import api from "../../lib/axios"
 import { toast, Toaster } from "react-hot-toast"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/Select"
 import useAuthStore from "../../store/useAuthStore"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
 import { cn } from "@/lib/utils"
@@ -63,11 +64,12 @@ export default function LaporanFakultasPage() {
   const [loading, setLoading] = useState(true)
   const [isMounted, setMounted] = useState(false)
   const [facultyInfo, setFacultyInfo] = useState(null)
+  const [filterPeriode, setFilterPeriode] = useState('all')
 
   const fetchData = async () => {
     setLoading(true)
     try {
-      const res = await api.get(`${API}/reports/summary`)
+      const res = await api.get(`${API}/reports/summary${filterPeriode !== 'all' ? `?angkatan=${filterPeriode}` : ''}`)
       if (res.data.status === "success") setData(res.data.data || data)
 
       const profileRes = await api.get(`${API}/profile`)
@@ -77,6 +79,10 @@ export default function LaporanFakultasPage() {
     } catch { toast.error("Gagal memuat data laporan") }
     finally { setLoading(false) }
   }
+
+  useEffect(() => {
+    fetchData()
+  }, [filterPeriode])
 
   const getKopImage = (facName) => {
     const name = (facName || "").toLowerCase();
@@ -632,7 +638,12 @@ export default function LaporanFakultasPage() {
     }
   };
 
-  useEffect(() => { setMounted(true); fetchData() }, [])
+  useEffect(() => { setMounted(true) }, [])
+
+  const periodeOptions = React.useMemo(() => {
+    if (!data.perAngkatan) return []
+    return data.perAngkatan.map(a => a.angkatan).filter(Boolean).sort((a,b) => Number(b) - Number(a))
+  }, [data.perAngkatan])
 
   const prodiWithColors = (data.perProdi || []).map((item, i) => ({ ...item, nama_prodi: item.nama_prodi || "Unknown", value: item.value || 0, color: CHART_COLORS[i % CHART_COLORS.length] }))
 
@@ -673,14 +684,27 @@ export default function LaporanFakultasPage() {
           { label: `${data.summary.total} Mahasiswa Terdaftar`, active: true },
         ]}
         actions={
-          <>
+          <div className="flex items-center gap-2">
+            <Select value={filterPeriode} onValueChange={setFilterPeriode}>
+              <SelectTrigger className="w-[160px] h-10 border border-[var(--theme-border)] bg-white/80 backdrop-blur-sm rounded-xl text-xs font-semibold text-[var(--theme-text-muted)] focus:ring-0">
+                <SelectValue placeholder="Semua Tahun" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl border border-[var(--theme-border)] shadow-md bg-white">
+                <SelectItem value="all" className="rounded-lg text-xs py-1.5 focus:bg-[var(--theme-primary-light)] focus:text-[var(--theme-primary)]">Semua Tahun</SelectItem>
+                {periodeOptions.map(per => (
+                  <SelectItem key={per} value={per} className="rounded-lg text-xs py-1.5 focus:bg-[var(--theme-primary-light)] focus:text-[var(--theme-primary)]">
+                    Tahun {per}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <button onClick={exportProdiPDF} className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 flex items-center gap-2">
               <Download size={13} className="text-primary" /> Ekspor PDF
             </button>
             <button onClick={fetchData} disabled={loading} className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-60 flex items-center gap-2">
               {loading ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '13px' }} >sync</span> : <RefreshCw size={13} className="text-primary" />} Refresh Data
             </button>
-          </>
+          </div>
         }
       />
 
@@ -824,20 +848,16 @@ export default function LaporanFakultasPage() {
         </div>
 
         {/* Per-Prodi Table */}
-        <div className="bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-2xl shadow-sm overflow-hidden mb-8">
-          <div className="px-5 py-4 border-b border-[var(--theme-border-muted)] bg-[var(--theme-bg)]/30">
-            <h2 className="font-bold text-sm text-[var(--theme-text)] leading-tight">Rekap Per Program Studi</h2>
-            <p className="text-[11px] font-medium text-[var(--theme-text-muted)] mt-0.5">Data akademik terbaru tiap prodi</p>
-          </div>
-          <div className="bg-white">
-            <DataTable
-              data={data.perProdi || []}
-              columns={prodiColumns}
-              searchable={false}
-              loading={loading}
-              pagination={false}
-            />
-          </div>
+        <div className="mb-8">
+          <DataTable
+            title="Rekap Per Program Studi"
+            subtitle="Data akademik terbaru tiap prodi"
+            data={data.perProdi || []}
+            columns={prodiColumns}
+            searchable={false}
+            loading={loading}
+            pagination={false}
+          />
         </div>
     </PageContent>
   )

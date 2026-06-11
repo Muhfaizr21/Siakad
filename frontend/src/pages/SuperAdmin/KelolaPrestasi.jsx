@@ -4,12 +4,12 @@ import React, { useState, useEffect, useMemo } from "react"
 import { DataTable } from "@/components/ui/DataTable"
 import { Badge } from "@/components/ui/Badge"
 import { Button } from "@/components/ui/Button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/Dialog"
+import { DialogModal, ModalCancelButton, ModalSaveButton } from "@/components/ui/DialogModal"
 import { Card, CardContent } from "@/components/ui/Card"
 import { Input } from "@/components/ui/Input"
 import { Label } from "@/components/ui/Label"
 import { Textarea } from "@/components/ui/Textarea"
-import { StatCard } from "@/components/ui/StatCard"
+import { PrimaryStatsCard } from "@/components/ui/StatsCard"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/Select"
 import { toast, Toaster } from "react-hot-toast"
 import { cn } from "@/lib/utils"
@@ -30,6 +30,8 @@ const GraduationCap = ({ size = 16, className }) => <span className={cn("materia
 const RefreshCw = ({ size = 16, className, animate }) => <span className={cn("material-symbols-outlined shrink-0", animate && "animate-spin", className)} style={{ fontSize: size }}>sync</span>
 const ExternalLink = ({ size = 16, className }) => <span className={cn("material-symbols-outlined shrink-0", className)} style={{ fontSize: size }}>open_in_new</span>
 const Apartment = ({ size = 16, className }) => <span className={cn("material-symbols-outlined shrink-0", className)} style={{ fontSize: size }}>apartment</span>
+const Users = ({ size = 20, className }) => <span className={cn("material-symbols-outlined shrink-0", className)} style={{ fontSize: size }}>group</span>
+const Public = ({ size = 20, className }) => <span className={cn("material-symbols-outlined shrink-0", className)} style={{ fontSize: size }}>public</span>
 
 const AVATAR_COLORS = [
   "from-blue-400 to-indigo-500",
@@ -667,81 +669,69 @@ export default function KelolaPrestasi() {
       <div className="space-y-4 md:space-y-5">
         {/* Row 1: Status Portofolio */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          <StatCard
-            label="Total Portofolio"
+          <PrimaryStatsCard
+            title="Total Portofolio"
             value={stats.total}
-            description="Prestasi terdaftar"
-            icon="emoji_events"
-            color="text-primary"
-            bg="bg-primary/10"
-            loading={loading}
+            icon={Trophy}
+            colorTheme="primary"
+            badgeText="Terdaftar"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">list_alt</span>}
           />
-          <StatCard
-            label="Menunggu Review"
+          <PrimaryStatsCard
+            title="Menunggu Review"
             value={stats.pending}
-            description="Perlu tindakan verifikasi"
-            icon="schedule"
-            color="text-warning"
-            bg="bg-warning/10"
-            loading={loading}
+            icon={Clock}
+            colorTheme="warning"
+            badgeText="Pending"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">schedule</span>}
           />
-          <StatCard
-            label="Terverifikasi"
+          <PrimaryStatsCard
+            title="Terverifikasi"
             value={stats.verified}
-            description="Disetujui universitas"
-            icon="check_circle"
-            color="text-success"
-            bg="bg-success/10"
-            loading={loading}
+            icon={CheckCircle2}
+            colorTheme="success"
+            badgeText="Disetujui"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">verified</span>}
           />
-          <StatCard
-            label="Total Ditolak"
+          <PrimaryStatsCard
+            title="Total Ditolak"
             value={stats.rejected}
-            description="Pengajuan tidak sesuai kriteria"
-            icon="close"
-            color="text-error"
-            bg="bg-error/10"
-            loading={loading}
+            icon={CloseIcon}
+            colorTheme="error"
+            badgeText="Ditolak"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">cancel</span>}
           />
         </div>
 
         {/* Row 2: 5W 1H Insights */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          <StatCard
-            label="Fakultas Teraktif"
+          <PrimaryStatsCard
+            title="Fakultas Teraktif"
             value={getShortFacultyName(extraStats.topFaculty)}
-            description={`${extraStats.topFacultyCount} prestasi terdaftar`}
-            icon="group"
-            color="text-primary"
-            bg="bg-primary/10"
-            loading={loading}
+            badgeText={`${extraStats.topFacultyCount} Prestasi`}
+            icon={Users}
+            colorTheme="primary"
           />
-          <StatCard
-            label="Kategori Terbanyak"
+          <PrimaryStatsCard
+            title="Kategori Terbanyak"
             value={extraStats.topCategory}
-            description={`${extraStats.topCategoryCount} pengajuan`}
-            icon="military_tech"
-            color="text-emerald-600"
-            bg="bg-emerald-50"
-            loading={loading}
+            badgeText={`${extraStats.topCategoryCount} Pengajuan`}
+            icon={Award}
+            colorTheme="success"
           />
-          <StatCard
-            label="Tingkat Dominan"
+          <PrimaryStatsCard
+            title="Tingkat Dominan"
             value={extraStats.topTingkat}
-            description={`${extraStats.topTingkatPct}% dari total prestasi`}
-            icon="public"
-            color="text-indigo-600"
-            bg="bg-indigo-50"
-            loading={loading}
+            badgeText={`${extraStats.topTingkatPct}% Total`}
+            icon={Public}
+            colorTheme="info"
           />
-          <StatCard
-            label="Periode Teraktif"
+          <PrimaryStatsCard
+            title="Periode Teraktif"
             value={extraStats.topYear !== '—' ? `Tahun ${extraStats.topYear}` : '—'}
-            description={`${extraStats.topYearCount} prestasi diajukan`}
-            icon="calendar_today"
-            color="text-amber-600"
-            bg="bg-amber-50"
-            loading={loading}
+            badgeText={`${extraStats.topYearCount} Pengajuan`}
+            icon={Calendar}
+            colorTheme="warning"
           />
         </div>
       </div>
@@ -983,440 +973,416 @@ export default function KelolaPrestasi() {
       </Card>
 
       {/* ── Detail Modal ───────────────────────────────────────────── */}
-      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen} maxWidth="max-w-2xl">
+      <DialogModal
+        open={isDetailOpen}
+        onOpenChange={setIsDetailOpen}
+        title={selected?.nama_kegiatan}
+        subtitle={selected?.Tipe === 'Pengajuan Dana' ? 'Pengajuan Dana Lomba' : 'Capaian Prestasi'}
+        description={selected ? `${selected.mahasiswa?.Nama || selected.mahasiswa?.nama} · NIM ${selected.mahasiswa?.NIM || selected.mahasiswa?.nim}` : ""}
+        icon="emoji_events"
+        maxWidth="max-w-2xl"
+        bodyClassName="p-0"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setIsDetailOpen(false)}>Tutup</ModalCancelButton>
+            {selected && (selected.status || "").toLowerCase() === "menunggu" && (
+              <>
+                <ModalSaveButton
+                  onClick={() => handleOpenVerify(selected, "rejected")}
+                  className="bg-rose-500 hover:bg-rose-600 text-white"
+                  icon="cancel"
+                >
+                  Tolak Pengajuan
+                </ModalSaveButton>
+                <ModalSaveButton
+                  onClick={() => handleOpenVerify(selected, "verified")}
+                  className="bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white"
+                  icon="check_circle"
+                >
+                  Setujui & Validasi
+                </ModalSaveButton>
+              </>
+            )}
+            {selected && ['diverifikasi', 'valid', 'disetujui', 'verified'].includes((selected.status || '').toLowerCase()) && !selected.SimkatmawaId && (
+              <ModalSaveButton
+                onClick={(e) => handleSyncSimkatmawa(e, selected.ID || selected.id)}
+                loading={isSubmitting}
+                className="bg-[var(--theme-info)] hover:bg-[var(--theme-info-hover)] text-white"
+                icon="sync"
+              >
+                Kirim ke SIMKATMAWA
+              </ModalSaveButton>
+            )}
+          </>
+        }
+      >
         {selected && (
-          <DialogContent>
-            <DialogHeader className="p-8 pb-5 bg-[var(--theme-bg)]/50 border-b border-[var(--theme-border-muted)] relative text-left">
-              <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-                <span className="material-symbols-outlined size-24 rotate-12 text-slate-800">emoji_events</span>
-              </div>
-
-              <div className="relative z-10 flex items-center gap-4 mb-6">
-                <StudentAvatar
-                  src={getCleanImageUrl(selected.mahasiswa?.FotoURL || selected.mahasiswa?.foto_url)}
-                  name={selected.mahasiswa?.Nama || selected.mahasiswa?.nama}
-                  className="w-14 h-14 rounded-2xl shadow-xl ring-4 ring-white/10 bg-white"
-                />
-                <div className="min-w-0 text-left">
-                  <p className="text-[9px] font-semibold text-[var(--theme-primary)] uppercase tracking-[0.25em] mb-1">
-                    {selected.Tipe === 'Pengajuan Dana' ? 'Pengajuan Dana Lomba' : 'Capaian Prestasi'}
-                  </p>
-                  <DialogTitle className="text-xl font-semibold font-headline tracking-tight text-[var(--theme-text)] leading-tight">{selected.nama_kegiatan}</DialogTitle>
-                  <p className="text-xs text-[var(--theme-text-muted)] font-medium mt-1">
-                    {selected.mahasiswa?.Nama || selected.mahasiswa?.nama} · NIM {selected.mahasiswa?.NIM || selected.mahasiswa?.nim}
-                  </p>
-                </div>
-              </div>
-
-              <div className="relative z-10 flex flex-wrap gap-2">
-                {selected.kategori && (
-                  <Badge className="bg-[var(--theme-bg)] border border-[var(--theme-border)] px-2.5 py-1 rounded-md text-[10px] font-medium text-[var(--theme-text-muted)] uppercase tracking-wider gap-1.5 flex items-center shadow-none">
-                    <Award size={12} className="text-[var(--theme-primary)]" />
-                    {selected.kategori}
-                  </Badge>
-                )}
-                {selected.tingkat && (
-                  <Badge className="bg-[var(--theme-bg)] border border-[var(--theme-border)] px-2.5 py-1 rounded-md text-[10px] font-medium text-[var(--theme-text-muted)] uppercase tracking-wider gap-1.5 flex items-center shadow-none">
-                    <Star size={12} className="text-[var(--theme-secondary)]" />
-                    {selected.tingkat}
-                  </Badge>
-                )}
-                <Badge className={cn("px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider gap-1.5 flex items-center shadow-none border",
-                  ["verified", "terverifikasi", "disetujui", "diverifikasi"].includes((selected.status || "").toLowerCase())
-                    ? "bg-[var(--theme-success-light)] text-[var(--theme-success)] border-[var(--theme-success)]/10"
-                    : (selected.status || "").toLowerCase() === "menunggu"
-                      ? "bg-[var(--theme-warning-light)] text-[var(--theme-warning)] border-[var(--theme-warning)]/10"
-                      : "bg-[var(--theme-error-light)] text-[var(--theme-error)] border-[var(--theme-error)]/10"
-                )}>
-                  <span className={cn("w-1.5 h-1.5 rounded-full bg-current", (selected.status || "").toLowerCase() === "menunggu" && "animate-pulse")} />
-                  {["verified", "terverifikasi", "disetujui", "diverifikasi"].includes((selected.status || "").toLowerCase()) ? "Terverifikasi" : (selected.status || "").toLowerCase() === "menunggu" ? "Menunggu" : "Ditolak"}
+          <div className="p-8 space-y-6 max-h-[50vh] overflow-y-auto no-scrollbar font-jakarta bg-white">
+            <div className="flex flex-wrap gap-2">
+              {selected.kategori && (
+                <Badge className="bg-[var(--theme-bg)] border border-[var(--theme-border)] px-2.5 py-1 rounded-md text-[10px] font-medium text-[var(--theme-text-muted)] uppercase tracking-wider gap-1.5 flex items-center shadow-none">
+                  <Award size={12} className="text-[var(--theme-primary)]" />
+                  {selected.kategori}
                 </Badge>
+              )}
+              {selected.tingkat && (
+                <Badge className="bg-[var(--theme-bg)] border border-[var(--theme-border)] px-2.5 py-1 rounded-md text-[10px] font-medium text-[var(--theme-text-muted)] uppercase tracking-wider gap-1.5 flex items-center shadow-none">
+                  <Star size={12} className="text-[var(--theme-secondary)]" />
+                  {selected.tingkat}
+                </Badge>
+              )}
+              <Badge className={cn("px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider gap-1.5 flex items-center shadow-none border",
+                ["verified", "terverifikasi", "disetujui", "diverifikasi"].includes((selected.status || "").toLowerCase())
+                  ? "bg-[var(--theme-success-light)] text-[var(--theme-success)] border-[var(--theme-success)]/10"
+                  : (selected.status || "").toLowerCase() === "menunggu"
+                    ? "bg-[var(--theme-warning-light)] text-[var(--theme-warning)] border-[var(--theme-warning)]/10"
+                    : "bg-[var(--theme-error-light)] text-[var(--theme-error)] border-[var(--theme-error)]/10"
+              )}>
+                <span className={cn("w-1.5 h-1.5 rounded-full bg-current", (selected.status || "").toLowerCase() === "menunggu" && "animate-pulse")} />
+                {["verified", "terverifikasi", "disetujui", "diverifikasi"].includes((selected.status || "").toLowerCase()) ? "Terverifikasi" : (selected.status || "").toLowerCase() === "menunggu" ? "Menunggu" : "Ditolak"}
+              </Badge>
+            </div>
+
+            {/* Reject Alert / Note */}
+            {((selected.status || "").toLowerCase() === "rejected" || (selected.status || "").toLowerCase() === "ditolak") && (
+              <div className="bg-rose-50 border border-rose-100 rounded-2xl p-4 flex items-start gap-3">
+                <span className="material-symbols-outlined text-rose-600 flex-shrink-0" style={{ fontSize: "18px" }}>cancel</span>
+                <div>
+                  <p className="font-bold text-rose-800 text-sm">Pengajuan Ditolak</p>
+                  <p className="text-rose-600 text-xs mt-0.5">{selected.CatatanVerifikator || 'Pengajuan ini tidak disetujui. Silakan periksa berkas atau data terkait.'}</p>
+                </div>
               </div>
-            </DialogHeader>
+            )}
 
-            <div className="p-8 space-y-6 max-h-[50vh] overflow-y-auto no-scrollbar font-jakarta bg-white">
-              {/* Reject Alert / Note */}
-              {((selected.status || "").toLowerCase() === "rejected" || (selected.status || "").toLowerCase() === "ditolak") && (
-                <div className="bg-rose-50 border border-rose-100 rounded-2xl p-4 flex items-start gap-3">
-                  <span className="material-symbols-outlined text-rose-600 flex-shrink-0" style={{ fontSize: "18px" }}>cancel</span>
+            {/* Verified Note (Non-Reject) */}
+            {["verified", "terverifikasi", "disetujui", "diverifikasi"].includes((selected.status || "").toLowerCase()) && selected.CatatanVerifikator && (
+              <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 flex items-start gap-3">
+                <span className="material-symbols-outlined text-emerald-600 flex-shrink-0" style={{ fontSize: "18px" }}>check_circle</span>
+                <div>
+                  <p className="font-bold text-emerald-800 text-sm">Catatan Verifikator</p>
+                  <p className="text-emerald-600 text-xs mt-0.5">{selected.CatatanVerifikator}</p>
+                </div>
+              </div>
+            )}
+
+            {/* 5W 1H Breakdown */}
+            <div className="space-y-6">
+              {/* 1. WHO (Siapa) */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
+                  <span className="material-symbols-outlined text-blue-600" style={{ fontSize: 18 }}>person</span>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">WHO — Profil Mahasiswa</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
+                    <p className="text-[9px] font-black text-slate-400 uppercase">Nama Lengkap</p>
+                    <p className="text-xs font-extrabold text-slate-800 mt-0.5">{selected.mahasiswa?.Nama || selected.mahasiswa?.nama || "—"}</p>
+                  </div>
+                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
+                    <p className="text-[9px] font-black text-slate-400 uppercase">NIM</p>
+                    <p className="text-xs font-extrabold text-slate-800 mt-0.5">{selected.mahasiswa?.NIM || selected.mahasiswa?.nim || "—"}</p>
+                  </div>
+                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
+                    <p className="text-[9px] font-black text-slate-400 uppercase">Fakultas</p>
+                    <p className="text-xs font-bold text-slate-800 mt-0.5">{selected.fakultas_nama || "—"}</p>
+                  </div>
+                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
+                    <p className="text-[9px] font-black text-slate-400 uppercase">Program Studi</p>
+                    <p className="text-xs font-bold text-slate-800 mt-0.5">{selected.prodi_nama || "—"}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. WHAT (Apa) */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
+                  <span className="material-symbols-outlined text-blue-600" style={{ fontSize: 18 }}>emoji_events</span>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">WHAT — Rincian Kegiatan & Prestasi</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50 md:col-span-2">
+                    <p className="text-[9px] font-black text-slate-400 uppercase">Nama Kegiatan / Kompetisi</p>
+                    <p className="text-xs font-extrabold text-slate-800 mt-0.5">{selected.nama_kegiatan}</p>
+                  </div>
+                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
+                    <p className="text-[9px] font-black text-slate-400 uppercase">Kategori Prestasi</p>
+                    <p className="text-xs font-bold text-slate-800 mt-0.5">{selected.kategori || "—"}</p>
+                  </div>
+                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
+                    <p className="text-[9px] font-black text-slate-400 uppercase">Peringkat / Juara</p>
+                    <p className="text-xs font-extrabold text-primary mt-0.5">{selected.peringkat || "—"}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. WHERE (Di mana) */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
+                  <span className="material-symbols-outlined text-blue-600" style={{ fontSize: 18 }}>public</span>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">WHERE — Lokasi & Penyelenggara</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
+                    <p className="text-[9px] font-black text-slate-400 uppercase">Penyelenggara / Institusi</p>
+                    <p className="text-xs font-bold text-slate-800 mt-0.5">{selected.penyelenggara || "—"}</p>
+                  </div>
+                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
+                    <p className="text-[9px] font-black text-slate-400 uppercase">Tingkat Kompetisi</p>
+                    <p className="text-xs font-extrabold text-slate-800 mt-0.5 uppercase">{selected.tingkat || "Lokal"}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. WHEN (Kapan) */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
+                  <span className="material-symbols-outlined text-blue-600" style={{ fontSize: 18 }}>calendar_today</span>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">WHEN — Waktu & Periode</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
+                    <p className="text-[9px] font-black text-slate-400 uppercase">Tanggal Pelaksanaan / Lomba</p>
+                    <p className="text-xs font-bold text-slate-800 mt-0.5">{formatDate(selected.tanggal)}</p>
+                  </div>
+                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
+                    <p className="text-[9px] font-black text-slate-400 uppercase">Periode Akademik / Pengajuan</p>
+                    <p className="text-xs font-bold text-slate-800 mt-0.5">Tahun {selected.periode_filter}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 5. WHY (Mengapa) */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
+                  <span className="material-symbols-outlined text-blue-600" style={{ fontSize: 18 }}>contact_support</span>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">WHY — Verifikasi & Kelayakan</span>
+                </div>
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100/50 space-y-2">
                   <div>
-                    <p className="font-bold text-rose-800 text-sm">Pengajuan Ditolak</p>
-                    <p className="text-rose-600 text-xs mt-0.5">{selected.CatatanVerifikator || 'Pengajuan ini tidak disetujui. Silakan periksa berkas atau data terkait.'}</p>
+                    <p className="text-[9px] font-black text-slate-400 uppercase">Catatan Keputusan / Verifikator</p>
+                    <p className="text-xs font-bold text-slate-700 mt-1">
+                      {selected.CatatanVerifikator || "Belum ada catatan keputusan dari verifikator."}
+                    </p>
                   </div>
                 </div>
-              )}
+              </div>
 
-              {/* Verified Note (Non-Reject) */}
-              {["verified", "terverifikasi", "disetujui", "diverifikasi"].includes((selected.status || "").toLowerCase()) && selected.CatatanVerifikator && (
-                <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 flex items-start gap-3">
-                  <span className="material-symbols-outlined text-emerald-600 flex-shrink-0" style={{ fontSize: "18px" }}>check_circle</span>
-                  <div>
-                    <p className="font-bold text-emerald-800 text-sm">Catatan Verifikator</p>
-                    <p className="text-emerald-600 text-xs mt-0.5">{selected.CatatanVerifikator}</p>
-                  </div>
+              {/* 6. HOW (Bagaimana) */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
+                  <span className="material-symbols-outlined text-blue-600" style={{ fontSize: 18 }}>payments</span>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">HOW — Pendanaan & Berkas</span>
                 </div>
-              )}
-
-              {/* 5W 1H Breakdown */}
-              <div className="space-y-6">
-                {/* 1. WHO (Siapa) */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
-                    <span className="material-symbols-outlined text-blue-600" style={{ fontSize: 18 }}>person</span>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">WHO — Profil Mahasiswa</span>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
-                      <p className="text-[9px] font-black text-slate-400 uppercase">Nama Lengkap</p>
-                      <p className="text-xs font-extrabold text-slate-800 mt-0.5">{selected.mahasiswa?.Nama || selected.mahasiswa?.nama || "—"}</p>
-                    </div>
-                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
-                      <p className="text-[9px] font-black text-slate-400 uppercase">NIM</p>
-                      <p className="text-xs font-extrabold text-slate-800 mt-0.5">{selected.mahasiswa?.NIM || selected.mahasiswa?.nim || "—"}</p>
-                    </div>
-                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
-                      <p className="text-[9px] font-black text-slate-400 uppercase">Fakultas</p>
-                      <p className="text-xs font-bold text-slate-800 mt-0.5">{selected.fakultas_nama || "—"}</p>
-                    </div>
-                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
-                      <p className="text-[9px] font-black text-slate-400 uppercase">Program Studi</p>
-                      <p className="text-xs font-bold text-slate-800 mt-0.5">{selected.prodi_nama || "—"}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 2. WHAT (Apa) */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
-                    <span className="material-symbols-outlined text-blue-600" style={{ fontSize: 18 }}>emoji_events</span>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">WHAT — Rincian Kegiatan & Prestasi</span>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50 md:col-span-2">
-                      <p className="text-[9px] font-black text-slate-400 uppercase">Nama Kegiatan / Kompetisi</p>
-                      <p className="text-xs font-extrabold text-slate-800 mt-0.5">{selected.nama_kegiatan}</p>
-                    </div>
-                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
-                      <p className="text-[9px] font-black text-slate-400 uppercase">Kategori Prestasi</p>
-                      <p className="text-xs font-bold text-slate-800 mt-0.5">{selected.kategori || "—"}</p>
-                    </div>
-                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
-                      <p className="text-[9px] font-black text-slate-400 uppercase">Peringkat / Juara</p>
-                      <p className="text-xs font-extrabold text-primary mt-0.5">{selected.peringkat || "—"}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 3. WHERE (Di mana) */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
-                    <span className="material-symbols-outlined text-blue-600" style={{ fontSize: 18 }}>public</span>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">WHERE — Lokasi & Penyelenggara</span>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
-                      <p className="text-[9px] font-black text-slate-400 uppercase">Penyelenggara / Institusi</p>
-                      <p className="text-xs font-bold text-slate-800 mt-0.5">{selected.penyelenggara || "—"}</p>
-                    </div>
-                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
-                      <p className="text-[9px] font-black text-slate-400 uppercase">Tingkat Kompetisi</p>
-                      <p className="text-xs font-extrabold text-slate-800 mt-0.5 uppercase">{selected.tingkat || "Lokal"}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 4. WHEN (Kapan) */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
-                    <span className="material-symbols-outlined text-blue-600" style={{ fontSize: 18 }}>calendar_today</span>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">WHEN — Waktu & Periode</span>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
-                      <p className="text-[9px] font-black text-slate-400 uppercase">Tanggal Pelaksanaan / Lomba</p>
-                      <p className="text-xs font-bold text-slate-800 mt-0.5">{formatDate(selected.tanggal)}</p>
-                    </div>
-                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
-                      <p className="text-[9px] font-black text-slate-400 uppercase">Periode Akademik / Pengajuan</p>
-                      <p className="text-xs font-bold text-slate-800 mt-0.5">Tahun {selected.periode_filter}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 5. WHY (Mengapa) */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
-                    <span className="material-symbols-outlined text-blue-600" style={{ fontSize: 18 }}>contact_support</span>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">WHY — Verifikasi & Kelayakan</span>
-                  </div>
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100/50 space-y-2">
-                    <div>
-                      <p className="text-[9px] font-black text-slate-400 uppercase">Catatan Keputusan / Verifikator</p>
-                      <p className="text-xs font-bold text-slate-700 mt-1">
-                        {selected.CatatanVerifikator || "Belum ada catatan keputusan dari verifikator."}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 6. HOW (Bagaimana) */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
-                    <span className="material-symbols-outlined text-blue-600" style={{ fontSize: 18 }}>payments</span>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">HOW — Pendanaan & Berkas</span>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {selected.Tipe === 'Pengajuan Dana' ? (
-                      <>
-                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
-                          <p className="text-[9px] font-black text-slate-400 uppercase">Dana Diajukan</p>
-                          <p className="text-xs font-extrabold text-amber-600 mt-0.5">Rp {(selected.DanaDiajukan || 0).toLocaleString('id-ID')}</p>
-                        </div>
-                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
-                          <p className="text-[9px] font-black text-slate-400 uppercase">Dana Disetujui</p>
-                          <p className="text-xs font-extrabold text-emerald-600 mt-0.5">Rp {(selected.DanaDisetujui || 0).toLocaleString('id-ID')}</p>
-                        </div>
-                      </>
-                    ) : null}
-                  </div>
-
-                  {/* SIMKATMAWA Info */}
-                  {selected.SimkatmawaId && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex items-start gap-3 mt-4">
-                      <span className="material-symbols-outlined text-blue-600 flex-shrink-0 mt-0.5" style={{ fontSize: '18px' }} >cloud_sync</span>
-                      <div>
-                        <p className="font-bold text-blue-700 text-sm">Disinkronkan ke SIMKATMAWA</p>
-                        <p className="text-blue-600 text-xs mt-0.5 mb-2">ID Simkatmawa: {selected.SimkatmawaId}</p>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-semibold text-blue-700">Status:</span>
-                          <select
-                            className="bg-white border border-blue-200 text-blue-700 text-xs font-bold rounded-lg px-2 py-1 outline-none cursor-pointer hover:border-blue-300 transition-colors"
-                            value={selected.SimkatmawaStatus || "Sukses"}
-                            onChange={async (e) => {
-                              const newStatus = e.target.value;
-                              try {
-                                await adminService.updateSimkatmawaStatus(selected.id || selected.ID, newStatus);
-                                toast.success("Status SIMKATMAWA diperbarui! ✅");
-                                fetchData();
-                                setSelected({ ...selected, SimkatmawaStatus: newStatus });
-                              } catch (err) {
-                                toast.error("Gagal update status");
-                              }
-                            }}
-                          >
-                            <option value="Sukses">Sukses Terkirim (Menunggu)</option>
-                            <option value="Diterima SIMKATMAWA">Diterima SIMKATMAWA</option>
-                            <option value="Ditolak SIMKATMAWA">Ditolak SIMKATMAWA</option>
-                          </select>
-                        </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {selected.Tipe === 'Pengajuan Dana' ? (
+                    <>
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
+                        <p className="text-[9px] font-black text-slate-400 uppercase">Dana Diajukan</p>
+                        <p className="text-xs font-extrabold text-amber-600 mt-0.5">Rp {(selected.DanaDiajukan || 0).toLocaleString('id-ID')}</p>
                       </div>
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-100/50">
+                        <p className="text-[9px] font-black text-slate-400 uppercase">Dana Disetujui</p>
+                        <p className="text-xs font-extrabold text-emerald-600 mt-0.5">Rp {(selected.DanaDisetujui || 0).toLocaleString('id-ID')}</p>
+                      </div>
+                    </>
+                  ) : null}
+                </div>
+
+                {/* SIMKATMAWA Info */}
+                {selected.SimkatmawaId && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex items-start gap-3 mt-4">
+                    <span className="material-symbols-outlined text-blue-600 flex-shrink-0 mt-0.5" style={{ fontSize: '18px' }} >cloud_sync</span>
+                    <div>
+                      <p className="font-bold text-blue-700 text-sm">Disinkronkan ke SIMKATMAWA</p>
+                      <p className="text-blue-600 text-xs mt-0.5 mb-2">ID Simkatmawa: {selected.SimkatmawaId}</p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-blue-700">Status:</span>
+                        <select
+                          className="bg-white border border-blue-200 text-blue-700 text-xs font-bold rounded-lg px-2 py-1 outline-none cursor-pointer hover:border-blue-300 transition-colors"
+                          value={selected.SimkatmawaStatus || "Sukses"}
+                          onChange={async (e) => {
+                            const newStatus = e.target.value;
+                            try {
+                              await adminService.updateSimkatmawaStatus(selected.id || selected.ID, newStatus);
+                              toast.success("Status SIMKATMAWA diperbarui! ✅");
+                              fetchData();
+                              setSelected({ ...selected, SimkatmawaStatus: newStatus });
+                            } catch (err) {
+                              toast.error("Gagal update status");
+                            }
+                          }}
+                        >
+                          <option value="Sukses">Sukses Terkirim (Menunggu)</option>
+                          <option value="Diterima SIMKATMAWA">Diterima SIMKATMAWA</option>
+                          <option value="Ditolak SIMKATMAWA">Ditolak SIMKATMAWA</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Bukti File */}
+                <div className="mt-3">
+                  <p className="text-[9px] font-black text-slate-400 uppercase mb-2">Dokumen Pendukung</p>
+                  {selected.bukti_url ? (
+                    <a
+                      href={`${API_BASE_URL.replace("/api", "")}${selected.bukti_url}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center justify-between p-3.5 rounded-xl border border-neutral-200 bg-white hover:bg-blue-50/20 hover:border-blue-300 transition-all group"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600 flex-shrink-0 border border-blue-100">
+                          <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>description</span>
+                        </div>
+                        <span className="font-bold text-neutral-900 group-hover:text-blue-600 text-xs transition-colors truncate max-w-[200px]">
+                          {selected.Tipe === 'Pengajuan Dana' ? 'Proposal / Dokumen Pengajuan' : 'Sertifikat Bukti Prestasi'}
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-black text-blue-600 flex items-center gap-1">
+                        Buka File <span className="material-symbols-outlined" style={{ fontSize: 12 }}>open_in_new</span>
+                      </span>
+                    </a>
+                  ) : (
+                    <div className="flex items-center gap-3 p-3.5 rounded-xl border border-dashed border-neutral-200 bg-neutral-50/30">
+                      <span className="material-symbols-outlined text-slate-300" style={{ fontSize: "18px" }}>description</span>
+                      <p className="text-xs text-slate-400 font-medium italic">Tidak ada berkas yang diunggah.</p>
                     </div>
                   )}
-
-                  {/* Bukti File */}
-                  <div className="mt-3">
-                    <p className="text-[9px] font-black text-slate-400 uppercase mb-2">Dokumen Pendukung</p>
-                    {selected.bukti_url ? (
-                      <a
-                        href={`${API_BASE_URL.replace("/api", "")}${selected.bukti_url}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex items-center justify-between p-3.5 rounded-xl border border-neutral-200 bg-white hover:bg-blue-50/20 hover:border-blue-300 transition-all group"
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600 flex-shrink-0 border border-blue-100">
-                            <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>description</span>
-                          </div>
-                          <span className="font-bold text-neutral-900 group-hover:text-blue-600 text-xs transition-colors truncate max-w-[200px]">
-                            {selected.Tipe === 'Pengajuan Dana' ? 'Proposal / Dokumen Pengajuan' : 'Sertifikat Bukti Prestasi'}
-                          </span>
-                        </div>
-                        <span className="text-[10px] font-black text-blue-600 flex items-center gap-1">
-                          Buka File <span className="material-symbols-outlined" style={{ fontSize: 12 }}>open_in_new</span>
-                        </span>
-                      </a>
-                    ) : (
-                      <div className="flex items-center gap-3 p-3.5 rounded-xl border border-dashed border-neutral-200 bg-neutral-50/30">
-                        <span className="material-symbols-outlined text-slate-300" style={{ fontSize: "18px" }}>description</span>
-                        <p className="text-xs text-slate-400 font-medium italic">Tidak ada berkas yang diunggah.</p>
-                      </div>
-                    )}
-                  </div>
                 </div>
               </div>
             </div>
-
-            <DialogFooter className="flex flex-col md:flex-row items-center justify-end gap-3">
-              <Button
-                onClick={() => setIsDetailOpen(false)}
-                variant="ghost"
-                className="w-full md:w-auto text-xs font-semibold px-6 h-10 rounded-xl active:scale-95 transition-all text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] border-none cursor-pointer uppercase tracking-wider"
-              >
-                Tutup
-              </Button>
-              {(selected.status || "").toLowerCase() === "menunggu" && (
-                <>
-                  <Button
-                    onClick={() => handleOpenVerify(selected, "rejected")}
-                    variant="outline"
-                    className="w-full md:w-auto h-10 px-6 rounded-xl border border-[var(--theme-error)]/20 text-[var(--theme-error)] hover:bg-[var(--theme-error-light)] text-xs font-semibold uppercase cursor-pointer transition-all active:scale-95"
-                  >
-                    Tolak Pengajuan
-                  </Button>
-                  <Button
-                    onClick={() => handleOpenVerify(selected, "verified")}
-                    className="w-full md:w-auto h-10 px-6 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-xs font-semibold uppercase cursor-pointer transition-all active:scale-95 border-none"
-                  >
-                    Setujui & Validasi
-                  </Button>
-                </>
-              )}
-              {['diverifikasi', 'valid', 'disetujui', 'verified'].includes((selected.status || '').toLowerCase()) && !selected.SimkatmawaId && (
-                <Button
-                  onClick={(e) => handleSyncSimkatmawa(e, selected.ID || selected.id)}
-                  disabled={isSubmitting}
-                  className="w-full md:w-auto h-10 px-6 rounded-xl bg-[var(--theme-info)] hover:bg-[var(--theme-info-hover)] text-white text-xs font-semibold uppercase cursor-pointer flex items-center justify-center gap-2 border-none transition-all active:scale-95"
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>sync</span> Kirim ke SIMKATMAWA
-                </Button>
-              )}
-            </DialogFooter>
-          </DialogContent>
+          </div>
         )}
-      </Dialog>
+      </DialogModal>
 
       {/* ── Verification Action Dialog ─────────────────────────────── */}
-      <Dialog open={isVerifyOpen} onOpenChange={setIsVerifyOpen} maxWidth="max-w-md">
+      <DialogModal
+        open={isVerifyOpen}
+        onOpenChange={setIsVerifyOpen}
+        title={verifyStatus === "verified"
+          ? (selected?.Tipe === 'Pengajuan Dana' ? 'Setujui Pengajuan Dana' : 'Setujui Pengajuan Prestasi')
+          : (selected?.Tipe === 'Pengajuan Dana' ? 'Tolak Pengajuan Dana' : 'Tolak Pengajuan Prestasi')
+        }
+        subtitle="Verifikasi Kelayakan"
+        description={verifyStatus === "verified"
+          ? "Berikan catatan verifikasi kelayakan untuk mahasiswa."
+          : "Berikan alasan penolakan berkas agar mahasiswa dapat memperbaiki pengajuannya."
+        }
+        icon={verifyStatus === "verified" ? "check_circle" : "cancel"}
+        variant={verifyStatus === "verified" ? "success" : "danger"}
+        maxWidth="max-w-md"
+        bodyClassName="p-0"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setIsVerifyOpen(false)} />
+            <ModalSaveButton
+              form="verify-form"
+              type="submit"
+              loading={isSubmitting}
+              className={verifyStatus === "verified" ? "bg-[var(--theme-success)] hover:bg-[var(--theme-success)]/90 text-white" : "bg-[var(--theme-error)] hover:bg-[var(--theme-error)]/90 text-white"}
+              icon={verifyStatus === "verified" ? "check_circle" : "cancel"}
+            >
+              {verifyStatus === "verified" ? "Validasi" : "Tolak"}
+            </ModalSaveButton>
+          </>
+        }
+      >
         {selected && (
-          <DialogContent className="max-w-md p-0 overflow-hidden border border-border shadow-2xl rounded-2xl bg-surface animate-in zoom-in-95 duration-200">
-            <DialogHeader className="p-8 pb-5 bg-slate-50/50 border-b border-border relative text-left">
-              <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-                <span className="material-symbols-outlined size-24 rotate-12 text-slate-800">
-                  {verifyStatus === "verified" ? "check_circle" : "cancel"}
-                </span>
-              </div>
-              <DialogTitle className="text-xl font-bold font-jakarta tracking-tight text-neutral-900 leading-tight">
-                {verifyStatus === "verified"
-                  ? (selected.Tipe === 'Pengajuan Dana' ? 'Setujui Pengajuan Dana' : 'Setujui Pengajuan Prestasi')
-                  : (selected.Tipe === 'Pengajuan Dana' ? 'Tolak Pengajuan Dana' : 'Tolak Pengajuan Prestasi')
-                }
-              </DialogTitle>
-              <DialogDescription className="text-xs text-neutral-400 font-medium italic mt-1.5">
-                {verifyStatus === "verified"
-                  ? "Berikan catatan verifikasi kelayakan untuk mahasiswa."
-                  : "Berikan alasan penolakan berkas agar mahasiswa dapat memperbaiki pengajuannya."
-                }
-              </DialogDescription>
-            </DialogHeader>
-
-            <form onSubmit={handleVerifySubmit} className="flex flex-col">
-              <div className="p-8 pt-5 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar bg-white">
-                <div className="space-y-1.5 flex flex-col gap-1.5">
-                  <Label htmlFor="verify_catatan" className="text-[10px] font-semibold text-[var(--theme-text-muted)] tracking-[0.2em] ml-1 uppercase font-headline">Catatan Verifikator</Label>
-                  <Textarea
-                    id="verify_catatan"
-                    placeholder="Masukkan catatan alasan verifikasi..."
-                    value={verifyCatatan}
-                    onChange={(e) => setVerifyCatatan(e.target.value)}
-                    className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3 text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none min-h-[90px] transition-colors resize-none"
-                    required
-                  />
-                </div>
-
-                {selected.Tipe === "Pengajuan Dana" ? (
-                  verifyStatus === "verified" && (
-                    <div className="space-y-1.5 flex flex-col gap-1.5">
-                      <Label htmlFor="verify_dana" className="text-[10px] font-semibold text-[var(--theme-text-muted)] tracking-[0.2em] ml-1 uppercase font-headline">Dana yang Disetujui (Rp)</Label>
-                      <Input
-                        id="verify_dana"
-                        type="number"
-                        value={verifyDanaDisetujui}
-                        onChange={(e) => setVerifyDanaDisetujui(e.target.value)}
-                        className="h-10 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] px-3 text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors"
-                        placeholder="Cth: 1200000"
-                        required
-                      />
-                    </div>
-                  )
-                ) : (
-                  verifyStatus === "verified" && (
-                    <div className="space-y-1.5 flex flex-col gap-1.5">
-                      <Label htmlFor="verify_poin" className="text-[10px] font-semibold text-[var(--theme-text-muted)] tracking-[0.2em] ml-1 uppercase font-headline">Poin SKPI Didapat</Label>
-                      <Input
-                        id="verify_poin"
-                        type="number"
-                        value={verifyPoin}
-                        onChange={(e) => setVerifyPoin(e.target.value)}
-                        className="h-10 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] px-3 text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors"
-                        required
-                      />
-                    </div>
-                  )
-                )}
+          <form id="verify-form" onSubmit={handleVerifySubmit} className="flex flex-col flex-1 min-h-0 bg-white">
+            <div className="p-8 pt-5 space-y-5 overflow-y-auto no-scrollbar flex-1 min-h-0">
+              <div className="space-y-1.5 flex flex-col gap-1.5">
+                <Label htmlFor="verify_catatan" className="text-[10px] font-semibold text-[var(--theme-text-muted)] tracking-[0.2em] ml-1 uppercase font-headline">Catatan Verifikator</Label>
+                <Textarea
+                  id="verify_catatan"
+                  placeholder="Masukkan catatan alasan verifikasi..."
+                  value={verifyCatatan}
+                  onChange={(e) => setVerifyCatatan(e.target.value)}
+                  className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3 text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none min-h-[90px] transition-colors resize-none"
+                  required
+                />
               </div>
 
-              <DialogFooter className="flex flex-col md:flex-row items-center justify-end gap-3">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setIsVerifyOpen(false)}
-                  className="w-full md:w-auto text-xs font-semibold px-6 h-10 rounded-xl active:scale-95 transition-all text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] border-none cursor-pointer uppercase tracking-wider"
-                >
-                  Batal
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className={cn("w-full md:w-auto h-10 px-6 rounded-xl text-white transition-all active:scale-95 flex items-center justify-center gap-2 border-none cursor-pointer text-xs font-semibold uppercase",
-                    verifyStatus === "verified" ? "bg-[var(--theme-success)] hover:bg-[var(--theme-success)]/90" : "bg-[var(--theme-error)] hover:bg-[var(--theme-error)]/90"
-                  )}
-                >
-                  {isSubmitting ? "Menyimpan..." : verifyStatus === "verified" ? "Validasi" : "Tolak"}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
+              {selected.Tipe === "Pengajuan Dana" ? (
+                verifyStatus === "verified" && (
+                  <div className="space-y-1.5 flex flex-col gap-1.5">
+                    <Label htmlFor="verify_dana" className="text-[10px] font-semibold text-[var(--theme-text-muted)] tracking-[0.2em] ml-1 uppercase font-headline">Dana yang Disetujui (Rp)</Label>
+                    <Input
+                      id="verify_dana"
+                      type="number"
+                      value={verifyDanaDisetujui}
+                      onChange={(e) => setVerifyDanaDisetujui(e.target.value)}
+                      className="h-10 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] px-3 text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors"
+                      placeholder="Cth: 1200000"
+                      required
+                    />
+                  </div>
+                )
+              ) : (
+                verifyStatus === "verified" && (
+                  <div className="space-y-1.5 flex flex-col gap-1.5">
+                    <Label htmlFor="verify_poin" className="text-[10px] font-semibold text-[var(--theme-text-muted)] tracking-[0.2em] ml-1 uppercase font-headline">Poin SKPI Didapat</Label>
+                    <Input
+                      id="verify_poin"
+                      type="number"
+                      value={verifyPoin}
+                      onChange={(e) => setVerifyPoin(e.target.value)}
+                      className="h-10 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] px-3 text-xs text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors"
+                      required
+                    />
+                  </div>
+                )
+              )}
+            </div>
+          </form>
         )}
-      </Dialog>
+      </DialogModal>
 
 
       {/* ── Import Modal ────────────────────────────────────────────── */}
-      <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <span className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">Sinkronisasi Data</span>
-            <DialogTitle className="text-base font-bold text-[var(--theme-text)] mt-0.5">Import Data Prestasi Lama</DialogTitle>
-            <DialogDescription className="text-xs text-[var(--theme-text-muted)] mt-0.5">
-              Upload file Excel berisi rekapitulasi data prestasi mahasiswa
-            </DialogDescription>
-          </DialogHeader>
-
-          <form onSubmit={handleImport} className="p-6 space-y-4">
-            <div className="p-4 bg-[var(--theme-warning-light)] rounded-2xl border border-[var(--theme-warning)]/20">
-              <p className="text-xs text-[var(--theme-warning)] leading-relaxed font-semibold">
-                Pastikan kolom pada excel berurutan seperti berikut:<br />
-                <strong className="block mt-2">NIM | Nama Prestasi | Tipe | Level | Kategori | Peringkat | Penyelenggara | Tahun | Cabang | Bentuk | Kelompok | URL Sertifikat | Simkatmawa ID</strong>
-              </p>
-            </div>
-            <div className="space-y-1.5 pt-2">
-              <label className="text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">Pilih File Excel (.xlsx)</label>
-              <input
-                type="file"
-                accept=".xlsx, .xls"
-                onChange={(e) => setImportFile(e.target.files[0])}
-                className="w-full px-4 py-3 rounded-xl bg-[var(--theme-bg)] border border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] text-sm font-semibold transition-all file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[var(--theme-primary-light)] file:text-[var(--theme-primary)] hover:file:bg-[var(--theme-primary-light)]/80 cursor-pointer"
-                required
-              />
-            </div>
-            <div className="flex justify-end gap-3 pt-5 border-t border-[var(--theme-border-muted)] flex-shrink-0 mt-6">
-              <button type="button" onClick={() => setIsImportOpen(false)} className="h-10 px-5 rounded-xl text-xs font-bold uppercase tracking-wider text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg)] transition-colors border border-[var(--theme-border)]">Batal</button>
-              <button type="submit" disabled={isSubmitting || !importFile} className="h-10 px-6 rounded-xl text-xs font-bold uppercase tracking-wider bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white shadow-md active:scale-95 disabled:opacity-50 transition-all flex items-center gap-2">
-                <span className="material-symbols-outlined text-[16px]">{isSubmitting ? 'sync' : 'cloud_upload'}</span> {isSubmitting ? "Mengimpor..." : "Upload"}
-              </button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <DialogModal
+        open={isImportOpen}
+        onOpenChange={setIsImportOpen}
+        title="Import Data Prestasi Lama"
+        subtitle="Sinkronisasi Data"
+        description="Upload file Excel berisi rekapitulasi data prestasi mahasiswa"
+        icon="upload_file"
+        maxWidth="max-w-lg"
+        bodyClassName="p-0"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setIsImportOpen(false)} />
+            <ModalSaveButton
+              form="import-form"
+              type="submit"
+              disabled={!importFile}
+              loading={isSubmitting}
+              icon="cloud_upload"
+            >
+              Upload
+            </ModalSaveButton>
+          </>
+        }
+      >
+        <form id="import-form" onSubmit={handleImport} className="p-6 space-y-4 bg-white flex-1 min-h-0">
+          <div className="p-4 bg-[var(--theme-warning-light)] rounded-2xl border border-[var(--theme-warning)]/20">
+            <p className="text-xs text-[var(--theme-warning)] leading-relaxed font-semibold">
+              Pastikan kolom pada excel berurutan seperti berikut:<br />
+              <strong className="block mt-2">NIM | Nama Prestasi | Tipe | Level | Kategori | Peringkat | Penyelenggara | Tahun | Cabang | Bentuk | Kelompok | URL Sertifikat | Simkatmawa ID</strong>
+            </p>
+          </div>
+          <div className="space-y-1.5 pt-2">
+            <label className="text-xs font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">Pilih File Excel (.xlsx)</label>
+            <input
+              type="file"
+              accept=".xlsx, .xls"
+              onChange={(e) => setImportFile(e.target.files[0])}
+              className="w-full px-4 py-3 rounded-xl bg-[var(--theme-bg)] border border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] text-sm font-semibold transition-all file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[var(--theme-primary-light)] file:text-[var(--theme-primary)] hover:file:bg-[var(--theme-primary-light)]/80 cursor-pointer"
+              required
+            />
+          </div>
+        </form>
+      </DialogModal>
     </PageContent>
   )
 }

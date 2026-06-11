@@ -8,6 +8,7 @@ import { DataTable } from '@/components/ui/DataTable'
 
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
 import { DialogModal, ModalCancelButton, ModalSaveButton } from '@/components/ui/DialogModal'
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
 import { Card, CardContent } from '@/components/ui/Card'
@@ -447,8 +448,8 @@ export default function LpjManagement() {
       </div>
 
       {/* ── LPJ DataTable Container ─────────────────────────────────── */}
-      <Card className="glass-card shadow-sm rounded-xl overflow-hidden animate-in slide-in-from-bottom-4 duration-500 delay-300 mb-6">
-        <CardContent className="p-0">
+      <div>
+        <div>
           <DataTable
             columns={columns}
             data={data}
@@ -512,221 +513,221 @@ export default function LpjManagement() {
               </div>
             )}
           />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <DialogModal
         open={isDetailOpen}
         onOpenChange={setIsDetailOpen}
-        title={selected?.Judul || 'Detail LPJ'}
-        subtitle={`ID Laporan: LPJ-${selected?.ID}`}
+        title={selected?.Judul || "Detail LPJ"}
+        subtitle={`LPJ-${selected?.ID || ''}`}
+        description="Rincian informasi laporan pertanggungjawaban kegiatan."
         icon="description"
-        maxWidth="max-w-xl"
+        maxWidth="max-w-2xl"
+        bodyClassName="p-0"
         footer={
-          <div className="flex items-center justify-end gap-2">
-            <ModalCancelButton onClick={() => setIsDetailOpen(false)}>TUTUP</ModalCancelButton>
+          <>
+            <ModalCancelButton onClick={() => setIsDetailOpen(false)}>
+              TUTUP
+            </ModalCancelButton>
             <Button
-              variant="primary"
               onClick={() => {
                 setIsDetailOpen(false)
                 handleOpenEdit(selected)
               }}
-              className="h-11 px-6 sm:px-8 rounded-xl bg-primary text-white hover:bg-primary/95 shadow-lg active:scale-95 transition-all border-none font-black text-[11px] uppercase tracking-[0.1em] flex items-center justify-center cursor-pointer hover:-translate-y-0.5"
+              className="text-[10px] font-black h-11 px-8 rounded-xl bg-primary text-white hover:bg-primary/95 shadow-lg active:scale-95 transition-all border-none flex items-center justify-center"
             >
               EDIT LAPORAN
             </Button>
-          </div>
+          </>
         }
       >
         {selected && (
-              <div className="p-6 space-y-6 max-h-[50vh] overflow-y-auto no-scrollbar">
-                <div className="flex justify-end -mt-4 mb-2">
-                  <Badge className={cn('font-bold text-[10px] uppercase tracking-wider px-3.5 py-1 border shrink-0 rounded-full', STATUS_CFG[selected.Status]?.cls || 'bg-slate-50 text-slate-600 border-border')}>
-                    {STATUS_CFG[selected.Status]?.label || selected.Status || 'Draft'}
-                  </Badge>
-                </div>
-                <div className="grid grid-cols-2 gap-6 pb-6 border-b border-slate-100">
-                  <div>
-                    <p className="text-[9px] font-black text-slate-400 tracking-wider uppercase font-headline">Total Anggaran Proposal</p>
-                    <p className="text-base font-black text-slate-800 tracking-tight">{formatRp(selected.TotalAnggaran)}</p>
-                  </div>
-                  <div>
-                    <p className="text-[9px] font-black text-slate-400 tracking-wider uppercase font-headline">Realisasi Pengeluaran LPJ</p>
-                    <p className="text-base font-black text-emerald-600 tracking-tight">{formatRp(selected.RealisasiAnggaran)}</p>
-                  </div>
-                </div>
-
-                {/* 🌟 Advanced Budget Utilization Progress Bar Analysis */}
-                <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 space-y-3.5">
-                  <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Analisis Efisiensi Anggaran</p>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-xs font-bold text-slate-700">
-                      <span>Penyerapan Anggaran</span>
-                      <span>{selected.TotalAnggaran ? Math.round((selected.RealisasiAnggaran / selected.TotalAnggaran) * 100) : 0}%</span>
-                    </div>
-                    <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
-                      <div
-                        className={cn(
-                          "h-full rounded-full transition-all duration-500",
-                          selected.RealisasiAnggaran > selected.TotalAnggaran ? "bg-rose-500" : "bg-emerald-500"
-                        )}
-                        style={{ width: `${selected.TotalAnggaran ? Math.min(100, (selected.RealisasiAnggaran / selected.TotalAnggaran) * 100) : 0}%` }}
-                      />
-                    </div>
-                    <div className="flex justify-between text-[9.5px] font-bold mt-1">
-                      {selected.RealisasiAnggaran > selected.TotalAnggaran ? (
-                        <span className="text-rose-600 flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">warning</span> BENGKAK {Math.round((selected.RealisasiAnggaran / selected.TotalAnggaran) * 100) - 100}% DARI PAGU</span>
-                      ) : (
-                        <span className="text-emerald-600 flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">lightbulb</span> EFISIEN / SISA: {formatRp(selected.TotalAnggaran - selected.RealisasiAnggaran)} ({100 - Math.round((selected.RealisasiAnggaran / selected.TotalAnggaran) * 100)}% Hemat)</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {selected.Catatan ? (
-                  <div className="space-y-2">
-                    <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Catatan & Evaluasi Pengurus</p>
-                    <p className="text-xs font-semibold text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                      {selected.Catatan}
-                    </p>
-                  </div>
-                ) : (
-                  <p className="text-xs font-semibold text-slate-400 italic text-center py-6">Tidak ada catatan tambahan untuk laporan ini.</p>
-                )}
+          <div className="flex flex-col">
+            <div className="p-6 sm:p-8 space-y-6 max-h-[60vh] overflow-y-auto no-scrollbar">
+              <div className="flex items-center justify-between gap-4 mb-4">
+                <Badge className={cn('font-bold text-[10px] uppercase tracking-wider px-3.5 py-1 border shrink-0 rounded-full', STATUS_CFG[selected.Status]?.cls || 'bg-slate-50 text-slate-600 border-border')}>
+                  {STATUS_CFG[selected.Status]?.label || selected.Status || 'Draft'}
+                </Badge>
               </div>
 
+              <div className="grid grid-cols-2 gap-6 pb-6 border-b border-[var(--theme-border)]">
+                <div>
+                  <p className="text-[9px] font-black text-[var(--theme-text-subtle)] tracking-wider uppercase font-headline">Total Anggaran Proposal</p>
+                  <p className="text-base font-black text-[var(--theme-text)] tracking-tight">{formatRp(selected.TotalAnggaran)}</p>
+                </div>
+                <div>
+                  <p className="text-[9px] font-black text-[var(--theme-text-subtle)] tracking-wider uppercase font-headline">Realisasi Pengeluaran LPJ</p>
+                  <p className="text-base font-black text-emerald-600 tracking-tight">{formatRp(selected.RealisasiAnggaran)}</p>
+                </div>
+              </div>
+
+              {/* 🌟 Advanced Budget Utilization Progress Bar Analysis */}
+              <div className="bg-[var(--theme-surface)] p-5 rounded-2xl border border-[var(--theme-border)] space-y-3.5 shadow-sm">
+                <p className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-wider uppercase font-headline">Analisis Efisiensi Anggaran</p>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-xs font-bold text-[var(--theme-text)]">
+                    <span>Penyerapan Anggaran</span>
+                    <span>{selected.TotalAnggaran ? Math.round((selected.RealisasiAnggaran / selected.TotalAnggaran) * 100) : 0}%</span>
+                  </div>
+                  <div className="w-full bg-[var(--theme-border)] rounded-full h-2.5 overflow-hidden">
+                    <div
+                      className={cn(
+                        "h-full rounded-full transition-all duration-500",
+                        selected.RealisasiAnggaran > selected.TotalAnggaran ? "bg-rose-500" : "bg-emerald-500"
+                      )}
+                      style={{ width: `${selected.TotalAnggaran ? Math.min(100, (selected.RealisasiAnggaran / selected.TotalAnggaran) * 100) : 0}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-[9.5px] font-bold mt-1">
+                    {selected.RealisasiAnggaran > selected.TotalAnggaran ? (
+                      <span className="text-rose-600 flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">warning</span> BENGKAK {Math.round((selected.RealisasiAnggaran / selected.TotalAnggaran) * 100) - 100}% DARI PAGU</span>
+                    ) : (
+                      <span className="text-emerald-600 flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">lightbulb</span> EFISIEN / SISA: {formatRp(selected.TotalAnggaran - selected.RealisasiAnggaran)} ({100 - Math.round((selected.RealisasiAnggaran / selected.TotalAnggaran) * 100)}% Hemat)</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {selected.Catatan ? (
+                <div className="space-y-2">
+                  <p className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-wider uppercase font-headline">Catatan & Evaluasi Pengurus</p>
+                  <p className="text-xs font-semibold text-[var(--theme-text)] leading-relaxed bg-[var(--theme-surface)] p-4 rounded-2xl border border-[var(--theme-border)]">
+                    {selected.Catatan}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-xs font-semibold text-[var(--theme-text-subtle)] italic text-center py-6">Tidak ada catatan tambahan untuk laporan ini.</p>
+              )}
+            </div>
+          </div>
         )}
       </DialogModal>
+
       <DialogModal
         open={isCrudOpen}
         onOpenChange={setIsCrudOpen}
         title={isEditMode ? 'Edit Laporan LPJ' : 'Buat Laporan LPJ Baru'}
-        subtitle="Lengkapi data laporan dan catat realisasi pengeluaran."
+        subtitle="LPJ REGISTRY"
+        description="Tautkan proposal, isi judul laporan, dan catat realisasi pengeluaran riil kegiatan."
         icon="assignment_turned_in"
-        maxWidth="max-w-xl"
+        maxWidth="max-w-2xl"
+        bodyClassName="p-0"
         footer={
-          <div className="flex items-center justify-end gap-2">
-            <ModalCancelButton onClick={() => setIsCrudOpen(false)} />
+          <>
+            <ModalCancelButton onClick={() => setIsCrudOpen(false)} disabled={isSubmitting} />
             {(!isEditMode || form.Status === 'draft' || form.Status === 'revisi') ? (
               <>
                 <Button
                   type="button"
-                  variant="ghost"
+                  form="lpj-form"
                   disabled={isSubmitting}
                   onClick={(e) => handleSave(e, 'draft')}
-                  className="h-11 px-6 sm:px-8 rounded-xl text-slate-700 font-black text-[11px] uppercase tracking-[0.1em] transition-all duration-300 flex items-center justify-center cursor-pointer shadow-none hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 border-none"
-                  style={{ backgroundColor: '#f1f5f9', color: '#334155' }}
+                  className="h-11 px-6 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 active:scale-95 transition-all border-none font-bold text-[10px] tracking-widest uppercase flex items-center justify-center"
                 >
-                  SIMPAN DRAFT
+                  Simpan Draft
                 </Button>
-                <ModalSaveButton loading={isSubmitting} onClick={(e) => handleSave(e, 'diajukan')}>
-                  KIRIM LAPORAN
-                </ModalSaveButton>
+                <ModalSaveButton form="lpj-form" label="KIRIM LAPORAN" icon="send" disabled={isSubmitting} loading={isSubmitting} onClick={(e) => handleSave(e, 'diajukan')} />
               </>
             ) : (
-              <ModalSaveButton loading={isSubmitting} onClick={(e) => handleSave(e, form.Status)}>
-                SIMPAN PERUBAHAN
-              </ModalSaveButton>
+              <ModalSaveButton form="lpj-form" label="SIMPAN PERUBAHAN" disabled={isSubmitting} loading={isSubmitting} onClick={(e) => handleSave(e, form.Status)} />
             )}
-          </div>
+          </>
         }
       >
         <form id="lpj-form" onSubmit={handleSave} className="flex flex-col">
-            <div className="p-6 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar">
-              {/* Proposal Selection (only editable in creation mode) */}
+          <div className="p-6 sm:p-8 space-y-5 max-h-[60vh] overflow-y-auto no-scrollbar">
+            {/* Proposal Selection (only editable in creation mode) */}
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 uppercase font-headline">Tautkan Proposal Kegiatan</Label>
+              {isEditMode ? (
+                <div className="p-3.5 bg-[var(--theme-surface)] rounded-2xl border border-[var(--theme-border)] font-bold text-xs text-[var(--theme-text-subtle)]">
+                  {proposals.find(p => String(p.ID) === String(form.ProposalID))?.Judul || 'Proposal Terpilih'}
+                </div>
+              ) : (
+                <SelectField
+                  value={form.ProposalID}
+                  onValueChange={handleProposalChange}
+                  placeholder="-- Pilih Proposal Acuan --"
+                >
+                  {proposals.map(p => (
+                    <SelectOption key={p.ID} value={String(p.ID)}>
+                      {p.Judul} (Pagu: {formatRp(p.Anggaran)})
+                    </SelectOption>
+                  ))}
+                </SelectField>
+              )}
+            </div>
+
+            {/* Judul Laporan */}
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 uppercase font-headline">Judul Laporan Pertanggungjawaban</Label>
+              <Input
+                required
+                value={form.Judul}
+                onChange={e => setForm({ ...form, Judul: e.target.value })}
+                placeholder="Misal: LPJ Seminar Kepemimpinan Mahasiswa 2026..."
+              />
+            </div>
+
+            {/* Total Anggaran & Realisasi Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Tautkan Proposal Kegiatan</Label>
-                {isEditMode ? (
-                  <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 font-bold text-xs text-slate-500">
-                    {proposals.find(p => String(p.ID) === String(form.ProposalID))?.Judul || 'Proposal Terpilih'}
-                  </div>
-                ) : (
-                  <SelectField
-                    value={form.ProposalID}
-                    onValueChange={handleProposalChange}
-                    placeholder="-- Pilih Proposal Acuan --"
-                  >
-                    {proposals.map(p => (
-                      <SelectOption key={p.ID} value={String(p.ID)}>
-                        {p.Judul} (Pagu: {formatRp(p.Anggaran)})
-                      </SelectOption>
-                    ))}
-                  </SelectField>
+                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 uppercase font-headline">Total Anggaran Proposal</Label>
+                <div className="relative flex items-center">
+                  <span className="absolute left-4 text-xs font-black text-[var(--theme-text-subtle)] pointer-events-none">Rp</span>
+                  <Input
+                    required
+                    type="number"
+                    value={form.TotalAnggaran}
+                    onChange={e => setForm({ ...form, TotalAnggaran: e.target.value })}
+                    placeholder="0"
+                    className="pl-10"
+                  />
+                </div>
+                {form.TotalAnggaran && (
+                  <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] mt-1 flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[13px]">payments</span>
+                    Format: <span className="font-black">{formatRp(Number(form.TotalAnggaran))}</span>
+                  </p>
                 )}
               </div>
 
-              {/* Judul Laporan */}
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Judul Laporan Pertanggungjawaban</Label>
-                <Input
-                  required
-                  value={form.Judul}
-                  onChange={e => setForm({ ...form, Judul: e.target.value })}
-                  placeholder="Misal: LPJ Seminar Kepemimpinan Mahasiswa 2026..."
-                  className="h-12 rounded-2xl border-border bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm"
-                />
-              </div>
-
-              {/* Total Anggaran & Realisasi Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Total Anggaran Proposal</Label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">Rp</span>
-                    <Input
-                      required
-                      type="number"
-                      value={form.TotalAnggaran}
-                      onChange={e => setForm({ ...form, TotalAnggaran: e.target.value })}
-                      placeholder="0"
-                      className="h-12 pl-10 rounded-2xl border-border bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm"
-                    />
-                  </div>
-                  {/* 🌟 Dynamic live points separator for budget */}
-                  {form.TotalAnggaran && (
-                    <p className="text-[10px] font-bold text-slate-500 mt-1.5 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
-                      <span className="material-symbols-outlined text-slate-400" style={{ fontSize: '13px' }}>payments</span>
-                      Format: <span className="font-black tracking-tight">{formatRp(Number(form.TotalAnggaran))}</span>
-                    </p>
-                  )}
+                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 uppercase font-headline">Realisasi Pengeluaran LPJ</Label>
+                <div className="relative flex items-center">
+                  <span className="absolute left-4 text-xs font-black text-[var(--theme-text-subtle)] pointer-events-none">Rp</span>
+                  <Input
+                    required
+                    type="number"
+                    value={form.RealisasiAnggaran}
+                    onChange={e => setForm({ ...form, RealisasiAnggaran: e.target.value })}
+                    placeholder="0"
+                    className="pl-10"
+                  />
                 </div>
-
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Realisasi Pengeluaran LPJ</Label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">Rp</span>
-                    <Input
-                      required
-                      type="number"
-                      value={form.RealisasiAnggaran}
-                      onChange={e => setForm({ ...form, RealisasiAnggaran: e.target.value })}
-                      placeholder="0"
-                      className="h-12 pl-10 rounded-2xl border-border bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm"
-                    />
-                  </div>
-                  {/* 🌟 Dynamic live points separator for realisasi */}
-                  {form.RealisasiAnggaran && (
-                    <p className="text-[10px] font-bold text-emerald-600 mt-1.5 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
-                      <span className="material-symbols-outlined text-emerald-500" style={{ fontSize: '13px' }}>payments</span>
-                      Format: <span className="font-black tracking-tight">{formatRp(Number(form.RealisasiAnggaran))}</span>
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Catatan & Evaluasi */}
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Catatan & Evaluasi Kegiatan</Label>
-                <Textarea
-                  required
-                  value={form.Catatan}
-                  onChange={e => setForm({ ...form, Catatan: e.target.value })}
-                  placeholder="Tuliskan catatan pelaksanaan kegiatan, evaluasi panitia, dan ringkasan penggunaan anggaran..."
-                  className="min-h-[100px] rounded-2xl border-border bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-semibold text-xs leading-relaxed p-4"
-                />
+                {form.RealisasiAnggaran && (
+                  <p className="text-[10px] font-bold text-emerald-600 mt-1 flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[13px]">payments</span>
+                    Format: <span className="font-black">{formatRp(Number(form.RealisasiAnggaran))}</span>
+                  </p>
+                )}
               </div>
             </div>
-          </form>
+
+            {/* Catatan & Evaluasi */}
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 uppercase font-headline">Catatan & Evaluasi Kegiatan</Label>
+              <Textarea
+                required
+                value={form.Catatan}
+                onChange={e => setForm({ ...form, Catatan: e.target.value })}
+                placeholder="Tuliskan catatan pelaksanaan kegiatan, evaluasi panitia, dan ringkasan penggunaan anggaran..."
+                className="min-h-[100px]"
+              />
+            </div>
+          </div>
+        </form>
       </DialogModal>
 
       {/* Delete Confirmation Modal */}

@@ -135,8 +135,8 @@ const Certificates = () => {
         }
       />
 
-      <Card className="glass-card shadow-sm rounded-xl overflow-hidden border-slate-100/60">
-        <CardContent className="p-0 border-none shadow-none bg-transparent">
+      <div>
+        <div>
           <DataTable
             columns={columns}
             data={rows}
@@ -167,8 +167,8 @@ const Certificates = () => {
               </SelectField>
             }
           />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };

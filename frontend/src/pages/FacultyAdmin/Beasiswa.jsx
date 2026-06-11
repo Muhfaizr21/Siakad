@@ -13,6 +13,7 @@ import DataTable from '@/components/ui/DataTable'
 import { PageContent } from '@/components/ui/page'
 import { DashboardHero } from '@/components/ui/dashboard'
 import { DialogModal, ModalCancelButton } from "@/components/ui/DialogModal"
+import { Card, CardContent } from '@/components/ui/Card'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Download = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>download</span>;
@@ -151,6 +152,7 @@ export default function FacultyScholarship() {
   const [previewApp, setPreviewApp] = useState(null)
   const [search, setSearch] = useState('')
   const [selectedScholarshipFilter, setSelectedScholarshipFilter] = useState('Semua')
+  const [filterPeriode, setFilterPeriode] = useState('all')
   const [facultyInfo, setFacultyInfo] = useState(null)
 
   const [currentPage, setCurrentPage] = useState(1)
@@ -170,7 +172,25 @@ export default function FacultyScholarship() {
   useEffect(() => {
     setCurrentPage(1)
     setSortConfig(activeTab === 'programs' ? { key: 'Nama', direction: 'asc' } : { key: 'Mahasiswa.Nama', direction: 'asc' })
+    setFilterPeriode('all')
   }, [activeTab])
+
+  const periodeOptions = useMemo(() => {
+    const periods = new Set()
+    if (activeTab === 'programs') {
+      scholarships.forEach(s => {
+        if (s.CreatedAt || s.created_at) {
+          periods.add(String(new Date(s.CreatedAt || s.created_at).getFullYear()))
+        }
+      })
+    } else {
+      applications.forEach(a => {
+        const ang = a.Mahasiswa?.Angkatan || a.Mahasiswa?.angkatan || (a.Mahasiswa?.NIM ? `20${a.Mahasiswa.NIM.substring(0,2)}` : null)
+        if (ang) periods.add(String(ang))
+      })
+    }
+    return Array.from(periods).sort((a, b) => Number(b) - Number(a))
+  }, [scholarships, applications, activeTab])
 
   const getKopImage = (facName) => {
     const name = (facName || "").toLowerCase();
@@ -240,11 +260,23 @@ export default function FacultyScholarship() {
         <p style="font-weight:700;margin-top:4px;">${titleResolved}</p>
         <div style="margin-top:45px; font-weight:700; text-decoration:underline;">${nameResolved}</div>
       </div>
-      <script>window.onload=function(){setTimeout(function(){window.print();setTimeout(function(){window.close();},100);},300);};<\/script>
     </body></html>`;
-    printWindow.document.open();
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
+    
+    try {
+      printWindow.document.open();
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+      
+      printWindow.onload = () => {
+        setTimeout(() => {
+          printWindow.print();
+          setTimeout(() => { printWindow.close(); }, 100);
+        }, 300);
+      };
+    } catch (err) {
+      console.error("Print Error:", err);
+      toast.error("Gagal memproses PDF, mungkin karena ekstensi browser.");
+    }
   };
 
   const exportBeasiswaPDF = () => {
@@ -266,10 +298,6 @@ export default function FacultyScholarship() {
       });
       const aktif = data.filter(s => new Date(s.Deadline) > new Date()).length;
       const content = `<table style="width:100%;border-collapse:collapse;border:none;margin-bottom:16px;"><tr>
-        <td style="padding:0 6px 0 0;width:50%;"><div style="background:#f8fafc;border:1px solid #e2e8f0;padding:10px 12px;border-radius:5px;">
-          <div style="font-size:7px;font-weight:700;color:#64748b;text-transform:uppercase;">Total Program</div>
-          <div style="font-size:14px;font-weight:700;color:#00236F;">${data.length} Program</div>
-        </div></td>
         <td style="padding:0 0 0 6px;width:50%;"><div style="background:#f8fafc;border:1px solid #e2e8f0;padding:10px 12px;border-radius:5px;">
           <div style="font-size:7px;font-weight:700;color:#64748b;text-transform:uppercase;">Program Aktif</div>
           <div style="font-size:14px;font-weight:700;color:#15803d;">${aktif} Program</div>
@@ -384,15 +412,19 @@ export default function FacultyScholarship() {
 
   const filteredPrograms = useMemo(() => scholarships.filter(s => {
     const q = search.toLowerCase()
-    return !q || s.Nama?.toLowerCase().includes(q) || s.Penyelenggara?.toLowerCase().includes(q)
-  }), [scholarships, search])
+    const matchSearch = !q || s.Nama?.toLowerCase().includes(q) || s.Penyelenggara?.toLowerCase().includes(q)
+    const matchPeriod = filterPeriode === 'all' || (s.CreatedAt || s.created_at ? String(new Date(s.CreatedAt || s.created_at).getFullYear()) : '') === filterPeriode
+    return matchSearch && matchPeriod
+  }), [scholarships, search, filterPeriode])
 
   const filteredApps = useMemo(() => applications.filter(a => {
     const q = search.toLowerCase()
     const matchesSearch = !q || a.Mahasiswa?.Nama?.toLowerCase().includes(q) || a.Mahasiswa?.NIM?.includes(q)
     const matchesScholarship = selectedScholarshipFilter === 'Semua' || a.Beasiswa?.Nama === selectedScholarshipFilter
-    return matchesSearch && matchesScholarship
-  }), [applications, search, selectedScholarshipFilter])
+    const ang = a.Mahasiswa?.Angkatan || a.Mahasiswa?.angkatan || (a.Mahasiswa?.NIM ? `20${a.Mahasiswa.NIM.substring(0,2)}` : null)
+    const matchPeriod = filterPeriode === 'all' || String(ang) === filterPeriode
+    return matchesSearch && matchesScholarship && matchPeriod
+  }), [applications, search, selectedScholarshipFilter, filterPeriode])
 
   const sortedPrograms = useMemo(() => {
     let items = [...filteredPrograms]
@@ -671,22 +703,27 @@ export default function FacultyScholarship() {
             { label: `${stats.aktif} Program Aktif`, active: true }
           ]}
           actions={
-            <>
-              <div className="hidden lg:flex items-center gap-2 text-right">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Total Program</span>
-                <span className="text-sm font-extrabold text-primary px-2 py-0.5 rounded-md bg-[#eef4ff] border border-blue-100">{stats.totalPrograms}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <button onClick={exportBeasiswaPDF} disabled={loading || (activeTab === 'programs' ? scholarships.length === 0 : applications.length === 0)}
-                  className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-50 flex items-center gap-2">
-                  <Download size={13} className="text-primary" /> Ekspor PDF
-                </button>
-                <button onClick={fetchData} disabled={loading}
-                  className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-60 flex items-center gap-2">
-                  {loading ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '13px' }} >sync</span> : <RefreshCw size={13} className="text-primary" />} Refresh Data
-                </button>
-              </div>
-            </>
+            <div className="flex items-center gap-2">
+              <Select value={filterPeriode} onValueChange={setFilterPeriode}>
+                <SelectTrigger className="w-[180px] h-10 border border-slate-200/80 bg-white/80 rounded-xl text-xs font-bold text-slate-600 focus:ring-0">
+                  <SelectValue placeholder="Semua Periode" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Periode</SelectItem>
+                  {periodeOptions.map(per => (
+                    <SelectItem key={per} value={per}>{activeTab === 'programs' ? 'Tahun ' : 'Angkatan '}{per}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <button onClick={exportBeasiswaPDF} disabled={loading || (activeTab === 'programs' ? scholarships.length === 0 : applications.length === 0)}
+                className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-50 flex items-center gap-2 shrink-0">
+                <Download size={13} className="text-primary" /> Ekspor PDF
+              </button>
+              <button onClick={fetchData} disabled={loading}
+                className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-60 flex items-center gap-2 shrink-0">
+                {loading ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '13px' }} >sync</span> : <RefreshCw size={13} className="text-primary" />} Refresh Data
+              </button>
+            </div>
           }
         />
 
@@ -730,28 +767,28 @@ export default function FacultyScholarship() {
               title="Pendaftar Terbanyak"
               value={getShortFacultyName(highestApplicantFaculty.name)}
               badgeText={`${highestApplicantFaculty.count} Pendaftar`}
-              icon={() => <span className="material-symbols-outlined" style={{ fontSize: 24 }}>trending_up</span>}
+              icon="trending_up"
               colorTheme="primary"
             />
             <PrimaryStatsCard
               title="Pendaftar Terendah"
               value={getShortFacultyName(lowestApplicantFaculty.name)}
               badgeText={`${lowestApplicantFaculty.count} Pendaftar`}
-              icon={() => <span className="material-symbols-outlined" style={{ fontSize: 24 }}>trending_down</span>}
+              icon="trending_down"
               colorTheme="error"
             />
             <PrimaryStatsCard
               title="Total Anggaran"
               value={formatCurrency(stats.totalBudget)}
               badgeText="Proyeksi dana fakultas"
-              icon={() => <span className="material-symbols-outlined" style={{ fontSize: 24 }}>payments</span>}
+              icon="payments"
               colorTheme="info"
             />
             <PrimaryStatsCard
               title="Realisasi Anggaran"
               value={formatCurrency(absorbedBudget)}
               badgeText={`${absorptionRate}% Anggaran terserap`}
-              icon={() => <span className="material-symbols-outlined" style={{ fontSize: 24 }}>account_balance_wallet</span>}
+              icon="account_balance_wallet"
               colorTheme="success"
             />
           </div>
@@ -773,7 +810,7 @@ export default function FacultyScholarship() {
         </div>
 
         {/* Table Wrapper */}
-        <div className="bg-[var(--theme-surface)] rounded-2xl border border-[var(--theme-border)] shadow-sm overflow-hidden mt-6 mb-6">
+        <Card className="border border-[var(--theme-border)] shadow-sm bg-[var(--theme-surface)] rounded-2xl overflow-hidden mt-6 mb-6">
           <div className="px-5 py-4 border-b border-[var(--theme-border)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-[var(--theme-bg)]/50">
             <div className="flex-1">
               <h2 className="font-bold text-base text-[var(--theme-text)]">
@@ -801,20 +838,22 @@ export default function FacultyScholarship() {
               </div>
             )}
           </div>
-          <DataTable
-            data={activeTab === 'programs' ? filteredPrograms : filteredApps}
-            columns={activeTab === 'programs' ? programColumns : appColumns}
-            loading={loading}
-            searchable={true}
-            pagination={true}
-            pageSize={10}
-            emptyMessage={activeTab === 'programs' ? "Tidak Ada Program Beasiswa" : "Belum Ada Pendaftar"}
-            emptyIcon={activeTab === 'programs' ? "school" : "group"}
-            searchPlaceholder={activeTab === 'programs' ? 'Cari nama beasiswa...' : 'Cari mahasiswa atau NIM...'}
-            searchValue={search}
-            onSearchChange={setSearch}
-          />
-        </div>
+          <CardContent className="p-0 [&>div]:border-none [&>div]:rounded-none [&>div]:shadow-none">
+            <DataTable
+              data={activeTab === 'programs' ? filteredPrograms : filteredApps}
+              columns={activeTab === 'programs' ? programColumns : appColumns}
+              loading={loading}
+              searchable={true}
+              pagination={true}
+              pageSize={10}
+              emptyMessage={activeTab === 'programs' ? "Tidak Ada Program Beasiswa" : "Belum Ada Pendaftar"}
+              emptyIcon={activeTab === 'programs' ? "school" : "group"}
+              searchPlaceholder={activeTab === 'programs' ? 'Cari nama beasiswa...' : 'Cari mahasiswa atau NIM...'}
+              searchValue={search}
+              onSearchChange={setSearch}
+            />
+          </CardContent>
+        </Card>
 
       {/* Read-Only Preview Application Modal */}
       {previewApp && (() => {

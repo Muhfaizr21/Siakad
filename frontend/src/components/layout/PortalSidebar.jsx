@@ -404,29 +404,7 @@ export default function PortalSidebar({ config, onNavigate }) {
         </div>
       )}
 
-      {/* ─── Role Badge (if enabled) ─── */}
-      {config.showRoleBadge && (
-        <div className="px-4 py-3 shrink-0">
-          <div
-            className="flex items-center gap-2 px-3 py-2 rounded-xl"
-            style={{
-              backgroundColor: 'rgba(255,255,255,0.05)',
-              border: '1px solid rgba(255,255,255,0.1)'
-            }}
-          >
-            <span
-              className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: 'var(--theme-secondary)' }}
-            />
-            <span
-              className="text-[10px] font-bold uppercase tracking-widest"
-              style={{ color: 'var(--theme-sidebar-text-muted, var(--theme-sidebar-text)' }}
-            >
-              {config.roleLabel}
-            </span>
-          </div>
-        </div>
-      )}
+
 
       {/* ─── Logout Section ─── */}
       <div className="p-3 bg-transparent border-t border-white/10 shrink-0">

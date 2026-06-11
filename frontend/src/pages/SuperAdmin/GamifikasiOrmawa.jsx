@@ -317,7 +317,7 @@ export default function GamifikasiOrmawa() {
 
               {/* Rankings Table */}
               <div className="lg:col-span-2">
-                <Card className="glass-card shadow-sm rounded-xl overflow-hidden border-slate-100/60 h-full flex flex-col">
+                <div className="glass-card shadow-sm rounded-xl overflow-hidden border-slate-100/60 h-full flex flex-col">
                   <div className="p-5 border-b border-[var(--theme-border-muted)] bg-[var(--theme-bg)] flex items-center justify-between gap-4">
                     <h2 className="text-base font-bold text-[var(--theme-text)] font-headline">Peringkat Lengkap</h2>
                     <Badge className="bg-primary/5 text-primary border-primary/10 px-2.5 py-0.5 rounded-full text-[10px] font-bold">
@@ -325,7 +325,7 @@ export default function GamifikasiOrmawa() {
                     </Badge>
                   </div>
 
-                  <CardContent className="p-0 border-none shadow-none bg-transparent">
+                  <div className="p-0 border-none shadow-none bg-transparent">
                     <DataTable
                       columns={leaderboardColumns}
                       data={leaderboard}
@@ -336,8 +336,8 @@ export default function GamifikasiOrmawa() {
                       pageSize={10}
                       emptyMessage="Belum ada data peringkat."
                     />
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               </div>
 
               {/* Point Log Timeline */}

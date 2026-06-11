@@ -401,7 +401,8 @@ export default function ProposalPipeline() {
       )}
 
       {/* ── Table Section ────────────────────────────────────────── */}
-      <div className="glass-card mt-6">
+      <div>
+        <div>
           <DataTable
             columns={columns}
             data={filteredData}
@@ -413,6 +414,7 @@ export default function ProposalPipeline() {
               </div>
             )}
           />
+        </div>
       </div>
 
       {/* ── Detail Dialog ─────────────────────────────────────────── */}

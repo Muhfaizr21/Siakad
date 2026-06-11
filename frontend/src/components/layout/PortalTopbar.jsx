@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import useAuthStore from '../../store/useAuthStore';
 import NotificationDropdown from './NotificationDropdown';
-import { fetchWithAuth, adminService } from '../../services/api';
+import { fetchWithAuth, adminService, API_BASE_URL } from '../../services/api';
 
 const getItemIcon = (name, path) => {
   const n = name.toLowerCase();
@@ -218,17 +218,25 @@ export default function PortalTopbar({ config, onMenuClick }) {
   };
 
   // Get user display info
-  const displayName = user?.name || user?.nama || user?.Nama || mahasiswa?.nama || 'User';
+  const displayName = user?.nama_lengkap || user?.name || user?.nama || user?.Nama || mahasiswa?.nama || 'User';
   const displayRole = user?.role_display || user?.role || config.roleLabel || 'User';
   const cleanNameForInitial = String(displayName).replace(/Dr\.\s*|M\.Psi|S\.Psi|,/gi, '').trim();
   const displayInitial = cleanNameForInitial.charAt(0).toUpperCase() || 'U';
+
+  const getAvatarUrl = () => {
+    const url = user?.avatar_url || mahasiswa?.avatar_url;
+    if (!url) return null;
+    if (url.startsWith('http')) return url;
+    return `${API_BASE_URL?.replace('/api', '') || ''}${url}`;
+  };
+  const avatarUrl = getAvatarUrl();
 
   // Detect current portal and resolve valid routes
   const portalRoutes = useMemo(() => {
     const p = location.pathname;
     if (p.startsWith('/admin')) return { profile: '/admin/profile', pengaturan: '/admin/theme' };
     if (p.startsWith('/ormawa')) return { profile: null, pengaturan: '/ormawa/pengaturan' };
-    if (p.startsWith('/faculty')) return { profile: '/faculty/profile', pengaturan: '/faculty/pengaturan' };
+    if (p.startsWith('/faculty')) return { profile: '/faculty/pengaturan', pengaturan: null };
     if (p.startsWith('/psychologist')) return { profile: '/psychologist/settings', pengaturan: null };
     if (p.startsWith('/student')) return { profile: '/student/profile', pengaturan: null };
     return { profile: null, pengaturan: null };
@@ -513,10 +521,14 @@ export default function PortalTopbar({ config, onMenuClick }) {
               }}
             >
               <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-sm font-bold shrink-0 shadow-sm"
+                className="w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center text-white text-sm font-bold shrink-0 shadow-sm"
                 style={{ backgroundColor: 'var(--theme-primary)' }}
               >
-                {displayInitial}
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  displayInitial
+                )}
               </div>
               <div className="hidden sm:flex flex-col leading-none min-w-0 overflow-hidden text-left px-1">
                 <span
@@ -543,102 +555,72 @@ export default function PortalTopbar({ config, onMenuClick }) {
             {/* Dropdown Menu */}
             {isProfileOpen && (
               <div
-                className="absolute top-full right-0 mt-3 w-72 rounded-2xl shadow-xl border overflow-hidden z-50"
+                className="absolute top-full right-0 mt-2 w-64 rounded-2xl shadow-lg border overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200"
                 style={{
                   backgroundColor: 'var(--theme-surface)',
                   borderColor: 'var(--theme-border)',
                 }}
               >
                 {/* User Info Header */}
-                <div
-                  className="p-5 border-b relative overflow-hidden"
-                  style={{
-                    background: 'linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary) 70%, #000))',
-                    borderColor: 'rgba(255,255,255,0.1)',
-                  }}
-                >
-                  {/* Decorative circle */}
-                  <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-white/5 pointer-events-none" />
-                  <div className="absolute -bottom-4 -left-4 w-16 h-16 rounded-full bg-white/5 pointer-events-none" />
-
-                  <div className="flex items-center gap-3 relative z-10">
-                    <div
-                      className="w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center text-white font-black text-xl border border-white/25 shrink-0 shadow-lg"
-                    >
-                      {displayInitial}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-bold text-white text-sm truncate leading-snug">{displayName}</p>
-                      <div className="flex items-center gap-1 mt-0.5">
-                        <span className="material-symbols-outlined text-white/60 text-xs shrink-0">mail</span>
-                        <p className="text-[11px] text-white/70 font-medium truncate">{user?.Email || user?.email || '—'}</p>
-                      </div>
-                      <div className="mt-1.5 inline-flex items-center gap-1 bg-white/15 border border-white/20 px-2 py-0.5 rounded-full">
-                        <span className="material-symbols-outlined text-white/80 text-xs shrink-0">badge</span>
-                        <span className="text-[9px] text-white/90 font-black uppercase tracking-widest">{displayRole}</span>
-                      </div>
-                    </div>
+                <div className="p-4 border-b flex items-center gap-3" style={{ borderColor: 'var(--theme-border)' }}>
+                  <div
+                    className="w-11 h-11 rounded-full overflow-hidden flex items-center justify-center text-white font-bold text-lg shrink-0 shadow-sm"
+                    style={{ backgroundColor: 'var(--theme-primary)' }}
+                  >
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      displayInitial
+                    )}
                   </div>
-
-                  {/* Ormawa name if applicable */}
-                  {(user?.ormawa_name || mahasiswa?.ormawaName || user?.ormawaName || config?.orgName) && (
-                    <div className="mt-3 flex items-center gap-2 bg-white/10 border border-white/15 px-3 py-1.5 rounded-xl relative z-10">
-                      <span className="material-symbols-outlined text-white/70 text-sm shrink-0">groups</span>
-                      <span className="text-[10px] text-white/80 font-bold truncate">
-                        {user?.ormawa_name || mahasiswa?.ormawaName || user?.ormawaName || config?.orgName}
-                      </span>
-                    </div>
-                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold text-sm truncate" style={{ color: 'var(--theme-text)' }}>{displayName}</p>
+                    <p className="text-[11px] truncate mt-0.5" style={{ color: 'var(--theme-text-muted)' }}>{user?.Email || user?.email || displayRole}</p>
+                  </div>
                 </div>
+
+                {/* Ormawa name if applicable */}
+                {(user?.ormawa_name || mahasiswa?.ormawaName || user?.ormawaName || config?.orgName) && (
+                  <div className="px-4 py-2 border-b bg-slate-50/50 flex items-center gap-2" style={{ borderColor: 'var(--theme-border)' }}>
+                    <span className="material-symbols-outlined text-[14px]" style={{ color: 'var(--theme-text-muted)' }}>groups</span>
+                    <span className="text-[11px] font-semibold truncate" style={{ color: 'var(--theme-text-subtle)' }}>
+                      {user?.ormawa_name || mahasiswa?.ormawaName || user?.ormawaName || config?.orgName}
+                    </span>
+                  </div>
+                )}
 
                 {/* Quick Links */}
                 <div className="p-2">
                   {portalRoutes.profile && (
                     <button
                       onClick={() => { navigate(portalRoutes.profile); setIsProfileOpen(false); }}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors hover:bg-black/[0.04] text-left"
+                      className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors hover:bg-slate-50 text-left"
                       style={{ color: 'var(--theme-text)' }}
                     >
-                      <span className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'var(--theme-primary)', color: 'white' }}>
-                        <span className="material-symbols-outlined text-base shrink-0">person</span>
-                      </span>
-                      <div className="flex flex-col leading-none">
-                        <span className="text-xs font-bold">Profil Saya</span>
-                        <span className="text-[10px] mt-0.5" style={{ color: 'var(--theme-text-muted)' }}>Lihat &amp; edit profil</span>
-                      </div>
+                      <span className="material-symbols-outlined text-[18px]" style={{ color: 'var(--theme-text-muted)' }}>person</span>
+                      <span>Profil Saya</span>
                     </button>
                   )}
 
                   {portalRoutes.pengaturan && (
                     <button
                       onClick={() => { navigate(portalRoutes.pengaturan); setIsProfileOpen(false); }}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors hover:bg-black/[0.04] text-left"
+                      className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors hover:bg-slate-50 text-left"
                       style={{ color: 'var(--theme-text)' }}
                     >
-                      <span className="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-100">
-                        <span className="material-symbols-outlined text-slate-500 text-base shrink-0">settings</span>
-                      </span>
-                      <div className="flex flex-col leading-none">
-                        <span className="text-xs font-bold">Pengaturan</span>
-                        <span className="text-[10px] mt-0.5" style={{ color: 'var(--theme-text-muted)' }}>Tema &amp; preferensi</span>
-                      </div>
+                      <span className="material-symbols-outlined text-[18px]" style={{ color: 'var(--theme-text-muted)' }}>settings</span>
+                      <span>Pengaturan</span>
                     </button>
                   )}
 
-                  <div className="my-1.5 border-t" style={{ borderColor: 'var(--theme-border)' }} />
+                  <div className="my-1 border-t" style={{ borderColor: 'var(--theme-border)' }} />
 
                   <button
                     onClick={handleLogout}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors hover:bg-red-50 text-left"
-                    style={{ color: 'var(--theme-error)' }}
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors hover:bg-red-50 text-left text-red-600"
                   >
-                    <span className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
-                      <span className="material-symbols-outlined text-red-500 text-base shrink-0">logout</span>
-                    </span>
-                    <div className="flex flex-col leading-none">
-                      <span className="text-xs font-bold">Keluar</span>
-                      <span className="text-[10px] mt-0.5 text-red-400">Akhiri sesi</span>
-                    </div>
+                    <span className="material-symbols-outlined text-[18px] text-red-500">logout</span>
+                    <span>Keluar</span>
                   </button>
                 </div>
               </div>

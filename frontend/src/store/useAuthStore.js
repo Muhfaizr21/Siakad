@@ -50,6 +50,10 @@ const useAuthStore = create(
         set({ accessToken });
       },
 
+      updateUser: (updates) => set((state) => ({
+        user: state.user ? { ...state.user, ...updates } : null
+      })),
+
       logout: () => set({
         accessToken: null,
         user: null,

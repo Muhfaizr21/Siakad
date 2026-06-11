@@ -13,7 +13,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/Dialog";
-import { DialogModal, ModalCancelButton, ModalSaveButton } from '@/components/ui/DialogModal';
+import { DialogModal, ModalCancelButton, ModalSaveButton } from "@/components/ui/DialogModal";
 import { Card, CardContent } from "@/components/ui/Card";
 import { PrimaryStatsCard } from '@/components/ui/StatsCard';
 import { Avatar, AvatarFallback } from "@/components/ui/Avatar";
@@ -655,7 +655,7 @@ export default function AbsensiKegiatan() {
       {/* ── QR Scanner Popup Dialog ───────────────────────────────── */}
       <Dialog open={isQrOpen} onOpenChange={setIsQrOpen} maxWidth="max-w-md">
         <DialogContent className="w-full h-full p-0 overflow-hidden border-none shadow-none rounded-2xl bg-white animate-in zoom-in-95 duration-200">
-          <DialogHeader className="relative bg-gradient-to-br from-primary to-primary pt-6 pb-7 px-6 overflow-hidden flex-shrink-0 border-b-0 text-left">
+          <DialogHeader className="relative bg-gradient-to-br from-[var(--theme-primary)] to-[var(--theme-primary-hover)] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0 border-b-0 text-left">
             <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/10 rounded-full pointer-events-none" />
             <div className="absolute -bottom-6 right-16 w-28 h-28 bg-white/10 rounded-full pointer-events-none" />
             <div className="absolute -top-6 -right-2 opacity-10 pointer-events-none">
@@ -729,7 +729,7 @@ export default function AbsensiKegiatan() {
 
               <Button
                 onClick={() => setIsQrOpen(false)}
-                className="w-full h-12 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black text-[10px] tracking-[0.2em] uppercase active:scale-95 transition-all shadow-lg border-none"
+                className="w-full h-12 rounded-2xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white font-black text-[10px] tracking-[0.2em] uppercase active:scale-95 transition-all shadow-lg border-none"
               >
                 TUTUP SCANNER
               </Button>
@@ -741,113 +741,110 @@ export default function AbsensiKegiatan() {
         open={isAddEventOpen}
         onOpenChange={setIsAddEventOpen}
         title="Tambah Sesi Kegiatan"
-        subtitle="Buat sesi kegiatan baru untuk melakukan rekam absensi."
+        description="Buat sesi kegiatan baru untuk melakukan rekam absensi."
         icon="calendar_add_on"
-        maxWidth="max-w-[500px]"
+        maxWidth="max-w-md"
         footer={
           <>
             <ModalCancelButton onClick={() => setIsAddEventOpen(false)} />
-            <ModalSaveButton form="add-event-form" loading={isSubmitting} label="Simpan Kegiatan" />
+            <ModalSaveButton label={isSubmitting ? "MENYIMPAN..." : "SIMPAN KEGIATAN"} onClick={handleCreateEvent} loading={isSubmitting} />
           </>
         }
       >
-        <form id="add-event-form" onSubmit={handleCreateEvent} className="space-y-4 p-6">
+        <form id="add-event-form" onSubmit={handleCreateEvent} className="space-y-4">
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="Judul"
+              className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase"
+            >
+              Nama Kegiatan
+            </Label>
+            <Input
+              id="Judul"
+              placeholder="Rapat Koordinasi"
+              value={newEvent.Judul}
+              onChange={(e) =>
+                setNewEvent({ ...newEvent, Judul: e.target.value })
+              }
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label
-                htmlFor="Judul"
-                className="text-xs font-bold text-[var(--theme-text-subtle)]"
+                htmlFor="TanggalMulai"
+                className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase"
               >
-                Nama Kegiatan
+                Tanggal Mulai
               </Label>
               <Input
-                id="Judul"
-                placeholder="Rapat Koordinasi"
-                value={newEvent.Judul}
+                id="TanggalMulai"
+                type="datetime-local"
+                value={newEvent.TanggalMulai}
                 onChange={(e) =>
-                  setNewEvent({ ...newEvent, Judul: e.target.value })
+                  setNewEvent({ ...newEvent, TanggalMulai: e.target.value })
                 }
                 required
-                className="bg-slate-50 border-border focus-visible:ring-[var(--theme-primary)]"
+                className="cursor-pointer"
               />
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label
-                  htmlFor="TanggalMulai"
-                  className="text-xs font-bold text-[var(--theme-text-subtle)]"
-                >
-                  Tanggal Mulai
-                </Label>
-                <Input
-                  id="TanggalMulai"
-                  type="datetime-local"
-                  value={newEvent.TanggalMulai}
-                  onChange={(e) =>
-                    setNewEvent({ ...newEvent, TanggalMulai: e.target.value })
-                  }
-                  required
-                  className="bg-slate-50 border-border focus-visible:ring-[var(--theme-primary)]"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label
-                  htmlFor="TanggalSelesai"
-                  className="text-xs font-bold text-[var(--theme-text-subtle)]"
-                >
-                  Tanggal Selesai
-                </Label>
-                <Input
-                  id="TanggalSelesai"
-                  type="datetime-local"
-                  value={newEvent.TanggalSelesai}
-                  onChange={(e) =>
-                    setNewEvent({ ...newEvent, TanggalSelesai: e.target.value })
-                  }
-                  required
-                  className="bg-slate-50 border-border focus-visible:ring-[var(--theme-primary)]"
-                />
-              </div>
-            </div>
-
             <div className="space-y-1.5">
               <Label
-                htmlFor="Lokasi"
-                className="text-xs font-bold text-[var(--theme-text-subtle)]"
+                htmlFor="TanggalSelesai"
+                className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase"
               >
-                Lokasi
+                Tanggal Selesai
               </Label>
               <Input
-                id="Lokasi"
-                placeholder="Gedung A, Ruang 101"
-                value={newEvent.Lokasi}
+                id="TanggalSelesai"
+                type="datetime-local"
+                value={newEvent.TanggalSelesai}
                 onChange={(e) =>
-                  setNewEvent({ ...newEvent, Lokasi: e.target.value })
+                  setNewEvent({ ...newEvent, TanggalSelesai: e.target.value })
                 }
                 required
-                className="bg-slate-50 border-border focus-visible:ring-[var(--theme-primary)]"
+                className="cursor-pointer"
               />
             </div>
+          </div>
 
-            <div className="space-y-1.5">
-              <Label
-                htmlFor="Deskripsi"
-                className="text-xs font-bold text-[var(--theme-text-subtle)]"
-              >
-                Deskripsi
-              </Label>
-              <Textarea
-                id="Deskripsi"
-                placeholder="Deskripsi singkat mengenai kegiatan ini..."
-                value={newEvent.Deskripsi}
-                onChange={(e) =>
-                  setNewEvent({ ...newEvent, Deskripsi: e.target.value })
-                }
-                className="resize-none h-24 bg-slate-50 border-border focus-visible:ring-[var(--theme-primary)]"
-              />
-            </div>
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="Lokasi"
+              className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase"
+            >
+              Lokasi
+            </Label>
+            <Input
+              id="Lokasi"
+              placeholder="Gedung A, Ruang 101"
+              value={newEvent.Lokasi}
+              onChange={(e) =>
+                setNewEvent({ ...newEvent, Lokasi: e.target.value })
+              }
+              required
+            />
+          </div>
 
-          </form>
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="Deskripsi"
+              className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase"
+            >
+              Deskripsi
+            </Label>
+            <Textarea
+              id="Deskripsi"
+              placeholder="Deskripsi singkat mengenai kegiatan ini..."
+              value={newEvent.Deskripsi}
+              onChange={(e) =>
+                setNewEvent({ ...newEvent, Deskripsi: e.target.value })
+              }
+              className="min-h-[80px]"
+            />
+          </div>
+        </form>
       </DialogModal>
     </PageContent>
   );

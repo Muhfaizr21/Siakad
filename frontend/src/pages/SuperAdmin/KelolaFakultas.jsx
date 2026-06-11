@@ -502,7 +502,7 @@ export default function KelolaFakultas() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          <SecondaryStatsCard
+          <PrimaryStatsCard
             title="Fakultas Terbesar"
             value={extraStats.topFaculty}
             subtitle={`${extraStats.topFacultyProdiCount} Program Studi`}
@@ -510,7 +510,7 @@ export default function KelolaFakultas() {
             colorTheme="info"
           />
 
-          <SecondaryStatsCard
+          <PrimaryStatsCard
             title="Jenjang Terbanyak"
             value={extraStats.topJenjang}
             subtitle={`${extraStats.topJenjangCount} Program Studi`}
@@ -518,7 +518,7 @@ export default function KelolaFakultas() {
             colorTheme="primary"
           />
 
-          <SecondaryStatsCard
+          <PrimaryStatsCard
             title="Rasio Unggul"
             value={`${extraStats.rasioUnggulPct}%`}
             subtitle={`${extraStats.akreditasiA} prodi terakreditasi`}
@@ -526,7 +526,7 @@ export default function KelolaFakultas() {
             colorTheme="primary"
           />
 
-          <SecondaryStatsCard
+          <PrimaryStatsCard
             title="Rata-rata Kapasitas"
             value={`${extraStats.rataKapasitas} Mhs`}
             subtitle="Per Program Studi"
@@ -676,8 +676,8 @@ export default function KelolaFakultas() {
       </div>
 
       {/* ── Table Section ────────────────────────────────────────── */}
-      <Card className="glass-card shadow-sm rounded-xl overflow-hidden">
-        <CardContent className="p-0">
+      <div>
+        <div>
           <DataTable
             columns={columns}
             data={data}
@@ -699,8 +699,8 @@ export default function KelolaFakultas() {
               </div>
             )}
           />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <DialogModal
         open={isCrudOpen}
@@ -768,7 +768,7 @@ export default function KelolaFakultas() {
           <ModalCancelButton onClick={() => setIsAllFacultiesOpen(false)}>Tutup</ModalCancelButton>
         }
       >
-        <div className="bg-white rounded-xl shadow-sm border border-[var(--theme-border)] overflow-hidden">
+        <div>
           <DataTable
             data={data}
             columns={allFacultiesColumns}
@@ -790,7 +790,7 @@ export default function KelolaFakultas() {
           <ModalCancelButton onClick={() => setIsAllProdiOpen(false)}>Tutup</ModalCancelButton>
         }
       >
-        <div className="bg-white rounded-xl shadow-sm border border-[var(--theme-border)] overflow-hidden">
+        <div>
           <DataTable
             data={flattenedProdiData}
             columns={allProdiColumns}

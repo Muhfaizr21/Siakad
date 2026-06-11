@@ -6,7 +6,9 @@ import { DashboardHero } from '@/components/ui/dashboard';
 import { DataTable } from '@/components/ui/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { DialogModal, ModalCancelButton } from '@/components/ui/DialogModal'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
+import { DialogModal, ModalCancelButton, ModalSaveButton } from '@/components/ui/DialogModal'
+import { Card, CardContent } from '@/components/ui/Card'
 import { PrimaryStatsCard } from '@/components/ui/StatsCard'
 import { Label } from '@/components/ui/Label'
 import { Textarea } from '@/components/ui/Textarea'
@@ -24,7 +26,7 @@ const API = `${API_BASE_URL}/ormawa`
 const QuestionAnswerIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>question_answer</span>;
 const MarkChatReadIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>mark_chat_read</span>;
 const QuickreplyIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>quickreply</span>;
-const TrendingUpIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>trending_up</span>;
+const CancelIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>cancel</span>;
 
 export default function AspirationManagement() {
   const [data, setData] = useState([])
@@ -113,8 +115,8 @@ export default function AspirationManagement() {
         return (
           <Badge className={cn(
             'inline-flex items-center justify-center gap-1 font-bold text-[10px] uppercase tracking-wider px-3 py-1 border rounded-full',
-            isDitanggapi 
-              ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+            isDitanggapi
+              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
               : 'bg-amber-50 text-amber-700 border-amber-200'
           )}>
             <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>
@@ -144,21 +146,19 @@ export default function AspirationManagement() {
   const totalAspirasi = data.length
   const answeredAspirasi = data.filter(x => x.Status === 'ditanggapi').length
   const pendingAspirasi = data.filter(x => x.Status === 'pending' || !x.Status).length
-  const responseRatio = totalAspirasi > 0 ? Math.round((answeredAspirasi / totalAspirasi) * 100) : 0
+  const rejectedAspirasi = data.filter(x => x.Status === 'ditolak').length
 
   return (
     <PageContent className="font-body">
       <Toaster position="top-right" />
 
       {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <DashboardHero
-        title="Aspirasi"
-        highlightedTitle="Organisasi"
-        subtitle="Kelola semua aspirasi, kritik, dan saran dari mahasiswa untuk pengembangan Ormawa yang lebih baik."
+      <PageHeader
+        title="Aspirasi Organisasi"
+        subtitle="Tampung gagasan, kritik, dan berikan tanggapan resmi atas aspirasi dari mahasiswa."
         icon="forum"
-        badges={[
-          { label: 'Pusat Aspirasi', active: true }
-        ]}
+
+        breadcrumbs={[{ label: 'Dashboard', path: '/ormawa' }, { label: 'Aspirasi Organisasi', path: '#' }]}
       />
 
       {/* ── Statistics Summary Cards ────────────────────────────────── */}
@@ -191,39 +191,38 @@ export default function AspirationManagement() {
         />
 
         <PrimaryStatsCard
-          title="Rasio Respon"
-          value={`${responseRatio}%`}
-          icon={TrendingUpIcon}
-          colorTheme="info"
-          badgeText="Performa"
-          badgeIcon={<span className="material-symbols-outlined text-[12px]">analytics</span>}
+          title="Aspirasi Ditolak"
+          value={rejectedAspirasi}
+          icon={CancelIcon}
+          colorTheme="error"
+          badgeText="Ditolak"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">cancel</span>}
         />
       </div>
 
       {/* ── DataTable Container ──────────────────────────────────────── */}
-      <div className="glass-card mb-8 animate-in slide-in-from-bottom-4 duration-500 fade-in border border-white/20 overflow-hidden">
-        <div className="p-0">
+      <div>
+        <div>
           <DataTable
-            containerClassName="border-0 shadow-none rounded-none"
-            columns={columns} 
-            data={data} 
+            columns={columns}
+            data={data}
             loading={loading}
             searchPlaceholder="Cari topik atau konten aspirasi..."
             filters={[
-              { 
-                key: 'Status', 
-                placeholder: 'Filter Status', 
+              {
+                key: 'Status',
+                placeholder: 'Filter Status',
                 options: [
-                  { label: 'Menunggu', value: 'pending' }, 
+                  { label: 'Menunggu', value: 'pending' },
                   { label: 'Ditanggapi', value: 'ditanggapi' }
-                ] 
+                ]
               }
             ]}
             actions={(row) => (
-              <Button 
-                onClick={() => { setSelected(row); setTanggapan(''); setIsDetailOpen(true) }} 
-                variant="ghost" 
-                size="icon" 
+              <Button
+                onClick={() => { setSelected(row); setTanggapan(''); setIsDetailOpen(true) }}
+                variant="ghost"
+                size="icon"
                 className="h-8 w-8 text-[var(--theme-text-subtle)] hover:text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)] rounded-xl active:scale-95 transition-all"
                 title="Lihat Detail & Tanggapi"
               >
@@ -237,61 +236,73 @@ export default function AspirationManagement() {
       <DialogModal
         open={isDetailOpen}
         onOpenChange={setIsDetailOpen}
-        title={selected ? selected.Judul : 'Detail Aspirasi'}
-        subtitle={selected ? `ASP-${selected.id || selected.ID} • ${selected.Status === 'ditanggapi' ? 'DITANGGAPI' : 'MENUNGGU'}` : 'Detail'}
-        icon="forum"
+        title={selected?.Judul || "Detail Aspirasi"}
+        subtitle={`ASP-${selected?.id || selected?.ID || ''}`}
+        description="Rincian informasi aspirasi yang masuk dari mahasiswa."
+        icon="chat"
         maxWidth="max-w-2xl"
+        bodyClassName="p-0"
         footer={
-          <div className="flex items-center justify-end gap-2">
-            <ModalCancelButton onClick={() => setIsDetailOpen(false)}>TUTUP</ModalCancelButton>
-            {!selected?.Tanggapan && (
-              <Button 
-                onClick={handleTanggapi}
-                disabled={isSubmitting}
-                className="h-11 px-6 sm:px-8 rounded-xl bg-[var(--theme-primary)] text-white hover:opacity-90 shadow-lg active:translate-y-0 transition-all border-none font-black text-[11px] uppercase tracking-[0.1em] flex items-center justify-center cursor-pointer hover:-translate-y-0.5"
-              >
-                {isSubmitting ? 'MENGIRIM...' : 'KIRIM TANGGAPAN RESMI'}
-              </Button>
-            )}
-          </div>
+          <ModalCancelButton onClick={() => setIsDetailOpen(false)}>
+            TUTUP DIALOG
+          </ModalCancelButton>
         }
       >
         {selected && (
           <div className="flex flex-col">
-              <div className="p-6 space-y-6 max-h-[50vh] overflow-y-auto no-scrollbar">
-                {/* Content Box */}
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Konten & Uraian Aspirasi</Label>
-                  <div className="text-sm font-medium text-slate-600 leading-relaxed bg-slate-50 p-5 rounded-2xl border border-slate-100">
-                    {selected.Isi || selected.Konten || '—'}
+            {/* Dialog Content Grid */}
+            <div className="p-6 sm:p-8 space-y-5 max-h-[60vh] overflow-y-auto no-scrollbar">
+              <div className="flex items-center justify-between gap-4 mb-2">
+                <Badge className={cn(
+                  'font-bold text-[10px] uppercase tracking-wider px-3.5 py-1 border shrink-0 rounded-full',
+                  selected.Status === 'ditanggapi'
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    : 'bg-amber-50 text-amber-700 border-amber-200'
+                )}>
+                  {selected.Status === 'ditanggapi' ? 'Ditanggapi' : 'Menunggu'}
+                </Badge>
+              </div>
+
+              {/* Content Box */}
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 uppercase font-headline">Konten & Uraian Aspirasi</Label>
+                <div className="text-sm font-medium text-[var(--theme-text)] leading-relaxed bg-[var(--theme-surface)] p-5 rounded-2xl border border-[var(--theme-border)] shadow-sm">
+                  {selected.Isi || selected.Konten || '—'}
+                </div>
+              </div>
+
+              {/* Response / Tanggapan Box */}
+              {selected.Tanggapan ? (
+                <div className="space-y-2 animate-in fade-in duration-200">
+                  <Label className="text-[10px] font-black text-emerald-600 tracking-[0.2em] ml-1 uppercase font-headline flex items-center gap-1.5">
+                    <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>check_circle</span>
+                    Tanggapan Resmi Pengurus
+                  </Label>
+                  <div className="text-sm font-medium text-[var(--theme-text)] leading-relaxed bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100 shadow-sm">
+                    {selected.Tanggapan}
                   </div>
                 </div>
+              ) : (
+                <div className="space-y-3.5 pt-2">
+                  <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 uppercase font-headline">Berikan Balasan / Tanggapan Resmi</Label>
+                  <Textarea
+                    rows={3}
+                    value={tanggapan}
+                    onChange={e => setTanggapan(e.target.value)}
+                    placeholder="Ketik tanggapan atau resolusi resmi dari pengurus organisasi..."
+                  />
 
-                {/* Response / Tanggapan Box */}
-                {selected.Tanggapan ? (
-                  <div className="space-y-2 animate-in fade-in duration-200">
-                    <Label className="text-[10px] font-black text-emerald-600 tracking-[0.2em] ml-1 uppercase font-headline flex items-center gap-1.5">
-                      <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>check_circle</span>
-                      Tanggapan Resmi Pengurus
-                    </Label>
-                    <div className="text-sm font-medium text-slate-600 leading-relaxed bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100">
-                      {selected.Tanggapan}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-3.5 pt-2">
-                    <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Berikan Balasan / Tanggapan Resmi</Label>
-                    <Textarea 
-                      rows={3} 
-                      value={tanggapan} 
-                      onChange={e => setTanggapan(e.target.value)}
-                      placeholder="Ketik tanggapan atau resolusi resmi dari pengurus organisasi..."
-                      className="min-h-[100px] rounded-xl border border-border bg-slate-50/50 focus:bg-white focus:ring-primary/20 focus:outline-none focus:border-primary shadow-none transition-all font-semibold text-xs leading-relaxed p-4" 
-                    />
-
-                  </div>
-                )}
-              </div>
+                  <ModalSaveButton
+                    label="KIRIM TANGGAPAN RESMI"
+                    icon="send"
+                    disabled={isSubmitting}
+                    loading={isSubmitting}
+                    onClick={handleTanggapi}
+                    className="w-full"
+                  />
+                </div>
+              )}
+            </div>
           </div>
         )}
       </DialogModal>

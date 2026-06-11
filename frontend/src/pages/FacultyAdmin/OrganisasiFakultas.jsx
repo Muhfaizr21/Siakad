@@ -42,6 +42,7 @@ export default function FacultyOrganisasi() {
   const [isSubmitting, setIsSub] = useState(false)
   const [delTarget, setDelTarget] = useState(null)
   const [search, setSearch] = useState('')
+  const [filterPeriode, setFilterPeriode] = useState('all')
   const [formData, setFormData] = useState(EMPTY_FORM)
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
@@ -72,7 +73,7 @@ export default function FacultyOrganisasi() {
         id: item.ID, nama: item.Nama, kode: item.Singkatan || item.Kode || '',
         status: item.Status || 'Aktif', kategori: item.Kategori || '',
         jumlah_anggota: item.JumlahAnggota || 0, deskripsi: item.Deskripsi || '',
-        email: item.Email || '', phone: item.Phone || ''
+        email: item.Email || '', phone: item.Phone || '', CreatedAt: item.CreatedAt || item.created_at || null
       })) : []
       setOrgs(mapped)
 
@@ -136,8 +137,29 @@ export default function FacultyOrganisasi() {
 
   const filtered = useMemo(() => organizations.filter(o => {
     const q = search.toLowerCase()
-    return !q || o.nama?.toLowerCase().includes(q) || o.kode?.toLowerCase().includes(q)
-  }), [organizations, search])
+    const matchSearch = !q || o.nama?.toLowerCase().includes(q) || o.kode?.toLowerCase().includes(q)
+    let matchP = filterPeriode === 'all'
+    if (!matchP && o.CreatedAt) {
+      const d = new Date(o.CreatedAt)
+      if (!isNaN(d.getTime())) {
+        matchP = String(d.getFullYear()) === filterPeriode
+      }
+    }
+    return matchSearch && matchP
+  }), [organizations, search, filterPeriode])
+
+  const periodeOptions = useMemo(() => {
+    const periods = new Set()
+    organizations.forEach(o => {
+      if (o.CreatedAt) {
+        const d = new Date(o.CreatedAt)
+        if (!isNaN(d.getTime())) {
+          periods.add(String(d.getFullYear()))
+        }
+      }
+    })
+    return Array.from(periods).sort((a, b) => Number(b) - Number(a))
+  }, [organizations])
 
   const sorted = useMemo(() => {
     let items = [...filtered]
@@ -231,10 +253,25 @@ export default function FacultyOrganisasi() {
           { label: `${stats.aktif} ORMAWA Aktif`, active: true }
         ]}
         actions={
-          <button onClick={() => { setEdit(null); setFormData(EMPTY_FORM); setModal(true) }}
-            className="h-10 px-4 rounded-xl bg-primary hover:bg-bku-hover text-white text-xs font-bold uppercase tracking-wider gap-2 flex items-center transition-all active:scale-95 shadow-lg shadow-bku-primary/20 shrink-0">
-            <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >add</span> Tambah ORMAWA
-          </button>
+          <div className="flex items-center gap-2">
+            <Select value={filterPeriode} onValueChange={setFilterPeriode}>
+              <SelectTrigger className="w-[180px] h-10 border border-[var(--theme-border)] bg-white/80 backdrop-blur-sm rounded-xl text-xs font-bold text-slate-600 focus:ring-0">
+                <SelectValue placeholder="Semua Tahun" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl border border-[var(--theme-border)] shadow-md bg-white">
+                <SelectItem value="all" className="rounded-lg text-xs py-1.5 focus:bg-[var(--theme-primary-light)] focus:text-[var(--theme-primary)]">Semua Tahun</SelectItem>
+                {periodeOptions.map(per => (
+                  <SelectItem key={per} value={per} className="rounded-lg text-xs py-1.5 focus:bg-[var(--theme-primary-light)] focus:text-[var(--theme-primary)]">
+                    Tahun {per}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <button onClick={() => { setEdit(null); setFormData(EMPTY_FORM); setModal(true) }}
+              className="h-10 px-4 rounded-xl bg-primary hover:bg-bku-hover text-white text-xs font-bold uppercase tracking-wider gap-2 flex items-center transition-all active:scale-95 shadow-lg shadow-bku-primary/20 shrink-0">
+              <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >add</span> Tambah ORMAWA
+            </button>
+          </div>
         }
       />
 
@@ -318,7 +355,7 @@ export default function FacultyOrganisasi() {
       )}
 
       {/* Table */}
-      <div className="bg-[var(--theme-surface)] rounded-2xl border border-[var(--theme-border)] shadow-sm overflow-hidden mb-6">
+      <div>
         <DataTable
           data={organizations}
           columns={tableColumns}

@@ -122,6 +122,8 @@ func InisialisasiRuteFakultas(aplikasi *fiber.App) {
 	// Akun & Profil (Baru) - Terpisah dari Mahasiswa
 	api.Get("/profile", fakultas.AmbilProfilAdminFakultas)
 	api.Put("/profile", fakultas.PerbaruiProfilAdminFakultas)
+	api.Post("/profile/upload-avatar", fakultas.UploadAvatarAdminFakultas)
+	api.Delete("/profile/avatar", fakultas.HapusAvatarAdminFakultas)
 	api.Put("/change-password", fakultas.GantiPasswordAdminFakultas)
 
 	api.Get("/ringkasan", fakultas.AmbilRingkasanPkkmb)

@@ -238,8 +238,7 @@ const Mentors = ({ portal = 'admin', facultyId: propFacultyId }) => {
         </div>
       )}
 
-      <Card className="glass-card shadow-sm rounded-xl overflow-hidden border-slate-100/60 mt-6">
-        <CardContent className="p-0">
+      <div className="mt-6">
           <DataTable
             columns={columns}
             data={tableData}
@@ -286,15 +285,14 @@ const Mentors = ({ portal = 'admin', facultyId: propFacultyId }) => {
               </div>
             }
           />
-        </CardContent>
-      </Card>
+      </div>
 
       <DialogModal
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
         title="Registrasi Pembimbing"
         subtitle="Lengkapi form di bawah untuk menambahkan akun mentor."
-        icon={<span className="material-symbols-outlined" style={{ fontSize: '24px' }}>person_add</span>}
+        icon="person_add"
       >
         <form onSubmit={handleSubmit} className="space-y-6">
           <Field label="Cari Mahasiswa (Nama / NIM)">
@@ -428,7 +426,7 @@ const Mentors = ({ portal = 'admin', facultyId: propFacultyId }) => {
         onOpenChange={(val) => { setDetailModalOpen(val); if (!val) setDetailData(null); }}
         title="Detail Pembimbing"
         subtitle="Informasi lengkap akun dewan pembimbing Kencana."
-        icon={<span className="material-symbols-outlined" style={{ fontSize: '24px' }}>badge</span>}
+        icon="badge"
       >
         {detailData && (
           <div className="space-y-6">

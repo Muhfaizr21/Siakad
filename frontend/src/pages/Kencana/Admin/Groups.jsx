@@ -229,8 +229,7 @@ const Groups = ({ portal: propPortal, facultyId: propFacultyId }) => {
         }
       />
 
-      <Card className="glass-card shadow-sm rounded-xl overflow-hidden border-slate-100/60">
-        <CardContent className="p-0 border-none shadow-none bg-transparent">
+      <div>
           <div className="flex-1">
             {isLoading ? (
               <div className="py-16 text-center font-bold text-[var(--theme-text-subtle)]">Memuat kelompok...</div>
@@ -339,8 +338,7 @@ const Groups = ({ portal: propPortal, facultyId: propFacultyId }) => {
               />
             )}
           </div>
-        </CardContent>
-      </Card>
+      </div>
 
       {/* Group Create/Edit Modal */}
       <DialogModal
@@ -348,7 +346,7 @@ const Groups = ({ portal: propPortal, facultyId: propFacultyId }) => {
         onOpenChange={setShowForm}
         title={editingGroup ? 'Edit Detail Kelompok' : 'Buat Kelompok Baru'}
         subtitle="Silakan tentukan nomor kelompok, nama kelompok, kuota, dan mentor pembimbing."
-        icon={<span className="material-symbols-outlined">{editingGroup ? 'edit_square' : 'group_add'}</span>}
+        icon={editingGroup ? 'edit_square' : 'group_add'}
         maxWidth="max-w-2xl"
         footer={
           <>
@@ -512,7 +510,7 @@ const Groups = ({ portal: propPortal, facultyId: propFacultyId }) => {
         onOpenChange={setShowMembersModal}
         title={`Anggota ${selectedGroupForMembers?.name || 'Kelompok'}`}
         subtitle="Kelola mahasiswa yang tergabung dalam kelompok ini."
-        icon={<Users size={24} />}
+        icon="groups"
         className="max-w-4xl"
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">

@@ -34,7 +34,7 @@ export function DashboardHero({
 
       <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div className="flex-1 space-y-3">
-          <div className="flex items-center gap-4">
+          <div className="flex items-start gap-4 md:gap-5">
             {/* Visual Anchor Icon */}
             <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl border flex items-center justify-center shrink-0 shadow-sm relative overflow-hidden group/icon" 
               style={{ 
@@ -48,10 +48,10 @@ export function DashboardHero({
                 style={{ fontSize: '26px' }}>{icon}</span>
             </div>
 
-            <div className="space-y-1">
+            <div className="flex-1 flex flex-col justify-center min-h-[48px] md:min-h-[56px] py-1">
               {/* Badges */}
               {badges && badges.length > 0 && (
-                <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                <div className="flex flex-wrap items-center gap-2 mb-2">
                   {badges.map((badge, idx) => (
                     <span key={idx} className={cn(
                       "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-wider border",
@@ -94,15 +94,15 @@ export function DashboardHero({
                   </span>
                 )}
               </h1>
+
+              {/* Subtitle */}
+              {subtitle && (
+                <p className="text-muted font-medium text-xs md:text-sm max-w-3xl leading-relaxed mt-2.5">
+                  {subtitle}
+                </p>
+              )}
             </div>
           </div>
-
-          {/* Subtitle */}
-          {subtitle && (
-            <p className="text-muted font-medium text-xs md:text-sm max-w-3xl leading-relaxed mt-3 md:pl-[72px]">
-              {subtitle}
-            </p>
-          )}
         </div>
 
         {/* Action Button Area */}
