@@ -702,13 +702,8 @@ export default function KeuanganKas() {
       )}
 
       {/* ── Transaction Table Card ──────────────────────────────────── */}
-<<<<<<< Updated upstream
-      <Card className="glass-card shadow-sm rounded-xl overflow-hidden animate-in slide-in-from-bottom-4 duration-500 delay-500 mb-6">
-        <CardContent className="p-0">
-=======
       <div>
         <div>
->>>>>>> Stashed changes
           <DataTable
             columns={columns}
             data={sortedTransactions}

@@ -1,6 +1,6 @@
 "use client"
 import React, { useState, useEffect } from 'react';
-import { PageContent } from '@/components/ui/page';
+import { PageContent, PageHeader } from '@/components/ui/page';
 import { DashboardHero } from '@/components/ui/dashboard';
 
 import { DataTable } from '@/components/ui/DataTable'

@@ -6,10 +6,6 @@ import { DashboardHero } from '@/components/ui/dashboard';
 import { DataTable } from '@/components/ui/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-<<<<<<< Updated upstream
-=======
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
->>>>>>> Stashed changes
 import { DialogModal, ModalCancelButton, ModalSaveButton } from '@/components/ui/DialogModal'
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
 import { Input } from '@/components/ui/Input'
@@ -188,13 +184,8 @@ export default function Pengumuman() {
       />
 
       {/* ── Pengumuman DataTable Container ────────────────────────────── */}
-<<<<<<< Updated upstream
       <div className="glass-card mb-8 animate-in slide-in-from-bottom-4 duration-500 fade-in border border-white/20 overflow-hidden">
         <div className="p-0">
-=======
-      <div>
-        <div>
->>>>>>> Stashed changes
           <DataTable
             containerClassName="border-0 shadow-none rounded-none"
             columns={columns}
@@ -255,7 +246,6 @@ export default function Pengumuman() {
       <DialogModal
         open={isDetailOpen}
         onOpenChange={setIsDetailOpen}
-<<<<<<< Updated upstream
         title={selected ? selected.Judul || selected.judul : 'Detail Pengumuman'}
         subtitle={selected ? `SIARAN ANN-${selected.id || selected.ID} • ${new Date(selected.created_at || selected.CreatedAt || selected.TanggalMulai).toLocaleDateString('id-ID')}` : 'Detail'}
         icon="campaign"
@@ -263,44 +253,21 @@ export default function Pengumuman() {
         footer={
           <div className="flex items-center justify-end gap-2">
             <ModalCancelButton onClick={() => setIsDetailOpen(false)}>TUTUP</ModalCancelButton>
-=======
-        title={selected?.Judul || selected?.judul || '—'}
-        subtitle={KATEGORI_CFG[selected?.Kategori || selected?.kategori || selected?.Target || 'umum']?.label?.toUpperCase() || 'UMUM'}
-        description={`Diterbitkan pada ${selected?.created_at || selected?.CreatedAt || selected?.TanggalMulai ? new Date(selected?.created_at || selected?.CreatedAt || selected?.TanggalMulai).toLocaleString('id-ID', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}`}
-        icon="campaign"
-        maxWidth="max-w-2xl"
-        bodyClassName="p-0"
-        footer={
-          <>
-            <ModalCancelButton onClick={() => setIsDetailOpen(false)}>
-              TUTUP
-            </ModalCancelButton>
->>>>>>> Stashed changes
             <Button
               type="button"
               onClick={() => {
                 setIsDetailOpen(false);
                 handleOpenEdit(selected);
               }}
-<<<<<<< Updated upstream
               className="h-11 px-6 sm:px-8 rounded-xl bg-[var(--theme-primary)] text-white hover:opacity-90 shadow-lg active:translate-y-0 transition-all border-none font-black text-[11px] uppercase tracking-[0.1em] flex items-center justify-center cursor-pointer hover:-translate-y-0.5"
             >
               EDIT PENGUMUMAN
             </Button>
           </div>
-=======
-              className="w-full sm:w-auto h-11 px-8 rounded-xl bg-primary text-white hover:bg-primary/95 shadow-lg active:scale-95 transition-all border-none flex items-center justify-center gap-2"
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>edit</span>
-              <span className="text-[10px] font-black tracking-widest uppercase">EDIT PENGUMUMAN</span>
-            </Button>
-          </>
->>>>>>> Stashed changes
         }
       >
         {selected && (
           <div className="flex flex-col">
-<<<<<<< Updated upstream
               <div className="p-6 space-y-6 max-h-[50vh] overflow-y-auto no-scrollbar">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {/* Left Metadata Column */}
@@ -313,19 +280,6 @@ export default function Pengumuman() {
                       <span className="text-[9px] font-black text-slate-400 tracking-wider uppercase font-headline block">Target Pembaca</span>
                       <span className="text-xs font-bold text-slate-700 block bg-slate-50 border border-slate-100 px-3 py-2 rounded-xl">Seluruh Anggota</span>
                     </div>
-=======
-            <div className="p-6 md:p-8 space-y-6 max-h-[60vh] overflow-y-auto no-scrollbar font-inter">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Left Metadata Column */}
-                <div className="space-y-4 md:col-span-1 md:border-r md:border-[var(--theme-border)] md:pr-4">
-                  <div className="space-y-1">
-                    <span className="text-[9px] font-black text-[var(--theme-text-subtle)] tracking-wider uppercase font-headline block">Oleh Ormawa</span>
-                    <span className="text-xs font-bold text-[var(--theme-text)] block bg-[var(--theme-surface)] border border-[var(--theme-border)] px-3 py-2 rounded-xl shadow-sm">Badan Pengurus Harian</span>
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-[9px] font-black text-[var(--theme-text-subtle)] tracking-wider uppercase font-headline block">Target Pembaca</span>
-                    <span className="text-xs font-bold text-[var(--theme-text)] block bg-[var(--theme-surface)] border border-[var(--theme-border)] px-3 py-2 rounded-xl shadow-sm">Seluruh Anggota</span>
->>>>>>> Stashed changes
                   </div>
                 </div>
 
@@ -337,23 +291,15 @@ export default function Pengumuman() {
                   </div>
                 </div>
               </div>
-<<<<<<< Updated upstream
-=======
-            </div>
->>>>>>> Stashed changes
           </div>
         )}
       </DialogModal>
 
-<<<<<<< Updated upstream
       {/* ── CRUD Dialog ── */}
-=======
->>>>>>> Stashed changes
       <DialogModal
         open={isCrudOpen}
         onOpenChange={setIsCrudOpen}
         title={isEditMode ? 'Edit Pengumuman' : 'Buat Pengumuman Baru'}
-<<<<<<< Updated upstream
         subtitle="Kelola informasi resmi organisasi."
         icon="campaign"
         maxWidth="max-w-xl"
@@ -433,90 +379,6 @@ export default function Pengumuman() {
               </div>
             </div>
 
-=======
-        subtitle="ANNOUNCEMENT PORTAL"
-        description="Tulis tajuk siaran, tentukan kategori, dan publikasikan informasi resmi ormawa."
-        icon={isEditMode ? 'edit' : 'campaign'}
-        maxWidth="max-w-2xl"
-        bodyClassName="p-0"
-        footer={
-          <>
-            <ModalCancelButton onClick={() => setIsCrudOpen(false)} disabled={isSubmitting} />
-            <ModalSaveButton 
-              form="announcement-form" 
-              label={isEditMode ? 'SIMPAN PERUBAHAN' : 'PUBLIKASIKAN'} 
-              icon="campaign" 
-              disabled={isSubmitting} 
-              loading={isSubmitting} 
-            />
-          </>
-        }
-      >
-        <form id="announcement-form" onSubmit={handleSave}>
-          <div className="p-6 md:p-8 space-y-5 max-h-[60vh] overflow-y-auto no-scrollbar font-inter">
-            {/* Judul Pengumuman */}
-            <div className="space-y-2">
-              <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 uppercase font-headline">Judul Pengumuman</Label>
-              <Input
-                required
-                value={form.Judul}
-                onChange={e => setForm({ ...form, Judul: e.target.value })}
-                placeholder="Masukkan judul atau tajuk utama pengumuman..."
-              />
-            </div>
-
-            {/* Premium Selector Grid Buttons for Kategori */}
-            <div className="space-y-2">
-              <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 uppercase font-headline">Pilih Kategori Siaran</Label>
-              <div className="grid grid-cols-2 gap-2.5">
-                {[
-                  { id: 'umum', label: 'UMUM', icon: 'feed', activeCls: 'bg-primary text-white border-primary shadow-lg shadow-primary/20 scale-[1.02]' },
-                  { id: 'kegiatan', label: 'KEGIATAN', icon: 'event', activeCls: 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-600/20 scale-[1.02]' },
-                  { id: 'penting', label: 'PENTING', icon: 'warning', activeCls: 'bg-rose-600 text-white border-rose-600 shadow-lg shadow-rose-600/20 scale-[1.02]' },
-                  { id: 'prestasi', label: 'PRESTASI', icon: 'emoji_events', activeCls: 'bg-amber-500 text-white border-amber-500 shadow-lg shadow-amber-500/20 scale-[1.02]' }
-                ].map(cat => (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => setForm({ ...form, Kategori: cat.id })}
-                    className={cn(
-                      "h-12 flex items-center justify-center gap-2 rounded-xl text-[10px] font-black tracking-widest uppercase transition-all duration-300 border-2 cursor-pointer",
-                      form.Kategori === cat.id
-                        ? cat.activeCls
-                        : "bg-transparent text-[var(--theme-text-subtle)] border-[var(--theme-border)] hover:border-[var(--theme-text-subtle)] hover:bg-[var(--theme-surface)] shadow-sm"
-                    )}
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>{cat.icon}</span>
-                    <span>{cat.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Isi Pengumuman */}
-            <div className="space-y-2">
-              <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 uppercase font-headline">Isi Pengumuman</Label>
-              <Textarea
-                required
-                value={form.Isi}
-                onChange={e => setForm({ ...form, Isi: e.target.value })}
-                placeholder="Tuliskan isi pengumuman secara lengkap, jelas, dan lugas di sini..."
-                className="min-h-[140px]"
-              />
-            </div>
-
-            {/* Tanggal Penjadwalan */}
-            <div className="space-y-2">
-              <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 uppercase font-headline">Tanggal Rilis (Opsional)</Label>
-              <Input
-                type="date"
-                value={form.TanggalMulai}
-                onChange={e => setForm({ ...form, TanggalMulai: e.target.value })}
-              />
-              <p className="text-[10px] text-[var(--theme-text-subtle)] ml-1 font-medium">Jika diisi, pengumuman & notifikasi akan muncul pada tanggal tersebut.</p>
-            </div>
-          </div>
->>>>>>> Stashed changes
         </form>
       </DialogModal>
 
