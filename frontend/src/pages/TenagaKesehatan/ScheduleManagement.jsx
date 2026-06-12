@@ -292,13 +292,13 @@ export default function ScheduleManagement() {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-slate-200 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                    <th className="py-3 px-4">Tanggal Pelayanan</th>
-                    <th className="py-3 px-4">Waktu Praktik</th>
-                    <th className="py-3 px-4">Tipe Layanan</th>
-                    <th className="py-3 px-4">Lokasi</th>
-                    <th className="py-3 px-4">Kuota Pasien</th>
-                    <th className="py-3 px-4">Catatan Khusus</th>
-                    <th className="py-3 px-4 text-right">Aksi</th>
+                    <th className="py-3 px-4 whitespace-nowrap">Tanggal Pelayanan</th>
+                    <th className="py-3 px-4 whitespace-nowrap">Waktu Praktik</th>
+                    <th className="py-3 px-4 whitespace-nowrap">Tipe Layanan</th>
+                    <th className="py-3 px-4 whitespace-nowrap">Lokasi</th>
+                    <th className="py-3 px-4 whitespace-nowrap">Kuota Pasien</th>
+                    <th className="py-3 px-4 whitespace-nowrap">Catatan Khusus</th>
+                    <th className="py-3 px-4 text-right whitespace-nowrap min-w-[120px]">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-600">

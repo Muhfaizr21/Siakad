@@ -1,6 +1,7 @@
 package routes
 
 import (
+	notifCtrl "siakad-backend/controllers/mahasiswa"
 	"siakad-backend/controllers/tenaga_kesehatan"
 	"siakad-backend/middleware"
 
@@ -37,4 +38,14 @@ func SetupTenagaKesehatanRoutes(app *fiber.App) {
 	// Laporan
 	api.Get("/reports/export-excel", tenaga_kesehatan.ExportExcel)
 	api.Get("/reports/export-pdf", tenaga_kesehatan.ExportPDF)
+
+	// Notifikasi — share same handler as mahasiswa (user_id based, no role restriction in logic)
+	notifGroup := api.Group("/notifikasi")
+	notifGroup.Get("/", notifCtrl.GetNotifications)
+	notifGroup.Get("/unread-count", notifCtrl.GetUnreadCount)
+	notifGroup.Put("/:id/baca", notifCtrl.MarkAsRead)
+	notifGroup.Put("/baca-semua", notifCtrl.MarkAllAsRead)
+	notifGroup.Delete("/hapus-dibaca", notifCtrl.DeleteRead)
+	notifGroup.Delete("/hapus-bulk", notifCtrl.DeleteBulk)
+	notifGroup.Delete("/:id", notifCtrl.DeleteNotification)
 }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { healthReportsService } from '../../services/api';
 import toast from 'react-hot-toast';
 import { PageContent } from '@/components/ui/page';
@@ -9,6 +10,9 @@ import { DataTable } from '@/components/ui/DataTable';
 // Reusable Icon
 const Icon = ({ name, size = 16, className = '', ...props }) => (
   <span className={`material-symbols-outlined ${className}`} style={{ fontSize: size, ...props.style }} {...props}>{name}</span>
+);
+const EyeIcon = ({ size, className, ...props }) => (
+  <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>visibility</span>
 );
 
 // Format date helper
@@ -42,6 +46,7 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedRecord, setSelectedRecord] = useState(null);
 
   // Filters
   const [dateRange, setDateRange] = useState('month'); // 'today', 'week', 'month', 'custom'
@@ -221,6 +226,20 @@ export default function ReportsPage() {
       label: 'Hasil',
       sortable: true,
       render: (v, row) => <ResultBadge result={row.hasil} />
+    },
+    {
+      key: 'actions',
+      label: 'Aksi',
+      sortable: false,
+      render: (v, row) => (
+        <button
+          onClick={() => setSelectedRecord(row)}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-700 hover:bg-teal-500 hover:text-white transition-all text-xs font-bold rounded-lg border border-slate-200 hover:border-teal-500 shadow-sm"
+        >
+          <EyeIcon size={14} />
+          Detail
+        </button>
+      )
     }
   ];
 
@@ -425,6 +444,211 @@ export default function ReportsPage() {
           emptyIcon="inbox"
         />
       </div>
+
+      {/* Detail Modal */}
+      {selectedRecord && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-2xl w-full max-h-[85vh] overflow-hidden flex flex-col"
+          >
+            {/* Header */}
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-slate-800">Detail Laporan Klinis</h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  {formatDate(selectedRecord.tanggal)}
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedRecord(null)}
+                className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition-colors"
+              >
+                <span className="material-symbols-outlined text-lg">close</span>
+              </button>
+            </div>
+
+            {/* Content (Scrollable) */}
+            <div className="p-6 overflow-y-auto space-y-6">
+              {/* Section: Identitas Pasien */}
+              <div>
+                <h4 className="text-sm font-bold text-teal-600 flex items-center gap-2 mb-3">
+                  <span className="material-symbols-outlined text-base">person</span>
+                  Identitas Pasien
+                </h4>
+                <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl">
+                  <div>
+                    <p className="text-xs text-slate-400">Nama Mahasiswa</p>
+                    <p className="text-sm font-semibold text-slate-700">{selectedRecord.mahasiswa?.nama || selectedRecord.mahasiswa?.Nama || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400">NIM</p>
+                    <p className="text-sm font-semibold text-slate-700">{selectedRecord.mahasiswa?.nim || selectedRecord.mahasiswa?.NIM || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400">Fakultas</p>
+                    <p className="text-sm font-semibold text-slate-700">
+                      {selectedRecord.mahasiswa?.fakultas?.nama || 
+                       selectedRecord.mahasiswa?.fakultas?.Nama ||
+                       selectedRecord.mahasiswa?.Fakultas?.nama || 
+                       selectedRecord.mahasiswa?.Fakultas?.Nama || '—'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400">Program Studi</p>
+                    <p className="text-sm font-semibold text-slate-700">
+                      {selectedRecord.mahasiswa?.program_studi?.nama || 
+                       selectedRecord.mahasiswa?.program_studi?.Nama ||
+                       selectedRecord.mahasiswa?.ProgramStudi?.nama || 
+                       selectedRecord.mahasiswa?.ProgramStudi?.Nama || '—'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section: Hasil Pemeriksaan */}
+              <div>
+                <h4 className="text-sm font-bold text-teal-600 flex items-center gap-2 mb-3">
+                  <span className="material-symbols-outlined text-base">assignment</span>
+                  Hasil Pemeriksaan
+                </h4>
+                <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl">
+                  <div className="col-span-2">
+                    <p className="text-xs text-slate-400 mb-1">Status Kelayakan</p>
+                    <ResultBadge result={selectedRecord.hasil} />
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-xs text-slate-400">Catatan Pemeriksa</p>
+                    <p className="text-sm text-slate-700 whitespace-pre-wrap">{selectedRecord.catatan || '—'}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-xs text-slate-400">Rekomendasi</p>
+                    <p className="text-sm text-slate-700 whitespace-pre-wrap">{selectedRecord.rekomendasi || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400">Pemeriksa</p>
+                    <p className="text-sm text-slate-700">{selectedRecord.tenaga_kes?.nama || selectedRecord.tenaga_kes?.Nama || selectedRecord.diperiksa_oleh || '—'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section: Vitals & Fisik */}
+              <div>
+                <h4 className="text-sm font-bold text-teal-600 flex items-center gap-2 mb-3">
+                  <span className="material-symbols-outlined text-base">monitor_heart</span>
+                  Tanda Vital & Fisik
+                </h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl">
+                  <div>
+                    <p className="text-xs text-slate-400">Tekanan Darah</p>
+                    <p className="text-sm font-semibold text-slate-700">
+                      {selectedRecord.sistole && selectedRecord.diastole 
+                        ? `${selectedRecord.sistole}/${selectedRecord.diastole} mmHg` 
+                        : '—'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400">Suhu Tubuh</p>
+                    <p className="text-sm font-semibold text-slate-700">{selectedRecord.suhu_tubuh ? `${selectedRecord.suhu_tubuh} °C` : '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400">SpO2 (Saturasi Oksigen)</p>
+                    <p className="text-sm font-semibold text-slate-700">{selectedRecord.spo2 ? `${selectedRecord.spo2} %` : '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400">Denyut Nadi</p>
+                    <p className="text-sm font-semibold text-slate-700">{selectedRecord.denyut_nadi ? `${selectedRecord.denyut_nadi} bpm` : '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400">Riwayat Penyakit</p>
+                    <p className="text-sm font-semibold text-slate-700">{selectedRecord.riwayat_penyakit || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400">Status Kesehatan</p>
+                    <p className="text-sm font-semibold text-slate-700 capitalize">{selectedRecord.status_kesehatan || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400">Tinggi / Berat Badan</p>
+                    <p className="text-sm font-semibold text-slate-700">
+                      {selectedRecord.tinggi_badan && selectedRecord.berat_badan 
+                        ? `${selectedRecord.tinggi_badan} cm / ${selectedRecord.berat_badan} kg` 
+                        : '—'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400">Golongan Darah</p>
+                    <p className="text-sm font-semibold text-slate-700">{selectedRecord.golongan_darah || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400">Gula Darah</p>
+                    <p className="text-sm font-semibold text-slate-700">{selectedRecord.gula_darah ? `${selectedRecord.gula_darah} mg/dL` : '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400">Buta Warna</p>
+                    <p className="text-sm font-semibold text-slate-700">{selectedRecord.buta_warna || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400">Skala Nyeri</p>
+                    <p className="text-sm font-semibold text-slate-700">{selectedRecord.skala_nyeri !== undefined ? `${selectedRecord.skala_nyeri}/10` : '—'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section: Catatan Medis Tambahan */}
+              <div>
+                <h4 className="text-sm font-bold text-teal-600 flex items-center gap-2 mb-3">
+                  <span className="material-symbols-outlined text-base">note_add</span>
+                  Catatan Tambahan
+                </h4>
+                <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl">
+                  <div>
+                    <p className="text-xs text-slate-400">Alergi Obat</p>
+                    <p className="text-sm text-slate-700">{selectedRecord.alergi_obat || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400">Kondisi Psikologis</p>
+                    <p className="text-sm text-slate-700">{selectedRecord.kondisi_psikologis || '—'}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-xs text-slate-400">Konsumsi Obat Rutin</p>
+                    <p className="text-sm text-slate-700">{selectedRecord.konsumsi_obat || '—'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section: Tindakan & Terapi */}
+              <div>
+                <h4 className="text-sm font-bold text-teal-600 flex items-center gap-2 mb-3">
+                  <span className="material-symbols-outlined text-base">medical_services</span>
+                  Tindakan & Terapi
+                </h4>
+                <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl">
+                  <div className="col-span-2">
+                    <p className="text-xs text-slate-400">Tindakan Diberikan</p>
+                    <p className="text-sm text-slate-700 whitespace-pre-wrap">{selectedRecord.tindakan_diberikan || '—'}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-xs text-slate-400">Obat Diberikan</p>
+                    <p className="text-sm text-slate-700 whitespace-pre-wrap">{selectedRecord.obat_diberikan || '—'}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end">
+              <button
+                onClick={() => setSelectedRecord(null)}
+                className="px-6 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl transition-colors text-sm"
+              >
+                Tutup
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </PageContent>
   );
 }

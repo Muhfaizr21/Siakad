@@ -38,6 +38,7 @@ import TenagaKesehatanScheduleManagement from './pages/TenagaKesehatan/ScheduleM
 import TenagaKesehatanPatientList from './pages/TenagaKesehatan/PatientList'
 import TenagaKesehatanPatientMedicalRecord from './pages/TenagaKesehatan/PatientMedicalRecord'
 import TenagaKesehatanSettings from './pages/TenagaKesehatan/Settings'
+import TenagaKesehatanNotificationsCenter from './pages/TenagaKesehatan/NotificationsCenter'
 
 import ErrorBoundary from './components/ErrorBoundary'
 import ThemeProvider from './components/ThemeProvider'
@@ -506,6 +507,7 @@ function App() {
                   <Route path="claims" element={<InsuranceReview />} />
                   <Route path="bap" element={<BAPManagement />} />
                   <Route path="reports" element={<ReportsPage />} />
+                  <Route path="notifications" element={<TenagaKesehatanNotificationsCenter />} />
                   <Route path="settings" element={<TenagaKesehatanSettings />} />
                 </Route>
 

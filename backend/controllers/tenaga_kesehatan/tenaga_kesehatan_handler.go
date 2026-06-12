@@ -249,10 +249,10 @@ func GetDashboard(c *fiber.Ctx) error {
 
 	// 1. Where (Distribusi Fakultas)
 	var chartFakultas []chartResult
-	config.DB.Table("kesehatan").
+	config.DB.Table("mahasiswa.kesehatan").
 		Select("fakultas.nama as name, count(*) as value").
-		Joins("JOIN mahasiswa ON mahasiswa.id = kesehatan.mahasiswa_id").
-		Joins("JOIN fakultas ON fakultas.id = mahasiswa.fakultas_id").
+		Joins("JOIN public.mahasiswa ON mahasiswa.id = kesehatan.mahasiswa_id").
+		Joins("JOIN public.fakultas ON fakultas.id = mahasiswa.fakultas_id").
 		Group("fakultas.nama").
 		Order("value desc").
 		Limit(5).
@@ -260,7 +260,7 @@ func GetDashboard(c *fiber.Ctx) error {
 
 	// 2. What (Kondisi Kesehatan)
 	var rawKondisi []chartResult
-	config.DB.Table("kesehatan").
+	config.DB.Table("mahasiswa.kesehatan").
 		Select("status_kesehatan as name, count(*) as value").
 		Group("status_kesehatan").
 		Scan(&rawKondisi)

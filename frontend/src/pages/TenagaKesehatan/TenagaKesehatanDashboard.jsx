@@ -5,10 +5,18 @@ import { PageContent, PageCard, PageCardHeader } from '@/components/ui/page';
 import { DashboardHero } from '@/components/ui/dashboard';
 import { PrimaryStatsCard } from '@/components/ui/StatsCard';
 import EmptyState from '@/components/ui/EmptyState';
+import {
+  ResponsiveContainer, PieChart, Pie, Cell,
+  LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip
+} from 'recharts';
 export default function TenagaKesehatanDashboard() {
   const [dashboard, setDashboard] = useState(null);
   const [isAvailable, setIsAvailable] = useState(true);
   const navigate = useNavigate();
+
+  const handleToggleAvailability = () => {
+    setIsAvailable(prev => !prev);
+  };
 
   useEffect(() => {
     let ignore = false;
@@ -34,6 +42,24 @@ export default function TenagaKesehatanDashboard() {
   const profileName = dashboard?.profile?.nama || 'Tenaga Kesehatan';
   
   const antreanAktif = bookings.filter(b => b.status === 'Menunggu' || b.status === 'Dikonfirmasi' || b.status === 'Menunggu Konfirmasi').length;
+
+  // Chart data derived from dashboard API
+  const KONDISI_COLORS = {
+    'Sehat': '#22c55e',
+    'Ringan': '#f59e0b',
+    'Sedang': '#f97316',
+    'Berat': '#ef4444',
+    'Kritis': '#7c3aed',
+  };
+
+  const sebaranKondisi = dashboard?.sebaran_kondisi || {};
+  const chartKondisi = Object.entries(sebaranKondisi).map(([name, value]) => ({ name, value }));
+
+  const trenHarian = dashboard?.tren_7_hari || [];
+  const chartTren = trenHarian.map(item => ({
+    name: item.tanggal ? new Date(item.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }) : item.label || '',
+    value: item.jumlah ?? item.total ?? 0,
+  }));
 
   const statCards = [
     { 

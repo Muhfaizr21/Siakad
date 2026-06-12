@@ -43,6 +43,7 @@ export default function NotificationDropdown() {
   const isOrmawa = role === 'ormawa' || role === 'ormawa_admin';
   const isPsychologist = role === 'psychologist' || role === 'psikolog';
   const isSuperAdmin = role === 'super_admin';
+  const isTenagaKesehatan = role === 'tenaga_kesehatan' || role === 'tenagakes';
   const hasNotifications = true; // Enable notifications for all roles
 
   // Polling strategy: check unread count every 30s
@@ -58,6 +59,10 @@ export default function NotificationDropdown() {
         const { data } = await api.get('/psychologist/notifications');
         const unreadCount = (data.data || []).filter(n => n.unread !== undefined ? n.unread : !(n.is_read ?? n.IsRead)).length;
         return { count: unreadCount };
+      }
+      if (isTenagaKesehatan) {
+        const { data } = await api.get('/tenagakes/notifikasi/unread-count');
+        return data;
       }
       const { data } = await api.get('/notifikasi/unread-count');
       return data;
@@ -77,6 +82,9 @@ export default function NotificationDropdown() {
       } else if (isPsychologist) {
         const { data } = await api.get('/psychologist/notifications');
         responseData = (data.data || []).filter(n => n.unread !== undefined ? n.unread : !(n.is_read ?? n.IsRead));
+      } else if (isTenagaKesehatan) {
+        const { data } = await api.get('/tenagakes/notifikasi?status=unread');
+        responseData = data.data || [];
       } else {
         const { data } = await api.get('/notifikasi?status=unread');
         responseData = data.data || [];
@@ -110,6 +118,8 @@ export default function NotificationDropdown() {
             }
           } else if (isOrmawa) {
             defaultLink = '/ormawa/notifikasi';
+          } else if (isTenagaKesehatan) {
+            defaultLink = '/tenagakes/notifications';
           } else { // Student
             if (typeLower === 'konseling') {
               defaultLink = '/student/counseling/history';
@@ -145,7 +155,7 @@ export default function NotificationDropdown() {
 
         return {
           ...normalizedRaw,
-          link: isOrmawa || isPsychologist || isSuperAdmin ? normalizedRaw.link : resolveStudentNotificationLink(normalizedRaw)
+          link: isOrmawa || isPsychologist || isSuperAdmin || isTenagaKesehatan ? normalizedRaw.link : resolveStudentNotificationLink(normalizedRaw)
         };
       });
     },
@@ -158,6 +168,8 @@ export default function NotificationDropdown() {
         await api.put(`/ormawa/notifications/${notifId}/read`);
       } else if (isPsychologist) {
         await api.put(`/psychologist/notifications/${notifId}/read`);
+      } else if (isTenagaKesehatan) {
+        await api.put(`/tenagakes/notifikasi/${notifId}/baca`);
       } else {
         await api.put(`/notifikasi/${notifId}/baca`);
       }
@@ -178,6 +190,8 @@ export default function NotificationDropdown() {
         await api.put(`/ormawa/notifications/read-all?ormawaId=${ormawaId}`);
       } else if (isPsychologist) {
         await api.put(`/psychologist/notifications/read-all`);
+      } else if (isTenagaKesehatan) {
+        await api.put('/tenagakes/notifikasi/baca-semua');
       } else {
         await api.put('/notifikasi/baca-semua');
       }
@@ -345,6 +359,8 @@ export default function NotificationDropdown() {
                   navigate('/psychologist/notifications');
                 } else if (isSuperAdmin) {
                   navigate('/admin');
+                } else if (isTenagaKesehatan) {
+                  navigate('/tenagakes/notifications');
                 } else {
                   navigate('/student/notifikasi');
                 }

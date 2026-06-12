@@ -12,6 +12,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jung-kurt/gofpdf"
+	"gorm.io/gorm"
 )
 
 // ========================
@@ -995,15 +996,16 @@ func GetClinicalReports(c *fiber.Ctx) error {
 	startDate := c.Query("start_date", time.Now().AddDate(0, -1, 0).Format("2006-01-02"))
 	endDate := c.Query("end_date", time.Now().Format("2006-01-02"))
 
-	// Base query for kesehatan
-	query := config.DB.Model(&models.Kesehatan{}).Where("tanggal >= ? AND tanggal <= ?", startDate, endDate+" 23:59:59")
-
-	// For TK, filter by their own records
-	if role == "tenaga_kesehatan" {
-		var tk models.TenagaKesehatan
-		if err := config.DB.Where("user_id = ?", userID).First(&tk).Error; err == nil {
-			query = query.Where("tenaga_kes_id = ?", tk.ID)
+	// Base query condition builder to ensure filters are applied consistently
+	applyFilters := func(q *gorm.DB) *gorm.DB {
+		q = q.Where("tanggal >= ? AND tanggal <= ?", startDate, endDate+" 23:59:59")
+		if role == "tenaga_kesehatan" {
+			var tk models.TenagaKesehatan
+			if err := config.DB.Where("user_id = ?", userID).First(&tk).Error; err == nil {
+				q = q.Where("tenaga_kes_id = ?", tk.ID)
+			}
 		}
+		return q
 	}
 
 	// Summary stats
@@ -1014,15 +1016,14 @@ func GetClinicalReports(c *fiber.Ctx) error {
 		TidakLayak     int64 `json:"tidak_layak"`
 	}
 
-	query.Count(&stats.TotalDiperiksa)
-	config.DB.Model(&models.Kesehatan{}).Where("tanggal >= ? AND tanggal <= ? AND hasil = ?", startDate, endDate+" 23:59:59", "Layak Kegiatan").Count(&stats.Layak)
-	config.DB.Model(&models.Kesehatan{}).Where("tanggal >= ? AND tanggal <= ? AND hasil = ?", startDate, endDate+" 23:59:59", "Perlu Perhatian").Count(&stats.PerluPerhatian)
-	config.DB.Model(&models.Kesehatan{}).Where("tanggal >= ? AND tanggal <= ? AND hasil = ?", startDate, endDate+" 23:59:59", "Tidak Layak").Count(&stats.TidakLayak)
+	applyFilters(config.DB.Model(&models.Kesehatan{})).Count(&stats.TotalDiperiksa)
+	applyFilters(config.DB.Model(&models.Kesehatan{})).Where("hasil = ?", "Layak Kegiatan").Count(&stats.Layak)
+	applyFilters(config.DB.Model(&models.Kesehatan{})).Where("hasil = ?", "Perlu Perhatian").Count(&stats.PerluPerhatian)
+	applyFilters(config.DB.Model(&models.Kesehatan{})).Where("hasil = ?", "Tidak Layak").Count(&stats.TidakLayak)
 
 	// Records
 	var records []models.Kesehatan
-	config.DB.Preload("Mahasiswa.Fakultas").Preload("Mahasiswa.ProgramStudi").Preload("TenagaKes").
-		Where("tanggal >= ? AND tanggal <= ?", startDate, endDate+" 23:59:59").
+	applyFilters(config.DB.Preload("Mahasiswa").Preload("Mahasiswa.Fakultas").Preload("Mahasiswa.ProgramStudi").Preload("TenagaKes")).
 		Order("tanggal desc").
 		Limit(100).Find(&records)
 

@@ -429,7 +429,7 @@ class _TkClinicalReportsScreenState extends State<TkClinicalReportsScreen> {
               ),
               const SizedBox(height: 4),
               Text(
-                '${report.nim} • ${report.prodi}',
+                '${report.nim} • ${report.prodi} • ${report.fakultas}',
                 style: AppTextStyles.bodySm.copyWith(color: AppColors.neutral500),
               ),
               const Divider(height: 16),
@@ -496,33 +496,122 @@ class _TkClinicalReportsScreenState extends State<TkClinicalReportsScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.only(left: 20, right: 20, top: 24, bottom: 24),
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.85,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              const SizedBox(height: 12),
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.neutral300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
               Text(
                 'Detail Laporan Klinis',
-                style: AppTextStyles.titleMd.copyWith(fontWeight: FontWeight.bold),
+                style: AppTextStyles.titleMd.copyWith(fontWeight: FontWeight.bold, color: AppColors.primary),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 24),
-              _buildDetailItem('Hasil Pemeriksaan', report.hasil),
-              _buildDetailItem('Catatan Medis', report.catatan),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => context.pop(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              const SizedBox(height: 8),
+              Text(
+                DateFormat('dd MMMM yyyy - HH:mm').format(report.tanggal),
+                style: AppTextStyles.caption.copyWith(color: AppColors.neutral500),
+                textAlign: TextAlign.center,
+              ),
+              const Divider(height: 24),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Section: Pasien
+                      _buildSectionHeader('Identitas Pasien', Icons.person_rounded),
+                      _buildDetailItem('Nama Mahasiswa', report.namaMahasiswa),
+                      _buildDetailItem('NIM', report.nim),
+                      _buildDetailItem('Program Studi', report.prodi),
+                      _buildDetailItem('Fakultas', report.fakultas),
+                      
+                      const SizedBox(height: 16),
+                      // Section: Hasil
+                      _buildSectionHeader('Hasil Pemeriksaan', Icons.assignment_rounded),
+                      _buildDetailItem('Status Kelayakan', report.hasil, isStatus: true),
+                      _buildDetailItem('Catatan Pemeriksa', report.catatan),
+                      _buildDetailItem('Rekomendasi', report.rekomendasi),
+                      _buildDetailItem('Pemeriksa', report.namaPemeriksa),
+                      
+                      const SizedBox(height: 16),
+                      // Section: Vitals
+                      _buildSectionHeader('Tanda Vital & Fisik', Icons.monitor_heart_rounded),
+                      Row(
+                        children: [
+                          Expanded(child: _buildDetailItem('Tekanan Darah', '${report.sistole}/${report.diastole} mmHg')),
+                          Expanded(child: _buildDetailItem('Suhu Tubuh', '${report.suhuTubuh} °C')),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Expanded(child: _buildDetailItem('SpO2', '${report.spo2} %')),
+                          Expanded(child: _buildDetailItem('Denyut Nadi', '${report.denyutNadi} bpm')),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Expanded(child: _buildDetailItem('Tinggi / Berat', '${report.tinggiBadan} cm / ${report.beratBadan} kg')),
+                          Expanded(child: _buildDetailItem('Golongan Darah', report.golonganDarah)),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Expanded(child: _buildDetailItem('Gula Darah', '${report.gulaDarah} mg/dL')),
+                          Expanded(child: _buildDetailItem('Buta Warna', report.butaWarna)),
+                        ],
+                      ),
+                      _buildDetailItem('Skala Nyeri', '${report.skalaNyeri}/10'),
+
+                      const SizedBox(height: 16),
+                      // Section: Tambahan
+                      _buildSectionHeader('Catatan Tambahan', Icons.note_add_rounded),
+                      _buildDetailItem('Alergi Obat', report.alergiObat),
+                      _buildDetailItem('Kondisi Psikologis', report.kondisiPsikologis),
+                      _buildDetailItem('Konsumsi Obat Rutin', report.konsumsiObat),
+
+                      const SizedBox(height: 16),
+                      // Section: Penanganan
+                      _buildSectionHeader('Tindakan & Terapi', Icons.healing_rounded),
+                      _buildDetailItem('Tindakan Diberikan', report.tindakanDiberikan),
+                      _buildDetailItem('Obat Diberikan', report.obatDiberikan),
+                      
+                      const SizedBox(height: 24),
+                    ],
+                  ),
                 ),
-                child: const Text('Tutup', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => context.pop(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: const Text('Tutup', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                ),
               ),
             ],
           ),
@@ -531,15 +620,41 @@ class _TkClinicalReportsScreenState extends State<TkClinicalReportsScreen> {
     );
   }
 
-  Widget _buildDetailItem(String label, String value) {
+  Widget _buildSectionHeader(String title, IconData icon) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: AppColors.primary),
+          const SizedBox(width: 8),
+          Text(
+            title,
+            style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.bold, color: AppColors.primary),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailItem(String label, String value, {bool isStatus = false}) {
+    Widget valueWidget;
+    if (isStatus) {
+      valueWidget = _buildStatusBadge(value);
+    } else {
+      valueWidget = Text(
+        value.isEmpty || value == '-' || value == '—' ? '—' : value,
+        style: AppTextStyles.bodyMd.copyWith(color: AppColors.neutral800),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label, style: AppTextStyles.caption.copyWith(color: AppColors.neutral500)),
           const SizedBox(height: 4),
-          Text(value.isEmpty ? '-' : value, style: AppTextStyles.bodyMd),
+          valueWidget,
         ],
       ),
     );
