@@ -20,6 +20,7 @@ import 'package:bkuhub_mobile/features/ormawa/data/repositories/ormawa_repositor
 import 'package:bkuhub_mobile/features/counseling/data/repositories/counseling_repository_impl.dart';
 import 'package:bkuhub_mobile/features/tenaga_kesehatan/data/repositories/tk_repository_impl.dart';
 import 'package:bkuhub_mobile/features/tenaga_kesehatan/presentation/providers/tk_dashboard_provider.dart';
+import 'package:bkuhub_mobile/features/tenaga_kesehatan/presentation/providers/tk_health_provider.dart';
 import 'package:bkuhub_mobile/features/tenaga_kesehatan/presentation/providers/tk_schedule_provider.dart';
 import 'package:bkuhub_mobile/features/tenaga_kesehatan/presentation/providers/tk_booking_provider.dart';
 import 'package:bkuhub_mobile/features/tenaga_kesehatan/presentation/providers/tk_patient_provider.dart';
@@ -65,6 +66,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => OrmawaProvider(ormawaRepository)),
         // TK (Tenaga Kesehatan) Providers
         ChangeNotifierProvider(create: (_) => TkDashboardProvider(repository: tkRepository)),
+        ChangeNotifierProvider(create: (_) => TkHealthProvider(repository: tkRepository)),
         ChangeNotifierProvider(create: (_) => TkScheduleProvider(repository: tkRepository)),
         ChangeNotifierProvider(create: (_) => TkBookingProvider(repository: tkRepository)),
         ChangeNotifierProvider(create: (_) => TkPatientProvider(repository: tkRepository)),

@@ -6,6 +6,7 @@ import (
 	authSvc "siakad-backend/auth"
 	"siakad-backend/config"
 	"siakad-backend/controllers"
+	"siakad-backend/cron"
 	"siakad-backend/middleware"
 	"siakad-backend/routes"
 
@@ -26,6 +27,9 @@ func main() {
 
 	// Bootstrap Data
 	authSvc.EnsureBootstrapData()
+
+	// Initialize Scheduler (Cron Jobs)
+	cron.InitCron()
 
 	app := fiber.New(fiber.Config{
 		BodyLimit: 50 * 1024 * 1024, // 50 MB limit for file uploads

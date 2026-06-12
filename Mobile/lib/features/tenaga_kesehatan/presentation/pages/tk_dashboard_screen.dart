@@ -44,7 +44,8 @@ class _TkDashboardScreenState extends State<TkDashboardScreen> {
                 variant: AppBarVariant.nakes,
                 expandedHeight: 210,
                 showProfileOnCollapse: true,
-                showNotification: false,
+                showNotification: true,
+                onNotificationTap: (context, variant) => context.push('/notifications/tk'),
                 profileImage:
                     imageUrl.isNotEmpty
                         ? Image.network(
@@ -272,7 +273,38 @@ class _TkDashboardScreenState extends State<TkDashboardScreen> {
           ],
         ),
         const SizedBox(height: 16),
-        // Row 2: 2 items centered
+        // Row 2: Klaim Asuransi, BAP, Laporan Klinis
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: _buildQuickAction(
+                icon: Icons.assignment_turned_in_rounded,
+                label: 'Asuransi',
+                color: AppColors.info,
+                onTap: () => context.push('/tk/insurance-claims'),
+              ),
+            ),
+            Expanded(
+              child: _buildQuickAction(
+                icon: Icons.article_rounded,
+                label: 'BAP',
+                color: AppColors.success,
+                onTap: () => context.push('/tk/bap'),
+              ),
+            ),
+            Expanded(
+              child: _buildQuickAction(
+                icon: Icons.medical_information_rounded,
+                label: 'Lap. Klinis',
+                color: AppColors.primary,
+                onTap: () => context.push('/tk/reports'),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        // Row 3: 2 items centered
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
