@@ -542,7 +542,9 @@ class _TkDashboardScreenState extends State<TkDashboardScreen> {
     final nim = booking['nim']?.toString() ?? '-';
     final time = booking['time']?.toString() ?? '-';
     final status = booking['status']?.toString() ?? '-';
-    final keluhan = booking['keluhan']?.toString() ?? 'Pemeriksaan Umum';
+    final tipeLayanan = booking['tipe_layanan']?.toString() ?? 'Pemeriksaan Umum';
+    final mahasiswaId = booking['mahasiswa_id'];
+    // bookingId reserved for future direct screening navigation
 
     final parts = name.trim().split(' ');
     final avatar = parts.length >= 2
@@ -552,110 +554,188 @@ class _TkDashboardScreenState extends State<TkDashboardScreen> {
             : '?';
 
     Color statusColor;
+    Color statusBg;
     if (status == 'Dikonfirmasi') {
       statusColor = const Color(0xFF10B981);
+      statusBg = const Color(0xFFD1FAE5);
     } else if (status == 'Menunggu Konfirmasi') {
       statusColor = const Color(0xFFF59E0B);
+      statusBg = const Color(0xFFFEF3C7);
     } else {
-      statusColor = AppColors.neutral400;
+      statusColor = AppColors.neutral500;
+      statusBg = AppColors.neutral200;
     }
 
-    return Container(
-      width: 180,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(8),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+    final bool isConfirmed = status == 'Dikonfirmasi';
+
+    return GestureDetector(
+      onTap: () {
+        if (mahasiswaId != null) {
+          context.read<TkPatientProvider>().clearSelection();
+          context.push('/tk/patient/$mahasiswaId');
+        }
+      },
+      child: Container(
+        width: 195,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isConfirmed
+                ? const Color(0xFF10B981).withAlpha(50)
+                : Colors.transparent,
+            width: 1.5,
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: const Color(0xFFE8EEFF),
-                child: Text(
-                  avatar,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(8),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header: avatar + status badge
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: const Color(0xFFE8EEFF),
+                  child: Text(
+                    avatar,
+                    style: const TextStyle(
+                      color: Color(0xFF1A3BAA),
+                      fontWeight: FontWeight.w900,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: statusBg,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    status == 'Menunggu Konfirmasi' ? 'Menunggu' : status,
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w800,
+                      color: statusColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            // Name
+            Text(
+              name,
+              style: const TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 13,
+                color: Color(0xFF1E293B),
+              ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              nim,
+              style: const TextStyle(
+                fontSize: 11,
+                color: Color(0xFF94A3B8),
+              ),
+            ),
+            const SizedBox(height: 8),
+            // Time row
+            Row(
+              children: [
+                const Icon(Icons.access_time_rounded,
+                    size: 12, color: Color(0xFF1A3BAA)),
+                const SizedBox(width: 4),
+                Text(
+                  time,
                   style: const TextStyle(
-                    color: Color(0xFF1A3BAA),
-                    fontWeight: FontWeight.w900,
                     fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1A3BAA),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            // Tipe layanan
+            Row(
+              children: [
+                const Icon(Icons.medical_services_outlined,
+                    size: 12, color: Color(0xFF94A3B8)),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    tipeLayanan,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: Color(0xFF64748B),
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const Spacer(),
+            // Action button
+            SizedBox(
+              width: double.infinity,
+              child: Material(
+                color: isConfirmed
+                    ? const Color(0xFF1A3BAA)
+                    : const Color(0xFF1A3BAA).withAlpha(20),
+                borderRadius: BorderRadius.circular(10),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(10),
+                  onTap: () {
+                    if (mahasiswaId != null) {
+                      context.read<TkPatientProvider>().clearSelection();
+                      context.push('/tk/patient/$mahasiswaId');
+                    }
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 7),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.play_circle_outline_rounded,
+                          size: 14,
+                          color: isConfirmed
+                              ? Colors.white
+                              : const Color(0xFF1A3BAA),
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          'Periksa',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            color: isConfirmed
+                                ? Colors.white
+                                : const Color(0xFF1A3BAA),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  name,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 13,
-                    color: Color(0xFF1E293B),
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'NIM: $nim',
-            style: const TextStyle(
-              fontSize: 11,
-              color: Color(0xFF94A3B8),
             ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(Icons.access_time_rounded,
-                  size: 12, color: Color(0xFF94A3B8)),
-              const SizedBox(width: 4),
-              Text(
-                time,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF475569),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            keluhan,
-            style: const TextStyle(
-              fontSize: 11,
-              color: Color(0xFF64748B),
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const Spacer(),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(
-              color: statusColor.withAlpha(20),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Text(
-              status == 'Menunggu Konfirmasi' ? 'Menunggu' : status,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
-                color: statusColor,
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -678,84 +758,83 @@ class _TkDashboardScreenState extends State<TkDashboardScreen> {
     final name = alert['nama']?.toString() ?? '-';
     final nim = alert['nim']?.toString() ?? '-';
     final event = alert['event']?.toString() ?? '-';
+    final mahasiswaId = alert['mahasiswa_id'];
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFF1F2),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFFECACA)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(5),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFEE2E2),
-              borderRadius: BorderRadius.circular(12),
+    return GestureDetector(
+      onTap: () {
+        if (mahasiswaId != null) {
+          context.read<TkPatientProvider>().clearSelection();
+          context.push('/tk/patient/$mahasiswaId');
+        }
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFF1F2),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFFECACA)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(5),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
-            child: const Icon(
-              Icons.warning_amber_rounded,
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEE2E2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.warning_amber_rounded,
+                color: Color(0xFFEF4444),
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'NIM: $nim',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: Color(0xFF94A3B8),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    event,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFFEF4444),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right_rounded,
               color: Color(0xFFEF4444),
-              size: 20,
+              size: 22,
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '$name ($nim)',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13,
-                    color: Color(0xFF1E293B),
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  event,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFFEF4444),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          TextButton(
-            style: TextButton.styleFrom(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              backgroundColor: const Color(0xFFFEE2E2),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
-            ),
-            onPressed: () {
-              final mahasiswaId = alert['mahasiswa_id'];
-              if (mahasiswaId != null) {
-                context.read<TkPatientProvider>().clearSelection();
-                context.push('/tk/patient/$mahasiswaId');
-              }
-            },
-            child: const Text(
-              'Detail',
-              style: TextStyle(
-                  fontSize: 11,
-                  color: Color(0xFFEF4444),
-                  fontWeight: FontWeight.w700),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
