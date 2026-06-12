@@ -4,6 +4,7 @@ import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
 import 'package:bkuhub_mobile/core/providers/ormawa_provider.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_announcement.dart';
+import 'package:bkuhub_mobile/core/widgets/ormawa_list_header.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
@@ -56,7 +57,7 @@ class _OrmawaPengumumanScreenState extends State<OrmawaPengumumanScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => context.read<OrmawaProvider>().getAnnouncements());
+    Future.microtask(() => context.read<OrmawaProvider>().refreshData());
     _searchController.addListener(() {
       setState(() {
         _searchQuery = _searchController.text.toLowerCase();
@@ -74,8 +75,10 @@ class _OrmawaPengumumanScreenState extends State<OrmawaPengumumanScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      body: CustomScrollView(
-        slivers: [
+      body: RefreshIndicator(
+        onRefresh: () => context.read<OrmawaProvider>().refreshData(),
+        child: CustomScrollView(
+          slivers: [
           BkuAppBar(
             variant: AppBarVariant.ormawa,
             title: 'PUSAT PENGUMUMAN',
@@ -91,15 +94,23 @@ class _OrmawaPengumumanScreenState extends State<OrmawaPengumumanScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildSummaryGrid(),
-                  const SizedBox(height: 32),
-                  _buildHeaderActions(),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
+                  OrmawaListHeader(
+                    title: 'REKAPITULASI SIARAN',
+                    searchHint: 'Cari judul pengumuman...',
+                    searchController: _searchController,
+                    onRefresh: () => context.read<OrmawaProvider>().refreshData(),
+                    onFilterTap: () => _showFilterSheet(),
+                    onChanged: (value) => setState(() => _searchQuery = value),
+                  ),
+                  const SizedBox(height: 16),
                   _buildPengumumanList(),
                 ],
               ),
             ),
           ),
         ],
+      ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddPengumuman(context),
@@ -125,6 +136,7 @@ class _OrmawaPengumumanScreenState extends State<OrmawaPengumumanScreen> {
         return GridView.count(
           crossAxisCount: 3,
           shrinkWrap: true,
+          padding: EdgeInsets.zero,
           physics: const NeverScrollableScrollPhysics(),
           mainAxisSpacing: 10,
           crossAxisSpacing: 10,
@@ -160,72 +172,6 @@ class _OrmawaPengumumanScreenState extends State<OrmawaPengumumanScreen> {
     );
   }
 
-  Widget _buildHeaderActions() {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'REKAPITULASI SIARAN',
-              style: AppTextStyles.labelMd.copyWith(
-                color: const Color(0xFF475569),
-                fontWeight: FontWeight.w900,
-                letterSpacing: 0.5,
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: _filterTarget != 'Semua' ? AppColors.primary : Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.category_rounded, size: 14, color: _filterTarget != 'Semua' ? Colors.white : AppColors.primary),
-                  const SizedBox(width: 6),
-                  GestureDetector(
-                    onTap: () => _showFilterSheet(),
-                    child: Text('Kategori', style: AppTextStyles.labelSm.copyWith(
-                      color: _filterTarget != 'Semua' ? Colors.white : AppColors.primary,
-                      fontWeight: FontWeight.bold,
-                    )),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          height: 52,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.search_rounded, color: AppColors.primary, size: 24),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: 'Cari judul pengumuman...',
-                    hintStyle: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8)),
-                    border: InputBorder.none,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildPengumumanList() {
     return Consumer<OrmawaProvider>(
@@ -267,6 +213,7 @@ class _OrmawaPengumumanScreenState extends State<OrmawaPengumumanScreen> {
 
         return ListView.separated(
           shrinkWrap: true,
+          padding: EdgeInsets.zero,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: filteredList.length,
           separatorBuilder: (context, index) => const SizedBox(height: 12),
@@ -282,9 +229,15 @@ class _OrmawaPengumumanScreenState extends State<OrmawaPengumumanScreen> {
   Widget _buildPengumumanCard(OrmawaAnnouncement announcement) {
     final color = _getCategoryColor(announcement.target);
     final label = _getCategoryLabel(announcement.target);
+    
+    final displayDate = announcement.tanggalMulai ?? announcement.createdAt;
     String dateStr = 'Beberapa saat lalu';
-    if (announcement.createdAt != null) {
-      dateStr = DateFormat('dd MMM yyyy', 'id').format(announcement.createdAt!);
+    bool isScheduled = false;
+    if (displayDate != null) {
+      dateStr = DateFormat('dd MMM yyyy', 'id').format(displayDate);
+      if (announcement.tanggalMulai != null && announcement.tanggalMulai!.isAfter(DateTime.now())) {
+        isScheduled = true;
+      }
     }
 
     return Container(
@@ -346,9 +299,19 @@ class _OrmawaPengumumanScreenState extends State<OrmawaPengumumanScreen> {
           const SizedBox(height: 16),
           Row(
             children: [
-              const Icon(Icons.access_time_rounded, size: 14, color: Color(0xFF94A3B8)),
+              Icon(
+                isScheduled ? Icons.schedule_rounded : Icons.access_time_rounded,
+                size: 14,
+                color: isScheduled ? Colors.amber[700] : const Color(0xFF94A3B8),
+              ),
               const SizedBox(width: 8),
-              Text(dateStr, style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF64748B))),
+              Text(
+                isScheduled ? 'Dijadwalkan: $dateStr' : dateStr,
+                style: AppTextStyles.labelSm.copyWith(
+                  color: isScheduled ? Colors.amber[800] : const Color(0xFF64748B),
+                  fontWeight: isScheduled ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
               const Spacer(),
               GestureDetector(
                 onTap: () => _showAnnouncementDetail(announcement),
@@ -362,159 +325,371 @@ class _OrmawaPengumumanScreenState extends State<OrmawaPengumumanScreen> {
   }
 
   void _showAnnouncementDetail(OrmawaAnnouncement announcement) {
-    final color = _getCategoryColor(announcement.target);
     final label = _getCategoryLabel(announcement.target);
+
+    final displayDate = announcement.tanggalMulai ?? announcement.createdAt;
+    bool isScheduled = false;
+    String dateLabel = 'Diterbitkan pada';
+    if (displayDate != null) {
+      if (announcement.tanggalMulai != null && announcement.tanggalMulai!.isAfter(DateTime.now())) {
+        isScheduled = true;
+        dateLabel = 'Dijadwalkan rilis pada';
+      }
+    }
+
+    LinearGradient categoryGradient;
+    switch (announcement.target.toLowerCase()) {
+      case 'umum':
+        categoryGradient = const LinearGradient(
+          colors: [Color(0xFF64748B), Color(0xFF475569)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        );
+        break;
+      case 'kegiatan':
+        categoryGradient = const LinearGradient(
+          colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        );
+        break;
+      case 'penting':
+        categoryGradient = const LinearGradient(
+          colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        );
+        break;
+      case 'info':
+      case 'informasi':
+        categoryGradient = const LinearGradient(
+          colors: [Color(0xFF0EA5E9), Color(0xFF0284C7)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        );
+        break;
+      default:
+        categoryGradient = const LinearGradient(
+          colors: [Color(0xFF64748B), Color(0xFF475569)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        );
+    }
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.8,
+        height: MediaQuery.of(context).size.height * 0.85,
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        clipBehavior: Clip.antiAlias,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(
-              child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(color: color.withAlpha(10), borderRadius: BorderRadius.circular(8)),
-                  child: Text(label, style: AppTextStyles.labelSm.copyWith(color: color, fontWeight: FontWeight.w900, fontSize: 10)),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'SIARAN ANN-${announcement.id}',
-                  style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8), fontWeight: FontWeight.w900, fontSize: 10, letterSpacing: 1),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(announcement.judul, style: AppTextStyles.titleLg.copyWith(fontSize: 20, fontWeight: FontWeight.w900, height: 1.3)),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                const Icon(Icons.calendar_month_rounded, size: 14, color: Color(0xFF94A3B8)),
-                const SizedBox(width: 6),
-                Text(
-                  announcement.createdAt != null
-                      ? 'Diterbitkan pada ${DateFormat('dd MMMM yyyy, HH:mm', 'id').format(announcement.createdAt!)}'
-                      : '',
-                  style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8), fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('OLEH ORMAWA', style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8), fontSize: 9, fontWeight: FontWeight.w900)),
-                        const SizedBox(height: 4),
-                        Text('Badan Pengurus Harian', style: AppTextStyles.bodyMd.copyWith(color: const Color(0xFF334155), fontWeight: FontWeight.bold, fontSize: 11)),
-                      ],
+            // Top Header Banner
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                gradient: categoryGradient,
+              ),
+              padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('TARGET PEMBACA', style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8), fontSize: 9, fontWeight: FontWeight.w900)),
-                        const SizedBox(height: 4),
-                        Text('Seluruh Anggota', style: AppTextStyles.bodyMd.copyWith(color: const Color(0xFF334155), fontWeight: FontWeight.bold, fontSize: 11)),
-                      ],
+                  const SizedBox(height: 18),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          label,
+                          style: AppTextStyles.labelSm.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'SIARAN ANN-${announcement.id}',
+                        style: AppTextStyles.labelSm.copyWith(
+                          color: Colors.white.withOpacity(0.6),
+                          fontWeight: FontWeight.w900,
+                          fontSize: 10,
+                          letterSpacing: 1,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    announcement.judul,
+                    style: AppTextStyles.titleLg.copyWith(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                      height: 1.3,
+                      color: Colors.white,
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Icon(
+                        isScheduled ? Icons.schedule_rounded : Icons.calendar_month_rounded,
+                        size: 14,
+                        color: Colors.white.withOpacity(0.8),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        displayDate != null
+                            ? '$dateLabel ${DateFormat('dd MMMM yyyy, HH:mm', 'id').format(displayDate)}'
+                            : '',
+                        style: AppTextStyles.labelSm.copyWith(
+                          color: Colors.white.withOpacity(0.8),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 20),
-            Text(
-              'ISI PENGUMUMAN RESMI',
-              style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8), fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.5),
-            ),
-            const SizedBox(height: 8),
+            // Middle Content Section (Scrollable)
             Expanded(
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                ),
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  child: Text(
-                    announcement.isi,
-                    style: AppTextStyles.bodyMd.copyWith(color: const Color(0xFF475569), height: 1.6, fontSize: 13),
-                  ),
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Metadata cards row
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF8FAFC),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: const Color(0xFFE2E8F0)),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primary.withOpacity(0.08),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.admin_panel_settings_rounded,
+                                      color: AppColors.primary,
+                                      size: 20,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'OLEH ORMAWA',
+                                          style: AppTextStyles.labelSm.copyWith(
+                                            color: const Color(0xFF94A3B8),
+                                            fontSize: 8,
+                                            fontWeight: FontWeight.w900,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          'Badan Pengurus Harian',
+                                          style: AppTextStyles.bodyMd.copyWith(
+                                            color: const Color(0xFF334155),
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 11,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF8FAFC),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: const Color(0xFFE2E8F0)),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.green.withOpacity(0.08),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.people_alt_rounded,
+                                      color: Colors.green,
+                                      size: 20,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'TARGET PEMBACA',
+                                          style: AppTextStyles.labelSm.copyWith(
+                                            color: const Color(0xFF94A3B8),
+                                            fontSize: 8,
+                                            fontWeight: FontWeight.w900,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          'Seluruh Anggota',
+                                          style: AppTextStyles.bodyMd.copyWith(
+                                            color: const Color(0xFF334155),
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 11,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Content Header and Box
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'ISI PENGUMUMAN RESMI',
+                            style: AppTextStyles.labelSm.copyWith(
+                              color: const Color(0xFF94A3B8),
+                              fontSize: 10,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF8FAFC),
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(color: const Color(0xFFE2E8F0)),
+                            ),
+                            child: Text(
+                              announcement.isi,
+                              style: AppTextStyles.bodyMd.copyWith(
+                                color: const Color(0xFF475569),
+                                height: 1.6,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: SizedBox(
-                    height: 48,
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFFE2E8F0)),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      child: Text('TUTUP', style: AppTextStyles.labelMd.copyWith(color: const Color(0xFF64748B), fontWeight: FontWeight.bold, fontSize: 12)),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  flex: 2,
-                  child: SizedBox(
-                    height: 48,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        _showEditPengumuman(context, announcement);
-                      },
-                      icon: const Icon(Icons.edit_note_rounded, color: Colors.white, size: 20),
-                      label: const Text('EDIT PENGUMUMAN', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0F172A),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        elevation: 0,
+            // Bottom Buttons Bar
+            Container(
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                border: Border(top: BorderSide(color: Color(0xFFE2E8F0), width: 1)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 50,
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Color(0xFFE2E8F0)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                        child: Text(
+                          'TUTUP',
+                          style: AppTextStyles.labelMd.copyWith(
+                            color: const Color(0xFF64748B),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: SizedBox(
+                      height: 50,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _showEditPengumuman(context, announcement);
+                        },
+                        icon: const Icon(Icons.edit_note_rounded, color: Colors.white, size: 20),
+                        label: const Text(
+                          'EDIT PENGUMUMAN',
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF001F5C),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          elevation: 0,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -629,6 +804,7 @@ class _OrmawaCreatePengumumanScreenState extends State<OrmawaCreatePengumumanScr
   final TextEditingController _isiController = TextEditingController();
   String _selectedTarget = 'umum';
   bool _isSubmitting = false;
+  DateTime? _selectedTanggalMulai;
 
   bool get isEditing => widget.announcement != null;
 
@@ -645,6 +821,7 @@ class _OrmawaCreatePengumumanScreenState extends State<OrmawaCreatePengumumanScr
       } else {
         _selectedTarget = originalTarget;
       }
+      _selectedTanggalMulai = widget.announcement!.tanggalMulai;
     } else {
       _selectedTarget = 'umum';
     }
@@ -702,6 +879,12 @@ class _OrmawaCreatePengumumanScreenState extends State<OrmawaCreatePengumumanScr
                   const SizedBox(height: 20),
                   _buildCategorySelector(),
                   const SizedBox(height: 20),
+                  _buildDateField('TANGGAL RILIS (OPSIONAL)', 'Pilih tanggal rilis...', Icons.calendar_month_rounded, _selectedTanggalMulai, (date) {
+                    setState(() {
+                      _selectedTanggalMulai = date;
+                    });
+                  }),
+                  const SizedBox(height: 20),
                   _buildInputField('ISI PENGUMUMAN', 'Tuliskan isi pengumuman di sini...', Icons.description_rounded, maxLines: 8, controller: _isiController),
                   const SizedBox(height: 40),
                   if (_isSubmitting)
@@ -735,6 +918,7 @@ class _OrmawaCreatePengumumanScreenState extends State<OrmawaCreatePengumumanScr
                                       'Judul': _judulController.text,
                                       'Isi': _isiController.text,
                                       'Target': _selectedTarget,
+                                      'TanggalMulai': _selectedTanggalMulai?.toIso8601String(),
                                     });
                                   } else {
                                     await provider.createAnnouncement({
@@ -742,6 +926,7 @@ class _OrmawaCreatePengumumanScreenState extends State<OrmawaCreatePengumumanScr
                                       'Judul': _judulController.text,
                                       'Isi': _isiController.text,
                                       'Target': _selectedTarget,
+                                      'TanggalMulai': _selectedTanggalMulai?.toIso8601String(),
                                     });
                                   }
                                   if (context.mounted) Navigator.pop(context);
@@ -896,6 +1081,75 @@ class _OrmawaCreatePengumumanScreenState extends State<OrmawaCreatePengumumanScr
               ),
             );
           },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDateField(String label, String hint, IconData icon, DateTime? date, Function(DateTime) onDateSelected) {
+    final displayStr = date != null ? DateFormat('dd MMMM yyyy', 'id').format(date) : hint;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF475569), fontWeight: FontWeight.w900, fontSize: 10, letterSpacing: 0.5)),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: () async {
+            final picked = await showDatePicker(
+              context: context,
+              initialDate: date ?? DateTime.now(),
+              firstDate: DateTime(2020),
+              lastDate: DateTime(2101),
+              builder: (context, child) {
+                return Theme(
+                  data: Theme.of(context).copyWith(
+                    colorScheme: ColorScheme.light(
+                      primary: AppColors.primary,
+                      onPrimary: Colors.white,
+                      onSurface: AppColors.neutral800,
+                    ),
+                  ),
+                  child: child!,
+                );
+              },
+            );
+            if (picked != null) {
+              onDateSelected(picked);
+            }
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Row(
+              children: [
+                Icon(icon, color: const Color(0xFF94A3B8), size: 20),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    displayStr,
+                    style: AppTextStyles.bodyMd.copyWith(
+                      color: date != null ? AppColors.neutral800 : const Color(0xFF94A3B8),
+                      fontWeight: date != null ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                ),
+                if (date != null)
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _selectedTanggalMulai = null;
+                      });
+                    },
+                    child: const Icon(Icons.clear_rounded, color: Colors.red, size: 20),
+                  ),
+              ],
+            ),
+          ),
         ),
       ],
     );

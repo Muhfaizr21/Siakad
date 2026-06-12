@@ -498,9 +498,9 @@ class OrmawaRepositoryImpl implements OrmawaRepository {
   }
 
   @override
-  Future<List<OrmawaDivision>> getDivisions() async {
+  Future<List<OrmawaDivision>> getDivisions({String? ormawaId}) async {
     try {
-      final response = await _apiClient.client.get('/ormawa/divisions');
+      final response = await _apiClient.client.get('/ormawa/divisions', queryParameters: ormawaId != null ? {'ormawaId': ormawaId} : null);
       final List data = response.data['data'] ?? [];
       return data.map<OrmawaDivision>((json) => OrmawaDivisionModel.fromJson(json)).toList();
     } catch (e) {

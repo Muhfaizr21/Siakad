@@ -6,6 +6,22 @@ import '../network/api_client.dart';
 
 enum UserRole { student, ormawa, psychologist, tenagaKesehatan, guest }
 
+class LoginResult {
+  final bool success;
+  final bool requiresRoleSelection;
+  final String? tempToken;
+  final List<dynamic>? roles;
+  final String? message;
+
+  LoginResult({
+    required this.success,
+    this.requiresRoleSelection = false,
+    this.tempToken,
+    this.roles,
+    this.message,
+  });
+}
+
 class AuthService {
   static final AuthService _instance = AuthService._internal();
   factory AuthService() => _instance;
@@ -17,11 +33,66 @@ class AuthService {
   String? _token;
   Map<String, dynamic>? _userData;
 
-  Future<bool> login(String identifier, String password) async {
+  Future<LoginResult> login(String identifier, String password) async {
     try {
       final response = await ApiClient().client.post('/auth/login', data: {
         'identifier': identifier,
         'password': password,
+      });
+
+      if (response.data['success'] == true) {
+        final data = response.data['data'];
+        
+        // Check if multi-role selection is required
+        if (data['requires_role_selection'] == true) {
+          return LoginResult(
+            success: true,
+            requiresRoleSelection: true,
+            tempToken: data['temp_token'],
+            roles: data['roles'],
+          );
+        }
+
+        _token = data['access_token'];
+        _userData = data; // Store entire data object including user and mahasiswa
+        
+        final userObj = _userData!['user'] ?? _userData!;
+        final roleStr = userObj['role']?.toString().toLowerCase() ?? 'guest';
+        if (roleStr == 'mahasiswa' || roleStr == 'student') {
+          _currentRole = UserRole.student;
+        } else if (roleStr == 'ormawa') {
+          _currentRole = UserRole.ormawa;
+        } else if (roleStr == 'psikolog' || roleStr == 'psychologist') {
+          _currentRole = UserRole.psychologist;
+        } else if (roleStr == 'tenaga_kesehatan' || roleStr == 'tenagakes' || roleStr == 'nakes' || roleStr == 'tk') {
+          _currentRole = UserRole.tenagaKesehatan;
+        } else {
+          _currentRole = UserRole.guest;
+        }
+
+        // Save to local storage
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('access_token', _token!);
+        await prefs.setString('user_data', jsonEncode(_userData));
+        await prefs.setString('user_role', roleStr);
+
+        return LoginResult(success: true);
+      }
+      return LoginResult(success: false, message: response.data['message']);
+    } on DioException catch (e) {
+      debugPrint('Login DioException: $e');
+      rethrow;
+    } catch (e) {
+      debugPrint('Login Error: $e');
+      return LoginResult(success: false, message: e.toString());
+    }
+  }
+
+  Future<bool> loginSelectRole(String tempToken, String selectedRole) async {
+    try {
+      final response = await ApiClient().client.post('/auth/login/select-role', data: {
+        'temp_token': tempToken,
+        'selected_role': selectedRole,
       });
 
       if (response.data['success'] == true) {
@@ -53,10 +124,10 @@ class AuthService {
       }
       return false;
     } on DioException catch (e) {
-      debugPrint('Login DioException: $e');
+      debugPrint('LoginSelectRole DioException: $e');
       rethrow;
     } catch (e) {
-      debugPrint('Login Error: $e');
+      debugPrint('LoginSelectRole Error: $e');
       return false;
     }
   }

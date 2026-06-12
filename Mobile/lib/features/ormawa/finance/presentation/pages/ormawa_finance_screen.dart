@@ -6,6 +6,7 @@ import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_text_styles.dart';
 import '../../../../../core/widgets/bku_app_bar.dart';
 import '../../../../../core/widgets/fade_in_animation.dart';
+import '../../../../../core/widgets/ormawa_list_header.dart';
 import 'create_transaction_screen.dart';
 
 class OrmawaFinanceScreen extends StatefulWidget {
@@ -28,7 +29,7 @@ class _OrmawaFinanceScreenState extends State<OrmawaFinanceScreen> {
     super.initState();
     Future.microtask(() {
       if (mounted) {
-        context.read<OrmawaProvider>().getFinance();
+        context.read<OrmawaProvider>().refreshData();
       }
     });
     _searchController.addListener(() {
@@ -58,7 +59,7 @@ class _OrmawaFinanceScreenState extends State<OrmawaFinanceScreen> {
                 MaterialPageRoute(
                   builder: (context) => const CreateTransactionScreen(),
                 ),
-              ).then((_) => provider.getFinance());
+              ).then((_) => provider.refreshData());
             },
             backgroundColor: AppColors.primary,
             elevation: 8,
@@ -70,8 +71,10 @@ class _OrmawaFinanceScreenState extends State<OrmawaFinanceScreen> {
           ),
         ),
       ),
-      body: CustomScrollView(
-        slivers: [
+      body: RefreshIndicator(
+        onRefresh: () => context.read<OrmawaProvider>().refreshData(),
+        child: CustomScrollView(
+          slivers: [
           BkuAppBar(
             title: 'BUKU KAS',
             subtitle: 'FINANCIAL MANAGEMENT',
@@ -89,6 +92,7 @@ class _OrmawaFinanceScreenState extends State<OrmawaFinanceScreen> {
 
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
+      ),
       ),
     );
   }
@@ -184,93 +188,13 @@ class _OrmawaFinanceScreenState extends State<OrmawaFinanceScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'RIWAYAT MUTASI',
-                        style: AppTextStyles.titleMd.copyWith(
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () => provider.getFinance(),
-                        child: Text(
-                          'Refresh',
-                          style: AppTextStyles.labelSm.copyWith(
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  // Search Bar
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.search_rounded, color: Color(0xFF94A3B8), size: 20),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: TextField(
-                                  controller: _searchController,
-                                  decoration: InputDecoration(
-                                    hintText: 'Cari transaksi...',
-                                    hintStyle: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8)),
-                                    border: InputBorder.none,
-                                    isDense: true,
-                                  ),
-                                ),
-                              ),
-                              if (_searchQuery.isNotEmpty)
-                                GestureDetector(
-                                  onTap: () {
-                                    _searchController.clear();
-                                    setState(() => _searchQuery = '');
-                                  },
-                                  child: const Icon(Icons.close_rounded, size: 18, color: Color(0xFF94A3B8)),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      GestureDetector(
-                        onTap: _showFilterBottomSheet,
-                        child: Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: (_selectedTypeFilter != 'Semua' || _selectedSumberFilter != 'Semua')
-                                ? AppColors.primary
-                                : Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: (_selectedTypeFilter != 'Semua' || _selectedSumberFilter != 'Semua')
-                                  ? AppColors.primary
-                                  : const Color(0xFFE2E8F0),
-                            ),
-                          ),
-                          child: Icon(
-                            Icons.filter_list_rounded,
-                            color: (_selectedTypeFilter != 'Semua' || _selectedSumberFilter != 'Semua')
-                                ? Colors.white
-                                : AppColors.primary,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                    ],
+                  OrmawaListHeader(
+                    title: 'RIWAYAT MUTASI',
+                    searchHint: 'Cari transaksi...',
+                    searchController: _searchController,
+                    onRefresh: () => provider.refreshData(),
+                    onFilterTap: _showFilterBottomSheet,
+                    onChanged: (value) => setState(() => _searchQuery = value),
                   ),
                   const SizedBox(height: 16),
                 ],

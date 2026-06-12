@@ -7,6 +7,7 @@ import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_agenda.dart
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
+import 'package:bkuhub_mobile/core/widgets/ormawa_list_header.dart';
 
 class OrmawaKalenderScreen extends StatefulWidget {
   const OrmawaKalenderScreen({super.key});
@@ -55,12 +56,7 @@ class _OrmawaKalenderScreenState extends State<OrmawaKalenderScreen> {
     }).toList();
   }
 
-  String _normalizeStatus(String status) {
-    final s = status.toLowerCase();
-    if (s.contains('terlaksana') || s.contains('selesai')) return 'Selesai';
-    if (s.contains('berlangsung')) return 'Berlangsung';
-    return 'Direncanakan';
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -73,8 +69,10 @@ class _OrmawaKalenderScreenState extends State<OrmawaKalenderScreen> {
 
         return Scaffold(
           backgroundColor: const Color(0xFFF8FAFC),
-          body: CustomScrollView(
-            slivers: [
+          body: RefreshIndicator(
+            onRefresh: () => context.read<OrmawaProvider>().refreshData(),
+            child: CustomScrollView(
+              slivers: [
               BkuAppBar(
                 variant: AppBarVariant.ormawa,
                 title: 'JADWAL KALENDER',
@@ -91,7 +89,14 @@ class _OrmawaKalenderScreenState extends State<OrmawaKalenderScreen> {
                     children: [
                       _buildCalendarCard(provider.agendas),
                       const SizedBox(height: 24),
-                      _buildHeaderActions(selectedEvents.length),
+                      OrmawaListHeader(
+                        title: '${DateFormat('d MMMM').format(_selectedDay ?? _focusedDay).toUpperCase()} - ${selectedEvents.length} AGENDA',
+                        searchHint: 'Cari agenda...',
+                        searchController: _searchController,
+                        onRefresh: () => context.read<OrmawaProvider>().refreshData(),
+                        onFilterTap: () => _showFilterSheet(),
+                        onChanged: (value) => setState(() => _searchQuery = value),
+                      ),
                       const SizedBox(height: 16),
                       if (provider.isLoading)
                         const Center(child: CircularProgressIndicator())
@@ -102,6 +107,7 @@ class _OrmawaKalenderScreenState extends State<OrmawaKalenderScreen> {
                 ),
               ),
             ],
+          ),
           ),
           floatingActionButton: FloatingActionButton.extended(
             onPressed: () => _showAddJadwal(context),
@@ -187,121 +193,6 @@ class _OrmawaKalenderScreenState extends State<OrmawaKalenderScreen> {
     );
   }
 
-  Widget _buildHeaderActions(int count) {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  DateFormat(
-                    'EEEE, d MMMM',
-                  ).format(_selectedDay ?? _focusedDay).toUpperCase(),
-                  style: AppTextStyles.labelSm.copyWith(
-                    color: const Color(0xFF94A3B8),
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  '$count Agenda Ditemukan',
-                  style: AppTextStyles.bodyMd.copyWith(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 16,
-                  ),
-                ),
-              ],
-            ),
-            IconButton(
-              onPressed: () => context.read<OrmawaProvider>().refreshData(),
-              icon: const Icon(Icons.refresh_rounded, color: AppColors.primary),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: _filterStatus != 'Semua' ? AppColors.primary : Colors.white,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              child: GestureDetector(
-                onTap: () => _showFilterSheet(),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.filter_alt_rounded, size: 14, color: _filterStatus != 'Semua' ? Colors.white : AppColors.primary),
-                    const SizedBox(width: 4),
-                    Text(
-                      _filterStatus,
-                      style: AppTextStyles.labelSm.copyWith(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: _filterStatus != 'Semua' ? Colors.white : AppColors.primary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        // Search Bar
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          height: 48,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.search_rounded, color: Color(0xFF94A3B8), size: 20),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: 'Cari agenda...',
-                    hintStyle: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8)),
-                    border: InputBorder.none,
-                    isDense: true,
-                  ),
-                ),
-              ),
-              if (_searchQuery.isNotEmpty)
-                GestureDetector(
-                  onTap: () {
-                    _searchController.clear();
-                    setState(() => _searchQuery = '');
-                  },
-                  child: const Icon(Icons.close_rounded, size: 18, color: Color(0xFF94A3B8)),
-                ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 40),
-      width: double.infinity,
-      child: Column(
-        children: [
-          Icon(Icons.event_busy_rounded, size: 64, color: Colors.grey[300]),
-          const SizedBox(height: 16),
-          Text(
-            'Tidak ada agenda di tanggal ini',
-            style: AppTextStyles.bodyMd.copyWith(color: Colors.grey[500]),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildAgendaList(List<OrmawaAgenda> agendas) {
     // Apply search filter
@@ -309,7 +200,7 @@ class _OrmawaKalenderScreenState extends State<OrmawaKalenderScreen> {
         ? agendas
         : agendas.where((a) =>
             a.title.toLowerCase().contains(_searchQuery) ||
-            (a.location?.toLowerCase().contains(_searchQuery) ?? false)).toList();
+            a.location.toLowerCase().contains(_searchQuery)).toList();
 
     if (filteredAgendas.isEmpty) {
       return Container(

@@ -123,14 +123,7 @@ class _ScheduleManagementScreenState extends State<ScheduleManagementScreen> {
     });
   }
 
-  void _deleteSlot(int index) {
-    setState(() {
-      final slots = List<Map<String, dynamic>>.from(_slotsForSelectedDate);
-      slots.removeAt(index);
-      _slotsByDay = {..._slotsByDay, _selectedDayName: slots};
-      _isDirty = true;
-    });
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -516,7 +509,7 @@ class _ScheduleManagementScreenState extends State<ScheduleManagementScreen> {
                 Switch.adaptive(
                   value: isAvailable,
                   activeColor: Colors.green,
-                  inactiveColor: Colors.red,
+                  inactiveThumbColor: Colors.red,
                   inactiveTrackColor: Colors.red.withAlpha(60),
                   onChanged: (value) => _toggleSlotAvailability(index, value),
                 ),

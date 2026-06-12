@@ -9,6 +9,7 @@ import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_proposal.da
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:bkuhub_mobile/features/ormawa/proposal/presentation/pages/ormawa_proposal_detail_screen.dart';
+import 'package:bkuhub_mobile/core/widgets/ormawa_list_header.dart';
 
 class OrmawaProposalScreen extends StatefulWidget {
   final bool showBackButton;
@@ -73,7 +74,9 @@ class _OrmawaProposalScreenState extends State<OrmawaProposalScreen> {
           ),
         ),
       ),
-      body: CustomScrollView(
+      body: RefreshIndicator(
+        onRefresh: () => context.read<OrmawaProvider>().refreshData(),
+        child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
         slivers: [
           BkuAppBar(
@@ -93,34 +96,13 @@ class _OrmawaProposalScreenState extends State<OrmawaProposalScreen> {
                 const SizedBox(height: 24),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: _buildSearchAndFilter(),
-                ),
-                const SizedBox(height: 32),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Daftar Proposal',
-                        style: AppTextStyles.titleLg.copyWith(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withAlpha(10),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          'Total: ${filteredProposals.length}',
-                          style: AppTextStyles.labelSm.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ],
+                  child: OrmawaListHeader(
+                    title: 'DAFTAR PROPOSAL (${filteredProposals.length})',
+                    searchHint: 'Cari proposal...',
+                    searchController: _searchController,
+                    onRefresh: () => context.read<OrmawaProvider>().refreshData(),
+                    onFilterTap: () => _showFilterSheet(),
+                    onChanged: (value) => setState(() => _searchQuery = value),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -156,6 +138,7 @@ class _OrmawaProposalScreenState extends State<OrmawaProposalScreen> {
             child: SizedBox(height: 150),
           ),
         ],
+      ),
       ),
     );
   }
@@ -247,84 +230,6 @@ class _OrmawaProposalScreenState extends State<OrmawaProposalScreen> {
     );
   }
 
-  Widget _buildSearchAndFilter() {
-    return Row(
-      children: [
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            height: 50,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withAlpha(5),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.search_rounded, color: AppColors.outline, size: 20),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextField(
-                    controller: _searchController,
-                    onChanged: (value) {
-                      setState(() {
-                        _searchQuery = value;
-                      });
-                    },
-                    decoration: InputDecoration(
-                      hintText: 'Cari proposal...',
-                      hintStyle: AppTextStyles.labelMd.copyWith(color: AppColors.outline),
-                      border: InputBorder.none,
-                      isDense: true,
-                    ),
-                  ),
-                ),
-                if (_searchQuery.isNotEmpty)
-                  IconButton(
-                    icon: const Icon(Icons.close_rounded, size: 18),
-                    onPressed: () {
-                      setState(() {
-                        _searchController.clear();
-                        _searchQuery = '';
-                      });
-                    },
-                  ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        GestureDetector(
-          onTap: () => _showFilterSheet(),
-          child: Container(
-            height: 50,
-            width: 50,
-            decoration: BoxDecoration(
-              color: _selectedStatus != 'Semua' ? AppColors.primary : Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withAlpha(5),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Icon(
-              Icons.filter_list_rounded,
-              color: _selectedStatus != 'Semua' ? Colors.white : AppColors.primary,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildProposalItem(OrmawaProposal proposal, int index) {
     final currencyFormatter = NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0);

@@ -1,5 +1,4 @@
 import '../entities/ormawa_notification.dart';
-import '../entities/ormawa_member.dart';
 import '../entities/ormawa_proposal.dart';
 import '../entities/ormawa_agenda.dart';
 import '../entities/ormawa_attendance.dart';
@@ -68,7 +67,7 @@ abstract class OrmawaRepository {
   Future<void> updateRole(String id, Map<String, dynamic> data);
   Future<void> deleteRole(String id);
   
-  Future<List<OrmawaDivision>> getDivisions();
+  Future<List<OrmawaDivision>> getDivisions({String? ormawaId});
   Future<void> createDivision(Map<String, dynamic> data);
   Future<void> deleteDivision(String id);
   Future<List<OrmawaNotification>> getNotifications(String ormawaId);

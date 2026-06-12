@@ -34,7 +34,7 @@ class BottomNavPresets {
     BottomNavItem(index: 1, icon: Icons.assignment_rounded, label: 'Proposal'),
     BottomNavItem(index: 2, icon: Icons.qr_code_scanner_rounded, label: 'Absensi'),
     BottomNavItem(index: 3, icon: Icons.account_balance_wallet_rounded, label: 'Keuangan'),
-    BottomNavItem(index: 4, icon: Icons.menu_rounded, label: 'Menu Lainnya'),
+    BottomNavItem(index: 4, icon: Icons.settings_rounded, label: 'Pengaturan'),
   ];
 
   /// Navigation items for Psychologist

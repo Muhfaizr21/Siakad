@@ -4,7 +4,7 @@ import 'package:bkuhub_mobile/features/ormawa/dashboard/presentation/pages/ormaw
 import 'package:bkuhub_mobile/features/ormawa/proposal/presentation/pages/ormawa_proposal_screen.dart';
 import 'package:bkuhub_mobile/features/ormawa/absensi/presentation/pages/ormawa_absensi_screen.dart';
 import 'package:bkuhub_mobile/features/ormawa/finance/presentation/pages/ormawa_finance_screen.dart';
-import 'package:bkuhub_mobile/features/ormawa/dashboard/presentation/widgets/ormawa_service_grid.dart';
+import 'package:bkuhub_mobile/features/ormawa/settings/presentation/pages/ormawa_settings_screen.dart';
 
 class OrmawaMainScreen extends StatefulWidget {
   const OrmawaMainScreen({super.key});
@@ -27,42 +27,18 @@ class _OrmawaMainScreenState extends State<OrmawaMainScreen> {
       case 3:
         return const OrmawaFinanceScreen(key: PageStorageKey('ormawa_finance'), showBackButton: false);
       case 4:
-        // Menu Lainnya - tampilkan dashboard dengan modal overlay
-        return const OrmawaDashboardScreen(key: PageStorageKey('ormawa_dash'));
+        return const OrmawaSettingsScreen(key: PageStorageKey('ormawa_settings'), showBackButton: false);
       default:
         return const OrmawaDashboardScreen();
     }
   }
 
   void _onNavigate(int index) {
-    if (index == _currentIndex && index != 4) return;
-
-    if (index == 4) {
-      // Menu Lainnya - tampilkan modal
-      _showMoreServicesModal();
-      return;
-    }
+    if (index == _currentIndex) return;
 
     setState(() {
       _currentIndex = index;
     });
-  }
-
-  void _showMoreServicesModal() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.65,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-        ),
-        padding: const EdgeInsets.all(24),
-        child: const OrmawaServiceGridModal(),
-      ),
-    );
   }
 
   @override

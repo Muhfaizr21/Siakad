@@ -8,6 +8,10 @@ import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 import 'package:bkuhub_mobile/features/ormawa/rbac/presentation/pages/ormawa_role_screen.dart';
 import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
 import 'package:bkuhub_mobile/core/widgets/coming_soon_screen.dart';
+import 'package:bkuhub_mobile/features/ormawa/struktur/presentation/pages/ormawa_struktur_screen.dart';
+import 'package:bkuhub_mobile/features/ormawa/staff/presentation/pages/ormawa_staff_screen.dart';
+import 'package:bkuhub_mobile/features/ormawa/recruitment/presentation/pages/ormawa_recruitment_screen.dart';
+import 'package:bkuhub_mobile/features/ormawa/aspirasi/presentation/pages/ormawa_aspirasi_screen.dart';
 
 class OrmawaSettingsScreen extends StatefulWidget {
   final bool showBackButton;
@@ -48,47 +52,104 @@ class _OrmawaSettingsScreenState extends State<OrmawaSettingsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 24),
-                    _buildSectionHeader('MANAJEMEN ORGANISASI'),
+                    _buildSectionHeader('AKUN SAYA'),
                     _buildSettingTile(
-                      Icons.storefront_rounded,
-                      'Profil Organisasi',
-                      'Nama, Logo, Visi & Misi',
-                      Colors.blue,
+                      Icons.person_rounded,
+                      'Profil Pribadi',
+                      'Info & kontak saya',
+                      Colors.indigoAccent,
                       () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder:
-                              (context) => const ComingSoonScreen(
-                                featureName: 'Profil Organisasi',
-                              ),
+                          builder: (context) => const ComingSoonScreen(featureName: 'Profil Pribadi'),
                         ),
                       ),
                     ),
+
+                    if (provider.hasPermission('ADMIN_PANEL') || provider.hasPermission('MANAGE_ORG')) ...[
+                      const SizedBox(height: 32),
+                      _buildSectionHeader('MANAJEMEN ORGANISASI'),
+                      _buildSettingTile(
+                        Icons.storefront_rounded,
+                        'Profil Organisasi',
+                        'Nama, Logo, Visi & Misi',
+                        Colors.blue,
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ComingSoonScreen(featureName: 'Profil Organisasi'),
+                          ),
+                        ),
+                      ),
+                      _buildSettingTile(
+                        Icons.account_tree_rounded,
+                        'Struktur Organisasi',
+                        'Bagan & hierarki divisi',
+                        Colors.indigo,
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const OrmawaStrukturScreen()),
+                        ),
+                      ),
+                      _buildSettingTile(
+                        Icons.people_alt_rounded,
+                        'Manajemen Staf',
+                        'Daftar pengurus aktif',
+                        Colors.teal,
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const OrmawaStaffScreen()),
+                        ),
+                      ),
+                    ],
+
+                    if (provider.hasPermission('ADMIN_PANEL') || provider.hasPermission('MANAGE_MODULES')) ...[
+                      const SizedBox(height: 32),
+                      _buildSectionHeader('LAYANAN & MODUL'),
+                      _buildSettingTile(
+                        Icons.person_add_rounded,
+                        'Open Recruitment',
+                        'Kelola pendaftaran anggota',
+                        Colors.cyan,
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const OrmawaRecruitmentScreen()),
+                        ),
+                      ),
+                      _buildSettingTile(
+                        Icons.chat_bubble_outline_rounded,
+                        'Daftar Aspirasi',
+                        'Kelola keluhan & saran',
+                        Colors.pink,
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const OrmawaAspirasiScreen()),
+                        ),
+                      ),
+                    ],
+
+                    const SizedBox(height: 32),
+                    _buildSectionHeader('KEAMANAN & AKSES'),
                     if (provider.hasPermission('ADMIN_PANEL'))
                       _buildSettingTile(
                         Icons.admin_panel_settings_rounded,
                         'Hak Akses & Role',
-                        'Kelola admin & staf',
-                        Colors.indigo,
+                        'Kelola admin & izin',
+                        Colors.blueGrey,
                         () => Navigator.push(
                           context,
-                          MaterialPageRoute(
-                            builder: (context) => const OrmawaRoleScreen(),
-                          ),
+                          MaterialPageRoute(builder: (context) => const OrmawaRoleScreen()),
                         ),
                       ),
                     _buildSettingTile(
                       Icons.security_rounded,
-                      'Keamanan Portal',
+                      'Keamanan Akun',
                       'Password & Autentikasi',
-                      Colors.teal,
+                      Colors.green,
                       () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder:
-                              (context) => const ComingSoonScreen(
-                                featureName: 'Keamanan Portal',
-                              ),
+                          builder: (context) => const ComingSoonScreen(featureName: 'Keamanan Akun'),
                         ),
                       ),
                     ),
@@ -124,10 +185,7 @@ class _OrmawaSettingsScreenState extends State<OrmawaSettingsScreen> {
                       () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder:
-                              (context) => const ComingSoonScreen(
-                                featureName: 'Pusat Bantuan',
-                              ),
+                          builder: (context) => const ComingSoonScreen(featureName: 'Pusat Bantuan'),
                         ),
                       ),
                     ),
@@ -139,10 +197,7 @@ class _OrmawaSettingsScreenState extends State<OrmawaSettingsScreen> {
                       () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder:
-                              (context) => const ComingSoonScreen(
-                                featureName: 'Tentang BKUhub',
-                              ),
+                          builder: (context) => const ComingSoonScreen(featureName: 'Tentang BKUhub'),
                         ),
                       ),
                     ),

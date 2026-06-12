@@ -5,6 +5,7 @@ import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:bkuhub_mobile/core/providers/ormawa_provider.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_member.dart';
+import 'package:bkuhub_mobile/core/widgets/ormawa_list_header.dart';
 
 class OrmawaStaffScreen extends StatefulWidget {
   const OrmawaStaffScreen({super.key});
@@ -29,8 +30,10 @@ class _OrmawaStaffScreenState extends State<OrmawaStaffScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      body: CustomScrollView(
-        slivers: [
+      body: RefreshIndicator(
+        onRefresh: () => context.read<OrmawaProvider>().refreshData(),
+        child: CustomScrollView(
+          slivers: [
           BkuAppBar(
             variant: AppBarVariant.ormawa,
             title: 'MANAJEMEN STAF',
@@ -47,21 +50,13 @@ class _OrmawaStaffScreenState extends State<OrmawaStaffScreen> {
                 children: [
                   _buildStatsSection(ormawaProvider),
                   const SizedBox(height: 32),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Daftar Staf Aktif (${members.length})',
-                        style: AppTextStyles.labelMd.copyWith(
-                          color: const Color(0xFF475569),
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ],
+                  OrmawaListHeader(
+                    title: 'Daftar Staf Aktif (${members.length})',
+                    searchHint: 'Cari nama atau jabatan staf...',
+                    searchController: _searchController,
+                    onRefresh: () => context.read<OrmawaProvider>().refreshData(),
+                    onChanged: (value) => setState(() => _searchQuery = value),
                   ),
-                  const SizedBox(height: 16),
-                  _buildSearchField(),
                   const SizedBox(height: 20),
                   if (members.isEmpty)
                     Center(
@@ -83,6 +78,7 @@ class _OrmawaStaffScreenState extends State<OrmawaStaffScreen> {
             ),
           ),
         ],
+      ),
       ),
       floatingActionButton: ormawaProvider.hasPermission('MANAJEMEN_ANGGOTA') 
         ? FloatingActionButton.extended(
@@ -143,48 +139,7 @@ class _OrmawaStaffScreenState extends State<OrmawaStaffScreen> {
     );
   }
 
-  Widget _buildSearchField() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      height: 52,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.search_rounded, color: AppColors.primary, size: 24),
-          const SizedBox(width: 12),
-          Expanded(
-            child: TextField(
-              controller: _searchController,
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value;
-                });
-              },
-              decoration: InputDecoration(
-                hintText: 'Cari nama atau jabatan staf...',
-                hintStyle: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8)),
-                border: InputBorder.none,
-              ),
-            ),
-          ),
-          if (_searchQuery.isNotEmpty)
-            GestureDetector(
-              onTap: () {
-                _searchController.clear();
-                setState(() {
-                  _searchQuery = '';
-                });
-              },
-              child: const Icon(Icons.close_rounded, color: Color(0xFF94A3B8), size: 20),
-            ),
-        ],
-      ),
-    );
-  }
+
 
   Widget _buildStaffCard(BuildContext context, OrmawaMember member, Color roleColor) {
     return GestureDetector(

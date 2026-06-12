@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+
 import 'package:go_router/go_router.dart';
 import 'package:bkuhub_mobile/core/routes/app_routes.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
@@ -88,7 +88,7 @@ class OrmawaServiceGrid extends StatelessWidget {
             target: OrmawaPengumumanScreen(),
           ),
           _ServiceIcon(
-            title: 'Lainy',
+            title: 'Lainnya',
             icon: Icons.menu_rounded,
             color: Colors.blueGrey,
             delay: 0.85,
@@ -118,7 +118,7 @@ class OrmawaServiceGridModal extends StatelessWidget {
         ),
         const SizedBox(height: 32),
         Text(
-          'Lainy',
+          'Lainnya',
           style: AppTextStyles.titleLg.copyWith(
             color: AppColors.primary,
             fontWeight: FontWeight.w900,

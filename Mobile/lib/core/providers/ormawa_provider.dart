@@ -13,6 +13,7 @@ import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_role.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_division.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/repositories/ormawa_repository.dart';
 import 'package:bkuhub_mobile/features/ormawa/data/models/ormawa_role_model.dart';
+import 'package:bkuhub_mobile/core/services/local_notification_service.dart';
 
 class OrmawaProvider extends ChangeNotifier {
   final OrmawaRepository _repository;
@@ -47,6 +48,9 @@ class OrmawaProvider extends ChangeNotifier {
   List<OrmawaDivision> _divisions = [];
 
   List<OrmawaNotification> _notifications = [];
+  List<String> _knownNotificationIds = [];
+  bool _isFirstFetch = true;
+
   List<OrmawaNotification> get notifications => _notifications;
   int get unreadNotificationsCount => _notifications.where((n) => !n.isRead).length;
 
@@ -164,8 +168,23 @@ class OrmawaProvider extends ChangeNotifier {
       _aspirations = await _repository.getAspirations(ormawaId);
       _announcements = await _repository.getAnnouncements(ormawaId);
       _roles = await _repository.getRoles();
-      _divisions = await _repository.getDivisions();
-      _notifications = await _repository.getNotifications(ormawaId);
+      _divisions = await _repository.getDivisions(ormawaId: ormawaId);
+      
+      final newNotifications = await _repository.getNotifications(ormawaId);
+      if (!_isFirstFetch) {
+        for (var n in newNotifications) {
+          if (!n.isRead && !_knownNotificationIds.contains(n.id)) {
+            LocalNotificationService.showNotification(
+              id: n.id.hashCode,
+              title: n.title,
+              body: n.message,
+            );
+          }
+        }
+      }
+      _knownNotificationIds = newNotifications.map((n) => n.id).toList();
+      _isFirstFetch = false;
+      _notifications = newNotifications;
     } catch (e) {
       debugPrint('Error refreshing Ormawa data: $e');
     } finally {
@@ -216,6 +235,15 @@ class OrmawaProvider extends ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+  
+  Future<List<Map<String, dynamic>>> getStudents() async {
+    try {
+      return await _repository.getStudents();
+    } catch (e) {
+      debugPrint('Error getting students: $e');
+      return [];
     }
   }
   Future<void> addMember(Map<String, dynamic> data) async {
@@ -515,7 +543,22 @@ class OrmawaProvider extends ChangeNotifier {
   Future<void> fetchNotifications() async {
     final oId = ormawaId;
     if (oId == null) return;
-    _notifications = await _repository.getNotifications(oId);
+    
+    final newNotifications = await _repository.getNotifications(oId);
+    if (!_isFirstFetch) {
+      for (var n in newNotifications) {
+        if (!n.isRead && !_knownNotificationIds.contains(n.id)) {
+          LocalNotificationService.showNotification(
+            id: n.id.hashCode,
+            title: n.title,
+            body: n.message,
+          );
+        }
+      }
+    }
+    _knownNotificationIds = newNotifications.map((n) => n.id).toList();
+    _isFirstFetch = false;
+    _notifications = newNotifications;
     notifyListeners();
   }
 

@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
+import 'package:bkuhub_mobile/core/widgets/ormawa_list_header.dart';
 import 'package:bkuhub_mobile/core/providers/ormawa_provider.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_proposal.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_lpj.dart';
@@ -45,8 +46,10 @@ class _OrmawaLaporanScreenState extends State<OrmawaLaporanScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      body: CustomScrollView(
-        slivers: [
+      body: RefreshIndicator(
+        onRefresh: () => context.read<OrmawaProvider>().refreshData(),
+        child: CustomScrollView(
+          slivers: [
           BkuAppBar(
             variant: AppBarVariant.ormawa,
             title: 'LAPORAN & LPJ',
@@ -63,7 +66,14 @@ class _OrmawaLaporanScreenState extends State<OrmawaLaporanScreen> {
                 children: [
                   _buildSummaryGrid(),
                   const SizedBox(height: 32),
-                  _buildHeaderActions(),
+                  OrmawaListHeader(
+                    title: 'DAFTAR LPJ KEGIATAN',
+                    searchHint: 'Cari judul laporan kegiatan...',
+                    searchController: _searchController,
+                    onRefresh: () => context.read<OrmawaProvider>().refreshData(),
+                    onFilterTap: () => _showFilterSheet(),
+                    onChanged: (value) => setState(() => _searchQuery = value),
+                  ),
                   const SizedBox(height: 12),
                   _buildLaporanList(),
                   const SizedBox(height: 80),
@@ -72,6 +82,7 @@ class _OrmawaLaporanScreenState extends State<OrmawaLaporanScreen> {
             ),
           ),
         ],
+      ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddLaporan(context),
@@ -436,85 +447,7 @@ class _OrmawaLaporanScreenState extends State<OrmawaLaporanScreen> {
     );
   }
 
-  Widget _buildHeaderActions() {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'DAFTAR LPJ KEGIATAN',
-              style: AppTextStyles.labelMd.copyWith(
-                color: const Color(0xFF475569),
-                fontWeight: FontWeight.w900,
-                letterSpacing: 0.5,
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: _filterStatus != 'Semua' ? AppColors.primary : Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.filter_alt_rounded,
-                    size: 14,
-                    color: _filterStatus != 'Semua' ? Colors.white : AppColors.primary,
-                  ),
-                  const SizedBox(width: 6),
-                  GestureDetector(
-                    onTap: () => _showFilterSheet(),
-                    child: Text(
-                      'Filter',
-                      style: AppTextStyles.labelSm.copyWith(
-                        color: _filterStatus != 'Semua' ? Colors.white : AppColors.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          height: 52,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          child: Row(
-            children: [
-              const Icon(
-                Icons.search_rounded,
-                color: AppColors.primary,
-                size: 24,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: 'Cari judul laporan kegiatan...',
-                    hintStyle: AppTextStyles.labelSm.copyWith(
-                      color: const Color(0xFF94A3B8),
-                    ),
-                    border: InputBorder.none,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
+
 
   Widget _buildLaporanList() {
     return Consumer<OrmawaProvider>(

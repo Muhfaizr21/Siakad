@@ -6,6 +6,7 @@ import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
 import 'package:bkuhub_mobile/core/providers/ormawa_provider.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_member.dart';
 import 'package:bkuhub_mobile/features/ormawa/data/repositories/ormawa_repository_impl.dart';
+import 'package:bkuhub_mobile/core/widgets/ormawa_list_header.dart';
 
 // Helper for formatting absolute image URLs
 String? getFullImageUrl(String? path) {
@@ -22,6 +23,7 @@ class OrmawaAnggotaScreen extends StatefulWidget {
 }
 
 class _OrmawaAnggotaScreenState extends State<OrmawaAnggotaScreen> {
+  final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   String _selectedFilterRole = 'SEMUA';
   String _selectedFilterDivisi = 'SEMUA';
@@ -33,6 +35,12 @@ class _OrmawaAnggotaScreenState extends State<OrmawaAnggotaScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<OrmawaProvider>().refreshData();
     });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   List<OrmawaMember> _getFilteredMembers(List<OrmawaMember> members) {
@@ -214,8 +222,10 @@ class _OrmawaAnggotaScreenState extends State<OrmawaAnggotaScreen> {
 
         return Scaffold(
           backgroundColor: const Color(0xFFF8FAFC),
-          body: CustomScrollView(
-            slivers: [
+          body: RefreshIndicator(
+            onRefresh: () => context.read<OrmawaProvider>().refreshData(),
+            child: CustomScrollView(
+              slivers: [
               BkuAppBar(
                 variant: AppBarVariant.ormawa,
                 title: 'MANAJEMEN ANGGOTA',
@@ -306,31 +316,14 @@ class _OrmawaAnggotaScreenState extends State<OrmawaAnggotaScreen> {
                           ),
                         ),
                         const SizedBox(height: 32),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'DAFTAR ANGGOTA',
-                              style: AppTextStyles.labelMd.copyWith(
-                                color: const Color(0xFF475569),
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                            TextButton.icon(
-                              onPressed: () => _showFilterSheet(provider),
-                              icon: const Icon(Icons.filter_alt_rounded, size: 18),
-                              label: const Text('Filter Data'),
-                              style: TextButton.styleFrom(
-                                foregroundColor: AppColors.primary,
-                                backgroundColor: AppColors.primary.withAlpha(20),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              ),
-                            ),
-                          ],
+                        OrmawaListHeader(
+                          title: 'DAFTAR ANGGOTA (${filteredMembers.length})',
+                          searchHint: 'Cari nama atau NIM...',
+                          searchController: _searchController,
+                          onRefresh: () => context.read<OrmawaProvider>().refreshData(),
+                          onFilterTap: () => _showFilterSheet(provider),
+                          onChanged: (value) => setState(() => _searchQuery = value.toLowerCase()),
                         ),
-                        const SizedBox(height: 16),
-                        _buildSearchField(),
                         const SizedBox(height: 20),
                         if (filteredMembers.isEmpty)
                           _buildEmptyState()
@@ -351,6 +344,7 @@ class _OrmawaAnggotaScreenState extends State<OrmawaAnggotaScreen> {
                   ),
                 ),
             ],
+          ),
           ),
           floatingActionButton: provider.hasPermission('create_members') && provider.selectedPeriod == 'aktif' ? FloatingActionButton.extended(
             onPressed: () => _showAddMember(context),
@@ -489,35 +483,6 @@ class _OrmawaAnggotaScreenState extends State<OrmawaAnggotaScreen> {
     );
   }
 
-  Widget _buildSearchField() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      height: 52,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [BoxShadow(color: Colors.black.withAlpha(3), blurRadius: 8, offset: const Offset(0, 2))],
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.search_rounded, color: AppColors.primary, size: 22),
-          const SizedBox(width: 12),
-          Expanded(
-            child: TextField(
-              onChanged: (val) => setState(() => _searchQuery = val.toLowerCase()),
-              decoration: InputDecoration(
-                hintText: 'Cari nama atau NIM...',
-                hintStyle: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8), fontWeight: FontWeight.w500),
-                border: InputBorder.none,
-              ),
-              style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Color _getRoleColor(String role) {
     final r = role.toLowerCase();

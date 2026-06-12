@@ -62,46 +62,35 @@ class _OrmawaNotificationsScreenState extends State<OrmawaNotificationsScreen>
 
   IconData _getNotificationIcon(String type, String title) {
     final typeLower = type.toLowerCase();
-    if (typeLower == 'proposal' || title.toLowerCase().contains('proposal')) {
-      if (title.toLowerCase().contains('setuju')) return Icons.check_circle_rounded;
-      if (title.toLowerCase().contains('tolak')) return Icons.cancel_rounded;
-      return Icons.description_rounded;
-    }
-    if (typeLower == 'finance' || title.toLowerCase().contains('kas') || title.toLowerCase().contains('uang')) {
-      return Icons.payments_rounded;
-    }
-    if (typeLower == 'aspiration' || title.toLowerCase().contains('aspirasi')) {
-      return Icons.campaign_rounded;
-    }
-    if (title.toLowerCase().contains('anggota') || title.toLowerCase().contains('daftar')) {
-      return Icons.person_add_rounded;
-    }
-    if (title.toLowerCase().contains('deadline') || title.toLowerCase().contains('lpj')) {
-      return Icons.warning_amber_rounded;
-    }
-    return Icons.notifications_rounded;
+    final titleLower = title.toLowerCase();
+    
+    if (titleLower.contains('setuju') || titleLower.contains('lulus')) return Icons.check_circle_rounded;
+    if (titleLower.contains('tolak') || titleLower.contains('gagal')) return Icons.cancel_rounded;
+    if (typeLower == 'proposal' || titleLower.contains('proposal')) return Icons.description_rounded;
+    if (typeLower == 'finance' || titleLower.contains('kas') || titleLower.contains('uang')) return Icons.account_balance_wallet_rounded;
+    if (typeLower == 'aspiration' || titleLower.contains('aspirasi')) return Icons.forum_rounded;
+    if (titleLower.contains('anggota') || titleLower.contains('daftar')) return Icons.person_add_rounded;
+    if (titleLower.contains('agenda') || titleLower.contains('kegiatan')) return Icons.event_available_rounded;
+    if (titleLower.contains('lpj')) return Icons.assignment_turned_in_rounded;
+    if (titleLower.contains('pengumuman')) return Icons.campaign_rounded;
+    
+    return Icons.notifications_active_rounded;
   }
 
   Color _getNotificationColor(String type, String title) {
     final typeLower = type.toLowerCase();
-    if (title.toLowerCase().contains('setuju') || title.toLowerCase().contains('lulus')) {
-      return Colors.green;
-    }
-    if (title.toLowerCase().contains('tolak') || title.toLowerCase().contains('gagal')) {
-      return Colors.red;
-    }
-    if (typeLower == 'proposal' || title.toLowerCase().contains('proposal')) {
-      return Colors.blue;
-    }
-    if (typeLower == 'finance' || title.toLowerCase().contains('kas')) {
-      return Colors.teal;
-    }
-    if (typeLower == 'aspiration' || title.toLowerCase().contains('aspirasi')) {
-      return Colors.orange;
-    }
-    if (title.toLowerCase().contains('anggota')) {
-      return Colors.purple;
-    }
+    final titleLower = title.toLowerCase();
+    
+    if (titleLower.contains('setuju') || titleLower.contains('lulus')) return const Color(0xFF10B981); // Emerald
+    if (titleLower.contains('tolak') || titleLower.contains('gagal')) return const Color(0xFFEF4444); // Red
+    if (typeLower == 'proposal' || titleLower.contains('proposal')) return const Color(0xFF3B82F6); // Blue
+    if (typeLower == 'finance' || titleLower.contains('kas')) return const Color(0xFF14B8A6); // Teal
+    if (typeLower == 'aspiration' || titleLower.contains('aspirasi')) return const Color(0xFFF97316); // Orange
+    if (titleLower.contains('anggota')) return const Color(0xFF8B5CF6); // Purple
+    if (titleLower.contains('agenda') || titleLower.contains('kegiatan')) return const Color(0xFF06B6D4); // Cyan
+    if (titleLower.contains('lpj')) return const Color(0xFF6366F1); // Indigo
+    if (titleLower.contains('pengumuman')) return const Color(0xFFF59E0B); // Amber
+    
     return AppColors.primary;
   }
 
@@ -134,7 +123,7 @@ class _OrmawaNotificationsScreenState extends State<OrmawaNotificationsScreen>
           physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
           slivers: [
             BkuAppBar(
-              title: 'NOTIFIKASI ADMIN',
+              title: 'NOTIFIKASI',
               subtitle: 'INFORMASI TERBARU',
               variant: AppBarVariant.ormawa,
               expandedHeight: 140.0,
@@ -172,40 +161,50 @@ class _OrmawaNotificationsScreenState extends State<OrmawaNotificationsScreen>
   }
 
   Widget _buildTabBar() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(8),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: TabBar(
-        controller: _tabController,
-        isScrollable: false,
-        padding: const EdgeInsets.all(6),
-        indicator: BoxDecoration(
-          color: AppColors.primary.withAlpha(15),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        indicatorSize: TabBarIndicatorSize.label,
-        dividerColor: Colors.transparent,
-        labelStyle: AppTextStyles.labelSm.copyWith(
-          fontWeight: FontWeight.bold,
-          fontSize: 11,
-        ),
-        unselectedLabelStyle: AppTextStyles.labelSm.copyWith(
-          fontWeight: FontWeight.w500,
-          fontSize: 11,
-        ),
-        unselectedLabelColor: AppColors.neutral600,
-        labelColor: AppColors.primary,
-        tabs: _tabs.map((tab) => Tab(text: tab)).toList(),
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      physics: const BouncingScrollPhysics(),
+      child: Row(
+        children: List.generate(_tabs.length, (index) {
+          final isSelected = _selectedTabIndex == index;
+          return GestureDetector(
+            onTap: () {
+              _tabController.animateTo(index);
+              setState(() {
+                _selectedTabIndex = index;
+              });
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              margin: const EdgeInsets.only(right: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              decoration: BoxDecoration(
+                color: isSelected ? AppColors.primary : Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: isSelected ? AppColors.primary : const Color(0xFFE2E8F0),
+                ),
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: AppColors.primary.withAlpha(60),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        )
+                      ]
+                    : [],
+              ),
+              child: Text(
+                _tabs[index],
+                style: AppTextStyles.labelMd.copyWith(
+                  color: isSelected ? Colors.white : const Color(0xFF64748B),
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                ),
+              ),
+            ),
+          );
+        }),
       ),
     );
   }
@@ -281,12 +280,23 @@ class _OrmawaNotificationsScreenState extends State<OrmawaNotificationsScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withAlpha(15),
-              borderRadius: BorderRadius.circular(14),
+              gradient: LinearGradient(
+                colors: [color.withOpacity(0.7), color],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withAlpha(60),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-            child: Icon(icon, color: color, size: 24),
+            child: Icon(icon, color: Colors.white, size: 24),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -378,12 +388,23 @@ class _OrmawaNotificationsScreenState extends State<OrmawaNotificationsScreen>
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: color.withAlpha(15),
-                    borderRadius: BorderRadius.circular(16),
+                    gradient: LinearGradient(
+                      colors: [color.withOpacity(0.7), color],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(
+                        color: color.withAlpha(60),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  child: Icon(icon, color: color, size: 28),
+                  child: Icon(icon, color: Colors.white, size: 28),
                 ),
                 const SizedBox(width: 16),
                 Expanded(

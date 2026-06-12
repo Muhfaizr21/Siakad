@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
-import 'package:bkuhub_mobile/core/widgets/unified_card.dart';
 import 'package:bkuhub_mobile/core/providers/ormawa_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:bkuhub_mobile/core/widgets/ormawa_list_header.dart';
 
 class OrmawaRecruitmentScreen extends StatefulWidget {
   const OrmawaRecruitmentScreen({super.key});
@@ -14,117 +14,345 @@ class OrmawaRecruitmentScreen extends StatefulWidget {
   State<OrmawaRecruitmentScreen> createState() => _OrmawaRecruitmentScreenState();
 }
 
-class _OrmawaRecruitmentScreenState extends State<OrmawaRecruitmentScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _OrmawaRecruitmentScreenState extends State<OrmawaRecruitmentScreen> with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  bool _isFabExpanded = false;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 250),
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<OrmawaProvider>().getRecruitmentApplicants();
+    });
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _animationController.dispose();
+    _searchController.dispose();
     super.dispose();
+  }
+
+  void _toggleFab() {
+    setState(() {
+      _isFabExpanded = !_isFabExpanded;
+      if (_isFabExpanded) {
+        _animationController.forward();
+      } else {
+        _animationController.reverse();
+      }
+    });
+  }
+
+  void _showDetailModal(BuildContext context, Map<String, dynamic> applicant) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => RecruitmentApplicantDetailModal(
+        applicant: RecruitmentApplicant(
+          name: applicant['name'] ?? '',
+          nim: applicant['nim'] ?? '',
+          prodi: applicant['prodi'] ?? '',
+          ipk: (applicant['ipk'] ?? 0).toDouble(),
+          divisi1: applicant['divisi1'] ?? '',
+          divisi2: applicant['divisi2'] ?? '',
+          status: applicant['status'] ?? 'pending',
+          alasan: applicant['alasan'] ?? '',
+        ),
+        onAccept: () async {
+          try {
+            await context.read<OrmawaProvider>().reviewRecruitmentApplicant(
+              applicant['id'].toString(),
+              'accepted',
+            );
+            if (context.mounted) Navigator.pop(context);
+          } catch (e) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Gagal menerima: $e')),
+              );
+            }
+          }
+        },
+        onReject: () async {
+          try {
+            await context.read<OrmawaProvider>().reviewRecruitmentApplicant(
+              applicant['id'].toString(),
+              'rejected',
+            );
+            if (context.mounted) Navigator.pop(context);
+          } catch (e) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Gagal menolak: $e')),
+              );
+            }
+          }
+        },
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      body: CustomScrollView(
-        slivers: [
-          BkuAppBar(
-            variant: AppBarVariant.ormawa,
-            title: 'OPEN RECRUITMENT',
-            subtitle: 'KELOLA PENDAFTARAN ANGGOTA BARU',
-            expandedHeight: 160.0,
-            showBackButton: true,
-            isExpandable: false,
-          ),
-          SliverToBoxAdapter(
-            child: Column(
-              children: [
-                const SizedBox(height: 24),
-                // Tab Navigation
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withAlpha(8),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
+      floatingActionButton: _buildExpandableFab(),
+      body: Consumer<OrmawaProvider>(
+        builder: (context, provider, child) {
+          final allApplicants = provider.recruitmentApplicants;
+          final applicants = allApplicants.where((a) {
+            final matchesSearch = _searchQuery.isEmpty || 
+              (a['name']?.toString().toLowerCase().contains(_searchQuery) ?? false) ||
+              (a['nim']?.toString().toLowerCase().contains(_searchQuery) ?? false);
+            return matchesSearch;
+          }).toList();
+
+          return RefreshIndicator(
+            onRefresh: () => provider.getRecruitmentApplicants(),
+            child: CustomScrollView(
+              slivers: [
+                BkuAppBar(
+                  variant: AppBarVariant.ormawa,
+                  title: 'OPEN RECRUITMENT',
+                  subtitle: 'KELOLA PENDAFTARAN ANGGOTA BARU',
+                  expandedHeight: 160.0,
+                  showBackButton: true,
+                  isExpandable: false,
+                ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 16, left: 20, right: 20, bottom: 16),
+                    child: OrmawaListHeader(
+                      title: 'DAFTAR PENDAFTAR (${applicants.length})',
+                      searchHint: 'Cari nama atau NIM...',
+                      searchController: _searchController,
+                      onRefresh: () => provider.getRecruitmentApplicants(),
+                      onFilterTap: () {
+                        // TODO: Implement filter for recruitment
+                      },
+                      onChanged: (value) => setState(() => _searchQuery = value.toLowerCase()),
+                    ),
+                  ),
+                ),
+                if (provider.isLoading && allApplicants.isEmpty)
+                  const SliverFillRemaining(
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                else if (applicants.isEmpty)
+                  SliverFillRemaining(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.05),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.people_alt_outlined,
+                              size: 80,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            'Belum Ada Pendaftar',
+                            style: AppTextStyles.titleLg.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.neutral900,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Daftar mahasiswa yang melamar ke ORMAWA ini akan muncul di sini.',
+                            textAlign: TextAlign.center,
+                            style: AppTextStyles.bodyMd.copyWith(
+                              color: AppColors.neutral600,
+                              height: 1.5,
+                            ),
+                          ),
+                          const SizedBox(height: 32),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: AppColors.infoContainer,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppColors.info.withValues(alpha: 0.3)),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.info_outline_rounded, color: AppColors.info),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    'Pastikan status Open Recruitment sudah dibuka pada menu Pengaturan.',
+                                    style: AppTextStyles.labelMd.copyWith(
+                                      color: AppColors.onInfoContainer,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: TabBar(
-                    controller: _tabController,
-                    labelColor: AppColors.primary,
-                    unselectedLabelColor: AppColors.neutral600,
-                    labelStyle: AppTextStyles.labelSm.copyWith(
-                      fontWeight: FontWeight.bold,
                     ),
-                    unselectedLabelStyle: AppTextStyles.labelSm,
-                    indicatorColor: AppColors.primary,
-                    indicatorWeight: 3,
-                    indicatorSize: TabBarIndicatorSize.label,
-                    indicator: BoxDecoration(
-                      color: AppColors.primary.withAlpha(15),
-                      borderRadius: BorderRadius.circular(12),
+                  )
+                else
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final applicant = applicants[index];
+                          return RecruitmentApplicantCard(
+                            applicant: RecruitmentApplicant(
+                              name: applicant['name'] ?? '',
+                              nim: applicant['nim'] ?? '',
+                              prodi: applicant['prodi'] ?? '',
+                              ipk: (applicant['ipk'] ?? 0).toDouble(),
+                              divisi1: applicant['divisi1'] ?? '',
+                              divisi2: applicant['divisi2'] ?? '',
+                              status: applicant['status'] ?? 'pending',
+                              alasan: applicant['alasan'] ?? '',
+                            ),
+                            onReview: () => _showDetailModal(context, applicant),
+                          );
+                        },
+                        childCount: applicants.length,
+                      ),
                     ),
-                    padding: const EdgeInsets.all(6),
-                    tabs: const [
-                      Tab(text: 'Pengaturan'),
-                      Tab(text: 'Form'),
-                      Tab(text: 'Pendaftar'),
-                      Tab(text: 'Riwayat'),
-                    ],
                   ),
-                ),
-                const SizedBox(height: 24),
-                // Tab Content
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.6,
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: const [
-                      RecruitmentSettingsTab(),
-                      RecruitmentFormTab(),
-                      RecruitmentApplicantsTab(),
-                      RecruitmentHistoryTab(),
-                    ],
-                  ),
-                ),
               ],
             ),
-          ),
-        ],
+          );
+        },
       ),
+    );
+  }
+
+  Widget _buildExpandableFab() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        if (_isFabExpanded) ...[
+          _buildFabOption(
+            icon: Icons.history_rounded,
+            label: 'Riwayat Keputusan',
+            color: Colors.green,
+            onTap: () {
+              _toggleFab();
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const RecruitmentHistoryScreen()));
+            },
+          ),
+          const SizedBox(height: 16),
+          _buildFabOption(
+            icon: Icons.list_alt_rounded,
+            label: 'Form Builder',
+            color: Colors.purple,
+            onTap: () {
+              _toggleFab();
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const RecruitmentFormScreen()));
+            },
+          ),
+          const SizedBox(height: 16),
+          _buildFabOption(
+            icon: Icons.settings_rounded,
+            label: 'Pengaturan',
+            color: Colors.blue,
+            onTap: () {
+              _toggleFab();
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const RecruitmentSettingsScreen()));
+            },
+          ),
+          const SizedBox(height: 16),
+        ],
+        FloatingActionButton.extended(
+          onPressed: _toggleFab,
+          backgroundColor: AppColors.primary,
+          icon: AnimatedIcon(
+            icon: AnimatedIcons.menu_close,
+            progress: _animationController,
+            color: Colors.white,
+          ),
+          label: Text(
+            _isFabExpanded ? 'Tutup' : 'Menu Utama',
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFabOption({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Text(
+            label,
+            style: AppTextStyles.labelMd.copyWith(
+              fontWeight: FontWeight.bold,
+              color: AppColors.neutral900,
+            ),
+          ),
+        ),
+        const SizedBox(width: 16),
+        FloatingActionButton(
+          heroTag: label, // Prevent hero animation conflicts
+          mini: true,
+          onPressed: onTap,
+          backgroundColor: color,
+          child: Icon(icon, color: Colors.white),
+        ),
+      ],
     );
   }
 }
 
-// Tab 1: Pengaturan Recruitment
-class RecruitmentSettingsTab extends StatefulWidget {
-  const RecruitmentSettingsTab({super.key});
+class RecruitmentSettingsScreen extends StatefulWidget {
+  const RecruitmentSettingsScreen({super.key});
 
   @override
-  State<RecruitmentSettingsTab> createState() => _RecruitmentSettingsTabState();
+  State<RecruitmentSettingsScreen> createState() => _RecruitmentSettingsScreenState();
 }
 
-class _RecruitmentSettingsTabState extends State<RecruitmentSettingsTab> {
+class _RecruitmentSettingsScreenState extends State<RecruitmentSettingsScreen> {
   bool _isOpenRecruitment = false;
   DateTime? _startDate;
   DateTime? _endDate;
   double _minIpk = 2.5;
   final _requirementsController = TextEditingController();
   bool _isLoading = false;
-  bool _isInitialized = false;
 
   @override
   void initState() {
@@ -149,11 +377,9 @@ class _RecruitmentSettingsTabState extends State<RecruitmentSettingsTab> {
         if (settings['endDate'] != null) {
           _endDate = DateTime.tryParse(settings['endDate'].toString());
         }
-        _isInitialized = true;
       });
     } else {
       _requirementsController.text = 'Mahasiswa aktif\nMinimal IPK 2.50\nMengisi formulir pendaftaran';
-      _isInitialized = true;
     }
   }
 
@@ -211,153 +437,235 @@ class _RecruitmentSettingsTabState extends State<RecruitmentSettingsTab> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Status Toggle
-          UnifiedCard(
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: AppBar(
+        title: Text('Pengaturan', style: AppTextStyles.headlineSmall.copyWith(color: AppColors.neutral900, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.white,
+        foregroundColor: AppColors.neutral900,
+        elevation: 0,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: _isOpenRecruitment
+                    ? [AppColors.primary, AppColors.primary.withOpacity(0.8)]
+                    : [AppColors.neutral100, AppColors.neutral200],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: _isOpenRecruitment
+                  ? [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.6),
+                        blurRadius: 15,
+                        offset: const Offset(0, 5),
+                      )
+                    ]
+                  : null,
+            ),
+            padding: const EdgeInsets.all(20),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Status Open Recruitment',
-                      style: AppTextStyles.bodyMd.copyWith(
-                        fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Pendaftaran Anggota',
+                        style: AppTextStyles.titleSm.copyWith(
+                          color: _isOpenRecruitment ? Colors.white : AppColors.neutral800,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _isOpenRecruitment ? 'Aktif' : 'Tidak Aktif',
-                      style: AppTextStyles.labelMd.copyWith(
-                        color: _isOpenRecruitment ? Colors.green : Colors.red,
+                      const SizedBox(height: 4),
+                      Text(
+                        _isOpenRecruitment
+                            ? 'Pendaftaran saat ini sedang DIBUKA'
+                            : 'Pendaftaran saat ini sedang DITUTUP',
+                        style: AppTextStyles.labelMd.copyWith(
+                          color: _isOpenRecruitment ? Colors.white70 : AppColors.neutral500,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 Switch(
                   value: _isOpenRecruitment,
                   onChanged: (value) => setState(() => _isOpenRecruitment = value),
-                  activeColor: AppColors.primary,
+                  activeColor: Colors.white,
+                  activeTrackColor: Colors.greenAccent.shade400,
+                  inactiveThumbColor: AppColors.neutral400,
+                  inactiveTrackColor: AppColors.neutral300,
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 16),
-          // Date Selection
-          UnifiedCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Periode Pendaftaran',
-                  style: AppTextStyles.bodyMd.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+          const SizedBox(height: 24),
+          
+          Text(
+            'Periode & Syarat',
+            style: AppTextStyles.titleSm.copyWith(
+              fontWeight: FontWeight.bold,
+              color: AppColors.neutral800,
+            ),
+          ),
+          const SizedBox(height: 12),
+          
+          Row(
+            children: [
+              Expanded(
+                child: RecruitmentDateField(
+                  label: 'Mulai',
+                  date: _startDate,
+                  onTap: () => _selectDate(true),
                 ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: RecruitmentDateField(
-                        label: 'Tanggal Mulai',
-                        date: _startDate,
-                        onTap: () => _selectDate(true),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: RecruitmentDateField(
-                        label: 'Tanggal Selesai',
-                        date: _endDate,
-                        onTap: () => _selectDate(false),
-                      ),
-                    ),
-                  ],
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: RecruitmentDateField(
+                  label: 'Selesai',
+                  date: _endDate,
+                  onTap: () => _selectDate(false),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: AppColors.outline.withOpacity(0.5)),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.neutral200.withOpacity(0.5),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 16),
-          // IPK Minimal
-          UnifiedCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'IPK Minimal',
-                  style: AppTextStyles.bodyMd.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Expanded(
-                      child: Slider(
-                        value: _minIpk,
-                        min: 0,
-                        max: 4,
-                        divisions: 40,
-                        activeColor: AppColors.primary,
-                        onChanged: (value) => setState(() => _minIpk = value),
-                      ),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(Icons.star_rounded, color: Colors.orange, size: 20),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          'IPK Minimal',
+                          style: AppTextStyles.bodyMd.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withAlpha(15),
+                        color: AppColors.primary,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         _minIpk.toStringAsFixed(2),
-                        style: AppTextStyles.bodyMd.copyWith(
+                        style: AppTextStyles.labelMd.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
+                          color: Colors.white,
                         ),
                       ),
                     ),
                   ],
                 ),
+                const SizedBox(height: 8),
+                SliderTheme(
+                  data: SliderThemeData(
+                    activeTrackColor: AppColors.primary,
+                    inactiveTrackColor: AppColors.primary.withOpacity(0.3),
+                    thumbColor: AppColors.primary,
+                    overlayColor: AppColors.primary.withOpacity(0.3),
+                    trackHeight: 6,
+                  ),
+                  child: Slider(
+                    value: _minIpk,
+                    min: 0,
+                    max: 4,
+                    divisions: 40,
+                    onChanged: (value) => setState(() => _minIpk = value),
+                  ),
+                ),
               ],
             ),
           ),
           const SizedBox(height: 16),
-          // Persyaratan
-          UnifiedCard(
+          
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: AppColors.outline.withOpacity(0.5)),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.neutral200.withOpacity(0.5),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Persyaratan Pendaftaran',
-                  style: AppTextStyles.bodyMd.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.assignment_rounded, color: Colors.blue, size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Persyaratan Utama',
+                      style: AppTextStyles.bodyMd.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: _requirementsController,
-                  maxLines: 5,
+                  maxLines: 4,
+                  style: AppTextStyles.bodyMd,
                   decoration: InputDecoration(
-                    hintText: 'Masukkan persyaratan pendaftaran...',
+                    hintText: 'Tuliskan persyaratan pendaftaran...',
+                    hintStyle: AppTextStyles.bodyMd.copyWith(color: AppColors.neutral400),
+                    filled: true,
+                    fillColor: AppColors.neutral100.withOpacity(0.1),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: AppColors.outline),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: AppColors.outline.withAlpha(100)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColors.primary),
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
                     ),
                     contentPadding: const EdgeInsets.all(16),
                   ),
@@ -365,41 +673,52 @@ class _RecruitmentSettingsTabState extends State<RecruitmentSettingsTab> {
               ],
             ),
           ),
-          const SizedBox(height: 24),
-          // Save Button
+          const SizedBox(height: 32),
+          
           SizedBox(
             width: double.infinity,
+            height: 56,
             child: ElevatedButton(
               onPressed: _isLoading ? null : _saveSettings,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                elevation: 4,
+                shadowColor: AppColors.primary.withOpacity(0.4),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(100),
                 ),
               ),
               child: _isLoading
                   ? const SizedBox(
-                      height: 20,
-                      width: 20,
+                      height: 24,
+                      width: 24,
                       child: CircularProgressIndicator(
-                        strokeWidth: 2,
+                        strokeWidth: 3,
                         color: Colors.white,
                       ),
                     )
-                  : const Text(
-                      'Simpan Perubahan',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.save_rounded, size: 20),
+                        SizedBox(width: 8),
+                        Text(
+                          'Simpan Pengaturan',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
                     ),
             ),
           ),
           const SizedBox(height: 100),
         ],
       ),
+    ),
     );
   }
 }
@@ -437,7 +756,7 @@ class RecruitmentDateField extends StatelessWidget {
               vertical: 12,
             ),
             decoration: BoxDecoration(
-              border: Border.all(color: AppColors.outline.withAlpha(100)),
+              border: Border.all(color: AppColors.outline.withOpacity(0.5)),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -467,18 +786,16 @@ class RecruitmentDateField extends StatelessWidget {
   }
 }
 
-// Tab 2: Form Builder
-class RecruitmentFormTab extends StatefulWidget {
-  const RecruitmentFormTab({super.key});
+class RecruitmentFormScreen extends StatefulWidget {
+  const RecruitmentFormScreen({super.key});
 
   @override
-  State<RecruitmentFormTab> createState() => _RecruitmentFormTabState();
+  State<RecruitmentFormScreen> createState() => _RecruitmentFormScreenState();
 }
 
-class _RecruitmentFormTabState extends State<RecruitmentFormTab> {
+class _RecruitmentFormScreenState extends State<RecruitmentFormScreen> {
   final List<RecruitmentFormField> _fields = [];
   bool _isLoading = false;
-  bool _isInitialized = false;
 
   final List<String> _fieldTypes = [
     'Teks Singkat',
@@ -512,36 +829,12 @@ class _RecruitmentFormTabState extends State<RecruitmentFormTab> {
             required: f['required'] ?? false,
           ));
         }
-        _isInitialized = true;
       });
-    } else {
-      setState(() => _isInitialized = true);
     }
-  }
-
-  void _addField() {
-    setState(() {
-      _fields.add(RecruitmentFormField(
-        id: DateTime.now().millisecondsSinceEpoch,
-        label: '',
-        type: 'Teks Singkat',
-        options: '',
-        required: false,
-      ));
-    });
   }
 
   void _removeField(int index) {
     setState(() => _fields.removeAt(index));
-  }
-
-  void _moveField(int index, int direction) {
-    if (index == 0 && direction == -1) return;
-    if (index == _fields.length - 1 && direction == 1) return;
-    setState(() {
-      final item = _fields.removeAt(index);
-      _fields.insert(index + direction, item);
-    });
   }
 
   Future<void> _saveForm() async {
@@ -579,235 +872,329 @@ class _RecruitmentFormTabState extends State<RecruitmentFormTab> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Add Field Button
-          InkWell(
-            onTap: _addField,
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withAlpha(10),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: AppColors.primary.withAlpha(50),
+  void _showAddFieldSheet() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: AppColors.neutral300,
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.add_circle_outline_rounded,
-                    color: AppColors.primary,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Tambah Field',
-                    style: AppTextStyles.bodyMd.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+              Text(
+                'Pilih Jenis Pertanyaan',
+                style: AppTextStyles.titleSm.copyWith(fontWeight: FontWeight.bold),
               ),
-            ),
+              const SizedBox(height: 16),
+              ..._fieldTypes.map((type) => ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        type == 'Teks Singkat' ? Icons.short_text_rounded :
+                        type == 'Paragraf' ? Icons.notes_rounded :
+                        type == 'Dropdown' ? Icons.arrow_drop_down_circle_rounded :
+                        type == 'Pilihan Ganda' ? Icons.check_box_rounded :
+                        Icons.upload_file_rounded,
+                        color: AppColors.primary,
+                        size: 20,
+                      ),
+                    ),
+                    title: Text(type, style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.bold)),
+                    onTap: () {
+                      Navigator.pop(context);
+                      setState(() {
+                        _fields.add(RecruitmentFormField(
+                          id: DateTime.now().millisecondsSinceEpoch,
+                          label: '',
+                          type: type,
+                          options: '',
+                          required: false,
+                        ));
+                      });
+                    },
+                  )),
+            ],
           ),
-          const SizedBox(height: 16),
-          // Field List
-          if (_fields.isEmpty)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(40),
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.list_alt_rounded,
-                      size: 48,
-                      color: AppColors.neutral300,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Belum ada field',
-                      style: AppTextStyles.bodyMd.copyWith(
-                        color: AppColors.neutral600,
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: AppBar(
+        title: Text('Form Builder', style: AppTextStyles.headlineSmall.copyWith(color: AppColors.neutral900, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.white,
+        foregroundColor: AppColors.neutral900,
+        elevation: 0,
+      ),
+      body: Stack(
+        children: [
+          Column(
+            children: [
+            Expanded(
+              child: _fields.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.dynamic_form_rounded,
+                            size: 64,
+                            color: AppColors.neutral300,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Belum ada field',
+                            style: AppTextStyles.bodyMd.copyWith(
+                              color: AppColors.neutral600,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Tekan tombol + di bawah untuk membuat formulir',
+                            style: AppTextStyles.labelMd.copyWith(
+                              color: AppColors.neutral400,
+                            ),
+                          ),
+                        ],
                       ),
+                    )
+                  : ReorderableListView.builder(
+                      padding: const EdgeInsets.only(left: 20, right: 20, top: 16, bottom: 100),
+                      itemCount: _fields.length,
+                      onReorder: (oldIndex, newIndex) {
+                        setState(() {
+                          if (newIndex > oldIndex) {
+                            newIndex -= 1;
+                          }
+                          final item = _fields.removeAt(oldIndex);
+                          _fields.insert(newIndex, item);
+                        });
+                      },
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          key: ValueKey(_fields[index].id),
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _buildFieldCard(_fields[index], index),
+                        );
+                      },
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Tekan "Tambah Field" untuk membuat formulir',
-                      style: AppTextStyles.labelMd.copyWith(
-                        color: AppColors.neutral400,
-                      ),
+            ),
+            if (_fields.isNotEmpty)
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border(top: BorderSide(color: AppColors.outline.withOpacity(0.2))),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.02),
+                      blurRadius: 10,
+                      offset: const Offset(0, -5),
                     ),
                   ],
                 ),
-              ),
-            )
-          else
-            ..._fields.asMap().entries.map((entry) {
-              final index = entry.key;
-              final field = entry.value;
-              return _buildFieldCard(field, index);
-            }),
-          if (_fields.isNotEmpty) ...[
-            const SizedBox(height: 24),
-            // Save Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : _saveForm,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _saveForm,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(strokeWidth: 3, color: Colors.white),
+                          )
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(Icons.save_rounded, size: 20),
+                              SizedBox(width: 8),
+                              Text(
+                                'Simpan Form',
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                              ),
+                            ],
+                          ),
                   ),
                 ),
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Text(
-                        'Simpan Form',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
               ),
-            ),
           ],
-          const SizedBox(height: 100),
-        ],
-      ),
+        ),
+        Positioned(
+          right: 20,
+          bottom: _fields.isEmpty ? 20 : 100,
+          child: FloatingActionButton(
+            heroTag: 'add_field_fab',
+            backgroundColor: AppColors.primary,
+            foregroundColor: Colors.white,
+            elevation: 4,
+            onPressed: _showAddFieldSheet,
+            child: const Icon(Icons.add_rounded),
+          ),
+        ),
+      ],
+    ),
     );
   }
 
   Widget _buildFieldCard(RecruitmentFormField field, int index) {
-    return UnifiedCard(
-      margin: const EdgeInsets.only(bottom: 12),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.outline.withOpacity(0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.neutral200.withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withAlpha(15),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  'Field ${index + 1}',
-                  style: AppTextStyles.labelSm.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.bold,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: AppColors.neutral100.withOpacity(0.5),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.drag_indicator_rounded, color: Colors.grey, size: 20),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    'Field ${index + 1}',
+                    style: AppTextStyles.labelSm.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-              ),
-              const Spacer(),
-              IconButton(
-                onPressed: () => _moveField(index, -1),
-                icon: Icon(
-                  Icons.arrow_upward_rounded,
-                  color: AppColors.neutral600,
+                const Spacer(),
+                InkWell(
+                  onTap: () => _removeField(index),
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.delete_outline_rounded, color: Colors.red, size: 18),
+                  ),
                 ),
-                iconSize: 20,
-              ),
-              IconButton(
-                onPressed: () => _moveField(index, 1),
-                icon: Icon(
-                  Icons.arrow_downward_rounded,
-                  color: AppColors.neutral600,
-                ),
-                iconSize: 20,
-              ),
-              IconButton(
-                onPressed: () => _removeField(index),
-                icon: const Icon(
-                  Icons.delete_outline_rounded,
-                  color: Colors.red,
-                ),
-                iconSize: 20,
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            decoration: InputDecoration(
-              labelText: 'Pertanyaan',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              contentPadding: const EdgeInsets.all(12),
+              ],
             ),
-            onChanged: (value) => field.label = value,
           ),
-          const SizedBox(height: 12),
-          DropdownButtonFormField<String>(
-            value: field.type,
-            decoration: InputDecoration(
-              labelText: 'Tipe Field',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              contentPadding: const EdgeInsets.all(12),
-            ),
-            items: _fieldTypes.map((type) {
-              return DropdownMenuItem(
-                value: type,
-                child: Text(type),
-              );
-            }).toList(),
-            onChanged: (value) {
-              setState(() => field.type = value!);
-            },
-          ),
-          if (field.type == 'Dropdown' || field.type == 'Pilihan Ganda') ...[
-            const SizedBox(height: 12),
-            TextField(
-              decoration: InputDecoration(
-                labelText: 'Opsi (pisahkan dengan koma)',
-                hintText: 'Opsi 1, Opsi 2, Opsi 3',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: TextEditingController(text: field.label)
+                    ..selection = TextSelection.collapsed(offset: field.label.length),
+                  decoration: InputDecoration(
+                    labelText: 'Pertanyaan',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    contentPadding: const EdgeInsets.all(12),
+                  ),
+                  onChanged: (value) => field.label = value,
                 ),
-                contentPadding: const EdgeInsets.all(12),
-              ),
-              onChanged: (value) => field.options = value,
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  value: field.type,
+                  decoration: InputDecoration(
+                    labelText: 'Tipe Field',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    contentPadding: const EdgeInsets.all(12),
+                  ),
+                  items: _fieldTypes.map((type) {
+                    return DropdownMenuItem(
+                      value: type,
+                      child: Text(type),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() => field.type = value!);
+                  },
+                ),
+                if (field.type == 'Dropdown' || field.type == 'Pilihan Ganda') ...[
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: TextEditingController(text: field.options)
+                      ..selection = TextSelection.collapsed(offset: field.options.length),
+                    decoration: InputDecoration(
+                      labelText: 'Opsi (pisahkan dengan koma)',
+                      hintText: 'Opsi 1, Opsi 2, Opsi 3',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      contentPadding: const EdgeInsets.all(12),
+                    ),
+                    onChanged: (value) => field.options = value,
+                  ),
+                ],
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Switch(
+                      value: field.required,
+                      onChanged: (val) {
+                        setState(() => field.required = val);
+                      },
+                      activeThumbColor: AppColors.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Wajib diisi',
+                      style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Checkbox(
-                value: field.required,
-                onChanged: (value) {
-                  setState(() => field.required = value!);
-                },
-                activeColor: AppColors.primary,
-              ),
-              Text(
-                'Wajib diisi',
-                style: AppTextStyles.bodyMd,
-              ),
-            ],
           ),
         ],
       ),
@@ -831,139 +1218,7 @@ class RecruitmentFormField {
   });
 }
 
-// Tab 3: Pendaftar Masuk
-class RecruitmentApplicantsTab extends StatefulWidget {
-  const RecruitmentApplicantsTab({super.key});
-
-  @override
-  State<RecruitmentApplicantsTab> createState() => _RecruitmentApplicantsTabState();
-}
-
-class _RecruitmentApplicantsTabState extends State<RecruitmentApplicantsTab> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<OrmawaProvider>().getRecruitmentApplicants();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<OrmawaProvider>(
-      builder: (context, provider, child) {
-        final applicants = provider.recruitmentApplicants;
-
-        if (provider.isLoading && applicants.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (applicants.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.people_outline_rounded,
-                  size: 64,
-                  color: AppColors.neutral300,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Belum ada pendaftar',
-                  style: AppTextStyles.bodyMd.copyWith(
-                    color: AppColors.neutral600,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Pendaftar akan muncul di sini',
-                  style: AppTextStyles.labelMd.copyWith(
-                    color: AppColors.neutral400,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-
-        return RefreshIndicator(
-          onRefresh: () => provider.getRecruitmentApplicants(),
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            itemCount: applicants.length,
-            itemBuilder: (context, index) {
-              final applicant = applicants[index];
-              return RecruitmentApplicantCard(
-                applicant: RecruitmentApplicant(
-                  name: applicant['name'] ?? '',
-                  nim: applicant['nim'] ?? '',
-                  prodi: applicant['prodi'] ?? '',
-                  ipk: (applicant['ipk'] ?? 0).toDouble(),
-                  divisi1: applicant['divisi1'] ?? '',
-                  divisi2: applicant['divisi2'] ?? '',
-                  status: applicant['status'] ?? 'pending',
-                  alasan: applicant['alasan'] ?? '',
-                ),
-                onReview: () => _showDetailModal(context, applicant),
-              );
-            },
-          ),
-        );
-      },
-    );
-  }
-
-  void _showDetailModal(BuildContext context, Map<String, dynamic> applicant) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => RecruitmentApplicantDetailModal(
-        applicant: RecruitmentApplicant(
-          name: applicant['name'] ?? '',
-          nim: applicant['nim'] ?? '',
-          prodi: applicant['prodi'] ?? '',
-          ipk: (applicant['ipk'] ?? 0).toDouble(),
-          divisi1: applicant['divisi1'] ?? '',
-          divisi2: applicant['divisi2'] ?? '',
-          status: applicant['status'] ?? 'pending',
-          alasan: applicant['alasan'] ?? '',
-        ),
-        onAccept: () async {
-          try {
-            await context.read<OrmawaProvider>().reviewRecruitmentApplicant(
-              applicant['id'].toString(),
-              'accepted',
-            );
-            if (context.mounted) Navigator.pop(context);
-          } catch (e) {
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Gagal menerima: $e')),
-              );
-            }
-          }
-        },
-        onReject: () async {
-          try {
-            await context.read<OrmawaProvider>().reviewRecruitmentApplicant(
-              applicant['id'].toString(),
-              'rejected',
-            );
-            if (context.mounted) Navigator.pop(context);
-          } catch (e) {
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Gagal menolak: $e')),
-              );
-            }
-          }
-        },
-      ),
-    );
-  }
-}
+// Removed redundant RecruitmentApplicantsScreen
 
 class RecruitmentApplicantCard extends StatelessWidget {
   final RecruitmentApplicant applicant;
@@ -977,72 +1232,120 @@ class RecruitmentApplicantCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return UnifiedCard(
-      margin: const EdgeInsets.only(bottom: 12),
-      onTap: onReview,
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 24,
-            backgroundColor: AppColors.primary.withAlpha(15),
-            child: Text(
-              applicant.name.substring(0, 1).toUpperCase(),
-              style: AppTextStyles.bodyMd.copyWith(
-                color: AppColors.primary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.outline.withAlpha(50)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.neutral200.withAlpha(40),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onReview,
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
               children: [
-                Text(
-                  applicant.name,
-                  style: AppTextStyles.bodyMd.copyWith(
-                    fontWeight: FontWeight.bold,
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [AppColors.primary, AppColors.primary.withAlpha(150)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withAlpha(60),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    applicant.name.substring(0, 1).toUpperCase(),
+                    style: AppTextStyles.titleSm.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-                Text(
-                  '${applicant.nim} • ${applicant.prodi}',
-                  style: AppTextStyles.labelMd.copyWith(
-                    color: AppColors.neutral600,
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        applicant.name,
+                        style: AppTextStyles.titleSm.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${applicant.nim} • ${applicant.prodi}',
+                        style: AppTextStyles.labelMd.copyWith(
+                          color: AppColors.neutral500,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  'IPK: ${applicant.ipk}',
-                  style: AppTextStyles.labelSm.copyWith(
-                    color: AppColors.primary,
-                  ),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withAlpha(20),
+                        borderRadius: BorderRadius.circular(100),
+                        border: Border.all(color: Colors.orange.withAlpha(50)),
+                      ),
+                      child: Text(
+                        'Menunggu',
+                        style: AppTextStyles.labelSm.copyWith(
+                          color: Colors.orange.shade700,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        const Icon(Icons.star_rounded, color: Colors.orange, size: 14),
+                        const SizedBox(width: 4),
+                        Text(
+                          applicant.ipk.toStringAsFixed(2),
+                          style: AppTextStyles.labelMd.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.neutral700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 6,
-            ),
-            decoration: BoxDecoration(
-              color: Colors.orange.withAlpha(15),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              'Menunggu',
-              style: AppTextStyles.labelSm.copyWith(
-                color: Colors.orange,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Icon(
-            Icons.chevron_right_rounded,
-            color: AppColors.neutral400,
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -1071,11 +1374,21 @@ class RecruitmentApplicant {
 }
 
 // Tab 4: Riwayat Keputusan
-class RecruitmentHistoryTab extends StatelessWidget {
-  const RecruitmentHistoryTab({super.key});
+class RecruitmentHistoryScreen extends StatelessWidget {
+  const RecruitmentHistoryScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: AppBar(
+        title: Text('Riwayat Keputusan', style: AppTextStyles.headlineSmall.copyWith(color: AppColors.neutral900, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.white,
+        foregroundColor: AppColors.neutral900,
+        elevation: 0,
+      ),
+      body: Builder(
+        builder: (context) {
     // Simulasi data riwayat
     final List<RecruitmentApplicant> history = [];
 
@@ -1109,12 +1422,15 @@ class RecruitmentHistoryTab extends StatelessWidget {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       itemCount: history.length,
       itemBuilder: (context, index) {
         final applicant = history[index];
         return RecruitmentHistoryCard(applicant: applicant);
       },
+    );
+        },
+      ),
     );
   }
 }
@@ -1126,72 +1442,98 @@ class RecruitmentHistoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isAccepted = applicant.status == 'aktif';
+    final isAccepted = applicant.status == 'aktif' || applicant.status == 'accepted';
 
-    return UnifiedCard(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 24,
-            backgroundColor: isAccepted
-                ? Colors.green.withAlpha(15)
-                : Colors.red.withAlpha(15),
-            child: Text(
-              applicant.name.substring(0, 1).toUpperCase(),
-              style: AppTextStyles.bodyMd.copyWith(
-                color: isAccepted ? Colors.green : Colors.red,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  applicant.name,
-                  style: AppTextStyles.bodyMd.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  '${applicant.nim} • ${applicant.prodi}',
-                  style: AppTextStyles.labelMd.copyWith(
-                    color: AppColors.neutral600,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Divisi: ${applicant.divisi1}',
-                  style: AppTextStyles.labelSm.copyWith(
-                    color: AppColors.neutral500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 6,
-            ),
-            decoration: BoxDecoration(
-              color: isAccepted
-                  ? Colors.green.withAlpha(15)
-                  : Colors.red.withAlpha(15),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              isAccepted ? 'Diterima' : 'Ditolak',
-              style: AppTextStyles.labelSm.copyWith(
-                color: isAccepted ? Colors.green : Colors.red,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: isAccepted ? Colors.green.withAlpha(50) : Colors.red.withAlpha(50)),
+        boxShadow: [
+          BoxShadow(
+            color: isAccepted ? Colors.green.withAlpha(20) : Colors.red.withAlpha(20),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: isAccepted 
+                      ? [Colors.green, Colors.greenAccent.shade700] 
+                      : [Colors.red, Colors.redAccent.shade400],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: (isAccepted ? Colors.green : Colors.red).withAlpha(60),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                applicant.name.substring(0, 1).toUpperCase(),
+                style: AppTextStyles.titleSm.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    applicant.name,
+                    style: AppTextStyles.titleSm.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${applicant.nim} • ${applicant.prodi}',
+                    style: AppTextStyles.labelMd.copyWith(
+                      color: AppColors.neutral500,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: (isAccepted ? Colors.green : Colors.red).withAlpha(20),
+                borderRadius: BorderRadius.circular(100),
+                border: Border.all(color: (isAccepted ? Colors.green : Colors.red).withAlpha(50)),
+              ),
+              child: Text(
+                isAccepted ? 'Diterima' : 'Ditolak',
+                style: AppTextStyles.labelSm.copyWith(
+                  color: isAccepted ? Colors.green.shade700 : Colors.red.shade700,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1212,167 +1554,256 @@ class RecruitmentApplicantDetailModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.85,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-      ),
-      child: Column(
-        children: [
-          const SizedBox(height: 12),
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.grey[300],
-              borderRadius: BorderRadius.circular(2),
-            ),
+    return DraggableScrollableSheet(
+      initialChildSize: 0.85,
+      minChildSize: 0.5,
+      maxChildSize: 0.95,
+      builder: (_, scrollController) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
           ),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header
-                  Center(
+          child: Stack(
+            children: [
+              CustomScrollView(
+                controller: scrollController,
+                slivers: [
+                  SliverToBoxAdapter(
                     child: Column(
                       children: [
-                        CircleAvatar(
-                          radius: 40,
-                          backgroundColor: AppColors.primary.withAlpha(15),
-                          child: Text(
-                            applicant.name.substring(0, 1).toUpperCase(),
-                            style: AppTextStyles.headlineMd.copyWith(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.bold,
+                        const SizedBox(height: 12),
+                        Container(
+                          width: 48,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: AppColors.neutral300,
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                        // Profile Avatar Modern
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppColors.primary.withAlpha(50), width: 2),
+                          ),
+                          child: Container(
+                            width: 100,
+                            height: 100,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [AppColors.primary, AppColors.primary.withAlpha(150)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primary.withAlpha(60),
+                                  blurRadius: 15,
+                                  offset: const Offset(0, 5),
+                                )
+                              ],
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              applicant.name.substring(0, 1).toUpperCase(),
+                              style: AppTextStyles.displaySmall.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        Text(
-                          applicant.name,
-                          style: AppTextStyles.headlineSmall.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${applicant.nim} • ${applicant.prodi}',
-                          style: AppTextStyles.bodyMd.copyWith(
-                            color: AppColors.neutral600,
+                        const SizedBox(height: 20),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Text(
+                            applicant.name,
+                            style: AppTextStyles.headlineSmall.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.neutral900,
+                            ),
+                            textAlign: TextAlign.center,
                           ),
                         ),
                         const SizedBox(height: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
-                            color: Colors.orange.withAlpha(15),
-                            borderRadius: BorderRadius.circular(20),
+                            color: AppColors.neutral100,
+                            borderRadius: BorderRadius.circular(100),
                           ),
                           child: Text(
-                            'IPK: ${applicant.ipk}',
-                            style: AppTextStyles.labelMd.copyWith(
-                              color: Colors.orange,
-                              fontWeight: FontWeight.bold,
+                            '${applicant.nim} • ${applicant.prodi}',
+                            style: AppTextStyles.bodyMd.copyWith(
+                              color: AppColors.neutral600,
+                              fontWeight: FontWeight.w500,
                             ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        
+                        // Detail Data
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // IPK modern
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Container(
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        color: Colors.orange.withAlpha(20),
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(color: Colors.orange.withAlpha(50)),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.all(10),
+                                            decoration: BoxDecoration(
+                                              color: Colors.orange.withAlpha(40),
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(Icons.star_rounded, color: Colors.orange, size: 24),
+                                          ),
+                                          const SizedBox(width: 16),
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text('Indeks Prestasi', style: AppTextStyles.labelMd.copyWith(color: Colors.orange.shade800)),
+                                              Text(applicant.ipk.toStringAsFixed(2), style: AppTextStyles.titleMd.copyWith(fontWeight: FontWeight.bold, color: Colors.orange.shade900)),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 24),
+                              
+                              Text(
+                                'Divisi Pilihan',
+                                style: AppTextStyles.titleSm.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: RecruitmentInfoCard(
+                                      label: 'Pilihan 1',
+                                      value: applicant.divisi1,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: RecruitmentInfoCard(
+                                      label: 'Pilihan 2',
+                                      value: applicant.divisi2,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 24),
+                              
+                              Text(
+                                'Alasan & Motivasi',
+                                style: AppTextStyles.titleSm.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 12),
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(20),
+                                decoration: BoxDecoration(
+                                  color: AppColors.neutral100.withAlpha(100),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(color: AppColors.outline.withAlpha(50)),
+                                ),
+                                child: Text(
+                                  applicant.alasan,
+                                  style: AppTextStyles.bodyMd.copyWith(height: 1.5),
+                                ),
+                              ),
+                              const SizedBox(height: 120), // Padding untuk sticky button
+                            ],
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 32),
-                  // Divisi Pilihan
-                  Text(
-                    'Divisi Pilihan',
-                    style: AppTextStyles.titleSm.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: RecruitmentInfoCard(
-                          label: 'Pilihan 1',
-                          value: applicant.divisi1,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: RecruitmentInfoCard(
-                          label: 'Pilihan 2',
-                          value: applicant.divisi2,
-                        ),
+                ],
+              ),
+              // Sticky Action Buttons
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withAlpha(10),
+                        blurRadius: 20,
+                        offset: const Offset(0, -10),
                       ),
                     ],
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
                   ),
-                  const SizedBox(height: 24),
-                  // Alasan/Motivasi
-                  Text(
-                    'Alasan & Motivasi',
-                    style: AppTextStyles.titleSm.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  UnifiedCard(
-                    child: Text(
-                      applicant.alasan,
-                      style: AppTextStyles.bodyMd,
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  // Action Buttons
-                  Row(
+                  child: Row(
                     children: [
                       Expanded(
                         child: OutlinedButton(
                           onPressed: onReject,
                           style: OutlinedButton.styleFrom(
                             foregroundColor: Colors.red,
-                            side: const BorderSide(color: Colors.red),
+                            side: const BorderSide(color: Colors.red, width: 1.5),
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(100),
                             ),
                           ),
                           child: const Text(
                             'Tolak',
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 16),
                       Expanded(
                         child: ElevatedButton(
                           onPressed: onAccept,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.green,
                             foregroundColor: Colors.white,
+                            elevation: 0,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(100),
                             ),
                           ),
                           child: const Text(
                             'Terima',
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                           ),
                         ),
                       ),
                     ],
                   ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -1389,21 +1820,29 @@ class RecruitmentInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return UnifiedCard(
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withAlpha(10),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.primary.withAlpha(30)),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             label,
             style: AppTextStyles.labelSm.copyWith(
-              color: AppColors.neutral600,
+              color: AppColors.primary,
+              fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 8),
           Text(
             value,
             style: AppTextStyles.bodyMd.copyWith(
               fontWeight: FontWeight.bold,
+              color: AppColors.neutral900,
             ),
           ),
         ],
