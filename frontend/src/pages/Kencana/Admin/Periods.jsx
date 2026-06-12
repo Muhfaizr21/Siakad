@@ -12,7 +12,7 @@ import {
 import toast from 'react-hot-toast';
 import { PageHeader } from '../../../components/ui/page/PageHeader';
 import { SelectField, SelectOption } from '../../../components/ui/SelectField';
-import { DialogModal } from '../../../components/ui/DialogModal';
+import { DialogModal, ModalCancelButton, ModalSaveButton } from '../../../components/ui/DialogModal';
 
 const phases = [
   { key: 'pra_kencana', title: 'Pra-Kencana', hint: 'Persiapan, briefing awal, handbook, dan tugas pembuka.', tone: 'violet' },
@@ -364,62 +364,77 @@ const Periods = () => {
       <DialogModal
         open={showCreate}
         onOpenChange={setShowCreate}
+        icon={form.id ? 'edit' : 'add'}
         title={form.id ? 'Edit Periode Kencana' : 'Buat Periode Kencana'}
-        description="Lengkapi data periode di bawah untuk mengatur parameter Kencana."
-        maxWidth="max-w-4xl"
+        subtitle="Lengkapi data periode di bawah untuk mengatur parameter Kencana."
+        maxWidth="max-w-2xl"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setShowCreate(false)} />
+            <ModalSaveButton
+              form="form-period"
+              loading={createPeriod.isPending || updatePeriod.isPending}
+              icon="save"
+            >
+              {form.id ? 'Perbarui Periode' : 'Simpan Periode'}
+            </ModalSaveButton>
+          </>
+        }
       >
-        <form onSubmit={handleCreate} className="p-6 space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Kolom Kiri */}
-            <div className="space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--theme-text-subtle)] mb-2 border-b border-[var(--theme-border-muted)] pb-2">Informasi Dasar</h3>
-              <label className="block space-y-1">
-                <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest pl-1">Nama Periode</span>
-                <input required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Contoh: Kencana 2026" className="w-full px-4 py-3 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)]" />
+        <form id="form-period" onSubmit={handleCreate} className="space-y-6">
+          <div className="space-y-6">
+            {/* Informasi Dasar */}
+            <div className="p-5 rounded-2xl border border-[var(--theme-border)] bg-slate-50/50 space-y-4">
+              <h3 className="text-[11px] font-bold uppercase tracking-widest text-[var(--theme-text-muted)] border-b border-[var(--theme-border-muted)] pb-3 mb-2">Informasi Dasar</h3>
+              
+              <label className="block space-y-1.5">
+                <span className="text-sm font-bold text-[var(--theme-text)]">Nama Periode</span>
+                <input required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Contoh: Kencana 2026" className="w-full h-11 px-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-medium outline-none focus:ring-4 focus:ring-[var(--theme-primary)]/10 focus:border-[var(--theme-primary)] transition-all" />
               </label>
-              <label className="block space-y-1">
-                <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest pl-1">Tahun Ajaran</span>
-                <input type="number" value={form.year} onChange={e => setForm({ ...form, year: e.target.value })} placeholder="Contoh: 2026" className="w-full px-4 py-3 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)]" />
-              </label>
-              <label className="block space-y-1">
-                <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest pl-1">Deskripsi Singkat</span>
-                <textarea rows="4" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Tuliskan deskripsi periode..." className="w-full px-4 py-3 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)]" />
-              </label>
-              <div className="grid grid-cols-2 gap-4">
-                <label className="block space-y-1">
-                  <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest pl-1">Mulai Periode</span>
-                  <input type="date" value={form.start_date} onChange={e => setForm({ ...form, start_date: e.target.value })} className="w-full px-4 py-3 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)]" />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <label className="block space-y-1.5">
+                  <span className="text-sm font-bold text-[var(--theme-text)]">Tahun Ajaran</span>
+                  <input type="number" value={form.year} onChange={e => setForm({ ...form, year: e.target.value })} placeholder="Contoh: 2026" className="w-full h-11 px-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-medium outline-none focus:ring-4 focus:ring-[var(--theme-primary)]/10 focus:border-[var(--theme-primary)] transition-all" />
                 </label>
-                <label className="block space-y-1">
-                  <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest pl-1">Selesai Periode</span>
-                  <input type="date" value={form.end_date} onChange={e => setForm({ ...form, end_date: e.target.value })} className="w-full px-4 py-3 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)]" />
+                <label className="block space-y-1.5">
+                  <span className="text-sm font-bold text-[var(--theme-text)]">Tema / Slogan Kencana (Opsional)</span>
+                  <input value={form.theme} onChange={e => setForm({ ...form, theme: e.target.value })} placeholder="Contoh: Semangat Generasi Emas" className="w-full h-11 px-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-medium outline-none focus:ring-4 focus:ring-[var(--theme-primary)]/10 focus:border-[var(--theme-primary)] transition-all" />
+                </label>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <label className="block space-y-1.5">
+                  <span className="text-sm font-bold text-[var(--theme-text)]">Mulai Periode</span>
+                  <input type="date" value={form.start_date} onChange={e => setForm({ ...form, start_date: e.target.value })} className="w-full h-11 px-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-medium outline-none focus:ring-4 focus:ring-[var(--theme-primary)]/10 focus:border-[var(--theme-primary)] transition-all" />
+                </label>
+                <label className="block space-y-1.5">
+                  <span className="text-sm font-bold text-[var(--theme-text)]">Selesai Periode</span>
+                  <input type="date" value={form.end_date} onChange={e => setForm({ ...form, end_date: e.target.value })} className="w-full h-11 px-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-medium outline-none focus:ring-4 focus:ring-[var(--theme-primary)]/10 focus:border-[var(--theme-primary)] transition-all" />
+                </label>
+              </div>
+
+              <label className="block space-y-1.5">
+                <span className="text-sm font-bold text-[var(--theme-text)]">Deskripsi Singkat</span>
+                <textarea rows="3" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Tuliskan deskripsi periode..." className="w-full py-3 px-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-medium outline-none focus:ring-4 focus:ring-[var(--theme-primary)]/10 focus:border-[var(--theme-primary)] transition-all resize-none" />
+              </label>
+            </div>
+
+            {/* Pengaturan Penilaian */}
+            <div className="p-5 rounded-2xl border border-[var(--theme-border)] bg-slate-50/50 space-y-4">
+              <h3 className="text-[11px] font-bold uppercase tracking-widest text-[var(--theme-text-muted)] border-b border-[var(--theme-border-muted)] pb-3 mb-2">Pengaturan Penilaian</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <label className="block space-y-1.5">
+                  <span className="text-sm font-bold text-[var(--theme-text)]">Batas Kelulusan / Passing Grade</span>
+                  <input type="number" step="0.1" value={form.passing_grade} onChange={e => setForm({ ...form, passing_grade: parseFloat(e.target.value) || 0 })} placeholder="Contoh: 75" className="w-full h-11 px-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-medium outline-none focus:ring-4 focus:ring-[var(--theme-primary)]/10 focus:border-[var(--theme-primary)] transition-all" />
+                </label>
+                <label className="block space-y-1.5">
+                  <span className="text-sm font-bold text-[var(--theme-text)]">Batas Remedial (Minimal Nilai)</span>
+                  <input type="number" step="0.1" value={form.remedial_grade} onChange={e => setForm({ ...form, remedial_grade: parseFloat(e.target.value) || 0 })} placeholder="Contoh: 50" className="w-full h-11 px-4 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-medium outline-none focus:ring-4 focus:ring-[var(--theme-primary)]/10 focus:border-[var(--theme-primary)] transition-all" />
                 </label>
               </div>
             </div>
-
-            {/* Kolom Kanan */}
-            <div className="space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--theme-text-subtle)] mb-2 border-b border-[var(--theme-border-muted)] pb-2">Pengaturan Ekstra</h3>
-              <label className="block space-y-1">
-                <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest pl-1">Tema / Slogan Kencana (Opsional)</span>
-                <input value={form.theme} onChange={e => setForm({ ...form, theme: e.target.value })} placeholder="Contoh: Semangat Generasi Emas" className="w-full px-4 py-3 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)]" />
-              </label>
-              <label className="block space-y-1">
-                <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest pl-1">Batas Kelulusan / Passing Grade</span>
-                <input type="number" step="0.1" value={form.passing_grade} onChange={e => setForm({ ...form, passing_grade: parseFloat(e.target.value) || 0 })} placeholder="Contoh: 75" className="w-full px-4 py-3 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)]" />
-              </label>
-              <label className="block space-y-1">
-                <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest pl-1">Batas Remedial (Minimal Nilai)</span>
-                <input type="number" step="0.1" value={form.remedial_grade} onChange={e => setForm({ ...form, remedial_grade: parseFloat(e.target.value) || 0 })} placeholder="Contoh: 50" className="w-full px-4 py-3 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)]" />
-              </label>
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-6 border-t border-[var(--theme-border-muted)]">
-            <button type="button" onClick={() => setShowCreate(false)} className="px-6 py-2.5 rounded-xl font-bold text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg)] transition-colors">Batal</button>
-            <button disabled={createPeriod.isPending || updatePeriod.isPending} className="px-6 py-2.5 rounded-xl font-bold bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white shadow-md disabled:opacity-50 transition-colors">
-              {form.id ? 'Perbarui Periode' : 'Simpan Periode'}
-            </button>
           </div>
         </form>
       </DialogModal>

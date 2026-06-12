@@ -6,6 +6,9 @@ import 'package:bkuhub_mobile/features/tenaga_kesehatan/domain/entities/booking.
 import 'package:bkuhub_mobile/features/tenaga_kesehatan/domain/entities/patient.dart';
 import 'package:bkuhub_mobile/features/tenaga_kesehatan/domain/entities/medical_record.dart';
 import 'package:bkuhub_mobile/features/tenaga_kesehatan/domain/repositories/tk_repository.dart';
+import 'package:bkuhub_mobile/features/tenaga_kesehatan/data/models/tk_insurance_claim_model.dart';
+import 'package:bkuhub_mobile/features/tenaga_kesehatan/data/models/tk_bap_model.dart';
+import 'package:bkuhub_mobile/features/tenaga_kesehatan/data/models/tk_clinical_report_model.dart';
 
 class TkRepositoryImpl implements TkRepository {
   final ApiClient apiClient;
@@ -83,7 +86,7 @@ class TkRepositoryImpl implements TkRepository {
       final response = await apiClient.client.get('/tenagakes/schedules');
       final data = response.data['data'];
       if (data is List) {
-        return data.map((json) => Schedule.fromJson(json)).toList();
+        return data.map((json) => Schedule.fromJson(json as Map<String, dynamic>)).toList();
       }
       return [];
     } catch (e) {
@@ -140,7 +143,7 @@ class TkRepositoryImpl implements TkRepository {
       final response = await apiClient.client.get('/tenagakes/bookings');
       final data = response.data['data'];
       if (data is List) {
-        return data.map((json) => Booking.fromJson(json)).toList();
+        return data.map((json) => Booking.fromJson(json as Map<String, dynamic>)).toList();
       }
       return [];
     } catch (e) {
@@ -197,7 +200,7 @@ class TkRepositoryImpl implements TkRepository {
       final response = await apiClient.client.get('/tenagakes/patients');
       final data = response.data['data'];
       if (data is List) {
-        return data.map((json) => Patient.fromJson(json)).toList();
+        return data.map((json) => Patient.fromJson(json as Map<String, dynamic>)).toList();
       }
       return [];
     } catch (e) {
@@ -215,7 +218,7 @@ class TkRepositoryImpl implements TkRepository {
       );
       final data = response.data['data'];
       if (data is List) {
-        return data.map((json) => Patient.fromJson(json)).toList();
+        return data.map((json) => Patient.fromJson(json as Map<String, dynamic>)).toList();
       }
       return [];
     } catch (e) {
@@ -240,22 +243,144 @@ class TkRepositoryImpl implements TkRepository {
   // ==================== SCREENING ====================
 
   @override
-  Future<MedicalRecord> createScreening(
-    int patientId,
-    Map<String, dynamic> data,
-  ) async {
+  Future<MedicalRecord> createScreening(int patientId, Map<String, dynamic> data) async {
     try {
-      final response = await apiClient.client.post(
-        '/tenagakes/patients/$patientId/screening',
-        data: data,
-      );
+      final response = await apiClient.client.post('/tenagakes/patients/$patientId/screenings', data: data);
       final result = response.data['data'] ?? response.data;
       if (result is Map<String, dynamic>) {
         return MedicalRecord.fromJson(result);
       }
-      throw Exception('Invalid screening data');
+      throw Exception('Invalid response data');
     } catch (e) {
       log('Error creating screening: $e');
+      rethrow;
+    }
+  }
+
+  // ==================== INSURANCE CLAIMS ====================
+
+  @override
+  Future<List<TkInsuranceClaimModel>> getInsuranceClaims() async {
+    try {
+      final response = await apiClient.client.get('/tenagakes/claims');
+      final data = response.data['data'];
+      if (data is List) {
+        return data.map((json) => TkInsuranceClaimModel.fromJson(json as Map<String, dynamic>)).toList();
+      }
+      return [];
+    } catch (e) {
+      log('Error getting insurance claims: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<TkInsuranceClaimModel> updateInsuranceClaimStatus(int id, String status, {String? catatanReview}) async {
+    try {
+      final response = await apiClient.client.put('/tenagakes/claims/$id/status', data: {
+        'status': status,
+        if (catatanReview != null) 'catatan_review': catatanReview,
+      });
+      final result = response.data['data'] ?? response.data;
+      if (result is Map<String, dynamic>) {
+        return TkInsuranceClaimModel.fromJson(result);
+      }
+      throw Exception('Invalid response data');
+    } catch (e) {
+      log('Error updating insurance claim status: $e');
+      rethrow;
+    }
+  }
+
+  // ==================== BAP KESEHATAN ====================
+
+  @override
+  Future<List<TkBapModel>> getBAPs() async {
+    try {
+      final response = await apiClient.client.get('/tenagakes/bap');
+      final data = response.data['data'];
+      if (data is List) {
+        return data.map((json) => TkBapModel.fromJson(json as Map<String, dynamic>)).toList();
+      }
+      return [];
+    } catch (e) {
+      log('Error getting BAPs: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<TkBapModel> getBapDetail(int id) async {
+    try {
+      final response = await apiClient.client.get('/tenagakes/bap/$id');
+      final data = response.data['data'] ?? response.data;
+      if (data is Map<String, dynamic>) {
+        return TkBapModel.fromJson(data);
+      }
+      throw Exception('Invalid BAP data');
+    } catch (e) {
+      log('Error getting BAP detail: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<TkBapModel> createBAP(Map<String, dynamic> data) async {
+    try {
+      final response = await apiClient.client.post('/tenagakes/bap', data: data);
+      final result = response.data['data'] ?? response.data;
+      if (result is Map<String, dynamic>) {
+        return TkBapModel.fromJson(result);
+      }
+      throw Exception('Invalid response data');
+    } catch (e) {
+      log('Error creating BAP: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<TkBapModel> updateBAP(int id, Map<String, dynamic> data) async {
+    try {
+      final response = await apiClient.client.put('/tenagakes/bap/$id', data: data);
+      final result = response.data['data'] ?? response.data;
+      if (result is Map<String, dynamic>) {
+        return TkBapModel.fromJson(result);
+      }
+      throw Exception('Invalid response data');
+    } catch (e) {
+      log('Error updating BAP: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> deleteBAP(int id) async {
+    try {
+      await apiClient.client.delete('/tenagakes/bap/$id');
+    } catch (e) {
+      log('Error deleting BAP: $e');
+      rethrow;
+    }
+  }
+
+  // ==================== CLINICAL REPORTS ====================
+
+  @override
+  Future<TkClinicalReportModel> getClinicalReports({String? startDate, String? endDate}) async {
+    try {
+      Map<String, dynamic> queryParams = {};
+      if (startDate != null) queryParams['start_date'] = startDate;
+      if (endDate != null) queryParams['end_date'] = endDate;
+
+      final response = await apiClient.client.get('/tenagakes/reports', queryParameters: queryParams);
+      final data = response.data['data'] ?? response.data;
+      if (data is Map<String, dynamic>) {
+        return TkClinicalReportModel.fromJson(data);
+      }
+      throw Exception('Invalid clinical reports data');
+    } catch (e) {
+      log('Error getting clinical reports: $e');
       rethrow;
     }
   }

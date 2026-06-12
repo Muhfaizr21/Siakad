@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/Button"
 import { PageContent } from "@/components/ui/page/PageContent"
 import { DashboardHero } from "@/components/ui/dashboard/DashboardHero"
 import { DialogModal, ModalCancelButton } from "@/components/ui/DialogModal"
+import { PrimaryStatsCard } from "@/components/ui/StatsCard"
+import DataTable from "@/components/ui/DataTable"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const RefreshCw = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>sync</span>;
@@ -132,15 +134,8 @@ export default function MahasiswaPage() {
   const [loading, setLoading] = useState(true)
   const [isSyncing, setIsSyncing] = useState(false)
   const [selected, setSelected] = useState(null)
-  const [search, setSearch] = useState('')
-  const [filterStatus, setFilterStatus] = useState('all')
-  const [filterSemester, setFilterSemester] = useState('all')
-  const [filterProdi, setFilterProdi] = useState('all')
-  const [filterAngkatan, setFilterAngkatan] = useState('all')
-  const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
-  const [sortConfig, setSortConfig] = useState({ key: 'Nama', direction: 'asc' })
   const [facultyInfo, setFacultyInfo] = useState(null)
+  const [filterPeriod, setFilterPeriod] = useState('all')
 
   const getKopImage = (facName) => {
     const name = (facName || "").toLowerCase();
@@ -170,6 +165,14 @@ export default function MahasiswaPage() {
       Promise.resolve().then(() => setLoading(false))
     }
   }, [])
+
+  const filteredStudentData = useMemo(() => {
+    return studentData.filter(s => {
+      if (filterPeriod === 'all') return true;
+      const angkatan = s.TahunMasuk || (s.NIM ? `20${s.NIM.substring(0,2)}` : null);
+      return String(angkatan) === filterPeriod;
+    });
+  }, [studentData, filterPeriod]);
 
   const handleSync = async () => {
     setIsSyncing(true)
@@ -240,16 +243,28 @@ export default function MahasiswaPage() {
         <p style="font-weight:700;margin-top:4px;">${titleResolved}</p>
         <div style="margin-top:45px; font-weight:700; text-decoration:underline;">${nameResolved}</div>
       </div>
-      <script>window.onload=function(){setTimeout(function(){window.print();setTimeout(function(){window.close();},100);},300);};<\/script>
     </body></html>`;
-    printWindow.document.open();
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
+    
+    try {
+      printWindow.document.open();
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+      
+      printWindow.onload = () => {
+        setTimeout(() => {
+          printWindow.print();
+          setTimeout(() => { printWindow.close(); }, 100);
+        }, 300);
+      };
+    } catch (err) {
+      console.error("Print Error:", err);
+      toast.error("Gagal memproses PDF, mungkin karena ekstensi browser.");
+    }
   };
 
   const exportStudentsPDF = () => {
     if (studentData.length === 0) { toast.error('Tidak ada data mahasiswa untuk diekspor'); return; }
-    const dataToExport = filtered.length > 0 && filtered.length < studentData.length ? filtered : studentData;
+    const dataToExport = studentData;
     const statusBadge = (s) => {
       const key = (s || '').toLowerCase();
       if (key === 'aktif' || key === 'active') return '<span class="badge badge-aktif">Aktif</span>';
@@ -344,59 +359,60 @@ export default function MahasiswaPage() {
     return [...new Set(studentData.map(d => d.TahunMasuk).filter(s => s && s !== '—'))].sort()
   }, [studentData])
 
-  // eslint-disable-next-line react-hooks/preserve-manual-memoization
-  const filtered = useMemo(() =>
-    studentData.filter(d => {
-      const q = search.toLowerCase()
-      const matchQ = !q || d.Nama?.toLowerCase().includes(q) || d.NIM?.includes(q) || d.ProgramStudi?.toLowerCase().includes(q)
-      const matchS = filterStatus === 'all' || d.StatusAkun === filterStatus
-      const matchSem = filterSemester === 'all' || String(d.SemesterSekarang) === filterSemester
-      const matchPr = filterProdi === 'all' || d.ProgramStudi === filterProdi
-      const matchAng = filterAngkatan === 'all' || d.TahunMasuk === filterAngkatan
-      return matchQ && matchS && matchSem && matchPr && matchAng
-    })
-    , [studentData, search, filterStatus, filterSemester, filterProdi, filterAngkatan])
-
-  const sorted = useMemo(() => {
-    let items = [...filtered]
-    if (sortConfig.key !== null) {
-      items.sort((a, b) => {
-        let aVal = a[sortConfig.key]
-        let bVal = b[sortConfig.key]
-
-        if (typeof aVal === 'string') aVal = aVal.toLowerCase()
-        if (typeof bVal === 'string') bVal = bVal.toLowerCase()
-
-        if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1
-        if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1
-        return 0
-      })
+  const columns = useMemo(() => [
+    { label: 'NIM', key: 'NIM', render: (val) => <code className="text-[11px] font-bold text-primary tracking-wide bg-[#eff6ff] px-2 py-1 rounded-lg border border-[#dbeafe]">{val || '—'}</code> },
+    { label: 'Identitas Mahasiswa', key: 'Nama', render: (val, row) => (
+        <div className="flex items-center gap-3">
+          <StudentAvatar src={row.Foto} name={row.Nama} className="w-9 h-9 rounded-xl" />
+          <div>
+            <p className="font-bold text-[13px] text-slate-900 leading-snug">{row.Nama}</p>
+            <p className="text-[10px] text-slate-500 font-medium">{row.TahunMasuk} · {row.JalurMasuk}</p>
+          </div>
+        </div>
+      ) 
+    },
+    { label: 'Program Studi', key: 'ProgramStudi' },
+    { label: 'Smt', key: 'SemesterSekarang', className: 'text-center', render: (val) => <span className="text-sm font-black text-slate-900 tabular-nums">{val ?? '—'}</span> },
+    { label: 'Status', key: 'StatusAkun', render: (val) => {
+        const st = STATUS_STYLES[val] || STATUS_STYLES['Non-Aktif']
+        return (
+          <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider whitespace-nowrap', st.cls)}>
+            <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', st.dot)} />
+            {val}
+          </span>
+        )
+      } 
     }
-    return items
-  }, [filtered, sortConfig])
+  ], [])
 
-  const paginated = useMemo(() => {
-    const start = (currentPage - 1) * pageSize
-    return sorted.slice(start, start + pageSize)
-  }, [sorted, currentPage, pageSize])
-
-  const totalItems = filtered.length
-  const totalPages = Math.ceil(totalItems / pageSize)
-
-  const handleSort = (key) => {
-    let direction = 'asc'
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc'
+  const filtersConfig = useMemo(() => [
+    {
+      key: 'ProgramStudi',
+      placeholder: 'Program Studi',
+      options: prodiList.map(p => ({ label: p, value: p }))
+    },
+    {
+      key: 'SemesterSekarang',
+      placeholder: 'Semester',
+      options: semesterList.map(s => ({ label: `Semester ${s}`, value: String(s) }))
+    },
+    {
+      key: 'TahunMasuk',
+      placeholder: 'Angkatan',
+      options: angkatanList.map(a => ({ label: `Angkatan ${a}`, value: String(a) }))
+    },
+    {
+      key: 'StatusAkun',
+      placeholder: 'Status',
+      options: statusList.map(s => ({ label: s, value: s }))
     }
-    setSortConfig({ key, direction })
-    setCurrentPage(1)
-  }
+  ], [prodiList, semesterList, angkatanList, statusList])
 
   const stats = {
-    total: studentData.length,
-    aktif: studentData.filter(d => d.StatusAkun === 'Aktif' || d.StatusAkun === 'active').length,
-    lulus: studentData.filter(d => d.StatusAkun === 'Lulus').length,
-    cuti: studentData.filter(d => d.StatusAkun === 'Cuti' || d.StatusAkun === 'leave').length,
+    total: filteredStudentData.length,
+    aktif: filteredStudentData.filter(d => d.StatusAkun === 'Aktif' || d.StatusAkun === 'active').length,
+    lulus: filteredStudentData.filter(d => d.StatusAkun === 'Lulus').length,
+    cuti: filteredStudentData.filter(d => d.StatusAkun === 'Cuti' || d.StatusAkun === 'leave').length,
   }
 
   return (
@@ -413,8 +429,17 @@ export default function MahasiswaPage() {
           { label: `${stats.aktif} Mahasiswa Aktif`, active: true },
         ]}
         actions={
-          <>
-            <button onClick={exportStudentsPDF} disabled={loading || studentData.length === 0}
+          <div className="flex items-center gap-2">
+            <Select value={filterPeriod} onValueChange={setFilterPeriod}>
+              <SelectTrigger className="w-[180px] h-10 border border-slate-200/80 bg-white/80 rounded-xl text-xs font-bold text-slate-600 focus:ring-0">
+                <SelectValue placeholder="Semua Periode" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Angkatan</SelectItem>
+                {angkatanList.map(a => <SelectItem key={a} value={String(a)}>Angkatan {a}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <button onClick={exportStudentsPDF} disabled={loading || filteredStudentData.length === 0}
               className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-50 flex items-center gap-2">
               <FileText size={13} className="text-primary" /> Ekspor PDF
             </button>
@@ -422,316 +447,59 @@ export default function MahasiswaPage() {
               className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-60 flex items-center gap-2">
               {isSyncing ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '13px' }} >sync</span> : <RefreshCw size={13} className="text-primary" />} {isSyncing ? 'Syncing...' : 'PDDIKTI Sync'}
             </button>
-          </>
+          </div>
         }
       />
 
         {/* ── Stat Cards ── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            { label: 'Total Mahasiswa', value: stats.total, icon: Users, bg: 'bg-[#eef4ff]', color: 'text-primary', desc: 'Terdaftar di sistem' },
-            { label: 'Aktif', value: stats.aktif, icon: UserCheck, bg: 'bg-emerald-50', color: 'text-emerald-600', desc: 'Sedang aktif kuliah' },
-            { label: 'Lulus', value: stats.lulus, icon: GraduationCap, bg: 'bg-sky-50', color: 'text-sky-600', desc: 'Telah menyelesaikan studi' },
-            { label: 'Cuti', value: stats.cuti, icon: Calendar, bg: 'bg-amber-50', color: 'text-amber-600', desc: 'Sedang dalam masa cuti' },
-          ].map(s => (
-            <div key={s.label} className="glass-card border border-slate-200/60 rounded-2xl p-5 shadow-none">
-              <div className="flex items-center gap-3 mb-3">
-                <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0', s.bg, s.color)}>
-                  <s.icon size={18} />
-                </div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</span>
-              </div>
-              <p className="text-2xl font-extrabold text-slate-900 leading-none tabular-nums">
-                {loading ? <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span> : s.value}
-              </p>
-              <p className="text-xs text-slate-400 font-medium mt-1">{s.desc}</p>
-            </div>
-          ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <PrimaryStatsCard
+            title="Total Mahasiswa"
+            value={loading ? <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span> : stats.total}
+            subtitle="Terdaftar di sistem"
+            icon="group"
+            colorTheme="primary"
+          />
+          <PrimaryStatsCard
+            title="Aktif"
+            value={loading ? <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span> : stats.aktif}
+            subtitle="Sedang aktif kuliah"
+            icon="verified_user"
+            colorTheme="success"
+          />
+          <PrimaryStatsCard
+            title="Lulus"
+            value={loading ? <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span> : stats.lulus}
+            subtitle="Telah menyelesaikan studi"
+            icon="school"
+            colorTheme="info"
+          />
+          <PrimaryStatsCard
+            title="Cuti"
+            value={loading ? <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span> : stats.cuti}
+            subtitle="Sedang dalam masa cuti"
+            icon="calendar_month"
+            colorTheme="warning"
+          />
         </div>
 
         {/* ── Table Card ── */}
-        <div className="glass-card border border-slate-200/60 rounded-2xl shadow-none overflow-hidden">
-          {/* Toolbar */}
-          <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center gap-3">
-            <div className="flex-1">
-              <h2 className="font-black text-sm uppercase tracking-tight font-headline" style={{ color: 'var(--theme-h2)' }}>Daftar Mahasiswa</h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Menampilkan <span className="font-bold text-slate-900">{filtered.length}</span> dari <span className="font-bold text-primary">{studentData.length}</span> mahasiswa
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-              <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '14px' }} >search</span>
-                <input
-                  type="text"
-                  placeholder="Cari NIM, nama, prodi..."
-                  value={search}
-                  onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
-                  className="pl-9 pr-4 h-9 w-56 rounded-xl border border-slate-200/60 focus:outline-none focus:border-primary text-sm bg-white"
-                />
-              </div>
-
-              {/* Program Studi Filter */}
-              <div className="relative">
-                <select
-                  value={filterProdi}
-                  onChange={e => { setFilterProdi(e.target.value); setCurrentPage(1); }}
-                  className="h-9 pl-3 pr-8 rounded-xl border border-slate-200/60 text-xs font-medium bg-white text-slate-600 focus:outline-none focus:border-primary appearance-none cursor-pointer max-w-[180px] truncate"
-                >
-                  <option value="all">Semua Program Studi</option>
-                  {prodiList.map(pr => (
-                    <option key={pr} value={pr}>{pr}</option>
-                  ))}
-                </select>
-                <span className="material-symbols-outlined pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '16px' }}>expand_more</span>
-              </div>
-
-              {/* Semester Filter */}
-              <div className="relative">
-                <select
-                  value={filterSemester}
-                  onChange={e => { setFilterSemester(e.target.value); setCurrentPage(1); }}
-                  className="h-9 pl-3 pr-8 rounded-xl border border-slate-200/60 text-xs font-medium bg-white text-slate-600 focus:outline-none focus:border-primary appearance-none cursor-pointer"
-                >
-                  <option value="all">Semua Semester</option>
-                  {semesterList.map(sem => (
-                    <option key={sem} value={String(sem)}>Semester {sem}</option>
-                  ))}
-                </select>
-                <span className="material-symbols-outlined pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '16px' }}>expand_more</span>
-              </div>
-
-              {/* Angkatan Filter */}
-              <div className="relative">
-                <select
-                  value={filterAngkatan}
-                  onChange={e => { setFilterAngkatan(e.target.value); setCurrentPage(1); }}
-                  className="h-9 pl-3 pr-8 rounded-xl border border-slate-200/60 text-xs font-medium bg-white text-slate-600 focus:outline-none focus:border-primary appearance-none cursor-pointer"
-                >
-                  <option value="all">Semua Angkatan</option>
-                  {angkatanList.map(ang => (
-                    <option key={ang} value={String(ang)}>Angkatan {ang}</option>
-                  ))}
-                </select>
-                <span className="material-symbols-outlined pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '16px' }}>expand_more</span>
-              </div>
-
-              {/* Status Filter */}
-              <div className="relative">
-                <select
-                  value={filterStatus}
-                  onChange={e => { setFilterStatus(e.target.value); setCurrentPage(1); }}
-                  className="h-9 pl-3 pr-8 rounded-xl border border-slate-200/60 text-xs font-medium bg-white text-slate-600 focus:outline-none focus:border-primary appearance-none cursor-pointer"
-                >
-                  <option value="all">Semua Status</option>
-                  {statusList.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-                <span className="material-symbols-outlined pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '16px' }}>expand_more</span>
-              </div>
-
-              {(search || filterStatus !== 'all' || filterSemester !== 'all' || filterProdi !== 'all' || filterAngkatan !== 'all') && (
-                <button
-                  onClick={() => {
-                    setSearch('')
-                    setFilterStatus('all')
-                    setFilterSemester('all')
-                    setFilterProdi('all')
-                    setFilterAngkatan('all')
-                    setCurrentPage(1)
-                  }}
-                  className="h-9 px-3 text-xs font-semibold text-rose-600 bg-rose-50 rounded-xl border border-rose-200 hover:bg-rose-100 transition-colors cursor-pointer"
-                >
-                  Reset
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-slate-200/60">
-                  {[
-                    { label: 'No', key: null, sortable: false },
-                    { label: 'NIM', key: 'NIM', sortable: true },
-                    { label: 'Identitas Mahasiswa', key: 'Nama', sortable: true },
-                    { label: 'Program Studi', key: 'ProgramStudi', sortable: true },
-                    { label: 'Smt', key: 'SemesterSekarang', sortable: true, className: 'text-center' },
-                    { label: 'Status', key: 'StatusAkun', sortable: true },
-                    { label: 'Aksi', key: null, sortable: false, className: 'text-center' },
-                  ].map(h => (
-                    <th
-                      key={h.label}
-                      onClick={() => h.sortable && handleSort(h.key)}
-                      className={cn(
-                        'px-5 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider select-none',
-                        h.sortable && 'cursor-pointer hover:text-slate-900 group',
-                        h.className
-                      )}
-                    >
-                      <div className={cn('flex items-center gap-1.5', h.className?.includes('text-center') ? 'justify-center' : '')}>
-                        {h.label}
-                        {h.sortable && (
-                          sortConfig.key === h.key ? (
-                            sortConfig.direction === 'asc' ? (
-                              <span className="material-symbols-outlined size-3.5 text-primary" style={{ fontSize: '14px' }}>expand_less</span>
-                            ) : (
-                              <span className="material-symbols-outlined size-3.5 text-primary" style={{ fontSize: '14px' }}>expand_more</span>
-                            )
-                          ) : (
-                            <span className="material-symbols-outlined size-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" style={{ fontSize: '14px' }}>unfold_more</span>
-                          )
-                        )}
-                      </div>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  Array.from({ length: pageSize }).map((_, i) => (
-                    <tr key={i} className="border-b border-slate-100">
-                      {[...Array(7)].map((__, j) => (
-                        <td key={j} className="px-5 py-4"><div className="h-4 bg-slate-50 rounded animate-pulse" /></td>
-                      ))}
-                    </tr>
-                  ))
-                ) : paginated.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="px-5 py-16 text-center">
-                      <div className="flex flex-col items-center gap-3">
-                        <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-primary">
-                          <span className="material-symbols-outlined" style={{ fontSize: '22px' }} >group</span>
-                        </div>
-                        <p className="font-bold text-sm text-slate-900">Tidak Ada Data</p>
-                        <p className="text-xs text-slate-400">Coba ubah filter atau kata kunci pencarian.</p>
-                      </div>
-                    </td>
-                  </tr>
-                ) : paginated.map((row, i) => {
-                  const st = STATUS_STYLES[row.StatusAkun] || STATUS_STYLES['Non-Aktif']
-                  return (
-                    <tr key={row.ID || i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors">
-                      <td className="px-5 py-3.5 text-sm text-slate-400 font-medium">{(currentPage - 1) * pageSize + i + 1}</td>
-                      <td className="px-5 py-3.5">
-                        <code className="text-[11px] font-bold text-primary tracking-wide bg-[#eff6ff] px-2 py-1 rounded-lg border border-[#dbeafe]">
-                          {row.NIM || '—'}
-                        </code>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-3">
-                          <StudentAvatar src={row.Foto} name={row.Nama} className="w-9 h-9 rounded-xl" />
-                          <div>
-                            <p className="font-bold text-sm text-slate-900 leading-snug">{row.Nama}</p>
-                            <p className="text-[10px] text-slate-400 font-medium">{row.TahunMasuk} · {row.JalurMasuk}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <p className="text-sm text-slate-600 font-medium">{row.ProgramStudi}</p>
-                      </td>
-                      <td className="px-5 py-3.5 text-center">
-                        <span className="text-sm font-black text-slate-900 tabular-nums">
-                          {row.SemesterSekarang ?? '—'}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider whitespace-nowrap', st.cls)}>
-                          <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', st.dot)} />
-                          {row.StatusAkun}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3.5 text-center">
-                        <button
-                          onClick={() => setSelected(row)}
-                          className="p-1.5 text-slate-400 hover:text-primary hover:bg-[#eef4ff] rounded-lg transition-colors"
-                          title="Lihat Detail"
-                        >
-                          <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >visibility</span>
-                        </button>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Modern Pagination Footer */}
-          <div className="px-6 py-4 bg-transparent border-t border-slate-200/60 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-              <p className="text-xs text-slate-500 font-medium text-center sm:text-left">
-                Menampilkan <span className="font-semibold text-slate-800">{totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0}</span> sampai <span className="font-semibold text-slate-800">{Math.min(currentPage * pageSize, totalItems)}</span> dari <span className="font-semibold text-slate-800">{totalItems}</span> entri
-              </p>
-
-              <div className="hidden sm:block h-5 w-px bg-slate-200" />
-
-              <div className="flex items-center gap-2.5">
-                <span className="text-xs text-slate-400 font-medium whitespace-nowrap">Baris per halaman:</span>
-                <Select value={String(pageSize)} onValueChange={(val) => { setPageSize(Number(val)); setCurrentPage(1); }}>
-                  <SelectTrigger className="h-8 w-24 rounded-lg border-slate-200 bg-white font-semibold text-xs shadow-sm focus:ring-primary/20 px-2.5 py-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl border-slate-200 shadow-xl p-1 font-body">
-                    {[5, 10, 15, 25, 50].map((size) => (
-                      <SelectItem key={size} value={String(size)} className="rounded-lg text-xs py-1.5 focus:bg-primary/5 focus:text-primary">
-                        {size} Baris
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1 || loading}
-                className="h-8 px-3 rounded-lg border-slate-200 bg-white text-slate-600 font-semibold text-xs shadow-sm disabled:opacity-40 hover:bg-slate-50 transition-all active:scale-95"
-              >
-                <span className="material-symbols-outlined mr-1" style={{ fontSize: '15px' }}>chevron_left</span>
-                Sebelumnya
-              </Button>
-
-              <div className="flex items-center gap-1">
-                {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
-                  let pageNum = i + 1;
-                  if (totalPages > 5 && currentPage > 3) pageNum = currentPage - 3 + i;
-                  if (pageNum > totalPages) return null;
-
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => setCurrentPage(pageNum)}
-                      className={cn(
-                        "w-8 h-8 rounded-lg font-semibold text-xs transition-all duration-200",
-                        currentPage === pageNum
-                          ? "bg-primary text-white shadow-md shadow-primary/20 scale-105"
-                          : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
-                      )}
-                    >
-                      {pageNum}
-                    </button>
-                  )
-                })}
-              </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages || loading || totalPages === 0}
-                className="h-8 px-3 rounded-lg border-slate-200 bg-white text-slate-600 font-semibold text-xs shadow-sm disabled:opacity-40 hover:bg-slate-50 transition-all active:scale-95"
-              >
-                Berikutnya
-                <span className="material-symbols-outlined ml-1" style={{ fontSize: '15px' }}>chevron_right</span>
-              </Button>
-            </div>
-          </div>
-        </div>
+        <DataTable
+          columns={columns}
+          data={filteredStudentData}
+          loading={loading}
+          searchPlaceholder="Cari NIM, nama, atau prodi..."
+          filters={filtersConfig}
+          actions={(row) => (
+            <button
+              onClick={() => setSelected(row)}
+              className="p-1.5 text-slate-400 hover:text-primary hover:bg-[#eef4ff] rounded-lg transition-colors"
+              title="Lihat Detail"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >visibility</span>
+            </button>
+          )}
+        />
 
       {/* ── Detail Modal ── */}
       <DialogModal
@@ -815,7 +583,7 @@ function SectionBlock({ icon, title, children, last = false }) {
         </div>
         <h3 className="text-[10px] font-bold font-headline uppercase tracking-[0.18em] text-[var(--theme-text)]">{title}</h3>
       </div>
-      <div className="space-y-1">{children}</div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">{children}</div>
     </div>
   )
 }
@@ -824,13 +592,13 @@ function InfoCard({ icon, label, value, accent = 'border-l-[var(--theme-text-sub
   const IconComponent = icon
   const empty = !value || value === '—'
   return (
-    <div className={cn('flex items-center gap-3 p-3 rounded-xl bg-[var(--theme-bg)]/50 border border-[var(--theme-border-muted)] border-l-4 hover:bg-[var(--theme-surface)] hover:border-[var(--theme-border)] transition-all', accent)}>
-      <div className="w-7 h-7 bg-[var(--theme-surface)] rounded-lg flex items-center justify-center text-[var(--theme-primary)] shadow-sm border border-[var(--theme-border-muted)] flex-shrink-0">
-        <IconComponent size={13} />
+    <div className={cn('flex items-start gap-3 p-3.5 rounded-xl bg-white border border-[var(--theme-border-muted)] border-l-4 group hover:shadow-md hover:border-[var(--theme-border)] transition-all duration-300', accent)}>
+      <div className="w-8 h-8 bg-[var(--theme-bg)] rounded-lg flex items-center justify-center text-[var(--theme-primary)] shadow-sm border border-[var(--theme-border-muted)] flex-shrink-0 group-hover:scale-110 transition-transform">
+        <IconComponent size={14} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[9px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-[0.15em] mb-0.5">{label}</p>
-        <p className={cn('text-sm font-semibold text-[var(--theme-text)] truncate', mono && 'font-mono text-xs', empty && 'text-[var(--theme-text-subtle)] italic text-xs')}>
+        <p className="text-[9px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest mb-1">{label}</p>
+        <p className={cn('text-[13px] font-bold text-[var(--theme-text)] truncate', mono && 'font-mono text-xs', empty && 'text-[var(--theme-text-subtle)] italic font-medium')}>
           {empty ? 'Belum diisi' : value}
         </p>
       </div>

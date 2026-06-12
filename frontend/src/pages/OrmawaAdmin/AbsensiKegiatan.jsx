@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { PageContent, PageHeader } from "@/components/ui/page";
+import { PageContent } from "@/components/ui/page";
+import { DashboardHero } from '@/components/ui/dashboard';
 
 import { DataTable } from "@/components/ui/DataTable";
 import { Badge } from "@/components/ui/Badge";
@@ -12,7 +13,9 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/Dialog";
+import { DialogModal, ModalCancelButton, ModalSaveButton } from "@/components/ui/DialogModal";
 import { Card, CardContent } from "@/components/ui/Card";
+import { PrimaryStatsCard } from '@/components/ui/StatsCard';
 import { Avatar, AvatarFallback } from "@/components/ui/Avatar";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
@@ -26,6 +29,11 @@ import useAuthStore from "../../store/useAuthStore";
 import { getOrmawaId } from "../../utils/getOrmawaId";
 
 const API = `${API_BASE_URL}/ormawa`;
+
+const LayersIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>layers</span>;
+const GroupIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>group</span>;
+const CheckCircleIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>check_circle</span>;
+const PercentIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>percent</span>;
 
 const STATUS_CFG = {
   terjadwal: { label: 'Terjadwal', cls: 'bg-blue-50 text-blue-700 border-blue-100/60 shadow-sm', icon: 'schedule' },
@@ -255,142 +263,78 @@ export default function AbsensiKegiatan() {
       `}</style>
 
       {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <PageHeader
-        title="Absensi Kegiatan"
+      <DashboardHero
+        title="Absensi"
+        highlightedTitle="Kegiatan"
         subtitle="Kelola data presensi anggota dan buat kode pemindaian QR absensi instan."
         icon="qr_code_scanner"
-        action={
-          <div className="flex items-center gap-3">
-            <button
+        badges={[{ label: 'Presensi Organisasi', active: true }]}
+        actions={
+          <div className="flex items-center gap-2">
+            <Button
               onClick={() => setIsAddEventOpen(true)}
-              className="h-10 px-5 rounded-xl bg-[var(--theme-primary)] hover:opacity-90 text-white font-bold text-xs tracking-wider transition-all flex items-center gap-2 active:scale-95 shadow-sm border-none cursor-pointer"
+              className="h-11 px-6 rounded-xl bg-slate-800 text-white font-black font-headline text-[10px] uppercase tracking-widest gap-2 hover:bg-slate-900 transition-all active:scale-95 shadow-none border-none cursor-pointer flex items-center justify-center"
             >
-              <span
-                className="material-symbols-outlined size-4"
-                style={{ fontSize: "16px" }}
-              >
-                add
-              </span>
-              <span>TAMBAH</span>
-            </button>
-            <button
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>add</span>
+              TAMBAH
+            </Button>
+            <Button
+              variant="outline"
               onClick={fetchEvents}
-              className="h-10 px-5 rounded-xl bg-[var(--theme-surface)] hover:bg-[var(--theme-bg)] border border-border font-bold text-xs tracking-wider transition-all flex items-center gap-2 active:scale-95 shadow-sm cursor-pointer"
-              style={{ color: "var(--theme-primary)" }}
+              className="h-11 px-6 rounded-xl bg-white text-slate-800 border-slate-200 font-black font-headline text-[10px] uppercase tracking-widest gap-2 hover:bg-slate-50 transition-all active:scale-95 shadow-none cursor-pointer flex items-center justify-center"
             >
-              <span
-                className="material-symbols-outlined size-4"
-                style={{ fontSize: "16px" }}
-              >
-                sync
-              </span>
-              <span>REFRESH</span>
-            </button>
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>sync</span>
+              REFRESH
+            </Button>
           </div>
         }
-        breadcrumbs={[
-          { label: "Dashboard", path: "/ormawa" },
-          { label: "Absensi Kegiatan", path: "#" },
-        ]}
       />
 
       {/* ── Overview Statistics Cards Grid ────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {/* Total Kegiatan */}
-        <Card className="border border-border/50 shadow-sm rounded-2xl overflow-hidden bg-[var(--theme-surface)] hover:shadow-md transition-all duration-300">
-          <CardContent className="p-6 flex items-center gap-4.5">
-            <div className="w-12 h-12 rounded-xl bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)] border border-[var(--theme-primary)]/20">
-              <span
-                className="material-symbols-outlined"
-                style={{ fontSize: "24px" }}
-              >
-                layers
-              </span>
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-wider uppercase font-headline">
-                Total Sesi Kegiatan
-              </p>
-              <p className="text-2xl font-black text-[var(--theme-text)] tracking-tight font-headline">
-                {events.length}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+        <PrimaryStatsCard
+          title="Total Sesi Kegiatan"
+          value={events.length}
+          icon={LayersIcon}
+          colorTheme="info"
+          badgeText="Sesi"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">list_alt</span>}
+        />
 
-        {/* Total Anggota Terdaftar */}
-        <Card className="border border-border/50 shadow-sm rounded-2xl overflow-hidden bg-[var(--theme-surface)] hover:shadow-md transition-all duration-300">
-          <CardContent className="p-6 flex items-center gap-4.5">
-            <div className="w-12 h-12 rounded-xl bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)] border border-[var(--theme-primary)]/20">
-              <span
-                className="material-symbols-outlined"
-                style={{ fontSize: "24px" }}
-              >
-                group
-              </span>
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-wider uppercase font-headline">
-                Anggota Terdaftar
-              </p>
-              <p className="text-2xl font-black text-[var(--theme-text)] tracking-tight font-headline">
-                {selectedEvent ? attendance.length : 0}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <PrimaryStatsCard
+          title="Anggota Terdaftar"
+          value={selectedEvent ? attendance.length : 0}
+          icon={GroupIcon}
+          colorTheme="primary"
+          badgeText="Total Anggota"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">group_add</span>}
+        />
 
-        {/* Kehadiran Terpenuhi */}
-        <Card className="border border-border/50 shadow-sm rounded-2xl overflow-hidden bg-[var(--theme-surface)] hover:shadow-md transition-all duration-300">
-          <CardContent className="p-6 flex items-center gap-4.5">
-            <div className="w-12 h-12 rounded-xl bg-[var(--theme-success-light)] flex items-center justify-center text-[var(--theme-success)] border border-[var(--theme-success)]/20">
-              <span
-                className="material-symbols-outlined"
-                style={{ fontSize: "24px" }}
-              >
-                check_circle
-              </span>
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-wider uppercase font-headline">
-                Hadir / Tidak Hadir
-              </p>
-              <p className="text-2xl font-black text-[var(--theme-text)] tracking-tight font-headline">
-                {selectedEvent ? `${attendedCount} / ${absentCount}` : "0 / 0"}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <PrimaryStatsCard
+          title="Hadir / Tidak Hadir"
+          value={selectedEvent ? `${attendedCount} / ${absentCount}` : "0 / 0"}
+          icon={CheckCircleIcon}
+          colorTheme="success"
+          badgeText="Perbandingan"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">pie_chart</span>}
+        />
 
-        {/* Kehadiran Rate */}
-        <Card className="border border-border/50 shadow-sm rounded-2xl overflow-hidden bg-[var(--theme-surface)] hover:shadow-md transition-all duration-300">
-          <CardContent className="p-6 flex items-center gap-4.5">
-            <div className="w-12 h-12 rounded-xl bg-[var(--theme-warning-light)] flex items-center justify-center text-[var(--theme-warning)] border border-[var(--theme-warning)]/20">
-              <span
-                className="material-symbols-outlined"
-                style={{ fontSize: "24px" }}
-              >
-                percent
-              </span>
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-wider uppercase font-headline">
-                Rasio Kehadiran
-              </p>
-              <p className="text-2xl font-black text-[var(--theme-text)] tracking-tight font-headline">
-                {selectedEvent ? `${attendanceRate}%` : "0%"}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <PrimaryStatsCard
+          title="Rasio Kehadiran"
+          value={selectedEvent ? `${attendanceRate}%` : "0%"}
+          icon={PercentIcon}
+          colorTheme="warning"
+          badgeText="Persentase"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">trending_up</span>}
+        />
       </div>
 
       {/* ── Content Grid Area ────────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
         {/* Left Side: Events List (5 Cols) */}
         <div className="lg:col-span-5 flex flex-col">
-          <div className="bg-[var(--theme-surface)] rounded-2xl border border-border shadow-sm overflow-hidden p-5 flex flex-col h-full">
-            <div className="flex items-center justify-between px-1 mb-4 shrink-0">
+          <div className="glass-card shadow-sm rounded-xl overflow-hidden flex flex-col h-full animate-in slide-in-from-bottom-4 duration-500 delay-150">
+            <div className="flex items-center justify-between p-5 pb-4 shrink-0">
               <div className="space-y-0.5">
                 <h2
                   className="font-black text-[15px] font-headline uppercase tracking-wider"
@@ -407,7 +351,7 @@ export default function AbsensiKegiatan() {
               </Badge>
             </div>
 
-            <div className="border border-border/50 rounded-2xl overflow-hidden">
+            <div className="w-full flex-1 [&>div]:border-none [&>div]:rounded-none [&>div]:bg-transparent">
               <DataTable
                 columns={eventColumns}
                 data={events}
@@ -440,7 +384,7 @@ export default function AbsensiKegiatan() {
         {/* Right Side: Attendance Dashboard Control (7 Cols) */}
         <div className="lg:col-span-7 flex flex-col">
           {!selectedEvent ? (
-            <Card className="border border-dashed border-border rounded-2xl bg-[var(--theme-bg)] p-12 text-center shadow-none flex flex-col items-center justify-center h-full min-h-[460px] transition-all hover:bg-[var(--theme-bg)]/80">
+            <Card className="glass-card border border-dashed rounded-xl p-12 text-center flex flex-col items-center justify-center h-full min-h-[460px] transition-all animate-in slide-in-from-bottom-4 duration-500 delay-300">
               <div className="w-16 h-16 rounded-2xl bg-[var(--theme-bg)] flex items-center justify-center text-[var(--theme-text-subtle)] mb-4 shadow-sm border border-border/50">
                 <span
                   className="material-symbols-outlined"
@@ -464,9 +408,9 @@ export default function AbsensiKegiatan() {
           ) : (
             <div className="flex flex-col h-full space-y-6">
               {/* Event Quick Info Banner */}
-              <div className="relative overflow-hidden p-6 bg-gradient-to-br from-primary via-primary to-blue-700 rounded-2xl border-none shadow-lg shadow-[var(--theme-primary)]/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 shrink-0">
-                <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
-                <div className="absolute -bottom-6 right-32 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
+              <div className="relative overflow-hidden p-6 bg-gradient-to-br from-primary to-primary rounded-2xl border-none shadow-lg shadow-[var(--theme-primary)]/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 shrink-0">
+                <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/10 rounded-full pointer-events-none" />
+                <div className="absolute -bottom-6 right-32 w-28 h-28 bg-white/10 rounded-full pointer-events-none" />
                 <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
                   <span className="material-symbols-outlined size-24 rotate-12 text-white">
                     qr_code_scanner
@@ -553,7 +497,7 @@ export default function AbsensiKegiatan() {
               </div>
 
               {/* Attendance Checklist Control List */}
-              <div className="bg-[var(--theme-surface)] rounded-2xl border border-border shadow-sm overflow-hidden p-6 flex flex-col flex-1">
+              <div className="glass-card shadow-sm rounded-xl overflow-hidden p-6 flex flex-col flex-1 animate-in slide-in-from-bottom-4 duration-500 delay-300">
                 <div className="flex items-center justify-between shrink-0 mb-4">
                   <div className="space-y-0.5">
                     <h3
@@ -734,9 +678,9 @@ export default function AbsensiKegiatan() {
       {/* ── QR Scanner Popup Dialog ───────────────────────────────── */}
       <Dialog open={isQrOpen} onOpenChange={setIsQrOpen} maxWidth="max-w-md">
         <DialogContent className="w-full h-full p-0 overflow-hidden border-none shadow-none rounded-2xl bg-white animate-in zoom-in-95 duration-200">
-          <DialogHeader className="relative bg-gradient-to-br from-primary via-primary to-blue-700 pt-6 pb-7 px-6 overflow-hidden flex-shrink-0 border-b-0 text-left">
-            <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
-            <div className="absolute -bottom-6 right-16 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
+          <DialogHeader className="relative bg-gradient-to-br from-[var(--theme-primary)] to-[var(--theme-primary-hover)] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0 border-b-0 text-left">
+            <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/10 rounded-full pointer-events-none" />
+            <div className="absolute -bottom-6 right-16 w-28 h-28 bg-white/10 rounded-full pointer-events-none" />
             <div className="absolute -top-6 -right-2 opacity-10 pointer-events-none">
               <span
                 className="material-symbols-outlined -rotate-12 text-white"
@@ -808,7 +752,7 @@ export default function AbsensiKegiatan() {
 
               <Button
                 onClick={() => setIsQrOpen(false)}
-                className="w-full h-12 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black text-[10px] tracking-[0.2em] uppercase active:scale-95 transition-all shadow-lg border-none"
+                className="w-full h-12 rounded-2xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white font-black text-[10px] tracking-[0.2em] uppercase active:scale-95 transition-all shadow-lg border-none"
               >
                 TUTUP SCANNER
               </Button>
@@ -816,136 +760,115 @@ export default function AbsensiKegiatan() {
           </div>
         </DialogContent>
       </Dialog>
-      <Dialog open={isAddEventOpen} onOpenChange={setIsAddEventOpen}>
-        <DialogContent className="sm:max-w-[500px] p-6 bg-white rounded-3xl border border-border shadow-xl">
-          <DialogHeader className="mb-4">
-            <DialogTitle
-              className="text-xl font-black font-headline tracking-tighter"
-              style={{ color: "var(--theme-h2)" }}
+      <DialogModal
+        open={isAddEventOpen}
+        onOpenChange={setIsAddEventOpen}
+        title="Tambah Sesi Kegiatan"
+        description="Buat sesi kegiatan baru untuk melakukan rekam absensi."
+        icon="calendar_add_on"
+        maxWidth="max-w-md"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setIsAddEventOpen(false)} />
+            <ModalSaveButton label={isSubmitting ? "MENYIMPAN..." : "SIMPAN KEGIATAN"} onClick={handleCreateEvent} loading={isSubmitting} />
+          </>
+        }
+      >
+        <form id="add-event-form" onSubmit={handleCreateEvent} className="space-y-4">
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="Judul"
+              className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase"
             >
-              Tambah Sesi Kegiatan
-            </DialogTitle>
-            <DialogDescription className="text-sm text-[var(--theme-text-subtle)] font-medium">
-              Buat sesi kegiatan baru untuk melakukan rekam absensi.
-            </DialogDescription>
-          </DialogHeader>
+              Nama Kegiatan
+            </Label>
+            <Input
+              id="Judul"
+              placeholder="Rapat Koordinasi"
+              value={newEvent.Judul}
+              onChange={(e) =>
+                setNewEvent({ ...newEvent, Judul: e.target.value })
+              }
+              required
+            />
+          </div>
 
-          <form onSubmit={handleCreateEvent} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label
-                htmlFor="Judul"
-                className="text-xs font-bold text-[var(--theme-text-subtle)]"
+                htmlFor="TanggalMulai"
+                className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase"
               >
-                Nama Kegiatan
+                Tanggal Mulai
               </Label>
               <Input
-                id="Judul"
-                placeholder="Rapat Koordinasi"
-                value={newEvent.Judul}
+                id="TanggalMulai"
+                type="datetime-local"
+                value={newEvent.TanggalMulai}
                 onChange={(e) =>
-                  setNewEvent({ ...newEvent, Judul: e.target.value })
+                  setNewEvent({ ...newEvent, TanggalMulai: e.target.value })
                 }
                 required
-                className="bg-slate-50 border-border focus-visible:ring-[var(--theme-primary)]"
+                className="cursor-pointer"
               />
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label
-                  htmlFor="TanggalMulai"
-                  className="text-xs font-bold text-[var(--theme-text-subtle)]"
-                >
-                  Tanggal Mulai
-                </Label>
-                <Input
-                  id="TanggalMulai"
-                  type="datetime-local"
-                  value={newEvent.TanggalMulai}
-                  onChange={(e) =>
-                    setNewEvent({ ...newEvent, TanggalMulai: e.target.value })
-                  }
-                  required
-                  className="bg-slate-50 border-border focus-visible:ring-[var(--theme-primary)]"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label
-                  htmlFor="TanggalSelesai"
-                  className="text-xs font-bold text-[var(--theme-text-subtle)]"
-                >
-                  Tanggal Selesai
-                </Label>
-                <Input
-                  id="TanggalSelesai"
-                  type="datetime-local"
-                  value={newEvent.TanggalSelesai}
-                  onChange={(e) =>
-                    setNewEvent({ ...newEvent, TanggalSelesai: e.target.value })
-                  }
-                  required
-                  className="bg-slate-50 border-border focus-visible:ring-[var(--theme-primary)]"
-                />
-              </div>
-            </div>
-
             <div className="space-y-1.5">
               <Label
-                htmlFor="Lokasi"
-                className="text-xs font-bold text-[var(--theme-text-subtle)]"
+                htmlFor="TanggalSelesai"
+                className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase"
               >
-                Lokasi
+                Tanggal Selesai
               </Label>
               <Input
-                id="Lokasi"
-                placeholder="Gedung A, Ruang 101"
-                value={newEvent.Lokasi}
+                id="TanggalSelesai"
+                type="datetime-local"
+                value={newEvent.TanggalSelesai}
                 onChange={(e) =>
-                  setNewEvent({ ...newEvent, Lokasi: e.target.value })
+                  setNewEvent({ ...newEvent, TanggalSelesai: e.target.value })
                 }
                 required
-                className="bg-slate-50 border-border focus-visible:ring-[var(--theme-primary)]"
+                className="cursor-pointer"
               />
             </div>
+          </div>
 
-            <div className="space-y-1.5">
-              <Label
-                htmlFor="Deskripsi"
-                className="text-xs font-bold text-[var(--theme-text-subtle)]"
-              >
-                Deskripsi
-              </Label>
-              <Textarea
-                id="Deskripsi"
-                placeholder="Deskripsi singkat mengenai kegiatan ini..."
-                value={newEvent.Deskripsi}
-                onChange={(e) =>
-                  setNewEvent({ ...newEvent, Deskripsi: e.target.value })
-                }
-                className="resize-none h-24 bg-slate-50 border-border focus-visible:ring-[var(--theme-primary)]"
-              />
-            </div>
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="Lokasi"
+              className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase"
+            >
+              Lokasi
+            </Label>
+            <Input
+              id="Lokasi"
+              placeholder="Gedung A, Ruang 101"
+              value={newEvent.Lokasi}
+              onChange={(e) =>
+                setNewEvent({ ...newEvent, Lokasi: e.target.value })
+              }
+              required
+            />
+          </div>
 
-            <div className="pt-4 flex items-center justify-end gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsAddEventOpen(false)}
-                className="h-11 px-6 rounded-xl border-border font-bold text-xs cursor-pointer"
-              >
-                BATAL
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="h-11 px-6 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary)]/90 text-white font-bold text-xs border-none shadow-md shadow-[var(--theme-primary)]/20 cursor-pointer"
-              >
-                {isSubmitting ? "MENYIMPAN..." : "SIMPAN KEGIATAN"}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="Deskripsi"
+              className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase"
+            >
+              Deskripsi
+            </Label>
+            <Textarea
+              id="Deskripsi"
+              placeholder="Deskripsi singkat mengenai kegiatan ini..."
+              value={newEvent.Deskripsi}
+              onChange={(e) =>
+                setNewEvent({ ...newEvent, Deskripsi: e.target.value })
+              }
+              className="min-h-[80px]"
+            />
+          </div>
+        </form>
+      </DialogModal>
     </PageContent>
   );
 }

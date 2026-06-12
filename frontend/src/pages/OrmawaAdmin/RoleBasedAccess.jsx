@@ -1,16 +1,15 @@
 "use client"
 import React, { useState, useEffect } from 'react';
-import { PageContent, PageHeader } from '@/components/ui/page';
+import { PageContent } from '@/components/ui/page';
+import { DashboardHero } from '@/components/ui/dashboard';
 import { DataTable } from '@/components/ui/DataTable'
 
 
 
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
-import { DialogModal } from '@/components/ui/DialogModal'
+import { DialogModal, ModalCancelButton, ModalSaveButton } from '@/components/ui/DialogModal'
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
-import { Card, CardContent } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 
@@ -287,41 +286,41 @@ export default function RoleBasedAccess() {
           { ID: 3, Nama: 'Bendahara', Deskripsi: 'Manajemen keuangan dan laporan', Hak: ['manage_finance', 'manage_lpj'] },
         ])
       }
-    } catch { 
-      setRoles([]) 
-    } finally { 
-      setLoading(false) 
+    } catch {
+      setRoles([])
+    } finally {
+      setLoading(false)
     }
   }
 
-  useEffect(() => { 
-    fetchData() 
+  useEffect(() => {
+    fetchData()
   }, [ormawaId])
 
-  const handleOpenAdd = () => { 
+  const handleOpenAdd = () => {
     setIsEditMode(false)
     setForm({ Nama: '', Deskripsi: '', Hak: [], OrmawaID: ormawaId })
-    setIsCrudOpen(true) 
+    setIsCrudOpen(true)
   }
 
-  const handleOpenEdit = (row) => { 
+  const handleOpenEdit = (row) => {
     setIsEditMode(true)
-    setForm({ 
-      ID: row.ID || row.id, 
-      Nama: row.Nama || row.nama || '', 
-      Deskripsi: row.Deskripsi || row.deskripsi || '', 
-      Hak: parsePermissions(row.Hak || row.permissions || row.Permissions || []), 
-      OrmawaID: ormawaId 
+    setForm({
+      ID: row.ID || row.id,
+      Nama: row.Nama || row.nama || '',
+      Deskripsi: row.Deskripsi || row.deskripsi || '',
+      Hak: parsePermissions(row.Hak || row.permissions || row.Permissions || []),
+      OrmawaID: ormawaId
     })
-    setIsCrudOpen(true) 
+    setIsCrudOpen(true)
   }
 
   const toggleHak = (h) => {
     setForm(f => {
       const currentHak = f.Hak || []
-      return { 
-        ...f, 
-        Hak: currentHak.includes(h) ? currentHak.filter(x => x !== h) : [...currentHak, h] 
+      return {
+        ...f,
+        Hak: currentHak.includes(h) ? currentHak.filter(x => x !== h) : [...currentHak, h]
       }
     })
   }
@@ -332,27 +331,27 @@ export default function RoleBasedAccess() {
     const url = isEditMode ? `${API}/roles/${form.ID || form.id}` : `${API}/roles`
     const method = isEditMode ? 'PUT' : 'POST'
     try {
-      const json = await fetchWithAuth(url, { 
-        method, 
-        body: JSON.stringify({ 
+      const json = await fetchWithAuth(url, {
+        method,
+        body: JSON.stringify({
           OrmawaID: Number(ormawaId),
-          Nama: form.Nama, 
-          Deskripsi: form.Deskripsi, 
-          Hak: form.Hak 
+          Nama: form.Nama,
+          Deskripsi: form.Deskripsi,
+          Hak: form.Hak
         }),
         headers: { 'Content-Type': 'application/json' }
       })
-      if (json.status === 'success') { 
+      if (json.status === 'success') {
         toast.success(isEditMode ? 'Role berhasil diperbarui!' : 'Role baru berhasil dibuat!')
         setIsCrudOpen(false)
-        fetchData() 
+        fetchData()
       } else {
         toast.error(json.message || 'Gagal menyimpan role')
       }
-    } catch { 
-      toast.error('Terjadi kesalahan jaringan backend') 
-    } finally { 
-      setIsSubmitting(false) 
+    } catch {
+      toast.error('Terjadi kesalahan jaringan backend')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -360,37 +359,37 @@ export default function RoleBasedAccess() {
     setIsSubmitting(true)
     try {
       const json = await fetchWithAuth(`${API}/roles/${selected?.id || selected?.ID}`, { method: 'DELETE' })
-      if (json.status === 'success') { 
+      if (json.status === 'success') {
         toast.success('Role berhasil dihapus')
         setIsDelOpen(false)
-        fetchData() 
+        fetchData()
       } else {
         toast.error('Gagal menghapus role')
       }
-    } catch { 
-      toast.error('Terjadi kesalahan jaringan backend') 
-    } finally { 
-      setIsSubmitting(false) 
+    } catch {
+      toast.error('Terjadi kesalahan jaringan backend')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
   const columns = [
     {
-      key: 'Nama', 
-      label: 'Nama Role', 
+      key: 'Nama',
+      label: 'Nama Role',
       className: 'w-[200px]',
       render: (v, row) => <span className="font-bold text-[var(--theme-text)] font-headline text-[13px] tracking-tighter">{row.Nama || '—'}</span>
     },
     {
-      key: 'Deskripsi', 
-      label: 'Deskripsi Tanggung Jawab', 
+      key: 'Deskripsi',
+      label: 'Deskripsi Tanggung Jawab',
       className: 'min-w-[240px]',
       render: (v, row) => <span className="font-medium text-[var(--theme-text-muted)] text-[12px]">{row.Deskripsi || '—'}</span>
     },
     {
-      key: 'Hak', 
-      label: 'Kewenangan Otorisasi', 
-      className: 'min-w-[320px]', 
+      key: 'Hak',
+      label: 'Kewenangan Otorisasi',
+      className: 'min-w-[320px]',
       disableSort: true,
       render: (v, row) => {
         const hakList = row.Hak || []
@@ -420,42 +419,45 @@ export default function RoleBasedAccess() {
       <Toaster position="top-right" />
 
             {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <PageHeader 
-        title="Otoritas & Hak Akses"
+      <DashboardHero
+        title="Otoritas &"
+        highlightedTitle="Hak Akses"
         subtitle="Konfigurasi tata kelola otorisasi modul, hak istimewa role, dan kendali keamanan sistem."
         icon="security"
-       
-        breadcrumbs={[ { label: 'Dashboard', path: '/ormawa' }, { label: 'Otoritas & Hak Akses', path: '#' } ]} 
+        badges={[
+          { label: 'RBAC Portal', active: true }
+        ]}
       />
 
       {/* ── Content Area ───────────────────────────────────────────── */}
-      <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-[var(--theme-surface)]/70 backdrop-blur-md">
-        <CardContent className="p-6">
+      <div className="glass-card mb-8 animate-in slide-in-from-bottom-4 duration-500 fade-in border border-white/20 overflow-hidden">
+        <div className="p-0">
           <DataTable
+            containerClassName="border-0 shadow-none rounded-none"
             columns={columns} 
             data={roles} 
             loading={loading}
             searchPlaceholder="Cari nama role..."
-            onAdd={handleOpenAdd} 
+            onAdd={handleOpenAdd}
             addLabel="Buat Role Baru"
             actions={(row) => (
               <div className="flex items-center justify-end gap-1.5">
-                <Button 
-                  onClick={() => handleOpenEdit(row)} 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  onClick={() => handleOpenEdit(row)}
+                  variant="ghost"
+                  size="icon"
                   className="h-8 w-8 text-[var(--theme-text-muted)] hover:text-[var(--theme-warning)] hover:bg-[var(--theme-warning-light)] rounded-lg active:scale-95 transition-all"
                   title="Edit Otoritas Role"
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>edit_note</span>
                 </Button>
-                <Button 
-                  onClick={() => { 
+                <Button
+                  onClick={() => {
                     setSelected(row)
-                    setIsDelOpen(true) 
-                  }} 
-                  variant="ghost" 
-                  size="icon" 
+                    setIsDelOpen(true)
+                  }}
+                  variant="ghost"
+                  size="icon"
                   className="h-8 w-8 text-[var(--theme-text-muted)] hover:text-[var(--theme-error)] hover:bg-[var(--theme-error-light)] rounded-lg active:scale-95 transition-all"
                   title="Hapus Role"
                 >
@@ -464,44 +466,28 @@ export default function RoleBasedAccess() {
               </div>
             )}
           />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* ── CRUD Dialog (Premium Glassmorphism Style) ── */}
       <DialogModal
         open={isCrudOpen}
         onOpenChange={setIsCrudOpen}
         title={isEditMode ? 'Konfigurasi Hak Akses Role' : 'Daftarkan Role Baru'}
-        subtitle="Definisikan kewenangan akses, tugas tanggung jawab, dan otorisasi modul fungsional ormawa."
-        icon={<span className="material-symbols-outlined" style={{ fontSize: '24px' }}>security</span>}
+        subtitle="Konfigurasi izin akses dan otorisasi modul."
+        icon="security"
         maxWidth="max-w-4xl"
         footer={
-          <>
-            <Button 
-              type="button" 
-              variant="outline"
-              onClick={() => setIsCrudOpen(false)} 
-            >
-              Batal
-            </Button>
-            <Button 
-              type="submit" 
-              form="rbac-form"
-              disabled={isSubmitting} 
-              className="bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white shadow-md flex items-center gap-2"
-            >
-              {isSubmitting ? (
-                <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span>
-              ) : (
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>save</span>
-              )}
-              <span>{isEditMode ? 'Simpan Otoritas' : 'Terbitkan Role'}</span>
-            </Button>
-          </>
+          <div className="flex items-center justify-end gap-2">
+            <ModalCancelButton onClick={() => setIsCrudOpen(false)} />
+            <ModalSaveButton loading={isSubmitting} form="rbac-form">
+              {isEditMode ? 'SIMPAN OTORITAS' : 'TERBITKAN ROLE'}
+            </ModalSaveButton>
+          </div>
         }
       >
-        <form id="rbac-form" onSubmit={handleSave}>
-          <div className="space-y-5">
+        <form id="rbac-form" onSubmit={handleSave} className="flex flex-col">
+          <div className="p-6 md:p-8 space-y-5 max-h-[60vh] overflow-y-auto no-scrollbar font-inter">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Nama Role */}
                 <div className="space-y-1.5">
@@ -527,87 +513,97 @@ export default function RoleBasedAccess() {
                 </div>
               </div>
 
-              {/* CRUD Permission Matrix */}
-              <div className="space-y-3">
-                <Label className="text-xs font-semibold text-[var(--theme-text)] block">
-                  Matriks Izin Otorisasi (Centang per CRUD)
-                </Label>
-                <div className="max-h-[300px] overflow-y-auto pr-1 no-scrollbar">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="text-[9px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest border-b border-[var(--theme-border-muted)]">
-                        <th className="py-2 pr-2 w-1/3">Fitur</th>
-                        <th className="py-2 px-1 text-center w-[60px]"><span className="material-symbols-outlined" style={{fontSize:'14px'}}>visibility</span></th>
-                        <th className="py-2 px-1 text-center w-[60px]"><span className="material-symbols-outlined" style={{fontSize:'14px'}}>add</span></th>
-                        <th className="py-2 px-1 text-center w-[60px]"><span className="material-symbols-outlined" style={{fontSize:'14px'}}>edit</span></th>
-                        <th className="py-2 px-1 text-center w-[60px]"><span className="material-symbols-outlined" style={{fontSize:'14px'}}>delete</span></th>
-                        <th className="py-2 pl-1 text-center w-[60px]">Lain</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[var(--theme-border-muted)]">
-                      {PERM_GROUPS.map((group, gIdx) => {
-                        const viewP = group.permissions.find(p => p.startsWith('view_'))
-                        const createP = group.permissions.find(p => p.startsWith('create_') || p.startsWith('submit_'))
-                        const editP = group.permissions.find(p => p.startsWith('edit_') || p.startsWith('respond_'))
-                        const deleteP = group.permissions.find(p => p.startsWith('delete_'))
-                        const extraP = group.permissions.filter(p => p !== viewP && p !== createP && p !== editP && p !== deleteP && !p.startsWith('manage_'))
-                        return (
-                          <tr key={gIdx} className="hover:bg-[var(--theme-primary-light)]/40 transition-colors">
-                            <td className="py-2.5 pr-2">
-                              <div className="flex items-center gap-2">
-                                <span className="material-symbols-outlined text-[var(--theme-text-muted)] shrink-0" style={{fontSize:'15px'}}>{group.icon}</span>
-                                <span className="text-[11px] font-semibold text-[var(--theme-text)] font-headline leading-tight">{group.title}</span>
-                              </div>
-                            </td>
-                            {[viewP, createP, editP, deleteP].map((p, i) => (
-                              <td key={i} className="py-2.5 px-1 text-center">
-                                {p && (
-                                  <label className="flex items-center justify-center cursor-pointer">
-                                    <input type="checkbox"
-                                      checked={(form.Hak || []).includes(p)}
-                                      onChange={() => toggleHak(p)}
-                                      className="size-4 rounded border-border text-[var(--theme-primary)] focus:ring-[var(--theme-primary-light)] cursor-pointer" />
-                                  </label>
-                                )}
-                              </td>
-                            ))}
-                            <td className="py-2.5 pl-1 text-center">
-                              {extraP.length > 0 && (
-                                <div className="flex items-center justify-center gap-0.5">
-                                  {extraP.map(p => (
-                                    <label key={p} className="flex items-center justify-center cursor-pointer" title={PERM_LABELS[p]?.split(': ')[1] || p}>
-                                      <input type="checkbox"
-                                        checked={(form.Hak || []).includes(p)}
-                                        onChange={() => toggleHak(p)}
-                                        className="size-4 rounded border-border text-[var(--theme-warning)] focus:ring-[var(--theme-warning-light)] cursor-pointer" />
-                                    </label>
-                                  ))}
-                                </div>
-                              )}
-                            </td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
-                  <p className="text-[9px] text-[var(--theme-text-muted)] font-medium mt-3 italic px-1">
-                    Total: <span className="font-bold text-[var(--theme-text)]">{(form.Hak || []).length}</span> dari {PERMISSIONS.length} Izin Terpilih
-                  </p>
-                </div>
+              {/* Deskripsi */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-[var(--theme-text)]">Tanggung Jawab Singkat</Label>
+                <Input
+                  value={form.Deskripsi}
+                  onChange={e => setForm({ ...form, Deskripsi: e.target.value })}
+                  placeholder="Deskripsi singkat kewenangan tugas..."
+                  className="w-full"
+                />
               </div>
             </div>
 
+            {/* CRUD Permission Matrix */}
+            <div className="space-y-3">
+              <Label className="text-xs font-semibold text-[var(--theme-text)] block">
+                Matriks Izin Otorisasi (Centang per CRUD)
+              </Label>
+              <div className="max-h-[300px] overflow-y-auto pr-1 no-scrollbar">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="text-[9px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest border-b border-[var(--theme-border-muted)]">
+                      <th className="py-2 pr-2 w-1/3">Fitur</th>
+                      <th className="py-2 px-1 text-center w-[60px]"><span className="material-symbols-outlined" style={{ fontSize: '14px' }}>visibility</span></th>
+                      <th className="py-2 px-1 text-center w-[60px]"><span className="material-symbols-outlined" style={{ fontSize: '14px' }}>add</span></th>
+                      <th className="py-2 px-1 text-center w-[60px]"><span className="material-symbols-outlined" style={{ fontSize: '14px' }}>edit</span></th>
+                      <th className="py-2 px-1 text-center w-[60px]"><span className="material-symbols-outlined" style={{ fontSize: '14px' }}>delete</span></th>
+                      <th className="py-2 pl-1 text-center w-[60px]">Lain</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--theme-border-muted)]">
+                    {PERM_GROUPS.map((group, gIdx) => {
+                      const viewP = group.permissions.find(p => p.startsWith('view_'))
+                      const createP = group.permissions.find(p => p.startsWith('create_') || p.startsWith('submit_'))
+                      const editP = group.permissions.find(p => p.startsWith('edit_') || p.startsWith('respond_'))
+                      const deleteP = group.permissions.find(p => p.startsWith('delete_'))
+                      const extraP = group.permissions.filter(p => p !== viewP && p !== createP && p !== editP && p !== deleteP && !p.startsWith('manage_'))
+                      return (
+                        <tr key={gIdx} className="hover:bg-[var(--theme-primary-light)]/40 transition-colors">
+                          <td className="py-2.5 pr-2">
+                            <div className="flex items-center gap-2">
+                              <span className="material-symbols-outlined text-[var(--theme-text-muted)] shrink-0" style={{ fontSize: '15px' }}>{group.icon}</span>
+                              <span className="text-[11px] font-semibold text-[var(--theme-text)] font-headline leading-tight">{group.title}</span>
+                            </div>
+                          </td>
+                          {[viewP, createP, editP, deleteP].map((p, i) => (
+                            <td key={i} className="py-2.5 px-1 text-center">
+                              {p && (
+                                <label className="flex items-center justify-center cursor-pointer">
+                                  <input type="checkbox"
+                                    checked={(form.Hak || []).includes(p)}
+                                    onChange={() => toggleHak(p)}
+                                    className="size-4 rounded border-border text-[var(--theme-primary)] focus:ring-[var(--theme-primary-light)] cursor-pointer" />
+                                </label>
+                              )}
+                            </td>
+                          ))}
+                          <td className="py-2.5 pl-1 text-center">
+                            {extraP.length > 0 && (
+                              <div className="flex items-center justify-center gap-0.5">
+                                {extraP.map(p => (
+                                  <label key={p} className="flex items-center justify-center cursor-pointer" title={PERM_LABELS[p]?.split(': ')[1] || p}>
+                                    <input type="checkbox"
+                                      checked={(form.Hak || []).includes(p)}
+                                      onChange={() => toggleHak(p)}
+                                      className="size-4 rounded border-border text-[var(--theme-warning)] focus:ring-[var(--theme-warning-light)] cursor-pointer" />
+                                  </label>
+                                ))}
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+                <p className="text-[9px] text-[var(--theme-text-muted)] font-medium mt-3 italic px-1">
+                  Total: <span className="font-bold text-[var(--theme-text)]">{(form.Hak || []).length}</span> dari {PERMISSIONS.length} Izin Terpilih
+                </p>
+              </div>
+            </div>
         </form>
       </DialogModal>
 
       {/* Delete Confirmation Modal */}
-      <DeleteConfirmModal 
-        isOpen={isDelOpen} 
-        onClose={() => setIsDelOpen(false)} 
+      <DeleteConfirmModal
+        isOpen={isDelOpen}
+        onClose={() => setIsDelOpen(false)}
         onConfirm={handleDelete}
-        title="Hapus Role Otoritas?" 
-        description="Apakah Anda yakin ingin menghapus role otorisasi ini? Seluruh anggota dengan role ini akan kehilangan izin akses modul terkait." 
-        loading={isSubmitting} 
+        title="Hapus Role Otoritas?"
+        description="Apakah Anda yakin ingin menghapus role otorisasi ini? Seluruh anggota dengan role ini akan kehilangan izin akses modul terkait."
+        loading={isSubmitting}
       />
     </PageContent>
   )

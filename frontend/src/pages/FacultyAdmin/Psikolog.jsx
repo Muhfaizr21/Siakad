@@ -105,11 +105,7 @@ export default function PsikologPage() {
   const [psychologists, setPsychologists] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedPsikolog, setSelected] = useState(null)
-  const [search, setSearch] = useState('')
-  const [filterSpesialisasi, setFilterSpesialisasi] = useState('all')
-  const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
-  const [sortConfig, setSortConfig] = useState({ key: 'Nama', direction: 'asc' })
+  const [filterPeriode, setFilterPeriode] = useState('all')
 
   const [activeTab, setActiveTab] = useState('profile')
   const [bookings, setBookings] = useState([])
@@ -147,25 +143,26 @@ export default function PsikologPage() {
     try {
       const res = await api.get('/faculty/psychologists')
       let list = res?.data?.data || []
-      
+
       // MOCK DATA INJECTION FOR TESTING LAYOUT
       const mockSpesialisasi = ['Psikologi Klinis Dewasa', 'Klinis Anak & Remaja', 'Psikologi Pendidikan', 'Konseling Karir', 'Psikologi Industri', 'Perkembangan Anak', 'Psikologi Keluarga', 'Trauma & PTSD', 'Adiksi', 'Psikologi Umum'];
       const mockLokasi = ['Online', 'Tatap Muka', 'Hybrid', 'Online & Tatap Muka'];
       const mockNames = ['Budi Santoso', 'Siti Rahma', 'Ahmad Rizal', 'Dewi Lestari', 'Agus Setiawan', 'Rini Yulianti', 'Hendra Wijaya', 'Nina Safitri'];
-      
+
       const mockData = Array.from({ length: 120 }).map((_, i) => ({
         id: `mock-${i}`,
-        nama: `${mockNames[i % mockNames.length]} S.Psi., M.Psi., Psikolog ${i+1}`,
-        email: `psikolog.mock${i+1}@kampus.ac.id`,
+        nama: `${mockNames[i % mockNames.length]} S.Psi., M.Psi., Psikolog ${i + 1}`,
+        email: `psikolog.mock${i + 1}@kampus.ac.id`,
         no_hp: `081234567${String(i).padStart(3, '0')}`,
         spesialisasi: mockSpesialisasi[i % mockSpesialisasi.length],
-        bio: `Saya adalah psikolog berpengalaman lebih dari ${5 + (i%15)} tahun menangani berbagai kasus mahasiswa...`,
+        bio: `Saya adalah psikolog berpengalaman lebih dari ${5 + (i % 15)} tahun menangani berbagai kasus mahasiswa...`,
         foto_url: '',
         lokasi: mockLokasi[i % mockLokasi.length],
         bahasa: i % 4 === 0 ? 'Indonesia, Inggris' : 'Indonesia',
-        is_aktif: i % 10 !== 0 // 90% aktif
+        is_aktif: i % 10 !== 0,
+        CreatedAt: new Date(2023 + (i % 2), i % 12, 1).toISOString()
       }));
-      
+
       list = [...list, ...mockData];
       setPsychologists(list.map((p, i) => ({
         ID: p.id || p.ID,
@@ -178,6 +175,7 @@ export default function PsikologPage() {
         Lokasi: p.lokasi || p.Lokasi || '—',
         Bahasa: p.bahasa || p.Bahasa || 'Indonesia',
         IsAktif: p.is_aktif !== false,
+        CreatedAt: p.created_at || p.CreatedAt || new Date().toISOString(),
         colorIdx: i % AVATAR_COLORS.length,
       })))
 
@@ -202,55 +200,41 @@ export default function PsikologPage() {
 
   const spesialisasiList = [...new Set(psychologists.map(p => p.Spesialisasi).filter(Boolean))]
 
-  const filtered = useMemo(() =>
-    psychologists.filter(p => {
-      const q = search.toLowerCase()
-      const matchQ = !q || p.Nama?.toLowerCase().includes(q) || p.Email?.toLowerCase().includes(q) || p.Spesialisasi?.toLowerCase().includes(q)
-      const matchS = filterSpesialisasi === 'all' || p.Spesialisasi === filterSpesialisasi
-      return matchQ && matchS
+  const periodeOptions = useMemo(() => {
+    const periods = new Set()
+    psychologists.forEach(p => {
+      if (p.CreatedAt) {
+        const d = new Date(p.CreatedAt)
+        if (!isNaN(d.getTime())) {
+          periods.add(String(d.getFullYear()))
+        }
+      }
     })
-    , [psychologists, search, filterSpesialisasi])
+    return Array.from(periods).sort((a, b) => Number(b) - Number(a))
+  }, [psychologists])
 
-  const sorted = useMemo(() => {
-    let items = [...filtered]
-    if (sortConfig.key !== null) {
-      items.sort((a, b) => {
-        let aVal = a[sortConfig.key]
-        let bVal = b[sortConfig.key]
+  const filteredPsychologists = useMemo(() => {
+    if (filterPeriode === 'all') return psychologists
+    return psychologists.filter(p => {
+      if (!p.CreatedAt) return false
+      const d = new Date(p.CreatedAt)
+      return !isNaN(d.getTime()) && String(d.getFullYear()) === filterPeriode
+    })
+  }, [psychologists, filterPeriode])
 
-        if (typeof aVal === 'string') aVal = aVal.toLowerCase()
-        if (typeof bVal === 'string') bVal = bVal.toLowerCase()
-
-        if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1
-        if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1
-        return 0
-      })
+  const filtersConfig = useMemo(() => [
+    {
+      key: 'Spesialisasi',
+      placeholder: 'Spesialisasi',
+      options: spesialisasiList.map(s => ({ label: s, value: s }))
     }
-    return items
-  }, [filtered, sortConfig])
-
-  const paginated = useMemo(() => {
-    const start = (currentPage - 1) * pageSize
-    return sorted.slice(start, start + pageSize)
-  }, [sorted, currentPage, pageSize])
-
-  const totalItems = filtered.length
-  const totalPages = Math.ceil(totalItems / pageSize)
-
-  const handleSort = (key) => {
-    let direction = 'asc'
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc'
-    }
-    setSortConfig({ key, direction })
-    setCurrentPage(1)
-  }
+  ], [spesialisasiList])
 
   const stats = {
-    total: psychologists.length,
-    klinis: psychologists.filter(p => p.Spesialisasi?.toLowerCase().includes('klinis')).length,
-    umum: psychologists.filter(p => p.Spesialisasi?.toLowerCase().includes('umum')).length,
-    aktif: psychologists.filter(p => p.IsAktif).length,
+    total: filteredPsychologists.length,
+    klinis: filteredPsychologists.filter(p => p.Spesialisasi?.toLowerCase().includes('klinis')).length,
+    umum: filteredPsychologists.filter(p => p.Spesialisasi?.toLowerCase().includes('umum')).length,
+    aktif: filteredPsychologists.filter(p => p.IsAktif).length,
   }
 
   const columns = [
@@ -331,10 +315,18 @@ export default function PsikologPage() {
           { label: `${stats.aktif} Praktisi Aktif`, active: true }
         ]}
         actions={
-          <button onClick={fetchPsychologists} disabled={loading}
-            className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-60 flex items-center gap-2">
-            {loading ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '13px' }}>sync</span> : <span className="material-symbols-outlined text-primary" style={{ fontSize: 13 }}>sync</span>} Refresh Data
-          </button>
+          <div className="flex items-center gap-2">
+            <SelectField value={filterPeriode} onValueChange={setFilterPeriode}>
+              <SelectOption value="all">Semua Tahun</SelectOption>
+              {periodeOptions.map(per => (
+                <SelectOption key={per} value={per}>Tahun {per}</SelectOption>
+              ))}
+            </SelectField>
+            <button onClick={fetchPsychologists} disabled={loading}
+              className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-60 flex items-center gap-2">
+              {loading ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '13px' }}>sync</span> : <span className="material-symbols-outlined text-primary" style={{ fontSize: 13 }}>sync</span>} Refresh Data
+            </button>
+          </div>
         }
       />
 
@@ -343,7 +335,7 @@ export default function PsikologPage() {
         <PrimaryStatsCard
           title="Total Psikolog"
           value={stats.total}
-          icon={Users}
+          icon="group"
           colorTheme="primary"
           badgeText="Tervalidasi"
           badgeIcon={<span className="material-symbols-outlined text-[12px]">verified</span>}
@@ -351,7 +343,7 @@ export default function PsikologPage() {
         <PrimaryStatsCard
           title="Spesialisasi Klinis"
           value={stats.klinis}
-          icon={Briefcase}
+          icon="work"
           colorTheme="error"
           badgeText="Tersedia"
           badgeIcon={<span className="material-symbols-outlined text-[12px]">health_and_safety</span>}
@@ -359,7 +351,7 @@ export default function PsikologPage() {
         <PrimaryStatsCard
           title="Spesialisasi Umum"
           value={stats.umum}
-          icon={Award}
+          icon="emoji_events"
           colorTheme="info"
           badgeText="Tersedia"
           badgeIcon={<span className="material-symbols-outlined text-[12px]">group</span>}
@@ -367,7 +359,7 @@ export default function PsikologPage() {
         <PrimaryStatsCard
           title="Psikolog Aktif"
           value={stats.aktif}
-          icon={UserCheck}
+          icon="how_to_reg"
           colorTheme="success"
           badgeText="Online"
           badgeIcon={<span className="material-symbols-outlined text-[12px]">bolt</span>}
@@ -404,7 +396,7 @@ export default function PsikologPage() {
                     return <Cell key={`cell-${index}`} fill={colors[index % colors.length]} stroke="transparent" />
                   })}
                 </Pie>
-                <Tooltip 
+                <Tooltip
                   contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px', fontWeight: 'bold' }}
                   itemStyle={{ color: '#1e293b' }}
                 />
@@ -431,9 +423,9 @@ export default function PsikologPage() {
             </div>
           </div>
           {(() => {
-            const online = psychologists.filter(p => (p.Lokasi || '').toLowerCase().includes('online')).length
-            const offline = psychologists.filter(p => (p.Lokasi || '').toLowerCase().includes('tatap') || (p.Lokasi || '').toLowerCase().includes('kampus')).length
-            const hybrid = psychologists.length - online - offline
+            const online = filteredPsychologists.filter(p => (p.Lokasi || '').toLowerCase().includes('online')).length
+            const offline = filteredPsychologists.filter(p => (p.Lokasi || '').toLowerCase().includes('tatap') || (p.Lokasi || '').toLowerCase().includes('kampus')).length
+            const hybrid = filteredPsychologists.length - online - offline
             const items = [
               { name: 'Online (Daring)', count: online, color: 'bg-blue-400' },
               { name: 'Tatap Muka (Luring)', count: offline, color: 'bg-emerald-400' },
@@ -470,11 +462,11 @@ export default function PsikologPage() {
             </div>
           </div>
           {(() => {
-            const aktif = psychologists.filter(p => p.IsAktif).length
-            const nonaktif = psychologists.length - aktif
-            const total = psychologists.length || 1
+            const aktif = filteredPsychologists.filter(p => p.IsAktif).length
+            const nonaktif = filteredPsychologists.length - aktif
+            const total = filteredPsychologists.length || 1
             const aktifPct = Math.round((aktif / total) * 100)
-            
+
             return (
               <div className="flex flex-col gap-4 mt-3">
                 <div className="flex items-center gap-4 p-4 rounded-xl bg-emerald-50 border border-emerald-100 group-hover:border-emerald-200 transition-colors">
@@ -529,11 +521,11 @@ export default function PsikologPage() {
           <div className="space-y-2">
             <div className="flex items-center gap-2 p-2 bg-rose-50 rounded-lg">
               <Mail size={14} className="text-rose-600" />
-              <span className="text-xs font-medium text-slate-600">{psychologists.filter(p => p.Email && p.Email !== '—').length} Email Terdaftar</span>
+              <span className="text-xs font-medium text-slate-600">{filteredPsychologists.filter(p => p.Email && p.Email !== '—').length} Email Terdaftar</span>
             </div>
             <div className="flex items-center gap-2 p-2 bg-emerald-50 rounded-lg">
               <Phone size={14} className="text-emerald-600" />
-              <span className="text-xs font-medium text-slate-600">{psychologists.filter(p => p.NoHP && p.NoHP !== '—').length} No. HP Terdaftar</span>
+              <span className="text-xs font-medium text-slate-600">{filteredPsychologists.filter(p => p.NoHP && p.NoHP !== '—').length} No. HP Terdaftar</span>
             </div>
           </div>
         </div>
@@ -563,44 +555,19 @@ export default function PsikologPage() {
       </div>
 
       {/* ── Table Card ─────────────────────────────────────────── */}
-      <Card className="glass-card shadow-sm rounded-xl overflow-hidden mt-6 mb-6">
-        <div className="px-6 py-5 border-b border-[var(--theme-border)] flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-[var(--theme-surface)]">
-          <div className="flex-1">
-            <h2 className="font-headline font-bold text-lg text-[var(--theme-text)]">Daftar Praktisi & Psikolog</h2>
-            <p className="text-xs text-[var(--theme-text-muted)] mt-1 font-medium">
-              Menampilkan <span className="font-bold text-[var(--theme-text)]">{filtered.length}</span> dari <span className="font-bold text-[var(--theme-primary)]">{psychologists.length}</span> psikolog
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-            <div className="relative">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--theme-text-muted)]" style={{ fontSize: '16px' }} >search</span>
-              <input type="text" placeholder="Cari nama atau spesialisasi..." value={search} onChange={e => setSearch(e.target.value)}
-                className="pl-9 pr-4 h-10 w-64 rounded-xl border border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] text-sm bg-white transition-colors" />
-            </div>
-            <SelectField value={filterSpesialisasi} onValueChange={setFilterSpesialisasi} placeholder="Semua Spesialisasi" className="w-48">
-              <SelectOption value="all">Semua Spesialisasi</SelectOption>
-              {spesialisasiList.map(s => <SelectOption key={s} value={s}>{s}</SelectOption>)}
-            </SelectField>
-            {(search || filterSpesialisasi !== 'all') && (
-              <button onClick={() => { setSearch(''); setFilterSpesialisasi('all'); }}
-                className="h-10 px-4 text-xs font-semibold text-[var(--theme-error)] bg-[var(--theme-error-light)] rounded-xl hover:bg-[var(--theme-error)]/20 transition-colors border border-[var(--theme-error)]/20">Reset</button>
-            )}
-          </div>
-        </div>
-
-        <CardContent className="p-0">
-          <DataTable
-            data={filtered}
-            columns={columns}
-            loading={loading}
-            searchable={false}
-            pagination={true}
-            pageSize={10}
-            emptyMessage="Tidak Ada Data Psikolog"
-            emptyIcon="psychology"
-          />
-        </CardContent>
-      </Card>
+      <div className="mt-6 mb-6">
+        <DataTable
+          data={filteredPsychologists}
+          columns={columns}
+          loading={loading}
+          searchPlaceholder="Cari nama psikolog, spesialisasi, dsb..."
+          filters={filtersConfig}
+          pagination={true}
+          pageSize={10}
+          emptyMessage="Tidak Ada Data Psikolog"
+          emptyIcon="psychology"
+        />
+      </div>
 
       {/* ── Detail Modal ──────────────────────────────────────────── */}
       <DialogModal
@@ -615,7 +582,7 @@ export default function PsikologPage() {
         footer={
           <button
             onClick={() => handleSelectPsikolog(null)}
-            className="h-10 px-5 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] text-xs font-semibold text-[var(--theme-text)] uppercase tracking-wider hover:bg-[var(--theme-bg)] transition-all active:scale-95 cursor-pointer"
+            className="h-10 px-5 rounded-xl bg-[var(--theme-primary)] text-white text-xs font-semibold uppercase tracking-wider hover:opacity-90 hover:shadow-md hover:shadow-[var(--theme-primary)]/20 transition-all active:scale-95 cursor-pointer border border-[var(--theme-primary)]"
           >
             Tutup Detail
           </button>
@@ -686,9 +653,12 @@ export default function PsikologPage() {
                     </div>
                     <h3 className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">Profil & Biografi</h3>
                   </div>
-                  <p className="text-sm text-[var(--theme-text-muted)] leading-relaxed italic bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl p-4">
-                    "{selectedPsikolog?.Bio}"
-                  </p>
+                  <div className="bg-white border border-[var(--theme-border)] shadow-sm rounded-xl p-4 relative mt-1">
+                    <span className="material-symbols-outlined absolute top-2 right-3 text-slate-100" style={{ fontSize: '40px', zIndex: 0}}>format_quote</span>
+                    <p className="text-sm text-[var(--theme-text)] leading-relaxed italic relative z-10 font-medium">
+                      "{selectedPsikolog?.Bio}"
+                    </p>
+                  </div>
                 </div>
 
                 {/* Penugasan Konselor */}
@@ -850,7 +820,7 @@ export default function PsikologPage() {
 function InfoCard({ icon: Icon, label, value, accent = 'border-l-[var(--theme-border)]', mono = false }) {
   return (
     <div className={cn(
-      'flex items-center gap-3 p-3 rounded-xl bg-[var(--theme-bg)]/50 border border-[var(--theme-border)] border-l-4 hover:bg-[var(--theme-surface)] hover:border-[var(--theme-border)]/60 transition-all',
+      'flex items-center gap-3 p-3 rounded-xl bg-white shadow-sm border border-[var(--theme-border)] border-l-4 transition-all',
       accent
     )}>
       <div className="w-7 h-7 bg-[var(--theme-surface)] rounded-lg flex items-center justify-center text-[var(--theme-primary)] shadow-sm border border-[var(--theme-border)] flex-shrink-0">

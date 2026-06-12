@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import { PageContent } from '@/components/ui/page'
 import { DashboardHero } from '@/components/ui/dashboard'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
+import { DialogModal, ModalCancelButton, ModalSaveButton } from '@/components/ui/DialogModal'
 import { DataTable } from '@/components/ui/DataTable'
 import { Eye } from 'lucide-react'
 
@@ -707,6 +707,19 @@ const AspirationControl = () => {
           data={baseFilteredAspirations}
           loading={loading}
           emptyMessage="No incident tickets found"
+          actions={(asp) => (
+            <div className="flex justify-end items-center gap-1.5">
+              <Button
+                onClick={() => { setSelected(asp); handleOpenAudit(asp); }}
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-neutral-400 hover:text-primary hover:bg-indigo-50 rounded-lg transition-colors shadow-none"
+                title="Lihat Detail"
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>visibility</span>
+              </Button>
+            </div>
+          )}
           columns={[
             {
               key: 'ID',
@@ -778,240 +791,151 @@ const AspirationControl = () => {
                   </div>
                 );
               }
-            },
-            {
-              key: 'actions',
-              label: 'Aksi',
-              className: 'w-[100px] text-center',
-              cellClassName: 'text-center',
-              render: (_, asp) => (
-                <div className="flex justify-center items-center gap-1">
-                  <button
-                    onClick={() => { setSelected(asp); handleOpenAudit(asp); }}
-                    title="Lihat Detail"
-                    className="p-1.5 rounded-lg text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors inline-flex items-center justify-center cursor-pointer"
-                  >
-                    <Eye className="w-4 h-4" strokeWidth={2.5} />
-                  </button>
-                </div>
-              )
             }
           ]}
         />
       </div>
 
-      {/* ── Premium Skinnier Aspiration Audit Modal ──────────────── */}
-      {selected && (
-        <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4 sm:p-6"
-          onClick={() => {
-            if (!isSubmitting) setSelected(null);
-          }}
-        >
-          <div
-            className="relative w-full max-w-3xl bg-[var(--theme-bg)]/95 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-[var(--theme-border)] flex flex-col overflow-hidden max-h-[95vh] animate-in fade-in zoom-in-95 duration-300"
-            onClick={e => e.stopPropagation()}
-          >
-            {/* ── Premium Header ────────────────────────────────────── */}
-            <div className="relative bg-gradient-to-br from-primary via-primary to-blue-700 pt-8 pb-8 px-8 overflow-hidden flex-shrink-0">
-              <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
-              <div className="absolute bottom-0 left-0 w-[200px] h-[200px] bg-white/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/3 pointer-events-none" />
-
-              <button
-                onClick={() => setSelected(null)}
-                disabled={isSubmitting}
-                className="absolute z-50 top-6 right-6 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-all disabled:opacity-50 text-white border border-white/10 cursor-pointer shadow-lg"
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>close</span>
-              </button>
-
-              <div className="relative z-10 flex flex-col sm:flex-row sm:items-center gap-5 mb-5">
-                <div className="w-16 h-16 rounded-2xl shadow-xl ring-2 ring-white/20 bg-white/10 flex items-center justify-center shrink-0 overflow-hidden text-white relative">
-                  <span className="material-symbols-outlined relative z-10" style={{ fontSize: '32px' }}>admin_panel_settings</span>
+      <DialogModal
+        open={!!selected}
+        onOpenChange={(val) => { if (!val && !isSubmitting) setSelected(null) }}
+        icon="admin_panel_settings"
+        title={selected?.Judul || selected?.Subjek || "Detail Aspirasi"}
+        subtitle={`Incident Audit · #ASP-${selected?.ID?.toString().padStart(4, '0')} · Oleh: ${selected?.Mahasiswa?.Nama || 'Mahasiswa'} · Status: ${selected?.Status || 'OPEN'}`}
+        maxWidth="max-w-3xl"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setSelected(null)} disabled={isSubmitting}>
+              Batal
+            </ModalCancelButton>
+            <ModalSaveButton onClick={handleSubmitResolution} loading={isSubmitting} icon="task_alt">
+              Simpan Resolusi
+            </ModalSaveButton>
+          </>
+        }
+      >
+        {selected && (
+          <div className="space-y-8">
+            {/* 1. Identitas Pelapor */}
+            <div className="p-5 rounded-3xl bg-[var(--theme-surface)] border border-[var(--theme-border)] shadow-sm flex gap-5 items-center group hover:shadow-md transition-all">
+              <StudentAvatar src={selected.Mahasiswa?.Foto} name={selected.Mahasiswa?.Nama} className="w-16 h-16 rounded-[1rem] shadow-md ring-4 ring-[var(--theme-border-muted)] shrink-0 group-hover:scale-105 transition-transform" />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest">Identitas Pelapor</p>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[8px] font-black border border-[var(--theme-border)] text-[var(--theme-text-muted)] bg-[var(--theme-bg)] uppercase tracking-widest">
+                    Verified
+                  </span>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-3 mb-1.5">
-                    <p className="text-[10px] font-black text-blue-200 uppercase tracking-[0.3em]">
-                      Incident Audit
-                    </p>
-                    <span className="w-1 h-1 rounded-full bg-blue-200/50" />
-                    <span className="text-[10px] font-bold text-white/70 font-mono tracking-wider">
-                      #ASP-{selected.ID?.toString().padStart(4, '0')}
-                    </span>
-                  </div>
-                  <h2 className="text-xl sm:text-2xl font-black font-headline leading-tight truncate text-white mb-2 tracking-tight">
-                    {selected.Judul || selected.Subjek}
-                  </h2>
+                <p className="font-black text-[var(--theme-text)] text-sm truncate">{selected.Mahasiswa?.Nama}</p>
+                <div className="flex items-center gap-3 mt-1 text-xs text-[var(--theme-text-muted)]">
+                  <span className="font-mono bg-[var(--theme-bg)] px-1.5 py-0.5 rounded border border-[var(--theme-border)] text-[10px] font-bold">{selected.Mahasiswa?.NIM}</span>
+                  <span className="flex items-center gap-1 font-bold text-[10px] uppercase">
+                    <span className="material-symbols-outlined text-[14px] text-[var(--theme-primary)]">domain</span>
+                    {selected.Mahasiswa?.Fakultas?.Nama || 'Institusional'}
+                  </span>
                 </div>
-              </div>
-
-              <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4">
-                <div className="flex items-center gap-2 text-xs text-blue-100 font-medium">
-                  <span className="material-symbols-outlined text-[16px] text-white/70">person</span>
-                  Oleh: <span className="text-white font-bold">{selected.Mahasiswa?.Nama || 'Mahasiswa'}</span>
-                </div>
-                <span className={cn(
-                  "flex items-center gap-2 border px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg",
-                  selected.Status?.toLowerCase() === 'selesai' ? 'bg-emerald-500/20 border-emerald-400/30 text-emerald-200 shadow-emerald-500/10' :
-                    selected.Status?.toLowerCase() === 'proses' ? 'bg-sky-500/20 border-sky-400/30 text-sky-200 shadow-sky-500/10' :
-                      'bg-amber-500/20 border-amber-400/30 text-amber-200 shadow-amber-500/10'
-                )}>
-                  <span className="w-2 h-2 rounded-full bg-current animate-pulse" />
-                  {selected.Status || 'OPEN'}
-                </span>
               </div>
             </div>
 
-            {/* ── Single Column Body ────────────────────────────────── */}
-            <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-8 bg-[var(--theme-bg)]/20">
-
-              {/* 1. Identitas Pelapor */}
-              <div className="p-5 rounded-3xl bg-[var(--theme-surface)] border border-[var(--theme-border)] shadow-sm flex gap-5 items-center group hover:shadow-md transition-all">
-                <StudentAvatar src={selected.Mahasiswa?.Foto} name={selected.Mahasiswa?.Nama} className="w-16 h-16 rounded-[1rem] shadow-md ring-4 ring-[var(--theme-border-muted)] shrink-0 group-hover:scale-105 transition-transform" />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest">Identitas Pelapor</p>
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[8px] font-black border border-[var(--theme-border)] text-[var(--theme-text-muted)] bg-[var(--theme-bg)] uppercase tracking-widest">
-                      Verified
-                    </span>
-                  </div>
-                  <p className="font-black text-[var(--theme-text)] text-sm truncate">{selected.Mahasiswa?.Nama}</p>
-                  <div className="flex items-center gap-3 mt-1 text-xs text-[var(--theme-text-muted)]">
-                    <span className="font-mono bg-[var(--theme-bg)] px-1.5 py-0.5 rounded border border-[var(--theme-border)] text-[10px] font-bold">{selected.Mahasiswa?.NIM}</span>
-                    <span className="flex items-center gap-1 font-bold text-[10px] uppercase">
-                      <span className="material-symbols-outlined text-[14px] text-[var(--theme-primary)]">domain</span>
-                      {selected.Mahasiswa?.Fakultas?.Nama || 'Institusional'}
-                    </span>
-                  </div>
+            {/* 2. Substansi Aspirasi */}
+            <div className="space-y-3">
+              <h4 className="text-[11px] font-black uppercase tracking-widest flex items-center gap-2 text-[var(--theme-text-muted)] ml-1">
+                <span className="material-symbols-outlined text-[var(--theme-primary)] text-[18px]">article</span>
+                Substansi Aspirasi
+              </h4>
+              <div className="p-6 rounded-3xl bg-[var(--theme-surface)] border border-[var(--theme-border)] shadow-sm relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-5 opacity-5 text-[var(--theme-primary)] pointer-events-none group-hover:scale-110 transition-transform duration-700">
+                  <span className="material-symbols-outlined text-[80px]">format_quote</span>
                 </div>
+                <p className="text-[14px] text-[var(--theme-text)] font-medium leading-relaxed font-body relative z-10 whitespace-pre-wrap">
+                  {selected.Isi || 'Tidak ada deskripsi konten.'}
+                </p>
               </div>
+            </div>
 
-              {/* 2. Substansi Aspirasi */}
+            {/* 3. Visual Proof */}
+            {selected.BuktiURL && (
               <div className="space-y-3">
                 <h4 className="text-[11px] font-black uppercase tracking-widest flex items-center gap-2 text-[var(--theme-text-muted)] ml-1">
-                  <span className="material-symbols-outlined text-[var(--theme-primary)] text-[18px]">article</span>
-                  Substansi Aspirasi
+                  <span className="material-symbols-outlined text-[var(--theme-primary)] text-[18px]">photo_library</span>
+                  Bukti Lampiran
                 </h4>
-                <div className="p-6 rounded-3xl bg-[var(--theme-surface)] border border-[var(--theme-border)] shadow-sm relative overflow-hidden group">
-                  <div className="absolute top-0 right-0 p-5 opacity-5 text-[var(--theme-primary)] pointer-events-none group-hover:scale-110 transition-transform duration-700">
-                    <span className="material-symbols-outlined text-[80px]">format_quote</span>
-                  </div>
-                  <p className="text-[14px] text-[var(--theme-text)] font-medium leading-relaxed font-body relative z-10 whitespace-pre-wrap">
-                    {selected.Isi || 'Tidak ada deskripsi konten.'}
-                  </p>
-                </div>
-              </div>
-
-              {/* 3. Visual Proof */}
-              {selected.BuktiURL && (
-                <div className="space-y-3">
-                  <h4 className="text-[11px] font-black uppercase tracking-widest flex items-center gap-2 text-[var(--theme-text-muted)] ml-1">
-                    <span className="material-symbols-outlined text-[var(--theme-primary)] text-[18px]">photo_library</span>
-                    Bukti Lampiran
-                  </h4>
-                  <div className="relative aspect-[21/9] rounded-3xl overflow-hidden border border-[var(--theme-border)] shadow-md group bg-[var(--theme-bg)] cursor-pointer">
-                    <img
-                      src={getCleanImageUrl(selected.BuktiURL)}
-                      alt="Bukti Aspirasi"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                    />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
-                      <a
-                        href={getCleanImageUrl(selected.BuktiURL)}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="px-5 py-2.5 bg-[var(--theme-surface)] text-[var(--theme-text)] rounded-xl font-black text-[11px] uppercase tracking-widest shadow-xl flex items-center gap-2 hover:bg-[var(--theme-primary)] hover:text-white transition-all active:scale-95"
-                      >
-                        <span className="material-symbols-outlined text-[16px]">open_in_new</span> Lihat Penuh
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <hr className="border-[var(--theme-border-muted)]" />
-
-              {/* 4. Governance Panel */}
-              <div className="space-y-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[var(--theme-border-muted)] flex items-center justify-center text-[var(--theme-text-muted)]">
-                    <span className="material-symbols-outlined">gavel</span>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-black text-[var(--theme-text)]">Panel Resolusi</h3>
-                    <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-widest">Tindakan Admin</p>
-                  </div>
-                </div>
-
-                {/* Status Selection */}
-                <div className="space-y-3">
-                  <Label className="text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest ml-1 block">Ubah Status Tiket</Label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {[
-                      { val: 'proses', label: 'Diproses', icon: 'sync', active: 'bg-blue-50 text-blue-700 border-blue-200 shadow-sm ring-1 ring-blue-500/20' },
-                      { val: 'Selesai', label: 'Selesai', icon: 'check_circle', active: 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-sm ring-1 ring-emerald-500/20' },
-                      { val: 'Ditinjau', label: 'Ditinjau', icon: 'plagiarism', active: 'bg-amber-50 text-amber-700 border-amber-200 shadow-sm ring-1 ring-amber-500/20' },
-                      { val: 'Ditolak', label: 'Ditolak', icon: 'cancel', active: 'bg-rose-50 text-rose-700 border-rose-200 shadow-sm ring-1 ring-rose-500/20' },
-                    ].map(s => (
-                      <button
-                        key={s.val}
-                        type="button"
-                        onClick={() => setForm({ ...form, status: s.val })}
-                        className={cn(
-                          'h-11 rounded-xl flex items-center justify-center gap-2 border font-black uppercase tracking-widest text-[9px] transition-all duration-300 cursor-pointer',
-                          form.status?.toLowerCase() === s.val.toLowerCase()
-                            ? s.active
-                            : 'border-[var(--theme-border)] bg-[var(--theme-surface)] text-[var(--theme-text)] hover:border-[var(--theme-border-muted)] hover:bg-[var(--theme-bg)]'
-                        )}
-                      >
-                        <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >{s.icon}</span>
-                        {s.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Response */}
-                <div className="space-y-3">
-                  <Label className="text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest ml-1 block">Tanggapan Resmi</Label>
-                  <textarea
-                    value={form.respon}
-                    onChange={e => setForm({ ...form, respon: e.target.value })}
-                    placeholder="Tuliskan respon resmi, klarifikasi, atau solusi..."
-                    className="w-full min-h-[140px] rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-bg)] p-5 text-[13px] font-medium font-body text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/20 outline-none resize-none transition-all placeholder:text-[var(--theme-text-subtle)] leading-relaxed shadow-inner"
+                <div className="relative aspect-[21/9] rounded-3xl overflow-hidden border border-[var(--theme-border)] shadow-md group bg-[var(--theme-bg)] cursor-pointer">
+                  <img
+                    src={getCleanImageUrl(selected.BuktiURL)}
+                    alt="Bukti Aspirasi"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                   />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                    <a
+                      href={getCleanImageUrl(selected.BuktiURL)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-5 py-2.5 bg-[var(--theme-surface)] text-[var(--theme-text)] rounded-xl font-black text-[11px] uppercase tracking-widest shadow-xl flex items-center gap-2 hover:bg-[var(--theme-primary)] hover:text-white transition-all active:scale-95"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">open_in_new</span> Lihat Penuh
+                    </a>
+                  </div>
                 </div>
               </div>
+            )}
+
+            <hr className="border-[var(--theme-border-muted)]" />
+
+            {/* 4. Governance Panel */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[var(--theme-border-muted)] flex items-center justify-center text-[var(--theme-text-muted)]">
+                  <span className="material-symbols-outlined">gavel</span>
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-[var(--theme-text)]">Panel Resolusi</h3>
+                  <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-widest">Tindakan Admin</p>
+                </div>
+              </div>
+
+              {/* Status Selection */}
+              <div className="space-y-3">
+                <Label className="text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest ml-1 block">Ubah Status Tiket</Label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {[
+                    { val: 'proses', label: 'Diproses', icon: 'sync', active: 'bg-blue-50 text-blue-700 border-blue-200 shadow-sm ring-1 ring-blue-500/20' },
+                    { val: 'Selesai', label: 'Selesai', icon: 'check_circle', active: 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-sm ring-1 ring-emerald-500/20' },
+                    { val: 'Ditinjau', label: 'Ditinjau', icon: 'plagiarism', active: 'bg-amber-50 text-amber-700 border-amber-200 shadow-sm ring-1 ring-amber-500/20' },
+                    { val: 'Ditolak', label: 'Ditolak', icon: 'cancel', active: 'bg-rose-50 text-rose-700 border-rose-200 shadow-sm ring-1 ring-rose-500/20' },
+                  ].map(s => (
+                    <button
+                      key={s.val}
+                      type="button"
+                      onClick={() => setForm({ ...form, status: s.val })}
+                      className={cn(
+                        'h-11 rounded-xl flex items-center justify-center gap-2 border font-black uppercase tracking-widest text-[9px] transition-all duration-300 cursor-pointer',
+                        form.status?.toLowerCase() === s.val.toLowerCase()
+                          ? s.active
+                          : 'border-[var(--theme-border)] bg-[var(--theme-surface)] text-[var(--theme-text)] hover:border-[var(--theme-border-muted)] hover:bg-[var(--theme-bg)]'
+                      )}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >{s.icon}</span>
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Response */}
+              <div className="space-y-3">
+                <Label className="text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest ml-1 block">Tanggapan Resmi</Label>
+                <textarea
+                  value={form.respon}
+                  onChange={e => setForm({ ...form, respon: e.target.value })}
+                  placeholder="Tuliskan respon resmi, klarifikasi, atau solusi..."
+                  className="w-full min-h-[140px] rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-bg)] p-5 text-[13px] font-medium font-body text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/20 outline-none resize-none transition-all placeholder:text-[var(--theme-text-subtle)] leading-relaxed shadow-inner"
+                />
+              </div>
             </div>
-
-            {/* ── Footer Actions ────────────────────────────────────── */}
-            <div className="px-6 sm:px-8 py-5 border-t border-[var(--theme-border)] bg-[var(--theme-surface)]/80 backdrop-blur-md flex justify-end gap-3 flex-shrink-0">
-              <button
-                onClick={() => setSelected(null)}
-                className="h-11 px-6 sm:px-8 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] text-[11px] font-black text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] hover:border-[var(--theme-border-muted)] hover:bg-[var(--theme-bg)] uppercase tracking-[0.1em] transition-all duration-300 active:scale-95 cursor-pointer shadow-sm"
-              >
-                Batal
-              </button>
-              <button
-                onClick={handleSubmitResolution}
-                disabled={isSubmitting}
-                className="group relative h-11 px-6 sm:px-8 rounded-xl bg-[var(--theme-primary)] hover:opacity-90 text-white font-black text-[11px] uppercase tracking-[0.1em] transition-all duration-300 flex items-center justify-center gap-2 border border-transparent shadow-[0_4px_14px_0_rgba(59,130,246,0.39)] hover:shadow-[0_6px_20px_rgba(59,130,246,0.23)] hover:-translate-y-0.5 active:translate-y-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
-              >
-                {/* Inner highlight for glass button effect */}
-                <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/20 pointer-events-none" />
-
-                {isSubmitting ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white relative z-10"></div>
-                ) : (
-                  <span className="material-symbols-outlined relative z-10 group-hover:scale-110 transition-transform duration-300" style={{ fontSize: '18px' }} >task_alt</span>
-                )}
-                <span className="relative z-10">Simpan Resolusi</span>
-              </button>
-            </div>
-
           </div>
-        </div>
-      )}
+        )}
+      </DialogModal>
 
     </PageContent>
   )

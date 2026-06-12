@@ -25,6 +25,12 @@ import 'package:bkuhub_mobile/features/tenaga_kesehatan/presentation/pages/tk_ad
 import 'package:bkuhub_mobile/features/tenaga_kesehatan/presentation/pages/tk_patient_detail_screen.dart';
 import 'package:bkuhub_mobile/features/tenaga_kesehatan/presentation/pages/tk_screening_input_screen.dart';
 import 'package:bkuhub_mobile/features/tenaga_kesehatan/presentation/pages/tk_qr_scan_screen.dart';
+import 'package:bkuhub_mobile/features/tenaga_kesehatan/presentation/pages/tk_notifications_screen.dart';
+import 'package:bkuhub_mobile/features/tenaga_kesehatan/presentation/pages/tk_insurance_claims_screen.dart';
+import 'package:bkuhub_mobile/features/tenaga_kesehatan/presentation/pages/tk_bap_screen.dart';
+import 'package:bkuhub_mobile/features/tenaga_kesehatan/presentation/pages/tk_bap_form_screen.dart';
+import 'package:bkuhub_mobile/features/tenaga_kesehatan/presentation/pages/tk_clinical_reports_screen.dart';
+import 'package:bkuhub_mobile/features/tenaga_kesehatan/data/models/tk_bap_model.dart';
 
 class AppRoutes {
   static const String splash = '/';
@@ -54,11 +60,16 @@ class AppRoutes {
   static const String tkPatientDetail = '/tk/patient';
   static const String tkScreening = '/tk/screening';
   static const String tkQrScan = '/tk/qr-scan';
+  static const String tkInsuranceClaims = '/tk/insurance-claims';
+  static const String tkBap = '/tk/bap';
+  static const String tkBapForm = '/tk/bap/form';
+  static const String tkClinicalReports = '/tk/reports';
 
   // Notification Routes
   static const String studentNotifications = '/notifications/student';
   static const String ormawaNotifications = '/notifications/ormawa';
   static const String psychologistNotifications = '/notifications/psychologist';
+  static const String tkNotifications = '/notifications/tk';
 
   // Compatibility aliases
   static const String main = studentMain;
@@ -192,6 +203,31 @@ class AppRoutes {
       GoRoute(
         path: tkQrScan,
         builder: (context, state) => const TkQrScanScreen(),
+      ),
+      GoRoute(
+        path: tkNotifications,
+        builder: (context, state) => const TkNotificationsScreen(),
+      ),
+      GoRoute(
+        path: tkInsuranceClaims,
+        builder: (context, state) => const TkInsuranceClaimsScreen(),
+      ),
+      GoRoute(
+        path: tkBap,
+        builder: (context, state) => const TkBapScreen(),
+      ),
+      GoRoute(
+        path: tkBapForm,
+        builder: (context, state) {
+          final extra = state.extra;
+          return TkBapFormScreen(
+            existingBap: extra is TkBapModel ? extra : null,
+          );
+        },
+      ),
+      GoRoute(
+        path: tkClinicalReports,
+        builder: (context, state) => const TkClinicalReportsScreen(),
       ),
     ],
   );

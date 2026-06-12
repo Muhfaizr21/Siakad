@@ -8,7 +8,7 @@ import { DashboardHero } from '@/components/ui/dashboard'
 import { DataTable } from '@/components/ui/DataTable'
 import { TitleSubtitleCell } from '@/components/ui/TableCells'
 import { PrimaryStatsCard } from '@/components/ui/StatsCard'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
+import { DialogModal, ModalCancelButton, ModalSaveButton } from '@/components/ui/DialogModal'
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
@@ -317,7 +317,7 @@ export default function GamifikasiOrmawa() {
 
               {/* Rankings Table */}
               <div className="lg:col-span-2">
-                <Card className="glass-card shadow-sm rounded-xl overflow-hidden border-slate-100/60 h-full flex flex-col">
+                <div className="glass-card shadow-sm rounded-xl overflow-hidden border-slate-100/60 h-full flex flex-col">
                   <div className="p-5 border-b border-[var(--theme-border-muted)] bg-[var(--theme-bg)] flex items-center justify-between gap-4">
                     <h2 className="text-base font-bold text-[var(--theme-text)] font-headline">Peringkat Lengkap</h2>
                     <Badge className="bg-primary/5 text-primary border-primary/10 px-2.5 py-0.5 rounded-full text-[10px] font-bold">
@@ -325,7 +325,7 @@ export default function GamifikasiOrmawa() {
                     </Badge>
                   </div>
 
-                  <CardContent className="p-0 border-none shadow-none bg-transparent">
+                  <div className="p-0 border-none shadow-none bg-transparent">
                     <DataTable
                       columns={leaderboardColumns}
                       data={leaderboard}
@@ -336,8 +336,8 @@ export default function GamifikasiOrmawa() {
                       pageSize={10}
                       emptyMessage="Belum ada data peringkat."
                     />
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               </div>
 
               {/* Point Log Timeline */}
@@ -452,162 +452,86 @@ export default function GamifikasiOrmawa() {
       </div>
 
       {/* ── Rule Edit/Create Dialog ─────────────────────────────────────── */}
-      <Dialog open={isRuleEditOpen} onOpenChange={setIsRuleEditOpen} maxWidth="max-w-md" className="flex flex-col max-h-[90vh] overflow-hidden p-0">
-        <DialogContent className="w-full flex-1 flex flex-col p-0 overflow-hidden border-none shadow-none bg-white">
-          <DialogHeader className="relative bg-gradient-to-br from-primary via-primary to-blue-700 pt-6 pb-7 px-6 overflow-hidden flex-shrink-0 border-b-0 text-left">
-            <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
-            <div className="absolute -bottom-6 right-16 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
-            <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
-              <span className="material-symbols-outlined size-24 rotate-12 text-white">star</span>
-            </div>
-            <div className="relative z-10 space-y-1">
-              <div className="flex items-center gap-2 mb-2">
-                <Badge className="bg-white/10 text-white px-2.5 py-0.5 text-[9px] font-black tracking-widest uppercase rounded-md border-none backdrop-blur-sm">
-                  Gamifikasi
-                </Badge>
-              </div>
-              <DialogTitle className="text-lg font-black text-white font-headline tracking-tight uppercase">
-                {ruleMode === 'create' ? 'Buat Aturan Poin' : 'Edit Aturan Poin'}
-              </DialogTitle>
-              <DialogDescription className="text-white/70 text-[11px] font-semibold leading-relaxed font-inter">
-                {ruleMode === 'create'
-                  ? 'Tambahkan aturan pembagian poin baru.'
-                  : 'Ubah parameter pembagian poin otomatis untuk aktivitas ini.'}
-              </DialogDescription>
-            </div>
-          </DialogHeader>
-
-          <form onSubmit={handleSaveRule} className="flex flex-col flex-1 overflow-hidden">
-            <div className="p-6 md:p-8 space-y-5 overflow-y-auto no-scrollbar font-inter flex-1">
-              {ruleMode === 'create' && (
-                <div className="space-y-2">
-                  <Label htmlFor="ruleKey" className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Key Unik</Label>
-                  <Input
-                    id="ruleKey"
-                    value={ruleForm.key}
-                    onChange={(e) => setRuleForm({ ...ruleForm, key: e.target.value })}
-                    required
-                    className="h-12 border-slate-200 bg-white shadow-sm focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-xl px-4 font-mono font-bold text-xs"
-                    placeholder="Contoh: proposal_disetujui"
-                  />
-                </div>
-              )}
-
+      <DialogModal
+        open={isRuleEditOpen}
+        onOpenChange={setIsRuleEditOpen}
+        title={ruleMode === 'create' ? 'Buat Aturan Poin' : 'Edit Aturan Poin'}
+        subtitle={ruleMode === 'create' ? 'Tambahkan aturan pembagian poin baru.' : 'Ubah parameter pembagian poin otomatis untuk aktivitas ini.'}
+        icon="stars"
+        maxWidth="max-w-md"
+        footer={
+          <div className="flex items-center justify-end gap-2">
+            <ModalCancelButton onClick={() => setIsRuleEditOpen(false)} />
+            <ModalSaveButton loading={submittingRule} form="rule-form">
+              SIMPAN
+            </ModalSaveButton>
+          </div>
+        }
+      >
+        <form id="rule-form" onSubmit={handleSaveRule} className="flex flex-col">
+          <div className="space-y-3 max-h-[60vh] overflow-y-auto no-scrollbar font-inter">
+            {ruleMode === 'create' && (
               <div className="space-y-2">
-                <Label htmlFor="ruleLabel" className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Nama Aktivitas</Label>
+                <Label htmlFor="ruleKey" className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Key Unik</Label>
                 <Input
-                  id="ruleLabel"
-                  value={ruleForm.label}
-                  onChange={(e) => setRuleForm({ ...ruleForm, label: e.target.value })}
+                  id="ruleKey"
+                  value={ruleForm.key}
+                  onChange={(e) => setRuleForm({ ...ruleForm, key: e.target.value })}
                   required
-                  className="h-12 border-slate-200 bg-white shadow-sm focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-xl px-4 font-bold text-xs"
-                  placeholder="Contoh: Proposal Disetujui"
+                  className="font-mono font-bold text-xs"
+                  placeholder="Contoh: proposal_disetujui"
                 />
               </div>
+            )}
 
-              <div className="space-y-2">
-                <Label htmlFor="rulePoin" className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Poin Diberikan</Label>
-                <Input
-                  id="rulePoin"
-                  type="number"
-                  value={ruleForm.poin}
-                  onChange={(e) => setRuleForm({ ...ruleForm, poin: parseInt(e.target.value) || 0 })}
-                  required
-                  className="h-12 border-slate-200 bg-white shadow-sm focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-xl px-4 font-mono font-bold text-xs"
-                  placeholder="Contoh: 20"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="ruleDesc" className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Deskripsi Aturan</Label>
-                <Textarea
-                  id="ruleDesc"
-                  value={ruleForm.deskripsi}
-                  onChange={(e) => setRuleForm({ ...ruleForm, deskripsi: e.target.value })}
-                  required
-                  className="min-h-[140px] border-slate-200 bg-white shadow-sm focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-xl p-4 font-medium text-xs leading-relaxed"
-                  placeholder="Deskripsikan kapan poin ini akan diperoleh secara otomatis..."
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="ruleLabel" className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Nama Aktivitas</Label>
+              <Input
+                id="ruleLabel"
+                value={ruleForm.label}
+                onChange={(e) => setRuleForm({ ...ruleForm, label: e.target.value })}
+                required
+                className="font-bold text-xs"
+                placeholder="Contoh: Proposal Disetujui"
+              />
             </div>
 
-            <DialogFooter className="px-6 py-5 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row justify-end sm:space-x-3 gap-3 sm:gap-0 mt-2">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setIsRuleEditOpen(false)}
-                className="w-full sm:w-auto text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl active:scale-95 transition-all"
-              >
-                BATAL
-              </Button>
-              <Button
-                type="submit"
-                disabled={submittingRule}
-                className="w-full sm:w-auto h-12 px-8 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 border-none"
-              >
-                {submittingRule ? (
-                  <span className="material-symbols-outlined animate-spin size-4" style={{ fontSize: '16px' }}>sync</span>
-                ) : (
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>save</span>
-                )}
-                <span className="text-[10px] font-black tracking-widest uppercase">{ruleMode === 'create' ? 'SIMPAN ATURAN' : 'SIMPAN PERUBAHAN'}</span>
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+            <div className="space-y-2">
+              <Label htmlFor="rulePoin" className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Poin Diberikan</Label>
+              <Input
+                id="rulePoin"
+                type="number"
+                value={ruleForm.poin}
+                onChange={(e) => setRuleForm({ ...ruleForm, poin: parseInt(e.target.value) || 0 })}
+                required
+                className="font-mono font-bold text-xs"
+                placeholder="Contoh: 20"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ruleDesc" className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Deskripsi Aturan</Label>
+              <Textarea
+                id="ruleDesc"
+                value={ruleForm.deskripsi}
+                onChange={(e) => setRuleForm({ ...ruleForm, deskripsi: e.target.value })}
+                required
+                placeholder="Deskripsikan kapan poin ini akan diperoleh secara otomatis..."
+              />
+            </div>
+          </div>
+        </form>
+      </DialogModal>
 
       {/* ── Rule Delete Confirmation Dialog ────────────────────────────── */}
-      <Dialog open={isRuleDeleteOpen} onOpenChange={setIsRuleDeleteOpen} maxWidth="max-w-md" className="overflow-hidden p-0">
-        <DialogContent className="w-full flex flex-col p-0 overflow-hidden border-none shadow-none bg-white">
-          <DialogHeader className="relative bg-gradient-to-br from-rose-500 via-rose-600 to-rose-700 pt-6 pb-7 px-6 overflow-hidden flex-shrink-0 border-b-0 text-left">
-            <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/10 rounded-full pointer-events-none" />
-            <div className="absolute -bottom-6 right-16 w-28 h-28 bg-white/10 rounded-full pointer-events-none" />
-            <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-              <span className="material-symbols-outlined size-24 rotate-12 text-white">warning</span>
-            </div>
-            <div className="relative z-10 space-y-1">
-              <div className="flex items-center gap-2 mb-2">
-                <Badge className="bg-white/20 text-white px-2.5 py-0.5 text-[9px] font-black tracking-widest uppercase rounded-md border-none backdrop-blur-sm">
-                  Hapus Aturan
-                </Badge>
-              </div>
-              <DialogTitle className="text-lg font-black text-white font-headline tracking-tight uppercase">
-                Konfirmasi Hapus
-              </DialogTitle>
-              <DialogDescription className="text-rose-100/80 text-[11px] font-medium leading-relaxed font-inter">
-                Apakah Anda yakin ingin menghapus aturan poin ini? Tindakan ini tidak dapat dibatalkan.
-              </DialogDescription>
-            </div>
-          </DialogHeader>
-
-          <div className="p-6">
-            <div className="bg-slate-50 border border-slate-100 rounded-xl p-4">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Aktivitas</p>
-              <p className="text-sm font-semibold text-slate-800">{selectedRule?.label}</p>
-            </div>
-
-            <DialogFooter className="px-6 py-5 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row justify-end sm:space-x-3 gap-3 sm:gap-0 mt-6 -mx-6 -mb-6">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsRuleDeleteOpen(false)}
-                className="w-full sm:w-auto h-11 px-6 rounded-xl font-bold text-xs text-slate-600 bg-white hover:bg-slate-50 border-slate-200 hover:text-slate-800 transition-all"
-              >
-                Batal
-              </Button>
-              <Button
-                type="button"
-                disabled={submittingRule}
-                onClick={handleDeleteRule}
-                className="w-full sm:w-auto h-11 px-6 rounded-xl font-bold text-xs bg-rose-500 hover:bg-rose-600 text-white shadow-lg shadow-rose-500/30 border-none transition-all uppercase tracking-wider"
-              >
-                {submittingRule ? 'Menghapus...' : 'Ya, Hapus Aturan'}
-              </Button>
-            </DialogFooter>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <DeleteConfirmModal 
+        isOpen={isRuleDeleteOpen} 
+        onClose={() => setIsRuleDeleteOpen(false)} 
+        onConfirm={handleDeleteRule}
+        title="Hapus Aturan?" 
+        description={`Apakah Anda yakin ingin menghapus aturan poin "${selectedRule?.label}"? Tindakan ini tidak dapat dibatalkan.`} 
+        loading={submittingRule} 
+      />
     </PageContent>
   )
 }

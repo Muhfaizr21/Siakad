@@ -2,7 +2,9 @@ import React, { useState, useEffect, useMemo } from 'react'
 import axios from 'axios'
 import { toast } from 'react-hot-toast'
 import useAuthStore from '../../store/useAuthStore'
-import { DashboardHero, DashboardStatGrid, DashboardStatCard } from '@/components/ui/dashboard'
+import { DashboardHero } from '@/components/ui/dashboard'
+import { PrimaryStatsCard } from '@/components/ui/StatsCard'
+import { DialogModal, ModalCancelButton, ModalSaveButton } from '@/components/ui/DialogModal'
 import { PageContent } from '@/components/ui/page'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
@@ -127,40 +129,36 @@ export default function KategoriOrmawaPage() {
       />
 
       {/* ── Stats ─────────────────────────── */}
-      <DashboardStatGrid>
-        <DashboardStatCard
-          label="Total Kategori"
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <PrimaryStatsCard
+          title="Total Kategori"
           value={totalKategori}
           icon="category"
-          colorClass="text-primary"
-          bgClass="bg-primary/10 border-primary/20"
-          badge={{ text: 'Terdaftar' }}
+          colorTheme="primary"
+          subtitle="Terdaftar"
         />
-        <DashboardStatCard
-          label="Via Fakultas"
+        <PrimaryStatsCard
+          title="Via Fakultas"
           value={totalAfiliasi}
           icon="account_balance"
-          colorClass="text-blue-600"
-          bgClass="bg-blue-50 border-blue-200"
-          badge={{ text: 'Terafiliasi fakultas' }}
+          colorTheme="info"
+          subtitle="Terafiliasi fakultas"
         />
-        <DashboardStatCard
-          label="Langsung Univ"
+        <PrimaryStatsCard
+          title="Langsung Univ"
           value={totalLangsung}
           icon="school"
-          colorClass="text-emerald-600"
-          bgClass="bg-emerald-50 border-emerald-200"
-          badge={{ text: 'Tanpa afiliasi' }}
+          colorTheme="success"
+          subtitle="Tanpa afiliasi"
         />
-        <DashboardStatCard
-          label="Kategori Sistem"
+        <PrimaryStatsCard
+          title="Kategori Sistem"
           value={totalSystem}
           icon="lock"
-          colorClass="text-orange-600"
-          bgClass="bg-orange-50 border-orange-200"
-          badge={{ text: 'Tidak dapat dihapus' }}
+          colorTheme="warning"
+          subtitle="Tidak dapat dihapus"
         />
-      </DashboardStatGrid>
+      </div>
 
       {/* ── Info Banner ────────────────────── */}
       <div className="flex items-start gap-3 p-4 rounded-2xl border border-primary/20 bg-primary/5">
@@ -301,169 +299,142 @@ export default function KategoriOrmawaPage() {
       </div>
 
       {/* ── Modal Form ─────────────────────── */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setModal(false)} />
-          <div className="relative bg-surface rounded-2xl shadow-2xl w-full max-w-md p-6 animate-in slide-in-from-bottom-4 duration-200 border border-border">
-            {/* Header */}
-            <div className="flex items-center gap-3 mb-5">
-              <div className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0"
-                style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 10%, transparent)', color: 'var(--theme-primary)' }}>
-                <span className="material-symbols-outlined text-[18px]">{editTarget ? 'edit' : 'add'}</span>
+      <DialogModal
+        open={showModal}
+        onOpenChange={setModal}
+        title={editTarget ? 'Edit Kategori' : 'Tambah Kategori'}
+        subtitle="Konfigurasikan kategori dan alur proposal"
+        icon={editTarget ? 'edit' : 'add'}
+        maxWidth="max-w-md"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setModal(false)} />
+            <ModalSaveButton
+              form="form-kategori"
+              loading={isSubmitting}
+              icon="save"
+            >
+              {editTarget ? 'Simpan Perubahan' : 'Tambah Kategori'}
+            </ModalSaveButton>
+          </>
+        }
+      >
+        <form id="form-kategori" onSubmit={handleSubmit} className="space-y-4">
+          {/* Nama */}
+          <div>
+            <label className="block text-sm font-bold text-[var(--theme-text)] mb-1.5">
+              Nama Kategori <span className="text-red-500">*</span>
+            </label>
+            <input
+              value={formData.nama}
+              onChange={e => set('nama', e.target.value)}
+              placeholder="Contoh: Himpunan, BEM, UKM..."
+              required
+              disabled={editTarget?.is_system}
+              className="w-full h-11 px-4 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg)] text-sm font-medium text-[var(--theme-text)] focus:outline-none focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-[var(--theme-primary)]/10 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+            />
+            {editTarget?.is_system && (
+              <p className="mt-1 text-[10px] text-orange-500">🔒 Nama kategori sistem tidak dapat diubah</p>
+            )}
+          </div>
+
+          {/* Deskripsi */}
+          <div>
+            <label className="block text-sm font-bold text-[var(--theme-text)] mb-1.5">Deskripsi</label>
+            <textarea
+              value={formData.deskripsi}
+              onChange={e => set('deskripsi', e.target.value)}
+              placeholder="Deskripsi singkat tentang kategori ini..."
+              rows={2}
+              className="w-full px-4 py-3 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg)] text-sm font-medium text-[var(--theme-text)] focus:outline-none focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-[var(--theme-primary)]/10 transition-all resize-none"
+            />
+          </div>
+
+          {/* Konfigurasi Alur */}
+          <div className="p-4 rounded-xl border border-[var(--theme-border)] bg-slate-50/30 space-y-3">
+            <p className="text-[11px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest">Konfigurasi Alur Proposal</p>
+
+            {/* Terafiliasi Fakultas */}
+            <div
+              className={cn(
+                'flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-all border-2',
+                formData.terafiliasi_fakultas ? 'bg-blue-50 border-blue-200' : 'bg-white border-slate-200/60 hover:border-slate-300'
+              )}
+              onClick={() => {
+                set('terafiliasi_fakultas', !formData.terafiliasi_fakultas)
+                if (formData.terafiliasi_fakultas) set('wajib_prodi', false)
+              }}
+            >
+              <div className={cn(
+                'mt-0.5 h-5 w-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-all',
+                formData.terafiliasi_fakultas ? 'bg-blue-500 border-blue-500' : 'border-slate-300 bg-white'
+              )}>
+                {formData.terafiliasi_fakultas && <span className="material-symbols-outlined text-white text-[13px]">check</span>}
               </div>
               <div>
-                <h2 className="text-base font-black text-on-surface">{editTarget ? 'Edit Kategori' : 'Tambah Kategori'}</h2>
-                <p className="text-xs text-muted">Konfigurasikan kategori dan alur proposal</p>
+                <p className="text-sm font-bold text-[var(--theme-text)]">Terafiliasi dengan Fakultas</p>
+                <p className="text-xs text-[var(--theme-text-muted)] mt-0.5">
+                  Proposal wajib disetujui Fakultas terlebih dahulu sebelum ke Universitas.
+                </p>
+                <div className={cn('mt-1 flex items-center gap-1 text-[10px] font-bold', formData.terafiliasi_fakultas ? 'text-blue-600' : 'text-emerald-600')}>
+                  <span className="material-symbols-outlined text-[12px]">route</span>
+                  {formData.terafiliasi_fakultas ? 'Ormawa → Fakultas → Universitas' : 'Ormawa → Universitas (langsung)'}
+                </div>
               </div>
-              <button onClick={() => setModal(false)} className="ml-auto h-8 w-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors">
-                <span className="material-symbols-outlined text-[16px]">close</span>
-              </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Nama */}
-              <div>
-                <label className="block text-[10px] font-black text-muted uppercase tracking-[0.18em] mb-1.5">
-                  Nama Kategori <span className="text-red-400">*</span>
-                </label>
-                <input
-                  value={formData.nama}
-                  onChange={e => set('nama', e.target.value)}
-                  placeholder="Contoh: Himpunan, BEM, UKM..."
-                  required
-                  disabled={editTarget?.is_system}
-                  className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-on-surface focus:outline-none focus:border-primary focus:bg-white transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-                />
-                {editTarget?.is_system && (
-                  <p className="mt-1 text-[10px] text-orange-500">🔒 Nama kategori sistem tidak dapat diubah</p>
+            {/* Wajib Prodi */}
+            {formData.terafiliasi_fakultas && (
+              <div
+                className={cn(
+                  'flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-all border-2',
+                  formData.wajib_prodi ? 'bg-violet-50 border-violet-200' : 'bg-white border-slate-200/60 hover:border-slate-300'
                 )}
-              </div>
-
-              {/* Deskripsi */}
-              <div>
-                <label className="block text-[10px] font-black text-muted uppercase tracking-[0.18em] mb-1.5">Deskripsi</label>
-                <textarea
-                  value={formData.deskripsi}
-                  onChange={e => set('deskripsi', e.target.value)}
-                  placeholder="Deskripsi singkat tentang kategori ini..."
-                  rows={2}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-on-surface focus:outline-none focus:border-primary focus:bg-white transition-all resize-none"
-                />
-              </div>
-
-              {/* Konfigurasi Alur */}
-              <div className="p-4 rounded-xl border border-border bg-slate-50/30 space-y-3">
-                <p className="text-[10px] font-black text-muted uppercase tracking-[0.18em]">Konfigurasi Alur Proposal</p>
-
-                {/* Terafiliasi Fakultas */}
-                <div
-                  className={cn(
-                    'flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-all border-2',
-                    formData.terafiliasi_fakultas ? 'bg-blue-50 border-blue-200' : 'bg-white border-slate-200/60 hover:border-slate-300'
-                  )}
-                  onClick={() => {
-                    set('terafiliasi_fakultas', !formData.terafiliasi_fakultas)
-                    if (formData.terafiliasi_fakultas) set('wajib_prodi', false)
-                  }}
-                >
-                  <div className={cn(
-                    'mt-0.5 h-5 w-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-all',
-                    formData.terafiliasi_fakultas ? 'bg-blue-500 border-blue-500' : 'border-slate-300 bg-white'
-                  )}>
-                    {formData.terafiliasi_fakultas && <span className="material-symbols-outlined text-white text-[13px]">check</span>}
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-on-surface">Terafiliasi dengan Fakultas</p>
-                    <p className="text-xs text-muted mt-0.5">
-                      Proposal wajib disetujui Fakultas terlebih dahulu sebelum ke Universitas.
-                    </p>
-                    <div className={cn('mt-1 flex items-center gap-1 text-[10px] font-bold', formData.terafiliasi_fakultas ? 'text-blue-600' : 'text-emerald-600')}>
-                      <span className="material-symbols-outlined text-[12px]">route</span>
-                      {formData.terafiliasi_fakultas ? 'Ormawa → Fakultas → Universitas' : 'Ormawa → Universitas (langsung)'}
-                    </div>
-                  </div>
+                onClick={() => set('wajib_prodi', !formData.wajib_prodi)}
+              >
+                <div className={cn(
+                  'mt-0.5 h-5 w-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-all',
+                  formData.wajib_prodi ? 'bg-violet-500 border-violet-500' : 'border-slate-300 bg-white'
+                )}>
+                  {formData.wajib_prodi && <span className="material-symbols-outlined text-white text-[13px]">check</span>}
                 </div>
-
-                {/* Wajib Prodi */}
-                {formData.terafiliasi_fakultas && (
-                  <div
-                    className={cn(
-                      'flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-all border-2',
-                      formData.wajib_prodi ? 'bg-violet-50 border-violet-200' : 'bg-white border-slate-200/60 hover:border-slate-300'
-                    )}
-                    onClick={() => set('wajib_prodi', !formData.wajib_prodi)}
-                  >
-                    <div className={cn(
-                      'mt-0.5 h-5 w-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-all',
-                      formData.wajib_prodi ? 'bg-violet-500 border-violet-500' : 'border-slate-300 bg-white'
-                    )}>
-                      {formData.wajib_prodi && <span className="material-symbols-outlined text-white text-[13px]">check</span>}
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-on-surface">Program Studi Wajib Diisi</p>
-                      <p className="text-xs text-muted mt-0.5">Ormawa harus memilih Program Studi spesifik saat registrasi.</p>
-                    </div>
-                  </div>
-                )}
+                <div>
+                  <p className="text-sm font-bold text-[var(--theme-text)]">Program Studi Wajib Diisi</p>
+                  <p className="text-xs text-[var(--theme-text-muted)] mt-0.5">Ormawa harus memilih Program Studi spesifik saat registrasi.</p>
+                </div>
               </div>
-
-              {/* Actions */}
-              <div className="flex gap-3 pt-1">
-                <button
-                  type="button"
-                  onClick={() => setModal(false)}
-                  className="flex-1 h-11 rounded-xl border border-border text-muted text-sm font-bold hover:bg-slate-50 transition-colors"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="flex-1 h-11 rounded-xl text-white text-sm font-bold active:scale-95 transition-all disabled:opacity-60"
-                  style={{ background: 'linear-gradient(135deg, var(--theme-primary), var(--theme-secondary))' }}
-                >
-                  {isSubmitting ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <div className="animate-spin h-4 w-4 border-2 border-white/30 border-t-white rounded-full" />
-                      Menyimpan...
-                    </span>
-                  ) : (editTarget ? 'Simpan Perubahan' : 'Tambah Kategori')}
-                </button>
-              </div>
-            </form>
+            )}
           </div>
-        </div>
-      )}
+        </form>
+      </DialogModal>
 
       {/* ── Modal Delete ───────────────────── */}
-      {delTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setDelTarget(null)} />
-          <div className="relative bg-surface rounded-2xl shadow-2xl w-full max-w-sm p-6 animate-in zoom-in-90 duration-200 border border-border">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="h-10 w-10 rounded-xl bg-red-100 flex items-center justify-center">
-                <span className="material-symbols-outlined text-red-500">delete_forever</span>
-              </div>
-              <div>
-                <h3 className="font-black text-on-surface">Hapus Kategori?</h3>
-                <p className="text-xs text-muted">Tindakan ini tidak bisa dibatalkan</p>
-              </div>
-            </div>
-            <p className="text-sm text-muted mb-5">
-              Apakah Anda yakin ingin menghapus kategori <strong className="text-on-surface">"{delTarget.nama}"</strong>?
-              Pastikan tidak ada ormawa yang masih menggunakan kategori ini.
-            </p>
-            <div className="flex gap-3">
-              <button onClick={() => setDelTarget(null)} className="flex-1 h-10 rounded-xl border border-border text-muted text-sm font-bold hover:bg-slate-50 transition-colors">
-                Batal
-              </button>
-              <button onClick={handleDelete} className="flex-1 h-10 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-600 active:scale-95 transition-all">
-                Ya, Hapus
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DialogModal
+        open={!!delTarget}
+        onOpenChange={(open) => { if (!open) setDelTarget(null) }}
+        title="Hapus Kategori?"
+        subtitle="Tindakan ini tidak bisa dibatalkan"
+        icon="delete_forever"
+        variant="danger"
+        maxWidth="max-w-sm"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setDelTarget(null)} />
+            <ModalSaveButton
+              onClick={handleDelete}
+              icon="delete"
+              className="bg-rose-500 hover:bg-rose-600 ring-rose-500/20"
+            >
+              Ya, Hapus
+            </ModalSaveButton>
+          </>
+        }
+      >
+        <p className="text-sm text-[var(--theme-text-muted)]">
+          Apakah Anda yakin ingin menghapus kategori <strong className="text-[var(--theme-text)] font-black">"{delTarget?.nama}"</strong>?
+          Pastikan tidak ada ormawa yang masih menggunakan kategori ini.
+        </p>
+      </DialogModal>
     </PageContent>
   )
 }

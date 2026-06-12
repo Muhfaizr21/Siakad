@@ -2415,8 +2415,7 @@ func AdminListScoreItems(c *fiber.Ctx) error {
 // SearchStudents mencari mahasiswa untuk ditambahkan sebagai mentor (berdasarkan nama/nim)
 func SearchStudents(c *fiber.Ctx) error {
 	var students []models.Mahasiswa
-	query := config.DB.Preload("Pengguna").Preload("ProgramStudi.Fakultas").
-		Where("EXISTS (SELECT 1 FROM ormawa.ormawa_anggota WHERE ormawa.ormawa_anggota.mahasiswa_id = mahasiswa.mahasiswa.id AND LOWER(ormawa.ormawa_anggota.status) = 'aktif')")
+	query := config.DB.Preload("Pengguna").Preload("ProgramStudi.Fakultas")
 	
 	if search := c.Query("search"); search != "" {
 		query = query.Where("nama ILIKE ? OR nim ILIKE ?", "%"+search+"%", "%"+search+"%")

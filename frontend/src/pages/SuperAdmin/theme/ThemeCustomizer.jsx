@@ -9,6 +9,7 @@ import ThemeStatusColors from './ThemeStatusColors';
 import ThemePresets from './ThemePresets';
 import { PageContent } from '@/components/ui/page';
 import { DashboardHero } from '@/components/ui/dashboard';
+import { Button } from '@/components/ui/Button';
 
 const TABS = [
   { key: 'colors', label: 'Warna Web', icon: 'palette' },
@@ -54,13 +55,22 @@ export default function ThemeCustomizer() {
     <PageContent>
       <div className="max-w-[1600px] mx-auto space-y-8 select-none">
         <DashboardHero
-          title="Theme"
-          highlightedTitle="Customizer"
+          title="Pengaturan"
+          highlightedTitle="Tema"
           subtitle="Kustomisasi warna, font, branding, dan komponen aplikasi untuk seluruh portal."
           icon="palette"
           badges={[
             { label: 'System Configuration', active: true }
           ]}
+          actions={
+            <Button
+              onClick={() => window.location.reload()}
+              className="h-11 px-6 rounded-xl bg-slate-800 text-white font-black font-headline text-[10px] uppercase tracking-widest gap-2 hover:bg-slate-900 transition-all active:scale-95 shadow-none border-none cursor-pointer"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }} strokeWidth={3}>refresh</span>
+              Refresh Tema
+            </Button>
+          }
         />
         
         <div className="flex flex-col lg:flex-row gap-6 font-inter items-start">

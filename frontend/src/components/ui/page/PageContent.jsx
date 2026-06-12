@@ -5,7 +5,7 @@ export function PageContent({ children, className, ...props }) {
   return (
     <div 
       className={cn(
-        "max-w-7xl mx-auto w-full space-y-6",
+        "w-full space-y-6",
         "animate-in fade-in duration-500",
         className
       )}

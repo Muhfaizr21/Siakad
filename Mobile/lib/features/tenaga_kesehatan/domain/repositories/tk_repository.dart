@@ -3,6 +3,9 @@ import 'package:bkuhub_mobile/features/tenaga_kesehatan/domain/entities/schedule
 import 'package:bkuhub_mobile/features/tenaga_kesehatan/domain/entities/booking.dart';
 import 'package:bkuhub_mobile/features/tenaga_kesehatan/domain/entities/patient.dart';
 import 'package:bkuhub_mobile/features/tenaga_kesehatan/domain/entities/medical_record.dart';
+import 'package:bkuhub_mobile/features/tenaga_kesehatan/data/models/tk_insurance_claim_model.dart';
+import 'package:bkuhub_mobile/features/tenaga_kesehatan/data/models/tk_bap_model.dart';
+import 'package:bkuhub_mobile/features/tenaga_kesehatan/data/models/tk_clinical_report_model.dart';
 
 abstract class TkRepository {
   // Profile
@@ -31,4 +34,18 @@ abstract class TkRepository {
 
   // Screening
   Future<MedicalRecord> createScreening(int patientId, Map<String, dynamic> data);
+
+  // Insurance Claims
+  Future<List<TkInsuranceClaimModel>> getInsuranceClaims();
+  Future<TkInsuranceClaimModel> updateInsuranceClaimStatus(int id, String status, {String? catatanReview});
+
+  // BAP Kesehatan
+  Future<List<TkBapModel>> getBAPs();
+  Future<TkBapModel> getBapDetail(int id);
+  Future<TkBapModel> createBAP(Map<String, dynamic> data);
+  Future<TkBapModel> updateBAP(int id, Map<String, dynamic> data);
+  Future<void> deleteBAP(int id);
+
+  // Clinical Reports
+  Future<TkClinicalReportModel> getClinicalReports({String? startDate, String? endDate});
 }

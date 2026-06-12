@@ -1304,7 +1304,6 @@ func GetAnalytics(c *fiber.Ctx) error {
 			{"label": "Total Pasien Unik", "value": patients, "trend": "", "isPositive": true},
 			{"label": "Sesi Selesai", "value": sessions, "trend": "", "isPositive": true},
 			{"label": "Sesi Aktif", "value": urgent, "trend": "", "isPositive": false},
-			{"label": "Kepuasan Layanan", "value": "4.9", "trend": "", "isPositive": true},
 		},
 		"monthly":                monthly,
 		"top_issues":             topIssues,

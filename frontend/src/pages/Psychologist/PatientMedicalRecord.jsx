@@ -125,10 +125,10 @@ export default function PatientMedicalRecord() {
           <div className="flex items-center justify-between mb-6">
              <button 
                 onClick={() => navigate(-1)}
-                className="flex items-center gap-2 text-slate-400 hover:text-primary transition-all group"
+                className="flex items-center gap-2 px-4 py-2 bg-[var(--theme-surface)] rounded-xl border border-[var(--theme-border)] shadow-sm text-[var(--theme-text-muted)] hover:text-[var(--theme-primary)] hover:border-[var(--theme-primary)]/30 hover:bg-[var(--theme-primary)]/5 transition-all group w-fit"
              >
-                <ArrowLeft className="size-4 group-hover:-translate-x-1 transition-transform" />
-                <span className="text-[10px] font-black uppercase tracking-widest">Daftar Pasien</span>
+                <span className="material-symbols-outlined text-[16px] shrink-0 group-hover:-translate-x-1 transition-transform">arrow_back</span>
+                <span className="text-[10px] font-black uppercase tracking-widest">Kembali</span>
              </button>
              <div className="flex gap-2">
                 <button 
@@ -180,8 +180,9 @@ export default function PatientMedicalRecord() {
                      <div className="text-[9px] font-black text-slate-300 uppercase tracking-widest">Total: {patient.totalSessions} Sesi</div>
                   </div>
 
-                  <div className="space-y-12 relative before:absolute before:left-[19px] before:top-4 before:bottom-0 before:w-[2px] before:bg-slate-50">
-                     {records.map((record, index) => (
+                  <div className="max-h-[600px] overflow-y-auto pr-4 custom-scrollbar">
+                    <div className="space-y-12 relative before:absolute before:left-[19px] before:top-4 before:bottom-0 before:w-[2px] before:bg-slate-50">
+                       {records.map((record, index) => (
                        <div key={record.id} className="relative pl-12 group">
                           <div className={`absolute left-0 top-1.5 size-10 rounded-xl border-4 border-white shadow-md flex items-center justify-center z-10 transition-transform group-hover:scale-110 ${index === 0 ? 'bg-primary text-white' : 'bg-slate-100 text-slate-400'}`}>
                              <span className="material-symbols-outlined text-base shrink-0" >calendar_month</span>
@@ -323,6 +324,7 @@ export default function PatientMedicalRecord() {
                           </div>
                        </div>
                      ))}
+                  </div>
                   </div>
                </div>
             </div>

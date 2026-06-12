@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { DataTable } from '@/components/ui/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
+import { DialogModal, ModalCancelButton } from '@/components/ui/DialogModal'
 import { Card, CardContent } from '@/components/ui/Card'
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
@@ -53,12 +53,7 @@ export default function PsychologistBookings() {
 
   useEffect(() => { fetchData() }, [])
 
-  // Compute unique fakultas & semester options
-  const fakultasOptions = useMemo(() => {
-    const unique = [...new Set(bookings.map(i => i._fakultas).filter(Boolean))].sort()
-    return unique.map(f => ({ label: f.toUpperCase(), value: f }))
-  }, [bookings])
-
+  // Compute unique semester options
   const semesterOptions = useMemo(() => {
     const unique = [...new Set(bookings.map(i => i._semester).filter(v => v !== '' && v !== undefined && v !== null))].sort((a, b) => Number(a) - Number(b))
     return unique.map(s => ({ label: `SEMESTER ${s}`, value: String(s) }))
@@ -68,7 +63,6 @@ export default function PsychologistBookings() {
     {
       key: 'mahasiswa',
       label: 'Mahasiswa',
-      className: 'w-[250px]',
       render: (v, row) => {
         const mhs = row.mahasiswa || row.Mahasiswa;
         return (
@@ -87,7 +81,6 @@ export default function PsychologistBookings() {
     {
       key: 'psikolog',
       label: 'Konselor / Psikolog',
-      className: 'w-[200px]',
       render: (v, row) => (
         <div className="flex flex-col py-1 font-jakarta">
           <span className="font-bold text-neutral-800 text-xs">{row.psikolog?.nama || '—'}</span>
@@ -98,7 +91,6 @@ export default function PsychologistBookings() {
     {
       key: 'tanggal',
       label: 'Jadwal Konseling',
-      className: 'w-[220px]',
       render: (v, row) => {
         const formattedDate = v ? new Date(v).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
         return (
@@ -113,9 +105,8 @@ export default function PsychologistBookings() {
     {
       key: 'mode',
       label: 'Metode',
-      className: 'w-[120px]',
       render: v => (
-        <Badge className={cn('px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border font-jakarta shadow-none', 
+        <Badge className={cn('px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border font-jakarta shadow-none',
           v === 'Online' ? 'bg-bku-primary/10 text-bku-primary border-bku-primary/20' : 'bg-slate-50 text-slate-600 border-slate-200'
         )}>
           {v || 'Tatap Muka'}
@@ -125,7 +116,6 @@ export default function PsychologistBookings() {
     {
       key: 'status',
       label: 'Status',
-      className: 'w-[140px]',
       render: v => {
         const statusLower = String(v || '').toLowerCase()
         let bg = 'bg-neutral-50 text-neutral-600 border-neutral-100'
@@ -153,7 +143,7 @@ export default function PsychologistBookings() {
   return (
     <PageContent>
       <Toaster position="top-right" />
-      
+
       <DashboardHero
         title="Booking"
         highlightedTitle="Konseling"
@@ -162,58 +152,46 @@ export default function PsychologistBookings() {
         badges={[{ label: 'Layanan Konseling Kampus', active: false }]}
         actions={
           <div className="px-4 py-2 bg-bku-primary/5 border border-bku-primary/20 rounded-xl flex items-center gap-3 w-full lg:w-auto justify-center">
-             <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '16px' }}>calendar_month</span>
-             <div className="flex flex-col leading-tight">
-                <span className="text-[10px] font-bold text-bku-primary/70 uppercase tracking-widest">Akses Validasi</span>
-                <span className="text-[12px] font-bold text-bku-primary font-jakarta">Super Admin Portal</span>
-             </div>
+            <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '16px' }}>calendar_month</span>
+            <div className="flex flex-col leading-tight">
+              <span className="text-[10px] font-bold text-bku-primary/70 uppercase tracking-widest">Akses Validasi</span>
+              <span className="text-[12px] font-bold text-bku-primary font-jakarta">Super Admin Portal</span>
+            </div>
           </div>
         }
       />
 
-        {/* ── Table Section ────────────────────────────────────────── */}
-        <Card className="border-neutral-200 shadow-sm rounded-xl bg-white overflow-hidden">
-          <CardContent className="p-0 animate-in fade-in duration-300">
-            <DataTable
-              columns={bookingColumns}
-              data={bookings}
-              loading={loading}
-              searchPlaceholder="Cari Nama Mahasiswa, NIM, atau Topik..."
-              filters={[
-                { key: '_fakultas', placeholder: 'Pilih Fakultas', options: fakultasOptions },
-                { key: '_semester', placeholder: 'Pilih Semester', options: semesterOptions },
-                { key: 'status', placeholder: 'Pilih Status', options: [{ label: 'Menunggu', value: 'menunggu' }, { label: 'Disetujui', value: 'disetujui' }, { label: 'Selesai', value: 'selesai' }, { label: 'Dibatalkan', value: 'dibatalkan' }] },
-                { key: 'mode', placeholder: 'Pilih Mode', options: [{ label: 'Tatap Muka', value: 'Tatap Muka' }, { label: 'Online', value: 'Online' }] }
-              ]}
-              actions={(row) => (
-                <div className="flex items-center gap-1.5">
-                  <Button onClick={() => handleOpenDetail(row)} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-bku-primary hover:bg-bku-primary/10 rounded-lg transition-colors" title="Lihat Detail"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >visibility</span></Button>
-                </div>
-              )}
-            />
-          </CardContent>
-        </Card>
+      {/* ── Table Section ────────────────────────────────────────── */}
+      <div className="bg-[var(--theme-surface)] rounded-2xl border border-[var(--theme-border)] shadow-sm overflow-hidden mb-6">
+        <DataTable
+          columns={bookingColumns}
+          data={bookings}
+          loading={loading}
+          searchPlaceholder="Cari Nama Mahasiswa, NIM, atau Topik..."
+          filters={[
+            { key: '_semester', placeholder: 'Semester', options: semesterOptions },
+            { key: 'mode', placeholder: 'Mode', options: [{ label: 'Tatap Muka', value: 'Tatap Muka' }, { label: 'Online', value: 'Online' }] }
+          ]}
+          actions={(row) => (
+            <div className="flex items-center gap-1.5">
+              <Button onClick={() => handleOpenDetail(row)} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)] rounded-lg transition-colors shadow-none cursor-pointer" title="Lihat Detail"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >visibility</span></Button>
+            </div>
+          )}
+        />
+      </div>
 
       {/* ── Detail Modal ─────────────────────────────────────────── */}
-      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen} maxWidth="max-w-2xl">
-        <DialogContent>
-          <DialogHeader className="relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-5 text-bku-primary"><span className="material-symbols-outlined rotate-12" style={{ fontSize: '100px' }} >calendar_month</span></div>
-            <div className="relative z-10 space-y-1">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
-                  <span className="material-symbols-outlined text-[12px]" >visibility</span>
-                </div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-bku-primary font-jakarta">Detail Booking Sesi</span>
-              </div>
-              <DialogTitle className="text-xl sm:text-2xl font-black font-jakarta tracking-tight text-slate-800 uppercase">
-                Informasi Booking Konseling
-              </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm font-medium text-slate-500 font-inter">Detail reservasi sesi bimbingan konseling.</DialogDescription>
-            </div>
-          </DialogHeader>
-
-          <div className="p-6 md:p-8 space-y-6 max-h-[50vh] overflow-y-auto no-scrollbar font-jakarta">
+      <DialogModal
+        open={isDetailOpen}
+        onOpenChange={setIsDetailOpen}
+        icon="visibility"
+        title="Informasi Booking Konseling"
+        description="Detail reservasi sesi bimbingan konseling."
+        subtitle="Detail Booking Sesi"
+        maxWidth="max-w-xl"
+        bodyClassName="p-6 md:p-8 space-y-6 font-jakarta max-h-[60vh] overflow-y-auto no-scrollbar"
+        footer={<ModalCancelButton onClick={() => setIsDetailOpen(false)}>Tutup Detail</ModalCancelButton>}
+      >
             {detailItem && (
               <>
                 {/* Mahasiswa Info Section */}
@@ -310,19 +288,7 @@ export default function PsychologistBookings() {
                 </div>
               </>
             )}
-          </div>
-
-          <DialogFooter>
-            <button
-              type="button"
-              onClick={() => setIsDetailOpen(false)}
-              className="flex-1 sm:flex-initial h-12 px-6 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-jakarta cursor-pointer"
-            >
-              Tutup Detail
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      </DialogModal>
     </PageContent>
   )
 }

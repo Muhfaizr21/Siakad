@@ -2,6 +2,10 @@ package controllers
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
 	"siakad-backend/config"
 	"siakad-backend/models"
 
@@ -38,11 +42,14 @@ func AmbilProfilAdminFakultas(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"success": true,
 		"data": fiber.Map{
-			"id":          user.ID,
-			"email":       user.Email,
-			"role":        user.Role,
-			"fakultas_id": user.FakultasID,
-			"fakultas":    fakultas,
+			"id":           user.ID,
+			"email":        user.Email,
+			"role":         user.Role,
+			"nama_lengkap": user.NamaLengkap,
+			"no_hp":        user.NoHP,
+			"avatar_url":   user.AvatarURL,
+			"fakultas_id":  user.FakultasID,
+			"fakultas":     fakultas,
 		},
 	})
 }
@@ -55,7 +62,10 @@ func PerbaruiProfilAdminFakultas(c *fiber.Ctx) error {
 	}
 
 	type Request struct {
-		Email string `json:"email"`
+		Email       string `json:"email"`
+		NamaLengkap string `json:"nama_lengkap"`
+		NoHP        string `json:"no_hp"`
+		AvatarURL   string `json:"avatar_url"`
 	}
 
 	var req Request
@@ -75,6 +85,12 @@ func PerbaruiProfilAdminFakultas(c *fiber.Ctx) error {
 			return c.Status(400).JSON(fiber.Map{"success": false, "message": "Email sudah digunakan oleh akun lain"})
 		}
 		user.Email = req.Email
+	}
+
+	user.NamaLengkap = req.NamaLengkap
+	user.NoHP = req.NoHP
+	if req.AvatarURL != "" {
+		user.AvatarURL = req.AvatarURL
 	}
 
 	if err := config.DB.Save(&user).Error; err != nil {
@@ -128,4 +144,66 @@ func GantiPasswordAdminFakultas(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{"success": true, "message": "Password berhasil diperbarui"})
+}
+
+// UploadAvatarAdminFakultas mengupload file avatar dan mengembalikan URL-nya
+func UploadAvatarAdminFakultas(c *fiber.Ctx) error {
+	PenggunaID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
+	}
+
+	file, err := c.FormFile("file")
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "File tidak ditemukan"})
+	}
+
+	// Validasi ekstensi
+	ext := filepath.Ext(file.Filename)
+	allowedExts := map[string]bool{".png": true, ".jpg": true, ".jpeg": true, ".webp": true}
+	if !allowedExts[strings.ToLower(ext)] {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Format file harus PNG/JPG/WEBP"})
+	}
+
+	os.MkdirAll("./uploads/avatars", 0755)
+	filename := fmt.Sprintf("avatar_%d_%d%s", PenggunaID, time.Now().Unix(), ext)
+	filePath := "./uploads/avatars/" + filename
+
+	if err := c.SaveFile(file, filePath); err != nil {
+		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal menyimpan file avatar"})
+	}
+
+	url := "/uploads/avatars/" + filename
+
+	// Opsional: Langsung simpan ke user DB agar praktis
+	config.DB.Model(&models.User{}).Where("id = ?", PenggunaID).Update("avatar_url", url)
+
+	return c.JSON(fiber.Map{"success": true, "url": url, "message": "Avatar berhasil diunggah"})
+}
+
+// HapusAvatarAdminFakultas menghapus foto profil dan file dari server
+func HapusAvatarAdminFakultas(c *fiber.Ctx) error {
+	PenggunaID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
+	}
+
+	var user models.User
+	if err := config.DB.First(&user, PenggunaID).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"success": false, "message": "User tidak ditemukan"})
+	}
+
+	// Hapus file fisik jika ada
+	if user.AvatarURL != "" {
+		// Hapus awalan '/' dari url supaya menunjuk ke path file relatif yang benar
+		filePath := "." + user.AvatarURL
+		_ = os.Remove(filePath) // abaikan error jika file sudah tidak ada
+	}
+
+	// Hapus url dari db
+	if err := config.DB.Model(&user).Update("avatar_url", "").Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal menghapus avatar di database"})
+	}
+
+	return c.JSON(fiber.Map{"success": true, "message": "Avatar berhasil dihapus"})
 }

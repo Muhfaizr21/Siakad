@@ -180,7 +180,7 @@ const AcademicPortal = () => {
     const handleTestSMTP = () => {
         setSmtpTesting(true)
         setSmtpLogs([])
-        
+
         const logLines = [
             { text: '⚡ Menginisialisasi koneksi SMTP Mail Server BKU...', type: 'info' },
             { text: `📡 Melakukan DNS lookup untuk host: ${smtpConfig.host}...`, type: 'info' },
@@ -251,7 +251,7 @@ const AcademicPortal = () => {
         if (!file) return
         setRestoreFile(file)
         setRestoreTesting(true)
-        
+
         setTimeout(() => {
             setRestoreTesting(false)
             setRestoreFile(null)
@@ -317,13 +317,13 @@ const AcademicPortal = () => {
             toast.error('Masukkan password otentikasi darurat!')
             return
         }
-        
+
         setIsEmergencySubmitting(true)
         setTimeout(() => {
             setIsEmergencySubmitting(false)
             setIsEmergencyModalOpen(false)
             setEmergencyPassword('')
-            
+
             // Turn off all public access states
             setAcademicSettings(prev => ({
                 ...prev,
@@ -331,7 +331,7 @@ const AcademicPortal = () => {
                 IsNilaiOpen: false,
                 IsMBKMOpen: false
             }))
-            
+
             toast.error('EMERGENCY SHUTDOWN DIJALANKAN! Seluruh akses pengisian publik (KRS, Nilai, MBKM) telah dimatikan secara instan.', {
                 duration: 6000,
                 icon: '🚨'
@@ -364,9 +364,9 @@ const AcademicPortal = () => {
     return (
         <PageContent>
             <Toaster position="top-right" />
-            
+
             <div className="max-w-[1600px] mx-auto space-y-8 select-none">
-                
+
                 {/* ── Page Header (Glassmorphic) ─────────────────────────── */}
                 <DashboardHero
                     title="Academic"
@@ -377,7 +377,7 @@ const AcademicPortal = () => {
                         { label: 'Global Config & Server Engine', active: true }
                     ]}
                     action={
-                        <Button 
+                        <Button
                             onClick={handleUpdate}
                             disabled={submitting}
                             className="h-11 px-6 rounded-xl bg-bku-primary text-white hover:bg-bku-primary/90 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer border-none shadow-md shadow-bku-primary/10 gap-2.5 font-headline"
@@ -404,12 +404,12 @@ const AcademicPortal = () => {
                                             : "text-slate-500 hover:text-bku-primary hover:bg-white/60 hover:shadow-xs font-bold active:scale-[0.98]"
                                     )}
                                 >
-                                    <TabIcon 
-                                        size={14} 
+                                    <TabIcon
+                                        size={14}
                                         className={cn(
                                             "transition-colors duration-150",
                                             activeTab === tab.id ? "text-bku-primary" : "text-slate-400 group-hover:text-bku-primary"
-                                        )} 
+                                        )}
                                     />
                                     {tab.label}
                                 </button>
@@ -421,15 +421,15 @@ const AcademicPortal = () => {
                 {/* ── Tab Content: Engine & Akademik (Tab 1) ─────────────────────── */}
                 {activeTab === 'akademik' && (
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        
+
                         {/* 1.1 Phase Control & KRS Study Rules (Spans 2 Cols) */}
                         <div className="lg:col-span-2 space-y-8">
-                            
+
                             {/* General Active Period Form */}
                             <Card className="glass-card border border-slate-200/60 shadow-none rounded-2xl overflow-hidden group">
                                 <CardContent className="p-6 md:p-8 space-y-6 relative">
                                     <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform text-slate-800"><span className="material-symbols-outlined" style={{ fontSize: '110px' }} >show_chart</span></div>
-                                    
+
                                     <div className="space-y-1 relative z-10">
                                         <h3 className="text-base font-bold font-headline leading-none" style={{ color: 'var(--theme-h3)' }}>Fase Akademik & Batas SKS KRS</h3>
                                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Kontrol Periode Belajar & Aturan Batas Beban Studi KRS Mahasiswa</p>
@@ -439,9 +439,9 @@ const AcademicPortal = () => {
                                         <div className="p-4 bg-slate-50/50 rounded-xl border border-slate-200/30 flex justify-between items-center group/item hover:bg-white hover:border-bku-primary/20 transition-all">
                                             <div className="space-y-1 flex-1">
                                                 <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-0.5 font-headline">Tahun Ajaran Target</Label>
-                                                <input 
+                                                <input
                                                     value={academicSettings.TahunAkademik}
-                                                    onChange={(e) => setAcademicSettings({...academicSettings, TahunAkademik: e.target.value})}
+                                                    onChange={(e) => setAcademicSettings({ ...academicSettings, TahunAkademik: e.target.value })}
                                                     className="text-base font-black text-slate-700 font-headline bg-transparent border-none outline-none p-0 w-full"
                                                 />
                                             </div>
@@ -453,9 +453,9 @@ const AcademicPortal = () => {
                                         <div className="p-4 bg-slate-50/50 rounded-xl border border-slate-200/30 flex justify-between items-center group/item hover:bg-white hover:border-bku-primary/20 transition-all">
                                             <div className="space-y-1 w-full">
                                                 <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-0.5 font-headline">Semester Aktif</Label>
-                                                <select 
+                                                <select
                                                     value={academicSettings.Semester}
-                                                    onChange={(e) => setAcademicSettings({...academicSettings, Semester: e.target.value})}
+                                                    onChange={(e) => setAcademicSettings({ ...academicSettings, Semester: e.target.value })}
                                                     className="text-base font-black text-slate-700 font-headline bg-transparent border-none outline-none p-0 w-full cursor-pointer appearance-none uppercase"
                                                 >
                                                     <option value="Ganjil">GANJIL (ODD SEMESTER)</option>
@@ -472,15 +472,15 @@ const AcademicPortal = () => {
                                     {/* SKS Limit Ranges based on previous GPA */}
                                     <div className="space-y-4 pt-4 border-t border-slate-200/40 relative z-10">
                                         <h4 className="text-xs font-bold font-headline uppercase tracking-wide leading-none" style={{ color: 'var(--theme-h4)' }}>Batas Maksimal Beban SKS KRS (Berdasarkan IPK)</h4>
-                                        
+
                                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 font-headline">
                                             <div className="p-3 bg-slate-50/30 border border-slate-200/30 rounded-xl space-y-1">
                                                 <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">IPK &gt;= 3.00</Label>
                                                 <div className="flex items-center gap-1.5">
-                                                    <Input 
-                                                        type="number" 
+                                                    <Input
+                                                        type="number"
                                                         value={academicSettings.sksRangeA}
-                                                        onChange={(e) => setAcademicSettings({...academicSettings, sksRangeA: parseInt(e.target.value) || 24})}
+                                                        onChange={(e) => setAcademicSettings({ ...academicSettings, sksRangeA: parseInt(e.target.value) || 24 })}
                                                         className="h-9 px-2 border-slate-200 rounded-lg text-center font-bold text-xs bg-white text-slate-700 w-16"
                                                     />
                                                     <span className="text-[9px] font-black text-slate-400 uppercase">SKS</span>
@@ -489,10 +489,10 @@ const AcademicPortal = () => {
                                             <div className="p-3 bg-slate-50/30 border border-slate-200/30 rounded-xl space-y-1">
                                                 <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">IPK 2.50 - 2.99</Label>
                                                 <div className="flex items-center gap-1.5">
-                                                    <Input 
-                                                        type="number" 
+                                                    <Input
+                                                        type="number"
                                                         value={academicSettings.sksRangeB}
-                                                        onChange={(e) => setAcademicSettings({...academicSettings, sksRangeB: parseInt(e.target.value) || 21})}
+                                                        onChange={(e) => setAcademicSettings({ ...academicSettings, sksRangeB: parseInt(e.target.value) || 21 })}
                                                         className="h-9 px-2 border-slate-200 rounded-lg text-center font-bold text-xs bg-white text-slate-700 w-16"
                                                     />
                                                     <span className="text-[9px] font-black text-slate-400 uppercase">SKS</span>
@@ -501,10 +501,10 @@ const AcademicPortal = () => {
                                             <div className="p-3 bg-slate-50/30 border border-slate-200/30 rounded-xl space-y-1">
                                                 <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">IPK 2.00 - 2.49</Label>
                                                 <div className="flex items-center gap-1.5">
-                                                    <Input 
-                                                        type="number" 
+                                                    <Input
+                                                        type="number"
                                                         value={academicSettings.sksRangeC}
-                                                        onChange={(e) => setAcademicSettings({...academicSettings, sksRangeC: parseInt(e.target.value) || 18})}
+                                                        onChange={(e) => setAcademicSettings({ ...academicSettings, sksRangeC: parseInt(e.target.value) || 18 })}
                                                         className="h-9 px-2 border-slate-200 rounded-lg text-center font-bold text-xs bg-white text-slate-700 w-16"
                                                     />
                                                     <span className="text-[9px] font-black text-slate-400 uppercase">SKS</span>
@@ -513,10 +513,10 @@ const AcademicPortal = () => {
                                             <div className="p-3 bg-slate-50/30 border border-slate-200/30 rounded-xl space-y-1">
                                                 <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">IPK &lt; 2.00</Label>
                                                 <div className="flex items-center gap-1.5">
-                                                    <Input 
-                                                        type="number" 
+                                                    <Input
+                                                        type="number"
                                                         value={academicSettings.sksRangeD}
-                                                        onChange={(e) => setAcademicSettings({...academicSettings, sksRangeD: parseInt(e.target.value) || 15})}
+                                                        onChange={(e) => setAcademicSettings({ ...academicSettings, sksRangeD: parseInt(e.target.value) || 15 })}
                                                         className="h-9 px-2 border-slate-200 rounded-lg text-center font-bold text-xs bg-white text-slate-700 w-16"
                                                     />
                                                     <span className="text-[9px] font-black text-slate-400 uppercase">SKS</span>
@@ -556,10 +556,10 @@ const AcademicPortal = () => {
                                                 <span>Presensi Kehadiran</span>
                                                 <span className="text-slate-700">{academicSettings.weightPresensi}%</span>
                                             </div>
-                                            <input 
+                                            <input
                                                 type="range" min="0" max="50" step="5"
                                                 value={academicSettings.weightPresensi}
-                                                onChange={(e) => setAcademicSettings({...academicSettings, weightPresensi: parseInt(e.target.value) || 0})}
+                                                onChange={(e) => setAcademicSettings({ ...academicSettings, weightPresensi: parseInt(e.target.value) || 0 })}
                                                 className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-bku-primary"
                                             />
                                         </div>
@@ -568,10 +568,10 @@ const AcademicPortal = () => {
                                                 <span>Tugas &amp; Kuis Harian</span>
                                                 <span className="text-slate-700">{academicSettings.weightTugas}%</span>
                                             </div>
-                                            <input 
+                                            <input
                                                 type="range" min="0" max="50" step="5"
                                                 value={academicSettings.weightTugas}
-                                                onChange={(e) => setAcademicSettings({...academicSettings, weightTugas: parseInt(e.target.value) || 0})}
+                                                onChange={(e) => setAcademicSettings({ ...academicSettings, weightTugas: parseInt(e.target.value) || 0 })}
                                                 className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-bku-primary"
                                             />
                                         </div>
@@ -580,10 +580,10 @@ const AcademicPortal = () => {
                                                 <span>Ujian Tengah Semester (UTS)</span>
                                                 <span className="text-slate-700">{academicSettings.weightUTS}%</span>
                                             </div>
-                                            <input 
+                                            <input
                                                 type="range" min="0" max="50" step="5"
                                                 value={academicSettings.weightUTS}
-                                                onChange={(e) => setAcademicSettings({...academicSettings, weightUTS: parseInt(e.target.value) || 0})}
+                                                onChange={(e) => setAcademicSettings({ ...academicSettings, weightUTS: parseInt(e.target.value) || 0 })}
                                                 className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-bku-primary"
                                             />
                                         </div>
@@ -592,10 +592,10 @@ const AcademicPortal = () => {
                                                 <span>Ujian Akhir Semester (UAS)</span>
                                                 <span className="text-slate-700">{academicSettings.weightUAS}%</span>
                                             </div>
-                                            <input 
+                                            <input
                                                 type="range" min="0" max="60" step="5"
                                                 value={academicSettings.weightUAS}
-                                                onChange={(e) => setAcademicSettings({...academicSettings, weightUAS: parseInt(e.target.value) || 0})}
+                                                onChange={(e) => setAcademicSettings({ ...academicSettings, weightUAS: parseInt(e.target.value) || 0 })}
                                                 className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-bku-primary"
                                             />
                                         </div>
@@ -610,7 +610,7 @@ const AcademicPortal = () => {
                             <Card className="glass-card border border-slate-200/60 shadow-none rounded-2xl overflow-hidden group h-full flex flex-col justify-between">
                                 <CardContent className="p-6 md:p-8 space-y-6 relative flex-1">
                                     <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform text-slate-800"><span className="material-symbols-outlined" style={{ fontSize: '110px' }} >security</span></div>
-                                    
+
                                     <div className="space-y-1 relative z-10">
                                         <h3 className="text-base font-bold font-headline leading-none" style={{ color: 'var(--theme-h3)' }}>Otoritas Sistem</h3>
                                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Manajemen Izin Akses Formulir Mahasiswa</p>
@@ -622,15 +622,15 @@ const AcademicPortal = () => {
                                             { id: 'IsNilaiOpen', label: 'Entri Evaluasi Nilai Dosen', desc: 'Izinkan dosen koordinator melakukan pengisian nilai mata kuliah.' },
                                             { id: 'IsMBKMOpen', label: 'Program Pertukaran MBKM', desc: 'Aktifkan portal sinkronisasi untuk program MBKM nasional.' }
                                         ].map((s) => (
-                                            <div key={s.id} 
+                                            <div key={s.id}
                                                 onClick={() => toggleSetting(s.id)}
                                                 className="flex items-center justify-between p-4 rounded-xl border border-slate-200/30 bg-slate-50/30 hover:bg-white hover:border-bku-primary/20 transition-all cursor-pointer group/item">
                                                 <div className="space-y-1 flex-1 pr-4">
                                                     <p className="text-xs font-black text-slate-700 font-headline uppercase tracking-wide leading-none">{s.label}</p>
                                                     <p className="text-[9px] font-medium text-slate-400 mt-1.5">{s.desc}</p>
                                                 </div>
-                                                {academicSettings[s.id] ? 
-                                                    <div className="size-10 rounded-xl bg-emerald-50 border border-emerald-100/50 flex items-center justify-center text-emerald-500 shadow-sm transition-all"><ToggleRight size={26} /></div> : 
+                                                {academicSettings[s.id] ?
+                                                    <div className="size-10 rounded-xl bg-emerald-50 border border-emerald-100/50 flex items-center justify-center text-emerald-500 shadow-sm transition-all"><ToggleRight size={26} /></div> :
                                                     <div className="size-10 rounded-xl bg-slate-100/80 border border-slate-200/40 flex items-center justify-center text-slate-300 transition-all"><ToggleLeft size={26} /></div>
                                                 }
                                             </div>
@@ -642,8 +642,8 @@ const AcademicPortal = () => {
                                                     <p className="text-[9px] font-black text-rose-700 uppercase tracking-widest font-headline leading-none">Emergency System Shutdown</p>
                                                     <p className="text-[8px] font-bold text-rose-400 uppercase tracking-tight mt-1">Matikan seluruh akses KRS, Nilai, dan portal kemahasiswaan instan jika terjadi insiden.</p>
                                                 </div>
-                                                <Button 
-                                                    variant="outline" 
+                                                <Button
+                                                    variant="outline"
                                                     onClick={() => setIsEmergencyModalOpen(true)}
                                                     className="h-10 px-4 rounded-lg border-rose-200 text-rose-600 font-headline font-black text-[9px] uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all duration-150 cursor-pointer shadow-sm animate-pulse shrink-0"
                                                 >
@@ -661,10 +661,10 @@ const AcademicPortal = () => {
                 {/* ── Tab Content: SMTP & Templates (Tab 2) ───────────────────────── */}
                 {activeTab === 'smtp' && (
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        
+
                         {/* 2.1 SMTP Configuration Form (Spans 2 Cols) */}
                         <div className="lg:col-span-2 space-y-8">
-                            
+
                             {/* Server Configuration */}
                             <Card className="glass-card border border-slate-200/60 shadow-none rounded-2xl overflow-hidden">
                                 <CardContent className="p-6 md:p-8 space-y-6">
@@ -676,39 +676,39 @@ const AcademicPortal = () => {
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 font-inter">
                                         <div className="space-y-2">
                                             <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">SMTP Mail Host</Label>
-                                            <Input 
+                                            <Input
                                                 value={smtpConfig.host}
-                                                onChange={(e) => setSmtpConfig({...smtpConfig, host: e.target.value})}
+                                                onChange={(e) => setSmtpConfig({ ...smtpConfig, host: e.target.value })}
                                                 className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-bold text-xs font-headline"
                                             />
                                         </div>
                                         <div className="space-y-2">
                                             <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">SMTP Port (SSL/TLS)</Label>
-                                            <Input 
+                                            <Input
                                                 value={smtpConfig.port}
-                                                onChange={(e) => setSmtpConfig({...smtpConfig, port: e.target.value})}
+                                                onChange={(e) => setSmtpConfig({ ...smtpConfig, port: e.target.value })}
                                                 className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-bold text-xs font-headline"
                                             />
                                         </div>
                                         <div className="space-y-2">
                                             <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Sender Username</Label>
-                                            <Input 
+                                            <Input
                                                 value={smtpConfig.username}
-                                                onChange={(e) => setSmtpConfig({...smtpConfig, username: e.target.value})}
+                                                onChange={(e) => setSmtpConfig({ ...smtpConfig, username: e.target.value })}
                                                 className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-bold text-xs font-headline"
                                             />
                                         </div>
                                         <div className="space-y-2">
                                             <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Sender Password</Label>
                                             <div className="relative">
-                                                <Input 
+                                                <Input
                                                     type={showPassword ? "text" : "password"}
                                                     value={smtpConfig.password}
-                                                    onChange={(e) => setSmtpConfig({...smtpConfig, password: e.target.value})}
+                                                    onChange={(e) => setSmtpConfig({ ...smtpConfig, password: e.target.value })}
                                                     className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-bold text-xs font-headline pr-10"
                                                 />
-                                                <button 
-                                                    type="button" 
+                                                <button
+                                                    type="button"
                                                     onClick={() => setShowPassword(!showPassword)}
                                                     className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-bku-primary cursor-pointer"
                                                 >
@@ -720,17 +720,17 @@ const AcademicPortal = () => {
                                         </div>
                                         <div className="space-y-2">
                                             <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Sender Display Name</Label>
-                                            <Input 
+                                            <Input
                                                 value={smtpConfig.senderName}
-                                                onChange={(e) => setSmtpConfig({...smtpConfig, senderName: e.target.value})}
+                                                onChange={(e) => setSmtpConfig({ ...smtpConfig, senderName: e.target.value })}
                                                 className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-bold text-xs font-headline"
                                             />
                                         </div>
                                         <div className="space-y-2">
                                             <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Encryption Protocol</Label>
-                                            <select 
+                                            <select
                                                 value={smtpConfig.encryption}
-                                                onChange={(e) => setSmtpConfig({...smtpConfig, encryption: e.target.value})}
+                                                onChange={(e) => setSmtpConfig({ ...smtpConfig, encryption: e.target.value })}
                                                 className="h-11 w-full px-3.5 rounded-xl border border-slate-200 bg-slate-50/30 focus:bg-white font-bold text-xs font-headline outline-none cursor-pointer animate-none"
                                             >
                                                 <option value="SSL">SSL (Secure Sockets Layer)</option>
@@ -739,18 +739,18 @@ const AcademicPortal = () => {
                                             </select>
                                         </div>
                                     </div>
-                                    
+
                                     <div className="pt-4 border-t border-slate-200/40 flex justify-between items-center gap-4">
                                         <div className="space-y-1">
                                             <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Durasi Aktif OTP Token (Menit)</Label>
-                                            <Input 
+                                            <Input
                                                 type="number"
                                                 value={smtpConfig.otpLifetime}
-                                                onChange={(e) => setSmtpConfig({...smtpConfig, otpLifetime: parseInt(e.target.value) || 5})}
+                                                onChange={(e) => setSmtpConfig({ ...smtpConfig, otpLifetime: parseInt(e.target.value) || 5 })}
                                                 className="h-9 px-3 border-slate-200 bg-slate-50/30 focus:bg-white font-bold text-xs font-headline w-32"
                                             />
                                         </div>
-                                        <Button 
+                                        <Button
                                             onClick={handleTestSMTP}
                                             disabled={smtpTesting}
                                             className="h-10 px-5 rounded-xl bg-slate-800 text-white hover:bg-slate-900 border-none transition-all cursor-pointer font-headline gap-2 shrink-0 select-none text-[10px] font-black uppercase tracking-widest align-bottom mt-auto"
@@ -770,7 +770,7 @@ const AcademicPortal = () => {
                                             <h3 className="text-base font-bold font-headline leading-none" style={{ color: 'var(--theme-h3)' }}>Template Notifikasi Email</h3>
                                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Penyuntingan Redaksi Surat & OTP Notifikasi Otomatis</p>
                                         </div>
-                                        <select 
+                                        <select
                                             value={selectedTemplate}
                                             onChange={(e) => setSelectedTemplate(e.target.value)}
                                             className="h-9 px-3 rounded-lg border border-slate-200 bg-slate-50/30 text-xs font-bold font-headline outline-none cursor-pointer"
@@ -784,7 +784,7 @@ const AcademicPortal = () => {
                                     <div className="space-y-4 font-inter">
                                         <div className="space-y-2">
                                             <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Subjek Surel (Subject Email)</Label>
-                                            <Input 
+                                            <Input
                                                 value={emailTemplates[selectedTemplate].subject}
                                                 onChange={(e) => setEmailTemplates({
                                                     ...emailTemplates,
@@ -795,7 +795,7 @@ const AcademicPortal = () => {
                                         </div>
                                         <div className="space-y-2">
                                             <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Konten Surat (HTML/Text Editor)</Label>
-                                            <textarea 
+                                            <textarea
                                                 rows="5"
                                                 value={emailTemplates[selectedTemplate].body}
                                                 onChange={(e) => setEmailTemplates({
@@ -811,7 +811,7 @@ const AcademicPortal = () => {
                                                 {selectedTemplate === 'lpj' && ['{{ORMAWA}}', '{{KEGIATAN}}', '{{XP_PENALTY}}'].map(t => <span key={t} className="px-2 py-0.5 rounded bg-slate-100 text-slate-500 font-mono text-[9px]">{t}</span>)}
                                                 {selectedTemplate === 'pagu' && ['{{ORMAWA}}', '{{KEGIATAN}}', '{{ANGGARAN}}'].map(t => <span key={t} className="px-2 py-0.5 rounded bg-slate-100 text-slate-500 font-mono text-[9px]">{t}</span>)}
                                             </div>
-                                            <Button 
+                                            <Button
                                                 onClick={() => handleSaveTemplate()}
                                                 className="h-9 px-4 rounded-lg bg-bku-primary text-white text-[10px] font-black font-headline uppercase tracking-wider hover:bg-bku-primary/90 border-none transition-all cursor-pointer"
                                             >
@@ -833,8 +833,8 @@ const AcademicPortal = () => {
                                 </div>
                                 <span className={cn(
                                     "px-2 py-0.5 rounded-full font-black tracking-widest text-[8px] uppercase font-headline border",
-                                    smtpTesting ? "bg-amber-50 text-amber-500 animate-pulse border border-amber-100" : 
-                                    smtpLogs.length > 0 ? "bg-emerald-50 text-emerald-600 border border-emerald-100" : "bg-slate-100 text-slate-400 border-slate-200/50"
+                                    smtpTesting ? "bg-amber-50 text-amber-500 animate-pulse border border-amber-100" :
+                                        smtpLogs.length > 0 ? "bg-emerald-50 text-emerald-600 border border-emerald-100" : "bg-slate-100 text-slate-400 border-slate-200/50"
                                 )}>
                                     {smtpTesting ? 'Testing' : smtpLogs.length > 0 ? 'Ready' : 'Offline'}
                                 </span>
@@ -851,8 +851,8 @@ const AcademicPortal = () => {
                                     smtpLogs.map((log, idx) => (
                                         <div key={idx} className={cn(
                                             "leading-normal",
-                                            log.type === 'success' ? "text-emerald-400 animate-pulse" : 
-                                            log.type === 'error' ? "text-rose-400 font-bold" : "text-slate-300"
+                                            log.type === 'success' ? "text-emerald-400 animate-pulse" :
+                                                log.type === 'error' ? "text-rose-400 font-bold" : "text-slate-300"
                                         )}>
                                             {log.text}
                                         </div>
@@ -867,15 +867,15 @@ const AcademicPortal = () => {
                 {/* ── Tab Content: Database & Infrastruktur (Tab 3) ───────────────── */}
                 {activeTab === 'db' && (
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        
+
                         {/* 3.1 DB Backup & Restore Manager (Spans 2 Cols) */}
                         <div className="lg:col-span-2 space-y-8">
-                            
+
                             {/* Manual Backup System */}
                             <Card className="glass-card border border-slate-200/60 shadow-none rounded-2xl overflow-hidden group">
                                 <CardContent className="p-6 md:p-8 space-y-6 relative">
                                     <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform text-slate-800"><span className="material-symbols-outlined" style={{ fontSize: '110px' }} >archive</span></div>
-                                    
+
                                     <div className="space-y-1 relative z-10">
                                         <h3 className="text-base font-bold font-headline leading-none" style={{ color: 'var(--theme-h3)' }}>Database Backup & Recovery</h3>
                                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Pencadangan, Pemulihan, Dan Penjadwalan Snapshots Server</p>
@@ -888,7 +888,7 @@ const AcademicPortal = () => {
                                                 <span className="text-slate-700">{backupProgress}%</span>
                                             </div>
                                             <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                                                <div 
+                                                <div
                                                     style={{ width: `${backupProgress}%` }}
                                                     className="h-full rounded-full bg-bku-primary transition-all duration-300"
                                                 />
@@ -897,7 +897,7 @@ const AcademicPortal = () => {
                                     )}
 
                                     <div className="flex flex-col sm:flex-row gap-4 relative z-10 pt-2">
-                                        <Button 
+                                        <Button
                                             onClick={handleBackupDatabase}
                                             disabled={backupTesting}
                                             className="h-11 px-6 rounded-xl bg-bku-primary text-white hover:bg-bku-primary/90 border-none transition-all cursor-pointer font-headline text-[10px] font-black uppercase tracking-widest"
@@ -907,7 +907,7 @@ const AcademicPortal = () => {
                                         </Button>
 
                                         {backupFileAvailable && (
-                                            <a 
+                                            <a
                                                 href={`data:text/plain;charset=utf-8,${encodeURIComponent('-- BKU SIAKAD Database Backup\n-- Date: 2026-05-29\nSELECT * FROM ormawa;')}`}
                                                 download="siakad_bku_backup_20260529.sql"
                                                 className="h-11 px-6 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 flex items-center justify-center font-headline text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer shadow-sm"
@@ -936,8 +936,8 @@ const AcademicPortal = () => {
                                     </div>
 
                                     <div className="p-5 bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-200/60 flex flex-col items-center justify-center text-slate-400 hover:border-bku-primary hover:bg-bku-primary/[0.02] transition-all cursor-pointer relative">
-                                        <input 
-                                            type="file" 
+                                        <input
+                                            type="file"
                                             accept=".sql"
                                             onChange={handleRestoreDatabase}
                                             disabled={restoreTesting}
@@ -958,7 +958,7 @@ const AcademicPortal = () => {
 
                         {/* 3.2 Server Metrics & Maintenance Buttons (Spans 1 Col) */}
                         <div className="space-y-8">
-                            
+
                             {/* Storage metrics */}
                             <Card className="glass-card border border-slate-200/60 shadow-none rounded-2xl p-6 space-y-5">
                                 <div className="space-y-1">
@@ -992,7 +992,7 @@ const AcademicPortal = () => {
                                     <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Konsol Pembersihan Cache & File Logs</p>
                                 </div>
                                 <div className="space-y-3 font-headline">
-                                    <Button 
+                                    <Button
                                         onClick={handleCleanCache}
                                         variant="outline"
                                         className="w-full h-10 rounded-xl border-slate-200 text-slate-600 font-black text-[9px] uppercase tracking-widest hover:bg-slate-50 transition-all cursor-pointer flex justify-between px-4"
@@ -1001,7 +1001,7 @@ const AcademicPortal = () => {
                                         <span className="material-symbols-outlined leading-none" style={{ fontSize: '14px' }}>restart_alt</span>
                                     </Button>
 
-                                    <Button 
+                                    <Button
                                         onClick={handlePurgeSessions}
                                         variant="outline"
                                         className="w-full h-10 rounded-xl border-slate-200 text-slate-600 font-black text-[9px] uppercase tracking-widest hover:bg-slate-50 transition-all cursor-pointer flex justify-between px-4"
@@ -1011,7 +1011,7 @@ const AcademicPortal = () => {
                                     </Button>
 
                                     {logSize > 0 ? (
-                                        <Button 
+                                        <Button
                                             onClick={handleClearLogs}
                                             variant="outline"
                                             className="w-full h-10 rounded-xl border-rose-200 text-rose-500 font-black text-[9px] uppercase tracking-widest hover:bg-rose-50 transition-all cursor-pointer flex justify-between px-4"
@@ -1035,7 +1035,7 @@ const AcademicPortal = () => {
                 {/* ── Tab Content: Keamanan & Sesi (Tab 4) ───────────────────────── */}
                 {activeTab === 'keamanan' && (
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        
+
                         {/* 4.1 Security Policy Parameters Form (Spans 1 Col) */}
                         <div className="glass-card border border-slate-200/60 rounded-2xl p-6 space-y-6 flex flex-col justify-between">
                             <div className="space-y-6">
@@ -1047,69 +1047,69 @@ const AcademicPortal = () => {
                                 <div className="space-y-4 font-inter">
                                     <div className="space-y-2">
                                         <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Panjang Minimal Sandi</Label>
-                                        <Input 
+                                        <Input
                                             type="number"
                                             value={securitySettings.passwordMinLength}
-                                            onChange={(e) => setSecuritySettings({...securitySettings, passwordMinLength: parseInt(e.target.value) || 8})}
+                                            onChange={(e) => setSecuritySettings({ ...securitySettings, passwordMinLength: parseInt(e.target.value) || 8 })}
                                             className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-bold text-xs font-headline"
                                         />
                                     </div>
 
                                     <div className="space-y-2">
                                         <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Batas Waktu Idle Sesi (Menit)</Label>
-                                        <Input 
+                                        <Input
                                             type="number"
                                             value={securitySettings.sessionTimeout}
-                                            onChange={(e) => setSecuritySettings({...securitySettings, sessionTimeout: parseInt(e.target.value) || 30})}
+                                            onChange={(e) => setSecuritySettings({ ...securitySettings, sessionTimeout: parseInt(e.target.value) || 30 })}
                                             className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-bold text-xs font-headline"
                                         />
                                     </div>
 
                                     <div className="space-y-2">
                                         <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Maksimal Kegagalan Login (Kali)</Label>
-                                        <Input 
+                                        <Input
                                             type="number"
                                             value={securitySettings.maxLoginAttempts}
-                                            onChange={(e) => setSecuritySettings({...securitySettings, maxLoginAttempts: parseInt(e.target.value) || 5})}
+                                            onChange={(e) => setSecuritySettings({ ...securitySettings, maxLoginAttempts: parseInt(e.target.value) || 5 })}
                                             className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-bold text-xs font-headline"
                                         />
                                     </div>
 
-                                    <div 
+                                    <div
                                         onClick={() => setSecuritySettings(prev => ({ ...prev, requireSpecialChar: !prev.requireSpecialChar }))}
                                         className="flex items-center justify-between p-3 rounded-xl border border-slate-200/30 bg-slate-50/30 hover:bg-white hover:border-bku-primary/20 transition-all cursor-pointer">
                                         <div className="space-y-0.5">
                                             <p className="text-[10px] font-black text-slate-700 font-headline uppercase leading-none">Wajib Simbol Karakter</p>
                                             <p className="text-[8px] font-bold text-slate-400 uppercase tracking-tight mt-0.5">Gunakan unik (!@#$%).</p>
                                         </div>
-                                        {securitySettings.requireSpecialChar ? 
-                                            <div className="text-emerald-500"><ToggleRight size={24} /></div> : 
+                                        {securitySettings.requireSpecialChar ?
+                                            <div className="text-emerald-500"><ToggleRight size={24} /></div> :
                                             <div className="text-slate-300"><ToggleLeft size={24} /></div>
                                         }
                                     </div>
 
-                                    <div 
+                                    <div
                                         onClick={() => setSecuritySettings(prev => ({ ...prev, requireCapital: !prev.requireCapital }))}
                                         className="flex items-center justify-between p-3 rounded-xl border border-slate-200/30 bg-slate-50/30 hover:bg-white hover:border-bku-primary/20 transition-all cursor-pointer">
                                         <div className="space-y-0.5">
                                             <p className="text-[10px] font-black text-slate-700 font-headline uppercase leading-none">Wajib Kapital & Angka</p>
                                             <p className="text-[8px] font-bold text-slate-400 uppercase tracking-tight mt-0.5">Kombinasi A-Z dan 0-9.</p>
                                         </div>
-                                        {securitySettings.requireCapital ? 
-                                            <div className="text-emerald-500"><ToggleRight size={24} /></div> : 
+                                        {securitySettings.requireCapital ?
+                                            <div className="text-emerald-500"><ToggleRight size={24} /></div> :
                                             <div className="text-slate-300"><ToggleLeft size={24} /></div>
                                         }
                                     </div>
 
-                                    <div 
+                                    <div
                                         onClick={() => setSecuritySettings(prev => ({ ...prev, twoFactorAuth: !prev.twoFactorAuth }))}
                                         className="flex items-center justify-between p-3 rounded-xl border border-slate-200/30 bg-slate-50/30 hover:bg-white hover:border-bku-primary/20 transition-all cursor-pointer">
                                         <div className="space-y-0.5">
                                             <p className="text-[10px] font-black text-slate-700 font-headline uppercase leading-none">2-Factor Auth (2FA)</p>
                                             <p className="text-[8px] font-bold text-slate-400 uppercase tracking-tight mt-0.5">Verifikasi OTP tambahan.</p>
                                         </div>
-                                        {securitySettings.twoFactorAuth ? 
-                                            <div className="text-emerald-500"><ToggleRight size={24} /></div> : 
+                                        {securitySettings.twoFactorAuth ?
+                                            <div className="text-emerald-500"><ToggleRight size={24} /></div> :
                                             <div className="text-slate-300"><ToggleLeft size={24} /></div>
                                         }
                                     </div>
@@ -1131,7 +1131,7 @@ const AcademicPortal = () => {
                                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Pemantauan Dan Pencabutan Akses Sesi Pengguna Super Admin</p>
                                     </div>
                                     {activeSessions.length > 1 && (
-                                        <Button 
+                                        <Button
                                             onClick={handleRevokeAllSessions}
                                             variant="outline"
                                             className="h-8 px-4 rounded-lg border-rose-200 text-rose-500 font-headline font-black text-[9px] uppercase tracking-widest hover:bg-rose-600 hover:text-white hover:border-rose-600 transition-all cursor-pointer"
@@ -1167,7 +1167,7 @@ const AcademicPortal = () => {
                                                         <span className={cn(
                                                             "px-2 py-0.5 rounded-full font-black tracking-widest text-[8px] uppercase font-headline border",
                                                             session.isCurrent ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
-                                                            session.status.includes('Idle') ? "bg-amber-50 text-amber-600 border-amber-100" : "bg-slate-100 text-slate-400 border-slate-200/50"
+                                                                session.status.includes('Idle') ? "bg-amber-50 text-amber-600 border-amber-100" : "bg-slate-100 text-slate-400 border-slate-200/50"
                                                         )}>
                                                             {session.status}
                                                         </span>
@@ -1176,7 +1176,7 @@ const AcademicPortal = () => {
                                                         {session.isCurrent ? (
                                                             <span className="text-[9px] font-bold text-slate-300 uppercase tracking-widest font-headline">Aman</span>
                                                         ) : (
-                                                            <Button 
+                                                            <Button
                                                                 onClick={() => handleKickSession(session.id, session.device)}
                                                                 variant="outline"
                                                                 className="h-7 px-3.5 rounded-lg border-rose-200 text-rose-500 font-headline font-black text-[9px] uppercase tracking-widest hover:bg-rose-600 hover:text-white hover:border-rose-600 transition-all cursor-pointer"
@@ -1211,33 +1211,33 @@ const AcademicPortal = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {[
-                                { 
-                                    key: 'dikti', 
-                                    name: 'PDDIKTI FEEDER GATEWAY', 
+                                {
+                                    key: 'dikti',
+                                    name: 'PDDIKTI FEEDER GATEWAY',
                                     desc: 'Sinkronisasi pelaporan profil akademik mahasiswa, kelulusan, dan status yudisium otomatis ke server pangkalan data dikti nasional.',
                                     icon: 'school',
                                     endpointLabel: 'PDDIKTI Web Service URL',
                                     keyLabel: 'Client Authentication Token ID'
                                 },
-                                { 
-                                    key: 'sister', 
-                                    name: 'SISTER BKD KEMENDIKBUD API', 
+                                {
+                                    key: 'sister',
+                                    name: 'SISTER BKD KEMENDIKBUD API',
                                     desc: 'Integrasi data beban kerja dosen (BKD), jabatan fungsional, dan portofolio pendidik terpusat kemenristekdikti.',
                                     icon: 'badge',
                                     endpointLabel: 'SISTER API Endpoint URL',
                                     keyLabel: 'Sister App Access Token'
                                 },
-                                { 
-                                    key: 'payment', 
-                                    name: 'PAYMENT GATEWAY VA MITRA', 
+                                {
+                                    key: 'payment',
+                                    name: 'PAYMENT GATEWAY VA MITRA',
                                     desc: 'Otomasi notifikasi dan verifikasi instan pembayaran uang kuliah tunggal (UKT) mahasiswa terhubung dengan bank mitra.',
                                     icon: 'payments',
                                     endpointLabel: 'Gateway Merchant URL',
                                     keyLabel: 'Secret API Authorization Key'
                                 },
-                                { 
-                                    key: 'whatsapp', 
-                                    name: 'WHATSAPP SERVER CLIENT', 
+                                {
+                                    key: 'whatsapp',
+                                    name: 'WHATSAPP SERVER CLIENT',
                                     desc: 'Otomasi penyebaran pesan OTP login, tagihan keuangan UKT, dan alarm kehadiran via WhatsApp broadcast engine.',
                                     icon: 'chat',
                                     endpointLabel: 'WhatsApp Gateway Engine URL',
@@ -1269,7 +1269,7 @@ const AcademicPortal = () => {
                                             <div className="space-y-3 pt-3 border-t border-slate-100 font-headline">
                                                 <div className="space-y-1">
                                                     <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{integ.endpointLabel}</Label>
-                                                    <Input 
+                                                    <Input
                                                         value={current.endpoint}
                                                         onChange={(e) => setApiIntegrations({
                                                             ...apiIntegrations,
@@ -1281,7 +1281,7 @@ const AcademicPortal = () => {
                                                 <div className="space-y-1">
                                                     <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{integ.keyLabel}</Label>
                                                     <div className="relative">
-                                                        <Input 
+                                                        <Input
                                                             type={current.show ? "text" : "password"}
                                                             value={current.clientKey}
                                                             onChange={(e) => setApiIntegrations({
@@ -1290,8 +1290,8 @@ const AcademicPortal = () => {
                                                             })}
                                                             className="h-8 px-2 pr-8 border-slate-200 rounded-lg text-xs font-bold text-slate-600 bg-white w-full"
                                                         />
-                                                        <button 
-                                                            type="button" 
+                                                        <button
+                                                            type="button"
                                                             onClick={() => toggleKeyMask(integ.key)}
                                                             className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-bku-primary cursor-pointer"
                                                         >
@@ -1306,7 +1306,7 @@ const AcademicPortal = () => {
 
                                         <div className="pt-4 mt-5 border-t border-slate-100 flex items-center justify-between shrink-0">
                                             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none font-headline">Status Aktivasi Gateway</span>
-                                            <div 
+                                            <div
                                                 onClick={() => !integrationLoading[integ.key] && handleToggleIntegration(integ.key, integ.name)}
                                                 className="cursor-pointer"
                                             >
@@ -1342,13 +1342,13 @@ const AcademicPortal = () => {
                             Peringatan! Eksekusi darurat akan segera mencabut seluruh token sesi publik, mengunci form pengisian KRS mahasiswa, serta menonaktifkan portal dosen/nilai. Ketik kata sandi otorisasi Anda untuk memproses keamanan tingkat tinggi.
                         </DialogDescription>
                     </DialogHeader>
-                    
+
                     <div className="py-4 space-y-4">
                         <div className="space-y-2">
                             <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Sandi Konfirmasi Otoritas</Label>
-                            <Input 
-                                type="password" 
-                                placeholder="Masukkan password konfirmasi Anda" 
+                            <Input
+                                type="password"
+                                placeholder="Masukkan password konfirmasi Anda"
                                 value={emergencyPassword}
                                 onChange={(e) => setEmergencyPassword(e.target.value)}
                                 className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-bold text-xs font-headline"

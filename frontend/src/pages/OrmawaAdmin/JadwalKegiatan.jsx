@@ -1,6 +1,7 @@
 "use client"
 import React, { useState, useEffect } from 'react';
-import { PageContent, PageHeader } from '@/components/ui/page';
+import { PageContent } from '@/components/ui/page';
+import { DashboardHero } from '@/components/ui/dashboard';
 import { DataTable } from '@/components/ui/DataTable'
 
 
@@ -8,9 +9,11 @@ import { DataTable } from '@/components/ui/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
+import { DialogModal, ModalCancelButton, ModalSaveButton } from '@/components/ui/DialogModal'
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
 import { SelectField, SelectOption } from '@/components/ui/SelectField'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { PrimaryStatsCard } from '@/components/ui/StatsCard'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import { Textarea } from '@/components/ui/Textarea'
@@ -24,6 +27,11 @@ import useAuthStore from '../../store/useAuthStore'
 import { getOrmawaId } from '../../utils/getOrmawaId'
 
 const API = `${API_BASE_URL}/ormawa`
+
+const CalendarMonthIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>calendar_month</span>;
+const PendingIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>pending</span>;
+const ScheduleIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>schedule</span>;
+const CheckCircleIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>check_circle</span>;
 
 const STATUS_CFG = {
   terjadwal: { label: 'Terjadwal', cls: 'bg-blue-50 text-blue-700 border-blue-100/60 shadow-sm', icon: 'schedule' },
@@ -229,10 +237,10 @@ export default function JadwalKegiatan() {
       label: 'Nama Kegiatan',
       className: 'min-w-[280px]',
       render: (v, row) => (
-        <div className="flex flex-col leading-tight">
-          <span className="font-black text-slate-900 text-[13px] font-headline tracking-tighter uppercase">{v || '—'}</span>
-          <span className="text-[10px] text-slate-400 font-bold tracking-tight mt-1 flex items-center gap-1">
-            <span className="material-symbols-outlined normal-case text-[12px] opacity-60">location_on</span>
+        <div className="flex flex-col leading-none gap-1">
+          <span className="font-bold text-[var(--theme-text)] font-headline tracking-tighter text-[13px]">{v || '—'}</span>
+          <span className="text-[10px] text-[var(--theme-text-subtle)] font-semibold tracking-tight font-mono flex items-center gap-1">
+            <span className="material-symbols-outlined normal-case" style={{ fontSize: '11px' }}>location_on</span>
             <span>{row.Lokasi || 'Belum ditentukan'}</span>
           </span>
         </div>
@@ -246,12 +254,12 @@ export default function JadwalKegiatan() {
         const start = v || row.tanggalMulai
         const end = row.TanggalSelesai || row.tanggalSelesai
         return (
-          <div className="flex flex-col leading-tight">
-            <span className="font-bold text-slate-700 text-[11px] font-headline">
+          <div className="flex flex-col leading-none gap-1">
+            <span className="font-bold text-[var(--theme-text)] font-headline text-[11px]">
               {start ? new Date(start).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
             </span>
             {end && (
-              <span className="text-[9px] text-slate-400 font-black tracking-wider uppercase mt-0.5">
+              <span className="text-[9px] text-[var(--theme-text-subtle)] font-bold tracking-wider uppercase">
                 s/d {new Date(end).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
               </span>
             )}
@@ -265,11 +273,11 @@ export default function JadwalKegiatan() {
       className: 'w-[160px] text-center',
       cellClassName: 'text-center',
       render: (v) => {
-        const cfg = STATUS_CFG[v] || { label: v, cls: 'bg-slate-100 text-slate-600', icon: 'info' }
+        const cfg = STATUS_CFG[v] || { label: v, cls: 'bg-[var(--theme-bg)] text-[var(--theme-text-subtle)]', icon: 'info' }
         return (
           <div className="flex justify-center">
-            <Badge className={cn('font-black text-[9px] tracking-wider uppercase px-2.5 py-1 border flex items-center gap-1 shadow-sm', cfg.cls)}>
-              <span className="material-symbols-outlined normal-case text-[10px]">{cfg.icon}</span>
+            <Badge className={cn('font-semibold text-[9px] tracking-wider uppercase px-2.5 py-1 border-none shadow-none flex items-center gap-1 w-max mx-auto rounded-full', cfg.cls)}>
+              <span className="material-symbols-outlined normal-case" style={{ fontSize: '11px' }}>{cfg.icon}</span>
               <span>{cfg.label}</span>
             </Badge>
           </div>
@@ -358,70 +366,65 @@ export default function JadwalKegiatan() {
     <PageContent className="font-body">
       <Toaster position="top-right" />
 
-            {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <PageHeader 
-        title="Jadwal Kegiatan"
+      {/* ── Welcome Banner ─────────────────────────────────────────── */}
+      <DashboardHero 
+        title="Jadwal"
+        highlightedTitle="Kegiatan"
         subtitle="Manajemen agenda operasional, sinkronisasi jadwal kegiatan, serta pemantauan jadwal program kerja rutin ormawa."
-        icon="groups"
-        action={
+        icon="event_note"
+        badges={[{ label: 'Kalender Organisasi', active: true }]}
+        actions={
           <Button
             onClick={handleOpenAdd}
-            className="h-10 px-5 rounded-xl text-white hover:bg-opacity-90 font-bold text-[10px] tracking-widest gap-2 w-full md:w-auto shrink-0 border border-transparent uppercase transition-all duration-150 active:scale-95 shadow-lg"
-            style={{ backgroundColor: 'var(--theme-primary)' }}
+            className="h-11 px-6 rounded-xl bg-slate-800 text-white font-black font-headline text-[10px] uppercase tracking-widest gap-2 hover:bg-slate-900 transition-all active:scale-95 shadow-none border-none cursor-pointer"
           >
             <span className="material-symbols-outlined normal-case text-[16px] stroke-[3px]">add</span> Tambah Kegiatan Baru
           </Button>
         }
-       
-        breadcrumbs={[ { label: 'Dashboard', path: '/ormawa' }, { label: 'Jadwal Kegiatan', path: '#' } ]} 
       />
 
       {/* ── Stats Overview ────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-surface border border-border rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:shadow-md transition-all duration-200">
-          <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100/50">
-            <span className="material-symbols-outlined normal-case" style={{ fontSize: '24px' }}>calendar_month</span>
-          </div>
-          <div>
-            <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Total Kegiatan</p>
-            <h3 className="text-2xl font-black text-slate-900 font-headline mt-0.5 leading-none">{totalEvents}</h3>
-          </div>
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+        <PrimaryStatsCard
+          title="Total Kegiatan"
+          value={totalEvents}
+          icon={CalendarMonthIcon}
+          colorTheme="info"
+          badgeText="Semua Agenda"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">list_alt</span>}
+        />
 
-        <div className="bg-surface border border-border rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:shadow-md transition-all duration-200">
-          <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100/50">
-            <span className="material-symbols-outlined normal-case" style={{ fontSize: '24px' }}>pending</span>
-          </div>
-          <div>
-            <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Berlangsung</p>
-            <h3 className="text-2xl font-black text-slate-900 font-headline mt-0.5 leading-none">{activeEvents}</h3>
-          </div>
-        </div>
+        <PrimaryStatsCard
+          title="Berlangsung"
+          value={activeEvents}
+          icon={PendingIcon}
+          colorTheme="warning"
+          badgeText="Saat ini"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">update</span>}
+        />
 
-        <div className="bg-surface border border-border rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:shadow-md transition-all duration-200">
-          <div className="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center border border-sky-100/50">
-            <span className="material-symbols-outlined normal-case" style={{ fontSize: '24px' }}>schedule</span>
-          </div>
-          <div>
-            <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Terjadwal</p>
-            <h3 className="text-2xl font-black text-slate-900 font-headline mt-0.5 leading-none">{upcomingEvents}</h3>
-          </div>
-        </div>
+        <PrimaryStatsCard
+          title="Terjadwal"
+          value={upcomingEvents}
+          icon={ScheduleIcon}
+          colorTheme="primary"
+          badgeText="Akan Datang"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">event_upcoming</span>}
+        />
 
-        <div className="bg-surface border border-border rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:shadow-md transition-all duration-200">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100/50">
-            <span className="material-symbols-outlined normal-case" style={{ fontSize: '24px' }}>check_circle</span>
-          </div>
-          <div>
-            <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Selesai</p>
-            <h3 className="text-2xl font-black text-slate-900 font-headline mt-0.5 leading-none">{completedEvents}</h3>
-          </div>
-        </div>
+        <PrimaryStatsCard
+          title="Selesai"
+          value={completedEvents}
+          icon={CheckCircleIcon}
+          colorTheme="success"
+          badgeText="Tuntas"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">task_alt</span>}
+        />
       </div>
 
       {/* ── Content Area ───────────────────────────────────────────── */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mt-4">
-        <Card className="xl:col-span-1 border border-border shadow-sm overflow-hidden bg-surface rounded-2xl h-fit">
+        <Card className="xl:col-span-1 glass-card shadow-sm rounded-xl overflow-hidden animate-in slide-in-from-bottom-4 duration-500 delay-150 h-fit">
           <CardHeader className="bg-slate-50/50 border-b border-border p-5 flex flex-row items-center justify-between">
             <CardTitle className="text-sm font-black font-headline tracking-tight uppercase flex items-center gap-2">
               <span className="material-symbols-outlined text-[18px] text-primary">calendar_month</span>
@@ -433,15 +436,17 @@ export default function JadwalKegiatan() {
               </Button>
             )}
           </CardHeader>
-          <CardContent className="p-3 sm:p-4 flex flex-col items-center overflow-x-auto no-scrollbar w-full">
-            <Calendar
-              mode="single"
-              selected={selectedFilterDate}
-              onSelect={setSelectedFilterDate}
-              modifiers={modifiers}
-              modifiersClassNames={modifiersClassNames}
-              className="mx-auto w-max rounded-xl border border-slate-100 shadow-sm p-4 bg-white"
-            />
+          <CardContent className="p-3 sm:p-4 flex flex-col items-center w-full">
+            <div className="w-full flex justify-center pb-2">
+              <Calendar
+                mode="single"
+                selected={selectedFilterDate}
+                onSelect={setSelectedFilterDate}
+                modifiers={modifiers}
+                modifiersClassNames={modifiersClassNames}
+                className="w-fit rounded-2xl border border-[var(--theme-border)] shadow-sm p-4 bg-[var(--theme-bg)]"
+              />
+            </div>
             {selectedFilterDate && (
               <div className="w-full mt-4 flex flex-col gap-2">
                 <h4 className="text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1 border-b border-slate-100 pb-2 text-center">
@@ -470,21 +475,19 @@ export default function JadwalKegiatan() {
           </CardContent>
         </Card>
 
-        <Card className="xl:col-span-2 border border-border shadow-sm overflow-hidden bg-surface rounded-2xl">
+        <Card className="xl:col-span-2 glass-card shadow-sm rounded-xl overflow-hidden animate-in slide-in-from-bottom-4 duration-500 delay-300">
           <CardContent className="p-0">
             <DataTable
               columns={columns}
               data={displayedData}
               loading={loading}
               searchPlaceholder="Cari nama atau lokasi kegiatan..."
-              onAdd={handleOpenAdd}
-              addLabel="Tambah Kegiatan"
               filters={[{ key: 'Status', placeholder: 'Filter Status', options: Object.entries(STATUS_CFG).map(([v, { label }]) => ({ label, value: v })) }]}
               actions={(row) => (
-                <div className="flex items-center gap-2">
-                  <Button onClick={() => { setSelected(row); setIsDetailOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 hover:text-primary hover:bg-primary/10 rounded-xl"><span className="material-symbols-outlined normal-case text-[18px]">visibility</span></Button>
-                  <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 hover:text-amber-600 hover:bg-amber-50 rounded-xl"><span className="material-symbols-outlined normal-case text-[18px]">edit</span></Button>
-                  <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 hover:text-rose-600 hover:bg-rose-50 rounded-xl"><span className="material-symbols-outlined normal-case text-[18px]">delete</span></Button>
+                <div className="flex items-center justify-end gap-1">
+                  <Button variant="ghost" size="icon" onClick={() => { setSelected(row); setIsDetailOpen(true) }} title="Detail"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }}>visibility</span></Button>
+                  <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(row)} title="Edit"><span className="material-symbols-outlined block text-[var(--theme-warning)]" style={{ fontSize: '18px' }}>edit</span></Button>
+                  <Button variant="ghost" size="icon" onClick={() => { setSelected(row); setIsDelOpen(true) }} title="Hapus"><span className="material-symbols-outlined block text-[var(--theme-error)]" style={{ fontSize: '18px' }}>delete</span></Button>
                 </div>
               )}
             />
@@ -492,271 +495,255 @@ export default function JadwalKegiatan() {
         </Card>
       </div>
 
-      {/* Detail Modal */}
-      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-3xl p-0 overflow-hidden border border-border shadow-2xl rounded-2xl bg-surface animate-in zoom-in-95 duration-200">
-          {selected && (
-            <div className="flex flex-col">
-              {/* Header */}
-              <DialogHeader className="p-8 pb-6 bg-slate-50/50 border-b border-border relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-                  <span className="material-symbols-outlined size-24 text-slate-800">calendar_today</span>
-                </div>
-                <div className="relative z-10">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="space-y-1">
-                      <span className="text-[9px] font-black tracking-[0.2em] uppercase font-headline text-slate-400">Detail Agenda</span>
-                      <DialogTitle className="text-xl md:text-2xl font-black text-slate-955 font-headline tracking-tight uppercase leading-snug">{selected.Judul}</DialogTitle>
-                    </div>
-                    <Badge className={cn('font-black text-[9px] tracking-wider uppercase px-2.5 py-1 border shrink-0 flex items-center gap-1 shadow-sm border-none', STATUS_CFG[selected.Status]?.cls || 'bg-slate-50 text-slate-650')}>
-                      <span className="material-symbols-outlined normal-case text-[10px]">{STATUS_CFG[selected.Status]?.icon || 'info'}</span>
-                      <span>{STATUS_CFG[selected.Status]?.label || 'Terjadwal'}</span>
-                    </Badge>
-                  </div>
-                </div>
-              </DialogHeader>
+      <DialogModal
+        open={isDetailOpen}
+        onOpenChange={setIsDetailOpen}
+        title={selected?.Judul || "Detail Agenda"}
+        subtitle="DETAIL AGENDA"
+        description="Informasi rincian jadwal dan rencana agenda."
+        icon="calendar_today"
+        maxWidth="max-w-4xl"
+        bodyClassName="p-0"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setIsDetailOpen(false)}>
+              Tutup
+            </ModalCancelButton>
+            <Button onClick={() => { setIsDetailOpen(false); handleOpenEdit(selected) }} className="text-[11px] font-bold tracking-wider h-11 px-8 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white shadow-sm active:scale-95 transition-all flex items-center gap-1.5 border-none">
+              <span className="material-symbols-outlined normal-case text-[16px]">edit</span> Edit Agenda
+            </Button>
+          </>
+        }
+      >
+        {selected && (
+          <div className="flex flex-col">
+            <div className="flex items-center justify-between gap-4 p-6 sm:p-8 border-b border-[var(--theme-border)]">
+              <div className="space-y-1">
+                <h2 className="text-xl font-bold font-headline tracking-tight text-[var(--theme-text)]">{selected.Judul}</h2>
+              </div>
+              <Badge className={cn('font-bold text-[10px] tracking-wider uppercase px-2.5 py-1 border-none flex items-center gap-1 shadow-sm', STATUS_CFG[selected.Status]?.cls || 'bg-slate-50 text-slate-650')}>
+                <span className="material-symbols-outlined normal-case text-[12px]">{STATUS_CFG[selected.Status]?.icon || 'info'}</span>
+                <span>{STATUS_CFG[selected.Status]?.label || 'Terjadwal'}</span>
+              </Badge>
+            </div>
 
-              {/* Quick Info Grid */}
-              <div className="p-8 space-y-6 max-h-[50vh] overflow-y-auto no-scrollbar">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center gap-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center border border-slate-200 shrink-0 shadow-sm">
-                      <span className="material-symbols-outlined normal-case" style={{ fontSize: '20px' }}>calendar_today</span>
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[8px] font-black text-slate-450 tracking-wider uppercase">Mulai Pelaksanaan</p>
-                      <p className="text-xs font-black text-slate-800 font-headline mt-0.5">
-                        {selected.TanggalMulai ? new Date(selected.TanggalMulai).toLocaleDateString('id-ID', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }) : '—'}
-                      </p>
-                    </div>
+            {/* Quick Info Grid */}
+            <div className="p-6 sm:p-8 space-y-6 bg-[var(--theme-bg)]/30">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-2xl p-4 flex items-center gap-3.5 shadow-sm">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--theme-bg)] text-[var(--theme-text-muted)] flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined normal-case" style={{ fontSize: '20px' }}>calendar_today</span>
                   </div>
-
-                  <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center gap-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center border border-slate-200 shrink-0 shadow-sm">
-                      <span className="material-symbols-outlined normal-case" style={{ fontSize: '20px' }}>event_available</span>
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[8px] font-black text-slate-450 tracking-wider uppercase">Selesai Pelaksanaan</p>
-                      <p className="text-xs font-black text-slate-800 font-headline mt-0.5">
-                        {selected.TanggalSelesai ? new Date(selected.TanggalSelesai).toLocaleDateString('id-ID', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }) : '—'}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center gap-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center border border-slate-200 shrink-0 shadow-sm">
-                      <span className="material-symbols-outlined normal-case" style={{ fontSize: '20px' }}>location_on</span>
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[8px] font-black text-slate-450 tracking-wider uppercase">Lokasi Kegiatan</p>
-                      <p className="text-xs font-black text-slate-800 font-headline mt-0.5">
-                        {selected.Lokasi || 'Belum ditentukan'}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center gap-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-650 flex items-center justify-center border border-slate-200 shrink-0 shadow-sm">
-                      <span className="material-symbols-outlined normal-case" style={{ fontSize: '20px' }}>payments</span>
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[8px] font-black text-slate-450 tracking-wider uppercase">Estimasi Dana</p>
-                      <p className="text-xs font-black text-emerald-600 font-headline mt-0.5">
-                        {selected.EstimasiDana || selected.estimasi_dana ? formatRp(selected.EstimasiDana || selected.estimasi_dana) : '—'}
-                      </p>
-                    </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] tracking-wider uppercase">Mulai Pelaksanaan</p>
+                    <p className="text-[13px] font-bold text-[var(--theme-text)] font-headline mt-0.5">
+                      {selected.TanggalMulai ? new Date(selected.TanggalMulai).toLocaleDateString('id-ID', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }) : '—'}
+                    </p>
                   </div>
                 </div>
 
-                {/* Detail Fields Grid */}
-                <div className="bg-slate-50 border border-slate-100 rounded-2xl p-6 space-y-4">
-                  <h3 className="text-xs font-black text-slate-700 uppercase tracking-widest font-headline">Informasi Detail Kegiatan</h3>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-medium text-slate-500">
-                    <div className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Landasan Kegiatan</p>
-                      <p className="font-bold text-slate-700">{selected.LandasanKegiatan || selected.landasan_kegiatan || "—"}</p>
-                    </div>
-                    <div className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Bentuk Kegiatan</p>
-                      <p className="font-bold text-slate-700">{selected.BentukKegiatan || selected.bentuk_kegiatan || "—"}</p>
-                    </div>
-                    <div className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Mitra Kerja</p>
-                      <p className="font-bold text-slate-700">{selected.Mitra || selected.mitra || "—"}</p>
-                    </div>
-                    <div className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">PJ Kegiatan</p>
-                      <p className="font-bold text-slate-700">{selected.PJKegiatan || selected.pj_kegiatan || "—"}</p>
-                    </div>
-                    <div className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Jadwal Pelaksanaan</p>
-                      <p className="font-bold text-slate-700">{selected.JadwalPelaksanaan || selected.jadwal_pelaksanaan || "—"}</p>
-                    </div>
-                    <div className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Sasaran Kegiatan</p>
-                      <p className="font-bold text-slate-700">{selected.SasaranKegiatan || selected.sasaran_kegiatan || "—"}</p>
-                    </div>
-                    <div className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Sumber Dana</p>
-                      <p className="font-bold text-slate-700">{selected.SumberDana || selected.sumber_dana || "—"}</p>
-                    </div>
-                    <div className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Indikator Keberhasilan</p>
-                      <p className="font-bold text-slate-700">{selected.IndikatorKeberhasilan || selected.indikator_keberhasilan || "—"}</p>
-                    </div>
+                <div className="bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-2xl p-4 flex items-center gap-3.5 shadow-sm">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--theme-bg)] text-[var(--theme-text-muted)] flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined normal-case" style={{ fontSize: '20px' }}>event_available</span>
                   </div>
-
-                  <div className="bg-white p-4 rounded-xl border border-slate-100 space-y-1.5 text-xs text-slate-500">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Latar Belakang</p>
-                    <p className="font-medium leading-relaxed whitespace-pre-line text-slate-700">{selected.LatarBelakang || selected.latar_belakang || "—"}</p>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] tracking-wider uppercase">Selesai Pelaksanaan</p>
+                    <p className="text-[13px] font-bold text-[var(--theme-text)] font-headline mt-0.5">
+                      {selected.TanggalSelesai ? new Date(selected.TanggalSelesai).toLocaleDateString('id-ID', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }) : '—'}
+                    </p>
                   </div>
+                </div>
 
-                  <div className="bg-white p-4 rounded-xl border border-slate-100 space-y-1.5 text-xs text-slate-500">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Tujuan Kegiatan</p>
-                    <p className="font-medium leading-relaxed whitespace-pre-line text-slate-700">{selected.TujuanKegiatan || selected.tujuan_kegiatan || "—"}</p>
+                <div className="bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-2xl p-4 flex items-center gap-3.5 shadow-sm">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--theme-bg)] text-[var(--theme-text-muted)] flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined normal-case" style={{ fontSize: '20px' }}>location_on</span>
                   </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] tracking-wider uppercase">Lokasi Kegiatan</p>
+                    <p className="text-[13px] font-bold text-[var(--theme-text)] font-headline mt-0.5">
+                      {selected.Lokasi || 'Belum ditentukan'}
+                    </p>
+                  </div>
+                </div>
 
-                  <div className="bg-white p-4 rounded-xl border border-slate-100 space-y-1.5 text-xs text-slate-500">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Deskripsi Kegiatan</p>
-                    <p className="font-medium leading-relaxed whitespace-pre-line text-slate-700">{selected.Deskripsi || selected.deskripsi || "—"}</p>
+                <div className="bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-2xl p-4 flex items-center gap-3.5 shadow-sm">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--theme-bg)] text-[var(--theme-text-muted)] flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined normal-case" style={{ fontSize: '20px' }}>payments</span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] tracking-wider uppercase">Estimasi Dana</p>
+                    <p className="text-[13px] font-bold text-[var(--theme-success)] font-headline mt-0.5">
+                      {selected.EstimasiDana || selected.estimasi_dana ? formatRp(selected.EstimasiDana || selected.estimasi_dana) : '—'}
+                    </p>
                   </div>
                 </div>
               </div>
 
-              {/* Footer Buttons */}
-              <DialogFooter className="p-8 pt-6 border-t border-slate-100 flex justify-end gap-3 bg-slate-50/30">
-                <Button variant="ghost" onClick={() => setIsDetailOpen(false)} className="text-[10px] font-black text-slate-400 tracking-[0.15em] px-6 h-11 rounded-2xl hover:bg-slate-150 uppercase transition-all duration-150">
-                  Tutup
-                </Button>
-                <Button onClick={() => { setIsDetailOpen(false); handleOpenEdit(selected) }} className="text-[10px] font-black tracking-[0.15em] h-11 px-8 rounded-2xl bg-primary hover:bg-primary/90 text-white shadow-lg active:scale-95 transition-all flex items-center gap-1.5 border-none">
-                  <span className="material-symbols-outlined normal-case text-[14px]">edit</span> Edit Agenda
-                </Button>
-              </DialogFooter>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+              {/* Detail Fields Grid */}
+              <div className="bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-2xl p-6 space-y-4 shadow-sm">
+                <h3 className="text-sm font-bold text-[var(--theme-text)] uppercase tracking-wider font-headline">Informasi Detail Kegiatan</h3>
 
-      <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
-        <DialogContent className="max-w-4xl p-0 overflow-hidden border border-border shadow-2xl rounded-2xl bg-surface animate-in zoom-in-95 duration-200">
-          <DialogHeader className="p-8 pb-5 bg-slate-50/50 border-b border-border relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
-              <span className="material-symbols-outlined size-24 rotate-12">calendar_month</span>
-            </div>
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="size-9 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-650 shadow-inner">
-                  {isEditMode ? <span className="material-symbols-outlined normal-case text-[18px]">edit</span> : <span className="material-symbols-outlined normal-case text-[18px] stroke-[2px]">add</span>}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                  <div className="bg-[var(--theme-bg)] p-3 rounded-xl border border-[var(--theme-border)] space-y-1">
+                    <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider">Landasan Kegiatan</p>
+                    <p className="font-bold text-[var(--theme-text)]">{selected.LandasanKegiatan || selected.landasan_kegiatan || "—"}</p>
+                  </div>
+                  <div className="bg-[var(--theme-bg)] p-3 rounded-xl border border-[var(--theme-border)] space-y-1">
+                    <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider">Bentuk Kegiatan</p>
+                    <p className="font-bold text-[var(--theme-text)]">{selected.BentukKegiatan || selected.bentuk_kegiatan || "—"}</p>
+                  </div>
+                  <div className="bg-[var(--theme-bg)] p-3 rounded-xl border border-[var(--theme-border)] space-y-1">
+                    <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider">Mitra Kerja</p>
+                    <p className="font-bold text-[var(--theme-text)]">{selected.Mitra || selected.mitra || "—"}</p>
+                  </div>
+                  <div className="bg-[var(--theme-bg)] p-3 rounded-xl border border-[var(--theme-border)] space-y-1">
+                    <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider">PJ Kegiatan</p>
+                    <p className="font-bold text-[var(--theme-text)]">{selected.PJKegiatan || selected.pj_kegiatan || "—"}</p>
+                  </div>
+                  <div className="bg-[var(--theme-bg)] p-3 rounded-xl border border-[var(--theme-border)] space-y-1">
+                    <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider">Jadwal Pelaksanaan</p>
+                    <p className="font-bold text-[var(--theme-text)]">{selected.JadwalPelaksanaan || selected.jadwal_pelaksanaan || "—"}</p>
+                  </div>
+                  <div className="bg-[var(--theme-bg)] p-3 rounded-xl border border-[var(--theme-border)] space-y-1">
+                    <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider">Sasaran Kegiatan</p>
+                    <p className="font-bold text-[var(--theme-text)]">{selected.SasaranKegiatan || selected.sasaran_kegiatan || "—"}</p>
+                  </div>
+                  <div className="bg-[var(--theme-bg)] p-3 rounded-xl border border-[var(--theme-border)] space-y-1">
+                    <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider">Sumber Dana</p>
+                    <p className="font-bold text-[var(--theme-text)]">{selected.SumberDana || selected.sumber_dana || "—"}</p>
+                  </div>
+                  <div className="bg-[var(--theme-bg)] p-3 rounded-xl border border-[var(--theme-border)] space-y-1">
+                    <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider">Indikator Keberhasilan</p>
+                    <p className="font-bold text-[var(--theme-text)]">{selected.IndikatorKeberhasilan || selected.indikator_keberhasilan || "—"}</p>
+                  </div>
                 </div>
-                <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-slate-200 text-slate-700 border-none uppercase">Event Registry</Badge>
-              </div>
-              <DialogTitle className="text-xl md:text-2xl font-black font-headline tracking-tight text-slate-900 leading-none">{isEditMode ? 'EDIT KEGIATAN' : 'JADWALKAN KEGIATAN'}</DialogTitle>
-              <DialogDescription className="text-[10px] md:text-xs font-medium text-slate-400 mt-1.5">Tambahkan agenda dan jadwal pelaksanaan kegiatan resmi organisasi.</DialogDescription>
-            </div>
-          </DialogHeader>
 
-          <form onSubmit={handleSave} className="flex flex-col">
-            <div className="p-8 pt-5 space-y-4 max-h-[50vh] overflow-y-auto no-scrollbar">
+                <div className="bg-[var(--theme-bg)] p-4 rounded-xl border border-[var(--theme-border)] space-y-1.5 text-xs text-[var(--theme-text)]">
+                  <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider">Latar Belakang</p>
+                  <p className="font-medium leading-relaxed whitespace-pre-line">{selected.LatarBelakang || selected.latar_belakang || "—"}</p>
+                </div>
+
+                <div className="bg-[var(--theme-bg)] p-4 rounded-xl border border-[var(--theme-border)] space-y-1.5 text-xs text-[var(--theme-text)]">
+                  <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider">Tujuan Kegiatan</p>
+                  <p className="font-medium leading-relaxed whitespace-pre-line">{selected.TujuanKegiatan || selected.tujuan_kegiatan || "—"}</p>
+                </div>
+
+                <div className="bg-[var(--theme-bg)] p-4 rounded-xl border border-[var(--theme-border)] space-y-1.5 text-xs text-[var(--theme-text)]">
+                  <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider">Deskripsi Kegiatan</p>
+                  <p className="font-medium leading-relaxed whitespace-pre-line">{selected.Deskripsi || selected.deskripsi || "—"}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </DialogModal>
+
+      <DialogModal
+        open={isCrudOpen}
+        onOpenChange={setIsCrudOpen}
+        title={isEditMode ? 'Edit Kegiatan' : 'Jadwalkan Kegiatan'}
+        description="Tambahkan agenda dan jadwal pelaksanaan kegiatan resmi organisasi."
+        icon={isEditMode ? "edit" : "calendar_add_on"}
+        maxWidth="max-w-3xl"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setIsCrudOpen(false)} disabled={isSubmitting} />
+            <ModalSaveButton loading={isSubmitting} label={isEditMode ? 'Simpan Perubahan' : 'Jadwalkan'} onClick={handleSave} />
+          </>
+        }
+      >
+        <form id="crud-form" onSubmit={handleSave} className="flex flex-col">
+          <div className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase">Nama Kegiatan</Label>
+              <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">Nama Kegiatan</Label>
               <Input
                 required
                 value={form.Judul}
                 onChange={e => setForm({ ...form, Judul: e.target.value })}
                 placeholder="Contoh: Pekan Olahraga Mahasiswa..."
-                className="h-12 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-[var(--theme-primary)]/10 transition-all font-bold text-sm font-headline"
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Landasan Kegiatan *</Label>
+                <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">Landasan Kegiatan *</Label>
                 <Input
                   required
                   value={form.LandasanKegiatan}
                   onChange={e => setForm({ ...form, LandasanKegiatan: e.target.value })}
                   placeholder="Contoh: Program Kerja Himpunan 2026..."
-                  className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-[var(--theme-primary)]/10 transition-all font-bold text-xs font-headline"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Bentuk Kegiatan</Label>
+                <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">Bentuk Kegiatan</Label>
                 <Input
                   value={form.BentukKegiatan}
                   onChange={e => setForm({ ...form, BentukKegiatan: e.target.value })}
                   placeholder="Contoh: Kompetisi & Seminar..."
-                  className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-[var(--theme-primary)]/10 transition-all font-bold text-xs font-headline"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Mitra **</Label>
+                <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">Mitra **</Label>
                 <Input
                   value={form.Mitra}
                   onChange={e => setForm({ ...form, Mitra: e.target.value })}
                   placeholder="Contoh: PT. Djarum, Pemda..."
-                  className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-[var(--theme-primary)]/10 transition-all font-bold text-xs font-headline"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">PJ Kegiatan</Label>
+                <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">PJ Kegiatan</Label>
                 <Input
                   value={form.PJKegiatan}
                   onChange={e => setForm({ ...form, PJKegiatan: e.target.value })}
                   placeholder="Contoh: Budi Santoso (Ketua Panitia)..."
-                  className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-[var(--theme-primary)]/10 transition-all font-bold text-xs font-headline"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Jadwal Pelaksanaan (Hari, Tanggal Bulan Tahun, Waktu)</Label>
+                <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">Jadwal Pelaksanaan (Hari, Waktu)</Label>
                 <Input
                   value={form.JadwalPelaksanaan}
                   onChange={e => setForm({ ...form, JadwalPelaksanaan: e.target.value })}
                   placeholder="Contoh: Senin, 15 Juli 2026, 09.00 - 15.00 WIB..."
-                  className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-[var(--theme-primary)]/10 transition-all font-bold text-xs font-headline"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Sasaran Kegiatan</Label>
+                <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">Sasaran Kegiatan</Label>
                 <Input
                   value={form.SasaranKegiatan}
                   onChange={e => setForm({ ...form, SasaranKegiatan: e.target.value })}
                   placeholder="Contoh: Seluruh Mahasiswa Fakultas Teknik..."
-                  className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-[var(--theme-primary)]/10 transition-all font-bold text-xs font-headline"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Sumber Dana</Label>
+                <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">Sumber Dana</Label>
                 <Input
                   value={form.SumberDana}
                   onChange={e => setForm({ ...form, SumberDana: e.target.value })}
                   placeholder="Contoh: Dana Kemahasiswaan & Sponsor..."
-                  className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-[var(--theme-primary)]/10 transition-all font-bold text-xs font-headline"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Indikator Keberhasilan</Label>
+                <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">Indikator Keberhasilan</Label>
                 <Input
                   value={form.IndikatorKeberhasilan}
                   onChange={e => setForm({ ...form, IndikatorKeberhasilan: e.target.value })}
                   placeholder="Contoh: Target 200 Peserta Hadir..."
-                  className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-[var(--theme-primary)]/10 transition-all font-bold text-xs font-headline"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Estimasi Dana (Rp)</Label>
+                <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">Estimasi Dana (Rp)</Label>
                 <Input
                   required
                   type="text"
@@ -766,11 +753,10 @@ export default function JadwalKegiatan() {
                      setForm({ ...form, EstimasiDana: rawVal })
                   }}
                   placeholder="Cth: 10.000.000"
-                  className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-[var(--theme-primary)]/10 transition-all font-bold text-xs font-headline"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Status Agenda</Label>
+                <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">Status Agenda</Label>
                 <SelectField
                   value={form.Status}
                   onValueChange={val => setForm({ ...form, Status: val })}
@@ -784,83 +770,67 @@ export default function JadwalKegiatan() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Tanggal Mulai</Label>
+                <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">Tanggal Mulai</Label>
                 <Input
                   required
                   type="date"
                   value={form.TanggalMulai}
                   onChange={e => setForm({ ...form, TanggalMulai: e.target.value })}
-                  className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-[var(--theme-primary)]/10 transition-all font-bold text-xs font-headline cursor-pointer"
+                  className="cursor-pointer"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Tanggal Selesai</Label>
+                <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">Tanggal Selesai</Label>
                 <Input
                   type="date"
                   value={form.TanggalSelesai}
                   onChange={e => setForm({ ...form, TanggalSelesai: e.target.value })}
-                  className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-[var(--theme-primary)]/10 transition-all font-bold text-xs font-headline cursor-pointer"
+                  className="cursor-pointer"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Lokasi Kegiatan</Label>
+              <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">Lokasi Kegiatan</Label>
               <Input
                 value={form.Lokasi}
                 onChange={e => setForm({ ...form, Lokasi: e.target.value })}
                 placeholder="Contoh: Gedung Rektorat Lt. 3..."
-                className="h-11 rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-[var(--theme-primary)]/10 transition-all font-bold text-xs font-headline"
               />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Latar Belakang</Label>
+              <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">Latar Belakang</Label>
               <Textarea
                 value={form.LatarBelakang}
                 onChange={e => setForm({ ...form, LatarBelakang: e.target.value })}
                 placeholder="Deskripsikan latar belakang pengajuan kegiatan..."
-                className="min-h-[80px] rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white p-4 font-medium text-xs leading-relaxed font-headline"
+                className="min-h-[80px]"
               />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Tujuan Kegiatan</Label>
+              <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">Tujuan Kegiatan</Label>
               <Textarea
                 value={form.TujuanKegiatan}
                 onChange={e => setForm({ ...form, TujuanKegiatan: e.target.value })}
                 placeholder="Deskripsikan tujuan dari kegiatan..."
-                className="min-h-[80px] rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white p-4 font-medium text-xs leading-relaxed font-headline"
+                className="min-h-[80px]"
               />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline uppercase font-bold">Deskripsi Detail Kegiatan</Label>
+              <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">Deskripsi Detail Kegiatan</Label>
               <Textarea
                 value={form.Deskripsi}
                 onChange={e => setForm({ ...form, Deskripsi: e.target.value })}
                 placeholder="Deskripsikan rincian detail/mekanisme kegiatan..."
-                className="min-h-[80px] rounded-2xl border-border bg-[var(--theme-bg)] focus:bg-white p-4 font-medium text-xs leading-relaxed font-headline"
+                className="min-h-[80px]"
               />
             </div>
-            </div>
-
-            <DialogFooter className="p-8 pt-5 flex flex-col md:flex-row items-center justify-end gap-3 border-t border-slate-100 bg-slate-50/30">
-              <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="w-full md:w-auto text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl uppercase transition-all duration-150">
-                Batalkan
-              </Button>
-              <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto h-12 px-10 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-1.5 border-none">
-                {isSubmitting ? (
-                  <span className="material-symbols-outlined normal-case animate-spin text-[16px]">sync</span>
-                ) : (
-                  <span className="material-symbols-outlined normal-case text-[16px] stroke-[3px]">save</span>
-                )}
-                <span className="text-[10px] font-black tracking-[0.2em] uppercase">{isSubmitting ? 'Menyimpan...' : (isEditMode ? 'Simpan Perubahan' : 'Jadwalkan Agenda')}</span>
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+          </div>
+        </form>
+      </DialogModal>
 
       <DeleteConfirmModal isOpen={isDelOpen} onClose={() => setIsDelOpen(false)} onConfirm={handleDelete}
         title="Hapus Kegiatan?" description="Data kegiatan ini akan dihapus permanen dari jadwal." loading={isSubmitting} />

@@ -36,6 +36,9 @@ export default function DataTable({
   onSortChange,
   onPageSizeChange,
   tableFooter,
+  toolbarActions,
+  title,
+  subtitle,
 }) {
   const [search, setSearch] = useState('');
   const [internalPage, setInternalPage] = useState(1);
@@ -143,6 +146,24 @@ export default function DataTable({
         borderColor: 'var(--theme-border)',
       }}
     >
+      {/* Table Header / Title */}
+      <div className="px-5 py-4 border-b border-[var(--theme-border-muted)] bg-[var(--theme-bg)]/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="font-bold text-sm text-[var(--theme-text)] leading-tight">{title || 'Manajemen Data'}</h2>
+          {subtitle ? (
+            <p className="text-[11px] font-medium text-[var(--theme-text-muted)] mt-0.5">{subtitle}</p>
+          ) : (
+            <p className="text-[11px] font-medium text-[var(--theme-text-muted)] mt-0.5">Menampilkan daftar data yang terdaftar dalam sistem.</p>
+          )}
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest font-headline">Total Data</span>
+          <span className="text-sm font-extrabold text-[var(--theme-primary)] px-2.5 py-0.5 rounded-md bg-[var(--theme-primary)]/10 border border-[var(--theme-primary)]/20 shadow-sm tabular-nums">
+            {serverPagination ? totalData : filteredData.length}
+          </span>
+        </div>
+      </div>
+
       {/* Table Toolbar */}
       {(searchable || onAdd || filters.length > 0) && (
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between p-3 gap-3 border-b" style={{ borderColor: 'var(--theme-border-muted)' }}>
@@ -197,6 +218,7 @@ export default function DataTable({
 
           {/* Actions & Add Button */}
           <div className="flex items-center gap-2 sm:ml-auto">
+            {toolbarActions && toolbarActions}
             {onAdd && (
               <button
                 type="button"

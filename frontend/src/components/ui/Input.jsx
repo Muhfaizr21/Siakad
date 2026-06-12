@@ -34,8 +34,6 @@ export default function Input({
       <input
         className="w-full px-4 py-2.5 rounded-xl text-sm transition-all focus:outline-none"
         style={{
-          backgroundColor: 'var(--theme-bg)',
-          color: 'var(--theme-text)',
           border: `1px solid ${error ? 'var(--theme-error)' : 'var(--theme-border)'}`,
         }}
         onFocus={(e) => {

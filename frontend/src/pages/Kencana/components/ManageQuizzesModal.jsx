@@ -136,7 +136,7 @@ export const ManageQuizzesModal = ({ open, onOpenChange, sessionId }) => {
       description={view === 'list' ? 'Kelola semua kuis untuk sesi ini. Setidaknya 1 kuis wajib agar peserta bisa melaju ke tahap berikutnya.' : 'Isi form untuk membuat kuis baru. Link gform disarankan.'}
       maxWidth="max-w-2xl"
     >
-      <div className="p-6 md:p-8 max-h-[70vh] overflow-y-auto">
+      <div className="max-h-[70vh] overflow-y-auto pr-2">
         {isLoading ? (
           <div className="flex justify-center items-center py-20">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--theme-primary)]"></div>

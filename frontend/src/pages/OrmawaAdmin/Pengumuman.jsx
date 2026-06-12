@@ -1,15 +1,13 @@
 "use client"
 import React, { useState, useEffect } from 'react';
-import { PageContent, PageHeader } from '@/components/ui/page';
-
-
+import { PageContent } from '@/components/ui/page';
+import { DashboardHero } from '@/components/ui/dashboard';
 
 import { DataTable } from '@/components/ui/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
+import { DialogModal, ModalCancelButton, ModalSaveButton } from '@/components/ui/DialogModal'
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
-import { Card, CardContent } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import { Textarea } from '@/components/ui/Textarea'
@@ -175,17 +173,21 @@ export default function Pengumuman() {
       <Toaster position="top-right" />
 
       {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <PageHeader 
-        title="Siaran & Pengumuman"
+      <DashboardHero
+        title="Siaran &"
+        highlightedTitle="Pengumuman"
         subtitle="Publikasi pengumuman penting, agenda rapat, dan regulasi resmi bagi seluruh anggota."
         icon="campaign"
-        breadcrumbs={[ { label: 'Dashboard', path: '/ormawa' }, { label: 'Siaran & Pengumuman', path: '#' } ]} 
+        badges={[
+          { label: 'Pusat Informasi', active: true }
+        ]}
       />
 
       {/* ── Pengumuman DataTable Container ────────────────────────────── */}
-      <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface">
-        <CardContent className="p-6">
+      <div className="glass-card mb-8 animate-in slide-in-from-bottom-4 duration-500 fade-in border border-white/20 overflow-hidden">
+        <div className="p-0">
           <DataTable
+            containerClassName="border-0 shadow-none rounded-none"
             columns={columns}
             data={data}
             loading={loading}
@@ -237,40 +239,36 @@ export default function Pengumuman() {
               </div>
             )}
           />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* ── Detail View Dialog ── */}
-      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen} maxWidth="max-w-2xl">
-        <DialogContent className="w-full h-full p-0 overflow-hidden border-none shadow-none rounded-2xl bg-white animate-in zoom-in-95 duration-200">
-          {selected && (
-            <>
-              <DialogHeader className="relative bg-gradient-to-br from-primary via-primary to-blue-700 pt-6 pb-7 px-6 overflow-hidden flex-shrink-0 border-b-0 text-left">
-                <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
-                <div className="absolute -bottom-6 right-16 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
-                <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
-                  <span className="material-symbols-outlined size-24 rotate-12 text-white">campaign</span>
-                </div>
-                <div className="relative z-10 space-y-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Badge className={cn('font-black text-[9px] uppercase tracking-widest px-2.5 py-0.5 border-none rounded-md backdrop-blur-sm', 
-                      selected.Kategori === 'penting' ? 'bg-rose-500/20 text-rose-100' : 'bg-white/10 text-white'
-                    )}>
-                      {KATEGORI_CFG[selected.Kategori || selected.kategori || selected.Target || 'umum']?.label || selected.Kategori || selected.kategori || selected.Target || 'Umum'}
-                    </Badge>
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">SIARAN ANN-{selected.id || selected.ID}</span>
-                  </div>
-                  <DialogTitle className="text-xl font-black font-headline tracking-tighter text-white pr-8 leading-tight">
-                    {selected.Judul || selected.judul || '—'}
-                  </DialogTitle>
-                  <DialogDescription className="text-xs font-semibold text-white/70 mt-1.5 flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[14px]">calendar_month</span>
-                    Diterbitkan pada {selected.created_at || selected.CreatedAt || selected.TanggalMulai ? new Date(selected.created_at || selected.CreatedAt || selected.TanggalMulai).toLocaleString('id-ID', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
-                  </DialogDescription>
-                </div>
-              </DialogHeader>
-
-              <div className="p-6 md:p-8 space-y-6 max-h-[50vh] overflow-y-auto no-scrollbar font-inter">
+      <DialogModal
+        open={isDetailOpen}
+        onOpenChange={setIsDetailOpen}
+        title={selected ? selected.Judul || selected.judul : 'Detail Pengumuman'}
+        subtitle={selected ? `SIARAN ANN-${selected.id || selected.ID} • ${new Date(selected.created_at || selected.CreatedAt || selected.TanggalMulai).toLocaleDateString('id-ID')}` : 'Detail'}
+        icon="campaign"
+        maxWidth="max-w-2xl"
+        footer={
+          <div className="flex items-center justify-end gap-2">
+            <ModalCancelButton onClick={() => setIsDetailOpen(false)}>TUTUP</ModalCancelButton>
+            <Button
+              type="button"
+              onClick={() => {
+                setIsDetailOpen(false);
+                handleOpenEdit(selected);
+              }}
+              className="h-11 px-6 sm:px-8 rounded-xl bg-[var(--theme-primary)] text-white hover:opacity-90 shadow-lg active:translate-y-0 transition-all border-none font-black text-[11px] uppercase tracking-[0.1em] flex items-center justify-center cursor-pointer hover:-translate-y-0.5"
+            >
+              EDIT PENGUMUMAN
+            </Button>
+          </div>
+        }
+      >
+        {selected && (
+          <div className="flex flex-col">
+              <div className="p-6 space-y-6 max-h-[50vh] overflow-y-auto no-scrollbar">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {/* Left Metadata Column */}
                   <div className="space-y-4 md:col-span-1 md:border-r md:border-slate-100 md:pr-4">
@@ -283,71 +281,39 @@ export default function Pengumuman() {
                       <span className="text-xs font-bold text-slate-700 block bg-slate-50 border border-slate-100 px-3 py-2 rounded-xl">Seluruh Anggota</span>
                     </div>
                   </div>
+                </div>
 
-                  {/* Right Content Column */}
-                  <div className="space-y-2 md:col-span-2">
-                    <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Isi Pengumuman Resmi</Label>
-                    <div className="text-sm font-medium text-slate-600 leading-relaxed bg-slate-50 p-5 rounded-2xl border border-slate-100 min-h-[120px] whitespace-pre-line">
-                      {selected.Isi || selected.isi || '—'}
-                    </div>
+                {/* Right Content Column */}
+                <div className="space-y-2 md:col-span-2">
+                  <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 uppercase font-headline">Isi Pengumuman Resmi</Label>
+                  <div className="text-sm font-medium text-[var(--theme-text)] leading-relaxed bg-[var(--theme-surface)] p-5 rounded-2xl border border-[var(--theme-border)] shadow-sm min-h-[120px] whitespace-pre-line">
+                    {selected.Isi || selected.isi || '—'}
                   </div>
                 </div>
               </div>
-
-              <DialogFooter className="px-6 py-5 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row justify-end sm:space-x-3 gap-3 sm:gap-0 mt-2">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setIsDetailOpen(false)}
-                  className="w-full sm:w-auto text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl active:scale-95 transition-all"
-                >
-                  TUTUP
-                </Button>
-                <Button
-                  type="button"
-                  onClick={() => {
-                    setIsDetailOpen(false);
-                    handleOpenEdit(selected);
-                  }}
-                  className="w-full sm:w-auto h-12 px-8 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 border-none"
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>edit</span>
-                  <span className="text-[10px] font-black tracking-widest uppercase">EDIT PENGUMUMAN</span>
-                </Button>
-              </DialogFooter>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+          </div>
+        )}
+      </DialogModal>
 
       {/* ── CRUD Dialog ── */}
-      <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen} maxWidth="max-w-xl">
-        <DialogContent className="w-full h-full p-0 overflow-hidden border-none shadow-none rounded-2xl bg-white animate-in zoom-in-95 duration-200">
-          <DialogHeader className="relative bg-gradient-to-br from-primary via-primary to-blue-700 pt-6 pb-7 px-6 overflow-hidden flex-shrink-0 border-b-0 text-left">
-            <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
-            <div className="absolute -bottom-6 right-16 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
-            <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
-              <span className="material-symbols-outlined size-24 rotate-12 text-white">campaign</span>
-            </div>
-            
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="size-8 rounded-xl bg-white/10 flex items-center justify-center text-white backdrop-blur-sm">
-                  {isEditMode ? <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>edit</span> : <span className="material-symbols-outlined stroke-[3px]" style={{ fontSize: '16px' }}>add</span>}
-                </div>
-                <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-white/10 text-white border-none rounded-md backdrop-blur-sm">ANNOUNCEMENT PORTAL</Badge>
-              </div>
-              <DialogTitle className="text-xl font-black font-headline tracking-tighter text-white pr-8">
-                {isEditMode ? 'Edit Pengumuman' : 'Buat Pengumuman Baru'}
-              </DialogTitle>
-              <DialogDescription className="text-xs font-semibold text-white/70 mt-1">
-                Tulis tajuk siaran, tentukan kategori, dan publikasikan informasi resmi ormawa.
-              </DialogDescription>
-            </div>
-          </DialogHeader>
-
-          <form onSubmit={handleSave}>
-            <div className="p-6 md:p-8 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar font-inter">
+      <DialogModal
+        open={isCrudOpen}
+        onOpenChange={setIsCrudOpen}
+        title={isEditMode ? 'Edit Pengumuman' : 'Buat Pengumuman Baru'}
+        subtitle="Kelola informasi resmi organisasi."
+        icon="campaign"
+        maxWidth="max-w-xl"
+        footer={
+          <div className="flex items-center justify-end gap-2">
+            <ModalCancelButton onClick={() => setIsCrudOpen(false)} />
+            <ModalSaveButton loading={isSubmitting} form="pengumuman-form">
+              {isEditMode ? 'SIMPAN PERUBAHAN' : 'PUBLIKASIKAN'}
+            </ModalSaveButton>
+          </div>
+        }
+      >
+        <form id="pengumuman-form" onSubmit={handleSave} className="flex flex-col">
+          <div className="p-6 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar font-inter">
               {/* Judul Pengumuman */}
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Judul Pengumuman</Label>
@@ -356,7 +322,7 @@ export default function Pengumuman() {
                   value={form.Judul}
                   onChange={e => setForm({ ...form, Judul: e.target.value })}
                   placeholder="Masukkan judul atau tajuk utama pengumuman..."
-                  className="h-12 border-slate-200 bg-white shadow-sm focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-xl px-4 font-bold text-xs"
+                  className="font-bold text-xs"
                 />
               </div>
 
@@ -407,37 +373,14 @@ export default function Pengumuman() {
                   type="date"
                   value={form.TanggalMulai}
                   onChange={e => setForm({ ...form, TanggalMulai: e.target.value })}
-                  className="h-12 border-slate-200 bg-white shadow-sm focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-xl px-4 font-bold text-xs"
+                  className="font-bold text-xs"
                 />
                 <p className="text-[10px] text-slate-400 ml-1 font-medium">Jika diisi, pengumuman & notifikasi akan muncul pada tanggal tersebut.</p>
               </div>
             </div>
 
-            <DialogFooter className="px-6 py-5 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row justify-end sm:space-x-3 gap-3 sm:gap-0 mt-2">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setIsCrudOpen(false)}
-                className="w-full sm:w-auto text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl active:scale-95 transition-all"
-              >
-                BATAL
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full sm:w-auto h-12 px-8 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 border-none"
-              >
-                {isSubmitting ? (
-                  <span className="material-symbols-outlined animate-spin size-4" style={{ fontSize: '16px' }}>sync</span>
-                ) : (
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>campaign</span>
-                )}
-                <span className="text-[10px] font-black tracking-widest uppercase">{isEditMode ? 'SIMPAN PERUBAHAN' : 'PUBLIKASIKAN'}</span>
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+        </form>
+      </DialogModal>
 
       {/* Delete Confirmation Modal */}
       <DeleteConfirmModal

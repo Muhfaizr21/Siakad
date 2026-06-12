@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { PageContent, PageHeader } from '@/components/ui/page';
+import { PageContent } from '@/components/ui/page';
+import { DashboardHero } from '@/components/ui/dashboard/DashboardHero';
 
 export const statusLabels = {
   not_started: 'Belum Dikerjakan',
@@ -55,9 +56,9 @@ export function isToday(value) {
          d1.getFullYear() === d2.getFullYear();
 }
 
-export function KencanaShell({ title, subtitle, actions, breadcrumbs, children }) {
+export function KencanaShell({ title, highlightedTitle, subtitle, actions, badges, breadcrumbs, children }) {
   const { pathname } = useLocation();
-  const isDashboard = pathname === '/student/kencana';
+  const isDashboard = pathname.endsWith('/student/kencana') || pathname.endsWith('/admin/student-kencana');
 
   const defaultBreadcrumbs = [
     { label: 'Student Hub', path: '/student/dashboard' },
@@ -72,11 +73,13 @@ export function KencanaShell({ title, subtitle, actions, breadcrumbs, children }
 
   return (
     <PageContent>
-      <PageHeader
+      <DashboardHero
         title={title}
+        highlightedTitle={highlightedTitle}
         subtitle={subtitle}
-        breadcrumbs={finalBreadcrumbs}
-        action={actions}
+        breadcrumbs={isDashboard ? undefined : finalBreadcrumbs}
+        actions={actions}
+        badges={badges}
         icon="school"
       />
       <div className="w-full py-6 space-y-6">
@@ -100,14 +103,14 @@ export function StatusBadge({ status }) {
 
 export function MetricCard({ label, value, hint, icon = 'analytics' }) {
   return (
-    <div className="rounded-2xl border border-border bg-[var(--theme-surface)]/80 p-5 shadow-sm backdrop-blur">
+    <div className="rounded-2xl border border-slate-200/60 bg-white/80 p-5 shadow-sm backdrop-blur group hover:shadow-md transition-all duration-300">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[var(--theme-text-muted)]">{label}</p>
-          <p className="mt-2 text-3xl font-bold text-[var(--theme-text)] font-headline">{value}</p>
-          {hint && <p className="mt-1 text-xs font-semibold text-[var(--theme-text-muted)]">{hint}</p>}
+          <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-400">{label}</p>
+          <p className="mt-2 text-3xl font-bold text-slate-800 font-headline">{value}</p>
+          {hint && <p className="mt-1 text-xs font-semibold text-slate-500">{hint}</p>}
         </div>
-        <div className="grid size-11 place-items-center rounded-xl bg-[var(--theme-primary)] text-[var(--theme-text-on-primary)] shadow-sm">
+        <div className="grid size-11 place-items-center rounded-xl bg-bku-primary text-white shadow-sm group-hover:scale-110 transition-transform duration-300">
           <span className="material-symbols-outlined" style={{ fontSize: 22 }}>{icon}</span>
         </div>
       </div>

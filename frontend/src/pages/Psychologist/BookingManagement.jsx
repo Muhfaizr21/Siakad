@@ -4,6 +4,14 @@ import { psychologistService } from '../../services/api';
 import { DataTable } from '@/components/ui/DataTable';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/Table';
 import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
+import { DashboardHero } from '@/components/ui/dashboard';
+import { PageContent } from '@/components/ui/page';
+import { PrimaryStatsCard } from '@/components/ui/StatsCard';
+
+const PendingIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>pending_actions</span>;
+const ConfirmIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>event_available</span>;
+const DoneIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>task_alt</span>;
+const RejectIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>cancel</span>;
 
 
 const tabs = ['Semua', 'Menunggu', 'Dikonfirmasi', 'Selesai', 'Ditolak'];
@@ -37,7 +45,6 @@ const statusMeta = {
 export default function BookingManagement() {
   const [selectedTab, setSelectedTab] = useState('Semua');
   const [issueFilter, setIssueFilter] = useState('Semua Topik');
-  const [sortOrder, setSortOrder] = useState('Terbaru');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [updatingId, setUpdatingId] = useState(null);
@@ -47,13 +54,9 @@ export default function BookingManagement() {
   const navigate = useNavigate();
 
   const [bookings, setBookings] = useState([]);
-  const [fakultasList, setFakultasList] = useState([]);
-  const [prodiList, setProdiList] = useState([]);
-  const [selectedFakultas, setSelectedFakultas] = useState('Semua Fakultas');
   const [selectedProdi, setSelectedProdi] = useState('Semua Prodi');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  
 
   useEffect(() => {
     let ignore = false;
@@ -69,27 +72,15 @@ export default function BookingManagement() {
         if (!ignore) setLoading(false);
       });
 
-    psychologistService.getFakultasList().then((res) => {
-      if (!ignore) setFakultasList(res.data || []);
-    });
-    psychologistService.getProdiList().then((res) => {
-      if (!ignore) setProdiList(res.data || []);
-    });
-
     return () => { ignore = true; };
   }, []);
 
-  const filteredProdis = useMemo(() => {
-    if (selectedFakultas === 'Semua Fakultas') return [];
-    const selectedFak = fakultasList.find(f => f.nama === selectedFakultas);
-    if (!selectedFak) return [];
-    return prodiList.filter(p => p.fakultas_id === selectedFak.id);
-  }, [selectedFakultas, prodiList, fakultasList]);
-
-  const handleFakultasChange = (val) => {
-    setSelectedFakultas(val);
-    setSelectedProdi('Semua Prodi');
-  };
+  const prodiOptions = useMemo(() => {
+    const prodis = bookings
+      .map((booking) => booking.prodi)
+      .filter(Boolean);
+    return ['Semua Prodi', ...Array.from(new Set(prodis))];
+  }, [bookings]);
 
   const issueOptions = useMemo(() => {
     const issues = bookings
@@ -113,21 +104,20 @@ export default function BookingManagement() {
         const status = booking.status || 'Menunggu';
         const matchesTab = selectedTab === 'Semua' || status === selectedTab;
         const matchesIssue = issueFilter === 'Semua Topik' || booking.issue === issueFilter;
-        const matchesFakultas = selectedFakultas === 'Semua Fakultas' || booking.faculty === selectedFakultas;
         const matchesProdi = selectedProdi === 'Semua Prodi' || booking.prodi === selectedProdi;
         
         const bookingRawDate = booking.raw_date || (booking.date ? new Date(booking.date).toISOString().split('T')[0] : '');
         const matchesStartDate = !startDate || (bookingRawDate && bookingRawDate >= startDate);
         const matchesEndDate = !endDate || (bookingRawDate && bookingRawDate <= endDate);
 
-        return matchesTab && matchesIssue && matchesFakultas && matchesProdi && matchesStartDate && matchesEndDate;
+        return matchesTab && matchesIssue && matchesProdi && matchesStartDate && matchesEndDate;
       })
       .sort((a, b) => {
         const first = new Date(a.created_at || a.date).getTime();
         const second = new Date(b.created_at || b.date).getTime();
-        return sortOrder === 'Terbaru' ? second - first : first - second;
+        return second - first;
       });
-  }, [bookings, issueFilter, selectedTab, sortOrder, selectedFakultas, selectedProdi, startDate, endDate]);
+  }, [bookings, issueFilter, selectedTab, selectedProdi, startDate, endDate]);
 
   const handleTableSearch = (data, searchVal) => {
     const query = searchVal.trim().toLowerCase();
@@ -146,16 +136,14 @@ export default function BookingManagement() {
     });
   };
 
-  const hasActiveFilter = selectedTab !== 'Semua' || issueFilter !== 'Semua Topik' || selectedFakultas !== 'Semua Fakultas' || selectedProdi !== 'Semua Prodi' || startDate || endDate;
+  const hasActiveFilter = selectedTab !== 'Semua' || issueFilter !== 'Semua Topik' || selectedProdi !== 'Semua Prodi' || startDate || endDate;
 
   const resetFilters = () => {
     setSelectedTab('Semua');
     setIssueFilter('Semua Topik');
-    setSelectedFakultas('Semua Fakultas');
     setSelectedProdi('Semua Prodi');
     setStartDate('');
     setEndDate('');
-    setSortOrder('Terbaru');
   };
 
   const handleAction = async (id, newStatus, link = '') => {
@@ -292,202 +280,123 @@ export default function BookingManagement() {
   }
 
   return (
-    <div className="w-full relative space-y-6 min-h-screen bg-transparent font-inter pb-8">
+    <PageContent>
       
-      {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <section className="relative overflow-hidden rounded-2xl p-6 md:p-8 flex flex-col xl:flex-row xl:items-center gap-6 group shadow-sm border border-slate-200/60 bg-white">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/80 via-white to-slate-50/80" />
-        <div className="absolute inset-0 opacity-[0.02]"
-          style={{
-            backgroundImage: `radial-gradient(circle at 20% 50%, black 1px, transparent 1px), radial-gradient(circle at 80% 20%, black 1px, transparent 1px)`,
-            backgroundSize: '40px 40px'
-          }}
-        />
-        <div className="absolute -top-20 -right-20 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute -bottom-10 left-20 w-48 h-48 bg-emerald-400/5 rounded-full blur-2xl" />
-
-        <div className="relative z-10 flex-1 flex flex-col justify-center gap-3">
-          <div className="flex items-center gap-4">
-             <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/[0.02] border border-primary/10 flex items-center justify-center text-primary shrink-0 shadow-sm relative overflow-hidden">
-                <span className="material-symbols-outlined text-primary relative z-10" style={{ fontSize: '26px' }}>event_available</span>
-             </div>
-             <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-primary/5 text-primary border border-primary/10">
-                    Manajemen Booking
-                  </span>
-                </div>
-                <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight font-headline leading-none">
-                  Janji Temu Konseling
-                </h1>
-                <p className="mt-2 text-xs md:text-sm font-medium text-slate-500 leading-relaxed max-w-xl">
-                  Pantau, cari, dan tindak lanjuti permintaan sesi konseling baru untuk mempercepat penyelesaian bantuan psikologis mahasiswa.
-                </p>
+      <DashboardHero
+        title="Manajemen"
+        highlightedTitle="Janji Temu"
+        subtitle="Pantau, cari, dan tindak lanjuti permintaan sesi konseling baru untuk mempercepat penyelesaian bantuan psikologis mahasiswa."
+        icon="event_available"
+        badges={[{ label: 'Layanan Konseling Mahasiswa', active: false }]}
+        actions={
+          <div className="px-4 py-2 bg-[var(--theme-primary)]/5 border border-[var(--theme-primary)]/20 rounded-xl flex items-center gap-3 w-full lg:w-auto justify-center">
+             <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '16px' }}>psychology</span>
+             <div className="flex flex-col leading-tight">
+                <span className="text-[10px] font-bold text-[var(--theme-primary)]/70 uppercase tracking-widest">Akses Validasi</span>
+                <span className="text-[12px] font-bold text-[var(--theme-primary)] font-jakarta">Psychologist Portal</span>
              </div>
           </div>
-        </div>
+        }
+      />
 
-        <div className="relative z-10 grid grid-cols-2 sm:grid-cols-4 gap-3 xl:min-w-[420px] w-full xl:w-auto shrink-0 border-t xl:border-t-0 xl:border-l border-slate-100 pt-4 xl:pt-0 xl:pl-6">
-          {tabs.slice(1).map((status) => (
-            <div key={status} className="bg-white/80 backdrop-blur-md rounded-xl p-4 border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-300">
-              <div className="flex items-center gap-2 mb-2">
-                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${statusMeta[status]?.dot}`} />
-                <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">{status}</span>
-              </div>
-              <p className="text-2xl font-extrabold tracking-tight leading-none text-slate-800 tabular-nums">{statusCounts[status] || 0}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+        {tabs.slice(1).map((status) => {
+          let theme = 'primary';
+          let StatusIcon = PendingIcon;
+          if (status === 'Menunggu') { theme = 'warning'; StatusIcon = PendingIcon; }
+          if (status === 'Dikonfirmasi') { theme = 'info'; StatusIcon = ConfirmIcon; }
+          if (status === 'Selesai') { theme = 'success'; StatusIcon = DoneIcon; }
+          if (status === 'Ditolak') { theme = 'error'; StatusIcon = RejectIcon; }
 
-      {/* ── Search & Filter Bento ────────────────────────────────────── */}
-      <section className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-5 relative overflow-hidden">
-        <div className="flex flex-col gap-5 relative z-10">
-          {/* Row 1: Topik, Urutan */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                <span className="material-symbols-outlined text-base">filter_alt</span>
-                Topik
-              </label>
-              <select
-                value={issueFilter}
-                onChange={(e) => setIssueFilter(e.target.value)}
-                className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 cursor-pointer"
-              >
-                {issueOptions.map((issue) => (
-                  <option key={issue} value={issue}>{issue}</option>
-                ))}
-              </select>
-            </div>
+          return (
+            <PrimaryStatsCard
+              key={status}
+              title={`Status ${status}`}
+              value={statusCounts[status] || 0}
+              icon={StatusIcon}
+              colorTheme={theme}
+            />
+          );
+        })}
+      </div>
 
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                <span className="material-symbols-outlined text-base">sort</span>
-                Urutan
-              </label>
-              <select
-                value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value)}
-                className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 cursor-pointer"
-              >
-                <option value="Terbaru">Jadwal terbaru</option>
-                <option value="Terlama">Jadwal terlama</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Row 2: Fakultas, Prodi, Range Tanggal */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-5 border-t border-slate-100 pt-5">
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                <span className="material-symbols-outlined text-base">domain</span>
-                Fakultas
-              </label>
-              <select
-                value={selectedFakultas}
-                onChange={(e) => handleFakultasChange(e.target.value)}
-                className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 cursor-pointer"
-              >
-                <option value="Semua Fakultas">Semua Fakultas</option>
-                {fakultasList.map((f) => (
-                  <option key={f.id} value={f.nama}>{f.nama}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                <span className="material-symbols-outlined text-base">school</span>
-                Program Studi
-              </label>
-              <select
-                value={selectedProdi}
-                onChange={(e) => setSelectedProdi(e.target.value)}
-                disabled={selectedFakultas === 'Semua Fakultas'}
-                className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <option value="Semua Prodi">Semua Prodi</option>
-                {filteredProdis.map((p) => (
-                  <option key={p.id} value={p.nama}>{p.nama}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                <span className="material-symbols-outlined text-base">event</span>
-                Dari Tanggal
-              </label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                <span className="material-symbols-outlined text-base">event</span>
-                Sampai Tanggal
-              </label>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between border-t border-slate-100 pt-5">
-            <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-1">
-              {tabs.map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setSelectedTab(tab)}
-                  className={`
-                    inline-flex shrink-0 items-center gap-2 rounded-full border px-5 py-2.5 text-[11px] font-black uppercase tracking-widest transition-all
-                    ${selectedTab === tab
-                      ? 'border-primary bg-primary text-white shadow-md shadow-primary/20'
-                      : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-primary/50 hover:bg-primary/5 hover:text-primary'}
-                  `}
-                >
-                  {tab}
-                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold ${selectedTab === tab ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'}`}>
-                    {statusCounts[tab] || 0}
-                  </span>
-                </button>
-              ))}
-            </div>
-
-            <button
-              type="button"
-              onClick={resetFilters}
-              disabled={!hasActiveFilter}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-5 py-2.5 text-[10px] font-black uppercase tracking-widest text-slate-500 transition-all hover:bg-slate-50 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <span className="material-symbols-outlined text-[16px]">restart_alt</span>
-              Reset Filter
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Booking List ─────────────────────────────────────────────── */}
       <section className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-5 space-y-5 relative overflow-hidden">
-        <div className="flex flex-col gap-2 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-sm font-black uppercase tracking-widest text-slate-800 font-headline">Daftar Booking</h2>
-            <p className="text-[10px] font-bold text-slate-500 mt-1">Total {filteredBookings.length} permintaan ditemukan</p>
+        
+        <div className="flex flex-col gap-4 border-b border-slate-100 pb-5">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-sm font-black uppercase tracking-widest text-slate-800 font-headline">Daftar Booking</h2>
+              <p className="text-[10px] font-bold text-slate-500 mt-1">Total {filteredBookings.length} permintaan ditemukan</p>
+            </div>
+            {hasActiveFilter && (
+              <button
+                type="button"
+                onClick={resetFilters}
+                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors cursor-pointer border border-rose-100"
+              >
+                <span className="material-symbols-outlined text-[14px]">close</span>
+                Reset Filter
+              </button>
+            )}
           </div>
-          {hasActiveFilter && (
-            <span className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[10px] font-black uppercase tracking-widest bg-primary/10 text-primary">
-              <span className="material-symbols-outlined text-[14px]">filter_alt</span>
-              Filter aktif
-            </span>
-          )}
+          
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
+            <select
+              value={issueFilter}
+              onChange={(e) => setIssueFilter(e.target.value)}
+              className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-800 outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 cursor-pointer"
+            >
+              {issueOptions.map((issue) => (
+                <option key={issue} value={issue}>{issue}</option>
+              ))}
+            </select>
+
+            <select
+              value={selectedProdi}
+              onChange={(e) => setSelectedProdi(e.target.value)}
+              className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-800 outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 cursor-pointer"
+            >
+              {prodiOptions.map((p) => (
+                <option key={p} value={p}>{p}</option>
+              ))}
+            </select>
+
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-800 outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10"
+              title="Dari Tanggal"
+            />
+
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-800 outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10"
+              title="Sampai Tanggal"
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-1">
+          {tabs.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setSelectedTab(tab)}
+              className={`
+                inline-flex shrink-0 items-center gap-2 rounded-full border px-5 py-2.5 text-[11px] font-black uppercase tracking-widest transition-all
+                ${selectedTab === tab
+                  ? 'border-[var(--theme-primary)] bg-[var(--theme-primary)] text-white shadow-md shadow-[var(--theme-primary)]/20'
+                  : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-[var(--theme-primary)]/50 hover:bg-[var(--theme-primary)]/5 hover:text-[var(--theme-primary)]'}
+              `}
+            >
+              {tab}
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold ${selectedTab === tab ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'}`}>
+                {statusCounts[tab] || 0}
+              </span>
+            </button>
+          ))}
         </div>
 
         <DataTable
@@ -545,6 +454,6 @@ export default function BookingManagement() {
           </button>
         </DialogFooter>
       </Dialog>
-    </div>
+    </PageContent>
   );
 }

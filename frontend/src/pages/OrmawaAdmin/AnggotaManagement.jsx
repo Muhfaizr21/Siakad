@@ -1,6 +1,7 @@
 "use client"
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { PageContent, PageHeader } from '@/components/ui/page';
+import { PageContent } from '@/components/ui/page';
+import { DashboardHero } from '@/components/ui/dashboard';
 
 
 
@@ -12,7 +13,7 @@ import { Card, CardContent } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import { Avatar, AvatarFallback } from '@/components/ui/Avatar'
-import { DialogModal } from '@/components/ui/DialogModal'
+import { DialogModal, ModalCancelButton, ModalSaveButton } from '@/components/ui/DialogModal'
 import { SelectField, SelectOption } from '@/components/ui/SelectField'
 
 import { toast, Toaster } from 'react-hot-toast'
@@ -67,9 +68,9 @@ export default function AnggotaManagement() {
   const user = useAuthStore(state => state.user)
   const userPermissions = user?.permissions || user?.Permissions || []
   const userRoles = (user?.role || '').split(',').map(r => r.trim().toLowerCase())
-  const isSuperOrAdmin = userRoles.includes('super_admin') || 
-                         userRoles.includes('ormawa_admin') || 
-                         userRoles.includes('ormawa')
+  const isSuperOrAdmin = userRoles.includes('super_admin') ||
+    userRoles.includes('ormawa_admin') ||
+    userRoles.includes('ormawa')
   const canCreate = isSuperOrAdmin || userPermissions.includes('create_members')
   const canEdit = isSuperOrAdmin || userPermissions.includes('edit_members')
   const canDelete = isSuperOrAdmin || userPermissions.includes('delete_members')
@@ -318,72 +319,50 @@ export default function AnggotaManagement() {
       <Toaster position="top-right" containerStyle={{ zIndex: 99999 }} />
 
       {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <PageHeader 
-        title="Manajemen Anggota"
+      <DashboardHero
+        title="Manajemen"
+        highlightedTitle="Anggota"
         subtitle="Database keanggotaan dan struktur kepengurusan organisasi mahasiswa."
         icon="groups"
-       
-        breadcrumbs={[ { label: 'Dashboard', path: '/ormawa' }, { label: 'Manajemen Anggota', path: '#' } ]} 
+
+        badges={[{ label: 'Organisasi Kemahasiswaan', active: true }]}
+        actions={canCreate ? (
+          <Button onClick={handleOpenAdd} className="h-11 px-6 rounded-xl bg-slate-800 text-white font-black font-headline text-[10px] uppercase tracking-widest gap-2 hover:bg-slate-900 transition-all active:scale-95 shadow-none border-none cursor-pointer">
+            <span className="material-symbols-outlined" style={{ fontSize: '16px' }} strokeWidth={3}>add</span>
+            Tambah Anggota
+          </Button>
+        ) : null}
       />
 
       {/* ── Period Filter Bar ────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-[var(--theme-bg)]/50 p-5 rounded-2xl border border-border shadow-sm">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 glass-card shadow-sm rounded-xl border border-border p-5 mb-6">
         <div className="space-y-1">
           <h3 className="text-sm font-black text-[var(--theme-text)] uppercase tracking-tight font-headline">Periode Kepengurusan</h3>
           <p className="text-xs font-semibold text-[var(--theme-text-subtle)]">Tampilkan daftar pengurus berdasarkan tahun periode aktif.</p>
         </div>
-        <button type="button" onClick={() => setIsRegenOpen(true)}
-          className="h-10 px-5 rounded-xl bg-[var(--theme-error)] hover:bg-[var(--theme-error)]/90 text-white text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-sm shrink-0 flex items-center gap-2 border-none">
-          <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>history</span>
-          Regenerasi
-        </button>
-        <div className="w-full sm:w-72">
-          <SelectField
-            value={selectedPeriod}
-            onValueChange={setSelectedPeriod}
-            className="w-full h-12"
-          >
-            <SelectOption value="aktif">Aktif Sekarang (Terbaru)</SelectOption>
-            {periods.map(p => (
-              <SelectOption key={p} value={p}>Periode {p} (Demisioner/Alumni)</SelectOption>
-            ))}
-          </SelectField>
-        </div>
-      </div>
-
-      {/* ── Filter Bar ─────────────────────────────────────────────── */}
-      <div className="bg-[var(--theme-surface)] rounded-2xl border border-border p-4 flex flex-wrap items-center gap-3 shadow-sm">
-        <span className="text-[10px] font-black text-[var(--theme-text-subtle)] uppercase tracking-widest mr-1">Filter</span>
-
-        <SelectField value={filterRole} onValueChange={setFilterRole} className="h-9 min-w-[140px]" placeholder="Semua Jabatan">
-          <SelectOption value="all">Semua Jabatan</SelectOption>
-          {combinedRoles.map(r => <SelectOption key={r} value={r}>{r}</SelectOption>)}
-        </SelectField>
-
-        <SelectField value={filterDivisi} onValueChange={setFilterDivisi} className="h-9 min-w-[140px]" placeholder="Semua Divisi">
-          <SelectOption value="all">Semua Divisi</SelectOption>
-          {divisions.map(d => <SelectOption key={d.ID || d.id} value={d.Nama || d.nama}>{d.Nama || d.nama}</SelectOption>)}
-        </SelectField>
-
-        <SelectField value={filterStatus} onValueChange={setFilterStatus} className="h-9 min-w-[120px]" placeholder="Semua Status">
-          <SelectOption value="all">Semua Status</SelectOption>
-          <SelectOption value="aktif">Aktif</SelectOption>
-          <SelectOption value="nonaktif">Nonaktif</SelectOption>
-        </SelectField>
-
-        {(filterRole !== 'all' || filterDivisi !== 'all' || filterStatus !== 'all') && (
-          <button onClick={() => { setFilterRole('all'); setFilterDivisi('all'); setFilterStatus('all') }}
-            className="h-9 px-4 text-xs font-bold text-[var(--theme-error)] bg-[var(--theme-error-light)] rounded-xl border border-[var(--theme-error)]/20 hover:bg-[var(--theme-error-light)]/80">
-            Reset
+        <div className="flex items-center gap-3 w-full sm:w-auto ml-auto">
+          <div className="w-full sm:w-72">
+            <SelectField
+              value={selectedPeriod}
+              onValueChange={setSelectedPeriod}
+              className="w-full h-10"
+            >
+              <SelectOption value="aktif">Aktif Sekarang (Terbaru)</SelectOption>
+              {periods.map(p => (
+                <SelectOption key={p} value={p}>Periode {p} (Demisioner/Alumni)</SelectOption>
+              ))}
+            </SelectField>
+          </div>
+          <button type="button" onClick={() => setIsRegenOpen(true)}
+            className="h-10 px-5 rounded-xl bg-[var(--theme-error)] hover:bg-[var(--theme-error)]/90 text-white text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-sm shrink-0 flex items-center gap-2 border-none">
+            <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>history</span>
+            Regenerasi
           </button>
-        )}
-        <div className="ml-auto text-[10px] font-bold text-[var(--theme-text-subtle)]">
-          {sortedMembers.length} / {members.length} anggota
         </div>
       </div>
 
       {/* ── Content Area ───────────────────────────────────────────── */}
-      <Card className="border border-border shadow-sm overflow-hidden bg-[var(--theme-surface)] rounded-2xl">
+      <Card className="glass-card shadow-sm rounded-xl overflow-hidden animate-in slide-in-from-bottom-4 duration-500 delay-300 mb-6">
         <CardContent className="p-0">
           <DataTable
             columns={columns}
@@ -392,16 +371,43 @@ export default function AnggotaManagement() {
             sortConfig={sortConfig}
             onSort={handleSort}
             searchPlaceholder="Cari nama atau NIM anggota..."
-            onAdd={canCreate ? handleOpenAdd : null}
-            addLabel="Tambah Anggota"
+            toolbarActions={
+              <div className="flex items-center gap-2">
+                <SelectField value={filterRole} onValueChange={setFilterRole} className="h-9 min-w-[140px] text-xs rounded-lg" placeholder="Semua Jabatan">
+                  <SelectOption value="all">Semua Jabatan</SelectOption>
+                  {combinedRoles.map(r => <SelectOption key={r} value={r}>{r}</SelectOption>)}
+                </SelectField>
+
+                <SelectField value={filterDivisi} onValueChange={setFilterDivisi} className="h-9 min-w-[140px] text-xs rounded-lg" placeholder="Semua Divisi">
+                  <SelectOption value="all">Semua Divisi</SelectOption>
+                  {divisions.map(d => <SelectOption key={d.ID || d.id} value={d.Nama || d.nama}>{d.Nama || d.nama}</SelectOption>)}
+                </SelectField>
+
+                <SelectField value={filterStatus} onValueChange={setFilterStatus} className="h-9 min-w-[120px] text-xs rounded-lg" placeholder="Semua Status">
+                  <SelectOption value="all">Semua Status</SelectOption>
+                  <SelectOption value="aktif">Aktif</SelectOption>
+                  <SelectOption value="nonaktif">Nonaktif</SelectOption>
+                </SelectField>
+
+                {(filterRole !== 'all' || filterDivisi !== 'all' || filterStatus !== 'all') && (
+                  <button onClick={() => { setFilterRole('all'); setFilterDivisi('all'); setFilterStatus('all') }}
+                    className="h-9 px-3 text-xs font-bold text-[var(--theme-error)] bg-[var(--theme-error-light)] rounded-lg border border-[var(--theme-error)]/20 hover:bg-[var(--theme-error-light)]/80 transition-colors">
+                    Reset
+                  </button>
+                )}
+                <div className="ml-2 hidden lg:block text-[10px] font-bold text-[var(--theme-text-subtle)] whitespace-nowrap">
+                  {sortedMembers.length} / {members.length} anggota
+                </div>
+              </div>
+            }
             actions={(row) => (
-              <div className="flex items-center justify-end gap-1">
-                <button onClick={() => { setSelected(row); setIsDetailOpen(true) }} className="p-1.5 text-[var(--theme-text-subtle)] hover:text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)] rounded-lg transition-colors duration-150" title="Detail"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >visibility</span></button>
+              <div className="flex items-center justify-end gap-1.5">
+                <Button onClick={() => { setSelected(row); setIsDetailOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)] rounded-lg transition-colors cursor-pointer" title="Detail"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >visibility</span></Button>
                 {canEdit && (
-                  <button onClick={() => handleOpenEdit(row)} className="p-1.5 text-[var(--theme-text-subtle)] hover:text-[var(--theme-warning)] hover:bg-[var(--theme-warning-light)] rounded-lg transition-colors duration-150" title="Edit"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >edit</span></button>
+                  <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-[var(--theme-warning)] hover:bg-[var(--theme-warning-light)] rounded-lg transition-colors cursor-pointer" title="Edit"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >edit</span></Button>
                 )}
                 {canDelete && (
-                  <button onClick={() => { setSelected(row); setIsDelOpen(true) }} className="p-1.5 text-[var(--theme-text-subtle)] hover:text-[var(--theme-error)] hover:bg-[var(--theme-error-light)] rounded-lg transition-colors duration-150" title="Hapus"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >delete</span></button>
+                  <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-[var(--theme-error)] hover:bg-[var(--theme-error-light)] rounded-lg transition-colors cursor-pointer" title="Hapus"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >delete</span></Button>
                 )}
               </div>
             )}
@@ -412,59 +418,65 @@ export default function AnggotaManagement() {
       {/* DETAIL */}
       <DialogModal
         open={isDetailOpen}
-        onClose={() => setIsDetailOpen(false)}
+        onOpenChange={setIsDetailOpen}
         title="Detail Anggota"
         subtitle="Informasi keanggotaan aktif organisasi mahasiswa."
-        icon={<span className="material-symbols-outlined">person</span>}
+        icon="person"
         maxWidth="max-w-md"
         footer={
-          <Button onClick={() => setIsDetailOpen(false)} className="w-full h-10 justify-center rounded-xl bg-[var(--theme-primary)] text-white hover:opacity-90">Tutup Profil</Button>
+          <ModalCancelButton onClick={() => setIsDetailOpen(false)}>
+            TUTUP PROFIL
+          </ModalCancelButton>
         }
       >
         {selected && (() => {
           const selectedFotoUrl = getFullUrl(selected.Mahasiswa?.FotoURL || selected.Mahasiswa?.foto_url || selected.Mahasiswa?.Foto || selected.Mahasiswa?.Pengguna?.Foto || null);
           return (
-            <div>
-              <div className="h-32 bg-gradient-to-br from-[var(--theme-primary)] to-[var(--theme-primary-hover)] relative">
-                <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none overflow-hidden inset-0">
-                  <span className="material-symbols-outlined size-24 rotate-12 text-white absolute -right-4 -top-4">fingerprint</span>
-                </div>
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.08),transparent)]" />
-                <div className="absolute -bottom-8 left-6 z-20 p-1 bg-[var(--theme-surface)] rounded-2xl shadow-xl">
+            <div className="flex flex-col items-center pt-2 space-y-6 w-full">
+              {/* Profile Image */}
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-[var(--theme-primary)] to-[var(--theme-primary-hover)] rounded-3xl blur-lg opacity-30"></div>
+                <div className="relative size-24 rounded-3xl bg-white p-1 shadow-xl border border-slate-100">
                   {selectedFotoUrl ? (
                     <img
                       src={selectedFotoUrl}
                       alt={selected.Mahasiswa?.Nama}
-                      className="h-16 w-16 rounded-xl object-cover"
+                      className="size-full rounded-2xl object-cover"
                       onError={(e) => { e.target.src = ''; }}
                     />
                   ) : (
-                    <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-[var(--theme-bg)] to-[var(--theme-border-muted)] text-[var(--theme-text)] flex items-center justify-center font-headline text-xl font-black border border-border">
+                    <div className="size-full rounded-2xl bg-slate-50 flex items-center justify-center font-headline text-3xl font-black text-slate-300 border border-slate-100">
                       {selected.Mahasiswa?.Nama?.split(' ').map(n => n[0]).join('').substring(0, 2) || '?'}
                     </div>
                   )}
                 </div>
               </div>
 
-              <div className="p-6 pt-10 space-y-4">
-                <div>
-                  <h2 className="text-lg font-black font-headline tracking-tighter leading-none text-[var(--theme-text)]">{selected.Mahasiswa?.Nama}</h2>
-                  <div className="flex items-center gap-1.5 mt-2.5">
-                    <span className="text-[9px] font-black tracking-widest px-2.5 py-1 bg-[var(--theme-bg)] text-[var(--theme-text-subtle)] rounded-full font-headline">MAHASISWA</span>
-                    <span className="text-[10px] text-[var(--theme-text-subtle)] font-bold font-mono">{selected.Mahasiswa?.NIM}</span>
-                  </div>
+              {/* Name & NIM */}
+              <div className="text-center space-y-1">
+                <h2 className="text-xl font-black font-headline tracking-tighter text-[var(--theme-text)]">{selected.Mahasiswa?.Nama}</h2>
+                <div className="flex items-center justify-center gap-2">
+                  <span className="text-[10px] font-black tracking-widest px-2.5 py-1 bg-slate-100 text-slate-500 rounded-full font-headline uppercase">NIM</span>
+                  <span className="text-xs text-slate-600 font-bold font-mono">{selected.Mahasiswa?.NIM}</span>
                 </div>
+              </div>
 
-                <div className="grid grid-cols-2 gap-4 bg-[var(--theme-bg)]/50 rounded-2xl p-4 border border-border">
+              {/* Role & Divisi */}
+              <div className="w-full grid grid-cols-2 gap-4 bg-slate-50 rounded-2xl p-5 border border-slate-200 shadow-inner">
+                <div className="flex flex-col items-center text-center space-y-2">
+                  <span className="material-symbols-outlined text-slate-400 text-2xl">badge</span>
                   <div>
-                    <p className="text-[9px] font-black text-[var(--theme-text-subtle)] tracking-widest uppercase mb-1">Jabatan</p>
-                    <Badge className={cn("font-semibold text-[9px] px-2.5 py-1 border shadow-none rounded-full uppercase tracking-wider", getRoleStyle(selected.Role))}>
+                    <p className="text-[10px] font-black text-slate-400 tracking-widest uppercase mb-1">Jabatan</p>
+                    <Badge className={cn("font-semibold text-[10px] px-3 py-1 border shadow-none rounded-full uppercase tracking-wider", getRoleStyle(selected.Role))}>
                       {selected.Role || 'Anggota'}
                     </Badge>
                   </div>
+                </div>
+                <div className="flex flex-col items-center text-center space-y-2 border-l border-slate-200">
+                  <span className="material-symbols-outlined text-slate-400 text-2xl">workspaces</span>
                   <div>
-                    <p className="text-[9px] font-black text-[var(--theme-text-subtle)] tracking-widest uppercase mb-1">Divisi</p>
-                    <Badge className="bg-[var(--theme-primary-light)] text-[var(--theme-primary)] font-semibold text-[9px] border border-[var(--theme-primary)]/20 rounded-full px-2.5 py-1 uppercase tracking-wider">
+                    <p className="text-[10px] font-black text-slate-400 tracking-widest uppercase mb-1">Divisi</p>
+                    <Badge className="bg-[var(--theme-primary-light)] text-[var(--theme-primary)] font-semibold text-[10px] border border-[var(--theme-primary)]/20 rounded-full px-3 py-1 uppercase tracking-wider">
                       {selected.Divisi || 'Umum'}
                     </Badge>
                   </div>
@@ -478,159 +490,158 @@ export default function AnggotaManagement() {
       {/* CRUD */}
       <DialogModal
         open={isCrudOpen}
-        onClose={() => setIsCrudOpen(false)}
+        onOpenChange={setIsCrudOpen}
         title={isEditMode ? 'Edit Anggota' : 'Tambah Anggota Baru'}
         subtitle="Daftarkan mahasiswa sebagai anggota aktif ormawa."
-        icon={isEditMode ? <span className="material-symbols-outlined">edit</span> : <span className="material-symbols-outlined stroke-[3px]">add</span>}
-        maxWidth="max-w-lg"
+        icon={isEditMode ? 'edit' : 'person_add'}
+        maxWidth="max-w-xl"
         footer={
           <>
-            <Button variant="ghost" type="button" onClick={() => setIsCrudOpen(false)} className="rounded-xl h-10">
-              Batalkan
-            </Button>
-            <Button type="button" onClick={handleSave} disabled={isSubmitting} className="rounded-xl h-10 bg-[var(--theme-primary)] text-white hover:opacity-90 flex items-center gap-1">
-              {isSubmitting ? (
-                <span className="material-symbols-outlined animate-spin size-4" >sync</span>
-              ) : (
-                <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >save</span>
-              )}
-              <span className="uppercase tracking-[0.1em]">{isEditMode ? 'Update Record' : 'Simpan Data'}</span>
-            </Button>
+            <ModalCancelButton onClick={() => setIsCrudOpen(false)} />
+            <ModalSaveButton
+              onClick={handleSave}
+              disabled={isSubmitting || !form.MahasiswaID}
+              loading={isSubmitting}
+              icon="save"
+            >
+              {isEditMode ? 'UPDATE DATA' : 'SIMPAN ANGGOTA'}
+            </ModalSaveButton>
           </>
         }
       >
-        <div className="p-6">
-          <div className="space-y-4">
-            <div className="space-y-2 relative" ref={dropdownRef}>
-              <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline">Pilih Mahasiswa</Label>
-              {isEditMode ? (
-                <Input
-                  value={form.Mahasiswa ? `${form.Mahasiswa.Nama || form.Mahasiswa.nama} (${form.Mahasiswa.NIM || form.Mahasiswa.nim})` : '—'}
-                  disabled
-                  className="h-12 rounded-2xl border-border bg-[var(--theme-bg)] text-[var(--theme-text-subtle)] font-bold text-sm font-headline cursor-not-allowed"
+        <div className="space-y-2 relative" ref={dropdownRef}>
+          <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline">Pilih Mahasiswa</Label>
+          {isEditMode ? (
+            <div className="relative">
+              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--theme-text-subtle)]" style={{ fontSize: '18px' }}>person</span>
+              <input
+                value={form.Mahasiswa ? `${form.Mahasiswa.Nama || form.Mahasiswa.nama} (${form.Mahasiswa.NIM || form.Mahasiswa.nim})` : '—'}
+                disabled
+                className="w-full pl-11 pr-4 h-12 rounded-2xl border border-border bg-[var(--theme-bg)] text-[var(--theme-text-subtle)] font-bold text-sm font-headline cursor-not-allowed focus:outline-none"
+              />
+            </div>
+          ) : (
+            <div className="relative">
+              <div className="relative group">
+                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--theme-text-subtle)] group-focus-within:text-[var(--theme-primary)] transition-colors" style={{ fontSize: '18px' }}>search</span>
+                <input
+                  type="text"
+                  placeholder="Ketik nama atau NIM mahasiswa..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setIsSearching(true);
+                    if (form.MahasiswaID) setForm({ ...form, MahasiswaID: '' });
+                  }}
+                  className="w-full pl-11 pr-10 h-12 rounded-2xl border border-border bg-[var(--theme-bg)]/50 focus:bg-[var(--theme-surface)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] transition-all font-bold text-sm outline-none"
                 />
-              ) : (
-                <div className="relative">
-                  <div className="relative">
-                    <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--theme-text-subtle)]" style={{ fontSize: '18px' }}>search</span>
-                    <Input
-                      type="text"
-                      placeholder="Ketik nama atau NIM mahasiswa..."
-                      value={searchQuery}
-                      onChange={(e) => {
-                        setSearchQuery(e.target.value);
-                        setIsSearching(true);
-                        if (form.MahasiswaID) setForm({ ...form, MahasiswaID: '' });
-                      }}
-                      className="pl-11 pr-10 h-12 rounded-2xl border-border bg-[var(--theme-bg)]/50 focus:bg-[var(--theme-surface)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] transition-all font-bold text-sm"
-                    />
-                    {form.MahasiswaID && (
-                      <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-[var(--theme-success)] font-bold" style={{ fontSize: '18px' }}>check_circle</span>
-                    )}
-                  </div>
+                {form.MahasiswaID && (
+                  <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-[var(--theme-success)] font-bold" style={{ fontSize: '18px' }}>check_circle</span>
+                )}
+              </div>
 
-                  {isSearching && searchQuery.trim() !== '' && (
-                    <div className="absolute z-50 w-full mt-1 bg-[var(--theme-surface)] border border-border rounded-2xl shadow-xl max-h-60 overflow-y-auto p-1 flex flex-col">
-                      {students
-                        .filter(s => s?.Nama?.toLowerCase().includes(searchQuery.toLowerCase()) || s?.NIM?.toLowerCase().includes(searchQuery.toLowerCase()))
-                        .slice(0, 8)
-                        .map(s => {
-                          const studentFotoUrl = getFullUrl(s?.FotoURL || s?.foto_url || s?.Foto || s?.Pengguna?.Foto || null);
-                          return (
-                            <button
-                              type="button"
-                              key={s.id || s.ID}
-                              className="w-full flex items-center gap-3 px-3 py-2 text-left rounded-xl cursor-pointer transition-all duration-150 my-0.5 hover:bg-[var(--theme-bg)] text-[var(--theme-text)] font-bold"
-                              onClick={() => {
-                                setForm({ ...form, MahasiswaID: s?.id?.toString() || s?.ID?.toString() });
-                                setSearchQuery(`${s.Nama} (${s.NIM})`);
-                                setIsSearching(false);
-                              }}
-                            >
-                              {studentFotoUrl ? (
-                                <img
-                                  src={studentFotoUrl}
-                                  alt={s.Nama}
-                                  className="w-7 h-7 rounded-lg object-cover shrink-0 border border-border shadow-sm"
-                                  onError={(e) => { e.target.src = ''; }}
-                                />
-                              ) : (
-                                <div className="w-7 h-7 rounded-lg bg-[var(--theme-bg)] flex items-end justify-center overflow-hidden shrink-0 border border-border">
-                                  <span className="material-symbols-outlined text-[var(--theme-text-subtle)] text-base mb-0.5">person</span>
-                                </div>
-                              )}
-                              <div className="flex flex-col min-w-0">
-                                <span className="text-xs font-bold text-[var(--theme-text)] truncate">{s.Nama}</span>
-                                <span className="text-[9px] text-[var(--theme-text-subtle)] font-medium font-mono">{s.NIM}</span>
-                              </div>
-                            </button>
-                          );
-                        })}
-                      {students.filter(s => s?.Nama?.toLowerCase().includes(searchQuery.toLowerCase()) || s?.NIM?.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
-                        <div className="px-3 py-4 text-center text-xs font-medium text-[var(--theme-text-subtle)]">
-                          Mahasiswa tidak ditemukan
-                        </div>
-                      )}
+              {isSearching && searchQuery.trim() !== '' && (
+                <div className="absolute z-50 w-full mt-1 bg-[var(--theme-surface)] border border-border rounded-2xl shadow-xl max-h-60 overflow-y-auto p-1 flex flex-col">
+                  {students
+                    .filter(s => s?.Nama?.toLowerCase().includes(searchQuery.toLowerCase()) || s?.NIM?.toLowerCase().includes(searchQuery.toLowerCase()))
+                    .slice(0, 8)
+                    .map(s => {
+                      const studentFotoUrl = getFullUrl(s?.FotoURL || s?.foto_url || s?.Foto || s?.Pengguna?.Foto || null);
+                      return (
+                        <button
+                          type="button"
+                          key={s.id || s.ID}
+                          className="w-full flex items-center gap-3 px-3 py-2 text-left rounded-xl cursor-pointer transition-all duration-150 my-0.5 hover:bg-[var(--theme-bg)] text-[var(--theme-text)] font-bold"
+                          onClick={() => {
+                            setForm({ ...form, MahasiswaID: s?.id?.toString() || s?.ID?.toString() });
+                            setSearchQuery(`${s.Nama} (${s.NIM})`);
+                            setIsSearching(false);
+                          }}
+                        >
+                          {studentFotoUrl ? (
+                            <img
+                              src={studentFotoUrl}
+                              alt={s.Nama}
+                              className="w-7 h-7 rounded-lg object-cover shrink-0 border border-border shadow-sm"
+                              onError={(e) => { e.target.src = ''; }}
+                            />
+                          ) : (
+                            <div className="w-7 h-7 rounded-lg bg-[var(--theme-bg)] flex items-end justify-center overflow-hidden shrink-0 border border-border">
+                              <span className="material-symbols-outlined text-[var(--theme-text-subtle)] text-base mb-0.5">person</span>
+                            </div>
+                          )}
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-xs font-bold text-[var(--theme-text)] truncate">{s.Nama}</span>
+                            <span className="text-[9px] text-[var(--theme-text-subtle)] font-medium font-mono">{s.NIM}</span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  {students.filter(s => s?.Nama?.toLowerCase().includes(searchQuery.toLowerCase()) || s?.NIM?.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
+                    <div className="px-3 py-4 text-center text-xs font-medium text-[var(--theme-text-subtle)]">
+                      Mahasiswa tidak ditemukan
                     </div>
                   )}
                 </div>
               )}
             </div>
+          )}
+        </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-[9px] md:text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 font-headline">Jabatan</Label>
-                <SelectField value={form.Role} onValueChange={(val) => setForm({ ...form, Role: val })} className="w-full h-12">
-                  {combinedRoles.map((r) => (
-                    <SelectOption key={r} value={r}>
-                      {r}
-                    </SelectOption>
-                  ))}
-                </SelectField>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between ml-1">
-                  <Label className="text-[9px] md:text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] font-headline">Divisi</Label>
-                  <button
-                    type="button"
-                    onClick={() => setIsAddingNewDiv(!isAddingNewDiv)}
-                    className="text-[9px] font-black text-[var(--theme-primary)] hover:text-[var(--theme-primary-hover)] tracking-wider uppercase font-headline flex items-center gap-0.5"
-                  >
-                    <span className="material-symbols-outlined text-[10px] block font-black">add</span>
-                    {isAddingNewDiv ? 'Pilih Divisi' : 'Buat Baru'}
-                  </button>
-                </div>
-                {isAddingNewDiv ? (
-                  <div className="flex gap-2">
-                    <Input
-                      value={newDivName}
-                      onChange={e => setNewDivName(e.target.value)}
-                      placeholder="Nama Divisi Baru..."
-                      className="h-12 rounded-2xl border-border bg-[var(--theme-bg)]/50 font-bold text-xs md:text-sm"
-                    />
-                    <Button
-                      type="button"
-                      onClick={handleCreateDivInline}
-                      disabled={isSavingDiv || !newDivName.trim()}
-                      className="h-12 px-4 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white flex items-center justify-center text-xs font-bold shrink-0 border-none shadow-none"
-                    >
-                      {isSavingDiv ? '...' : 'OK'}
-                    </Button>
-                  </div>
-                ) : (
-                  <SelectField value={form.Divisi || 'Umum'} onValueChange={(val) => setForm({ ...form, Divisi: val === 'Umum' ? '' : val })} className="w-full h-12">
-                    <SelectOption value="Umum">
-                      Umum
-                    </SelectOption>
-                    {divisions.map((d) => (
-                      <SelectOption key={d.id || d.ID} value={d.Nama}>
-                        {d.Nama}
-                      </SelectOption>
-                    ))}
-                  </SelectField>
-                )}
-              </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between ml-1 h-5">
+              <Label className="text-[9px] md:text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] font-headline">Jabatan</Label>
             </div>
+            <SelectField value={form.Role} onValueChange={(val) => setForm({ ...form, Role: val })} className="w-full h-12">
+              {combinedRoles.map((r) => (
+                <SelectOption key={r} value={r}>
+                  {r}
+                </SelectOption>
+              ))}
+            </SelectField>
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between ml-1 h-5">
+              <Label className="text-[9px] md:text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] font-headline">Divisi</Label>
+              <button
+                type="button"
+                onClick={() => setIsAddingNewDiv(!isAddingNewDiv)}
+                className="text-[9px] font-black text-[var(--theme-primary)] hover:text-[var(--theme-primary-hover)] tracking-wider uppercase font-headline flex items-center gap-0.5"
+              >
+                <span className="material-symbols-outlined text-[12px] block font-black">add</span>
+                {isAddingNewDiv ? 'Pilih Divisi' : 'Buat Baru'}
+              </button>
+            </div>
+            {isAddingNewDiv ? (
+              <div className="flex gap-2">
+                <Input
+                  value={newDivName}
+                  onChange={e => setNewDivName(e.target.value)}
+                  placeholder="Nama Divisi Baru..."
+                  className="h-12 rounded-2xl border-border bg-[var(--theme-bg)]/50 font-bold text-xs md:text-sm"
+                />
+                <Button
+                  type="button"
+                  onClick={handleCreateDivInline}
+                  disabled={isSavingDiv || !newDivName.trim()}
+                  className="h-12 px-4 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white flex items-center justify-center text-xs font-bold shrink-0 border-none shadow-none"
+                >
+                  {isSavingDiv ? '...' : 'OK'}
+                </Button>
+              </div>
+            ) : (
+              <SelectField value={form.Divisi || 'Umum'} onValueChange={(val) => setForm({ ...form, Divisi: val === 'Umum' ? '' : val })} className="w-full h-12">
+                <SelectOption value="Umum">
+                  Umum
+                </SelectOption>
+                {divisions.map((d) => (
+                  <SelectOption key={d.id || d.ID} value={d.Nama}>
+                    {d.Nama}
+                  </SelectOption>
+                ))}
+              </SelectField>
+            )}
           </div>
         </div>
       </DialogModal>

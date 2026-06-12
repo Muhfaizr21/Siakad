@@ -61,17 +61,16 @@ function SearchableSelect({ value, onChange, options, placeholder, searchPlaceho
         className="sr-only absolute inset-x-0 bottom-0 h-0 w-full opacity-0 pointer-events-none"
         required={required}
         value={value || ""}
-        onChange={() => {}}
+        onChange={() => { }}
       />
 
       {/* Select Trigger */}
       <div
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full h-11 px-3 border rounded-xl text-sm flex items-center justify-between cursor-pointer transition-colors font-semibold font-body ${
-          isOpen
+        className={`w-full h-11 px-3 border rounded-xl text-sm flex items-center justify-between cursor-pointer transition-colors font-semibold font-body ${isOpen
             ? "border-bku-primary bg-white text-slate-800"
             : "border-slate-200 bg-slate-50/30 text-slate-700"
-        }`}
+          }`}
       >
         <span className={selectedOption ? "text-slate-800" : "text-slate-400"}>
           {selectedOption ? selectedOption.label : placeholder}
@@ -86,11 +85,10 @@ function SearchableSelect({ value, onChange, options, placeholder, searchPlaceho
 
       {/* Styled Popover list */}
       {isOpen && (
-        <div className={`absolute z-[100] left-0 w-full bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in duration-150 ${
-          direction === "up" 
-            ? "bottom-full mb-1.5 slide-in-from-bottom-1" 
+        <div className={`absolute z-[100] left-0 w-full bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in duration-150 ${direction === "up"
+            ? "bottom-full mb-1.5 slide-in-from-bottom-1"
             : "top-full mt-1.5 slide-in-from-top-1"
-        }`}>
+          }`}>
           {/* Search bar */}
           <div className="p-2 border-b border-slate-100 bg-slate-50/30 flex items-center gap-1.5">
             <span className="material-symbols-outlined text-[16px] text-slate-400 ml-1 shrink-0">search</span>
@@ -130,11 +128,10 @@ function SearchableSelect({ value, onChange, options, placeholder, searchPlaceho
                       setIsOpen(false);
                       setSearch("");
                     }}
-                    className={`px-3 py-2.5 text-xs cursor-pointer font-semibold font-body transition-colors flex items-center justify-between ${
-                      isSelected
+                    className={`px-3 py-2.5 text-xs cursor-pointer font-semibold font-body transition-colors flex items-center justify-between ${isSelected
                         ? "bg-blue-50 text-blue-600 font-bold"
                         : "text-slate-700 hover:bg-slate-50"
-                    }`}
+                      }`}
                   >
                     <span>{opt.label}</span>
                     {isSelected && (
@@ -990,14 +987,14 @@ export default function StudentDirectory() {
                         <span className="font-bold uppercase tracking-wider text-slate-500 font-body">{selected.ProgramStudi?.Nama || selected.ProgramStudi?.nama || '—'}</span>
                       </DialogDescription>
                     </div>
+
+                    <div className="shrink-0 flex items-center gap-2">
+                      <Badge className={cn("px-3 py-1 rounded-lg border-none text-[10px] font-bold uppercase tracking-widest font-body", STATUS_STYLES[selected.StatusAkun] || STATUS_STYLES.DEFAULT)}>
+                        {selected.StatusAkun}
+                      </Badge>
+                    </div>
+                    </div>
                   </div>
-                  
-                  <div className="shrink-0 flex items-center gap-2">
-                    <Badge className={cn("px-3 py-1 rounded-lg border-none text-[10px] font-bold uppercase tracking-widest font-body", STATUS_STYLES[selected.StatusAkun] || STATUS_STYLES.DEFAULT)}>
-                      {selected.StatusAkun}
-                    </Badge>
-                  </div>
-                </div>
               </DialogHeader>
 
               {/* Profile Content Section */}
@@ -1420,143 +1417,143 @@ export default function StudentDirectory() {
       </Dialog>
 
       {/* ── CRUD Modal ───────────────────────────────────────────── */}
-      <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen} maxWidth="max-w-xl">
-        <DialogContent className="!overflow-visible">
-          <DialogHeader className="px-6 py-5 md:px-8 md:py-6 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-[0.03] text-bku-primary"><UserIcon size={140} /></div>
-            <div className="relative z-10 space-y-1">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
-                  {isEditMode ? <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >edit</span> : <span className="material-symbols-outlined" style={{ fontSize: '12px' }} strokeWidth={3}>add</span>}
+          <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen} maxWidth="max-w-xl">
+            <DialogContent className="!overflow-visible">
+              <DialogHeader className="px-6 py-5 md:px-8 md:py-6 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-8 opacity-[0.03] text-bku-primary"><UserIcon size={140} /></div>
+                <div className="relative z-10 space-y-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
+                      {isEditMode ? <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >edit</span> : <span className="material-symbols-outlined" style={{ fontSize: '12px' }} strokeWidth={3}>add</span>}
+                    </div>
+                    <span className="text-[10px] font-black font-body uppercase tracking-widest text-bku-primary/60">Registry Engine</span>
+                  </div>
+                  <DialogTitle className="text-xl sm:text-2xl font-black font-body tracking-tight text-slate-800">
+                    {isEditMode ? 'Update Identity' : 'Enroll Student'}
+                  </DialogTitle>
+                  <DialogDescription className="text-xs sm:text-sm font-medium text-slate-500 font-body">
+                    Lengkapi parameter identitas akademik untuk sinkronisasi database.
+                  </DialogDescription>
                 </div>
-                <span className="text-[10px] font-black font-body uppercase tracking-widest text-bku-primary/60">Registry Engine</span>
-              </div>
-              <DialogTitle className="text-xl sm:text-2xl font-black font-body tracking-tight text-slate-800">
-                {isEditMode ? 'Update Identity' : 'Enroll Student'}
-              </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm font-medium text-slate-500 font-body">
-                Lengkapi parameter identitas akademik untuk sinkronisasi database.
-              </DialogDescription>
-            </div>
-          </DialogHeader>
+              </DialogHeader>
 
-          <form onSubmit={handleSave}>
-            <div className="px-6 py-5 md:px-8 md:py-6 space-y-4 font-body">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">NIM / Student ID</Label>
-                  <Input required value={form.NIM} onChange={e => setForm({ ...form, NIM: e.target.value })} placeholder="BKU..." className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-body" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">Full Legal Name</Label>
-                  <Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Full name..." className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-body" />
-                </div>
-              </div>
+              <form onSubmit={handleSave}>
+                <div className="px-6 py-5 md:px-8 md:py-6 space-y-4 font-body">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                    <div className="space-y-1.5">
+                      <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">NIM / Student ID</Label>
+                      <Input required value={form.NIM} onChange={e => setForm({ ...form, NIM: e.target.value })} placeholder="BKU..." className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-body" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">Full Legal Name</Label>
+                      <Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Full name..." className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-body" />
+                    </div>
+                  </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-                <div className="space-y-1.5 sm:col-span-1">
-                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">Academic Email</Label>
-                  <Input required type="email" value={form.EmailKampus} onChange={e => setForm({ ...form, EmailKampus: e.target.value })} placeholder="id@bku.ac.id" className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-body" />
-                </div>
-                <div className="space-y-1.5 sm:col-span-1">
-                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">
-                    {isEditMode ? 'New Password (Optional)' : 'Account Password'}
-                  </Label>
-                  <Input
-                    required={!isEditMode}
-                    type="password"
-                    value={form.password}
-                    onChange={e => setForm({ ...form, password: e.target.value })}
-                    placeholder={isEditMode ? "Leave blank to keep current..." : "Set password..."}
-                    className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-body"
-                  />
-                </div>
-              </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                    <div className="space-y-1.5 sm:col-span-1">
+                      <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">Academic Email</Label>
+                      <Input required type="email" value={form.EmailKampus} onChange={e => setForm({ ...form, EmailKampus: e.target.value })} placeholder="id@bku.ac.id" className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-body" />
+                    </div>
+                    <div className="space-y-1.5 sm:col-span-1">
+                      <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">
+                        {isEditMode ? 'New Password (Optional)' : 'Account Password'}
+                      </Label>
+                      <Input
+                        required={!isEditMode}
+                        type="password"
+                        value={form.password}
+                        onChange={e => setForm({ ...form, password: e.target.value })}
+                        placeholder={isEditMode ? "Leave blank to keep current..." : "Set password..."}
+                        className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-body"
+                      />
+                    </div>
+                  </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">Faculty Branch</Label>
-                  <SearchableSelect
-                    value={String(form.FakultasID)}
-                    onChange={v => setForm({ ...form, FakultasID: v, ProgramStudiID: '' })}
-                    options={faculties.map(f => ({
-                      value: String(f.id || f.ID),
-                      label: f.Nama || f.nama
-                    }))}
-                    placeholder="Pilih Fakultas"
-                    searchPlaceholder="Cari fakultas..."
-                    required
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">Academic Program</Label>
-                  <SearchableSelect
-                    value={String(form.ProgramStudiID)}
-                    onChange={v => setForm({ ...form, ProgramStudiID: v })}
-                    options={prodi.filter(p => !form.FakultasID || parseInt(p.FakultasID) === parseInt(form.FakultasID)).map(p => ({
-                      value: String(p.id || p.ID),
-                      label: p.Nama || p.nama
-                    }))}
-                    placeholder="Pilih Prodi"
-                    searchPlaceholder="Cari prodi..."
-                    required
-                  />
-                </div>
-              </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                    <div className="space-y-1.5">
+                      <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">Faculty Branch</Label>
+                      <SearchableSelect
+                        value={String(form.FakultasID)}
+                        onChange={v => setForm({ ...form, FakultasID: v, ProgramStudiID: '' })}
+                        options={faculties.map(f => ({
+                          value: String(f.id || f.ID),
+                          label: f.Nama || f.nama
+                        }))}
+                        placeholder="Pilih Fakultas"
+                        searchPlaceholder="Cari fakultas..."
+                        required
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">Academic Program</Label>
+                      <SearchableSelect
+                        value={String(form.ProgramStudiID)}
+                        onChange={v => setForm({ ...form, ProgramStudiID: v })}
+                        options={prodi.filter(p => !form.FakultasID || parseInt(p.FakultasID) === parseInt(form.FakultasID)).map(p => ({
+                          value: String(p.id || p.ID),
+                          label: p.Nama || p.nama
+                        }))}
+                        placeholder="Pilih Prodi"
+                        searchPlaceholder="Cari prodi..."
+                        required
+                      />
+                    </div>
+                  </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">Account Status</Label>
-                  <Select value={form.StatusAkun} onValueChange={v => setForm({ ...form, StatusAkun: v })}>
-                    <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-slate-50/30 font-semibold text-slate-700 text-sm font-body"><SelectValue /></SelectTrigger>
-                    <SelectContent className="rounded-xl shadow-2xl border-slate-100">
-                      {['Aktif', 'Cuti', 'Lulus', 'Nonaktif'].map(s => <SelectItem key={s} value={s} className="text-xs font-semibold text-slate-700 font-body">{s}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">Current Semester</Label>
-                  <Input type="number" min={1} max={14} value={form.SemesterSekarang} onChange={e => setForm({ ...form, SemesterSekarang: e.target.value })} className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-850 focus:border-bku-primary font-body" />
-                </div>
-              </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                    <div className="space-y-1.5">
+                      <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">Account Status</Label>
+                      <Select value={form.StatusAkun} onValueChange={v => setForm({ ...form, StatusAkun: v })}>
+                        <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-slate-50/30 font-semibold text-slate-700 text-sm font-body"><SelectValue /></SelectTrigger>
+                        <SelectContent className="rounded-xl shadow-2xl border-slate-100">
+                          {['Aktif', 'Cuti', 'Lulus', 'Nonaktif'].map(s => <SelectItem key={s} value={s} className="text-xs font-semibold text-slate-700 font-body">{s}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">Current Semester</Label>
+                      <Input type="number" min={1} max={14} value={form.SemesterSekarang} onChange={e => setForm({ ...form, SemesterSekarang: e.target.value })} className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-850 focus:border-bku-primary font-body" />
+                    </div>
+                  </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-                <div className="space-y-1.5 sm:col-span-1">
-                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">Admission Batch (Year)</Label>
-                  <Input type="number" value={form.TahunMasuk} onChange={e => setForm({ ...form, TahunMasuk: e.target.value })} className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-850 focus:border-bku-primary font-body" />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                    <div className="space-y-1.5 sm:col-span-1">
+                      <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-body">Admission Batch (Year)</Label>
+                      <Input type="number" value={form.TahunMasuk} onChange={e => setForm({ ...form, TahunMasuk: e.target.value })} className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-850 focus:border-bku-primary font-body" />
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            <DialogFooter className="rounded-b-2xl px-6 py-5 md:px-8 md:py-6">
-              <button
-                type="button"
-                onClick={() => setIsCrudOpen(false)}
-                className="flex-1 h-12 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-body cursor-pointer"
-              >
-                Batal
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="flex-1 h-12 bg-neutral-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2 font-body disabled:opacity-50 cursor-pointer border-none"
-              >
-                {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >save</span>}
-                <span>{isEditMode ? 'Simpan Perubahan' : 'Daftarkan Mahasiswa'}</span>
-              </button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+                <DialogFooter className="rounded-b-2xl px-6 py-5 md:px-8 md:py-6">
+                  <button
+                    type="button"
+                    onClick={() => setIsCrudOpen(false)}
+                    className="flex-1 h-12 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-body cursor-pointer"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex-1 h-12 bg-neutral-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2 font-body disabled:opacity-50 cursor-pointer border-none"
+                  >
+                    {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >save</span>}
+                    <span>{isEditMode ? 'Simpan Perubahan' : 'Daftarkan Mahasiswa'}</span>
+                  </button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
 
-      <DeleteConfirmModal
-        isOpen={isDelOpen}
-        onClose={() => setIsDelOpen(false)}
-        onConfirm={handleDelete}
-        title="Destroy Student Entity?"
-        description="Seluruh data akademik, riwayat registrasi, dan kaitan entitas mahasiswa ini akan dihapus permanen dari basis data sistem. Prosedur ini tidak dapat dibatalkan."
-        loading={isSubmitting}
-      />
-    </PageContent>
-  )
+          <DeleteConfirmModal
+            isOpen={isDelOpen}
+            onClose={() => setIsDelOpen(false)}
+            onConfirm={handleDelete}
+            title="Destroy Student Entity?"
+            description="Seluruh data akademik, riwayat registrasi, dan kaitan entitas mahasiswa ini akan dihapus permanen dari basis data sistem. Prosedur ini tidak dapat dibatalkan."
+            loading={isSubmitting}
+          />
+        </PageContent>
+        )
 }

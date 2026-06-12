@@ -8,6 +8,7 @@ import useAuthStore from '../../store/useAuthStore'
 
 import { cn } from '@/lib/utils'
 import { SelectField, SelectOption } from "@/components/ui/SelectField"
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/Select"
 import { Button } from "@/components/ui/Button"
 import { PageContent } from '@/components/ui/page'
 import { DashboardHero } from '@/components/ui/dashboard'
@@ -95,6 +96,7 @@ export default function FacultyKesehatan() {
   const [filterProdi, setFilterProdi] = useState('all')
   const [filterBlood, setFilterBlood] = useState('all')
   const [filterJenis, setFilterJenis] = useState('all')
+  const [filterPeriod, setFilterPeriod] = useState('all')
   const [facultyInfo, setFacultyInfo] = useState(null)
 
   const [statsDetail, setStatsDetail] = useState(null)
@@ -306,11 +308,23 @@ export default function FacultyKesehatan() {
         <p style="font-weight:700;margin-top:4px;">${titleResolved}</p>
         <div style="margin-top:45px; font-weight:700; text-decoration:underline;">${nameResolved}</div>
       </div>
-      <script>window.onload=function(){setTimeout(function(){window.print();setTimeout(function(){window.close();},100);},300);};<\/script>
     </body></html>`;
-    printWindow.document.open();
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
+    
+    try {
+      printWindow.document.open();
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+      
+      printWindow.onload = () => {
+        setTimeout(() => {
+          printWindow.print();
+          setTimeout(() => { printWindow.close(); }, 100);
+        }, 300);
+      };
+    } catch (err) {
+      console.error("Print Error:", err);
+      toast.error("Gagal memproses PDF, mungkin karena ekstensi browser.");
+    }
   };
 
   const exportHealthPDF = () => {
@@ -382,8 +396,9 @@ export default function FacultyKesehatan() {
     const matchProdi = filterProdi === 'all' || r.Mahasiswa?.ProgramStudi?.Nama === filterProdi
     const matchBlood = filterBlood === 'all' || (r.GolonganDarah || '').toUpperCase() === filterBlood.toUpperCase()
     const matchJenis = filterJenis === 'all' || r.JenisPemeriksaan === filterJenis
-    return matchQ && matchS && matchProdi && matchBlood && matchJenis
-  }), [healthRecords, search, filterStatus, filterProdi, filterBlood, filterJenis])
+    const matchPeriod = filterPeriod === 'all' || String(r.Mahasiswa?.Angkatan || r.Mahasiswa?.angkatan || (r.Mahasiswa?.NIM ? `20${r.Mahasiswa.NIM.substring(0,2)}` : null)) === filterPeriod
+    return matchQ && matchS && matchProdi && matchBlood && matchJenis && matchPeriod
+  }), [healthRecords, search, filterStatus, filterProdi, filterBlood, filterJenis, filterPeriod])
 
   const sorted = useMemo(() => {
     let items = [...filtered]
@@ -541,22 +556,25 @@ export default function FacultyKesehatan() {
           { label: `${statsData.condition?.pantauan || 0} Mahasiswa Pantauan`, active: true }
         ]}
         actions={
-          <>
-            <div className="hidden lg:flex items-center gap-2 text-right">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Total Skrining</span>
-              <span className="text-sm font-extrabold text-primary px-2 py-0.5 rounded-md bg-[#eef4ff] border border-blue-100">{statsData.total}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <button onClick={exportHealthPDF} disabled={loading || healthRecords.length === 0}
-                className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-50 flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary" style={{ fontSize: 13 }}>download</span> Ekspor PDF
-              </button>
-              <button onClick={fetchData} disabled={loading}
-                className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-60 flex items-center gap-2">
-                {loading ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '13px' }} >sync</span> : <span className="material-symbols-outlined text-primary" style={{ fontSize: 13 }}>sync</span>} Refresh Data
-              </button>
-            </div>
-          </>
+          <div className="flex items-center gap-2">
+            <Select value={filterPeriod} onValueChange={setFilterPeriod}>
+              <SelectTrigger className="w-[180px] h-10 border border-slate-200/80 bg-white/80 rounded-xl text-xs font-bold text-slate-600 focus:ring-0">
+                <SelectValue placeholder="Semua Periode" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Periode</SelectItem>
+                {angkatanStats.map(a => <SelectItem key={a.angkatan} value={String(a.angkatan)}>Angkatan {a.angkatan}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <button onClick={exportHealthPDF} disabled={loading || healthRecords.length === 0}
+              className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-50 flex items-center gap-2 shrink-0">
+              <span className="material-symbols-outlined text-primary" style={{ fontSize: 13 }}>download</span> Ekspor PDF
+            </button>
+            <button onClick={fetchData} disabled={loading}
+              className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-60 flex items-center gap-2 shrink-0">
+              {loading ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '13px' }} >sync</span> : <span className="material-symbols-outlined text-primary" style={{ fontSize: 13 }}>sync</span>} Refresh Data
+            </button>
+          </div>
         }
       />
 
@@ -566,7 +584,7 @@ export default function FacultyKesehatan() {
           title="Total Skrining"
           value={statsData.total}
           badgeText="Semua rekam medis"
-          icon={() => <span className="material-symbols-outlined" style={{ fontSize: 24 }}>show_chart</span>}
+          icon="show_chart"
           colorTheme="primary"
           onClick={() => handleOpenStatsDetail('total', 'Total Skrining')}
         />
@@ -574,7 +592,7 @@ export default function FacultyKesehatan() {
           title="Kondisi Prima"
           value={statsData.condition?.prima || 0}
           badgeText="Status sangat sehat"
-          icon={() => <span className="material-symbols-outlined" style={{ fontSize: 24 }}>monitor_heart</span>}
+          icon="monitor_heart"
           colorTheme="success"
           onClick={() => handleOpenStatsDetail('prima', 'Kondisi Prima')}
         />
@@ -582,7 +600,7 @@ export default function FacultyKesehatan() {
           title="Status Stabil"
           value={statsData.condition?.stabil || 0}
           badgeText="Kondisi normal"
-          icon={() => <span className="material-symbols-outlined" style={{ fontSize: 24 }}>verified_user</span>}
+          icon="verified_user"
           colorTheme="info"
           onClick={() => handleOpenStatsDetail('stabil', 'Status Stabil')}
         />
@@ -590,7 +608,7 @@ export default function FacultyKesehatan() {
           title="Dalam Pantauan"
           value={statsData.condition?.pantauan || 0}
           badgeText="Butuh pemantauan"
-          icon={() => <span className="material-symbols-outlined" style={{ fontSize: 24 }}>error</span>}
+          icon="error"
           colorTheme="warning"
           onClick={() => handleOpenStatsDetail('pantauan', 'Dalam Pantauan')}
         />
@@ -598,7 +616,7 @@ export default function FacultyKesehatan() {
           title="Kondisi Kritis"
           value={statsData.condition?.kritis || 0}
           badgeText="Penanganan segera"
-          icon={() => <span className="material-symbols-outlined" style={{ fontSize: 24 }}>error</span>}
+          icon="warning"
           colorTheme="error"
           onClick={() => handleOpenStatsDetail('kritis', 'Kondisi Kritis')}
         />
@@ -610,41 +628,41 @@ export default function FacultyKesehatan() {
           title="Gol. Darah Mayoritas"
           value={`Gol ${maxGol.name}`}
           badgeText={`${maxGol.count} Mahasiswa`}
-          icon={() => <span className="material-symbols-outlined" style={{ fontSize: 24 }}>water_drop</span>}
+          icon="water_drop"
           colorTheme="error"
         />
         <PrimaryStatsCard
           title="Rata-rata BMI"
           value={avgBmi}
           badgeText="Indeks Massa Tubuh"
-          icon={() => <span className="material-symbols-outlined" style={{ fontSize: 24 }}>straighten</span>}
+          icon="straighten"
           colorTheme="info"
         />
         <PrimaryStatsCard
           title="Gender Dominan"
           value={maxGender.gender === 'Laki-laki' ? 'Laki-laki' : maxGender.gender === 'Perempuan' ? 'Perempuan' : '—'}
           badgeText={`${maxGender.total} Mahasiswa`}
-          icon={() => <span className="material-symbols-outlined" style={{ fontSize: 24 }}>group</span>}
+          icon="group"
           colorTheme="primary"
         />
         <PrimaryStatsCard
           title="Angkatan Terbanyak"
           value={maxAngkatan.angkatan}
           badgeText={`${maxAngkatan.count} Skrining`}
-          icon={() => <span className="material-symbols-outlined" style={{ fontSize: 24 }}>calendar_month</span>}
+          icon="calendar_month"
           colorTheme="warning"
         />
         <PrimaryStatsCard
           title="Rata-rata Sistolik"
           value={avgSistole}
           badgeText="mmHg"
-          icon={() => <span className="material-symbols-outlined" style={{ fontSize: 24 }}>monitor_heart</span>}
+          icon="monitor_heart"
           colorTheme="success"
         />
       </div>
 
       {/* Table */}
-      <Card className="glass-card shadow-sm rounded-xl overflow-hidden mt-6 mb-6">
+      <Card className="border border-[var(--theme-border)] shadow-sm bg-[var(--theme-surface)] rounded-2xl overflow-hidden mt-6 mb-6">
         <div className="px-6 py-5 border-b border-[var(--theme-border)] flex flex-col gap-3 bg-[var(--theme-surface)]">
           <div className="flex-1">
             <h2 className="font-headline font-bold text-lg text-[var(--theme-text)]">Rekam Medis Mahasiswa</h2>
@@ -684,7 +702,7 @@ export default function FacultyKesehatan() {
           </div>
         </div>
 
-        <CardContent className="p-0">
+        <CardContent className="p-0 [&>div]:border-none [&>div]:rounded-none [&>div]:shadow-none">
           <DataTable
             data={filtered}
             columns={columns}
@@ -797,7 +815,7 @@ export default function FacultyKesehatan() {
           </>
         }
       >
-            <div className="flex flex-col gap-6 p-1 pb-6 max-h-[70vh] overflow-y-auto no-scrollbar">
+            <div className="flex flex-col gap-6 p-1 pb-4">
               {/* Main Card */}
               <div className="flex flex-col bg-white rounded-2xl border border-[var(--theme-border-muted)] overflow-hidden shadow-sm">
                 {/* Header Identity & Status */}

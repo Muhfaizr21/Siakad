@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { UI } from '../../constants/designSystem';
 import { psychologistService } from '../../services/api';
-import { PageContent } from '@/components/ui/page';
 import { DashboardHero } from '@/components/ui/dashboard';
+import { PageContent } from '@/components/ui/page';
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Lock = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>lock</span>;
@@ -50,7 +50,6 @@ const getInitials = (name) => {
 export default function PsychologistSettings() {
   const [activeTab, setActiveTab] = useState('profil');
   const [profile, setProfile] = useState(EMPTY_PROFILE);
-  const [schedules, setSchedules] = useState([]);
   const [password, setPassword] = useState({ old_password: '', new_password: '', confirm_password: '' });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState('');
@@ -59,11 +58,10 @@ export default function PsychologistSettings() {
 
   useEffect(() => {
     let mounted = true;
-    Promise.all([psychologistService.getMe(), psychologistService.getSchedules()])
-      .then(([profileRes, scheduleRes]) => {
+    Promise.all([psychologistService.getMe()])
+      .then(([profileRes]) => {
         if (!mounted) return;
         setProfile({ ...EMPTY_PROFILE, ...(profileRes.data || {}) });
-        setSchedules(Array.isArray(scheduleRes.data) ? scheduleRes.data : []);
       })
       .catch((err) => {
         if (mounted) setError(err?.message || 'Gagal memuat pengaturan.');
@@ -77,19 +75,9 @@ export default function PsychologistSettings() {
     };
   }, []);
 
-  const groupedSchedules = useMemo(() => {
-    const groups = Object.fromEntries(DAYS.map((day) => [day, []]));
-    schedules.forEach((day) => {
-      const slots = Array.isArray(day.slots) ? day.slots : [];
-      groups[day.day] = slots.filter((slot) => day.enabled && slot.enabled !== false);
-    });
-    return groups;
-  }, [schedules]);
-
   const tabs = [
     { id: 'profil', label: 'Profil Publik', icon: User },
     { id: 'keamanan', label: 'Keamanan', icon: Shield },
-    { id: 'praktek', label: 'Pengaturan Praktek', icon: Briefcase },
   ];
 
   const updateProfileField = (key, value) => {
@@ -132,38 +120,13 @@ export default function PsychologistSettings() {
   return (
     <div className="w-full relative space-y-6 min-h-screen bg-transparent font-inter pb-8">
       {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <section className="relative overflow-hidden rounded-2xl p-6 md:p-8 flex flex-col xl:flex-row xl:items-center gap-6 group shadow-sm border border-slate-200/60 bg-white">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/80 via-white to-slate-50/80" />
-        <div className="absolute inset-0 opacity-[0.02]"
-          style={{
-            backgroundImage: `radial-gradient(circle at 20% 50%, black 1px, transparent 1px), radial-gradient(circle at 80% 20%, black 1px, transparent 1px)`,
-            backgroundSize: '40px 40px'
-          }}
-        />
-        <div className="absolute -top-20 -right-20 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute -bottom-10 left-20 w-48 h-48 bg-emerald-400/5 rounded-full blur-2xl" />
-
-        <div className="relative z-10 flex-1 flex flex-col justify-center gap-3">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/[0.02] border border-primary/10 flex items-center justify-center text-primary shrink-0 shadow-sm relative overflow-hidden">
-              <span className="material-symbols-outlined text-primary relative z-10" style={{ fontSize: '26px' }}>settings</span>
-            </div>
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-primary/5 text-primary border border-primary/10">
-                  Settings
-                </span>
-              </div>
-              <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight font-headline leading-none">
-                Pengaturan <span className="text-primary font-black">Akun</span>
-              </h1>
-              <p className="mt-2 text-xs md:text-sm font-medium text-slate-500 leading-relaxed max-w-xl">
-                Profil tersimpan di psikolog.profiles, jadwal di psikolog.schedule_slots, dan password di public.users.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+      <DashboardHero
+        title="Pengaturan"
+        highlightedTitle="Akun"
+        subtitle="Profil tersimpan di psikolog.profiles dan password di public.users."
+        icon="settings"
+        badges={[{ label: 'Settings', active: false }]}
+      />
 
           {message && (
             <div className="flex items-center gap-3 rounded-3xl border border-emerald-100 bg-emerald-50 px-5 py-4 text-emerald-700">
@@ -294,59 +257,6 @@ export default function PsychologistSettings() {
                       </div>
                     )}
 
-                    {activeTab === 'praktek' && (
-                      <div className="grid grid-cols-1 gap-5 p-5 lg:grid-cols-2 lg:p-5">
-                        <div className="space-y-4">
-                          <h2 className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-primary">
-                            <span className="material-symbols-outlined text-lg shrink-0">schedule</span>
-                            Jadwal Dari Database
-                          </h2>
-                          <div className="space-y-3">
-                            {DAYS.map((day) => (
-                              <div key={day} className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">
-                                <div className="mb-2 flex items-center justify-between">
-                                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-900">{day}</span>
-                                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">{groupedSchedules[day]?.length || 0} slot</span>
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                  {groupedSchedules[day]?.length ? (
-                                    groupedSchedules[day].map((slot, index) => (
-                                      <span key={`${day}-${slot.start}-${index}`} className="rounded-xl bg-white px-3 py-1 text-[9px] font-black uppercase tracking-widest text-primary">
-                                        {slot.start} - {slot.end}
-                                      </span>
-                                    ))
-                                  ) : (
-                                    <span className="text-[10px] font-semibold text-slate-400">Tidak aktif</span>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div className="space-y-5">
-                          <div className="rounded-2xl bg-slate-950 p-5 text-white">
-                            <p className="mb-2 text-[9px] font-black uppercase tracking-widest text-white/40">Tarif Konseling / Sesi</p>
-                            <p className="font-headline text-3xl font-black">GRATIS</p>
-                            <p className="mt-2 text-xs font-semibold leading-relaxed text-white/45">Layanan konseling di-cover sepenuhnya oleh kampus.</p>
-                          </div>
-                          <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
-                            <p className="mb-3 text-[10px] font-black uppercase tracking-widest text-slate-500">Bahasa Layanan</p>
-                            <div className="flex flex-wrap gap-2">
-                              {(profile.bahasa || 'Indonesia')
-                                .split(',')
-                                .map((lang) => lang.trim())
-                                .filter(Boolean)
-                                .map((lang) => (
-                                  <span key={lang} className="rounded-xl border border-primary/10 bg-primary/5 px-3 py-1 text-[9px] font-black uppercase tracking-widest text-primary">
-                                    {lang}
-                                  </span>
-                                ))}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
 
                     <div className="flex flex-col gap-3 border-t px-6 py-5 sm:flex-row sm:justify-end" style={{ borderColor: 'var(--theme-border)', backgroundColor: 'var(--theme-bg)' }}>
                       {activeTab === 'keamanan' ? (
@@ -391,3 +301,5 @@ function Field({ label, icon, children }) {
     </label>
   );
 }
+
+

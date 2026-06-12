@@ -11,6 +11,8 @@ import { PageContent } from '@/components/ui/page'
 import { DashboardHero } from '@/components/ui/dashboard'
 import { Badge } from "@/components/ui/Badge"
 import { DialogModal, ModalCancelButton, ModalSaveButton } from "@/components/ui/DialogModal"
+import { PrimaryStatsCard } from '@/components/ui/StatsCard'
+import { DataTable } from "@/components/ui/DataTable"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Reply = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>reply</span>;
@@ -77,13 +79,9 @@ const FacultyAspirationManagement = () => {
   const [aspirations, setAspirations]   = useState([])
   const [loading, setLoading]           = useState(true)
   const [selected, setSelected]         = useState(null)
-  const [form, setForm]                 = useState({ status: '', respon: '' })
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [search, setSearch]             = useState('')
-  const [filterStatus, setFilterStatus] = useState('all')
-  const [currentPage, setCurrentPage]   = useState(1)
-  const [pageSize, setPageSize]         = useState(10)
-  const [sortConfig, setSortConfig]     = useState({ key: 'CreatedAt', direction: 'desc' })
+  const [filterPeriode, setFilterPeriode] = useState('all')
+  const [form, setForm]                 = useState({ status: 'proses', respon: '' })
 
   const normalizeAspirasi = (a, i) => {
     const m = a.mahasiswa || a.Mahasiswa || {};
@@ -94,6 +92,8 @@ const FacultyAspirationManagement = () => {
       Isi: a.isi || a.Isi || '—',
       Kategori: a.kategori || a.Kategori || 'Umum',
       Status: a.status || a.Status || 'Terbuka',
+      normalizedStatus: (a.status || a.Status || 'terbuka').toLowerCase(),
+      MahasiswaNama: m.nama || m.Nama || (a.is_anonim || a.IsAnonim ? 'Anonim' : '—'),
       CreatedAt: a.created_at || a.CreatedAt,
       BuktiURL: a.BuktiURL ?? a.bukti_url ?? a.FotoURL ?? a.foto_url ?? a.lampiran_url ?? a.LampiranURL ?? '',
       Mahasiswa: {
@@ -154,53 +154,6 @@ const FacultyAspirationManagement = () => {
 
   useEffect(() => { fetchAspirations() }, [])
 
-  const filtered = useMemo(() => aspirations.filter(a => {
-    const q = search.toLowerCase()
-    const matchQ = !q || a.Mahasiswa?.Nama?.toLowerCase().includes(q) || a.Judul?.toLowerCase().includes(q)
-    const matchS = filterStatus === 'all' || (a.Status||'terbuka').toLowerCase() === filterStatus
-    return matchQ && matchS
-  }), [aspirations, search, filterStatus])
-
-  const sorted = useMemo(() => {
-    let items = [...filtered]
-    if (sortConfig.key !== null) {
-      items.sort((a, b) => {
-        let aVal = a[sortConfig.key]
-        let bVal = b[sortConfig.key]
-
-        if (sortConfig.key === 'Mahasiswa.Nama') {
-          aVal = a.Mahasiswa?.Nama || ''
-          bVal = b.Mahasiswa?.Nama || ''
-        }
-
-        if (typeof aVal === 'string') aVal = aVal.toLowerCase()
-        if (typeof bVal === 'string') bVal = bVal.toLowerCase()
-
-        if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1
-        if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1
-        return 0
-      })
-    }
-    return items
-  }, [filtered, sortConfig])
-
-  const paginated = useMemo(() => {
-    const start = (currentPage - 1) * pageSize
-    return sorted.slice(start, start + pageSize)
-  }, [sorted, currentPage, pageSize])
-
-  const totalItems = filtered.length
-  const totalPages = Math.ceil(totalItems / pageSize)
-
-  const handleSort = (key) => {
-    let direction = 'asc'
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc'
-    }
-    setSortConfig({ key, direction })
-    setCurrentPage(1)
-  }
-
   const handleOpenAudit = (asp) => {
     setSelected(asp)
     let initialStatus = asp.Status?.toLowerCase() || 'proses'
@@ -213,11 +166,33 @@ const FacultyAspirationManagement = () => {
     })
   }
 
+  const periodeOptions = useMemo(() => {
+    const periods = new Set()
+    aspirations.forEach(a => {
+      if (a.CreatedAt) {
+        const d = new Date(a.CreatedAt)
+        if (!isNaN(d.getTime())) {
+          periods.add(String(d.getFullYear()))
+        }
+      }
+    })
+    return Array.from(periods).sort((a, b) => Number(b) - Number(a))
+  }, [aspirations])
+
+  const filteredAspirations = useMemo(() => {
+    if (filterPeriode === 'all') return aspirations
+    return aspirations.filter(a => {
+      if (!a.CreatedAt) return false
+      const d = new Date(a.CreatedAt)
+      return !isNaN(d.getTime()) && String(d.getFullYear()) === filterPeriode
+    })
+  }, [aspirations, filterPeriode])
+
   const stats = {
-    total:      aspirations.length,
-    selesai:    aspirations.filter(a=>(a.Status||'').toLowerCase()==='disetujui fakultas' || (a.Status||'').toLowerCase()==='selesai').length,
-    proses:     aspirations.filter(a=>(a.Status||'').toLowerCase()==='proses').length,
-    klarifikasi:aspirations.filter(a=>(a.Status||'').toLowerCase()==='klarifikasi').length,
+    total:      filteredAspirations.length,
+    selesai:    filteredAspirations.filter(a=>(a.Status||'').toLowerCase()==='disetujui fakultas' || (a.Status||'').toLowerCase()==='selesai').length,
+    proses:     filteredAspirations.filter(a=>(a.Status||'').toLowerCase()==='proses').length,
+    klarifikasi:filteredAspirations.filter(a=>(a.Status||'').toLowerCase()==='klarifikasi').length,
   }
 
   return (
@@ -233,276 +208,115 @@ const FacultyAspirationManagement = () => {
             { label: `${stats.proses} Sedang Ditangani`, active: true }
           ]}
           actions={
-            <>
-              <div className="hidden lg:flex items-center gap-2 text-right">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Total Masuk</span>
-                <span className="text-sm font-extrabold text-primary px-2 py-0.5 rounded-md bg-[#eef4ff] border border-blue-100">{stats.total}</span>
-              </div>
+            <div className="flex items-center gap-2">
+              <Select value={filterPeriode} onValueChange={setFilterPeriode}>
+                <SelectTrigger className="w-[160px] h-10 border border-[var(--theme-border)] bg-white/80 backdrop-blur-sm rounded-xl text-xs font-semibold text-[var(--theme-text-muted)] focus:ring-0">
+                  <SelectValue placeholder="Semua Tahun" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border border-[var(--theme-border)] shadow-md bg-white">
+                  <SelectItem value="all" className="rounded-lg text-xs py-1.5 focus:bg-[var(--theme-primary-light)] focus:text-[var(--theme-primary)]">Semua Tahun</SelectItem>
+                  {periodeOptions.map(per => (
+                    <SelectItem key={per} value={per} className="rounded-lg text-xs py-1.5 focus:bg-[var(--theme-primary-light)] focus:text-[var(--theme-primary)]">
+                      Tahun {per}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <button onClick={fetchAspirations} disabled={loading}
                 className="h-10 px-5 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-60 flex items-center gap-2"
               >
-                {loading ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '13px' }} >sync</span> : <RefreshCw size={13} className="text-primary" />} Refresh Data
+                {loading ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '13px' }} >sync</span> : <span className="material-symbols-outlined text-primary" style={{ fontSize: 13 }}>sync</span>} Refresh Data
               </button>
-            </>
+            </div>
           }
         />
-
         {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            { label:'Total Masuk',   value:stats.total,       icon:MessageSquare, bg:'bg-[#eef4ff]',  color:'text-primary',   desc:'Semua aspirasi' },
-            { label:'Disetujui / Selesai', value:stats.selesai, icon:CheckCircle2,  bg:'bg-emerald-50', color:'text-emerald-600', desc:'Disetujui fakultas / selesai' },
-            { label:'Dalam Proses',  value:stats.proses,      icon:Clock,         bg:'bg-blue-50',    color:'text-blue-600',    desc:'Sedang ditangani' },
-            { label:'Klarifikasi',   value:stats.klarifikasi, icon:AlertCircle,   bg:'bg-amber-50',   color:'text-amber-600',   desc:'Butuh klarifikasi' },
-          ].map(s => (
-            <div key={s.label} className="glass-card border border-slate-200/60 rounded-2xl p-5 shadow-none">
-              <div className="flex items-center gap-3 mb-3">
-                <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', s.bg, s.color)}>
-                  <s.icon size={18} />
-                </div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</span>
-              </div>
-              <p className="text-2xl font-extrabold text-slate-900 leading-none tabular-nums">
-                {loading ? <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span> : s.value}
-              </p>
-              <p className="text-xs text-slate-400 font-medium mt-1">{s.desc}</p>
-            </div>
-          ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6 mt-6">
+          <PrimaryStatsCard title="Total Masuk" value={stats.total} icon={MessageSquare} colorTheme="primary" badgeText="Semua aspirasi" badgeIcon={<span className="material-symbols-outlined text-[12px]">chat</span>} />
+          <PrimaryStatsCard title="Disetujui / Selesai" value={stats.selesai} icon={CheckCircle2} colorTheme="success" badgeText="Selesai diproses" badgeIcon={<span className="material-symbols-outlined text-[12px]">verified</span>} />
+          <PrimaryStatsCard title="Dalam Proses" value={stats.proses} icon={Clock} colorTheme="info" badgeText="Sedang ditangani" badgeIcon={<span className="material-symbols-outlined text-[12px]">schedule</span>} />
+          <PrimaryStatsCard title="Klarifikasi" value={stats.klarifikasi} icon={AlertCircle} colorTheme="warning" badgeText="Butuh klarifikasi" badgeIcon={<span className="material-symbols-outlined text-[12px]">error</span>} />
         </div>
 
         {/* Table */}
-        <div className="glass-card border border-slate-200/60 rounded-2xl shadow-sm overflow-hidden bg-white">
-          <div className="px-6 py-5 border-b border-slate-100 flex flex-col xl:flex-row xl:items-center justify-between gap-5">
-            <div className="space-y-1">
-              <div className="flex items-center gap-3">
-                <h2 className="font-extrabold text-base tracking-tight text-slate-900">Daftar Aspirasi Mahasiswa</h2>
-                <span className="px-2 py-0.5 rounded-md bg-primary/5 text-primary text-[10px] font-bold border border-primary/10">
-                  {filtered.length} Data
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-500 font-medium">
-                Menampilkan aspirasi masuk dari seluruh mahasiswa fakultas.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              {/* Modern Search Bar */}
-              <div className="relative group flex-1 sm:flex-none">
-                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors text-[18px]">search</span>
-                <input 
-                  type="text" 
-                  placeholder="Cari pengirim atau judul..." 
-                  value={search} 
-                  onChange={e=>setSearch(e.target.value)}
-                  className="pl-10 pr-4 h-10 w-full sm:w-64 rounded-xl border border-slate-200 bg-slate-50/30 focus:bg-white focus:outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/5 text-xs font-semibold transition-all" 
-                />
-              </div>
-
-              {/* Status Filter */}
-              <div className="relative flex-1 sm:flex-none">
-                <select 
-                  value={filterStatus} 
-                  onChange={e=>setFilterStatus(e.target.value)}
-                  className="h-10 pl-4 pr-10 w-full rounded-xl border border-slate-200 bg-slate-50/30 hover:bg-white focus:outline-none focus:border-primary/50 text-xs font-bold text-slate-700 appearance-none cursor-pointer transition-all shadow-sm"
-                >
-                  <option value="all">Semua Status</option>
-                  <option value="terbuka">Terbuka</option>
-                  <option value="proses">Proses</option>
-                  <option value="klarifikasi">Klarifikasi</option>
-                  <option value="disetujui fakultas">Disetujui Fakultas</option>
-                  <option value="ditolak fakultas">Ditolak Fakultas</option>
-                  <option value="selesai">Selesai</option>
-                </select>
-                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[18px]">expand_more</span>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex items-center gap-2">
-                {(search || filterStatus !== 'all') && (
-                  <button 
-                    onClick={() => {setSearch(''); setFilterStatus('all')}}
-                    className="h-10 px-4 flex items-center gap-2 text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-xl border border-rose-100 transition-colors active:scale-95"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">restart_alt</span>
-                    Reset
-                  </button>
-                )}
-                <button 
-                  onClick={fetchAspirations}
-                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-slate-500 hover:text-primary hover:border-primary/30 hover:bg-white transition-all active:scale-95 shadow-sm"
-                  title="Refresh Data"
-                >
-                  <span className={cn("material-symbols-outlined text-[20px]", loading && "animate-spin")}>sync</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-slate-200/60 bg-slate-50/50">
-                  {[
-                    { label: 'No', key: null, sortable: false },
-                    { label: 'Mahasiswa', key: 'Mahasiswa.Nama', sortable: true },
-                    { label: 'Aspirasi & Keluhan', key: 'Judul', sortable: true },
-                    { label: 'Isi Singkat', key: 'Isi', sortable: true },
-                    { label: 'Status', key: 'Status', sortable: true },
-                    { label: 'Tanggal', key: 'CreatedAt', sortable: true },
-                    { label: 'Aksi', key: null, sortable: false },
-                  ].map(h => (
-                    <th
-                      key={h.label}
-                      onClick={() => h.sortable && handleSort(h.key)}
-                      className={cn(
-                        'px-5 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap select-none',
-                        h.sortable && 'cursor-pointer hover:text-slate-900 group'
-                      )}
-                    >
-                      <div className="flex items-center gap-1.5">
-                        {h.label}
-                        {h.sortable && (
-                          sortConfig.key === h.key ? (
-                            sortConfig.direction === 'asc' ? (
-                              <span className="material-symbols-outlined size-3.5 text-primary" style={{ fontSize: '14px' }}>expand_less</span>
-                            ) : (
-                              <span className="material-symbols-outlined size-3.5 text-primary" style={{ fontSize: '14px' }}>expand_more</span>
-                            )
-                          ) : (
-                            <span className="material-symbols-outlined size-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" style={{ fontSize: '14px' }}>unfold_more</span>
-                          )
-                        )}
-                      </div>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? Array.from({length: pageSize}).map((_,i)=>(
-                  <tr key={i} className="border-b border-slate-100">
-                    {[...Array(7)].map((__,j)=><td key={j} className="px-5 py-4"><div className="h-4 bg-slate-50 rounded animate-pulse"/></td>)}
-                  </tr>
-                )) : paginated.length===0 ? (
-                  <tr><td colSpan={7} className="px-5 py-16 text-center">
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-primary"><span className="material-symbols-outlined" style={{ fontSize: '22px' }} >chat</span></div>
-                      <p className="font-bold text-sm text-slate-900">Tidak Ada Aspirasi</p>
-                      <p className="text-xs text-slate-400">Belum ada mahasiswa yang mengirimkan aspirasi.</p>
+        <div className="mt-6 mb-6">
+          <DataTable
+            columns={[
+              {
+                key: 'index', label: 'No', disableSort: true, className: "w-12 text-center", cellClassName: "text-center font-bold text-slate-400",
+                render: (val, row, index) => index + 1
+              },
+              {
+                key: 'MahasiswaNama', label: 'Mahasiswa',
+                render: (val, row) => (
+                  <div className="flex items-center gap-3">
+                    <StudentAvatar src={row.Mahasiswa?.Foto} name={row.Mahasiswa?.Nama} className="w-9 h-9 rounded-xl" />
+                    <div>
+                      <p className="font-bold text-sm text-[var(--theme-text)]">{row.Mahasiswa?.Nama||'Anonim'}</p>
+                      <p className="text-[10px] text-[var(--theme-text-muted)] font-medium">{row.Mahasiswa?.NIM||'—'}</p>
                     </div>
-                  </td></tr>
-                ) : paginated.map((row,i)=>{
-                  const st = getStatus(row.Status)
+                  </div>
+                )
+              },
+              {
+                key: 'Judul', label: 'Aspirasi & Keluhan',
+                render: (val, row) => (
+                  <div className="max-w-[200px]">
+                    <p className="font-bold text-sm text-[var(--theme-text)] truncate leading-snug">{row.Judul||'—'}</p>
+                    <span className="inline-block mt-0.5 text-[10px] font-bold text-primary bg-[var(--theme-primary-light)] px-2 py-0.5 rounded-md border border-[var(--theme-primary)]/20">{row.Kategori||'Umum'}</span>
+                  </div>
+                )
+              },
+              {
+                key: 'Isi', label: 'Isi Singkat', className: "max-w-[250px]",
+                render: (val) => (
+                  <p className="text-xs text-[var(--theme-text-muted)] italic line-clamp-2 max-w-[250px]">"{val}"</p>
+                )
+              },
+              {
+                key: 'Status', label: 'Status',
+                render: (val) => {
+                  const st = getStatus(val);
                   return (
-                    <tr key={row.ID||i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors">
-                      <td className="px-5 py-3.5 text-sm text-slate-400 font-medium">{(currentPage - 1) * pageSize + i + 1}</td>
-                      <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-3">
-                          <StudentAvatar src={row.Mahasiswa?.Foto} name={row.Mahasiswa?.Nama} className="w-9 h-9 rounded-xl" />
-                          <div>
-                            <p className="font-bold text-sm text-slate-900">{row.Mahasiswa?.Nama||'Anonim'}</p>
-                            <p className="text-[10px] text-slate-400 font-medium">{row.Mahasiswa?.NIM||'—'}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <p className="font-bold text-sm text-slate-900 max-w-[200px] truncate leading-snug">{row.Judul||'—'}</p>
-                        <span className="inline-block mt-0.5 text-[10px] font-bold text-primary bg-[#eef4ff] px-2 py-0.5 rounded-md">{row.Kategori||'Umum'}</span>
-                      </td>
-                      <td className="px-5 py-3.5 max-w-[200px]">
-                        <p className="text-xs text-slate-500 italic line-clamp-2">"{row.Isi}"</p>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider', st.cls)}>
-                          <span className={cn('w-1.5 h-1.5 rounded-full', st.dot)}/>{(row.Status||'Terbuka')}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3.5 text-xs text-slate-500 font-medium whitespace-nowrap">
-                        {formatDate(row.CreatedAt)}
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <button onClick={()=>handleOpenAudit(row)}
-                          className="p-1.5 text-slate-400 hover:text-primary hover:bg-[#eef4ff] rounded-lg transition-colors" title="Balas">
-                          <Reply size={15}/>
-                        </button>
-                      </td>
-                    </tr>
+                    <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider', st.cls)}>
+                      <span className={cn('w-1.5 h-1.5 rounded-full', st.dot)}/>{(val||'Terbuka')}
+                    </span>
                   )
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Modern Pagination Footer */}
-          <div className="px-6 py-4 bg-transparent border-t border-slate-200/60 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-              <p className="text-xs text-slate-500 font-medium text-center sm:text-left">
-                Menampilkan <span className="font-semibold text-slate-800">{totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0}</span> sampai <span className="font-semibold text-slate-800">{Math.min(currentPage * pageSize, totalItems)}</span> dari <span className="font-semibold text-slate-800">{totalItems}</span> entri
-              </p>
-              
-              <div className="hidden sm:block h-5 w-px bg-slate-200" />
-
-              <div className="flex items-center gap-2.5">
-                <span className="text-xs text-slate-400 font-medium whitespace-nowrap">Baris per halaman:</span>
-                <Select value={String(pageSize)} onValueChange={(val) => { setPageSize(Number(val)); setCurrentPage(1); }}>
-                  <SelectTrigger className="h-8 w-24 rounded-lg border-slate-200 bg-white font-semibold text-xs shadow-sm focus:ring-primary/20 px-2.5 py-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl border-slate-200 shadow-xl p-1 font-body bg-white">
-                    {[5, 10, 15, 25, 50].map((size) => (
-                      <SelectItem key={size} value={String(size)} className="rounded-lg text-xs py-1.5 focus:bg-primary/5 focus:text-primary">
-                        {size} Baris
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1 || loading}
-                className="h-8 px-3 rounded-lg border-slate-200 bg-white text-slate-600 font-semibold text-xs shadow-sm disabled:opacity-40 hover:bg-slate-50 transition-all active:scale-95"
-              >
-                Sebelumnya
-              </Button>
-              
-              <div className="flex items-center gap-1">
-                {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
-                  let pageNum = i + 1;
-                  if (totalPages > 5 && currentPage > 3) pageNum = currentPage - 3 + i;
-                  if (pageNum > totalPages) return null;
-
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => setCurrentPage(pageNum)}
-                      className={cn(
-                        "w-8 h-8 rounded-lg font-semibold text-xs transition-all duration-200",
-                        currentPage === pageNum 
-                          ? "bg-primary text-white shadow-md shadow-primary/20 scale-105" 
-                          : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
-                      )}
-                    >
-                      {pageNum}
-                    </button>
-                  )
-                })}
-              </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages || loading || totalPages === 0}
-                className="h-8 px-3 rounded-lg border-slate-200 bg-white text-slate-600 font-semibold text-xs shadow-sm disabled:opacity-40 hover:bg-slate-50 transition-all active:scale-95"
-              >
-                Berikutnya
-              </Button>
-            </div>
-          </div>
+                }
+              },
+              {
+                key: 'CreatedAt', label: 'Tanggal',
+                render: (val) => <span className="text-xs text-[var(--theme-text-muted)] font-medium whitespace-nowrap">{formatDate(val)}</span>
+              }
+            ]}
+            data={filteredAspirations}
+            loading={loading}
+            searchPlaceholder="Cari pengirim atau judul..."
+            pagination={true}
+            pageSize={10}
+            emptyMessage="Tidak Ada Aspirasi"
+            emptyIcon="chat"
+            filters={[
+              {
+                key: 'normalizedStatus',
+                placeholder: 'Status',
+                options: [
+                  { value: 'terbuka', label: 'Terbuka' },
+                  { value: 'proses', label: 'Proses' },
+                  { value: 'klarifikasi', label: 'Klarifikasi' },
+                  { value: 'disetujui fakultas', label: 'Disetujui Fakultas' },
+                  { value: 'ditolak fakultas', label: 'Ditolak Fakultas' },
+                  { value: 'selesai', label: 'Selesai' },
+                ]
+              }
+            ]}
+            actions={(row) => (
+              <button onClick={()=>handleOpenAudit(row)}
+                className="p-1.5 text-slate-400 hover:text-primary hover:bg-[var(--theme-primary-light)] rounded-lg transition-colors" title="Balas">
+                <span className="material-symbols-outlined text-[15px]">reply</span>
+              </button>
+            )}
+          />
         </div>
 
       {/* ── Global Aspiration Audit Dialog Popup Modal (Faculty Admin) ── */}
@@ -513,10 +327,10 @@ const FacultyAspirationManagement = () => {
         title={selected?.Judul}
         subtitle={`Status: ${selected?.Status || 'Terbuka'}`}
         badgeText={`FACULTY AUDIT PANEL · #ASP-${selected?.ID?.toString().padStart(4, '0')}`}
-        maxWidth="max-w-5xl"
-        bodyClassName="p-8 pt-5 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar"
+        maxWidth="max-w-3xl"
+        bodyClassName="p-0 overflow-y-auto no-scrollbar"
         footer={
-          <>
+          <div className="w-full flex items-center justify-end gap-3 px-6 py-4 bg-[var(--theme-surface)] border-t border-[var(--theme-border)]">
             <ModalCancelButton onClick={() => setSelected(null)} text="Tutup" />
             <ModalSaveButton 
               onClick={() => handleUpdateStatus(form.status)} 
@@ -524,150 +338,170 @@ const FacultyAspirationManagement = () => {
               disabled={isSubmitting || !form.status}
               text="Simpan Tanggapan" 
             />
-          </>
+          </div>
         }
       >
             {selected && (
-              <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-                {/* Left Column: Reporter Profile, Content Subjek & Attachments */}
-                <div className="lg:col-span-3 space-y-6">
-                  {/* Reporter Profile Block */}
-                  <div className="p-6 rounded-2xl bg-slate-50/50 border border-slate-100 shadow-sm flex flex-col md:flex-row gap-5 items-start">
-                    <StudentAvatar src={selected.Mahasiswa?.Foto} name={selected.Mahasiswa?.Nama} className="w-16 h-16 rounded-2xl shadow-md ring-4 ring-neutral-100 shrink-0" />
-                    
-                    <div className="flex-1 space-y-3 w-full">
-                      <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Identitas Pelapor</span>
-                        <span className="inline-block text-[8px] font-black text-primary bg-[#eef4ff] px-2 py-0.5 rounded-md">Verified Mahasiswa</span>
+              <div className="flex flex-col pb-4">
+                {/* Info Pills Row */}
+                <div className="px-6 py-4 flex flex-wrap gap-2 border-b border-[var(--theme-border-muted)] bg-[var(--theme-bg)]/20 sticky top-0 z-20 backdrop-blur-md">
+                  <span className="flex items-center gap-1.5 bg-[var(--theme-primary-light)] border border-[var(--theme-primary)]/20 px-3 py-1.5 rounded-xl text-[10px] font-bold text-[var(--theme-primary)] uppercase tracking-wider shadow-sm">
+                    <span className="material-symbols-outlined" style={{fontSize: '13px'}}>category</span>
+                    {selected.Kategori || 'Umum'}
+                  </span>
+                  <span className="flex items-center gap-1.5 bg-[var(--theme-info-light)] border border-[var(--theme-info)]/20 px-3 py-1.5 rounded-xl text-[10px] font-bold text-[var(--theme-info)] uppercase tracking-wider shadow-sm">
+                    <span className="material-symbols-outlined" style={{fontSize: '13px'}}>calendar_today</span>
+                    {formatDate(selected.CreatedAt)}
+                  </span>
+                  {(() => {
+                    const st = getStatus(selected.Status);
+                    return (
+                      <span className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider border shadow-sm', st.cls)}>
+                        <span className={cn('w-1.5 h-1.5 rounded-full', st.dot)} />{selected.Status}
+                      </span>
+                    )
+                  })()}
+                </div>
+
+                <div className="flex flex-col gap-8 p-6">
+                  {/* Profil Pelapor */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-6 h-6 rounded-md bg-[var(--theme-primary-light)] flex items-center justify-center shadow-sm">
+                        <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '13px' }}>person</span>
                       </div>
-                      
-                      <div className="grid grid-cols-2 gap-3 text-xs">
-                        <div>
-                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Nama Lengkap</p>
-                          <p className="font-bold text-slate-800 truncate">{selected.Mahasiswa?.Nama}</p>
-                        </div>
-                        <div>
-                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">NIM / Identifier</p>
-                          <p className="font-mono font-bold text-slate-800">{selected.Mahasiswa?.NIM}</p>
-                        </div>
-                        <div className="col-span-2">
-                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Program Studi / Node asal</p>
-                          <p className="font-bold text-slate-700 uppercase flex items-center gap-1.5 mt-0.5">
-                            <span className="material-symbols-outlined text-[14px] text-primary/60">business</span>
-                            {selected.Mahasiswa?.ProgramStudi?.Nama || 'Institusional'}
-                          </p>
-                        </div>
+                      <h3 className="text-xs font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Identitas Pelapor</h3>
+                    </div>
+                    <div className="bg-[var(--theme-surface)] border border-[var(--theme-border)] shadow-sm rounded-2xl p-5 flex flex-col sm:flex-row items-center sm:items-start gap-5 hover:shadow-md transition-shadow">
+                      <StudentAvatar src={selected.Mahasiswa?.Foto} name={selected.Mahasiswa?.Nama} className="w-16 h-16 rounded-2xl shadow-md ring-4 ring-[var(--theme-bg)] shrink-0" />
+                      <div className="flex-1 w-full text-center sm:text-left">
+                        <p className="font-extrabold text-base text-[var(--theme-text)]">{selected.Mahasiswa?.Nama}</p>
+                        <p className="font-mono text-xs font-bold text-[var(--theme-text-muted)] mt-0.5">{selected.Mahasiswa?.NIM}</p>
+                        <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider flex items-center justify-center sm:justify-start gap-1.5 mt-2.5">
+                          <span className="material-symbols-outlined text-[14px]">business</span>
+                          {selected.Mahasiswa?.ProgramStudi?.Nama || 'Institusional'}
+                        </p>
                       </div>
                     </div>
                   </div>
 
-                  {/* Substantive Content */}
-                  <div className="space-y-3">
-                    <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                      <span className="material-symbols-outlined text-primary text-[16px]">chat</span> Substansi Aspirasi
-                    </h4>
-                    <div className="p-6 rounded-2xl bg-slate-50/50 border border-slate-100 relative overflow-hidden group">
-                      <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                        <span className="material-symbols-outlined text-[80px]" >chat</span>
+                  {/* Substansi Aspirasi */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-6 h-6 rounded-md bg-[var(--theme-primary-light)] flex items-center justify-center shadow-sm">
+                        <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '13px' }}>chat</span>
                       </div>
-                      <p className="text-sm text-slate-600 font-medium leading-relaxed font-inter relative z-10 whitespace-pre-wrap">
+                      <h3 className="text-xs font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Substansi Aspirasi</h3>
+                    </div>
+                    <div className="bg-[var(--theme-surface)] border border-[var(--theme-border)] shadow-sm rounded-2xl p-6 relative overflow-hidden group hover:shadow-md transition-shadow">
+                      <span className="material-symbols-outlined absolute top-3 right-4 text-[var(--theme-border-muted)] pointer-events-none" style={{ fontSize: '60px', zIndex: 0}}>format_quote</span>
+                      <p className="text-sm text-[var(--theme-text)] font-semibold leading-relaxed italic relative z-10 whitespace-pre-wrap">
                         "{selected.Isi || 'Tidak ada deskripsi konten.'}"
                       </p>
                     </div>
                   </div>
 
-                  {/* Visual Proof Section */}
-                  <div className="space-y-3">
-                    <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                      <span className="material-symbols-outlined text-primary text-[16px]">image</span> Bukti Lampiran Visual
-                    </h4>
-                    
+                  {/* Bukti Lampiran Visual */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-6 h-6 rounded-md bg-[var(--theme-primary-light)] flex items-center justify-center shadow-sm">
+                        <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '13px' }}>image</span>
+                      </div>
+                      <h3 className="text-xs font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Bukti Lampiran Visual</h3>
+                    </div>
                     {selected.BuktiURL ? (
-                      <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
-                        <div className="md:col-span-5 relative aspect-video rounded-xl overflow-hidden border border-slate-200 shadow-md group">
+                      <div className="bg-[var(--theme-surface)] border border-[var(--theme-border)] p-2 shadow-sm rounded-2xl flex flex-col group hover:shadow-md transition-shadow">
+                        <div className="relative aspect-video rounded-xl overflow-hidden bg-[var(--theme-bg)] border border-[var(--theme-border-muted)]">
                           <img 
                             src={getFullUrl(selected.BuktiURL)} 
                             alt="Bukti Aspirasi" 
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                            className="w-full h-full object-contain group-hover:scale-[1.03] transition-transform duration-700"
                           />
-                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
                             <a 
                               href={getFullUrl(selected.BuktiURL)} 
                               target="_blank" 
                               rel="noreferrer"
-                              className="px-4 py-2 bg-white text-neutral-900 rounded-lg font-bold text-[10px] uppercase tracking-widest shadow-xl flex items-center gap-1.5 hover:bg-primary hover:text-white transition-all active:scale-95"
+                              className="px-5 py-2.5 bg-white text-slate-900 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl flex items-center gap-2 hover:bg-[var(--theme-primary)] hover:text-white transition-all active:scale-95"
                             >
-                              <span className="material-symbols-outlined text-[13px]">open_in_new</span> Full View
+                              <span className="material-symbols-outlined text-[16px]">open_in_new</span> Lihat Gambar Penuh
                             </a>
                           </div>
                         </div>
-                        
-                        <div className="md:col-span-7 p-4 rounded-xl bg-slate-50 border border-dashed border-slate-200 flex flex-col justify-center gap-1.5">
-                          <p className="text-xs font-bold text-slate-900 font-jakarta">Berkas Lampiran Laporan</p>
-                          <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
-                            Lampiran pendukung telah disertakan oleh mahasiswa. Silakan periksa gambar secara detail untuk proses pembuktian data laporan.
-                          </p>
-                        </div>
                       </div>
                     ) : (
-                      <div className="p-8 rounded-xl border border-dashed border-slate-100 flex flex-col items-center justify-center gap-2 text-slate-300 bg-slate-50/20">
-                        <span className="material-symbols-outlined text-[30px]" >image</span>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Tidak ada bukti lampiran gambar</p>
+                      <div className="bg-[var(--theme-bg)] border-2 border-dashed border-[var(--theme-border)] p-8 rounded-2xl flex flex-col items-center justify-center gap-3 text-[var(--theme-text-muted)] transition-colors hover:border-[var(--theme-border-muted)] hover:bg-[var(--theme-surface)]">
+                        <div className="w-12 h-12 rounded-full bg-[var(--theme-border-muted)] flex items-center justify-center opacity-70">
+                          <span className="material-symbols-outlined" style={{fontSize: '24px'}}>hide_image</span>
+                        </div>
+                        <p className="text-[10px] font-bold uppercase tracking-widest opacity-80">Tidak ada lampiran disertakan</p>
                       </div>
                     )}
                   </div>
-                </div>
 
-                {/* Right Column: Governance Panel, Resolution Response Form */}
-                <div className="lg:col-span-2 space-y-6">
-                  {/* Governance Card */}
-                  <div className="p-6 rounded-2xl bg-slate-50/50 border border-slate-200 shadow-sm space-y-6">
-                    {/* Status Selection Buttons */}
-                    <div className="space-y-3">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-0.5">Ubah Status Penanganan</p>
-                      <div className="grid grid-cols-2 gap-2.5">
-                        {[
-                          { val: 'proses', label: 'Proses', icon: 'schedule', active: 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-100' },
-                          { val: 'klarifikasi', label: 'Klarifikasi', icon: 'chat', active: 'bg-amber-600 text-white border-amber-600 shadow-md shadow-amber-100' },
-                          { val: 'selesai', label: 'Setujui & Teruskan', icon: 'check_circle', active: 'bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-100' },
-                          { val: 'ditolak', label: 'Tolak', icon: 'close', active: 'bg-rose-600 text-white border-rose-600 shadow-md shadow-rose-100' },
-                        ].map(s => (
-                          <button 
-                            key={s.val} 
-                            type="button"
-                            onClick={() => setForm({ ...form, status: s.val })}
-                            className={cn(
-                              'h-12 rounded-xl flex items-center justify-center gap-1.5 border border-slate-200 bg-white font-bold uppercase tracking-widest text-[9px] hover:bg-slate-50 hover:text-slate-900 transition-all duration-300',
-                              form.status === s.val && s.active
-                            )}
-                          >
-                            <span className="material-symbols-outlined" style={{ fontSize: '13px' }} >{s.icon}</span>
-                            {s.label}
-                          </button>
-                        ))}
+                  <hr className="border-[var(--theme-border)] my-2" />
+
+                  {/* Panel Tindakan */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-6 h-6 rounded-md bg-[var(--theme-primary-light)] flex items-center justify-center shadow-sm">
+                        <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '13px' }}>shield</span>
                       </div>
+                      <h3 className="text-xs font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Panel Tindakan & Resolusi</h3>
                     </div>
-
-                    {/* Response Textarea */}
-                    <div className="space-y-3">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-0.5">Tanggapan Resmi Fakultas</p>
-                      <textarea 
-                        value={form.respon}
-                        onChange={e => setForm({ ...form, respon: e.target.value })}
-                        placeholder="Tuliskan tanggapan resmi fakultas yang informatif dan solutif..."
-                        className="w-full min-h-[140px] rounded-xl border border-slate-200 bg-white p-4 font-medium text-xs font-inter focus:ring-2 focus:ring-primary/10 transition-all outline-none resize-none font-bold text-xs"
-                      />
-                    </div>
-
-                    {/* Warning SLA Card */}
-                    <div className="p-4 rounded-xl bg-amber-50/60 border border-amber-100 flex items-start gap-3">
-                      <span className="material-symbols-outlined text-amber-600 shrink-0" style={{ fontSize: '16px' }} >error</span>
-                      <div className="space-y-0.5">
-                        <p className="text-[9px] font-black text-amber-700 uppercase tracking-widest">SLA Resolution Limit</p>
-                        <p className="text-[10px] text-amber-600 font-semibold leading-normal">
-                          Proses persetujuan (Setujui & Teruskan) akan meneruskan tiket aspirasi ke Super Admin di tingkat Universitas untuk resolusi akhir.
-                        </p>
+                    
+                    <div className="bg-[var(--theme-surface)] border border-[var(--theme-border)] shadow-sm rounded-2xl p-6 space-y-6 hover:shadow-md transition-shadow">
+                      
+                      {/* Status Selection */}
+                      <div className="space-y-3">
+                        <p className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Ubah Status</p>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+                          {[
+                            { val: 'proses', label: 'Proses', icon: 'schedule', cls: 'text-blue-600 bg-blue-50 border-blue-200' },
+                            { val: 'klarifikasi', label: 'Klarifikasi', icon: 'chat', cls: 'text-amber-600 bg-amber-50 border-amber-200' },
+                            { val: 'selesai', label: 'Setujui', icon: 'check_circle', cls: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
+                            { val: 'ditolak', label: 'Tolak', icon: 'close', cls: 'text-rose-600 bg-rose-50 border-rose-200' },
+                          ].map(s => (
+                            <button 
+                              key={s.val} 
+                              type="button"
+                              onClick={() => setForm({ ...form, status: s.val })}
+                              className={cn(
+                                'h-11 rounded-xl flex flex-col items-center justify-center gap-1 border font-bold uppercase tracking-widest text-[9px] transition-all',
+                                form.status === s.val 
+                                  ? cn(s.cls, "shadow-sm ring-2 ring-offset-2", s.cls.split(' ')[0].replace('text-', 'ring-'))
+                                  : 'border-[var(--theme-border)] bg-[var(--theme-bg)] text-[var(--theme-text-muted)] hover:bg-[var(--theme-surface)] hover:border-[var(--theme-border-muted)]'
+                              )}
+                            >
+                              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>{s.icon}</span>
+                              {s.label}
+                            </button>
+                          ))}
+                        </div>
                       </div>
+
+                      {/* Tanggapan Textarea */}
+                      <div className="space-y-3">
+                        <p className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Tanggapan Resmi</p>
+                        <textarea 
+                          value={form.respon}
+                          onChange={e => setForm({ ...form, respon: e.target.value })}
+                          placeholder="Tuliskan tanggapan resmi fakultas yang informatif..."
+                          className="w-full min-h-[140px] rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg)] p-4 text-xs font-semibold text-[var(--theme-text)] focus:outline-none focus:border-[var(--theme-primary)] focus:ring-1 focus:ring-[var(--theme-primary)]/20 shadow-inner transition-all resize-none"
+                        />
+                      </div>
+
+                      {/* Info SLA */}
+                      <div className="p-4 rounded-xl bg-[var(--theme-warning-light)] border border-[var(--theme-warning)]/20 flex gap-3 shadow-sm">
+                        <span className="material-symbols-outlined text-[var(--theme-warning)] mt-0.5" style={{ fontSize: '18px' }}>info</span>
+                        <div>
+                          <p className="text-[10px] font-extrabold text-[var(--theme-warning)] uppercase tracking-wider">Informasi Alur</p>
+                          <p className="text-[10px] font-semibold text-[var(--theme-warning)]/80 mt-1 leading-relaxed">
+                            Tanggapan Anda akan langsung diteruskan ke dasbor mahasiswa pelapor untuk memastikan transparansi.
+                          </p>
+                        </div>
+                      </div>
+
                     </div>
                   </div>
                 </div>

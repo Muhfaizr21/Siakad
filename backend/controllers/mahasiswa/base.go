@@ -17,12 +17,14 @@ func getUserID(c *fiber.Ctx) (uint, error) {
 		if studentIDStr == "" {
 			studentIDStr = c.Query("studentId")
 		}
-		if studentIDStr != "" {
+		if studentIDStr != "" && studentIDStr != "undefined" && studentIDStr != "null" {
 			var student models.Mahasiswa
 			if err := config.DB.First(&student, studentIDStr).Error; err == nil {
 				return student.PenggunaID, nil
 			}
+			return 0, fiber.NewError(fiber.StatusNotFound, "Data mahasiswa tidak ditemukan berdasarkan ID yang diberikan")
 		}
+		return 0, fiber.NewError(fiber.StatusBadRequest, "X-Student-ID diperlukan untuk admin")
 	}
 
 	v, ok := c.Locals("user_id").(uint)
@@ -42,12 +44,14 @@ func getStudent(c *fiber.Ctx) (*models.Mahasiswa, error) {
 		if studentIDStr == "" {
 			studentIDStr = c.Query("studentId")
 		}
-		if studentIDStr != "" {
+		if studentIDStr != "" && studentIDStr != "undefined" && studentIDStr != "null" {
 			var student models.Mahasiswa
 			if err := config.DB.First(&student, studentIDStr).Error; err == nil {
 				return &student, nil
 			}
+			return nil, fiber.NewError(fiber.StatusNotFound, "Data mahasiswa tidak ditemukan berdasarkan ID yang diberikan")
 		}
+		return nil, fiber.NewError(fiber.StatusBadRequest, "X-Student-ID diperlukan untuk admin")
 	}
 
 	PenggunaID, err := getUserID(c)

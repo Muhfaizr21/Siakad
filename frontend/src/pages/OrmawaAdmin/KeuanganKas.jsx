@@ -1,15 +1,17 @@
 "use client"
 import React, { useState, useEffect, useMemo } from 'react';
-import { PageContent, PageHeader } from '@/components/ui/page';
+import { PageContent } from '@/components/ui/page';
+import { DashboardHero } from '@/components/ui/dashboard';
 import { DataTable } from '@/components/ui/DataTable'
 
 
 
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
+import { DialogModal, ModalCancelButton, ModalSaveButton } from '@/components/ui/DialogModal'
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
 import { Card, CardContent } from '@/components/ui/Card'
+import { PrimaryStatsCard } from '@/components/ui/StatsCard'
 import { SelectField, SelectOption } from '@/components/ui/SelectField'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
@@ -25,6 +27,10 @@ import useAuthStore from '../../store/useAuthStore'
 import { getOrmawaId } from '../../utils/getOrmawaId'
 
 const API = `${API_BASE_URL}/ormawa`
+
+const AccountBalanceIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>account_balance</span>;
+const AssuredWorkloadIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>assured_workload</span>;
+const PaymentsIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>payments</span>;
 
 // Premium Rupiah Formatter
 const formatRp = (n) => {
@@ -476,96 +482,71 @@ export default function KeuanganKas() {
       <Toaster position="top-right" />
 
       {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <PageHeader
-        title="Buku Kas & Keuangan"
+      <DashboardHero
+        title="Keuangan &"
+        highlightedTitle="Kas"
         subtitle="Pantau dan kelola seluruh pemasukan serta pengeluaran kas ormawa secara akuntabel."
         icon="account_balance_wallet"
-        action={
-          <div className="flex items-center gap-2 w-full md:w-auto">
-            <Button
-              onClick={exportToPDF}
-              variant="outline"
-              className="h-10 px-4 rounded-xl text-slate-700 font-bold text-xs tracking-wider shadow-sm transition-all active:scale-95 shrink-0 flex items-center justify-center gap-2 border border-slate-200 bg-white hover:bg-slate-50"
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>download</span>
-              <span>DOWNLOAD PDF</span>
-            </Button>
+        badges={[{ label: 'Buku Kas Organisasi', active: true }]}
+        actions={
+          <div className="flex items-center gap-2">
             <Button
               onClick={() => {
                 setForm({ Deskripsi: '', Nominal: '', Tipe: 'pemasukan', Tanggal: '', OrmawaID: ormawaId, Sumber: 'organisasi' })
                 setIsCrudOpen(true)
               }}
-              className="h-10 px-5 rounded-xl text-white font-bold text-xs tracking-wider shadow-lg transition-all active:scale-95 shrink-0 flex items-center justify-center gap-2"
-              style={{ backgroundColor: 'var(--theme-primary)' }}
+              className="h-11 px-6 rounded-xl bg-slate-800 text-white font-black font-headline text-[10px] uppercase tracking-widest gap-2 hover:bg-slate-900 transition-all active:scale-95 shadow-none border-none cursor-pointer flex items-center justify-center"
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add_box</span>
-              <span>CATAT TRANSAKSI</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>add</span>
+              CATAT TRANSAKSI
+            </Button>
+            <Button
+              variant="outline"
+              onClick={exportToPDF}
+              className="h-11 px-6 rounded-xl bg-white text-slate-800 border-slate-200 font-black font-headline text-[10px] uppercase tracking-widest gap-2 hover:bg-slate-50 transition-all active:scale-95 shadow-none cursor-pointer flex items-center justify-center"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>download</span>
+              DOWNLOAD PDF
             </Button>
           </div>
         }
-
-        breadcrumbs={[{ label: 'Dashboard', path: '/ormawa' }, { label: 'Buku Kas & Keuangan', path: '#' }]}
       />
 
       {/* ── Financial Summary Cards ─────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        {/* Saldo Kas Gabungan */}
-        <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface hover:shadow-md transition-all duration-300">
-          <CardContent className="p-6 flex flex-col items-start gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)] shrink-0 shadow-sm">
-              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>account_balance</span>
-            </div>
-            <div className="space-y-1 w-full min-w-0">
-              <p className="text-[10px] font-black text-[var(--theme-text-muted)] tracking-wider uppercase font-headline">Saldo Kas Gabungan</p>
-              <p className="text-2xl lg:text-3xl font-black text-[var(--theme-primary)] tracking-tight font-headline truncate">
-                {formatRp(saldo)}
-              </p>
-              <p className="text-[9px] font-bold text-[var(--theme-text-muted)] truncate">
-                Pemasukan: {formatRp(totalIn)} | Pengeluaran: {formatRp(totalOut)}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-6">
+        <PrimaryStatsCard
+          title="Saldo Kas Gabungan"
+          value={formatRp(saldo)}
+          subtitle={`Pemasukan: ${formatRp(totalIn)} | Pengeluaran: ${formatRp(totalOut)}`}
+          icon={AccountBalanceIcon}
+          colorTheme="primary"
+          badgeText="Total"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">wallet</span>}
+        />
 
-        {/* Saldo Pagu Kampus (🏛️ Duit Kampus) */}
-        <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface hover:shadow-md transition-all duration-300">
-          <CardContent className="p-6 flex flex-col items-start gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-sky-50 flex items-center justify-center text-sky-600 shrink-0 shadow-sm">
-              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>assured_workload</span>
-            </div>
-            <div className="space-y-1 w-full min-w-0">
-              <p className="text-[10px] font-black text-[var(--theme-text-muted)] tracking-wider uppercase font-headline">Sisa Pagu (Duit Kampus)</p>
-              <p className="text-2xl lg:text-3xl font-black text-sky-600 tracking-tight font-headline truncate">
-                {formatRp(campusSaldo)}
-              </p>
-              <p className="text-[9px] font-bold text-sky-500 truncate">
-                Hibah Masuk: {formatRp(campusIn)} | Penggunaan LPJ: {formatRp(campusOut)}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <PrimaryStatsCard
+          title="Sisa Pagu (Duit Kampus)"
+          value={formatRp(campusSaldo)}
+          subtitle={`Hibah Masuk: ${formatRp(campusIn)} | Penggunaan LPJ: ${formatRp(campusOut)}`}
+          icon={AssuredWorkloadIcon}
+          colorTheme="info"
+          badgeText="Kampus"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">account_balance</span>}
+        />
 
-        {/* Saldo Kas Organisasi (💼 Kas Mandiri) */}
-        <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface hover:shadow-md transition-all duration-300">
-          <CardContent className="p-6 flex flex-col items-start gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0 shadow-sm">
-              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>payments</span>
-            </div>
-            <div className="space-y-1 w-full min-w-0">
-              <p className="text-[10px] font-black text-[var(--theme-text-muted)] tracking-wider uppercase font-headline">Kas Mandiri Organisasi</p>
-              <p className="text-2xl lg:text-3xl font-black text-emerald-600 tracking-tight font-headline truncate">
-                {formatRp(orgSaldo)}
-              </p>
-              <p className="text-[9px] font-bold text-emerald-500 truncate">
-                Iuran/Sponsor: {formatRp(orgIn)} | Pengeluaran Mandiri: {formatRp(orgOut)}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <PrimaryStatsCard
+          title="Kas Mandiri Organisasi"
+          value={formatRp(orgSaldo)}
+          subtitle={`Iuran/Sponsor: ${formatRp(orgIn)} | Pengeluaran: ${formatRp(orgOut)}`}
+          icon={PaymentsIcon}
+          colorTheme="success"
+          badgeText="Mandiri"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">savings</span>}
+        />
       </div>
 
       {/* ── Filter Bar ─────────────────────────────────────────────── */}
-      <div className="bg-white rounded-2xl border border-border p-4 flex flex-wrap items-center gap-3 shadow-sm">
+      <div className="glass-card shadow-sm rounded-xl p-4 flex flex-wrap items-center gap-3 mb-6 animate-in slide-in-from-bottom-4 duration-500 delay-300">
         <span className="text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mr-1">Filter</span>
         <SelectField value={filterTipe} onValueChange={setFilterTipe}>
           <SelectOption value="all">Semua Mutasi</SelectOption>
@@ -598,9 +579,9 @@ export default function KeuanganKas() {
       {/* ── 5W1H Charts ─────────────────────────────────────────────── */}
       {!loading && (
         <>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6 animate-in slide-in-from-bottom-4 duration-500 delay-400">
             {/* WHAT → Distribusi Tipe */}
-            <div className="bg-white rounded-2xl border border-border p-5 shadow-sm">
+            <div className="glass-card shadow-sm rounded-xl p-5">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 shrink-0">
                   <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>pie_chart</span>
@@ -633,7 +614,7 @@ export default function KeuanganKas() {
             </div>
 
             {/* WHERE → Sumber Dana */}
-            <div className="bg-white rounded-2xl border border-border p-5 shadow-sm">
+            <div className="glass-card shadow-sm rounded-xl p-5">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 shrink-0">
                   <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>account_balance</span>
@@ -666,7 +647,7 @@ export default function KeuanganKas() {
             </div>
 
             {/* WHEN → Trend Bulanan */}
-            <div className="bg-white rounded-2xl border border-border p-5 shadow-sm">
+            <div className="glass-card shadow-sm rounded-xl p-5">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 shrink-0">
                   <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>trending_up</span>
@@ -694,7 +675,7 @@ export default function KeuanganKas() {
           </div>
           {/* HOW → Pengeluaran per Proker (full width) */}
           {!loading && prokerSpendData.length > 0 && (
-            <div className="bg-white rounded-2xl border border-border p-5 shadow-sm">
+            <div className="glass-card shadow-sm rounded-xl p-5 mb-6 animate-in slide-in-from-bottom-4 duration-500 delay-500">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center text-rose-600 shrink-0">
                   <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>receipt_long</span>
@@ -721,8 +702,8 @@ export default function KeuanganKas() {
       )}
 
       {/* ── Transaction Table Card ──────────────────────────────────── */}
-      <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-[var(--theme-surface)]/70 backdrop-blur-md">
-        <CardContent className="p-6">
+      <div>
+        <div>
           <DataTable
             columns={columns}
             data={sortedTransactions}
@@ -762,32 +743,25 @@ export default function KeuanganKas() {
               </div>
             )}
           />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen} maxWidth="max-w-2xl">
-        <DialogContent className="w-full h-full p-0 overflow-hidden border-none shadow-none rounded-2xl bg-white animate-in zoom-in-95 duration-200">
-          <DialogHeader className="relative bg-gradient-to-br from-primary via-primary to-blue-700 pt-6 pb-7 px-6 overflow-hidden flex-shrink-0 border-b-0 text-left">
-            <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
-            <div className="absolute -bottom-6 right-16 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
-            <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
-              <span className="material-symbols-outlined size-24 rotate-12 text-white">account_balance_wallet</span>
-            </div>
-
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="size-8 rounded-xl bg-white/10 flex items-center justify-center text-white backdrop-blur-sm">
-                  <span className="material-symbols-outlined stroke-[3px]" style={{ fontSize: '16px' }}>payments</span>
-                </div>
-                <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-white/10 text-white border-none rounded-md backdrop-blur-sm">MUTASI KAS</Badge>
-              </div>
-              <DialogTitle className="text-xl font-black font-headline tracking-tighter text-white">Catat Transaksi Baru</DialogTitle>
-              <DialogDescription className="text-xs font-semibold text-white/70 mt-1">Dokumentasikan arus masuk atau keluar kas dengan akurat.</DialogDescription>
-            </div>
-          </DialogHeader>
-
-          <form onSubmit={handleSave} className="flex flex-col">
-            <div className="p-8 pt-6 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar">
+      <DialogModal
+        open={isCrudOpen}
+        onOpenChange={setIsCrudOpen}
+        title="Catat Transaksi Baru"
+        subtitle="Dokumentasikan arus masuk atau keluar kas dengan akurat."
+        icon="account_balance_wallet"
+        maxWidth="max-w-2xl"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setIsCrudOpen(false)} />
+            <ModalSaveButton form="kas-form" loading={isSubmitting} label="Simpan Mutasi" />
+          </>
+        }
+      >
+        <form id="kas-form" onSubmit={handleSave} className="flex flex-col">
+            <div className="p-6 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar">
               {/* Keterangan */}
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Keterangan Transaksi</Label>
@@ -872,33 +846,8 @@ export default function KeuanganKas() {
                 </div>
               </div>
             </div>
-
-            {/* Dialog Footer Actions */}
-            <DialogFooter className="p-8 pt-6 border-t border-slate-100 flex flex-col md:flex-row items-center justify-end gap-3 bg-slate-50/30">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setIsCrudOpen(false)}
-                className="w-full md:w-auto text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl active:scale-95 transition-all"
-              >
-                BATAL
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full md:w-auto h-12 px-8 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 border-none"
-              >
-                {isSubmitting ? (
-                  <span className="material-symbols-outlined animate-spin size-4" style={{ fontSize: '16px' }}>sync</span>
-                ) : (
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>save</span>
-                )}
-                <span className="text-[10px] font-black tracking-widest uppercase">SIMPAN MUTASI</span>
-              </Button>
-            </DialogFooter>
           </form>
-        </DialogContent>
-      </Dialog>
+      </DialogModal>
 
       {/* Delete Confirmation Modal */}
       <DeleteConfirmModal

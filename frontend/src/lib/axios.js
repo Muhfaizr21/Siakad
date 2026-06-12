@@ -31,8 +31,10 @@ api.interceptors.request.use(
       config.headers['X-Academic-Period-ID'] = selectedPeriodId;
     }
     const impersonatedStudentId = localStorage.getItem('superadmin_impersonate_student_id');
-    if (impersonatedStudentId) {
-      config.headers['X-Student-ID'] = impersonatedStudentId;
+    if (impersonatedStudentId && impersonatedStudentId !== 'undefined' && impersonatedStudentId !== 'null') {
+      if (!config.headers['X-Student-ID']) {
+        config.headers['X-Student-ID'] = impersonatedStudentId;
+      }
     }
     return config;
   },

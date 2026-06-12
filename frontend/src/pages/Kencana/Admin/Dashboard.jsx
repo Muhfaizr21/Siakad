@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { usePeriodsQuery, useParticipantsQuery, useScoresQuery, useMentorsQuery } from '../../../queries/useKencanaAdminQuery';
 import { PageHeader } from '../../../components/ui/page/PageHeader';
+import { PrimaryStatsCard } from '../../../components/ui/StatsCard';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const Dashboard = () => {
@@ -105,50 +106,31 @@ const Dashboard = () => {
         />
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Card 1: Total Periode */}
-          <div className="bg-[var(--theme-surface)] rounded-2xl p-5 border border-[var(--theme-border)] shadow-sm group hover:-translate-y-0.5 transition-all">
-            <div className="w-10 h-10 rounded-xl bg-[var(--theme-primary-light)] text-[var(--theme-primary)] border border-[var(--theme-primary-light)] flex items-center justify-center mb-4 group-hover:scale-110 transition-all duration-300">
-              <span className="material-symbols-outlined text-xl">calendar_today</span>
-            </div>
-            <h3 className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1">Total Periode</h3>
-            <div className="flex items-end gap-2">
-              <span className="text-xl font-bold text-[var(--theme-text)]">{periods?.length || 0}</span>
-            </div>
-          </div>
-
-          {/* Card 2: Peserta */}
-          <div className="bg-[var(--theme-surface)] rounded-2xl p-5 border border-[var(--theme-border)] shadow-sm group hover:-translate-y-0.5 transition-all">
-            <div className="w-10 h-10 rounded-xl bg-[var(--theme-info-light)] text-[var(--theme-info)] border border-[var(--theme-info-light)] flex items-center justify-center mb-4 group-hover:scale-110 transition-all duration-300">
-              <span className="material-symbols-outlined text-xl">group</span>
-            </div>
-            <h3 className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1">Total Peserta</h3>
-            <div className="flex items-end gap-2">
-              <span className="text-xl font-bold text-[var(--theme-text)]">{totalParticipants}</span>
-            </div>
-          </div>
-
-          {/* Card 3: Mentors */}
-          <div className="bg-[var(--theme-surface)] rounded-2xl p-5 border border-[var(--theme-border)] shadow-sm group hover:-translate-y-0.5 transition-all">
-            <div className="w-10 h-10 rounded-xl bg-[var(--theme-warning-light)] text-[var(--theme-warning)] border border-[var(--theme-warning-light)] flex items-center justify-center mb-4 group-hover:scale-110 transition-all duration-300">
-              <span className="material-symbols-outlined text-xl">groups</span>
-            </div>
-            <h3 className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1">Total Mentor</h3>
-            <div className="flex items-end gap-2">
-              <span className="text-xl font-bold text-[var(--theme-text)]">{mentors?.length || 0}</span>
-            </div>
-          </div>
-
-          {/* Card 4: Nilai */}
-          <div className="bg-[var(--theme-surface)] rounded-2xl p-5 border border-[var(--theme-border)] shadow-sm group hover:-translate-y-0.5 transition-all">
-            <div className="w-10 h-10 rounded-xl bg-[var(--theme-error-light)] text-[var(--theme-error)] border border-[var(--theme-error-light)] flex items-center justify-center mb-4 group-hover:scale-110 transition-all duration-300">
-              <span className="material-symbols-outlined text-xl">leaderboard</span>
-            </div>
-            <h3 className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1">Rerata Nilai</h3>
-            <div className="flex items-end gap-2">
-              <span className="text-xl font-bold text-[var(--theme-text)]">{avgScore}</span>
-            </div>
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <PrimaryStatsCard
+            title="Total Periode"
+            value={periods?.length || 0}
+            icon="calendar_today"
+            colorTheme="primary"
+          />
+          <PrimaryStatsCard
+            title="Total Peserta"
+            value={totalParticipants}
+            icon="group"
+            colorTheme="info"
+          />
+          <PrimaryStatsCard
+            title="Total Mentor"
+            value={mentors?.length || 0}
+            icon="groups"
+            colorTheme="warning"
+          />
+          <PrimaryStatsCard
+            title="Rerata Nilai"
+            value={avgScore}
+            icon="leaderboard"
+            colorTheme="error"
+          />
         </div>
 
         {/* ── Academic Analytics Cards ───────────────────────────── */}
@@ -160,12 +142,12 @@ const Dashboard = () => {
                 <div className="w-10 h-10 rounded-xl bg-[var(--theme-success-light)] text-[var(--theme-success)] flex items-center justify-center shrink-0">
                   <span className="material-symbols-outlined text-xl">check_circle</span>
                 </div>
-                <h3 className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">Lulus Orientasi</h3>
+                <h3 className="text-[11px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest">Lulus Orientasi</h3>
               </div>
               <span className="text-xs font-bold text-[var(--theme-success)] bg-[var(--theme-success-light)] px-2 py-0.5 rounded-lg border border-[var(--theme-success-light)]">{passRate}%</span>
             </div>
             <div className="flex items-end gap-2 mb-3">
-              <span className="text-xl font-bold text-[var(--theme-text)]">{passedCount}</span>
+              <span className="font-black text-[var(--theme-text)] tracking-tighter font-headline text-xl">{passedCount}</span>
               <span className="text-xs font-semibold text-[var(--theme-text-muted)] mb-0.5">Mahasiswa</span>
             </div>
             <div className="w-full h-1.5 bg-[var(--theme-border-muted)] rounded-full overflow-hidden">
@@ -180,12 +162,12 @@ const Dashboard = () => {
                 <div className="w-10 h-10 rounded-xl bg-[var(--theme-error-light)] text-[var(--theme-error)] flex items-center justify-center shrink-0">
                   <span className="material-symbols-outlined text-xl">assignment_late</span>
                 </div>
-                <h3 className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">Perlu Remedial</h3>
+                <h3 className="text-[11px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest">Perlu Remedial</h3>
               </div>
               <span className="text-xs font-bold text-[var(--theme-error)] bg-[var(--theme-error-light)] px-2 py-0.5 rounded-lg border border-[var(--theme-error-light)]">{remedialRate}%</span>
             </div>
             <div className="flex items-end gap-2 mb-3">
-              <span className="text-xl font-bold text-[var(--theme-text)]">{remedialCount}</span>
+              <span className="font-black text-[var(--theme-text)] tracking-tighter font-headline text-xl">{remedialCount}</span>
               <span className="text-xs font-semibold text-[var(--theme-text-muted)] mb-0.5">Mahasiswa</span>
             </div>
             <div className="w-full h-1.5 bg-[var(--theme-border-muted)] rounded-full overflow-hidden">
@@ -200,12 +182,12 @@ const Dashboard = () => {
                 <div className="w-10 h-10 rounded-xl bg-[var(--theme-warning-light)] text-[var(--theme-warning)] flex items-center justify-center shrink-0">
                   <span className="material-symbols-outlined text-xl">pending</span>
                 </div>
-                <h3 className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">Sedang Berjalan</h3>
+                <h3 className="text-[11px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest">Sedang Berjalan</h3>
               </div>
               <span className="text-xs font-bold text-[var(--theme-warning)] bg-[var(--theme-warning-light)] px-2 py-0.5 rounded-lg border border-[var(--theme-warning-light)]">{inProgressRate}%</span>
             </div>
             <div className="flex items-end gap-2 mb-3">
-              <span className="text-xl font-bold text-[var(--theme-text)]">{inProgressCount}</span>
+              <span className="font-black text-[var(--theme-text)] tracking-tighter font-headline text-xl">{inProgressCount}</span>
               <span className="text-xs font-semibold text-[var(--theme-text-muted)] mb-0.5">Mahasiswa</span>
             </div>
             <div className="w-full h-1.5 bg-[var(--theme-border-muted)] rounded-full overflow-hidden">

@@ -44,7 +44,7 @@ const getCleanImageUrl = (url) => {
 function StudentAvatar({ src, name, className = "w-9 h-9 rounded-xl" }) {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
-  
+
   const hasNoImage = !src || src.trim() === "" || src.endsWith("/profiles/") || src.endsWith("/students/") || src.endsWith("localhost:8000") || src.endsWith("localhost:8000/");
 
   return (
@@ -83,8 +83,8 @@ export default function LecturerDirectory() {
     setLoading(true)
     try {
       const [lecRes, facRes, prodiRes] = await Promise.all([
-        adminService.getAllLecturers(), 
-        adminService.getAllFaculties(), 
+        adminService.getAllLecturers(),
+        adminService.getAllFaculties(),
         adminService.getAllProdi()
       ])
       if (lecRes.status === 'success') setData(lecRes.data || [])
@@ -97,14 +97,14 @@ export default function LecturerDirectory() {
   const handleOpenAdd = () => { setIsEditMode(false); setForm(EMPTY_FORM); setIsCrudOpen(true) }
   const handleOpenEdit = (row) => {
     setIsEditMode(true)
-    setForm({ 
-      ID: row.ID, 
-      NIDN: row.NIDN || '', 
-      Nama: row.Nama || '', 
-      Email: row.Pengguna?.Email || '', 
-      Jabatan: row.Jabatan || 'Lektor', 
-      FakultasID: String(row.FakultasID || ''), 
-      ProgramStudiID: String(row.ProgramStudiID || '') 
+    setForm({
+      ID: row.ID,
+      NIDN: row.NIDN || '',
+      Nama: row.Nama || '',
+      Email: row.Pengguna?.Email || '',
+      Jabatan: row.Jabatan || 'Lektor',
+      FakultasID: String(row.FakultasID || ''),
+      ProgramStudiID: String(row.ProgramStudiID || '')
     })
     setIsCrudOpen(true)
   }
@@ -115,10 +115,10 @@ export default function LecturerDirectory() {
     const payload = { ...form, FakultasID: parseInt(form.FakultasID) || 0, ProgramStudiID: parseInt(form.ProgramStudiID) || 0 }
     try {
       const res = form.ID ? await adminService.updateLecturer(form.ID, payload) : await adminService.createLecturer(payload)
-      if (res.status === 'success') { 
+      if (res.status === 'success') {
         toast.success(form.ID ? 'Data dosen diperbarui' : 'Dosen berhasil didaftarkan')
         setIsCrudOpen(false)
-        fetchData() 
+        fetchData()
       } else {
         toast.error(res.message || 'Gagal menyimpan data')
       }
@@ -146,9 +146,9 @@ export default function LecturerDirectory() {
         </code>
       )
     },
-    { 
-      key: 'Nama', 
-      label: 'Identitas Dosen', 
+    {
+      key: 'Nama',
+      label: 'Identitas Dosen',
       className: 'w-[280px]',
       render: (v, row) => (
         <div className="flex items-center gap-4 py-2 group/avatar">
@@ -162,29 +162,29 @@ export default function LecturerDirectory() {
               {v ? v.toLowerCase().replace(/\b\w/g, s => s.toUpperCase()) : '—'}
             </span>
             <div className="flex items-center gap-1.5 mt-1 text-neutral-400">
-               <span className="material-symbols-outlined text-primary/60" style={{ fontSize: '10px' }} >mail</span>
-               <span className="text-[10px] font-bold tracking-widest lowercase">{row.Email || row.Pengguna?.Email || '—'}</span>
+              <span className="material-symbols-outlined text-primary/60" style={{ fontSize: '10px' }} >mail</span>
+              <span className="text-[10px] font-bold tracking-widest lowercase">{row.Email || row.Pengguna?.Email || '—'}</span>
             </div>
           </div>
         </div>
       )
     },
-    { 
-      key: 'Fakultas', 
-      label: 'Fakultas', 
-      className: 'w-[180px]', 
-      render: v => <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-tight font-jakarta leading-snug block truncate" title={v?.Nama || v?.nama}>{v?.Nama || v?.nama || '—'}</span> 
+    {
+      key: 'Fakultas',
+      label: 'Fakultas',
+      className: 'w-[180px]',
+      render: v => <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-tight font-jakarta leading-snug block truncate" title={v?.Nama || v?.nama}>{v?.Nama || v?.nama || '—'}</span>
     },
-    { 
-      key: 'ProgramStudi', 
-      label: 'Program Studi', 
-      className: 'w-[200px]', 
-      render: v => <span className="text-[12px] font-extrabold text-neutral-700 font-jakarta tracking-tight leading-tight block truncate" title={v?.Nama || v?.nama}>{v?.Nama || v?.nama || '—'}</span> 
+    {
+      key: 'ProgramStudi',
+      label: 'Program Studi',
+      className: 'w-[200px]',
+      render: v => <span className="text-[12px] font-extrabold text-neutral-700 font-jakarta tracking-tight leading-tight block truncate" title={v?.Nama || v?.nama}>{v?.Nama || v?.nama || '—'}</span>
     },
-    { 
-      key: 'Jabatan', 
-      label: 'Jabatan', 
-      className: 'w-[140px] text-center', 
+    {
+      key: 'Jabatan',
+      label: 'Jabatan',
+      className: 'w-[140px] text-center',
       cellClassName: 'text-center pr-4',
       render: v => (
         <Badge className={cn('px-2.5 py-1 rounded-lg border text-[10px] font-black uppercase tracking-wider shadow-none', JABATAN_STYLES[v] || JABATAN_STYLES.DEFAULT)}>
@@ -203,90 +203,90 @@ export default function LecturerDirectory() {
   return (
     <PageContent>
       <Toaster position="top-right" />
-      
-        {/* ── Page Header ─────────────────────────────────────────── */}
-        <DashboardHero
-          title="Direktori"
-          highlightedTitle="Dosen"
-          subtitle="Manajemen database tenaga pendidik, jabatan fungsional, dan penugasan fakultas di lingkungan Universitas."
+
+      {/* ── Page Header ─────────────────────────────────────────── */}
+      <DashboardHero
+        title="Direktori"
+        highlightedTitle="Dosen"
+        subtitle="Manajemen database tenaga pendidik, jabatan fungsional, dan penugasan fakultas di lingkungan Universitas."
+        icon="group"
+        badges={[
+          { label: 'Human Capital', active: true }
+        ]}
+        actions={
+          <Button
+            onClick={handleOpenAdd}
+            className="h-11 px-6 rounded-xl bg-primary text-white hover:bg-primary/90 shadow-none gap-2 transition-all active:scale-95 border-none cursor-pointer font-headline"
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '16px' }} strokeWidth={3}>add</span>
+            <span className="text-[10px] font-black uppercase tracking-widest">Registrasi Dosen</span>
+          </Button>
+        }
+      />
+
+      {/* ── Stats Grid ──────────────────────────────────────────── */}
+      {/* ── Stats Grid ──────────────────────────────────────────── */}
+      <DashboardStatGrid>
+        <DashboardStatCard
+          title="Total Dosen"
+          value={data.length}
           icon="group"
-          badges={[
-            { label: 'Human Capital', active: true }
-          ]}
-          actions={
-            <Button 
-              onClick={handleOpenAdd}
-              className="h-11 px-6 rounded-xl bg-primary text-white hover:bg-primary/90 shadow-none gap-2 transition-all active:scale-95 border-none cursor-pointer font-headline"
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}  strokeWidth={3}>add</span>
-              <span className="text-[10px] font-black uppercase tracking-widest">Registrasi Dosen</span>
-            </Button>
-          }
+          iconColor="text-primary"
+          iconBg="bg-primary/10"
+          subtitle="Tenaga pendidik terdaftar"
         />
-        
-        {/* ── Stats Grid ──────────────────────────────────────────── */}
-        {/* ── Stats Grid ──────────────────────────────────────────── */}
-        <DashboardStatGrid>
-          <DashboardStatCard
-            title="Total Dosen"
-            value={data.length}
-            icon="group"
-            iconColor="text-primary"
-            iconBg="bg-primary/10"
-            subtitle="Tenaga pendidik terdaftar"
-          />
 
-          <DashboardStatCard
-            title="Profesor"
-            value={data.filter(d => d.Jabatan === 'Profesor').length}
-            icon="school"
-            iconColor="text-amber-500"
-            iconBg="bg-amber-500/10"
-            subtitle="Guru Besar Universitas"
-          />
+        <DashboardStatCard
+          title="Profesor"
+          value={data.filter(d => d.Jabatan === 'Profesor').length}
+          icon="school"
+          iconColor="text-amber-500"
+          iconBg="bg-amber-500/10"
+          subtitle="Guru Besar Universitas"
+        />
 
-          <DashboardStatCard
-            title="Lektor"
-            value={data.filter(d => d.Jabatan === 'Lektor' || d.Jabatan === 'Lektor Kepala').length}
-            icon="work"
-            iconColor="text-indigo-500"
-            iconBg="bg-indigo-500/10"
-            subtitle="Lektor & Lektor Kepala"
-          />
+        <DashboardStatCard
+          title="Lektor"
+          value={data.filter(d => d.Jabatan === 'Lektor' || d.Jabatan === 'Lektor Kepala').length}
+          icon="work"
+          iconColor="text-indigo-500"
+          iconBg="bg-indigo-500/10"
+          subtitle="Lektor & Lektor Kepala"
+        />
 
-          <DashboardStatCard
-            title="Asisten"
-            value={data.filter(d => d.Jabatan === 'Asisten').length}
-            icon="how_to_reg"
-            iconColor="text-slate-500"
-            iconBg="bg-slate-500/10"
-            subtitle="Asisten Ahli terdaftar"
-          />
-        </DashboardStatGrid>
+        <DashboardStatCard
+          title="Asisten"
+          value={data.filter(d => d.Jabatan === 'Asisten').length}
+          icon="how_to_reg"
+          iconColor="text-slate-500"
+          iconBg="bg-slate-500/10"
+          subtitle="Asisten Ahli terdaftar"
+        />
+      </DashboardStatGrid>
 
-        {/* ── Table Section ────────────────────────────────────────── */}
-        {/* ── Table Section ────────────────────────────────────────── */}
-        <PageCard>
-          <CardContent className="p-0">
-            <DataTable
-              columns={columns} 
-              data={data} 
-              loading={loading}
-              searchPlaceholder="Cari NIDN atau Nama..."
-              filters={[
-                { key: 'Jabatan', placeholder: 'Pilih Jabatan', options: [{ label: 'Asisten', value: 'Asisten' }, { label: 'Lektor', value: 'Lektor' }, { label: 'Profesor', value: 'Profesor' }] },
-                { key: 'FakultasID', placeholder: 'Pilih Fakultas', options: faculties.map(f => ({ label: f.Nama || f.nama, value: f.id || f.ID })) },
-                { key: 'ProgramStudiID', placeholder: 'Pilih Program Studi', options: prodi.map(p => ({ label: p.Nama || p.nama, value: p.id || p.ID })) }
-              ]}
-              actions={(row) => (
-                <div className="flex items-center gap-1.5">
-                  <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >edit</span></Button>
-                  <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >delete</span></Button>
-                </div>
-              )}
-            />
-          </CardContent>
-        </PageCard>
+      {/* ── Table Section ────────────────────────────────────────── */}
+      {/* ── Table Section ────────────────────────────────────────── */}
+      <PageCard>
+        <CardContent className="p-0">
+          <DataTable
+            columns={columns}
+            data={data}
+            loading={loading}
+            searchPlaceholder="Cari NIDN atau Nama..."
+            filters={[
+              { key: 'Jabatan', placeholder: 'Pilih Jabatan', options: [{ label: 'Asisten', value: 'Asisten' }, { label: 'Lektor', value: 'Lektor' }, { label: 'Profesor', value: 'Profesor' }] },
+              { key: 'FakultasID', placeholder: 'Pilih Fakultas', options: faculties.map(f => ({ label: f.Nama || f.nama, value: f.id || f.ID })) },
+              { key: 'ProgramStudiID', placeholder: 'Pilih Program Studi', options: prodi.map(p => ({ label: p.Nama || p.nama, value: p.id || p.ID })) }
+            ]}
+            actions={(row) => (
+              <div className="flex items-center gap-1.5">
+                <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >edit</span></Button>
+                <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >delete</span></Button>
+              </div>
+            )}
+          />
+        </CardContent>
+      </PageCard>
 
       {/* ── CRUD Modal ───────────────────────────────────────────── */}
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen} maxWidth="max-w-xl">
@@ -296,7 +296,7 @@ export default function LecturerDirectory() {
             <div className="relative z-10 space-y-1">
               <div className="flex items-center gap-2 mb-2">
                 <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
-                  {isEditMode ? <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >edit</span> : <span className="material-symbols-outlined" style={{ fontSize: '12px' }}  strokeWidth={3}>add</span>}
+                  {isEditMode ? <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >edit</span> : <span className="material-symbols-outlined" style={{ fontSize: '12px' }} strokeWidth={3}>add</span>}
                 </div>
                 <span className="text-[10px] font-black uppercase tracking-widest text-bku-primary font-headline">Academic Registry</span>
               </div>
@@ -377,13 +377,13 @@ export default function LecturerDirectory() {
         </DialogContent>
       </Dialog>
 
-      <DeleteConfirmModal 
-        isOpen={isDelOpen} 
-        onClose={() => setIsDelOpen(false)} 
+      <DeleteConfirmModal
+        isOpen={isDelOpen}
+        onClose={() => setIsDelOpen(false)}
         onConfirm={handleDelete}
-        title="Hapus Data Dosen?" 
-        description="Seluruh riwayat pengajaran dan penugasan dosen ini akan dihapus permanen." 
-        loading={isSubmitting} 
+        title="Hapus Data Dosen?"
+        description="Seluruh riwayat pengajaran dan penugasan dosen ini akan dihapus permanen."
+        loading={isSubmitting}
       />
     </PageContent>
   )

@@ -62,8 +62,7 @@ const Scores = () => {
         ]}
       />
 
-      <Card className="glass-card shadow-sm rounded-xl overflow-hidden border-slate-100/60">
-        <CardContent className="p-0">
+      <div>
           <DataTable
             columns={columns}
             data={scores || []}
@@ -72,8 +71,7 @@ const Scores = () => {
             title="Evaluasi Peserta"
             itemLabel="data nilai"
           />
-        </CardContent>
-      </Card>
+      </div>
     </div>
   );
 };

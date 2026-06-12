@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { DataTable } from '@/components/ui/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
+import { DialogModal, ModalCancelButton, ModalSaveButton } from '@/components/ui/DialogModal'
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
@@ -138,7 +138,7 @@ const getCleanImageUrl = (url) => {
 function StudentAvatar({ src, name, className = "w-9 h-9 rounded-xl" }) {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
-  
+
   const hasNoImage = !src || src.trim() === "" || src.endsWith("/profiles/") || src.endsWith("/students/") || src.endsWith("localhost:8000") || src.endsWith("localhost:8000/");
 
   return (
@@ -172,52 +172,52 @@ const PERM_CATEGORIES = [
   {
     title: '🔐 Sistem & Keamanan',
     items: [
-      { key: 'system_config',    label: 'Konfigurasi Sistem & SMTP',        desc: 'Pengaturan global sistem: Mail Server, bobot nilai, tahun ajaran, dan parameter infrastruktur.' },
-      { key: 'rbac_management',  label: 'Manajemen RBAC & Hak Akses',       desc: 'Membuat, mengubah, dan mencabut peran serta izin untuk setiap akun pengguna sistem.' },
-      { key: 'audit_log',        label: 'Audit Trails & Log Keamanan',      desc: 'Memantau dan mengunduh rekaman log aktivitas sistem beserta forensik keamanan server.' },
-      { key: 'user_management',  label: 'Manajemen Akun Pengguna',          desc: 'Membuat, mengedit, menangguhkan, atau menghapus akun pengguna di seluruh peran.' },
-      { key: 'security_settings',label: 'Pengaturan Keamanan & 2FA',        desc: 'Mengelola kebijakan password, sesi, dan autentikasi dua faktor akun sistem.' },
+      { key: 'system_config', label: 'Konfigurasi Sistem & SMTP', desc: 'Pengaturan global sistem: Mail Server, bobot nilai, tahun ajaran, dan parameter infrastruktur.' },
+      { key: 'rbac_management', label: 'Manajemen RBAC & Hak Akses', desc: 'Membuat, mengubah, dan mencabut peran serta izin untuk setiap akun pengguna sistem.' },
+      { key: 'audit_log', label: 'Audit Trails & Log Keamanan', desc: 'Memantau dan mengunduh rekaman log aktivitas sistem beserta forensik keamanan server.' },
+      { key: 'user_management', label: 'Manajemen Akun Pengguna', desc: 'Membuat, mengedit, menangguhkan, atau menghapus akun pengguna di seluruh peran.' },
+      { key: 'security_settings', label: 'Pengaturan Keamanan & 2FA', desc: 'Mengelola kebijakan password, sesi, dan autentikasi dua faktor akun sistem.' },
     ]
   },
   {
     title: '🏛️ Manajemen Data Akademik',
     items: [
-      { key: 'faculty_data',     label: 'Data Fakultas & Program Studi',    desc: 'Menambah, mengubah, atau menghapus entitas Fakultas, Program Studi, dan Kurikulum.' },
-      { key: 'student_data',     label: 'Data & Direktori Mahasiswa',       desc: 'Mengakses, mengimpor, mengubah status, dan mengelola profil data mahasiswa.' },
-      { key: 'lecturer_data',    label: 'Data Dosen & Tenaga Pengajar',     desc: 'Mengelola profil, mata kuliah ampu, dan evaluasi kinerja dosen.' },
-      { key: 'krs_management',   label: 'KRS & Penjadwalan Kuliah',         desc: 'Memproses registrasi KRS, jadwal mata kuliah, dan distribusi kelas mahasiswa.' },
-      { key: 'nilai_grading',    label: 'Entri & Validasi Nilai',           desc: 'Mengisi, memvalidasi, dan menerbitkan nilai evaluasi mata kuliah per semester.' },
-      { key: 'laporan_akademik', label: 'Laporan & Rekap Akademik',         desc: 'Mengakses laporan akademik, transkip, dan rekap kelulusan mahasiswa.' },
+      { key: 'faculty_data', label: 'Data Fakultas & Program Studi', desc: 'Menambah, mengubah, atau menghapus entitas Fakultas, Program Studi, dan Kurikulum.' },
+      { key: 'student_data', label: 'Data & Direktori Mahasiswa', desc: 'Mengakses, mengimpor, mengubah status, dan mengelola profil data mahasiswa.' },
+      { key: 'lecturer_data', label: 'Data Dosen & Tenaga Pengajar', desc: 'Mengelola profil, mata kuliah ampu, dan evaluasi kinerja dosen.' },
+      { key: 'krs_management', label: 'KRS & Penjadwalan Kuliah', desc: 'Memproses registrasi KRS, jadwal mata kuliah, dan distribusi kelas mahasiswa.' },
+      { key: 'nilai_grading', label: 'Entri & Validasi Nilai', desc: 'Mengisi, memvalidasi, dan menerbitkan nilai evaluasi mata kuliah per semester.' },
+      { key: 'laporan_akademik', label: 'Laporan & Rekap Akademik', desc: 'Mengakses laporan akademik, transkip, dan rekap kelulusan mahasiswa.' },
     ]
   },
   {
     title: '🎓 Kemahasiswaan & Ormawa',
     items: [
-      { key: 'ormawa_registry',  label: 'Registrasi & Kelola Ormawa',       desc: 'Mendaftarkan, mengubah, atau menonaktifkan entitas HIMA, BEM, dan UKM.' },
-      { key: 'ormawa_member',    label: 'Manajemen Anggota & Struktur',     desc: 'Mengelola keanggotaan, struktur organisasi, dan divisi internal Ormawa.' },
-      { key: 'proposal_kegiatan',label: 'Pengajuan & Persetujuan Proposal', desc: 'Mengunggah, mereview, menyetujui, atau menolak proposal kegiatan Ormawa.' },
-      { key: 'lpj_management',   label: 'Laporan Pertanggungjawaban (LPJ)', desc: 'Mengunggah, mengoreksi, dan mengelola dokumen LPJ pasca-kegiatan.' },
-      { key: 'fiscal_budget',    label: 'Anggaran & Keuangan Kas',          desc: 'Mengelola kas masuk/keluar, pagu anggaran, dan persetujuan pengeluaran Ormawa.' },
-      { key: 'absensi_kegiatan', label: 'Absensi & Jadwal Kegiatan',        desc: 'Mencatat kehadiran peserta dan mengelola kalender jadwal kegiatan Ormawa.' },
+      { key: 'ormawa_registry', label: 'Registrasi & Kelola Ormawa', desc: 'Mendaftarkan, mengubah, atau menonaktifkan entitas HIMA, BEM, dan UKM.' },
+      { key: 'ormawa_member', label: 'Manajemen Anggota & Struktur', desc: 'Mengelola keanggotaan, struktur organisasi, dan divisi internal Ormawa.' },
+      { key: 'proposal_kegiatan', label: 'Pengajuan & Persetujuan Proposal', desc: 'Mengunggah, mereview, menyetujui, atau menolak proposal kegiatan Ormawa.' },
+      { key: 'lpj_management', label: 'Laporan Pertanggungjawaban (LPJ)', desc: 'Mengunggah, mengoreksi, dan mengelola dokumen LPJ pasca-kegiatan.' },
+      { key: 'fiscal_budget', label: 'Anggaran & Keuangan Kas', desc: 'Mengelola kas masuk/keluar, pagu anggaran, dan persetujuan pengeluaran Ormawa.' },
+      { key: 'absensi_kegiatan', label: 'Absensi & Jadwal Kegiatan', desc: 'Mencatat kehadiran peserta dan mengelola kalender jadwal kegiatan Ormawa.' },
     ]
   },
   {
     title: '🩺 Layanan Kemahasiswaan',
     items: [
-      { key: 'counseling',       label: 'Konseling & Psikologi',            desc: 'Memesan sesi konsultasi, mengakses rekam medis klien, dan mengelola jadwal psikolog.' },
-      { key: 'health_screening', label: 'Skrining Kesehatan Mahasiswa',     desc: 'Mengisi, melihat, dan mengarsipkan hasil skrining kesehatan mandiri mahasiswa.' },
-      { key: 'beasiswa',         label: 'Data & Pengajuan Beasiswa',        desc: 'Mendaftarkan, memvalidasi, dan memantau status pengajuan beasiswa mahasiswa.' },
-      { key: 'prestasi',         label: 'Pencatatan Prestasi Mahasiswa',    desc: 'Menambah dan memvalidasi capaian prestasi akademik maupun non-akademik mahasiswa.' },
-      { key: 'aspirasi',         label: 'Aspirasi & Student Voice',         desc: 'Mengajukan, membalas, dan mengeskalasi tiket aspirasi/pengaduan mahasiswa.' },
-      { key: 'pkkmb',            label: 'PKKMB & Orientasi Mahasiswa Baru', desc: 'Mengelola data peserta, jadwal, dan dokumentasi kegiatan PKKMB/orientasi.' },
+      { key: 'counseling', label: 'Konseling & Psikologi', desc: 'Memesan sesi konsultasi, mengakses rekam medis klien, dan mengelola jadwal psikolog.' },
+      { key: 'health_screening', label: 'Skrining Kesehatan Mahasiswa', desc: 'Mengisi, melihat, dan mengarsipkan hasil skrining kesehatan mandiri mahasiswa.' },
+      { key: 'beasiswa', label: 'Data & Pengajuan Beasiswa', desc: 'Mendaftarkan, memvalidasi, dan memantau status pengajuan beasiswa mahasiswa.' },
+      { key: 'prestasi', label: 'Pencatatan Prestasi Mahasiswa', desc: 'Menambah dan memvalidasi capaian prestasi akademik maupun non-akademik mahasiswa.' },
+      { key: 'aspirasi', label: 'Aspirasi & Student Voice', desc: 'Mengajukan, membalas, dan mengeskalasi tiket aspirasi/pengaduan mahasiswa.' },
+      { key: 'pkkmb', label: 'PKKMB & Orientasi Mahasiswa Baru', desc: 'Mengelola data peserta, jadwal, dan dokumentasi kegiatan PKKMB/orientasi.' },
     ]
   },
   {
     title: '📢 Konten & Komunikasi',
     items: [
-      { key: 'announcement',     label: 'Berita & Pengumuman',              desc: 'Membuat, menerbitkan, dan mengarsipkan berita serta pengumuman resmi kampus.' },
-      { key: 'notification',     label: 'Broadcast & Notifikasi Push',      desc: 'Mengirim notifikasi massal atau pesan terpusat ke kelompok pengguna tertentu.' },
-      { key: 'reports_export',   label: 'Laporan & Ekspor Data',            desc: 'Mengekspor laporan keseluruhan sistem dalam format PDF/Excel untuk kebutuhan analitik.' },
+      { key: 'announcement', label: 'Berita & Pengumuman', desc: 'Membuat, menerbitkan, dan mengarsipkan berita serta pengumuman resmi kampus.' },
+      { key: 'notification', label: 'Broadcast & Notifikasi Push', desc: 'Mengirim notifikasi massal atau pesan terpusat ke kelompok pengguna tertentu.' },
+      { key: 'reports_export', label: 'Laporan & Ekspor Data', desc: 'Mengekspor laporan keseluruhan sistem dalam format PDF/Excel untuk kebutuhan analitik.' },
     ]
   },
 ]
@@ -229,12 +229,12 @@ const getFeatureLabel = (prefix) => {
     "rbac.users": "Manajemen Akun Pengguna",
     "rbac.roles": "Manajemen Role & Jabatan",
     "rbac.permissions": "Pengaturan Hak Akses",
-    
+
     // Master Data
     "faculty": "Master Data Fakultas",
     "program_studi": "Master Data Program Studi",
     "students": "Master Data Mahasiswa",
-    
+
     // Ormawa
     "ormawa": "Ormawa (Profil Utama)",
     "ormawa.members": "Keanggotaan Ormawa",
@@ -245,7 +245,7 @@ const getFeatureLabel = (prefix) => {
     "ormawa.announcements": "Siaran Pengumuman Ormawa",
     "ormawa.aspirations": "Aspirasi & Pengaduan Ormawa",
     "ormawa.recruitment": "Open Recruitment Ormawa",
-    
+
     // Layanan Mahasiswa
     "student": "Dashboard & Profil Mahasiswa",
     "achievement": "Prestasi Mahasiswa",
@@ -253,7 +253,7 @@ const getFeatureLabel = (prefix) => {
     "aspiration": "Pengaduan Aspirasi Kampus",
     "letters": "Surat Keterangan Mahasiswa",
     "health": "Rekam Medis & Kesehatan",
-    
+
     // Konseling Psikolog
     "psychologist": "Profil & Pengaturan Psikolog",
     "psychologist.bookings": "Reservasi & Sesi Konseling",
@@ -261,10 +261,10 @@ const getFeatureLabel = (prefix) => {
     "psychologist.referrals": "Surat Rujukan Psikologi",
     "psychologist.schedules": "Jam Operasional Konseling",
     "psychologist.reports": "Laporan Bulanan Konseling",
-    
+
     // Kencana Mahasiswa
     "kencana.student": "Portal Kencana (Mahasiswa Baru)",
-    
+
     // Kencana Admin Universitas
     "kencana.period": "Kencana: Periode Orientasi",
     "kencana.stage": "Kencana: Tahapan Orientasi",
@@ -275,19 +275,19 @@ const getFeatureLabel = (prefix) => {
     "kencana.assignment": "Kencana: Penugasan Peserta",
     "kencana.mentor.university": "Kencana: Pembimbing Universitas",
     "kencana.other": "Kencana: Operasional Tambahan",
-    
+
     // Kencana Admin Fakultas
     "kencana.faculty": "Kencana: Pengawasan Fakultas",
-    
+
     // Dewan Pembimbing Kencana
     "kencana.mentor": "Kencana: Dashboard Dewan Pembimbing",
     "kencana.mentor.students": "Kencana: Bimbingan Aktif",
     "kencana.mentor.notes": "Kencana: Catatan Konsultasi",
     "kencana.mentor.score_items": "Kencana: Penilaian Kriteria",
   };
-  
+
   if (featureLabels[prefix]) return featureLabels[prefix];
-  
+
   return prefix.split('.').map(part => {
     let s = part.replace(/_/g, ' ');
     return s.charAt(0).toUpperCase() + s.slice(1);
@@ -307,33 +307,33 @@ const getActionLabel = (suffix) => {
     "update_status": "Ubah Status",
     "invite": "Undang (Invite)"
   };
-  
+
   if (actionLabels[suffix]) return actionLabels[suffix];
-  
+
   let s = suffix.replace(/_/g, ' ');
   return s.charAt(0).toUpperCase() + s.slice(1);
 };
 
 const groupPermissionsByFeature = (items) => {
   const groups = {};
-  
+
   items.forEach(permission => {
     let parts = permission.split('.');
     let suffix = parts[parts.length - 1];
     let prefix = parts.slice(0, -1).join('.');
-    
+
     if (parts.length === 1) {
       prefix = 'other';
       suffix = permission;
     }
-    
+
     // Custom mapping overrides for grouping to keep things related
     if (prefix === "kencana.mentor" && suffix !== "dashboard" && suffix !== "profile.update" && suffix !== "available_students" && suffix !== "invite") {
       if (suffix.startsWith("student_")) {
         prefix = "kencana.mentor.students";
       }
     }
-    
+
     if (!groups[prefix]) {
       groups[prefix] = {
         prefix: prefix,
@@ -341,70 +341,70 @@ const groupPermissionsByFeature = (items) => {
         permissions: []
       };
     }
-    
+
     groups[prefix].permissions.push({
       key: permission,
       suffix: suffix,
       label: getActionLabel(suffix)
     });
   });
-  
+
   return Object.values(groups);
 };
 
 const classifyPermission = (p) => {
   const s = p.suffix.toLowerCase();
-  
+
   // View/Read
   if (
-    s === 'view' || 
-    s.includes('view') || 
-    s === 'dashboard' || 
-    s === 'timeline' || 
-    s === 'session' || 
-    s === 'handbook' || 
-    s === 'attendance' || 
-    s === 'score' || 
-    s === 'remedial' || 
-    s === 'certificate' || 
+    s === 'view' ||
+    s.includes('view') ||
+    s === 'dashboard' ||
+    s === 'timeline' ||
+    s === 'session' ||
+    s === 'handbook' ||
+    s === 'attendance' ||
+    s === 'score' ||
+    s === 'remedial' ||
+    s === 'certificate' ||
     s === 'mentor_invitations' ||
     s.includes('available_students')
   ) {
     return 'view';
   }
-  
+
   // Create/Write
   if (
-    s === 'create' || 
-    s.includes('create') || 
+    s === 'create' ||
+    s.includes('create') ||
     s === 'generate'
   ) {
     return 'create';
   }
-  
+
   // Update/Edit/Manage
   if (
-    s === 'update' || 
-    s === 'edit' || 
-    s.includes('update') || 
-    s.includes('edit') || 
-    s === 'assign' || 
-    s === 'verify' || 
-    s === 'manage' || 
-    s === 'invite' || 
+    s === 'update' ||
+    s === 'edit' ||
+    s.includes('update') ||
+    s.includes('edit') ||
+    s === 'assign' ||
+    s === 'verify' ||
+    s === 'manage' ||
+    s === 'invite' ||
     s === 'override'
   ) {
     return 'update';
   }
-  
+
   // Delete/Hapus
   if (
-    s === 'delete' || 
+    s === 'delete' ||
     s.includes('delete')
   ) {
     return 'delete';
   }
-  
+
   return 'other';
 };
 
@@ -435,9 +435,9 @@ export default function UserManagement() {
   const [roleForm, setRoleForm] = useState(emptyRoleForm)
   const [selectedRoleKey, setSelectedRoleKey] = useState('super_admin')
   const [permissionDraft, setPermissionDraft] = useState([])
-  const [form, setForm] = useState({ 
-    Email: '', 
-    Password: '', 
+  const [form, setForm] = useState({
+    Email: '',
+    Password: '',
     Role: '',
     Nama: '',
     FakultasID: '',
@@ -583,7 +583,7 @@ export default function UserManagement() {
       "rbac.roles.create": "Buat Role Baru",
       "rbac.roles.update": "Ubah Data/Nama Role",
       "rbac.permissions.assign": "Modifikasi Matriks Izin",
-      
+
       // Master Data Akademik
       "faculty.view": "Lihat Data Fakultas",
       "faculty.create": "Tambah Fakultas Baru",
@@ -597,7 +597,7 @@ export default function UserManagement() {
       "students.create": "Tambah Mahasiswa Baru",
       "students.update": "Ubah Data Mahasiswa",
       "students.delete": "Hapus Data Mahasiswa",
-      
+
       // Ormawa
       "ormawa.view": "Lihat Daftar Ormawa",
       "ormawa.create": "Tambah Ormawa Baru",
@@ -610,7 +610,7 @@ export default function UserManagement() {
       "ormawa.lpj.manage": "Kelola Laporan LPJ",
       "ormawa.announcements.manage": "Kelola Pengumuman",
       "ormawa.aspirations.manage": "Kelola Aspirasi & Keluhan",
-      
+
       // Layanan Mahasiswa
       "student.dashboard.view": "Lihat Dashboard Mahasiswa",
       "student.profile.update": "Ubah Profil Mandiri",
@@ -622,7 +622,7 @@ export default function UserManagement() {
       "aspiration.update_status": "Ubah Status Laporan/Aspirasi",
       "letters.manage": "Kelola Surat Keterangan",
       "health.view": "Lihat Rekam Kesehatan Mahasiswa",
-      
+
       // Konseling Psikolog
       "psychologist.view": "Lihat Profil Psikolog",
       "psychologist.manage": "Kelola Data Jadwal Psikolog",
@@ -632,7 +632,7 @@ export default function UserManagement() {
       "psychologist.referrals.manage": "Kelola Surat Rujukan",
       "psychologist.schedules.manage": "Kelola Jam Operasional",
       "psychologist.reports.manage": "Kelola Laporan Bulanan",
-      
+
       // Kencana Mahasiswa
       "kencana.student.dashboard": "Lihat Dashboard Kencana",
       "kencana.student.timeline": "Lihat Timeline Kencana",
@@ -645,7 +645,7 @@ export default function UserManagement() {
       "kencana.student.remedial": "Ikuti Remedial Kencana",
       "kencana.student.certificate": "Unduh Sertifikat Kencana",
       "kencana.student.mentor_invitations": "Lihat Undangan Mentor",
-      
+
       // Kencana Admin Universitas
       "kencana.period.view": "Lihat Periode Kencana",
       "kencana.period.create": "Buat Periode Baru",
@@ -668,7 +668,7 @@ export default function UserManagement() {
       "kencana.certificate.generate": "Rilis Sertifikat Kelulusan",
       "kencana.mentor.university.manage": "Kelola Mentor Universitas",
       "kencana.mentor.assignment.override": "Override Pembagian Mentor",
-      
+
       // Kencana Admin Fakultas
       "kencana.faculty.dashboard": "Lihat Dashboard Kencana Fakultas",
       "kencana.faculty.participants.view": "Lihat Peserta Fakultas",
@@ -677,7 +677,7 @@ export default function UserManagement() {
       "kencana.faculty.mentor.manage": "Kelola Mentor Fakultas",
       "kencana.faculty.attendance.review": "Review Presensi Fakultas",
       "kencana.faculty.handbook.review": "Review Jurnal Bimbingan",
-      
+
       // Dewan Pembimbing Kencana
       "kencana.mentor.dashboard": "Lihat Dashboard Mentor",
       "kencana.mentor.available_students": "Lihat Mahasiswa Bimbingan Tersedia",
@@ -765,7 +765,7 @@ export default function UserManagement() {
   }, [form.Role]);
 
   const showFakultasSelect = useMemo(() => {
-    return formRoles.some(r => 
+    return formRoles.some(r =>
       ['faculty_admin', 'prodi_admin', 'mahasiswa', 'ormawa_admin', 'ormawa', 'kencana_fakultas'].includes(r) ||
       (r === 'kencana_mentor' && form.KencanaScopeType === 'faculty')
     );
@@ -788,7 +788,7 @@ export default function UserManagement() {
   }, [newRole]);
 
   const showNewFakultasSelect = useMemo(() => {
-    return newRoles.some(r => 
+    return newRoles.some(r =>
       ['faculty_admin', 'prodi_admin', 'mahasiswa', 'ormawa_admin', 'ormawa', 'kencana_fakultas'].includes(r) ||
       (r === 'kencana_mentor' && newKencanaScopeType === 'faculty')
     );
@@ -827,7 +827,7 @@ export default function UserManagement() {
 
   const isRoleConflicting = (currentRoles, roleToCheck) => {
     if (currentRoles.includes(roleToCheck)) return false; // Allowed to deselect itself
-    
+
     const invalidCombinations = [
       ["super_admin", "mahasiswa"],
       ["super_admin", "dosen"],
@@ -861,7 +861,7 @@ export default function UserManagement() {
   const handleToggleRole = (roleToToggle) => {
     setForm(prev => {
       const currentRoles = prev.Role ? prev.Role.split(',').map(r => r.trim()).filter(Boolean) : [];
-      
+
       if (!currentRoles.includes(roleToToggle) && isRoleConflicting(currentRoles, roleToToggle)) {
         toast.error('Kombinasi role tidak valid (hirarki dilanggar)');
         return prev;
@@ -873,7 +873,7 @@ export default function UserManagement() {
         nextRoles = [...currentRoles, roleToToggle];
       }
       const roleVal = nextRoles.join(',');
-      
+
       let updatedPassword = prev.Password;
       if (nextRoles.includes('mahasiswa') && (!prev.Password || prev.Password.startsWith('pass'))) {
         const parts = prev.Email.split('@');
@@ -892,7 +892,7 @@ export default function UserManagement() {
 
   const handleToggleNewRole = (roleToToggle) => {
     const currentRoles = newRole ? newRole.split(',').map(r => r.trim()).filter(Boolean) : [];
-    
+
     if (!currentRoles.includes(roleToToggle) && isRoleConflicting(currentRoles, roleToToggle)) {
       toast.error('Kombinasi role tidak valid (hirarki dilanggar)');
       return;
@@ -932,8 +932,8 @@ export default function UserManagement() {
         const firstEditableKey = editableRole?.key || roles[0]?.key
         if (firstEditableKey) setSelectedRoleKey(firstEditableKey)
       }
-    } catch (err) { 
-      toast.error('Gagal sinkronisasi data master-node') 
+    } catch (err) {
+      toast.error('Gagal sinkronisasi data master-node')
     } finally { setLoading(false) }
   }
 
@@ -985,7 +985,7 @@ export default function UserManagement() {
         description: String(newRoleForm.desc || '').trim(),
         theme: newRoleForm.theme,
       }
-      
+
       let res;
       if (newRoleForm.isEdit) {
         payload.key = newRoleForm.key;
@@ -1052,7 +1052,7 @@ export default function UserManagement() {
   }
 
   const handleCreate = async (e) => {
-    e.preventDefault(); 
+    e.preventDefault();
     if (!String(form.Role || '').trim()) {
       toast.error('Level otorisasi wajib dipilih setidaknya satu')
       return
@@ -1073,10 +1073,10 @@ export default function UserManagement() {
         Phone: String(form.Phone || '').trim(),
       }
       const res = await adminService.createUser(payload)
-      if (res.status === 'success') { 
+      if (res.status === 'success') {
         toast.success('Identitas digital berhasil diregistrasi')
         setIsCrudOpen(false)
-        fetchData() 
+        fetchData()
       } else {
         toast.error(res.message || 'Gagal menginisialisasi akun')
       }
@@ -1087,8 +1087,8 @@ export default function UserManagement() {
     if (!newRole) { toast.error('Seleksi level akses diperlukan'); return }
     setIsSubmitting(true)
     try {
-      const res = await adminService.updateUserRole({ 
-        userId: selected?.id || selected?.ID, 
+      const res = await adminService.updateUserRole({
+        userId: selected?.id || selected?.ID,
         role: newRole,
         action: 'add',
         ormawaId: Number(newOrmawaId) || 0,
@@ -1097,15 +1097,15 @@ export default function UserManagement() {
         prodiId: Number(newProdiId) || 0,
         kencanaScopeType: String(newKencanaScopeType || 'faculty').trim()
       })
-      if (res.status === 'success') { 
+      if (res.status === 'success') {
         toast.success('Level otorisasi berhasil diperbarui')
         setIsRoleOpen(false)
-        fetchData() 
+        fetchData()
       } else {
         toast.error(res.message || 'Gagal memperbarui otorisasi')
       }
-    } catch (err) { 
-      toast.error(err.message || 'Kegagalan sinkronisasi RBAC') 
+    } catch (err) {
+      toast.error(err.message || 'Kegagalan sinkronisasi RBAC')
     } finally { setIsSubmitting(false) }
   }
 
@@ -1116,10 +1116,10 @@ export default function UserManagement() {
       toast.success('Entitas akun berhasil dicabut')
       setIsDelOpen(false)
       fetchData()
-    } catch { 
-      toast.error('Gagal mencabut entitas akun') 
-    } finally { 
-      setIsSubmitting(false) 
+    } catch {
+      toast.error('Gagal mencabut entitas akun')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -1138,8 +1138,8 @@ export default function UserManagement() {
             <div className="flex flex-col">
               <span className="font-bold text-neutral-900 font-jakarta tracking-tight text-[14px] leading-tight group-hover:text-primary transition-colors">{linkedName}</span>
               <div className="flex items-center gap-1.5 mt-1 text-neutral-400">
-                 <span className="material-symbols-outlined text-primary/60" style={{ fontSize: '10px' }} >mail</span>
-                 <span className="text-[10px] font-bold tracking-widest lowercase">{v || row.email || '—'}</span>
+                <span className="material-symbols-outlined text-primary/60" style={{ fontSize: '10px' }} >mail</span>
+                <span className="text-[10px] font-bold tracking-widest lowercase">{v || row.email || '—'}</span>
               </div>
             </div>
           </div>
@@ -1151,10 +1151,10 @@ export default function UserManagement() {
       render: (v, row) => {
         const roleLower = (row.role || row.Role || '').toLowerCase()
         const roles = roleLower.split(',').map(r => r.trim()).filter(Boolean)
-        
+
         let contexts = []
         let subContexts = []
-        
+
         if (roles.includes('super_admin')) {
           contexts.push('Universitas (Global)')
         }
@@ -1190,7 +1190,7 @@ export default function UserManagement() {
         const contextText = uniqueContexts.length > 0 ? uniqueContexts.join(', ') : '-'
         const uniqueSubContexts = [...new Set(subContexts)]
         const subContextText = uniqueSubContexts.length > 0 ? uniqueSubContexts.join(' | ') : ''
-        
+
         return (
           <div className="flex flex-col gap-0.5">
             <span className="text-[12px] font-bold text-neutral-800 font-jakarta leading-tight tracking-tight">{contextText}</span>
@@ -1236,555 +1236,554 @@ export default function UserManagement() {
   return (
     <PageContent>
       <Toaster position="top-right" />
-      
-        {/* ── Page Header ─────────────────────────── */}
-        <DashboardHero
-          title="Identity"
-          highlightedTitle="Governance"
-          subtitle="Kendali akses terpusat berbasis RBAC untuk seluruh entitas sistem. Kelola hak istimewa, kaitan identitas, dan otorisasi infrastruktur."
-          icon="shield_person"
-          badges={[
-            { label: 'Security & OIDC Cluster', active: true }
-          ]}
-          actions={
-            <>
-              <div className="hidden lg:flex items-center gap-8 pr-8 border-r border-slate-200/40">
-                <div className="text-right">
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 font-headline">Total Identity</p>
-                  <p className="text-xl font-black text-primary font-headline tabular-nums leading-none">{users.length}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 font-headline">Privileged Nodes</p>
-                  <p className="text-xl font-black text-rose-600 font-headline tabular-nums leading-none">{users.filter(u => u.role?.includes('admin') || u.Role?.includes('admin')).length}</p>
-                </div>
+
+      {/* ── Page Header ─────────────────────────── */}
+      <DashboardHero
+        title="Identity"
+        highlightedTitle="Governance"
+        subtitle="Kendali akses terpusat berbasis RBAC untuk seluruh entitas sistem. Kelola hak istimewa, kaitan identitas, dan otorisasi infrastruktur."
+        icon="shield_person"
+        badges={[
+          { label: 'Security & OIDC Cluster', active: true }
+        ]}
+        actions={
+          <>
+            <div className="hidden lg:flex items-center gap-8 pr-8 border-r border-slate-200/40">
+              <div className="text-right">
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 font-headline">Total Identity</p>
+                <p className="text-xl font-black text-primary font-headline tabular-nums leading-none">{users.length}</p>
               </div>
+              <div className="text-right">
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 font-headline">Privileged Nodes</p>
+                <p className="text-xl font-black text-rose-600 font-headline tabular-nums leading-none">{users.filter(u => u.role?.includes('admin') || u.Role?.includes('admin')).length}</p>
+              </div>
+            </div>
 
-              <Button 
-                onClick={() => setActiveTab('permissions')}
-                variant="outline"
-                className="h-11 px-6 rounded-xl border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-100 hover:text-primary gap-2.5 transition-all active:scale-95 shadow-none cursor-pointer font-headline"
-              >
-                <span className="material-symbols-outlined text-primary" style={{ fontSize: '14px' }} >security</span>
-                Permission Matrix
-              </Button>
-              <Button 
-                onClick={() => { setNewRoleForm({ id: '', name: '', theme: 'indigo', desc: '', isEdit: false, key: '' }); setIsNewRoleOpen(true) }}
-                className="h-11 px-6 rounded-xl bg-neutral-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-primary gap-2 transition-all active:scale-95 shadow-sm border-none cursor-pointer"
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >add</span>
-                Create Role
-              </Button>
-            </>
-          }
-        />
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {TABS.map(tab => (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => setActiveTab(tab.key)}
-              className={cn(
-                'h-14 rounded-xl border px-5 flex items-center justify-between text-left transition-all',
-                activeTab === tab.key ? 'bg-neutral-900 text-white border-neutral-900 shadow-xl shadow-neutral-900/10' : 'bg-white text-neutral-500 border-neutral-200 hover:border-primary/30 hover:text-neutral-900'
-              )}
+            <Button
+              onClick={() => setActiveTab('permissions')}
+              variant="outline"
+              className="h-11 px-6 rounded-xl border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-100 hover:text-primary gap-2.5 transition-all active:scale-95 shadow-none cursor-pointer font-headline"
             >
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] font-jakarta">{tab.label}</span>
-              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{tab.icon}</span>
-            </button>
-          ))}
-        </div>
+              <span className="material-symbols-outlined text-primary" style={{ fontSize: '14px' }} >security</span>
+              Permission Matrix
+            </Button>
+            <Button
+              onClick={() => { setNewRoleForm({ id: '', name: '', theme: 'indigo', desc: '', isEdit: false, key: '' }); setIsNewRoleOpen(true) }}
+              className="h-11 px-6 rounded-xl bg-neutral-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-primary gap-2 transition-all active:scale-95 shadow-sm border-none cursor-pointer"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >add</span>
+              Create Role
+            </Button>
+          </>
+        }
+      />
 
-        {/* ── Table Section ────────────────────────────────────────── */}
-        {activeTab === 'identities' && <PageCard>
-          <CardContent className="p-0">
-            <DataTable
-              columns={columns} 
-              data={users} 
-              loading={loading}
-              searchPlaceholder="Search by identity handle, email, or authorization level..."
-              onAdd={() => { setForm({ Email: '', Password: '', Role: '', Nama: '', FakultasID: '', ProgramStudiID: '', OrmawaAssign: '', OrmawaID: '', KencanaScopeType: 'faculty', Phone: '' }); setIsCrudOpen(true) }} 
-              addLabel="New Identity"
-              filters={[{ key: 'role', placeholder: 'Pilih Level', options: roleOptions.map(r => ({ label: r.label, value: r.value })) }]}
-              searchWidth="max-w-md"
-              actions={(row) => (
-                <div className="flex items-center gap-2">
-                  <Button 
-                    onClick={() => { 
-                      setSelected(row); 
-                      setNewRole(row.role || row.Role || ''); 
-                      setNewOrmawaId(row.ormawa_id || row.OrmawaID || '');
-                      setNewOrmawaAssign(row.ormawa_assign || row.OrmawaAssign || '');
-                      setNewFakultasId(row.fakultas_id || row.FakultasID || '');
-                      setNewProdiId(row.program_studi_id || row.ProgramStudiID || '');
-                      setNewKencanaScopeType(row.kencana_scope_type || row.KencanaScopeType || 'faculty');
-                      setIsRoleOpen(true) 
-                    }} 
-                    variant="ghost" 
-                    className="h-8 px-3 gap-2 text-slate-400 hover:text-bku-primary hover:bg-bku-primary/5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all border-none shadow-none cursor-pointer"
-                  >
-                    <KeyRound size={12} strokeWidth={2.5} className="text-slate-400 group-hover:text-bku-primary" /> Otoritas
-                  </Button>
-                  <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all shadow-none cursor-pointer"><span className="material-symbols-outlined leading-none" style={{ fontSize: '15px' }} >delete</span></Button>
-                </div>
-              )}
-            />
-          </CardContent>
-        </PageCard>}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        {TABS.map(tab => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => setActiveTab(tab.key)}
+            className={cn(
+              'h-14 rounded-xl border px-5 flex items-center justify-between text-left transition-all',
+              activeTab === tab.key ? 'bg-neutral-900 text-white border-neutral-900 shadow-xl shadow-neutral-900/10' : 'bg-white text-neutral-500 border-neutral-200 hover:border-primary/30 hover:text-neutral-900'
+            )}
+          >
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] font-jakarta">{tab.label}</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{tab.icon}</span>
+          </button>
+        ))}
+      </div>
 
-        {activeTab === 'roles' && (
-          <section className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-            {roleOptions.map(role => {
-              const cfg = ROLE_DETAILS[role.value] || { cls: 'bg-neutral-100 text-neutral-600 shadow-none' }
-              return (
-                <Card key={role.value} className="border-neutral-200 shadow-sm rounded-xl bg-white overflow-hidden hover:border-primary/20 transition-all">
-                  <CardContent className="p-6 space-y-5">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="space-y-2 flex-1 min-w-0">
-                        <Badge className={cn('font-bold text-[9px] px-3 py-1 border-none shadow-sm uppercase tracking-[0.15em] rounded-lg break-words whitespace-normal leading-relaxed text-left', cfg.cls)}>{role.label}</Badge>
-                        <h3 className="text-lg font-bold text-neutral-900 font-jakarta tracking-tight break-all">{role.value}</h3>
-                      </div>
-                      <span className={cn('text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-lg shrink-0', role.status === 'active' ? 'bg-emerald-50 text-emerald-600' : 'bg-neutral-100 text-neutral-400')}>{role.status}</span>
+      {/* ── Table Section ────────────────────────────────────────── */}
+      {activeTab === 'identities' && <Card className="glass-card shadow-sm rounded-xl overflow-hidden">
+        <CardContent className="p-0">
+          <DataTable
+            columns={columns}
+            data={users}
+            loading={loading}
+            searchPlaceholder="Search by identity handle, email, or authorization level..."
+            onAdd={() => { setForm({ Email: '', Password: '', Role: '', Nama: '', FakultasID: '', ProgramStudiID: '', OrmawaAssign: '', OrmawaID: '', KencanaScopeType: 'faculty', Phone: '' }); setIsCrudOpen(true) }}
+            addLabel="New Identity"
+            filters={[{ key: 'role', placeholder: 'Pilih Level', options: roleOptions.map(r => ({ label: r.label, value: r.value })) }]}
+            searchWidth="max-w-md"
+            actions={(row) => (
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={() => {
+                    setSelected(row);
+                    setNewRole(row.role || row.Role || '');
+                    setNewOrmawaId(row.ormawa_id || row.OrmawaID || '');
+                    setNewOrmawaAssign(row.ormawa_assign || row.OrmawaAssign || '');
+                    setNewFakultasId(row.fakultas_id || row.FakultasID || '');
+                    setNewProdiId(row.program_studi_id || row.ProgramStudiID || '');
+                    setNewKencanaScopeType(row.kencana_scope_type || row.KencanaScopeType || 'faculty');
+                    setIsRoleOpen(true)
+                  }}
+                  variant="ghost"
+                  className="h-8 px-3 gap-2 text-slate-400 hover:text-bku-primary hover:bg-bku-primary/5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all border-none shadow-none cursor-pointer"
+                >
+                  <KeyRound size={12} strokeWidth={2.5} className="text-slate-400 group-hover:text-bku-primary" /> Otoritas
+                </Button>
+                <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all shadow-none cursor-pointer"><span className="material-symbols-outlined leading-none" style={{ fontSize: '15px' }} >delete</span></Button>
+              </div>
+            )}
+          />
+        </CardContent>
+      </Card>}
+
+      {activeTab === 'roles' && (
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          {roleOptions.map(role => {
+            const cfg = ROLE_DETAILS[role.value] || { cls: 'bg-neutral-100 text-neutral-600 shadow-none' }
+            return (
+              <Card key={role.value} className="glass-card shadow-sm rounded-xl overflow-hidden hover:border-primary/20 transition-all">
+                <CardContent className="p-6 space-y-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-2 flex-1 min-w-0">
+                      <Badge className={cn('font-bold text-[9px] px-3 py-1 border-none shadow-sm uppercase tracking-[0.15em] rounded-lg break-words whitespace-normal leading-relaxed text-left', cfg.cls)}>{role.label}</Badge>
+                      <h3 className="text-lg font-bold text-neutral-900 font-jakarta tracking-tight break-all">{role.value}</h3>
                     </div>
-                    <p className="text-[12px] font-medium text-neutral-500 leading-relaxed min-h-[48px]">{role.description || 'Custom access role without special identity linkage.'}</p>
-                    <div className="flex items-center justify-between border-t border-neutral-100 pt-4">
-                      <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">{role.permissions?.includes('*') ? 'Full access' : `${role.permissions?.length || 0} permissions`}</span>
-                      <div className="flex items-center gap-1">
+                    <span className={cn('text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-lg shrink-0', role.status === 'active' ? 'bg-emerald-50 text-emerald-600' : 'bg-neutral-100 text-neutral-400')}>{role.status}</span>
+                  </div>
+                  <p className="text-[12px] font-medium text-neutral-500 leading-relaxed min-h-[48px]">{role.description || 'Custom access role without special identity linkage.'}</p>
+                  <div className="flex items-center justify-between border-t border-neutral-100 pt-4">
+                    <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">{role.permissions?.includes('*') ? 'Full access' : `${role.permissions?.length || 0} permissions`}</span>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const rbacRole = rbacRoles.find(r => r.key === role.value);
+                          if (rbacRole) {
+                            setNewRoleForm({ id: rbacRole.id || rbacRole.ID, name: role.label, desc: role.description || '', theme: role.theme || 'indigo', isEdit: true, key: role.value });
+                            setIsNewRoleOpen(true);
+                          }
+                        }}
+                        variant="ghost"
+                        className="h-8 w-8 p-0 rounded-lg text-neutral-300 hover:text-blue-500 hover:bg-blue-50 transition-all cursor-pointer"
+                        title="Edit role ini"
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>edit</span>
+                      </Button>
+                      {!role.isSystem && (
                         <Button
                           onClick={(e) => {
                             e.stopPropagation();
-                            const rbacRole = rbacRoles.find(r => r.key === role.value);
-                            if (rbacRole) {
-                              setNewRoleForm({ id: rbacRole.id || rbacRole.ID, name: role.label, desc: role.description || '', theme: role.theme || 'indigo', isEdit: true, key: role.value });
-                              setIsNewRoleOpen(true);
-                            }
+                            const rbacRole = rbacRoles.find(r => r.key === role.value)
+                            if (rbacRole) handleDeleteRole({ ...role, id: rbacRole.id || rbacRole.ID })
                           }}
                           variant="ghost"
-                          className="h-8 w-8 p-0 rounded-lg text-neutral-300 hover:text-blue-500 hover:bg-blue-50 transition-all cursor-pointer"
-                          title="Edit role ini"
+                          className="h-8 w-8 p-0 rounded-lg text-neutral-300 hover:text-rose-500 hover:bg-rose-50 transition-all cursor-pointer"
+                          title="Hapus role ini"
                         >
-                          <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>edit</span>
+                          <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>delete</span>
                         </Button>
-                        {!role.isSystem && (
-                          <Button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              const rbacRole = rbacRoles.find(r => r.key === role.value)
-                              if (rbacRole) handleDeleteRole({ ...role, id: rbacRole.id || rbacRole.ID })
-                            }}
-                            variant="ghost"
-                            className="h-8 w-8 p-0 rounded-lg text-neutral-300 hover:text-rose-500 hover:bg-rose-50 transition-all cursor-pointer"
-                            title="Hapus role ini"
-                          >
-                            <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>delete</span>
-                          </Button>
-                        )}
-                        {role.isSystem && (
-                          <span className="material-symbols-outlined text-neutral-300 mr-1" style={{ fontSize: '15px' }} title="Role sistem tidak dapat dihapus">lock</span>
-                        )}
-                        <Button onClick={() => { setSelectedRoleKey(role.value); setActiveTab('permissions') }} variant="ghost" className="h-9 px-4 rounded-lg text-[9px] font-bold uppercase tracking-widest text-primary hover:bg-primary/5 cursor-pointer">Configure</Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )
-            })}
-          </section>
-        )}
-
-        {activeTab === 'permissions' && (
-          <section className="space-y-6 pb-24">
-            {/* Top Selector: Role List */}
-            <div className="space-y-3 bg-white border border-slate-200/80 p-5 rounded-2xl shadow-sm">
-              <div>
-                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline pl-1 mb-1">Pilih Role</h3>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
-                {roleOptions.map(role => {
-                  const isSelected = selectedRoleKey === role.value;
-                  const isLocked = role.permissions?.includes('*');
-                  const count = (matrixDraft[role.value] || []).length;
-                  const cfg = ROLE_DETAILS[role.value] || { cls: 'bg-neutral-100 text-neutral-600' };
-
-                  return (
-                    <button
-                      key={role.value}
-                      type="button"
-                      onClick={() => setSelectedRoleKey(role.value)}
-                      className={cn(
-                        "p-3 rounded-xl border flex flex-col justify-between gap-2.5 transition-all duration-150 active:scale-[0.98] cursor-pointer text-left min-h-[76px]",
-                        isSelected 
-                          ? "bg-neutral-900 border-neutral-900 text-white shadow-xl shadow-neutral-900/10" 
-                          : "bg-slate-50/50 border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50"
                       )}
-                    >
-                      <div className="min-w-0 w-full flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <span className="text-xs font-bold tracking-tight truncate block">{role.label}</span>
-                          {isLocked && <span className="material-symbols-outlined text-[10px] shrink-0" style={{ fontSize: '11px' }}>lock</span>}
-                        </div>
-                        <Badge className={cn(
-                          'font-bold text-[8px] px-1.5 py-0.5 border-none uppercase tracking-widest rounded-md shrink-0',
-                          isSelected ? "bg-white/10 text-white" : cfg.cls
-                        )}>
-                          {isLocked ? "Full" : `${count} Izin`}
-                        </Badge>
-                      </div>
-                      <span className="text-[9px] font-mono lowercase tracking-wide block truncate opacity-60 w-full">
-                        {role.value}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Right Panel: Permissions accordion */}
-            <div className="space-y-6">
-              {/* Target info and Search */}
-              <Card className="border-slate-200 shadow-sm rounded-xl bg-white p-4 space-y-4">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="flex items-start gap-3">
-                    <div className="size-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 shrink-0">
-                      <span className="material-symbols-outlined">security</span>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-bold text-slate-800 font-jakarta leading-none">Konfigurasi Hak Akses</h3>
-                      <p className="text-[10px] font-medium text-slate-400 mt-1.5 leading-relaxed">
-                        Mengatur izin untuk role <span className="text-slate-800 font-bold">{selectedRBACRole?.label}</span>: {selectedRBACRole?.description || 'Tidak ada deskripsi.'}
-                      </p>
+                      {role.isSystem && (
+                        <span className="material-symbols-outlined text-neutral-300 mr-1" style={{ fontSize: '15px' }} title="Role sistem tidak dapat dihapus">lock</span>
+                      )}
+                      <Button onClick={() => { setSelectedRoleKey(role.value); setActiveTab('permissions') }} variant="ghost" className="h-9 px-4 rounded-lg text-[9px] font-bold uppercase tracking-widest text-primary hover:bg-primary/5 cursor-pointer">Configure</Button>
                     </div>
                   </div>
-                </div>
-
-                <div className="relative">
-                  <span className="material-symbols-outlined absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400" style={{ fontSize: '18px' }}>search</span>
-                  <Input
-                    type="text"
-                    placeholder="Cari izin akses (contoh: 'materi', 'create', 'dosen')..."
-                    value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                    className="h-12 pl-11 rounded-xl border-slate-200 bg-slate-50/40 focus:bg-white text-xs font-bold text-slate-700 tracking-wide shadow-none"
-                  />
-                  {searchQuery && (
-                    <button
-                      onClick={() => setSearchQuery('')}
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
-                    >
-                      <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>close</span>
-                    </button>
-                  )}
-                </div>
+                </CardContent>
               </Card>
+            )
+          })}
+        </section>
+      )}
 
-              {/* Modules Accordion */}
-              <div className="space-y-3">
-                {filteredCatalog.map(group => {
-                  const isExpanded = !!expandedModules[group.module];
-                  const moduleItems = group.items || [];
-                  const rolePermissions = matrixDraft[selectedRoleKey] || [];
-                  const allChecked = moduleItems.every(p => rolePermissions.includes(p));
-                  const someChecked = moduleItems.some(p => rolePermissions.includes(p)) && !allChecked;
-                  const activeCount = moduleItems.filter(p => rolePermissions.includes(p)).length;
-                  const isLocked = selectedRBACRole?.permissions?.includes('*');
+      {activeTab === 'permissions' && (
+        <section className="space-y-6 pb-24">
+          {/* Top Selector: Role List */}
+          <div className="space-y-3 bg-white border border-slate-200/80 p-5 rounded-2xl shadow-sm">
+            <div>
+              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline pl-1 mb-1">Pilih Role</h3>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+              {roleOptions.map(role => {
+                const isSelected = selectedRoleKey === role.value;
+                const isLocked = role.permissions?.includes('*');
+                const count = (matrixDraft[role.value] || []).length;
+                const cfg = ROLE_DETAILS[role.value] || { cls: 'bg-neutral-100 text-neutral-600' };
 
-                  return (
-                    <Card key={group.module} className="border-slate-200/80 shadow-sm rounded-xl bg-white overflow-visible">
-                      {/* Accordion Header */}
-                      <div 
-                        onClick={() => toggleModuleAccordion(group.module)}
-                        className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/50 transition-colors cursor-pointer select-none"
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className={cn(
-                            "material-symbols-outlined text-slate-400 transition-transform duration-200",
-                            isExpanded ? "rotate-90 text-primary" : ""
-                          )} style={{ fontSize: '18px' }}>
-                            chevron_right
-                          </span>
-                          <div>
-                            <h3 className="font-bold text-xs text-slate-800 font-jakarta tracking-tight">{group.module}</h3>
-                            <p className={cn(
-                              "text-[9px] font-bold uppercase tracking-widest mt-0.5",
-                              activeCount > 0 ? "text-bku-primary" : "text-slate-400"
-                            )}>
-                              {isLocked ? "Semua Akses Aktif" : `${activeCount} dari ${moduleItems.length} Izin Diaktifkan`}
-                            </p>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-3" onClick={e => e.stopPropagation()}>
-                          {!isLocked && (
-                            <button
-                              type="button"
-                              onClick={() => toggleModulePermissions(selectedRoleKey, moduleItems)}
-                              className={cn(
-                                "text-[8px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md border transition-all active:scale-95 cursor-pointer flex items-center gap-1",
-                                allChecked 
-                                  ? "bg-bku-primary/10 text-bku-primary border-bku-primary/20 hover:bg-bku-primary/20" 
-                                  : someChecked
-                                    ? "bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-100"
-                                    : "bg-slate-50 text-slate-400 border-slate-200 hover:bg-slate-100 hover:text-slate-600"
-                              )}
-                            >
-                              <span className="material-symbols-outlined" style={{ fontSize: '10px' }}>
-                                {allChecked ? 'check_box' : someChecked ? 'indeterminate_check_box' : 'add_box'}
-                              </span>
-                              {allChecked ? 'Semua Aktif' : someChecked ? 'Sebagian Aktif' : 'Aktifkan Semua'}
-                            </button>
-                          )}
+                return (
+                  <button
+                    key={role.value}
+                    type="button"
+                    onClick={() => setSelectedRoleKey(role.value)}
+                    className={cn(
+                      "p-3 rounded-xl border flex flex-col justify-between gap-2.5 transition-all duration-150 active:scale-[0.98] cursor-pointer text-left min-h-[76px]",
+                      isSelected
+                        ? "bg-neutral-900 border-neutral-900 text-white shadow-xl shadow-neutral-900/10"
+                        : "bg-slate-50/50 border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                    )}
+                  >
+                    <div className="min-w-0 w-full flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="text-xs font-bold tracking-tight truncate block">{role.label}</span>
+                        {isLocked && <span className="material-symbols-outlined text-[10px] shrink-0" style={{ fontSize: '11px' }}>lock</span>}
+                      </div>
+                      <Badge className={cn(
+                        'font-bold text-[8px] px-1.5 py-0.5 border-none uppercase tracking-widest rounded-md shrink-0',
+                        isSelected ? "bg-white/10 text-white" : cfg.cls
+                      )}>
+                        {isLocked ? "Full" : `${count} Izin`}
+                      </Badge>
+                    </div>
+                    <span className="text-[9px] font-mono lowercase tracking-wide block truncate opacity-60 w-full">
+                      {role.value}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Right Panel: Permissions accordion */}
+          <div className="space-y-6">
+            {/* Target info and Search */}
+            <Card className="border-slate-200 shadow-sm rounded-xl bg-white p-4 space-y-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <div className="size-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 shrink-0">
+                    <span className="material-symbols-outlined">security</span>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-800 font-jakarta leading-none">Konfigurasi Hak Akses</h3>
+                    <p className="text-[10px] font-medium text-slate-400 mt-1.5 leading-relaxed">
+                      Mengatur izin untuk role <span className="text-slate-800 font-bold">{selectedRBACRole?.label}</span>: {selectedRBACRole?.description || 'Tidak ada deskripsi.'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="relative">
+                <span className="material-symbols-outlined absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400" style={{ fontSize: '18px' }}>search</span>
+                <Input
+                  type="text"
+                  placeholder="Cari izin akses (contoh: 'materi', 'create', 'dosen')..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="h-12 pl-11 rounded-xl border-slate-200 bg-slate-50/40 focus:bg-white text-xs font-bold text-slate-700 tracking-wide shadow-none"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>close</span>
+                  </button>
+                )}
+              </div>
+            </Card>
+
+            {/* Modules Accordion */}
+            <div className="space-y-3">
+              {filteredCatalog.map(group => {
+                const isExpanded = !!expandedModules[group.module];
+                const moduleItems = group.items || [];
+                const rolePermissions = matrixDraft[selectedRoleKey] || [];
+                const allChecked = moduleItems.every(p => rolePermissions.includes(p));
+                const someChecked = moduleItems.some(p => rolePermissions.includes(p)) && !allChecked;
+                const activeCount = moduleItems.filter(p => rolePermissions.includes(p)).length;
+                const isLocked = selectedRBACRole?.permissions?.includes('*');
+
+                return (
+                  <Card key={group.module} className="border-slate-200/80 shadow-sm rounded-xl bg-white overflow-visible">
+                    {/* Accordion Header */}
+                    <div
+                      onClick={() => toggleModuleAccordion(group.module)}
+                      className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/50 transition-colors cursor-pointer select-none"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className={cn(
+                          "material-symbols-outlined text-slate-400 transition-transform duration-200",
+                          isExpanded ? "rotate-90 text-primary" : ""
+                        )} style={{ fontSize: '18px' }}>
+                          chevron_right
+                        </span>
+                        <div>
+                          <h3 className="font-bold text-xs text-slate-800 font-jakarta tracking-tight">{group.module}</h3>
+                          <p className={cn(
+                            "text-[9px] font-bold uppercase tracking-widest mt-0.5",
+                            activeCount > 0 ? "text-bku-primary" : "text-slate-400"
+                          )}>
+                            {isLocked ? "Semua Akses Aktif" : `${activeCount} dari ${moduleItems.length} Izin Diaktifkan`}
+                          </p>
                         </div>
                       </div>
 
-                      {/* Accordion Content */}
-                      {isExpanded && (
-                        <CardContent className="p-0 border-t border-slate-100 bg-white overflow-visible">
-                          {moduleItems.length === 0 ? (
-                            <p className="text-center text-xs text-slate-400 py-6">Tidak ada izin akses yang cocok dengan pencarian.</p>
-                          ) : (
-                            <div className="w-full overflow-x-auto pb-2 custom-scrollbar">
-                              <table className="w-full min-w-[800px] text-left border-collapse table-fixed">
-                                <thead>
-                                  <tr className="bg-slate-50/75 border-b border-slate-200 text-[10px] font-black uppercase tracking-wider text-slate-500 font-headline select-none">
-                                    <th className="py-3 px-5 w-[30%]">Nama Fitur</th>
-                                    <th className="py-3 px-4 w-[14%] text-left">Lihat (Read)</th>
-                                    <th className="py-3 px-4 w-[14%] text-left">Tambah (Create)</th>
-                                    <th className="py-3 px-4 w-[14%] text-left">Ubah (Update)</th>
-                                    <th className="py-3 px-4 w-[14%] text-left">Hapus (Delete)</th>
-                                    <th className="py-3 px-5 w-[14%] text-center">Aksi Baris</th>
-                                  </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100">
-                                  {(() => {
-                                    const renderCell = (permsList) => {
-                                      if (permsList.length === 0) return <span className="text-slate-300 font-bold text-xs select-none pl-1.5">-</span>;
-                                      return (
-                                        <div className="flex flex-col items-start justify-center gap-1.5">
-                                          {permsList.map(p => {
-                                            const isPermChecked = isLocked || rolePermissions.includes(p.key);
-                                            const showLabel = permsList.length > 1 || !['view', 'create', 'update', 'delete'].includes(p.suffix.toLowerCase());
-                                            let displayLabel = p.suffix.replace(/_/g, ' ');
-                                            displayLabel = displayLabel.charAt(0).toUpperCase() + displayLabel.slice(1);
-                                            return (
-                                              <label
-                                                key={p.key}
-                                                className={cn(
-                                                  "flex items-center gap-1.5 p-1 px-1.5 -ml-1.5 rounded-lg border border-transparent transition-all select-none w-max max-w-full",
-                                                  isLocked ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:bg-slate-100 hover:border-slate-200",
-                                                  isPermChecked && !isLocked ? "bg-bku-primary/[0.04] border-bku-primary/5" : ""
-                                                )}
-                                                title={p.key}
-                                              >
-                                                <input
-                                                  type="checkbox"
-                                                  checked={isPermChecked}
-                                                  disabled={isLocked}
-                                                  onChange={() => toggleMatrixPermission(selectedRoleKey, p.key)}
-                                                  className="rounded text-bku-primary focus:ring-bku-primary/30 border-slate-300 size-4 cursor-pointer disabled:cursor-not-allowed shrink-0"
-                                                />
-                                                {showLabel && (
-                                                  <span className={cn(
-                                                    "text-[8px] font-bold tracking-tight select-none truncate",
-                                                    isPermChecked ? "text-slate-800" : "text-slate-400"
-                                                  )}>
-                                                    {displayLabel}
-                                                  </span>
-                                                )}
-                                              </label>
-                                            );
-                                          })}
-                                        </div>
-                                      );
-                                    };
+                      <div className="flex items-center gap-3" onClick={e => e.stopPropagation()}>
+                        {!isLocked && (
+                          <button
+                            type="button"
+                            onClick={() => toggleModulePermissions(selectedRoleKey, moduleItems)}
+                            className={cn(
+                              "text-[8px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md border transition-all active:scale-95 cursor-pointer flex items-center gap-1",
+                              allChecked
+                                ? "bg-bku-primary/10 text-bku-primary border-bku-primary/20 hover:bg-bku-primary/20"
+                                : someChecked
+                                  ? "bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-100"
+                                  : "bg-slate-50 text-slate-400 border-slate-200 hover:bg-slate-100 hover:text-slate-600"
+                            )}
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: '10px' }}>
+                              {allChecked ? 'check_box' : someChecked ? 'indeterminate_check_box' : 'add_box'}
+                            </span>
+                            {allChecked ? 'Semua Aktif' : someChecked ? 'Sebagian Aktif' : 'Aktifkan Semua'}
+                          </button>
+                        )}
+                      </div>
+                    </div>
 
-                                    return groupPermissionsByFeature(moduleItems).map(feature => {
-                                      const featurePermissions = feature.permissions;
-                                      const activeFeaturePerms = featurePermissions.filter(p => isLocked || rolePermissions.includes(p.key));
-                                      const isAllChecked = featurePermissions.every(p => isLocked || rolePermissions.includes(p.key));
-                                      const isSomeChecked = featurePermissions.some(p => isLocked || rolePermissions.includes(p.key));
-                                      
-                                      const views = [];
-                                      const creates = [];
-                                      const updates = [];
-                                      const deletes = [];
-                                      const others = [];
+                    {/* Accordion Content */}
+                    {isExpanded && (
+                      <CardContent className="p-0 border-t border-slate-100 bg-white overflow-visible">
+                        {moduleItems.length === 0 ? (
+                          <p className="text-center text-xs text-slate-400 py-6">Tidak ada izin akses yang cocok dengan pencarian.</p>
+                        ) : (
+                          <div className="w-full overflow-x-auto pb-2 custom-scrollbar">
+                            <table className="w-full min-w-[800px] text-left border-collapse table-fixed">
+                              <thead>
+                                <tr className="bg-slate-50/75 border-b border-slate-200 text-[10px] font-black uppercase tracking-wider text-slate-500 font-headline select-none">
+                                  <th className="py-3 px-5 w-[30%]">Nama Fitur</th>
+                                  <th className="py-3 px-4 w-[14%] text-left">Lihat (Read)</th>
+                                  <th className="py-3 px-4 w-[14%] text-left">Tambah (Create)</th>
+                                  <th className="py-3 px-4 w-[14%] text-left">Ubah (Update)</th>
+                                  <th className="py-3 px-4 w-[14%] text-left">Hapus (Delete)</th>
+                                  <th className="py-3 px-5 w-[14%] text-center">Aksi Baris</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-slate-100">
+                                {(() => {
+                                  const renderCell = (permsList) => {
+                                    if (permsList.length === 0) return <span className="text-slate-300 font-bold text-xs select-none pl-1.5">-</span>;
+                                    return (
+                                      <div className="flex flex-col items-start justify-center gap-1.5">
+                                        {permsList.map(p => {
+                                          const isPermChecked = isLocked || rolePermissions.includes(p.key);
+                                          const showLabel = permsList.length > 1 || !['view', 'create', 'update', 'delete'].includes(p.suffix.toLowerCase());
+                                          let displayLabel = p.suffix.replace(/_/g, ' ');
+                                          displayLabel = displayLabel.charAt(0).toUpperCase() + displayLabel.slice(1);
+                                          return (
+                                            <label
+                                              key={p.key}
+                                              className={cn(
+                                                "flex items-center gap-1.5 p-1 px-1.5 -ml-1.5 rounded-lg border border-transparent transition-all select-none w-max max-w-full",
+                                                isLocked ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:bg-slate-100 hover:border-slate-200",
+                                                isPermChecked && !isLocked ? "bg-bku-primary/[0.04] border-bku-primary/5" : ""
+                                              )}
+                                              title={p.key}
+                                            >
+                                              <input
+                                                type="checkbox"
+                                                checked={isPermChecked}
+                                                disabled={isLocked}
+                                                onChange={() => toggleMatrixPermission(selectedRoleKey, p.key)}
+                                                className="rounded text-bku-primary focus:ring-bku-primary/30 border-slate-300 size-4 cursor-pointer disabled:cursor-not-allowed shrink-0"
+                                              />
+                                              {showLabel && (
+                                                <span className={cn(
+                                                  "text-[8px] font-bold tracking-tight select-none truncate",
+                                                  isPermChecked ? "text-slate-800" : "text-slate-400"
+                                                )}>
+                                                  {displayLabel}
+                                                </span>
+                                              )}
+                                            </label>
+                                          );
+                                        })}
+                                      </div>
+                                    );
+                                  };
 
-                                      featurePermissions.forEach(p => {
-                                        const cat = classifyPermission(p);
-                                        if (cat === 'view') views.push(p);
-                                        else if (cat === 'create') creates.push(p);
-                                        else if (cat === 'update') updates.push(p);
-                                        else if (cat === 'delete') deletes.push(p);
-                                        else others.push(p);
-                                      });
+                                  return groupPermissionsByFeature(moduleItems).map(feature => {
+                                    const featurePermissions = feature.permissions;
+                                    const activeFeaturePerms = featurePermissions.filter(p => isLocked || rolePermissions.includes(p.key));
+                                    const isAllChecked = featurePermissions.every(p => isLocked || rolePermissions.includes(p.key));
+                                    const isSomeChecked = featurePermissions.some(p => isLocked || rolePermissions.includes(p.key));
 
-                                      return (
-                                        <tr 
-                                          key={feature.prefix}
-                                          className={cn(
-                                            "transition-colors hover:bg-slate-50/60",
-                                            isSomeChecked ? "bg-bku-primary/[0.01]" : ""
-                                          )}
-                                        >
-                                          {/* Feature Name */}
-                                          <td className="py-3.5 px-5 align-middle">
-                                            <div className="flex flex-col">
-                                              <span className="text-xs font-bold font-jakarta text-slate-800 tracking-tight">
-                                                {feature.name}
-                                              </span>
-                                              <span className="text-[9px] font-semibold text-slate-400 font-mono tracking-wide mt-0.5">
-                                                {feature.prefix}
-                                              </span>
-                                            </div>
-                                          </td>
-                                          
-                                          {/* View column */}
-                                          <td className="py-3.5 px-4 text-left align-middle">
-                                            {renderCell(views)}
-                                          </td>
+                                    const views = [];
+                                    const creates = [];
+                                    const updates = [];
+                                    const deletes = [];
+                                    const others = [];
 
-                                          {/* Create column */}
-                                          <td className="py-3.5 px-4 text-left align-middle">
-                                            {renderCell(creates)}
-                                          </td>
-
-                                          {/* Update column */}
-                                          <td className="py-3.5 px-4 text-left align-middle">
-                                            {renderCell(updates)}
-                                          </td>
-
-                                          {/* Delete column */}
-                                          <td className="py-3.5 px-4 text-left align-middle">
-                                            {renderCell(deletes)}
-                                          </td>
-
-                                          {/* Row Action */}
-                                          <td className="py-3.5 px-5 align-middle text-center">
-                                            {!isLocked ? (
-                                              <button
-                                                type="button"
-                                                onClick={() => {
-                                                  const keys = featurePermissions.map(p => p.key);
-                                                  const allEnabled = keys.every(k => rolePermissions.includes(k));
-                                                  setMatrixDraft(prev => {
-                                                    const current = prev[selectedRoleKey] || [];
-                                                    let updated;
-                                                    if (allEnabled) {
-                                                      updated = current.filter(k => !keys.includes(k));
-                                                    } else {
-                                                      updated = Array.from(new Set([...current, ...keys]));
-                                                    }
-                                                    return { ...prev, [selectedRoleKey]: updated };
-                                                  });
-                                                }}
-                                                className={cn(
-                                                  "text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest border transition-all active:scale-95 cursor-pointer hover:bg-slate-100",
-                                                  isAllChecked
-                                                    ? "bg-emerald-50 text-emerald-600 border-emerald-200"
-                                                    : isSomeChecked
-                                                      ? "bg-amber-50 text-amber-600 border-amber-200"
-                                                      : "bg-slate-50 text-slate-400 border-slate-200"
-                                                )}
-                                                title={isAllChecked ? "Klik untuk hapus semua izin" : "Klik untuk aktifkan semua izin"}
-                                              >
-                                                {isAllChecked ? "Semua Aktif" : isSomeChecked ? `${activeFeaturePerms.length} Aktif` : "Nonaktif"}
-                                              </button>
-                                            ) : (
-                                              <span className="bg-emerald-50 text-emerald-600 border border-emerald-200 text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest inline-block select-none">
-                                                Akses Penuh
-                                              </span>
-                                            )}
-                                          </td>
-                                        </tr>
-                                      );
+                                    featurePermissions.forEach(p => {
+                                      const cat = classifyPermission(p);
+                                      if (cat === 'view') views.push(p);
+                                      else if (cat === 'create') creates.push(p);
+                                      else if (cat === 'update') updates.push(p);
+                                      else if (cat === 'delete') deletes.push(p);
+                                      else others.push(p);
                                     });
-                                  })()}
-                                </tbody>
-                              </table>
-                            </div>
-                          )}
-                        </CardContent>
-                      )}
-                    </Card>
-                  );
-                })}
-              </div>
-            </div>
 
-            {/* Sticky Float Save Bar */}
-            {hasChangesForRole && (
-              <div className="fixed bottom-6 w-[90vw] md:w-auto left-1/2 transform -translate-x-1/2 z-50 bg-white border border-slate-200/80 shadow-2xl rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 animate-in slide-in-from-bottom-5 duration-300 backdrop-blur-md bg-white/95">
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Perubahan Terdeteksi</span>
-                  <span className="text-xs font-bold text-slate-800">
-                    Konfigurasi role <span className="text-bku-primary font-black">{selectedRBACRole?.label}</span> berubah.
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 self-end md:self-auto">
-                  <Button
-                    onClick={() => {
-                      setMatrixDraft(prev => ({
-                        ...prev,
-                        [selectedRoleKey]: currentRoleOrig ? (currentRoleOrig.permissions || []) : []
-                      }));
-                      toast.success('Perubahan dibatalkan');
-                    }}
-                    variant="outline"
-                    className="h-10 px-4 rounded-xl border-slate-200 text-xs font-bold text-slate-500 hover:bg-slate-50 cursor-pointer shadow-none"
-                  >
-                    Batal
-                  </Button>
-                          <Button
-                    onClick={handleSaveSelectedRolePermissions}
-                    disabled={isSubmitting}
-                    className="h-10 px-5 rounded-xl bg-neutral-900 text-white text-xs font-bold hover:bg-primary border-none shadow-sm flex items-center gap-1.5 cursor-pointer"
-                  >
-                    {isSubmitting ? 'Menyimpan...' : (newRoleForm.isEdit ? 'Update Role' : 'Create Role')}
-                    <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>save</span>
-                  </Button>
-                </div>
-              </div>
-            )}
-          </section>
-        )}
-      {/* ── Create User Modal ───────────────────────────────────── */}
-      <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen} maxWidth="max-w-xl">
-        <DialogContent>
-          <DialogHeader className="relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-[0.05] text-bku-primary pointer-events-none"><span className="material-symbols-outlined" style={{ fontSize: '100px' }} >manage_accounts</span></div>
-            <div className="relative z-10 space-y-1">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
-                  <span className="material-symbols-outlined font-black text-[12px]">add</span>
-                </div>
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-bku-primary/70 font-headline">Account Provisioning</span>
-              </div>
-              <DialogTitle className="text-xl md:text-2xl font-black font-headline tracking-tight text-slate-800">Provision User Account</DialogTitle>
-              <DialogDescription className="text-xs font-semibold text-slate-400">Registrasi identitas digital dan konfigurasi level otorisasi pengguna baru.</DialogDescription>
+                                    return (
+                                      <tr
+                                        key={feature.prefix}
+                                        className={cn(
+                                          "transition-colors hover:bg-white",
+                                          isSomeChecked ? "bg-bku-primary/[0.01]" : ""
+                                        )}
+                                      >
+                                        {/* Feature Name */}
+                                        <td className="py-3.5 px-5 align-middle">
+                                          <div className="flex flex-col">
+                                            <span className="text-xs font-bold font-jakarta text-slate-800 tracking-tight">
+                                              {feature.name}
+                                            </span>
+                                            <span className="text-[9px] font-semibold text-slate-400 font-mono tracking-wide mt-0.5">
+                                              {feature.prefix}
+                                            </span>
+                                          </div>
+                                        </td>
+
+                                        {/* View column */}
+                                        <td className="py-3.5 px-4 text-left align-middle">
+                                          {renderCell(views)}
+                                        </td>
+
+                                        {/* Create column */}
+                                        <td className="py-3.5 px-4 text-left align-middle">
+                                          {renderCell(creates)}
+                                        </td>
+
+                                        {/* Update column */}
+                                        <td className="py-3.5 px-4 text-left align-middle">
+                                          {renderCell(updates)}
+                                        </td>
+
+                                        {/* Delete column */}
+                                        <td className="py-3.5 px-4 text-left align-middle">
+                                          {renderCell(deletes)}
+                                        </td>
+
+                                        {/* Row Action */}
+                                        <td className="py-3.5 px-5 align-middle text-center">
+                                          {!isLocked ? (
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                const keys = featurePermissions.map(p => p.key);
+                                                const allEnabled = keys.every(k => rolePermissions.includes(k));
+                                                setMatrixDraft(prev => {
+                                                  const current = prev[selectedRoleKey] || [];
+                                                  let updated;
+                                                  if (allEnabled) {
+                                                    updated = current.filter(k => !keys.includes(k));
+                                                  } else {
+                                                    updated = Array.from(new Set([...current, ...keys]));
+                                                  }
+                                                  return { ...prev, [selectedRoleKey]: updated };
+                                                });
+                                              }}
+                                              className={cn(
+                                                "text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest border transition-all active:scale-95 cursor-pointer hover:bg-slate-100",
+                                                isAllChecked
+                                                  ? "bg-emerald-50 text-emerald-600 border-emerald-200"
+                                                  : isSomeChecked
+                                                    ? "bg-amber-50 text-amber-600 border-amber-200"
+                                                    : "bg-slate-50 text-slate-400 border-slate-200"
+                                              )}
+                                              title={isAllChecked ? "Klik untuk hapus semua izin" : "Klik untuk aktifkan semua izin"}
+                                            >
+                                              {isAllChecked ? "Semua Aktif" : isSomeChecked ? `${activeFeaturePerms.length} Aktif` : "Nonaktif"}
+                                            </button>
+                                          ) : (
+                                            <span className="bg-emerald-50 text-emerald-600 border border-emerald-200 text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest inline-block select-none">
+                                              Akses Penuh
+                                            </span>
+                                          )}
+                                        </td>
+                                      </tr>
+                                    );
+                                  });
+                                })()}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </CardContent>
+                    )}
+                  </Card>
+                );
+              })}
             </div>
-          </DialogHeader>
+          </div>
+
+          {/* Sticky Float Save Bar */}
+          {hasChangesForRole && (
+            <div className="fixed bottom-6 w-[90vw] md:w-auto left-1/2 transform -translate-x-1/2 z-50 bg-white border border-slate-200/80 shadow-2xl rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 animate-in slide-in-from-bottom-5 duration-300 backdrop-blur-md bg-white/95">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Perubahan Terdeteksi</span>
+                <span className="text-xs font-bold text-slate-800">
+                  Konfigurasi role <span className="text-bku-primary font-black">{selectedRBACRole?.label}</span> berubah.
+                </span>
+              </div>
+              <div className="flex items-center gap-2 self-end md:self-auto">
+                <Button
+                  onClick={() => {
+                    setMatrixDraft(prev => ({
+                      ...prev,
+                      [selectedRoleKey]: currentRoleOrig ? (currentRoleOrig.permissions || []) : []
+                    }));
+                    toast.success('Perubahan dibatalkan');
+                  }}
+                  variant="outline"
+                  className="h-10 px-4 rounded-xl border-slate-200 text-xs font-bold text-slate-500 hover:bg-slate-50 cursor-pointer shadow-none"
+                >
+                  Batal
+                </Button>
+                <Button
+                  onClick={handleSaveSelectedRolePermissions}
+                  disabled={isSubmitting}
+                  className="h-10 px-5 rounded-xl bg-neutral-900 text-white text-xs font-bold hover:bg-primary border-none shadow-sm flex items-center gap-1.5 cursor-pointer"
+                >
+                  {isSubmitting ? 'Menyimpan...' : (newRoleForm.isEdit ? 'Update Role' : 'Create Role')}
+                  <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>save</span>
+                </Button>
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+      {/* ── Create User Modal ───────────────────────────────────── */}
+      <DialogModal
+        open={isCrudOpen}
+        onOpenChange={setIsCrudOpen}
+        icon="manage_accounts"
+        subtitle="Account Provisioning"
+        title="Provision User Account"
+        maxWidth="max-w-xl"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setIsCrudOpen(false)} />
+            <ModalSaveButton onClick={handleCreate} loading={isSubmitting}>Commit New Account</ModalSaveButton>
+          </>
+        }
+      >
 
           <form onSubmit={handleCreate}>
-            <div className="p-6 md:p-8 space-y-6 max-h-[50vh] overflow-y-auto no-scrollbar font-inter">
+            <div className="space-y-6 font-inter">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                 <div className="space-y-2">
-                   <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Identity Handle (Email)</Label>
-                   <Input required type="email" value={form.Email} onChange={e => handleEmailChange(e.target.value)} placeholder="email@bku.ac.id" className="h-12 rounded-xl border-slate-200 bg-slate-50/70 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/20 font-bold text-xs text-slate-800 transition-all font-inter" />
-                   {form.Email && form.Email.includes('@') && (
-                     <span className="text-[9px] font-extrabold text-blue-500 block mt-1.5 pl-1 tracking-wide animate-in fade-in duration-200">
-                       ⚡ Auto-detect ID Pokok: {form.Email.split('@')[0]}
-                     </span>
-                   )}
-                 </div>
-                 <div className="space-y-2">
-                   <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Default Authentication</Label>
-                   <div className="relative">
-                     <Input required type={showPassword ? "text" : "password"} value={form.Password} onChange={e => setForm({ ...form, Password: e.target.value })} placeholder="••••••••" className="h-12 rounded-xl border-slate-200 bg-slate-50/70 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/20 font-bold text-xs text-slate-800 transition-all font-inter pr-10" />
-                     <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none flex items-center justify-center">
-                       <span className="material-symbols-outlined text-[18px]">{showPassword ? 'visibility_off' : 'visibility'}</span>
-                     </button>
-                   </div>
-                 </div>
+                <div className="space-y-2">
+                  <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Identity Handle (Email)</Label>
+                  <Input required type="email" value={form.Email} onChange={e => handleEmailChange(e.target.value)} placeholder="email@bku.ac.id" className="h-12 rounded-xl border-slate-200 bg-slate-50/70 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/20 font-bold text-xs text-slate-800 transition-all font-inter" />
+                  {form.Email && form.Email.includes('@') && (
+                    <span className="text-[9px] font-extrabold text-blue-500 block mt-1.5 pl-1 tracking-wide animate-in fade-in duration-200">
+                      ⚡ Auto-detect ID Pokok: {form.Email.split('@')[0]}
+                    </span>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Default Authentication</Label>
+                  <div className="relative">
+                    <Input required type={showPassword ? "text" : "password"} value={form.Password} onChange={e => setForm({ ...form, Password: e.target.value })} placeholder="••••••••" className="h-12 rounded-xl border-slate-200 bg-slate-50/70 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/20 font-bold text-xs text-slate-800 transition-all font-inter pr-10" />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none flex items-center justify-center">
+                      <span className="material-symbols-outlined text-[18px]">{showPassword ? 'visibility_off' : 'visibility'}</span>
+                    </button>
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -1804,7 +1803,7 @@ export default function UserManagement() {
                         onClick={() => handleToggleRole(r.value)}
                         className={cn(
                           "p-3 rounded-xl border text-left transition-all flex items-start justify-between cursor-pointer",
-                          isSelected 
+                          isSelected
                             ? "border-bku-primary bg-bku-primary/5 shadow-sm text-bku-primary"
                             : "border-slate-200 bg-slate-50/50 hover:bg-slate-100/60 text-slate-600"
                         )}
@@ -1830,8 +1829,8 @@ export default function UserManagement() {
                   {showFakultasSelect && (
                     <div className="space-y-2">
                       <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Fakultas</Label>
-                      <Select 
-                        value={form.FakultasID ? String(form.FakultasID) : undefined} 
+                      <Select
+                        value={form.FakultasID ? String(form.FakultasID) : undefined}
                         onValueChange={v => setForm({ ...form, FakultasID: v, ProgramStudiID: '' })}
                       >
                         <SelectTrigger className="h-12 rounded-xl border-slate-200 bg-slate-50/70 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/20 font-bold text-xs uppercase tracking-[0.08em] text-slate-700 transition-all">
@@ -1851,9 +1850,9 @@ export default function UserManagement() {
                   {showProdiSelect && (
                     <div className="space-y-2">
                       <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Program Studi</Label>
-                      <Select 
+                      <Select
                         disabled={!form.FakultasID}
-                        value={form.ProgramStudiID ? String(form.ProgramStudiID) : undefined} 
+                        value={form.ProgramStudiID ? String(form.ProgramStudiID) : undefined}
                         onValueChange={v => setForm({ ...form, ProgramStudiID: v })}
                       >
                         <SelectTrigger className="h-12 rounded-xl border-slate-200 bg-slate-50/70 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/20 font-bold text-xs uppercase tracking-[0.08em] text-slate-700 transition-all disabled:opacity-50">
@@ -1877,7 +1876,7 @@ export default function UserManagement() {
               {formRoles.includes('prodi_admin') && (
                 <div className="space-y-2 animate-in fade-in duration-300">
                   <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Custom Prodi Role Name</Label>
-                  <Select 
+                  <Select
                     value={form.OrmawaAssign ? form.OrmawaAssign : undefined}
                     onValueChange={v => setForm({ ...form, OrmawaAssign: v })}
                   >
@@ -1898,7 +1897,7 @@ export default function UserManagement() {
                   <div className="space-y-2">
                     <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Kencana Scope</Label>
                     <Select value={form.KencanaScopeType} onValueChange={v => setForm({ ...form, KencanaScopeType: v, FakultasID: v === 'university' ? '' : form.FakultasID })}>
-                      <SelectTrigger className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 font-bold text-xs uppercase tracking-[0.1em]"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="h-12 rounded-xl border-neutral-200 bg-white font-bold text-xs uppercase tracking-[0.1em]"><SelectValue /></SelectTrigger>
                       <SelectContent className="rounded-xl shadow-2xl border-neutral-100">
                         <SelectItem value="faculty" className="text-[10px] font-bold uppercase tracking-widest">Fakultas</SelectItem>
                         <SelectItem value="university" className="text-[10px] font-bold uppercase tracking-widest">Universitas</SelectItem>
@@ -1907,7 +1906,7 @@ export default function UserManagement() {
                   </div>
                   <div className="space-y-2">
                     <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Phone</Label>
-                    <Input value={form.Phone} onChange={e => setForm({ ...form, Phone: e.target.value })} placeholder="Nomor kontak mentor" className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white font-bold text-sm font-jakarta" />
+                    <Input value={form.Phone} onChange={e => setForm({ ...form, Phone: e.target.value })} placeholder="Nomor kontak mentor" className="h-12 rounded-xl border-neutral-200 bg-white focus:bg-white font-bold text-sm font-jakarta" />
                   </div>
                 </div>
               )}
@@ -1915,8 +1914,8 @@ export default function UserManagement() {
               {showOrmawaSelect && (
                 <div className="space-y-2 animate-in fade-in duration-300">
                   <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Assign Ormawa</Label>
-                  <Select 
-                    value={form.OrmawaID ? String(form.OrmawaID) : undefined} 
+                  <Select
+                    value={form.OrmawaID ? String(form.OrmawaID) : undefined}
                     onValueChange={v => {
                       const selectedOrm = ormawas.find(o => String(o.id || o.ID) === String(v));
                       setForm({ ...form, OrmawaID: v, OrmawaAssign: selectedOrm ? selectedOrm.Nama || selectedOrm.nama : '' });
@@ -1937,51 +1936,30 @@ export default function UserManagement() {
               )}
             </div>
 
-            <DialogFooter>
-              <button
-                type="button"
-                onClick={() => setIsCrudOpen(false)}
-                className="flex-1 h-12 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-headline cursor-pointer"
-              >
-                Batal
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="flex-1 h-12 bg-neutral-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2 font-headline disabled:opacity-50 cursor-pointer border-none"
-              >
-                {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >save</span>}
-                <span>Commit New Account</span>
-              </button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+            </form>
+      </DialogModal>
 
       {/* ── Update Role Modal ────────────────────────────────────── */}
-      <Dialog open={isRoleOpen} onOpenChange={setIsRoleOpen} maxWidth="max-w-md">
-        <DialogContent>
-          <DialogHeader className="relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-[0.05] text-bku-primary pointer-events-none">
-              <span className="material-symbols-outlined font-black" style={{ fontSize: '100px' }}>key</span>
-            </div>
-            <div className="relative z-10 space-y-1">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
-                  <span className="material-symbols-outlined font-black text-[12px]">security</span>
-                </div>
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-bku-primary/70 font-headline">Privilege Node</span>
-              </div>
-              <DialogTitle className="text-xl font-bold font-jakarta tracking-tight text-slate-800 uppercase leading-none">Modify Otoritas</DialogTitle>
-              <DialogDescription className="text-xs font-semibold text-slate-400 mt-1.5">Override account privilege nodes.</DialogDescription>
-            </div>
-          </DialogHeader>
-          <div className="p-6 md:p-8 space-y-6 max-h-[50vh] overflow-y-auto no-scrollbar font-inter">
-             <div className="space-y-6 px-1">
-               <div className="p-5 rounded-2xl bg-slate-50/60 border border-slate-200/50 flex items-center justify-between group">
+      <DialogModal
+        open={isRoleOpen}
+        onOpenChange={setIsRoleOpen}
+        icon="security"
+        subtitle="Privilege Node"
+        title="Modify Otoritas"
+        maxWidth="max-w-md"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setIsRoleOpen(false)} />
+            <ModalSaveButton onClick={handleUpdateRole} loading={isSubmitting}>Commit Authority</ModalSaveButton>
+          </>
+        }
+      >
+          <div className="space-y-6 font-inter">
+            <div className="space-y-6 px-1">
+              <div className="p-5 rounded-2xl bg-white border border-slate-200/50 flex items-center justify-between group">
                 <div className="space-y-1">
-                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] font-headline">Target Identity</p>
-                   <p className="text-xs font-bold font-inter text-slate-700 truncate max-w-[200px] lowercase">{selected?.Email || selected?.email}</p>
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] font-headline">Target Identity</p>
+                  <p className="text-xs font-bold font-inter text-slate-700 truncate max-w-[200px] lowercase">{selected?.Email || selected?.email}</p>
                 </div>
                 <div className="flex flex-wrap gap-1.5 justify-end max-w-[180px]">
                   {(selected?.role || selected?.Role || '').split(',').map(r => r.trim()).filter(Boolean).map(r => {
@@ -1989,12 +1967,12 @@ export default function UserManagement() {
                     const cfg = roleDetails[r] || { label: roleOption?.label || r, cls: 'bg-neutral-100 text-slate-500 border border-slate-200/60' }
                     return (
                       <Badge key={r} className={cn("font-bold text-[8px] px-2.5 py-1 border-none shadow-sm uppercase rounded-lg group-hover:scale-105 transition-transform", cfg.cls)}>
-                         {cfg.label}
+                        {cfg.label}
                       </Badge>
                     )
                   })}
                 </div>
-             </div>
+              </div>
 
               <div className="space-y-2">
                 <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Target Authorization Level (Pilih satu atau lebih)</Label>
@@ -2008,7 +1986,7 @@ export default function UserManagement() {
                         onClick={() => handleToggleNewRole(r.value)}
                         className={cn(
                           "p-3 rounded-xl border text-left transition-all flex items-start justify-between cursor-pointer",
-                          isSelected 
+                          isSelected
                             ? "border-bku-primary bg-bku-primary/5 shadow-sm text-bku-primary"
                             : "border-slate-200 bg-slate-50/50 hover:bg-slate-100/60 text-slate-600"
                         )}
@@ -2032,8 +2010,8 @@ export default function UserManagement() {
               {showNewOrmawaSelect && (
                 <div className="space-y-2 animate-in fade-in duration-300">
                   <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Assign Ormawa</Label>
-                  <Select 
-                    value={newOrmawaId ? String(newOrmawaId) : undefined} 
+                  <Select
+                    value={newOrmawaId ? String(newOrmawaId) : undefined}
                     onValueChange={v => {
                       const selectedOrm = ormawas.find(o => String(o.id || o.ID) === String(v));
                       setNewOrmawaId(v);
@@ -2058,7 +2036,7 @@ export default function UserManagement() {
                 <div className="space-y-2 animate-in fade-in duration-300">
                   <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Fakultas Kencana</Label>
                   <Select value={newFakultasId ? String(newFakultasId) : undefined} onValueChange={setNewFakultasId}>
-                    <SelectTrigger className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 font-bold text-[10px] uppercase tracking-widest text-neutral-600">
+                    <SelectTrigger className="h-12 rounded-xl border-neutral-200 bg-white font-bold text-[10px] uppercase tracking-widest text-neutral-600">
                       <SelectValue placeholder="PILIH FAKULTAS" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl shadow-2xl border-neutral-100 max-h-[200px] overflow-y-auto">
@@ -2075,12 +2053,12 @@ export default function UserManagement() {
               {showNewProdiSelect && (
                 <div className="space-y-2 animate-in fade-in duration-300">
                   <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Program Studi</Label>
-                  <Select 
+                  <Select
                     disabled={!newFakultasId}
-                    value={newProdiId ? String(newProdiId) : undefined} 
+                    value={newProdiId ? String(newProdiId) : undefined}
                     onValueChange={setNewProdiId}
                   >
-                    <SelectTrigger className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 font-bold text-[10px] uppercase tracking-widest text-neutral-600 disabled:opacity-50">
+                    <SelectTrigger className="h-12 rounded-xl border-neutral-200 bg-white font-bold text-[10px] uppercase tracking-widest text-neutral-600 disabled:opacity-50">
                       <SelectValue placeholder={newFakultasId ? "PILIH PRODI" : "PILIH FAKULTAS DULU"} />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl shadow-2xl border-neutral-100 max-h-[200px] overflow-y-auto">
@@ -2099,11 +2077,11 @@ export default function UserManagement() {
               {newRoles.includes('prodi_admin') && (
                 <div className="space-y-2 animate-in fade-in duration-300">
                   <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Custom Prodi Role Name</Label>
-                  <Select 
+                  <Select
                     value={newOrmawaAssign ? newOrmawaAssign : undefined}
                     onValueChange={setNewOrmawaAssign}
                   >
-                    <SelectTrigger className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 font-bold text-[10px] uppercase tracking-widest text-neutral-600">
+                    <SelectTrigger className="h-12 rounded-xl border-neutral-200 bg-white font-bold text-[10px] uppercase tracking-widest text-neutral-600">
                       <SelectValue placeholder="PILIH ROLE PRODI" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl shadow-2xl border-neutral-100">
@@ -2119,7 +2097,7 @@ export default function UserManagement() {
                 <div className="space-y-2 animate-in fade-in duration-300">
                   <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Mentor Scope</Label>
                   <Select value={newKencanaScopeType} onValueChange={v => { setNewKencanaScopeType(v); if (v === 'university') setNewFakultasId('') }}>
-                    <SelectTrigger className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 font-bold text-[10px] uppercase tracking-widest text-neutral-600"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="h-12 rounded-xl border-neutral-200 bg-white font-bold text-[10px] uppercase tracking-widest text-neutral-600"><SelectValue /></SelectTrigger>
                     <SelectContent className="rounded-xl shadow-2xl border-neutral-100">
                       <SelectItem value="faculty" className="text-[10px] font-bold uppercase tracking-widest">Fakultas</SelectItem>
                       <SelectItem value="university" className="text-[10px] font-bold uppercase tracking-widest">Universitas</SelectItem>
@@ -2127,69 +2105,47 @@ export default function UserManagement() {
                   </Select>
                 </div>
               )}
-             </div>
+            </div>
           </div>
 
-          <DialogFooter>
-            <button
-              type="button"
-              onClick={() => setIsRoleOpen(false)}
-              className="flex-1 h-12 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-headline cursor-pointer"
-            >
-              Batal
-            </button>
-            <button
-              type="button"
-              onClick={handleUpdateRole}
-              disabled={isSubmitting}
-              className="flex-[2] h-12 bg-neutral-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2 font-headline disabled:opacity-50 cursor-pointer border-none"
-            >
-              {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>security</span>}
-              <span>Commit Authority</span>
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </DialogModal>
 
-      <DeleteConfirmModal 
-        isOpen={isDelOpen} 
-        onClose={() => setIsDelOpen(false)} 
+      <DeleteConfirmModal
+        isOpen={isDelOpen}
+        onClose={() => setIsDelOpen(false)}
         onConfirm={handleDelete}
-        title="Destroy Identity Entity?" 
-        description="Aksi ini akan mencabut seluruh hak akses, identitas digital, dan kaitan entitas pengguna ini secara permanen. Prosedur ini tidak dapat dibatalkan." 
-        loading={isSubmitting} 
+        title="Destroy Identity Entity?"
+        description="Aksi ini akan mencabut seluruh hak akses, identitas digital, dan kaitan entitas pengguna ini secara permanen. Prosedur ini tidak dapat dibatalkan."
+        loading={isSubmitting}
       />
 
       {/* ── Create Custom Role Modal ────────────────────────────── */}
-      <Dialog open={isNewRoleOpen} onOpenChange={setIsNewRoleOpen} maxWidth="max-w-md">
-        <DialogContent>
-          <DialogHeader className="relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-[0.05] text-bku-primary pointer-events-none">
-              <span className="material-symbols-outlined font-black" style={{ fontSize: '100px' }}>shield_person</span>
-            </div>
-            <div className="relative z-10 space-y-1">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
-                  {newRoleForm.isEdit ? <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >edit</span> : <span className="material-symbols-outlined" style={{ fontSize: '12px' }} strokeWidth={3}>add</span>}
-                </div>
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-bku-primary/70 font-headline">Dynamic Privilege Node</span>
-              </div>
-              <DialogTitle className="text-xl font-bold font-jakarta tracking-tight text-slate-800 uppercase leading-none">{newRoleForm.isEdit ? 'Update Custom Role' : 'Create Custom Role'}</DialogTitle>
-              <DialogDescription className="text-xs font-semibold text-slate-400 mt-1.5">{newRoleForm.isEdit ? 'Perbarui informasi peran khusus ini' : 'Release dynamic privilege identity node'}</DialogDescription>
-            </div>
-          </DialogHeader>
-          
+      <DialogModal
+        open={isNewRoleOpen}
+        onOpenChange={setIsNewRoleOpen}
+        icon="shield_person"
+        subtitle="Dynamic Privilege Node"
+        title={newRoleForm.isEdit ? 'Update Custom Role' : 'Create Custom Role'}
+        maxWidth="max-w-md"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setIsNewRoleOpen(false)} />
+            <ModalSaveButton onClick={handleCreateCustomRole} loading={isSubmitting}>{newRoleForm.isEdit ? 'Update Role' : 'Commit New Role'}</ModalSaveButton>
+          </>
+        }
+      >
+
           <form onSubmit={handleCreateCustomRole}>
-            <div className="p-6 md:p-8 space-y-6 max-h-[50vh] overflow-y-auto no-scrollbar font-inter">
+            <div className="space-y-6 font-inter">
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Role Identity Name</Label>
-                  <Input 
-                    required 
-                    value={newRoleForm.name} 
-                    onChange={e => setNewRoleForm({ ...newRoleForm, name: e.target.value })} 
-                    placeholder="e.g. Fasilitator, Kaprodi, Dekan..." 
-                    className="h-12 rounded-xl border-slate-200 bg-slate-50/70 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/20 font-bold text-xs text-slate-800 transition-all font-inter" 
+                  <Input
+                    required
+                    value={newRoleForm.name}
+                    onChange={e => setNewRoleForm({ ...newRoleForm, name: e.target.value })}
+                    placeholder="e.g. Fasilitator, Kaprodi, Dekan..."
+                    className="h-12 rounded-xl border-slate-200 bg-slate-50/70 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/20 font-bold text-xs text-slate-800 transition-all font-inter"
                   />
                   {!newRoleForm.isEdit && <span className="text-[9px] font-bold text-slate-400 ml-1">Key unik akan digenerate otomatis.</span>}
                   {newRoleForm.isEdit && <span className="text-[9px] font-bold text-slate-400 ml-1">Key unik peran ({newRoleForm.key}) tidak akan diubah.</span>}
@@ -2197,8 +2153,8 @@ export default function UserManagement() {
 
                 <div className="space-y-2">
                   <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Privilege Theme Color</Label>
-                  <Select 
-                    value={newRoleForm.theme} 
+                  <Select
+                    value={newRoleForm.theme}
                     onValueChange={v => setNewRoleForm({ ...newRoleForm, theme: v })}
                   >
                     <SelectTrigger className="h-12 rounded-xl border-slate-200 bg-slate-50/70 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/20 font-bold text-xs uppercase tracking-[0.08em] text-slate-700 transition-all">
@@ -2216,36 +2172,18 @@ export default function UserManagement() {
 
                 <div className="space-y-2">
                   <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Description / Yurisdiksi</Label>
-                  <textarea 
-                    value={newRoleForm.desc} 
-                    onChange={e => setNewRoleForm({ ...newRoleForm, desc: e.target.value })} 
-                    placeholder="Explain authority level rules..." 
+                  <textarea
+                    value={newRoleForm.desc}
+                    onChange={e => setNewRoleForm({ ...newRoleForm, desc: e.target.value })}
+                    placeholder="Explain authority level rules..."
                     className="w-full h-24 p-3 rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/20 font-bold text-xs text-slate-800 transition-all font-inter resize-none focus:outline-none"
                   />
                 </div>
               </div>
             </div>
 
-            <DialogFooter>
-              <button
-                type="button"
-                onClick={() => setIsNewRoleOpen(false)}
-                className="flex-1 h-12 bg-white hover:bg-slate-55 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-headline cursor-pointer"
-              >
-                Batal
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="flex-[2] h-12 bg-neutral-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2 font-headline disabled:opacity-50 cursor-pointer border-none"
-              >
-                {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>save</span>}
-                <span>{newRoleForm.isEdit ? 'Update Role' : 'Save Custom Role'}</span>
-              </button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+            </form>
+      </DialogModal>
 
     </PageContent>
   )

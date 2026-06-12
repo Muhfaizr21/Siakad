@@ -1,14 +1,15 @@
 "use client"
 import React, { useState, useEffect } from 'react';
 import { PageContent, PageHeader } from '@/components/ui/page';
-
-
+import { DashboardHero } from '@/components/ui/dashboard';
 
 import { DataTable } from '@/components/ui/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
+import { DialogModal, ModalCancelButton, ModalSaveButton } from '@/components/ui/DialogModal'
 import { Card, CardContent } from '@/components/ui/Card'
+import { PrimaryStatsCard } from '@/components/ui/StatsCard'
 import { Label } from '@/components/ui/Label'
 import { Textarea } from '@/components/ui/Textarea'
 
@@ -21,6 +22,11 @@ import useAuthStore from '../../store/useAuthStore'
 import { getOrmawaId } from '../../utils/getOrmawaId'
 
 const API = `${API_BASE_URL}/ormawa`
+
+const QuestionAnswerIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>question_answer</span>;
+const MarkChatReadIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>mark_chat_read</span>;
+const QuickreplyIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>quickreply</span>;
+const CancelIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>cancel</span>;
 
 export default function AspirationManagement() {
   const [data, setData] = useState([])
@@ -85,9 +91,17 @@ export default function AspirationManagement() {
       label: 'Topik Aspirasi',
       className: 'min-w-[280px]',
       render: (v, row) => (
-        <div className="flex flex-col leading-tight">
-          <span className="font-bold text-slate-900 text-[13px] font-headline tracking-tighter">{v || '—'}</span>
-          <span className="text-[10px] text-slate-400 font-bold tracking-tight mt-0.5">{row.OrmawaNama || 'Organisasi Mahasiswa'}</span>
+        <div className="flex items-center gap-3 py-1">
+          <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100/50">
+            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>forum</span>
+          </div>
+          <div className="flex flex-col leading-tight min-w-0">
+            <span className="font-bold text-slate-900 text-[13px] font-headline tracking-tighter truncate">{v || '—'}</span>
+            <span className="text-[10px] text-slate-500 font-bold tracking-tight mt-0.5 truncate flex items-center gap-1">
+              <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>group</span>
+              {row.OrmawaNama || 'Organisasi Mahasiswa'}
+            </span>
+          </div>
         </div>
       )
     },
@@ -100,11 +114,14 @@ export default function AspirationManagement() {
         const isDitanggapi = v === 'ditanggapi'
         return (
           <Badge className={cn(
-            'font-bold text-[10px] uppercase tracking-wider px-3.5 py-1 border rounded-full',
-            isDitanggapi 
-              ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+            'inline-flex items-center justify-center gap-1 font-bold text-[10px] uppercase tracking-wider px-3 py-1 border rounded-full',
+            isDitanggapi
+              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
               : 'bg-amber-50 text-amber-700 border-amber-200'
           )}>
+            <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>
+              {isDitanggapi ? 'mark_chat_read' : 'quickreply'}
+            </span>
             {isDitanggapi ? 'Ditanggapi' : 'Menunggu'}
           </Badge>
         )
@@ -115,9 +132,12 @@ export default function AspirationManagement() {
       label: 'Tanggal Dikirim',
       className: 'w-[160px]',
       render: v => (
-        <span className="font-bold text-slate-400 text-[11px] font-headline">
-          {v ? new Date(v).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
-        </span>
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Masuk Pada</span>
+          <span className="font-bold text-slate-700 text-[12px] font-headline">
+            {v ? new Date(v).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+          </span>
+        </div>
       )
     }
   ]
@@ -126,99 +146,83 @@ export default function AspirationManagement() {
   const totalAspirasi = data.length
   const answeredAspirasi = data.filter(x => x.Status === 'ditanggapi').length
   const pendingAspirasi = data.filter(x => x.Status === 'pending' || !x.Status).length
-  const responseRatio = totalAspirasi > 0 ? Math.round((answeredAspirasi / totalAspirasi) * 100) : 0
+  const rejectedAspirasi = data.filter(x => x.Status === 'ditolak').length
 
   return (
     <PageContent className="font-body">
       <Toaster position="top-right" />
 
       {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <PageHeader 
+      <PageHeader
         title="Aspirasi Organisasi"
         subtitle="Tampung gagasan, kritik, dan berikan tanggapan resmi atas aspirasi dari mahasiswa."
         icon="forum"
-       
-        breadcrumbs={[ { label: 'Dashboard', path: '/ormawa' }, { label: 'Aspirasi Organisasi', path: '#' } ]} 
+
+        breadcrumbs={[{ label: 'Dashboard', path: '/ormawa' }, { label: 'Aspirasi Organisasi', path: '#' }]}
       />
 
       {/* ── Statistics Summary Cards ────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {/* Total Aspirasi */}
-        <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface hover:shadow-md transition-all duration-300">
-          <CardContent className="p-6 flex items-center gap-4.5">
-            <div className="w-12 h-12 rounded-2xl bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)]">
-              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>question_answer</span>
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-[var(--theme-text-muted)] tracking-wider uppercase font-headline">Total Aspirasi Masuk</p>
-              <p className="text-2xl font-black text-[var(--theme-text)] tracking-tight font-headline">{totalAspirasi}</p>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+        <PrimaryStatsCard
+          title="Total Aspirasi Masuk"
+          value={totalAspirasi}
+          icon={QuestionAnswerIcon}
+          colorTheme="primary"
+          badgeText="Semua"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">forum</span>}
+        />
 
-        {/* Ditanggapi */}
-        <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface hover:shadow-md transition-all duration-300">
-          <CardContent className="p-6 flex items-center gap-4.5">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600">
-              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>mark_chat_read</span>
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-[var(--theme-text-muted)] tracking-wider uppercase font-headline">Sudah Ditanggapi</p>
-              <p className="text-2xl font-black text-[var(--theme-text)] tracking-tight font-headline">{answeredAspirasi}</p>
-            </div>
-          </CardContent>
-        </Card>
+        <PrimaryStatsCard
+          title="Sudah Ditanggapi"
+          value={answeredAspirasi}
+          icon={MarkChatReadIcon}
+          colorTheme="success"
+          badgeText="Selesai"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">verified</span>}
+        />
 
-        {/* Menunggu */}
-        <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface hover:shadow-md transition-all duration-300">
-          <CardContent className="p-6 flex items-center gap-4.5">
-            <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600">
-              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>quickreply</span>
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-[var(--theme-text-muted)] tracking-wider uppercase font-headline">Menunggu Tanggapan</p>
-              <p className="text-2xl font-black text-[var(--theme-text)] tracking-tight font-headline">{pendingAspirasi}</p>
-            </div>
-          </CardContent>
-        </Card>
+        <PrimaryStatsCard
+          title="Menunggu Tanggapan"
+          value={pendingAspirasi}
+          icon={QuickreplyIcon}
+          colorTheme="warning"
+          badgeText="Pending"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">schedule</span>}
+        />
 
-        {/* Rasio Respon */}
-        <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface hover:shadow-md transition-all duration-300">
-          <CardContent className="p-6 flex items-center gap-4.5">
-            <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
-              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>trending_up</span>
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-[var(--theme-text-muted)] tracking-wider uppercase font-headline">Rasio Respon</p>
-              <p className="text-2xl font-black text-[var(--theme-text)] tracking-tight font-headline">{responseRatio}%</p>
-            </div>
-          </CardContent>
-        </Card>
+        <PrimaryStatsCard
+          title="Aspirasi Ditolak"
+          value={rejectedAspirasi}
+          icon={CancelIcon}
+          colorTheme="error"
+          badgeText="Ditolak"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">cancel</span>}
+        />
       </div>
 
       {/* ── DataTable Container ──────────────────────────────────────── */}
-      <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-surface">
-        <CardContent className="p-6">
+      <div>
+        <div>
           <DataTable
-            columns={columns} 
-            data={data} 
+            columns={columns}
+            data={data}
             loading={loading}
             searchPlaceholder="Cari topik atau konten aspirasi..."
             filters={[
-              { 
-                key: 'Status', 
-                placeholder: 'Filter Status', 
+              {
+                key: 'Status',
+                placeholder: 'Filter Status',
                 options: [
-                  { label: 'Menunggu', value: 'pending' }, 
+                  { label: 'Menunggu', value: 'pending' },
                   { label: 'Ditanggapi', value: 'ditanggapi' }
-                ] 
+                ]
               }
             ]}
             actions={(row) => (
-              <Button 
-                onClick={() => { setSelected(row); setTanggapan(''); setIsDetailOpen(true) }} 
-                variant="ghost" 
-                size="icon" 
+              <Button
+                onClick={() => { setSelected(row); setTanggapan(''); setIsDetailOpen(true) }}
+                variant="ghost"
+                size="icon"
                 className="h-8 w-8 text-[var(--theme-text-subtle)] hover:text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)] rounded-xl active:scale-95 transition-all"
                 title="Lihat Detail & Tanggapi"
               >
@@ -226,98 +230,82 @@ export default function AspirationManagement() {
               </Button>
             )}
           />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-2xl p-0 overflow-hidden border border-border shadow-2xl rounded-2xl bg-surface animate-in zoom-in-95 duration-200">
-          {selected && (
-            <div className="flex flex-col">
-              {/* Header */}
-              <DialogHeader className="p-8 pb-6 bg-slate-50/50 border-b border-border relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-                  <span className="material-symbols-outlined size-24 text-slate-850">chat</span>
-                </div>
-                <div className="relative z-10 space-y-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="space-y-0.5">
-                      <p className="text-[10px] font-black text-slate-400 tracking-[0.2em] uppercase font-headline">Aspirasi ID: ASP-{selected.id || selected.ID}</p>
-                      <DialogTitle className="text-xl font-black font-headline tracking-tighter text-slate-900 leading-tight">{selected.Judul}</DialogTitle>
-                    </div>
-                    <Badge className={cn(
-                      'font-bold text-[10px] uppercase tracking-wider px-3.5 py-1 border shrink-0 rounded-full',
-                      selected.Status === 'ditanggapi' 
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
-                        : 'bg-amber-50 text-amber-700 border-amber-200'
-                    )}>
-                      {selected.Status === 'ditanggapi' ? 'Ditanggapi' : 'Menunggu'}
-                    </Badge>
-                  </div>
-                </div>
-              </DialogHeader>
-
-              {/* Dialog Content Grid */}
-              <div className="p-8 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar">
-                {/* Content Box */}
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Konten & Uraian Aspirasi</Label>
-                  <div className="text-sm font-medium text-slate-600 leading-relaxed bg-slate-50 p-5 rounded-2xl border border-slate-100">
-                    {selected.Isi || selected.Konten || '—'}
-                  </div>
-                </div>
-
-                {/* Response / Tanggapan Box */}
-                {selected.Tanggapan ? (
-                  <div className="space-y-2 animate-in fade-in duration-200">
-                    <Label className="text-[10px] font-black text-emerald-600 tracking-[0.2em] ml-1 uppercase font-headline flex items-center gap-1.5">
-                      <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>check_circle</span>
-                      Tanggapan Resmi Pengurus
-                    </Label>
-                    <div className="text-sm font-medium text-slate-600 leading-relaxed bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100">
-                      {selected.Tanggapan}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-3.5 pt-2">
-                    <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Berikan Balasan / Tanggapan Resmi</Label>
-                    <Textarea 
-                      rows={3} 
-                      value={tanggapan} 
-                      onChange={e => setTanggapan(e.target.value)}
-                      placeholder="Ketik tanggapan atau resolusi resmi dari pengurus organisasi..."
-                      className="min-h-[100px] rounded-xl border border-border bg-slate-50/50 focus:bg-white focus:ring-primary/20 focus:outline-none focus:border-primary shadow-none transition-all font-semibold text-xs leading-relaxed p-4" 
-                    />
-
-                    <Button 
-                      disabled={isSubmitting} 
-                      onClick={handleTanggapi} 
-                      className="w-full h-12 rounded-2xl bg-primary text-white hover:bg-primary/95 shadow-xl shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2 border-none"
-                    >
-                      {isSubmitting ? (
-                        <span className="material-symbols-outlined animate-spin size-4" style={{ fontSize: '16px' }}>sync</span>
-                      ) : (
-                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>send</span>
-                      )}
-                      <span className="text-[10px] font-black tracking-widest uppercase">KIRIM TANGGAPAN RESMI</span>
-                    </Button>
-                  </div>
-                )}
+      <DialogModal
+        open={isDetailOpen}
+        onOpenChange={setIsDetailOpen}
+        title={selected?.Judul || "Detail Aspirasi"}
+        subtitle={`ASP-${selected?.id || selected?.ID || ''}`}
+        description="Rincian informasi aspirasi yang masuk dari mahasiswa."
+        icon="chat"
+        maxWidth="max-w-2xl"
+        bodyClassName="p-0"
+        footer={
+          <ModalCancelButton onClick={() => setIsDetailOpen(false)}>
+            TUTUP DIALOG
+          </ModalCancelButton>
+        }
+      >
+        {selected && (
+          <div className="flex flex-col">
+            {/* Dialog Content Grid */}
+            <div className="p-6 sm:p-8 space-y-5 max-h-[60vh] overflow-y-auto no-scrollbar">
+              <div className="flex items-center justify-between gap-4 mb-2">
+                <Badge className={cn(
+                  'font-bold text-[10px] uppercase tracking-wider px-3.5 py-1 border shrink-0 rounded-full',
+                  selected.Status === 'ditanggapi'
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    : 'bg-amber-50 text-amber-700 border-amber-200'
+                )}>
+                  {selected.Status === 'ditanggapi' ? 'Ditanggapi' : 'Menunggu'}
+                </Badge>
               </div>
 
-              {/* Footer close button */}
-              <DialogFooter className="p-8 pt-6 border-t border-slate-100 flex justify-end bg-slate-50/30">
-                <Button 
-                  variant="ghost" 
-                  onClick={() => setIsDetailOpen(false)} 
-                  className="text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl active:scale-95 transition-all"
-                >
-                  TUTUP DIALOG
-                </Button>
-              </DialogFooter>
+              {/* Content Box */}
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 uppercase font-headline">Konten & Uraian Aspirasi</Label>
+                <div className="text-sm font-medium text-[var(--theme-text)] leading-relaxed bg-[var(--theme-surface)] p-5 rounded-2xl border border-[var(--theme-border)] shadow-sm">
+                  {selected.Isi || selected.Konten || '—'}
+                </div>
+              </div>
+
+              {/* Response / Tanggapan Box */}
+              {selected.Tanggapan ? (
+                <div className="space-y-2 animate-in fade-in duration-200">
+                  <Label className="text-[10px] font-black text-emerald-600 tracking-[0.2em] ml-1 uppercase font-headline flex items-center gap-1.5">
+                    <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>check_circle</span>
+                    Tanggapan Resmi Pengurus
+                  </Label>
+                  <div className="text-sm font-medium text-[var(--theme-text)] leading-relaxed bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100 shadow-sm">
+                    {selected.Tanggapan}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3.5 pt-2">
+                  <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 uppercase font-headline">Berikan Balasan / Tanggapan Resmi</Label>
+                  <Textarea
+                    rows={3}
+                    value={tanggapan}
+                    onChange={e => setTanggapan(e.target.value)}
+                    placeholder="Ketik tanggapan atau resolusi resmi dari pengurus organisasi..."
+                  />
+
+                  <ModalSaveButton
+                    label="KIRIM TANGGAPAN RESMI"
+                    icon="send"
+                    disabled={isSubmitting}
+                    loading={isSubmitting}
+                    onClick={handleTanggapi}
+                    className="w-full"
+                  />
+                </div>
+              )}
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
+          </div>
+        )}
+      </DialogModal>
     </PageContent>
   )
 }

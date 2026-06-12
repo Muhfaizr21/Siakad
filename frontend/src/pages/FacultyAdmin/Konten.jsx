@@ -232,7 +232,7 @@ export default function KontenPage() {
         </TabsList>
 
         <TabsContent value="pengumuman" className="mt-4">
-          <ResponsiveCard noPadding>
+          <div>
                <DataTable 
                   columns={columns}
                   data={articles}
@@ -267,7 +267,7 @@ export default function KontenPage() {
                     </div>
                   )}
                />
-          </ResponsiveCard>
+          </div>
         </TabsContent>
 
         <TabsContent value="kalender">

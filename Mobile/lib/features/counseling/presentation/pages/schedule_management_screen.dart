@@ -516,7 +516,7 @@ class _ScheduleManagementScreenState extends State<ScheduleManagementScreen> {
                 Switch.adaptive(
                   value: isAvailable,
                   activeColor: Colors.green,
-                  inactiveThumbColor: Colors.red,
+                  inactiveColor: Colors.red,
                   inactiveTrackColor: Colors.red.withAlpha(60),
                   onChanged: (value) => _toggleSlotAvailability(index, value),
                 ),

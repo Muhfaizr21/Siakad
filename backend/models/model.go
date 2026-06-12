@@ -27,6 +27,9 @@ type User struct {
 	Email          string `gorm:"uniqueIndex;not null" json:"email"`
 	Password       string `gorm:"column:password" json:"-"`
 	Role           string `gorm:"index" json:"role"`
+	NamaLengkap    string `json:"nama_lengkap"`
+	NoHP           string `json:"no_hp"`
+	AvatarURL      string `json:"avatar_url"`
 	FakultasID     *uint  `gorm:"index" json:"fakultas_id"`
 	ProgramStudiID *uint  `gorm:"index" json:"program_studi_id"`
 	OrmawaID       *uint  `gorm:"index" json:"ormawa_id"`

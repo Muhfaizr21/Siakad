@@ -58,6 +58,7 @@ export default function FacultyProposalApproval() {
   const [catatan, setCatatan]     = useState('')
   const [search, setSearch]       = useState('')
   const [filterStatus, setFilter] = useState('all')
+  const [filterPeriode, setFilterPeriode] = useState('all')
   const [currentPage, setCurrentPage]   = useState(1)
   const [pageSize, setPageSize]         = useState(10)
   const [sortConfig, setSortConfig]     = useState({ key: 'CreatedAt', direction: 'desc' })
@@ -84,13 +85,37 @@ export default function FacultyProposalApproval() {
 
   useEffect(() => { fetchData() }, [])
 
+  const periodeOptions = useMemo(() => {
+    const periods = new Set()
+    proposals.forEach(p => {
+      const date = p.created_at || p.CreatedAt || p.TanggalKegiatan || p.tanggal_kegiatan
+      if (date) {
+        const d = new Date(date)
+        if (!isNaN(d.getTime())) {
+          periods.add(String(d.getFullYear()))
+        }
+      }
+    })
+    return Array.from(periods).sort((a, b) => Number(b) - Number(a))
+  }, [proposals])
+
   const filtered = useMemo(() => proposals.filter(p => {
     const q = search.toLowerCase()
     const org = p.Ormawa||p.ormawa||p.Organisasi||{}
     const matchQ = !q || p.Judul?.toLowerCase().includes(q) || (org.Nama||org.nama||'').toLowerCase().includes(q)
     const matchS = filterStatus==='all' || (p.Status||'pending').toLowerCase()===filterStatus
-    return matchQ && matchS
-  }), [proposals, search, filterStatus])
+    let matchP = filterPeriode === 'all'
+    if (!matchP) {
+      const date = p.created_at || p.CreatedAt || p.TanggalKegiatan || p.tanggal_kegiatan
+      if (date) {
+        const d = new Date(date)
+        if (!isNaN(d.getTime())) {
+          matchP = String(d.getFullYear()) === filterPeriode
+        }
+      }
+    }
+    return matchQ && matchS && matchP
+  }), [proposals, search, filterStatus, filterPeriode])
 
   const sorted = useMemo(() => {
     let items = [...filtered]
@@ -265,10 +290,25 @@ export default function FacultyProposalApproval() {
             { label: `${stats.accFakultas} ACC Fakultas`, active: true }
           ]}
           actions={
-            <button onClick={fetchData} disabled={loading}
-              className="h-10 px-4 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)]/80 backdrop-blur-sm text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-muted)] hover:text-[var(--theme-primary)] hover:border-[var(--theme-primary)]/30 hover:bg-[var(--theme-bg)]/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-60 flex items-center gap-2">
-              {loading ? <span className="material-symbols-outlined animate-spin text-[var(--theme-primary)]" style={{ fontSize: '13px' }} >sync</span> : <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: 13 }}>sync</span>} Refresh Data
-            </button>
+            <div className="flex items-center gap-2">
+              <Select value={filterPeriode} onValueChange={setFilterPeriode}>
+                <SelectTrigger className="w-[160px] h-10 border border-[var(--theme-border)] bg-[var(--theme-surface)]/80 backdrop-blur-sm rounded-xl text-xs font-semibold text-[var(--theme-text-muted)] focus:ring-0">
+                  <SelectValue placeholder="Semua Tahun" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border border-[var(--theme-border)] shadow-md bg-[var(--theme-surface)]">
+                  <SelectItem value="all" className="rounded-lg text-xs py-1.5 focus:bg-[var(--theme-primary-light)] focus:text-[var(--theme-primary)]">Semua Tahun</SelectItem>
+                  {periodeOptions.map(per => (
+                    <SelectItem key={per} value={per} className="rounded-lg text-xs py-1.5 focus:bg-[var(--theme-primary-light)] focus:text-[var(--theme-primary)]">
+                      Tahun {per}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <button onClick={fetchData} disabled={loading}
+                className="h-10 px-4 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)]/80 backdrop-blur-sm text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-muted)] hover:text-[var(--theme-primary)] hover:border-[var(--theme-primary)]/30 hover:bg-[var(--theme-bg)]/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-60 flex items-center gap-2">
+                {loading ? <span className="material-symbols-outlined animate-spin text-[var(--theme-primary)]" style={{ fontSize: '13px' }} >sync</span> : <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: 13 }}>sync</span>} Refresh Data
+              </button>
+            </div>
           }
         />
 
@@ -404,7 +444,7 @@ export default function FacultyProposalApproval() {
         </div>
 
         {/* Table */}
-        <div className="bg-[var(--theme-surface)] rounded-2xl border border-[var(--theme-border)] shadow-sm overflow-hidden mb-6">
+        <div>
           <DataTable
             data={filtered}
             columns={tableColumns}

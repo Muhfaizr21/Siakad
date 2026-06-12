@@ -720,8 +720,8 @@ export default function Recruitment() {
         )}
 
       {activeTab === 'pending' && (
-        <Card className="border border-border shadow-sm overflow-hidden bg-surface rounded-2xl">
-          <CardContent className="p-0">
+        <div>
+          <div>
             <DataTable
               columns={pendingColumns}
               data={pendingApplicants}
@@ -739,13 +739,13 @@ export default function Recruitment() {
                 </div>
               )}
             />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {activeTab === 'riwayat' && (
-        <Card className="border border-border shadow-sm overflow-hidden bg-surface rounded-2xl">
-          <CardContent className="p-0">
+        <div>
+          <div>
             <DataTable
               columns={historyColumns}
               data={historyApplicants}
@@ -763,8 +763,8 @@ export default function Recruitment() {
                 </div>
               )}
             />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
     </div>
 

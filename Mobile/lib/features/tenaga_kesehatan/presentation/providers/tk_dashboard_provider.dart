@@ -64,8 +64,8 @@ class TkDashboardProvider extends ChangeNotifier {
       _belumScreening = dashboardData['belum_screening'] ?? 0;
       _perluPerhatian = dashboardData['perlu_perhatian'] ?? 0;
       _bookingHariIniCount = dashboardData['booking_hari_ini_count'] ?? 0;
-      _bookings = (dashboardData['bookings'] as List?)?.cast<Map<String, dynamic>>() ?? [];
-      _alerts = (dashboardData['alerts'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+      _bookings = (dashboardData['bookings'] as List?)?.map((e) => e as Map<String, dynamic>).toList() ?? [];
+      _alerts = (dashboardData['alerts'] as List?)?.map((e) => e as Map<String, dynamic>).toList() ?? [];
 
       _isLoading = false;
       notifyListeners();

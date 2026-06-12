@@ -2,6 +2,16 @@ import React, { useState, useEffect } from 'react';
 import useThemeStore from '../../../store/useThemeStore';
 import { adminService } from '../../../services/api';
 import ThemePreviewModal from './ThemePreviewModal';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/AlertDialog';
 
 const PRESETS = [
   {
@@ -182,6 +192,7 @@ export default function ThemePresets() {
   const [toast, setToast] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
   const [previewData, setPreviewData] = useState(null);
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, preset: null });
 
   useEffect(() => {
     loadActiveTheme();
@@ -235,11 +246,15 @@ export default function ThemePresets() {
     setShowPreview(true);
   };
 
-  const handleApply = async (preset) => {
-    if (!window.confirm(`Apakah Anda yakin ingin menerapkan preset "${preset.name}"? Ini akan mengubah warna dan tipografi portal secara instan.`)) {
-      return;
-    }
+  const handleApply = (preset) => {
+    setConfirmDialog({ isOpen: true, preset });
+  };
 
+  const executeApply = async () => {
+    const preset = confirmDialog.preset;
+    if (!preset) return;
+    
+    setConfirmDialog({ isOpen: false, preset: null });
     setApplyingPreset(preset.id);
     try {
       const payload = {
@@ -432,6 +447,37 @@ export default function ThemePresets() {
         </div>
 
       </div>
+      
+      {/* Global Alert Dialog for Confirmation */}
+      <AlertDialog open={confirmDialog.isOpen} onOpenChange={(open) => !open && setConfirmDialog({ isOpen: false, preset: null })}>
+        <AlertDialogContent className="rounded-2xl p-6 sm:p-8 bg-[var(--theme-surface)] border border-[var(--theme-border)] shadow-2xl max-w-md mx-auto text-left gap-0 font-body">
+          <AlertDialogHeader className="text-left space-y-3 mb-6">
+            <div className="w-12 h-12 rounded-full bg-amber-50 flex items-center justify-center mb-2">
+              <span className="material-symbols-outlined text-amber-600 text-2xl">warning</span>
+            </div>
+            <AlertDialogTitle className="text-xl font-black text-[var(--theme-text)] font-headline leading-tight">
+              Terapkan Preset "{confirmDialog.preset?.name}"?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-sm text-[var(--theme-text-muted)] font-medium leading-relaxed">
+              Ini akan mengubah skema warna dan pengaturan tipografi portal secara instan di seluruh sistem untuk semua pengguna. Apakah Anda yakin ingin melanjutkan?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex flex-col sm:flex-row gap-3 mt-4">
+            <AlertDialogCancel 
+              onClick={() => setConfirmDialog({ isOpen: false, preset: null })}
+              className="flex-1 h-11 rounded-xl bg-[var(--theme-surface)] text-[var(--theme-text-muted)] font-bold border border-[var(--theme-border)] hover:bg-[var(--theme-bg)] hover:text-[var(--theme-text)] transition-all m-0"
+            >
+              Batal
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={executeApply}
+              className="flex-1 h-11 rounded-xl bg-[var(--theme-primary)] text-white font-bold border-none hover:brightness-95 transition-all shadow-md shadow-[var(--theme-primary)]/20 m-0"
+            >
+              Ya, Terapkan
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

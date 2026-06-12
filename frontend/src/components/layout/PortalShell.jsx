@@ -54,7 +54,7 @@ export default function PortalShell({ config }) {
         />
 
         {/* Debug: show Outlet is rendering */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 space-y-6" style={{ backgroundColor: 'var(--theme-bg)' }}>
+        <div className="flex-1 overflow-y-auto p-3 md:p-5 lg:p-6 space-y-4" style={{ backgroundColor: 'var(--theme-bg)' }}>
           <Outlet />
         </div>
       </div>

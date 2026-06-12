@@ -375,6 +375,10 @@ export default function ProdiUsers() {
           title="Kelola Akun Prodi"
           subtitle="Buat, ubah, dan kelola akun administrator program studi di bawah fakultas Anda."
           icon="manage_accounts"
+          badges={[
+            { label: 'Administrasi Sistem', active: false },
+            { label: `${users.length} Akun Terdaftar`, active: true }
+          ]}
           actions={
             <Button
               onClick={() => { setForm(emptyForm); setIsCreateOpen(true) }}
@@ -415,36 +419,16 @@ export default function ProdiUsers() {
       </div>
 
       {/* Data Table */}
-      <Card className="glass-card shadow-sm rounded-xl overflow-hidden mt-6 mb-6">
-        <div className="px-6 py-5 border-b border-[var(--theme-border)] flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-[var(--theme-surface)]">
-          <div className="flex-1">
-            <h2 className="font-headline font-bold text-lg text-[var(--theme-text)]">Daftar Akun Prodi Admin</h2>
-            <p className="text-xs text-[var(--theme-text-muted)] mt-1 font-medium">Data administrator yang terdaftar</p>
-          </div>
-        </div>
-        <CardContent className="p-0">
-          {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <div className="flex flex-col items-center gap-3">
-                <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
-                <span className="text-sm text-neutral-400 font-medium">Memuat data akun...</span>
-              </div>
-            </div>
-          ) : users.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-              <div className="w-20 h-20 rounded-3xl bg-neutral-100 flex items-center justify-center mb-4">
-                <span className="material-symbols-outlined text-neutral-300" style={{ fontSize: 40 }}>person_off</span>
-              </div>
-              <h3 className="font-bold text-neutral-700 text-lg">Belum ada akun prodi</h3>
-              <p className="text-sm text-neutral-400 mt-1 max-w-sm">
-                Klik "Tambah Akun" untuk membuat akun administrator program studi pertama.
-              </p>
-            </div>
-          ) : (
-            <DataTable columns={columns} data={users} searchPlaceholder="Cari email atau prodi..." itemLabel="akun prodi" />
-          )}
-        </CardContent>
-      </Card>
+      <div className="mt-6 mb-6">
+        <DataTable 
+          title="Daftar Akun Prodi Admin"
+          subtitle="Data administrator yang terdaftar"
+          columns={columns} 
+          data={users} 
+          loading={loading}
+          searchPlaceholder="Cari email atau prodi..." 
+        />
+      </div>
 
       {/* ═══ CREATE MODAL ═══ */}
       <DialogModal
@@ -467,67 +451,93 @@ export default function ProdiUsers() {
           </>
         }
       >
-          <form id="create-prodi-user" noValidate onSubmit={handleCreate} className="space-y-4 text-[var(--theme-text)]">
-            <div className="space-y-1.5">
-              <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Email</label>
-              <input
-                type="email"
-                placeholder="admin.prodi@bku.ac.id"
-                value={form.email}
-                onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-                required
-                className="w-full h-10 px-3 border border-[var(--theme-border)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors font-medium"
-              />
+          <form id="create-prodi-user" noValidate onSubmit={handleCreate} className="space-y-5 text-[var(--theme-text)]">
+            
+            <div className="bg-[var(--theme-primary-light)]/30 border border-[var(--theme-primary)]/20 p-4 rounded-2xl flex gap-3 mb-2">
+              <span className="material-symbols-outlined text-[var(--theme-primary)] mt-0.5" style={{ fontSize: 20 }}>info</span>
+              <div>
+                <p className="text-xs font-bold text-[var(--theme-primary)] uppercase tracking-wider mb-0.5">Informasi Kredensial</p>
+                <p className="text-xs text-[var(--theme-text-muted)] font-medium leading-relaxed">
+                  Email dan password ini akan digunakan oleh pengurus program studi untuk masuk ke portal admin.
+                </p>
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Password</label>
-              <input
-                type="password"
-                placeholder="Minimal 6 karakter"
-                value={form.password}
-                onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-                required
-                className="w-full h-10 px-3 border border-[var(--theme-border)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors font-medium"
-              />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="space-y-2">
+                <label className="block text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Alamat Email</label>
+                <div className="relative">
+                  <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--theme-text-subtle)]" style={{ fontSize: 18 }}>mail</span>
+                  <input
+                    type="email"
+                    placeholder="admin.prodi@bku.ac.id"
+                    value={form.email}
+                    onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                    required
+                    className="w-full h-11 pl-10 pr-3 border border-[var(--theme-border)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors font-semibold shadow-sm"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="block text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Kata Sandi Akses</label>
+                <div className="relative">
+                  <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--theme-text-subtle)]" style={{ fontSize: 18 }}>lock</span>
+                  <input
+                    type="password"
+                    placeholder="Minimal 6 karakter"
+                    value={form.password}
+                    onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                    required
+                    className="w-full h-11 pl-10 pr-3 border border-[var(--theme-border)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors font-semibold shadow-sm"
+                  />
+                </div>
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Program Studi</label>
-              <SearchableSelect
-                value={form.program_studi_id}
-                onChange={val => setForm(f => ({ ...f, program_studi_id: val }))}
-                options={Object.values(prodis.reduce((acc, p) => {
-                  const nama = p.nama || p.Nama || p.name || "";
-                  if (!acc[nama]) {
-                    acc[nama] = {
-                      value: p.id || p.ID,
-                      label: nama
-                    };
-                  }
-                  return acc;
-                }, {}))}
-                placeholder="— Pilih Program Studi —"
-                searchPlaceholder="Cari program studi..."
-                required
-                direction="down"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Role / Jabatan</label>
-              <SearchableSelect
-                value={form.ormawa_assign}
-                onChange={val => setForm(f => ({ ...f, ormawa_assign: val }))}
-                options={roles.map(r => ({
-                  value: r.nama || r.Nama,
-                  label: r.nama || r.Nama
-                }))}
-                placeholder="— Pilih Role —"
-                searchPlaceholder="Cari role..."
-                required
-                direction="down"
-              />
-              <p className="text-[10px] text-[var(--theme-text-subtle)] font-medium mt-1 leading-normal">
-                Role dibuat di halaman <span className="font-semibold text-[var(--theme-primary)]">Role & Akses (RBAC)</span>
-              </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="space-y-2">
+                <label className="block text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Program Studi</label>
+                <div className="relative">
+                  <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--theme-text-subtle)] z-10 pointer-events-none" style={{ fontSize: 18 }}>school</span>
+                  <div className="[&_input]:pl-10 [&_input]:h-11 [&_input]:font-semibold [&_input]:shadow-sm">
+                    <SearchableSelect
+                      value={form.program_studi_id}
+                      onChange={val => setForm(f => ({ ...f, program_studi_id: val }))}
+                      options={Object.values(prodis.reduce((acc, p) => {
+                        const nama = p.nama || p.Nama || p.name || "";
+                        if (!acc[nama]) {
+                          acc[nama] = { value: p.id || p.ID, label: nama };
+                        }
+                        return acc;
+                      }, {}))}
+                      placeholder="Pilih Program Studi"
+                      searchPlaceholder="Cari program studi..."
+                      required
+                      direction="up"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <label className="block text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Role / Jabatan</label>
+                  <span className="text-[9px] font-bold text-[var(--theme-primary)] uppercase tracking-wider bg-[var(--theme-primary-light)] px-1.5 py-0.5 rounded">Wajib</span>
+                </div>
+                <div className="relative">
+                  <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--theme-text-subtle)] z-10 pointer-events-none" style={{ fontSize: 18 }}>admin_panel_settings</span>
+                  <div className="[&_input]:pl-10 [&_input]:h-11 [&_input]:font-semibold [&_input]:shadow-sm">
+                    <SearchableSelect
+                      value={form.ormawa_assign}
+                      onChange={val => setForm(f => ({ ...f, ormawa_assign: val }))}
+                      options={roles.map(r => ({ value: r.nama || r.Nama, label: r.nama || r.Nama }))}
+                      placeholder="Pilih Role (RBAC)"
+                      searchPlaceholder="Cari role..."
+                      required
+                      direction="up"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
 
           </form>
@@ -554,63 +564,88 @@ export default function ProdiUsers() {
           </>
         }
       >
-          <form id="edit-prodi-user" noValidate onSubmit={handleEdit} className="space-y-4 text-[var(--theme-text)]">
-            <div className="space-y-1.5">
-              <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Email</label>
-              <input
-                type="email"
-                value={form.email}
-                onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-                required
-                className="w-full h-10 px-3 border border-[var(--theme-border)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors font-medium"
-              />
+          <form id="edit-prodi-user" noValidate onSubmit={handleEdit} className="space-y-5 text-[var(--theme-text)]">
+            
+            <div className="bg-[var(--theme-warning-light)]/30 border border-[var(--theme-warning)]/20 p-4 rounded-2xl flex gap-3 mb-2">
+              <span className="material-symbols-outlined text-[var(--theme-warning)] mt-0.5" style={{ fontSize: 20 }}>edit_note</span>
+              <div>
+                <p className="text-xs font-bold text-[var(--theme-warning)] uppercase tracking-wider mb-0.5">Edit Kredensial</p>
+                <p className="text-xs text-[var(--theme-text-muted)] font-medium leading-relaxed">
+                  Kosongkan kata sandi akses jika Anda tidak ingin mereset password akun ini.
+                </p>
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Password Baru</label>
-              <input
-                type="password"
-                placeholder="Kosongkan jika tidak ingin mengubah"
-                value={form.password}
-                onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-                className="w-full h-10 px-3 border border-[var(--theme-border)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors font-medium"
-              />
-              <p className="text-[10px] text-[var(--theme-text-subtle)] font-medium mt-1 leading-normal">Biarkan kosong untuk mempertahankan password lama</p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="space-y-2">
+                <label className="block text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Alamat Email</label>
+                <div className="relative">
+                  <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--theme-text-subtle)]" style={{ fontSize: 18 }}>mail</span>
+                  <input
+                    type="email"
+                    value={form.email}
+                    onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                    required
+                    className="w-full h-11 pl-10 pr-3 border border-[var(--theme-border)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors font-semibold shadow-sm"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="block text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Password Baru (Opsional)</label>
+                <div className="relative">
+                  <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--theme-text-subtle)]" style={{ fontSize: 18 }}>lock_reset</span>
+                  <input
+                    type="password"
+                    placeholder="Kosongkan untuk tetap sama"
+                    value={form.password}
+                    onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                    className="w-full h-11 pl-10 pr-3 border border-[var(--theme-border)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors font-semibold shadow-sm"
+                  />
+                </div>
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Program Studi</label>
-              <SearchableSelect
-                value={form.program_studi_id}
-                onChange={val => setForm(f => ({ ...f, program_studi_id: val }))}
-                options={Object.values(prodis.reduce((acc, p) => {
-                  const nama = p.nama || p.Nama || p.name || "";
-                  if (!acc[nama]) {
-                    acc[nama] = {
-                      value: p.id || p.ID,
-                      label: nama
-                    };
-                  }
-                  return acc;
-                }, {}))}
-                placeholder="— Pilih Program Studi —"
-                searchPlaceholder="Cari program studi..."
-                required
-                direction="down"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Role / Jabatan</label>
-              <SearchableSelect
-                value={form.ormawa_assign}
-                onChange={val => setForm(f => ({ ...f, ormawa_assign: val }))}
-                options={roles.map(r => ({
-                  value: r.nama || r.Nama,
-                  label: r.nama || r.Nama
-                }))}
-                placeholder="— Pilih Role —"
-                searchPlaceholder="Cari role..."
-                required
-                direction="down"
-              />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="space-y-2">
+                <label className="block text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Program Studi</label>
+                <div className="relative">
+                  <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--theme-text-subtle)] z-10 pointer-events-none" style={{ fontSize: 18 }}>school</span>
+                  <div className="[&_input]:pl-10 [&_input]:h-11 [&_input]:font-semibold [&_input]:shadow-sm">
+                    <SearchableSelect
+                      value={form.program_studi_id}
+                      onChange={val => setForm(f => ({ ...f, program_studi_id: val }))}
+                      options={Object.values(prodis.reduce((acc, p) => {
+                        const nama = p.nama || p.Nama || p.name || "";
+                        if (!acc[nama]) {
+                          acc[nama] = { value: p.id || p.ID, label: nama };
+                        }
+                        return acc;
+                      }, {}))}
+                      placeholder="Pilih Program Studi"
+                      searchPlaceholder="Cari program studi..."
+                      required
+                      direction="up"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="block text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Role / Jabatan</label>
+                <div className="relative">
+                  <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--theme-text-subtle)] z-10 pointer-events-none" style={{ fontSize: 18 }}>admin_panel_settings</span>
+                  <div className="[&_input]:pl-10 [&_input]:h-11 [&_input]:font-semibold [&_input]:shadow-sm">
+                    <SearchableSelect
+                      value={form.ormawa_assign}
+                      onChange={val => setForm(f => ({ ...f, ormawa_assign: val }))}
+                      options={roles.map(r => ({ value: r.nama || r.Nama, label: r.nama || r.Nama }))}
+                      placeholder="Pilih Role (RBAC)"
+                      searchPlaceholder="Cari role..."
+                      required
+                      direction="up"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
 
           </form>

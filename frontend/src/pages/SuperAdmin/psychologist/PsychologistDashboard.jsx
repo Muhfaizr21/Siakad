@@ -11,9 +11,16 @@ import { SelectField, SelectOption } from '@/components/ui/SelectField'
 import { DataTable } from '@/components/ui/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
+import { DialogModal, ModalCancelButton, ModalSaveButton } from '@/components/ui/DialogModal'
 import { Card, CardContent } from '@/components/ui/Card'
+import { PrimaryStatsCard } from '@/components/ui/StatsCard'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts"
+
+const Group = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>group</span>;
+const TaskAlt = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>task_alt</span>;
+const Analytics = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>analytics</span>;
+const ForwardToInbox = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>forward_to_inbox</span>;
+const CalendarMonth = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>calendar_month</span>;
 
 export default function PsychologistDashboard() {
   const [data, setData] = useState([])
@@ -314,7 +321,7 @@ export default function PsychologistDashboard() {
       key: 'topik',
       label: 'Topik',
       className: 'w-[120px]',
-      render: v => <span className="text-[9px] font-bold text-[var(--theme-primary)] bg-[var(--theme-primary-light)] px-2.5 py-0.5 rounded-lg border border-[var(--theme-primary)]/10">{v || 'Lainnya'}</span>
+      render: v => <span className="text-[9px] font-bold text-[var(--theme-primary)] bg-[var(--theme-primary-light)] px-2.5 py-0.5 rounded-lg border border-[var(--theme-primary)]/10 whitespace-nowrap">{v || 'Lainnya'}</span>
     },
     {
       key: 'mode',
@@ -377,100 +384,37 @@ export default function PsychologistDashboard() {
       ) : (
         <div className="space-y-6">
           {/* ── Stats Grid ──────────────────────────────────────────── */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-            {/* Card 1: Total Psikolog */}
-            <div className="bg-[var(--theme-surface)] rounded-2xl p-5 border border-[var(--theme-border)] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between text-left">
-              <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-xl">group</span>
-                  </div>
-                  <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Total Psikolog</span>
-                </div>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-2xl font-black text-[var(--theme-text)] font-headline">{data.length}</span>
-                  <span className="text-[10px] font-semibold text-[var(--theme-text-muted)]">Ahli</span>
-                </div>
-              </div>
-              <p className="text-[10px] text-[var(--theme-text-muted)]/70 font-medium mt-3 leading-normal border-t border-[var(--theme-border-muted)] pt-2.5">
-                Tenaga ahli terdaftar
-              </p>
-            </div>
-
-            {/* Card 2: Tingkat Penyelesaian */}
-            <div className="bg-[var(--theme-surface)] rounded-2xl p-5 border border-[var(--theme-border)] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between text-left">
-              <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-info/10 text-info border border-info/20 flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-xl">task_alt</span>
-                  </div>
-                  <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Penyelesaian</span>
-                </div>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-2xl font-black text-[var(--theme-text)] font-headline">{stats.tingkatPenyelesaian}</span>
-                </div>
-              </div>
-              <p className="text-[10px] text-[var(--theme-text-muted)]/70 font-medium mt-3 leading-normal border-t border-[var(--theme-border-muted)] pt-2.5">
-                Rasio sesi konseling selesai
-              </p>
-            </div>
-
-            {/* Card 3: Rerata Beban Kerja */}
-            <div className="bg-[var(--theme-surface)] rounded-2xl p-5 border border-[var(--theme-border)] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between text-left">
-              <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-success/10 text-success border border-success/20 flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-xl">analytics</span>
-                  </div>
-                  <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Beban Kerja</span>
-                </div>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-2xl font-black text-[var(--theme-text)] font-headline">{stats.rerataBebanKerja}</span>
-                  <span className="text-[10px] font-semibold text-[var(--theme-text-muted)]">Sesi/Aktif</span>
-                </div>
-              </div>
-              <p className="text-[10px] text-[var(--theme-text-muted)]/70 font-medium mt-3 leading-normal border-t border-[var(--theme-border-muted)] pt-2.5">
-                Sesi / psikolog aktif
-              </p>
-            </div>
-
-            {/* Card 4: Rujukan Eksternal */}
-            <div className="bg-[var(--theme-surface)] rounded-2xl p-5 border border-[var(--theme-border)] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between text-left">
-              <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-secondary/10 text-secondary border border-secondary/20 flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-xl">forward_to_inbox</span>
-                  </div>
-                  <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Rujukan</span>
-                </div>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-2xl font-black text-[var(--theme-text)] font-headline">{filteredReferrals.length}</span>
-                  <span className="text-[10px] font-semibold text-[var(--theme-text-muted)]">Surat</span>
-                </div>
-              </div>
-              <p className="text-[10px] text-[var(--theme-text-muted)]/70 font-medium mt-3 leading-normal border-t border-[var(--theme-border-muted)] pt-2.5">
-                Surat rujukan dikirim
-              </p>
-            </div>
-
-            {/* Card 5: Booking Hari Ini */}
-            <div className="bg-[var(--theme-surface)] rounded-2xl p-5 border border-[var(--theme-border)] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between text-left">
-              <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-error/10 text-error border border-error/20 flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-xl">calendar_month</span>
-                  </div>
-                  <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Hari Ini</span>
-                </div>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-2xl font-black text-[var(--theme-text)] font-headline">{getTodayBookingsCount()}</span>
-                  <span className="text-[10px] font-semibold text-[var(--theme-text-muted)]">Sesi</span>
-                </div>
-              </div>
-              <p className="text-[10px] text-[var(--theme-text-muted)]/70 font-medium mt-3 leading-normal border-t border-[var(--theme-border-muted)] pt-2.5">
-                Janji temu hari ini
-              </p>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5">
+            <PrimaryStatsCard
+              title="Total Psikolog"
+              value={<>{data.length} <span className="text-sm font-bold text-slate-400">Ahli</span></>}
+              icon={Group}
+              colorTheme="primary"
+            />
+            <PrimaryStatsCard
+              title="Penyelesaian"
+              value={stats.tingkatPenyelesaian}
+              icon={TaskAlt}
+              colorTheme="info"
+            />
+            <PrimaryStatsCard
+              title="Beban Kerja"
+              value={<>{stats.rerataBebanKerja} <span className="text-sm font-bold text-slate-400">Sesi/Aktif</span></>}
+              icon={Analytics}
+              colorTheme="success"
+            />
+            <PrimaryStatsCard
+              title="Rujukan"
+              value={<>{filteredReferrals.length} <span className="text-sm font-bold text-slate-400">Surat</span></>}
+              icon={ForwardToInbox}
+              colorTheme="secondary"
+            />
+            <PrimaryStatsCard
+              title="Hari Ini"
+              value={<>{getTodayBookingsCount()} <span className="text-sm font-bold text-slate-400">Sesi</span></>}
+              icon={CalendarMonth}
+              colorTheme="error"
+            />
           </div>
 
           {/* ── Quick Actions Panel ─────────────────────────────────── */}
@@ -631,7 +575,7 @@ export default function PsychologistDashboard() {
                 />
                 
                 {insightsTab === 'list' ? (
-                  <div className="mt-4 space-y-3 flex-1">
+                  <div className="mt-4 space-y-3 flex-1 max-h-[400px] overflow-y-auto no-scrollbar pr-2">
                     {data.length > 0 ? (
                       data.map((p) => {
                         const psId = p.id || p.ID;
@@ -797,50 +741,56 @@ export default function PsychologistDashboard() {
           </div>
 
           {/* ── Detailed Booking History Table ─────────────────────── */}
-          <PageCard>
-            <PageCardHeader title="Riwayat & Agenda Booking Konseling" icon="calendar_month" />
-            <div className="mt-4 animate-in fade-in duration-300">
+          <Card className="glass-card shadow-sm rounded-xl overflow-hidden mt-6 mb-6">
+            <div className="px-6 py-5 border-b border-[var(--theme-border)] flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-[var(--theme-surface)]">
+              <div className="flex-1">
+                <h2 className="font-headline font-bold text-lg text-[var(--theme-text)]">Riwayat & Agenda Booking Konseling</h2>
+                <p className="text-xs text-[var(--theme-text-muted)] mt-1 font-medium">
+                  Menampilkan data sesi konseling seluruh psikolog sesuai filter aktif.
+                </p>
+              </div>
+            </div>
+            <CardContent className="p-0 animate-in fade-in duration-300">
               <DataTable
                 columns={bookingColumns}
                 data={filteredBookings}
                 loading={loading}
                 searchPlaceholder="Cari Nama Mahasiswa, NIM, atau Topik..."
-                onRowClick={(row) => { setDetailItem(row); setIsDetailOpen(true); }}
                 actions={(row) => (
-                  <button
-                    onClick={() => { setDetailItem(row); setIsDetailOpen(true); }}
-                    className="p-1.5 rounded-lg hover:bg-[var(--theme-primary-light)] text-[var(--theme-text-muted)] hover:text-[var(--theme-primary)] transition-all"
-                    title="Lihat Detail"
-                  >
-                    <span className="material-symbols-outlined text-base">visibility</span>
-                  </button>
+                  <div className="flex items-center gap-1.5">
+                    <Button
+                      onClick={() => { setDetailItem(row); setIsDetailOpen(true); }}
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-slate-400 hover:text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)] rounded-lg transition-colors shadow-none cursor-pointer"
+                      title="Lihat Detail"
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>visibility</span>
+                    </Button>
+                  </div>
                 )}
               />
-            </div>
-          </PageCard>
+            </CardContent>
+          </Card>
         </div>
       )}
 
       {/* ── Booking Detail Dialog Modal ───────────────────────────── */}
-      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen} maxWidth="max-w-2xl">
-        <DialogContent>
-          <DialogHeader className="relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-5 text-bku-primary"><span className="material-symbols-outlined rotate-12" style={{ fontSize: '100px' }} >calendar_month</span></div>
-            <div className="relative z-10 space-y-1">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
-                  <span className="material-symbols-outlined text-[12px]" >visibility</span>
-                </div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-bku-primary font-jakarta">Detail Booking Sesi</span>
-              </div>
-              <DialogTitle className="text-xl sm:text-2xl font-black font-jakarta tracking-tight text-slate-800 uppercase">
-                Informasi Booking Konseling
-              </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm font-medium text-slate-500 font-inter">Detail reservasi sesi bimbingan konseling.</DialogDescription>
-            </div>
-          </DialogHeader>
-
-          <div className="p-6 md:p-8 space-y-6 max-h-[50vh] overflow-y-auto no-scrollbar font-jakarta">
+      <DialogModal
+        open={isDetailOpen}
+        onOpenChange={setIsDetailOpen}
+        icon="calendar_month"
+        title="Informasi Booking Konseling"
+        subtitle="Detail reservasi sesi bimbingan konseling."
+        badgeText="Detail Booking Sesi"
+        maxWidth="max-w-xl"
+        bodyClassName="p-6 md:p-8 space-y-6 font-jakarta max-h-[60vh] overflow-y-auto no-scrollbar"
+        footer={
+          <ModalCancelButton onClick={() => setIsDetailOpen(false)}>
+            Tutup Detail
+          </ModalCancelButton>
+        }
+      >
             {detailItem && (
               <>
                 {/* Mahasiswa Info Section */}
@@ -937,19 +887,7 @@ export default function PsychologistDashboard() {
                 </div>
               </>
             )}
-          </div>
-
-          <DialogFooter>
-            <button
-              type="button"
-              onClick={() => setIsDetailOpen(false)}
-              className="flex-1 sm:flex-initial h-12 px-6 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-body cursor-pointer"
-            >
-              Tutup Detail
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      </DialogModal>
     </PageContent>
   )
 }

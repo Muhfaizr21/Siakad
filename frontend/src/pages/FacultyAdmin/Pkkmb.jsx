@@ -174,6 +174,7 @@ export default function FacultyPkkmb() {
   const [summary, setSummary] = useState({ totalMaba: 0, totalLulus: 0, totalProses: 0, totalSertifikat: 0 })
   const [search, setSearch] = useState('')
   const [filterStatus, setFilter] = useState('all')
+  const [filterPeriod, setFilterPeriod] = useState('all')
   const [selected, setSelected] = useState(null)
 
   const [statsDetail, setStatsDetail] = useState(null)
@@ -235,6 +236,14 @@ export default function FacultyPkkmb() {
 
   useEffect(() => { fetchSummary(); fetchStudents() }, [])
 
+  const filteredStudents = useMemo(() => {
+    return students.filter(s => {
+      if (filterPeriod === 'all') return true;
+      const angkatan = s.Mahasiswa?.angkatan || s.Mahasiswa?.TahunMasuk || (s.Mahasiswa?.NIM ? `20${s.Mahasiswa.NIM.substring(0,2)}` : null);
+      return String(angkatan) === filterPeriod;
+    });
+  }, [students, filterPeriod]);
+
   return (
     <PageContent>
       <Toaster position="top-right" />
@@ -249,10 +258,24 @@ export default function FacultyPkkmb() {
           { label: `${summary.totalMaba} Registrasi Maba`, active: true }
         ]}
         actions={
-          <button onClick={() => { fetchSummary(); fetchStudents() }} disabled={loading}
-            className="h-10 px-4 rounded-xl border border-[var(--theme-border-muted)] bg-[var(--theme-bg)]/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-[var(--theme-text-muted)] hover:text-[var(--theme-primary)] hover:border-[var(--theme-primary)]/30 hover:bg-[var(--theme-surface)] shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-60 flex items-center gap-2">
-            {loading ? <span className="material-symbols-outlined animate-spin text-[var(--theme-primary)]" style={{ fontSize: '13px' }}>sync</span> : <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: 13 }}>sync</span>} Refresh Data
-          </button>
+          <div className="flex items-center gap-2">
+            <Select value={filterPeriod} onValueChange={setFilterPeriod}>
+              <SelectTrigger className="w-[180px] h-10 bg-[var(--theme-bg)]/80 backdrop-blur-sm border-[var(--theme-border-muted)] font-bold text-xs text-[var(--theme-text-muted)] hover:border-[var(--theme-primary)]/30 focus:ring-0">
+                <SelectValue placeholder="Semua Periode" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Periode</SelectItem>
+                <SelectItem value="2024">Angkatan 2024</SelectItem>
+                <SelectItem value="2023">Angkatan 2023</SelectItem>
+                <SelectItem value="2022">Angkatan 2022</SelectItem>
+                <SelectItem value="2021">Angkatan 2021</SelectItem>
+              </SelectContent>
+            </Select>
+            <button onClick={() => { fetchSummary(); fetchStudents() }} disabled={loading}
+              className="h-10 px-4 rounded-xl border border-[var(--theme-border-muted)] bg-[var(--theme-bg)]/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-[var(--theme-text-muted)] hover:text-[var(--theme-primary)] hover:border-[var(--theme-primary)]/30 hover:bg-[var(--theme-surface)] shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-60 flex items-center gap-2 shrink-0">
+              {loading ? <span className="material-symbols-outlined animate-spin text-[var(--theme-primary)]" style={{ fontSize: '13px' }}>sync</span> : <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: 13 }}>sync</span>} Refresh Data
+            </button>
+          </div>
         }
       />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
@@ -502,7 +525,7 @@ export default function FacultyPkkmb() {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-[var(--theme-border)] overflow-hidden">
+      <div>
         {activeTab === 'prodi' ? (
           <DataTable
             data={data}
@@ -513,7 +536,7 @@ export default function FacultyPkkmb() {
           />
         ) : (
           <DataTable
-            data={students}
+            data={filteredStudents}
             columns={studentColumns}
             searchable={true}
             searchPlaceholder="Cari nama atau NIM..."

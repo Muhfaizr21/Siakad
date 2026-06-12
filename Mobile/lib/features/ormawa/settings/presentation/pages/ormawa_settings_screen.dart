@@ -252,7 +252,7 @@ class _OrmawaSettingsScreenState extends State<OrmawaSettingsScreen> {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeThumbColor: AppColors.primary,
+            activeColor: AppColors.primary,
             activeTrackColor: AppColors.primary.withAlpha(50),
           ),
         ],

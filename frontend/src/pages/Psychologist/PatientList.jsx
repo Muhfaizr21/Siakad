@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { psychologistService } from '../../services/api';
+import { DashboardHero } from '@/components/ui/dashboard';
 import { DataTable } from '@/components/ui/DataTable';
 import { PrimaryStatsCard } from '@/components/ui/StatsCard';
 
@@ -178,61 +179,7 @@ export default function PatientList() {
     <>
       <div className="w-full relative space-y-6 scroll-smooth">
           
-          {/* ── Welcome Banner ─────────────────────────────────────────── */}
-          <section className="relative overflow-hidden rounded-2xl p-6 md:p-8 flex flex-col xl:flex-row xl:items-center gap-6 group shadow-sm border border-slate-200/60 bg-white">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-50/80 via-white to-slate-50/80" />
-            <div className="absolute inset-0 opacity-[0.02]"
-              style={{
-                backgroundImage: `radial-gradient(circle at 20% 50%, black 1px, transparent 1px), radial-gradient(circle at 80% 20%, black 1px, transparent 1px)`,
-                backgroundSize: '40px 40px'
-              }}
-            />
-            <div className="absolute -top-20 -right-20 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
-            <div className="absolute -bottom-10 left-20 w-48 h-48 bg-emerald-400/5 rounded-full blur-2xl" />
-
-            <div className="relative z-10 flex-1 flex flex-col justify-center gap-3">
-              <div className="flex items-center gap-4">
-                 <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/[0.02] border border-primary/10 flex items-center justify-center text-primary shrink-0 shadow-sm relative overflow-hidden">
-                    <span className="material-symbols-outlined text-primary relative z-10" style={{ fontSize: '26px' }}>medical_information</span>
-                 </div>
-                 <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-primary/5 text-primary border border-primary/10">
-                        Rekam Medis Klinis
-                      </span>
-                    </div>
-                    <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight font-headline leading-none">
-                      Daftar Pasien
-                    </h1>
-                    <p className="mt-2 text-xs md:text-sm font-medium text-slate-500 leading-relaxed max-w-xl">
-                      Pantau riwayat sesi, rekam medis klinis, dan status psikologis mahasiswa secara terpusat dan aman.
-                    </p>
-                 </div>
-              </div>
-            </div>
-            
-            <div className="relative z-10 shrink-0 mt-2 xl:mt-0">
-              <button 
-                onClick={async () => {
-                  try {
-                    await psychologistService.downloadRecapMedicalRecordPDF({
-                      fakultas: selectedFakultas,
-                      prodi: selectedProdi,
-                      status: filterStatus,
-                      start_date: startDate,
-                      end_date: endDate
-                    });
-                  } catch (err) {
-                    alert(err.message || 'Gagal mengunduh Rekap PDF');
-                  }
-                }}
-                className="flex items-center justify-center w-10 h-10 rounded-xl border border-slate-200 bg-white text-slate-500 hover:text-primary hover:border-primary/30 transition-all shadow-sm"
-                title="Download Rekap Rekam Medis PDF"
-              >
-                <span className="material-symbols-outlined text-[20px] shrink-0">download</span>
-              </button>
-            </div>
-          </section>
+          <DashboardHero title="Daftar" highlightedTitle="Pasien" subtitle="Lihat profil riwayat konseling dari seluruh mahasiswa yang terdaftar." icon="groups" badges={[{ label: 'Database Pasien', active: false }]} />
 
           {/* ── Filter Bar Card ──────────────────────────────────────────── */}
           <section className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-5 space-y-5 relative overflow-hidden group">
@@ -435,4 +382,6 @@ export default function PatientList() {
     </>
   );
 }
+
+
 

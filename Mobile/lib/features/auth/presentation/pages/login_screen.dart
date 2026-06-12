@@ -60,6 +60,8 @@ class _LoginScreenState extends State<LoginScreen> {
           context.go(AppRoutes.ormawaMain);
         } else if (_authService.currentRole == UserRole.psychologist) {
           context.go(AppRoutes.psychologistMain);
+        } else if (_authService.currentRole == UserRole.tenagaKesehatan) {
+          context.go(AppRoutes.tkMain);
         } else {
           context.go(AppRoutes.studentMain);
         }
