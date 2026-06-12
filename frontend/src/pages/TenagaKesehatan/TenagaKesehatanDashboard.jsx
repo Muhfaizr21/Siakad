@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { tenagaKesehatanService } from '../../services/api';
 import { PageContent, PageCard, PageCardHeader } from '@/components/ui/page';
-import { DashboardHero, DashboardStatGrid, DashboardStatCard } from '@/components/ui/dashboard';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, CartesianGrid } from 'recharts';
-
+import { DashboardHero } from '@/components/ui/dashboard';
+import { PrimaryStatsCard } from '@/components/ui/StatsCard';
+import EmptyState from '@/components/ui/EmptyState';
 export default function TenagaKesehatanDashboard() {
   const [dashboard, setDashboard] = useState(null);
   const [isAvailable, setIsAvailable] = useState(true);
@@ -33,57 +33,48 @@ export default function TenagaKesehatanDashboard() {
   const alerts = dashboard?.alerts || [];
   const profileName = dashboard?.profile?.nama || 'Tenaga Kesehatan';
   
-  const chartData = dashboard?.chart_data || {};
-  const chartFakultas = chartData.fakultas || [];
-  const chartKondisi = chartData.kondisi || [];
-  const chartTren = chartData.tren || [];
-
-  const KONDISI_COLORS = {
-    'Prima': 'var(--theme-success, #10b981)',
-    'Pantauan': 'var(--theme-warning, #f59e0b)',
-    'Kritis': 'var(--theme-error, #ef4444)'
-  };
-
-  const handleToggleAvailability = async () => {
-    const newStatus = !isAvailable;
-    try {
-      setIsAvailable(newStatus);
-      await tenagaKesehatanService.updateProfile({ is_aktif: newStatus });
-      const res = await tenagaKesehatanService.getDashboard();
-      setDashboard(res.data);
-    } catch (err) {
-      alert('Gagal mengubah status ketersediaan');
-      setIsAvailable(!newStatus);
-    }
-  };
+  const antreanAktif = bookings.filter(b => b.status === 'Menunggu' || b.status === 'Dikonfirmasi' || b.status === 'Menunggu Konfirmasi').length;
 
   const statCards = [
     { 
-      label: 'Diperiksa Hari Ini', 
+      title: 'Diperiksa Hari Ini', 
       value: totalDiperiksa, 
       icon: 'done_all', 
-      colorClass: 'text-success', 
-      bgClass: 'bg-success/10 border border-success/20', 
-      accentGradient: 'from-success/10',
-      badge: { text: 'SELESAI' }
+      colorTheme: 'success', 
+      badgeText: 'Selesai',
+      badgeIcon: <span className="material-symbols-outlined text-[12px]">check_circle</span>
     },
     { 
-      label: 'Belum Screening', 
+      title: 'Total Booking', 
+      value: bookingCount, 
+      icon: 'calendar_month', 
+      colorTheme: 'primary', 
+      badgeText: 'Hari Ini',
+      badgeIcon: <span className="material-symbols-outlined text-[12px]">today</span>
+    },
+    { 
+      title: 'Antrean Aktif', 
+      value: antreanAktif, 
+      icon: 'pending_actions', 
+      colorTheme: 'info', 
+      badgeText: 'Menunggu',
+      badgeIcon: <span className="material-symbols-outlined text-[12px]">hourglass_empty</span>
+    },
+    { 
+      title: 'Belum Screening', 
       value: belumScreening, 
       icon: 'group', 
-      colorClass: 'text-primary', 
-      bgClass: 'bg-primary/10 border border-primary/20', 
-      accentGradient: 'from-primary/10',
-      badge: { text: 'ANTREAN' }
+      colorTheme: 'warning', 
+      badgeText: 'Mahasiswa',
+      badgeIcon: <span className="material-symbols-outlined text-[12px]">group</span>
     },
     { 
-      label: 'Perlu Perhatian', 
+      title: 'Perlu Perhatian', 
       value: perluPerhatian, 
-      icon: 'favorite', 
-      colorClass: 'text-error', 
-      bgClass: 'bg-error/10 border border-error/20', 
-      accentGradient: 'from-error/10',
-      badge: { text: perluPerhatian > 0 ? 'KRITIS' : 'AMAN', icon: perluPerhatian > 0 ? 'warning' : 'check' }
+      icon: 'emergency', 
+      colorTheme: perluPerhatian > 0 ? 'error' : 'success', 
+      badgeText: perluPerhatian > 0 ? 'Kritis' : 'Aman',
+      badgeIcon: <span className="material-symbols-outlined text-[12px]">{perluPerhatian > 0 ? 'warning' : 'check'}</span>
     }
   ];
 
@@ -154,47 +145,36 @@ export default function TenagaKesehatanDashboard() {
       />
 
       {/* Stats Cards */}
-      <DashboardStatGrid>
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-5 mb-6">
         {statCards.map((card, i) => (
-          <DashboardStatCard key={i} {...card} />
+          <PrimaryStatsCard key={i} {...card} />
         ))}
-      </DashboardStatGrid>
+      </div>
 
-      {/* Two-Column Bento Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
-        {/* Left Column (Col 4) */}
-        <div className="lg:col-span-4 space-y-6">
-          {/* Distribusi Fakultas (Bar Chart) */}
-          <PageCard>
-            <PageCardHeader
-              title="Distribusi Demografi Fakultas"
-              description="Asal fakultas mahasiswa yang diperiksa"
-              icon="bar_chart"
-            />
-            <div className="h-64 mt-4">
-              {chartFakultas.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartFakultas} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--theme-border)" />
-                    <XAxis dataKey="name" tick={{ fontSize: 10, fill: 'var(--theme-text-muted)' }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 10, fill: 'var(--theme-text-muted)' }} axisLine={false} tickLine={false} />
-                    <Tooltip
-                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                      itemStyle={{ color: 'var(--theme-text)', fontSize: '12px' }}
-                      labelStyle={{ color: 'var(--theme-text-muted)', fontSize: '12px', fontWeight: 'bold', marginBottom: '4px' }}
-                    />
-                    <Bar dataKey="value" fill="var(--theme-primary)" radius={[4, 4, 0, 0]} barSize={30} />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="flex items-center justify-center h-full text-xs text-[var(--theme-text-muted)]">Belum ada data distribusi fakultas.</div>
-              )}
+      {/* Quick Access Services - Horizontal */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {services.map((item, i) => (
+          <button 
+            key={i} 
+            onClick={() => navigate(item.path)} 
+            className="group relative flex items-center p-4 bg-[var(--theme-surface)] hover:bg-[var(--theme-primary-light)]/20 rounded-2xl border border-[var(--theme-border)] hover:border-[var(--theme-primary)]/40 transition-all duration-300 w-full overflow-hidden shadow-sm hover:shadow-md active:scale-95 cursor-pointer gap-4"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div 
+              className="size-10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-sm bg-[var(--theme-primary-light)] text-[var(--theme-primary)]"
+            >
+              <span className="material-symbols-outlined text-xl">{item.icon}</span>
             </div>
-          </PageCard>
-        </div>
+            <div className="flex-1 text-left min-w-0">
+              <span className="text-xs font-bold tracking-tight font-headline transition-colors block truncate" style={{ color: 'var(--theme-text)' }}>{item.name}</span>
+              <span className="text-[9px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider block mt-0.5">Buka Menu</span>
+            </div>
+          </button>
+        ))}
+      </div>
 
-        {/* Right Column (Col 8) */}
-        <div className="lg:col-span-8 space-y-6">
+      {/* Two-Column Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
           {/* Booking Kesehatan Baru */}
           <PageCard>
             <PageCardHeader
@@ -259,9 +239,12 @@ export default function TenagaKesehatanDashboard() {
                   </div>
                 ))
               ) : (
-                <div className="text-center py-6 text-xs" style={{ color: 'var(--theme-text-muted)' }}>
-                  Tidak ada antrean booking hari ini.
-                </div>
+                <EmptyState 
+                  icon="event_busy" 
+                  title="Tidak Ada Antrean" 
+                  description="Belum ada mahasiswa yang dijadwalkan untuk diperiksa hari ini." 
+                  className="py-10"
+                />
               )}
             </div>
           </PageCard>
@@ -304,13 +287,15 @@ export default function TenagaKesehatanDashboard() {
                   </div>
                 ))
               ) : (
-                <div className="text-center py-6 text-xs" style={{ color: 'var(--theme-text-muted)' }}>
-                  Tidak ada mahasiswa dalam pantauan kritis.
-                </div>
+                <EmptyState 
+                  icon="check_circle" 
+                  title="Semua Aman" 
+                  description="Saat ini tidak ada mahasiswa yang berada dalam status kritis atau pantauan khusus." 
+                  className="py-10"
+                />
               )}
             </div>
           </PageCard>
-        </div>
       </div>
 
       {/* Analytics 5W1H Charts */}

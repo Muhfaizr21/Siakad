@@ -2,18 +2,21 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { psychologistService } from '../../services/api';
 import { DashboardHero } from '@/components/ui/dashboard';
 import { DataTable } from '@/components/ui/DataTable';
-import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
+import { PrimaryStatsCard } from '@/components/ui/StatsCard';
+import { DialogModal } from '@/components/ui/DialogModal';
 
+// Icons
+const NoteIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>edit_document</span>;
+const CheckIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>task_alt</span>;
+const WarningIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>error</span>;
+const HeartIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>favorite</span>;
 
 export default function MedicalRecords() {
   const [medicalRecords, setMedicalRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [filterStatus, setFilterStatus] = useState('Semua Status');
   const [selectedFakultas, setSelectedFakultas] = useState('Semua Fakultas');
   const [selectedProdi, setSelectedProdi] = useState('Semua Prodi');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
 
   const [fakultasList, setFakultasList] = useState([]);
   const [prodiList, setProdiList] = useState([]);
@@ -85,34 +88,14 @@ export default function MedicalRecords() {
 
   const filteredRecords = useMemo(() => {
     let result = [...medicalRecords];
-    if (filterStatus !== 'Semua Status') {
-      result = result.filter(r => r.status_pasien === filterStatus);
-    }
     if (selectedFakultas !== 'Semua Fakultas') {
       result = result.filter(r => r._fakultas === selectedFakultas);
     }
     if (selectedProdi !== 'Semua Prodi') {
       result = result.filter(r => r._prodi === selectedProdi);
     }
-    if (startDate) {
-      result = result.filter(r => {
-        if (!r.date) return false;
-        const parsedRecordDate = new Date(r.date);
-        const start = new Date(startDate);
-        return parsedRecordDate >= start;
-      });
-    }
-    if (endDate) {
-      result = result.filter(r => {
-        if (!r.date) return false;
-        const parsedRecordDate = new Date(r.date);
-        const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999);
-        return parsedRecordDate <= end;
-      });
-    }
     return result;
-  }, [medicalRecords, filterStatus, selectedFakultas, selectedProdi, startDate, endDate]);
+  }, [medicalRecords, selectedFakultas, selectedProdi]);
 
   const handleTableSearch = (data, searchVal) => {
     const query = searchVal.trim().toLowerCase();
@@ -135,16 +118,44 @@ export default function MedicalRecords() {
   const columns = [
     {
       key: '_name',
-      label: 'Pasien',
+      label: 'Identitas Pasien',
       sortable: true,
       render: (v, row) => (
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-indigo-50/80 text-indigo-600 border border-indigo-100 flex items-center justify-center font-black text-sm shrink-0">
-            {getInitials(row._name)}
+          <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center border border-slate-200 shrink-0 overflow-hidden relative">
+            {row.foto_url || row.foto ? (
+              <img src={row.foto_url || row.foto} alt={row._name} className="w-full h-full object-cover" />
+            ) : (
+              <span className="material-symbols-outlined text-[20px]">person</span>
+            )}
           </div>
           <div className="min-w-0">
-            <p className="truncate text-xs font-black text-slate-900">{row._name}</p>
-            <p className="mt-0.5 truncate text-[9px] font-bold uppercase tracking-widest text-slate-500">{row._nim} &bull; {row._fakultas}</p>
+            <p className="truncate text-sm font-bold text-slate-900 group-hover:text-primary transition-colors max-w-[200px]">{row._name}</p>
+            <p className="mt-0.5 truncate text-[10px] font-medium text-slate-400">{row._nim} &bull; {row._fakultas}</p>
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'kontak',
+      label: 'Demografi & Kontak',
+      render: (v, row) => (
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <span className="w-5 h-5 rounded flex items-center justify-center shrink-0 bg-slate-100 text-slate-500">
+              <span className="material-symbols-outlined !text-[12px]">{row.jenis_kelamin === 'Perempuan' ? 'female' : 'male'}</span>
+            </span>
+            <div>
+              <p className="text-[11px] font-bold text-slate-700">{row.jenis_kelamin || 'Tidak ada data'}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-5 h-5 rounded flex items-center justify-center shrink-0 bg-slate-100 text-slate-500">
+              <span className="material-symbols-outlined !text-[12px]">call</span>
+            </span>
+            <div>
+              <p className="text-[10px] font-bold text-slate-500">{row.no_hp || 'Tidak ada data'}</p>
+            </div>
           </div>
         </div>
       )
@@ -154,14 +165,22 @@ export default function MedicalRecords() {
       label: 'Jadwal Pemeriksaan',
       sortable: true,
       render: (v, row) => (
-        <div>
-          <div className="flex items-center gap-1.5 text-[11px] font-black text-slate-800">
-            <span className="material-symbols-outlined text-[16px] text-primary shrink-0">calendar_month</span>
-            {row.date || '-'}
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <span className="w-5 h-5 rounded flex items-center justify-center shrink-0 bg-slate-100 text-slate-500">
+              <span className="material-symbols-outlined !text-[12px]">calendar_month</span>
+            </span>
+            <div>
+              <p className="text-[11px] font-bold text-slate-700">{row.date || '-'}</p>
+            </div>
           </div>
-          <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 mt-1">
-            <span className="material-symbols-outlined text-[14px] shrink-0">schedule</span>
-            {row.time || '-'} WIB
+          <div className="flex items-center gap-2">
+            <span className="w-5 h-5 rounded flex items-center justify-center shrink-0 bg-slate-100 text-slate-500">
+              <span className="material-symbols-outlined !text-[12px]">schedule</span>
+            </span>
+            <div>
+              <p className="text-[10px] font-bold text-slate-500">{row.time || '-'} WIB</p>
+            </div>
           </div>
         </div>
       )
@@ -171,9 +190,23 @@ export default function MedicalRecords() {
       label: 'Sesi & Mood',
       sortable: true,
       render: (v, row) => (
-        <div>
-          <p className="text-[11px] font-black text-slate-700">{row.type || 'Sesi Umum'}</p>
-          <p className="text-[10px] font-bold text-indigo-600 mt-0.5">Mood: {row.mood || '—'}</p>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <span className="w-5 h-5 rounded flex items-center justify-center shrink-0 bg-primary/10 text-primary">
+              <span className="material-symbols-outlined !text-[12px]">psychology</span>
+            </span>
+            <div>
+              <p className="text-[11px] font-black text-slate-700">{row.type || 'Sesi Umum'}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-5 h-5 rounded flex items-center justify-center shrink-0 bg-slate-100 text-slate-500">
+              <span className="material-symbols-outlined !text-[12px]">mood</span>
+            </span>
+            <div>
+              <p className="text-[10px] font-bold text-slate-500">Mood: {row.mood || '—'}</p>
+            </div>
+          </div>
         </div>
       )
     },
@@ -207,144 +240,94 @@ export default function MedicalRecords() {
     return parts.map(p => p[0]).slice(0, 3).join('').toUpperCase();
   };
 
+  const HeaderActions = (
+    <div className="flex flex-col sm:flex-row gap-3 items-end">
+      <div className="flex flex-col gap-1.5 w-full sm:w-auto">
+        <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--theme-text-muted)] pl-1">Fakultas</label>
+        <div className="relative">
+          <select
+            value={selectedFakultas}
+            onChange={(e) => handleFakultasChange(e.target.value)}
+            className="h-10 appearance-none rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] pl-4 pr-8 text-sm font-semibold text-[var(--theme-text)] outline-none transition-all focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 cursor-pointer"
+          >
+            <option value="Semua Fakultas">Semua Fakultas</option>
+            {fakultasList.map((f) => (
+              <option key={f.id} value={f.nama}>{f.nama}</option>
+            ))}
+          </select>
+          <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-[18px] text-[var(--theme-text-muted)] pointer-events-none">expand_more</span>
+        </div>
+      </div>
+      <div className="flex flex-col gap-1.5 w-full sm:w-auto">
+        <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--theme-text-muted)] pl-1">Program Studi</label>
+        <div className="relative">
+          <select
+            value={selectedProdi}
+            onChange={(e) => setSelectedProdi(e.target.value)}
+            disabled={selectedFakultas === 'Semua Fakultas'}
+            className="h-10 appearance-none rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] pl-4 pr-8 text-sm font-semibold text-[var(--theme-text)] outline-none transition-all focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <option value="Semua Prodi">Semua Prodi</option>
+            {filteredProdis.map((p) => (
+              <option key={p.id} value={p.nama}>{p.nama}</option>
+            ))}
+          </select>
+          <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-[18px] text-[var(--theme-text-muted)] pointer-events-none">expand_more</span>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <>
       <div className="w-full relative space-y-6 scroll-smooth">
         
-        <DashboardHero title="Catatan" highlightedTitle="Medis" subtitle="Lihat dan kelola rekam medis pasien dengan lengkap dan terstruktur." icon="medical_services" badges={[{ label: 'Rekam Medis Klinis', active: false }]} />
+        <DashboardHero 
+          title="Catatan" 
+          highlightedTitle="Medis" 
+          subtitle="Lihat dan kelola rekam medis pasien dengan lengkap dan terstruktur." 
+          icon="medical_services" 
+          badges={[{ label: 'Rekam Medis Klinis', active: false }]} 
+          actions={HeaderActions}
+        />
 
-        {/* ── Filter Bar Card ──────────────────────────────────────────── */}
-        <section className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-5 space-y-5 relative overflow-hidden group">
-          <div className="absolute -top-32 -right-32 w-64 h-64 rounded-full blur-3xl pointer-events-none opacity-50 bg-primary/5 transition-opacity group-hover:opacity-100" />
-          
-          <div className="relative z-10 flex flex-col gap-5">
-            <div className="flex items-center gap-2 border-b border-slate-100 pb-4">
-              <span className="material-symbols-outlined text-[20px] text-primary">filter_list</span>
-              <h3 className="text-xs font-black uppercase tracking-widest text-slate-800 font-headline">Filter Data</h3>
-            </div>
+        {/* Statistics Top Row */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+          <PrimaryStatsCard
+            title="Total Rekam Medis"
+            value={`${medicalRecords.length} Data`}
+            icon={NoteIcon}
+            colorTheme="primary"
+            badgeText="ARSIP"
+          />
+          <PrimaryStatsCard
+            title="Sesi Selesai"
+            value={`${medicalRecords.filter(r => r.status_pasien === 'Stabil' || r.status_pasien === 'Pemulihan').length} Data`}
+            icon={CheckIcon}
+            colorTheme="success"
+            badgeText="DONE"
+            badgeIcon={<span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />}
+          />
+          <PrimaryStatsCard
+            title="Perlu Perhatian"
+            value={`${medicalRecords.filter(r => r.status_pasien === 'Perlu Perhatian').length} Data`}
+            icon={WarningIcon}
+            colorTheme="error"
+            badgeText="URGENT"
+          />
+          <PrimaryStatsCard
+            title="Pasien Stabil"
+            value={`${medicalRecords.filter(r => r.status_pasien === 'Stabil').length} Data`}
+            icon={HeartIcon}
+            colorTheme="info"
+            badgeText="PROGRESS"
+          />
+        </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5">
-              {/* Status */}
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                  <span className="material-symbols-outlined text-base">vital_signs</span>
-                  Status Klinis
-                </label>
-                <select
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 cursor-pointer"
-                >
-                  <option value="Semua Status">Semua Status</option>
-                  <option value="Stabil">Stabil</option>
-                  <option value="Perlu Perhatian">Perlu Perhatian</option>
-                  <option value="Pemulihan">Pemulihan</option>
-                </select>
-              </div>
-
-              {/* Fakultas */}
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                  <span className="material-symbols-outlined text-base">domain</span>
-                  Fakultas
-                </label>
-                <select
-                  value={selectedFakultas}
-                  onChange={(e) => handleFakultasChange(e.target.value)}
-                  className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 cursor-pointer"
-                >
-                  <option value="Semua Fakultas">Semua Fakultas</option>
-                  {fakultasList.map((f) => (
-                    <option key={f.id} value={f.nama}>{f.nama}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Prodi */}
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                  <span className="material-symbols-outlined text-base">school</span>
-                  Program Studi
-                </label>
-                <select
-                  value={selectedProdi}
-                  onChange={(e) => setSelectedProdi(e.target.value)}
-                  disabled={selectedFakultas === 'Semua Fakultas'}
-                  className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <option value="Semua Prodi">Semua Prodi</option>
-                  {filteredProdis.map((p) => (
-                    <option key={p.id} value={p.nama}>{p.nama}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Dari Tanggal */}
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                  <span className="material-symbols-outlined text-base">event</span>
-                  Dari Tanggal
-                </label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
-                />
-              </div>
-
-              {/* Sampai Tanggal */}
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                  <span className="material-symbols-outlined text-base">event</span>
-                  Sampai Tanggal
-                </label>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between border-t border-slate-100 pt-5">
-              <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-1">
-                {/* Empty space for tabs if needed in the future */}
-                <span className="text-[10px] font-bold text-slate-400">Pilih kriteria untuk menyaring data</span>
-              </div>
-              <button
-                onClick={() => {
-                  setSelectedFakultas('Semua Fakultas');
-                  setSelectedProdi('Semua Prodi');
-                  setFilterStatus('Semua Status');
-                  setStartDate('');
-                  setEndDate('');
-                }}
-                disabled={!(selectedFakultas !== 'Semua Fakultas' || selectedProdi !== 'Semua Prodi' || filterStatus !== 'Semua Status' || startDate || endDate)}
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-5 py-2.5 text-[10px] font-black uppercase tracking-widest text-slate-500 transition-all hover:bg-slate-50 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <span className="material-symbols-outlined text-[16px]">restart_alt</span>
-                Reset Filter
-              </button>
-            </div>
-          </div>
-        </section>
-
-        {/* Medical Records List Card */}
-        <section className="rounded-2xl border shadow-sm p-5 space-y-5 bg-white" style={{ borderColor: 'var(--theme-border)' }}>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-4">
-            <div>
-              <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-primary">
-                <span className="material-symbols-outlined text-base shrink-0">list</span> Daftar Sesi Rekam Medis
-              </h3>
-              <p className="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-widest">
-                Total {filteredRecords.length} data
-              </p>
-            </div>
-          </div>
-
+        <div className="w-full">
           <DataTable
+            title="Daftar Sesi Rekam Medis"
+            subtitle={`Total ${filteredRecords.length} data ditemukan berdasarkan filter`}
             columns={columns}
             data={filteredRecords}
             loading={loading}
@@ -356,8 +339,27 @@ export default function MedicalRecords() {
             onRowClick={(row) => handleOpenDetail(row)}
             emptyMessage="Tidak ada rekam medis. Coba ubah filter atau kata kunci pencarian."
             emptyIcon="inbox"
+            filters={[
+              {
+                key: 'status_pasien',
+                placeholder: 'Status Klinis',
+                options: [
+                  { label: 'Stabil', value: 'Stabil' },
+                  { label: 'Perlu Perhatian', value: 'Perlu Perhatian' },
+                  { label: 'Pemulihan', value: 'Pemulihan' }
+                ]
+              },
+              {
+                key: 'jenis_kelamin',
+                placeholder: 'Jenis Kelamin',
+                options: [
+                  { label: 'Laki-laki', value: 'Laki-laki' },
+                  { label: 'Perempuan', value: 'Perempuan' }
+                ]
+              }
+            ]}
           />
-        </section>
+        </div>
 
 
 
@@ -367,57 +369,82 @@ export default function MedicalRecords() {
       </div>
 
       {/* Detail Modal */}
-      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen} maxWidth="max-w-2xl">
+      <DialogModal
+        open={isDetailOpen}
+        onOpenChange={setIsDetailOpen}
+        title="Detail Rekam Medis"
+        subtitle="Catatan Sesi & Diagnosis Pasien"
+        icon="medical_services"
+        maxWidth="max-w-2xl"
+        footer={
+          <button 
+            onClick={() => setIsDetailOpen(false)} 
+            className="px-6 py-3 bg-[var(--theme-primary)] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[var(--theme-primary-hover)] transition-colors"
+          >
+            Tutup Detail
+          </button>
+        }
+      >
         {detailItem && (
-          <>
-            <DialogHeader className="bg-slate-50/50 border-b border-slate-100 flex-shrink-0 relative">
-              <div className="pr-8">
-                <DialogTitle>Detail Rekam Medis</DialogTitle>
-                <DialogDescription className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Catatan Sesi & Diagnosis Pasien</DialogDescription>
-              </div>
-            </DialogHeader>
-
-            <div className="p-6 md:p-8 space-y-6 overflow-y-auto max-h-[50vh] no-scrollbar">
-              
-              {/* Patient Identitas */}
-              <div className="bg-slate-50 border border-slate-200/50 rounded-2xl p-4 space-y-3">
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-sm shrink-0">person</span> Identitas Mahasiswa
-                </p>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Nama Lengkap</span>
-                    <span className="text-xs font-bold text-slate-800">{detailItem._name || '—'}</span>
-                  </div>
-                  <div>
-                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">NIM (Nomor Induk Mahasiswa)</span>
-                    <span className="text-xs font-bold text-slate-800">{detailItem._nim || '—'}</span>
-                  </div>
-                  <div>
-                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Fakultas</span>
-                    <span className="text-xs font-semibold text-slate-700">{detailItem._fakultas || '—'}</span>
-                  </div>
-                  <div>
-                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Program Studi</span>
-                    <span className="text-xs font-semibold text-slate-700">{detailItem._prodi || '—'}</span>
-                  </div>
+          <div className="space-y-4">
+            {/* Patient Identitas */}
+            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+              <p className="text-[10px] font-black text-slate-800 uppercase tracking-widest flex items-center gap-2 border-b border-slate-100 pb-3">
+                <span className="w-7 h-7 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-[16px]">person</span>
+                </span>
+                Identitas Mahasiswa
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Nama Lengkap</span>
+                  <span className="text-xs font-bold text-slate-800">{detailItem._name || '—'}</span>
+                </div>
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block mb-1">NIM</span>
+                  <span className="text-xs font-bold text-slate-800">{detailItem._nim || '—'}</span>
+                </div>
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Fakultas</span>
+                  <span className="text-[11px] font-semibold text-slate-700 line-clamp-2">{detailItem._fakultas || '—'}</span>
+                </div>
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Program Studi</span>
+                  <span className="text-[11px] font-semibold text-slate-700 line-clamp-2">{detailItem._prodi || '—'}</span>
                 </div>
               </div>
+            </div>
 
-              {/* Sesi Info */}
-              <div className="grid grid-cols-3 gap-4">
+            {/* Sesi Info */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col gap-2">
+                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-[14px]">calendar_today</span>
+                  </span>
+                  Tanggal Pemeriksaan
+                </span>
+                <span className="text-xs font-bold text-slate-800">{detailItem.date} {detailItem.time} WIB</span>
+              </div>
+              <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col gap-2">
+                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-lg bg-purple-50 text-purple-500 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-[14px]">mood</span>
+                  </span>
+                  Mood Pasien
+                </span>
+                <span className="text-xs font-bold text-indigo-600">{detailItem.mood || '—'}</span>
+              </div>
+              <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col gap-2">
+                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-[14px]">vital_signs</span>
+                  </span>
+                  Status Pasien
+                </span>
                 <div>
-                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Tanggal Pemeriksaan</span>
-                  <span className="text-xs font-bold text-slate-800">{detailItem.date} {detailItem.time} WIB</span>
-                </div>
-                <div>
-                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Mood Pasien</span>
-                  <span className="text-xs font-bold text-indigo-600">{detailItem.mood || '—'}</span>
-                </div>
-                <div>
-                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Status Pasien</span>
                   <span
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest mt-1"
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest"
                     style={(() => {
                       const style = getStatusColor(detailItem.status_pasien);
                       return { backgroundColor: style.bg, color: style.text, border: `1px solid ${style.border}` };
@@ -427,45 +454,51 @@ export default function MedicalRecords() {
                   </span>
                 </div>
               </div>
+            </div>
 
-              <div className="space-y-4">
-                {/* Keluhan */}
-                <div className="space-y-1.5">
-                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Keluhan Sesi Konseling</span>
-                  <div className="bg-slate-50/50 border border-slate-200/50 p-3.5 rounded-xl text-xs text-slate-700 font-medium whitespace-pre-wrap leading-relaxed">
-                    {detailItem.complaint || '—'}
-                  </div>
+            <div className="space-y-4">
+              {/* Keluhan */}
+              <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
+                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-[14px]">sick</span>
+                  </span>
+                  Keluhan Sesi Konseling
+                </span>
+                <div className="bg-slate-50/50 p-3.5 rounded-xl text-xs text-slate-700 font-medium whitespace-pre-wrap leading-relaxed">
+                  {detailItem.complaint || '—'}
                 </div>
+              </div>
 
-                {/* Observasi */}
-                <div className="space-y-1.5">
-                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Hasil Observasi Psikolog</span>
-                  <div className="bg-slate-50/50 border border-slate-200/50 p-3.5 rounded-xl text-xs text-slate-700 font-medium whitespace-pre-wrap leading-relaxed">
-                    {detailItem.observation || '—'}
-                  </div>
+              {/* Observasi */}
+              <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
+                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-[14px]">visibility</span>
+                  </span>
+                  Hasil Observasi Psikolog
+                </span>
+                <div className="bg-slate-50/50 p-3.5 rounded-xl text-xs text-slate-700 font-medium whitespace-pre-wrap leading-relaxed">
+                  {detailItem.observation || '—'}
                 </div>
+              </div>
 
-                {/* Rekomendasi */}
-                <div className="space-y-1.5">
-                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Rekomendasi Penanganan & Tindak Lanjut</span>
-                  <div className="bg-indigo-50/10 border border-indigo-100 p-3.5 rounded-xl text-xs text-indigo-900 font-bold whitespace-pre-wrap leading-relaxed">
-                    {detailItem.recommendation || '—'}
-                  </div>
+              {/* Rekomendasi */}
+              <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
+                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-[14px]">prescriptions</span>
+                  </span>
+                  Rekomendasi Penanganan & Tindak Lanjut
+                </span>
+                <div className="bg-indigo-50/50 border border-indigo-100 p-3.5 rounded-xl text-xs text-indigo-900 font-bold whitespace-pre-wrap leading-relaxed">
+                  {detailItem.recommendation || '—'}
                 </div>
               </div>
             </div>
-
-            <DialogFooter className="bg-slate-50/20 border-t border-slate-100/60 shrink-0">
-              <button 
-                onClick={() => setIsDetailOpen(false)} 
-                className="px-6 py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-colors"
-              >
-                Tutup Detail
-              </button>
-            </DialogFooter>
-          </>
+          </div>
         )}
-      </Dialog>
+      </DialogModal>
     </>
   );
 }

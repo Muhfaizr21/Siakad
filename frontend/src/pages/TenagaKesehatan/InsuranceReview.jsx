@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { insuranceService } from '../../services/api';
 import toast from 'react-hot-toast';
 import { PageContent } from '@/components/ui/page';
 import { DashboardHero } from '@/components/ui/dashboard';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
+import { PrimaryStatsCard } from '@/components/ui/StatsCard';
+import { DataTable } from '@/components/ui/DataTable';
+import { DialogModal } from '@/components/ui/DialogModal';
 
 // Auto-injected Material Symbol fallbacks
 const InsuranceIcon = ({ size, className, ...props }) => (
@@ -16,22 +17,12 @@ const CheckCircle = ({ size, className, ...props }) => (
 const CancelIcon = ({ size, className, ...props }) => (
   <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>cancel</span>
 );
-const Clock = ({ size, className, ...props }) => (
-  <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>schedule</span>
-);
 const DownloadIcon = ({ size, className, ...props }) => (
   <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>download</span>
-);
-const SearchIcon = ({ size, className, ...props }) => (
-  <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>search</span>
-);
-const FilterIcon = ({ size, className, ...props }) => (
-  <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>filter_list</span>
 );
 
 // Provider options
 const PROVIDER_OPTIONS = [
-  { value: '', label: 'Semua Provider' },
   { value: 'BKU_Assurance', label: 'BKU Assurance' },
   { value: 'BPJS', label: 'BPJS Kesehatan' },
   { value: 'Asuransi_Lain', label: 'Asuransi Lain' },
@@ -39,7 +30,6 @@ const PROVIDER_OPTIONS = [
 
 // Status options
 const STATUS_OPTIONS = [
-  { value: '', label: 'Semua Status' },
   { value: 'PENDING_VERIFICATION', label: 'Menunggu' },
   { value: 'APPROVED_TK', label: 'Disetujui TK' },
   { value: 'APPROVED_FINAL', label: 'Final Approved' },
@@ -49,16 +39,20 @@ const STATUS_OPTIONS = [
 // Status badge component
 const StatusBadge = ({ status }) => {
   const statusConfig = {
-    'PENDING_VERIFICATION': { label: 'Menunggu', bg: 'bg-[var(--theme-warning-light)]', text: 'text-[var(--theme-warning)]', border: 'border-[var(--theme-warning-light)]' },
-    'APPROVED_TK': { label: 'Disetujui TK', bg: 'bg-[var(--theme-info-light)]', text: 'text-[var(--theme-info)]', border: 'border-[var(--theme-info-light)]' },
-    'APPROVED_FINAL': { label: 'Final Approved', bg: 'bg-[var(--theme-success-light)]', text: 'text-[var(--theme-success)]', border: 'border-[var(--theme-success-light)]' },
-    'REJECTED': { label: 'Ditolak', bg: 'bg-[var(--theme-error-light)]', text: 'text-[var(--theme-error)]', border: 'border-[var(--theme-error-light)]' },
+    'PENDING_VERIFICATION': { label: 'Menunggu', bg: 'color-mix(in srgb, var(--theme-warning) 10%, transparent)', text: 'var(--theme-warning)', border: 'color-mix(in srgb, var(--theme-warning) 20%, transparent)', dot: 'var(--theme-warning)' },
+    'APPROVED_TK': { label: 'Disetujui TK', bg: 'color-mix(in srgb, var(--theme-info) 10%, transparent)', text: 'var(--theme-info)', border: 'color-mix(in srgb, var(--theme-info) 20%, transparent)', dot: 'var(--theme-info)' },
+    'APPROVED_FINAL': { label: 'Final Approved', bg: 'color-mix(in srgb, var(--theme-success) 10%, transparent)', text: 'var(--theme-success)', border: 'color-mix(in srgb, var(--theme-success) 20%, transparent)', dot: 'var(--theme-success)' },
+    'REJECTED': { label: 'Ditolak', bg: 'color-mix(in srgb, var(--theme-error) 10%, transparent)', text: 'var(--theme-error)', border: 'color-mix(in srgb, var(--theme-error) 20%, transparent)', dot: 'var(--theme-error)' },
   };
 
   const config = statusConfig[status] || statusConfig['PENDING_VERIFICATION'];
 
   return (
-    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${config.bg} ${config.text} ${config.border}`}>
+    <span
+      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest border whitespace-nowrap"
+      style={{ backgroundColor: config.bg, color: config.text, borderColor: config.border }}
+    >
+      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: config.dot }} />
       {config.label}
     </span>
   );
@@ -67,13 +61,13 @@ const StatusBadge = ({ status }) => {
 // Provider badge
 const ProviderBadge = ({ provider }) => {
   const config = {
-    'BKU_Assurance': { label: 'BKU', color: 'bg-[var(--theme-primary)] text-white' },
-    'BPJS': { label: 'BPJS', color: 'bg-[var(--theme-info)] text-white' },
-    'Asuransi_Lain': { label: 'Lain', color: 'bg-[var(--theme-secondary)] text-[var(--theme-text)]' },
+    'BKU_Assurance': { label: 'BKU Assurance', color: 'bg-[var(--theme-primary)] text-white' },
+    'BPJS': { label: 'BPJS Kesehatan', color: 'bg-[var(--theme-info)] text-white' },
+    'Asuransi_Lain': { label: 'Asuransi Lain', color: 'bg-[var(--theme-surface)] text-[var(--theme-text)] border border-[var(--theme-border)]' },
   };
   const badge = config[provider] || config['Asuransi_Lain'];
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold ${badge.color}`}>
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${badge.color}`}>
       {badge.label}
     </span>
   );
@@ -88,8 +82,8 @@ export default function InsuranceReview() {
   const [processing, setProcessing] = useState(false);
 
   // Filters
-  const [filterStatus, setFilterStatus] = useState('');
-  const [filterProvider, setFilterProvider] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterProvider, setFilterProvider] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   // Fetch claims
@@ -97,8 +91,8 @@ export default function InsuranceReview() {
     setLoading(true);
     try {
       const params = {};
-      if (filterStatus) params.status = filterStatus;
-      if (filterProvider) params.jenis_provider = filterProvider;
+      if (filterStatus && filterStatus !== 'all') params.status = filterStatus;
+      if (filterProvider && filterProvider !== 'all') params.jenis_provider = filterProvider;
 
       const res = await insuranceService.getClaims(params);
       if (res.status === 'success') {
@@ -191,7 +185,7 @@ export default function InsuranceReview() {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
   };
 
-  // Filter by search
+  // Filter by search locally
   const filteredClaims = claims.filter(claim => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
@@ -202,6 +196,90 @@ export default function InsuranceReview() {
     );
   });
 
+  const columns = [
+    {
+      key: 'mahasiswa',
+      label: 'Identitas Mahasiswa',
+      sortable: true,
+      render: (v, row) => (
+        <div className="flex items-center gap-3">
+          <div className="size-9 rounded-xl bg-[var(--theme-bg)] border border-[var(--theme-border)] text-[var(--theme-text-muted)] flex items-center justify-center shrink-0 overflow-hidden relative group-hover:scale-105 transition-transform">
+            {row.mahasiswa?.foto_url || row.mahasiswa?.foto ? (
+              <img src={row.mahasiswa.foto_url || row.mahasiswa.foto} alt={row.mahasiswa?.nama} className="w-full h-full object-cover" />
+            ) : (
+              <span className="material-symbols-outlined text-[20px]">person</span>
+            )}
+          </div>
+          <div>
+            <p className="font-bold text-[13px] text-[var(--theme-text)] max-w-[180px] truncate">{row.mahasiswa?.nama || '—'}</p>
+            <p className="text-[10px] font-medium text-[var(--theme-text-muted)] mt-0.5">{row.mahasiswa?.nim || '—'}</p>
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'kontak',
+      label: 'Kontak',
+      sortable: false,
+      render: (v, row) => (
+        <div className="flex flex-col gap-0.5">
+          <p className="text-[11px] font-bold text-[var(--theme-text)]">{row.mahasiswa?.no_hp || '-'}</p>
+          <p className="text-[10px] font-medium text-[var(--theme-text-muted)]">{row.mahasiswa?.email_personal || '-'}</p>
+        </div>
+      )
+    },
+    {
+      key: 'jenis_provider',
+      label: 'Provider Asuransi',
+      sortable: true,
+      render: (v, row) => <ProviderBadge provider={row.jenis_provider} />
+    },
+    {
+      key: 'detail_klaim',
+      label: 'Detail Kejadian & Biaya',
+      render: (v, row) => (
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-1.5 text-[11px] font-bold text-[var(--theme-text)]">
+            <span className="material-symbols-outlined text-[16px] text-[var(--theme-text-muted)]">calendar_month</span>
+            {formatDate(row.tanggal_kejadian)}
+          </div>
+          <div className="text-[12px] font-black text-[var(--theme-primary)] pl-[22px]">
+            {formatCurrency(row.estimasi_biaya)}
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      sortable: true,
+      render: (v, row) => <StatusBadge status={row.status} />
+    },
+    {
+      key: 'aksi',
+      label: 'Tindakan',
+      className: 'text-right',
+      render: (v, row) => (
+        <div className="flex items-center gap-2 justify-end" onClick={e => e.stopPropagation()}>
+          <button
+            onClick={() => handleOpenDetail(row)}
+            className="h-8 px-3 flex items-center justify-center gap-1.5 rounded-lg bg-[var(--theme-primary)] hover:opacity-90 text-white text-[11px] font-semibold transition-all shadow-sm"
+          >
+            <span className="material-symbols-outlined text-[16px]">fact_check</span> Review
+          </button>
+          {row.status === 'APPROVED_TK' && (
+            <button
+              onClick={() => handleDownloadPDF(row.id)}
+              className="h-8 px-3 flex items-center justify-center gap-1.5 rounded-lg bg-[var(--theme-bg)] hover:bg-[var(--theme-surface)] border border-[var(--theme-border)] text-[var(--theme-text)] text-[11px] font-semibold transition-all shadow-sm"
+            >
+              <span className="material-symbols-outlined text-[16px]">download</span> PDF
+            </button>
+          )}
+        </div>
+      )
+    }
+  ];
+
   return (
     <PageContent>
       <DashboardHero
@@ -209,304 +287,173 @@ export default function InsuranceReview() {
         highlightedTitle="Klaim Asuransi"
         subtitle="Verifikasi & approve pengajuan klaim mahasiswa"
         icon="health_and_safety"
-        badges={[
-          { label: 'Insurance Review', active: true },
-        ]}
+        badges={[{ label: 'Insurance Review', active: true }]}
       />
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl p-4 border border-slate-200">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
-              <span className="material-symbols-outlined text-slate-600">description</span>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-slate-800">{stats?.summary?.total_pengajuan || 0}</p>
-              <p className="text-xs text-slate-500">Total Pengajuan</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl p-4 border border-amber-200 bg-amber-50">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-amber-200 flex items-center justify-center">
-              <Clock size={20} className="text-amber-700" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-amber-700">{stats?.summary?.pending || 0}</p>
-              <p className="text-xs text-amber-600">Menunggu</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl p-4 border border-blue-200 bg-blue-50">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-blue-200 flex items-center justify-center">
-              <CheckCircle size={20} className="text-blue-700" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-blue-700">{stats?.summary?.approved_tk || 0}</p>
-              <p className="text-xs text-blue-600">Approved TK</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl p-4 border border-emerald-200 bg-emerald-50">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-emerald-200 flex items-center justify-center">
-              <CheckCircle size={20} className="text-emerald-700" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-emerald-700">
-                {(stats?.summary?.approved_final || 0) + (stats?.summary?.approved_tk || 0)}
-              </p>
-              <p className="text-xs text-emerald-600">Total Disetujui</p>
-            </div>
-          </div>
-        </div>
+      {/* Stats Cards Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+        <PrimaryStatsCard
+          title="Total Pengajuan"
+          value={`${stats?.summary?.total_pengajuan || 0} Klaim`}
+          icon="description"
+          colorTheme="primary"
+          badgeText="SEMUA"
+        />
+        <PrimaryStatsCard
+          title="Menunggu Review"
+          value={`${stats?.summary?.pending || 0} Antrean`}
+          icon="schedule"
+          colorTheme="warning"
+          badgeText="PERLU TINDAKAN"
+        />
+        <PrimaryStatsCard
+          title="Disetujui TK"
+          value={`${stats?.summary?.approved_tk || 0} Klaim`}
+          icon="fact_check"
+          colorTheme="info"
+          badgeText="TAHAP LANJUTAN"
+        />
+        <PrimaryStatsCard
+          title="Total Disetujui"
+          value={`${(stats?.summary?.approved_final || 0) + (stats?.summary?.approved_tk || 0)} Klaim`}
+          icon="verified"
+          colorTheme="success"
+          badgeText="FINAL"
+        />
       </div>
 
-      {/* Filters */}
-      <div className="bg-white rounded-xl p-4 border border-slate-200">
-        <div className="flex flex-wrap gap-4">
-          {/* Search */}
-          <div className="flex-1 min-w-[200px] relative">
-            <SearchIcon size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Cari nama/NIM..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none"
-            />
-          </div>
-
-          {/* Provider filter */}
-          <div className="relative">
-            <select
-              value={filterProvider}
-              onChange={(e) => setFilterProvider(e.target.value)}
-              className="appearance-none pl-3 pr-10 py-2 border border-slate-300 rounded-lg text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none bg-white cursor-pointer"
-            >
-              {PROVIDER_OPTIONS.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-            <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none text-base">expand_more</span>
-          </div>
-
-          {/* Status filter */}
-          <div className="relative">
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="appearance-none pl-3 pr-10 py-2 border border-slate-300 rounded-lg text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none bg-white cursor-pointer"
-            >
-              {STATUS_OPTIONS.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-            <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none text-base">expand_more</span>
-          </div>
-        </div>
+      {/* DataTable */}
+      <div className="w-full">
+        <DataTable
+          title="Daftar Pengajuan Klaim"
+          subtitle={`Menampilkan ${filteredClaims.length} pengajuan klaim asuransi kesehatan`}
+          columns={columns}
+          data={filteredClaims}
+          loading={loading}
+          searchable={true}
+          manualFiltering={true}
+          searchValue={searchQuery}
+          onSearchChange={setSearchQuery}
+          searchPlaceholder="Cari nama, NIM, atau deskripsi..."
+          filterValues={{ status: filterStatus, jenis_provider: filterProvider }}
+          onFilterChange={(key, val) => {
+            if (key === 'status') setFilterStatus(val);
+            if (key === 'jenis_provider') setFilterProvider(val);
+          }}
+          pagination={true}
+          pageSize={10}
+          emptyMessage="Tidak ada pengajuan klaim. Coba sesuaikan filter pencarian."
+          emptyIcon="health_and_safety"
+          filters={[
+            {
+              key: 'jenis_provider',
+              placeholder: 'Provider',
+              options: PROVIDER_OPTIONS
+            },
+            {
+              key: 'status',
+              placeholder: 'Status',
+              options: STATUS_OPTIONS
+            }
+          ]}
+        />
       </div>
 
-      {/* Claims Table */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-slate-50 border-b border-slate-200">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase">Mahasiswa</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase">Provider</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase">Tanggal Kejadian</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase">Estimasi</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {loading ? (
-                [...Array(5)].map((_, i) => (
-                  <tr key={i} className="animate-pulse">
-                    <td className="px-4 py-3"><div className="h-4 bg-slate-200 rounded w-32"></div></td>
-                    <td className="px-4 py-3"><div className="h-4 bg-slate-200 rounded w-20"></div></td>
-                    <td className="px-4 py-3"><div className="h-4 bg-slate-200 rounded w-24"></div></td>
-                    <td className="px-4 py-3"><div className="h-4 bg-slate-200 rounded w-20"></div></td>
-                    <td className="px-4 py-3"><div className="h-4 bg-slate-200 rounded w-24"></div></td>
-                    <td className="px-4 py-3"><div className="h-4 bg-slate-200 rounded w-16"></div></td>
-                  </tr>
-                ))
-              ) : filteredClaims.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
-                    <span className="material-symbols-outlined text-4xl text-slate-300">inbox</span>
-                    <p className="mt-2">Tidak ada pengajuan klaim</p>
-                  </td>
-                </tr>
-              ) : (
-                filteredClaims.map((claim) => (
-                  <tr key={claim.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-4 py-3">
-                      <div>
-                        <p className="font-semibold text-slate-800 text-sm">{claim.mahasiswa?.nama || '—'}</p>
-                        <p className="text-xs text-slate-500">{claim.mahasiswa?.nim || '—'}</p>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <ProviderBadge provider={claim.jenis_provider} />
-                    </td>
-                    <td className="px-4 py-3">
-                      <p className="text-sm text-slate-700">{formatDate(claim.tanggal_kejadian)}</p>
-                    </td>
-                    <td className="px-4 py-3">
-                      <p className="text-sm font-bold text-teal-600">{formatCurrency(claim.estimasi_biaya)}</p>
-                    </td>
-                    <td className="px-4 py-3">
-                      <StatusBadge status={claim.status} />
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleOpenDetail(claim)}
-                          className="px-3 py-1.5 bg-teal-500 text-white text-xs font-bold rounded-lg hover:bg-teal-600 transition-colors"
-                        >
-                          Review
-                        </button>
-                        {claim.status === 'APPROVED_TK' && (
-                          <button
-                            onClick={() => handleDownloadPDF(claim.id)}
-                            className="px-3 py-1.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-lg hover:bg-slate-200 transition-colors flex items-center gap-1"
-                          >
-                            <DownloadIcon size={14} />
-                            PDF
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Detail Modal */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen} maxWidth="max-w-lg">
+      <DialogModal
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Detail Pengajuan Klaim"
+        icon="health_and_safety"
+        maxWidth="max-w-xl"
+      >
         {selectedClaim && (
-          <DialogContent className="max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[var(--theme-primary-light)] flex items-center justify-center text-[var(--theme-primary)]">
-                  <InsuranceIcon size={20} />
-                </div>
-                <div>
-                  <DialogTitle>Detail Klaim</DialogTitle>
-                  <DialogDescription>ID: #{selectedClaim.id}</DialogDescription>
-                </div>
-              </div>
-            </DialogHeader>
-
-            <div className="p-6 space-y-4 text-[var(--theme-text)]">
-              {/* Student Info */}
-              <div className="bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-2xl p-4">
-                <h3 className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-2">Data Mahasiswa</h3>
-                <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              {/* Data Mahasiswa */}
+              <div className="bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl p-4">
+                <h3 className="text-[10px] font-black uppercase tracking-widest text-[var(--theme-text-muted)] font-headline mb-3">Data Mahasiswa</h3>
+                <div className="space-y-2.5">
                   <div>
-                    <p className="text-[10px] text-[var(--theme-text-subtle)]">Nama</p>
-                    <p className="font-semibold text-sm">{selectedClaim.mahasiswa?.nama || '—'}</p>
+                    <p className="text-[10px] font-bold text-[var(--theme-text-subtle)]">Nama Lengkap</p>
+                    <p className="text-[12px] font-bold text-[var(--theme-text)] mt-0.5">{selectedClaim.mahasiswa?.nama || '—'}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] text-[var(--theme-text-subtle)]">NIM</p>
-                    <p className="font-semibold text-sm">{selectedClaim.mahasiswa?.nim || '—'}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-[var(--theme-text-subtle)]">Program Studi</p>
-                    <p className="font-semibold text-sm">{selectedClaim.mahasiswa?.program_studi?.nama || '—'}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-[var(--theme-text-subtle)]">Fakultas</p>
-                    <p className="font-semibold text-sm">{selectedClaim.mahasiswa?.fakultas?.nama || '—'}</p>
+                    <p className="text-[10px] font-bold text-[var(--theme-text-subtle)]">NIM & Prodi</p>
+                    <p className="text-[11px] font-semibold text-[var(--theme-text)] mt-0.5">
+                      {selectedClaim.mahasiswa?.nim || '—'} - {selectedClaim.mahasiswa?.program_studi?.nama || '—'}
+                    </p>
                   </div>
                 </div>
               </div>
 
-              {/* Claim Info */}
-              <div className="bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-2xl p-4">
-                <h3 className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-2">Detail Klaim</h3>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-[var(--theme-text-muted)]">Provider</span>
-                    <ProviderBadge provider={selectedClaim.jenis_provider} />
+              {/* Detail Klaim */}
+              <div className="bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl p-4">
+                <h3 className="text-[10px] font-black uppercase tracking-widest text-[var(--theme-text-muted)] font-headline mb-3">Informasi Klaim</h3>
+                <div className="space-y-2.5">
+                  <div>
+                    <p className="text-[10px] font-bold text-[var(--theme-text-subtle)]">Provider & Tanggal</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <ProviderBadge provider={selectedClaim.jenis_provider} />
+                      <span className="text-[11px] font-semibold text-[var(--theme-text)]">{formatDate(selectedClaim.tanggal_kejadian)}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-[var(--theme-text-muted)]">Tanggal Kejadian</span>
-                    <span className="text-sm font-semibold">{formatDate(selectedClaim.tanggal_kejadian)}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-[var(--theme-text-muted)]">Lokasi Faskes</span>
-                    <span className="text-sm font-semibold">{selectedClaim.lokasi_faskes || '—'}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-[var(--theme-text-muted)]">Estimasi Biaya</span>
-                    <span className="text-sm font-bold text-[var(--theme-primary)]">{formatCurrency(selectedClaim.estimasi_biaya)}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-[var(--theme-text-muted)]">Status</span>
-                    <StatusBadge status={selectedClaim.status} />
+                  <div>
+                    <p className="text-[10px] font-bold text-[var(--theme-text-subtle)]">Faskes & Estimasi Biaya</p>
+                    <p className="text-[11px] font-bold text-[var(--theme-text)] mt-0.5">
+                      {selectedClaim.lokasi_faskes || '—'} <span className="mx-1 text-[var(--theme-text-subtle)]">•</span> <span className="text-[var(--theme-primary)]">{formatCurrency(selectedClaim.estimasi_biaya)}</span>
+                    </p>
                   </div>
                 </div>
               </div>
-
-              {/* Kronologis */}
-              <div>
-                <h3 className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-2">Kronologis</h3>
-                <p className="text-sm text-[var(--theme-text)] bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl p-3">{selectedClaim.deskripsi || '—'}</p>
-              </div>
-
-              {/* Catatan Review */}
-              {selectedClaim.catatan_review && (
-                <div>
-                  <h3 className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-2">Catatan Review</h3>
-                  <p className="text-sm text-[var(--theme-text)] bg-[var(--theme-info-light)] rounded-xl p-3 border border-[var(--theme-border)]">{selectedClaim.catatan_review}</p>
-                </div>
-              )}
-
-              {/* Document */}
-              {selectedClaim.file_url && (
-                <div>
-                  <h3 className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-2">Dokumen</h3>
-                  <div className="flex items-center gap-2 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl p-3">
-                    <span className="material-symbols-outlined text-[var(--theme-text-subtle)]">attach_file</span>
-                    <span className="text-sm text-[var(--theme-text)]">{selectedClaim.nama_file || 'Dokumen terlampir'}</span>
-                  </div>
-                </div>
-              )}
             </div>
 
-            {/* Actions */}
+            {/* Kronologis */}
+            <div className="bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl p-4">
+              <h3 className="text-[10px] font-black uppercase tracking-widest text-[var(--theme-text-muted)] font-headline mb-2">Kronologis / Deskripsi</h3>
+              <p className="text-[11px] leading-relaxed font-medium text-[var(--theme-text)]">{selectedClaim.deskripsi || '—'}</p>
+            </div>
+
+            {/* Document Attached */}
+            {selectedClaim.file_url && (
+              <div className="flex items-center justify-between bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl p-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-[var(--theme-bg)] border border-[var(--theme-border)] flex items-center justify-center text-[var(--theme-text-muted)]">
+                    <span className="material-symbols-outlined text-[18px]">attach_file</span>
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-bold text-[var(--theme-text)]">Dokumen Bukti Terlampir</p>
+                    <p className="text-[10px] font-medium text-[var(--theme-text-subtle)]">{selectedClaim.nama_file || 'Berkas klaim asuransi'}</p>
+                  </div>
+                </div>
+                <a href={selectedClaim.file_url} target="_blank" rel="noreferrer" className="text-[10px] font-bold text-[var(--theme-primary)] bg-[var(--theme-primary)]/10 px-2.5 py-1.5 rounded-lg hover:bg-[var(--theme-primary)] hover:text-white transition-colors">
+                  Lihat Berkas
+                </a>
+              </div>
+            )}
+
+            {/* Actions for Pending */}
             {selectedClaim.status === 'PENDING_VERIFICATION' && (
-              <DialogFooter className="flex gap-3">
+              <div className="flex gap-3 pt-3 mt-4 border-t border-[var(--theme-border)]">
+                <button
+                  onClick={() => handleUpdateStatus('REJECTED', 'Ditolak karena berkas tidak lengkap/valid')}
+                  disabled={processing}
+                  className="flex-1 py-2.5 rounded-xl border border-[var(--theme-error)]/30 text-[var(--theme-error)] bg-[var(--theme-error-light)]/10 hover:bg-[var(--theme-error)] hover:text-white text-[11px] font-bold uppercase tracking-widest transition-all"
+                >
+                  Tolak Klaim
+                </button>
                 <button
                   onClick={() => handleUpdateStatus('APPROVED_TK')}
                   disabled={processing}
-                  className="flex-1 h-10 flex items-center justify-center gap-2 bg-[var(--theme-success)] hover:bg-[var(--theme-success)]/95 text-white font-semibold rounded-xl transition-all active:scale-95 disabled:opacity-50 cursor-pointer text-xs uppercase tracking-wider"
+                  className="flex-1 py-2.5 rounded-xl bg-[var(--theme-primary)] hover:opacity-90 text-white text-[11px] font-bold uppercase tracking-widest transition-all shadow-sm flex items-center justify-center gap-1.5"
                 >
-                  <CheckCircle size={18} />
-                  Setujui
+                  <CheckCircle size={16} /> Setujui Klaim
                 </button>
-                <button
-                  onClick={() => handleUpdateStatus('REJECTED')}
-                  disabled={processing}
-                  className="flex-1 h-10 flex items-center justify-center gap-2 bg-[var(--theme-error)] hover:bg-[var(--theme-error)]/95 text-white font-semibold rounded-xl transition-all active:scale-95 disabled:opacity-50 cursor-pointer text-xs uppercase tracking-wider"
-                >
-                  <CancelIcon size={18} />
-                  Tolak
-                </button>
-              </DialogFooter>
+              </div>
             )}
-          </DialogContent>
+          </div>
         )}
-      </Dialog>
+      </DialogModal>
     </PageContent>
   );
 }

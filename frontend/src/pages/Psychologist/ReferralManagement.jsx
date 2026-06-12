@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { psychologistService } from '../../services/api';
 import { toast } from 'react-hot-toast';
 import { DataTable } from '@/components/ui/DataTable';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
+import { DialogModal } from '@/components/ui/DialogModal';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/Table';
@@ -20,7 +20,6 @@ export default function ReferralManagement() {
   const [mahasiswaList, setMahasiswaList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedStatus, setSelectedStatus] = useState('Semua');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
@@ -154,12 +153,6 @@ export default function ReferralManagement() {
 
 
 
-  const filteredReferrals = useMemo(() => {
-    return referrals.filter(ref => 
-      selectedStatus === 'Semua' || ref.status === selectedStatus
-    );
-  }, [referrals, selectedStatus]);
-
   const getStatusLabel = (status) => {
     const labels = {
       'Pending': 'Menunggu Persetujuan',
@@ -190,71 +183,75 @@ export default function ReferralManagement() {
       key: 'mahasiswa_name',
       label: 'Identitas Pasien',
       sortable: true,
-      render: (v, row) => {
-        const statusStyle = statusColors[row.status] || statusColors['Pending'];
-        return (
-          <div className="flex items-center gap-3 py-1 font-body">
-            <div 
-              className={cn("w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs shadow-sm shrink-0 overflow-hidden border border-[var(--theme-border-muted)] bg-[var(--theme-bg)]", statusStyle.text)}
-            >
-              {row.foto_url || row.foto ? (
-                <img src={row.foto_url || row.foto} alt={row.mahasiswa_name} className="w-full h-full object-cover" />
-              ) : (
-                <span className="material-symbols-outlined text-[var(--theme-text-subtle)] text-lg">person</span>
-              )}
-            </div>
-            <div className="min-w-0">
-              <p className="truncate text-xs font-bold text-[var(--theme-text)] leading-tight">{row.mahasiswa_name}</p>
-              <p className="mt-0.5 truncate text-[9px] font-semibold uppercase tracking-wider text-[var(--theme-text-subtle)]">{row.tipe} &bull; {row.pihak_tujuan}</p>
-            </div>
+      render: (v, row) => (
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center border border-slate-200 shrink-0 overflow-hidden relative">
+            {row.foto_url || row.foto ? (
+              <img src={row.foto_url || row.foto} alt={row.mahasiswa_name} className="w-full h-full object-cover" />
+            ) : (
+              <span className="material-symbols-outlined text-[20px]">person</span>
+            )}
           </div>
-        );
-      }
+          <div className="min-w-0">
+            <p className="truncate text-sm font-bold text-slate-900 group-hover:text-primary transition-colors max-w-[200px]">{row.mahasiswa_name}</p>
+            <p className="mt-0.5 truncate text-[10px] font-medium text-slate-400">{row.tipe} &bull; {row.pihak_tujuan}</p>
+          </div>
+        </div>
+      )
     },
     {
       key: 'alasan',
       label: 'Alasan Rujukan',
       sortable: true,
       render: (v, row) => (
-        <div className="flex items-center gap-2 max-w-[250px] font-body">
-          <span className="w-6 h-6 rounded-lg bg-[var(--theme-primary-light)] text-[var(--theme-primary)] flex items-center justify-center shrink-0">
-            <span className="material-symbols-outlined text-xs">description</span>
-          </span>
-          <p className="text-[11px] font-semibold text-[var(--theme-text-muted)] line-clamp-1 truncate" title={row.alasan}>{row.alasan}</p>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <span className="w-5 h-5 rounded flex items-center justify-center shrink-0 bg-slate-100 text-slate-500">
+              <span className="material-symbols-outlined !text-[12px]">description</span>
+            </span>
+            <div className="max-w-[200px]">
+              <p className="text-[11px] font-bold text-slate-700 line-clamp-2" title={row.alasan}>{row.alasan}</p>
+            </div>
+          </div>
         </div>
       )
     },
     {
       key: 'approval_status',
-      label: 'Persetujuan Admin',
-      render: (v) => {
-        const meta = {
-          disetujui:        { label: 'Disetujui', cls: 'bg-[var(--theme-success-light)] text-[var(--theme-success)] border-[var(--theme-success)]/20', icon: 'check_circle' },
-          ditolak:          { label: 'Ditolak',   cls: 'bg-[var(--theme-error-light)] text-[var(--theme-error)] border-[var(--theme-error)]/20', icon: 'cancel' },
-          menunggu_approval:{ label: 'Menunggu',  cls: 'bg-[var(--theme-warning-light)] text-[var(--theme-warning)] border-[var(--theme-warning)]/20', icon: 'hourglass_empty' },
-        }[v] || { label: 'Menunggu', cls: 'bg-[var(--theme-warning-light)] text-[var(--theme-warning)] border-[var(--theme-warning)]/20', icon: 'hourglass_empty' }
-        return (
-          <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-widest border font-body shadow-none', meta.cls)}>
-            <span className="material-symbols-outlined shrink-0" style={{ fontSize: '11px' }}>
-              {meta.icon}
-            </span>
-            {meta.label}
-          </span>
-        )
-      }
-    },
-    {
-      key: 'status',
-      label: 'Status Pengiriman',
-      sortable: true,
+      label: 'Status Rujukan',
       render: (v, row) => {
-        const statusStyle = statusColors[row.status] || statusColors['Pending'];
+        const meta = {
+          disetujui:        { label: 'Disetujui', cls: 'bg-emerald-50 text-emerald-600 border-emerald-100', icon: 'check_circle' },
+          ditolak:          { label: 'Ditolak',   cls: 'bg-rose-50 text-rose-600 border-rose-100', icon: 'cancel' },
+          menunggu_approval:{ label: 'Menunggu',  cls: 'bg-amber-50 text-amber-600 border-amber-100', icon: 'hourglass_empty' },
+        }[row.approval_status] || { label: 'Menunggu', cls: 'bg-amber-50 text-amber-600 border-amber-100', icon: 'hourglass_empty' };
+
+        const statusStyle = {
+          'Pending': { bg: 'bg-amber-50', text: 'text-amber-600', border: 'border-amber-100' },
+          'menunggu_approval': { bg: 'bg-amber-50', text: 'text-amber-600', border: 'border-amber-100' },
+          'Selesai': { bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-100' },
+          'Ditolak': { bg: 'bg-rose-50', text: 'text-rose-600', border: 'border-rose-100' },
+        }[row.status] || { bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-100' };
+
         return (
-          <span
-            className={cn("inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-widest border font-body shadow-none", statusStyle.bg, statusStyle.text, statusStyle.border)}
-          >
-            {getStatusLabel(row.status)}
-          </span>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <span className={cn("w-5 h-5 rounded flex items-center justify-center shrink-0 border", meta.cls)}>
+                <span className="material-symbols-outlined !text-[12px]">{meta.icon}</span>
+              </span>
+              <div>
+                <p className="text-[10px] font-bold text-slate-500">Persetujuan: {meta.label}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className={cn("w-5 h-5 rounded flex items-center justify-center shrink-0 border", statusStyle.bg, statusStyle.text, statusStyle.border)}>
+                <span className="material-symbols-outlined !text-[12px]">local_shipping</span>
+              </span>
+              <div>
+                <p className="text-[11px] font-bold text-slate-700">{getStatusLabel(row.status)}</p>
+              </div>
+            </div>
+          </div>
         );
       }
     },
@@ -262,28 +259,26 @@ export default function ReferralManagement() {
       key: 'actions',
       label: 'Aksi',
       className: 'text-right',
-      render: (v, row) => {
-        return (
-          <div className="flex items-center justify-end gap-1.5 shrink-0 font-body">
-            {row.surat_rujukan_url && (
-              <button
-                onClick={async () => {
-                  try {
-                    await psychologistService.downloadReferralPDF(row.id);
-                  } catch (err) {
-                    toast.error('Gagal download PDF: ' + err.message);
-                  }
-                }}
-                className="w-8 h-8 rounded-lg bg-[var(--theme-bg)] text-[var(--theme-text-subtle)] flex items-center justify-center hover:text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)] transition-colors border border-[var(--theme-border)] active:scale-95"
-                title="Download PDF"
-                type="button"
-              >
-                <span className="material-symbols-outlined text-sm">download</span>
-              </button>
-            )}
-          </div>
-        )
-      }
+      render: (v, row) => (
+        <div className="flex items-center justify-end gap-1.5 shrink-0">
+          {row.surat_rujukan_url && (
+            <button
+              onClick={async () => {
+                try {
+                  await psychologistService.downloadReferralPDF(row.id);
+                } catch (err) {
+                  toast.error('Gagal download PDF: ' + err.message);
+                }
+              }}
+              className="w-8 h-8 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center hover:text-primary hover:bg-primary/10 transition-colors border border-slate-200 active:scale-95"
+              title="Download PDF"
+              type="button"
+            >
+              <span className="material-symbols-outlined text-[16px]">download</span>
+            </button>
+          )}
+        </div>
+      )
     }
   ];
 
@@ -319,48 +314,15 @@ export default function ReferralManagement() {
           }
         />
 
-        {/* Status Filter Chips */}
-        <div className="rounded-2xl border border-[var(--theme-border)] shadow-sm p-4 bg-[var(--theme-surface)]">
-          <div className="flex flex-wrap gap-2">
-            {[
-              { value: 'Semua', label: 'Semua Rujukan', icon: 'list' },
-              { value: 'menunggu_approval', label: 'Menunggu', icon: 'hourglass_empty' },
-              { value: 'Selesai', label: 'Selesai', icon: 'check_circle' },
-              { value: 'Ditolak', label: 'Ditolak', icon: 'cancel' }
-            ].map(item => (
-              <button
-                key={item.value}
-                onClick={() => setSelectedStatus(item.value)}
-                className={cn(
-                  "px-4 py-2.5 rounded-xl text-[9px] font-semibold uppercase tracking-widest transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 border",
-                  selectedStatus === item.value
-                    ? 'bg-[var(--theme-primary)] text-white border-[var(--theme-primary)]'
-                    : 'bg-[var(--theme-surface)] hover:bg-[var(--theme-bg)] text-[var(--theme-text-muted)] border-[var(--theme-border)] hover:text-[var(--theme-text)]'
-                )}
-              >
-                <span className="material-symbols-outlined text-xs shrink-0">{item.icon}</span>
-                {item.label}
-              </button>
-            ))}
-          </div>
-        </div>
+
 
         {/* Referrals List Card */}
-        <section className="rounded-2xl border border-[var(--theme-border)] shadow-sm p-5 space-y-5 bg-[var(--theme-surface)]">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[var(--theme-border-muted)] gap-4">
-            <div>
-              <h3 className="text-xs font-bold uppercase tracking-widest flex items-center gap-2 text-[var(--theme-primary)]">
-                <span className="material-symbols-outlined text-base shrink-0">list</span> Daftar Surat Rujukan
-              </h3>
-              <p className="text-[10px] font-semibold text-[var(--theme-text-muted)] mt-1 uppercase tracking-widest">
-                Total: {filteredReferrals.length} data
-              </p>
-            </div>
-          </div>
-
+        <div className="w-full">
           <DataTable
+            title="Daftar Surat Rujukan"
+            subtitle={`Total: ${referrals.length} data`}
             columns={columns}
-            data={filteredReferrals}
+            data={referrals}
             loading={loading}
             searchable={true}
             onSearch={handleTableSearch}
@@ -369,192 +331,194 @@ export default function ReferralManagement() {
             pageSize={10}
             emptyMessage="Tidak ada rujukan. Belum ada data surat rujukan yang dibuat."
             emptyIcon="inbox"
+            filters={[
+              {
+                key: 'status',
+                placeholder: 'Status Rujukan',
+                options: [
+                  { label: 'Menunggu', value: 'menunggu_approval' },
+                  { label: 'Selesai', value: 'Selesai' },
+                  { label: 'Ditolak', value: 'Ditolak' }
+                ]
+              }
+            ]}
           />
-        </section>
+        </div>
       </div>
 
       {/* --- CREATE REFERRAL MODAL --- */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen} maxWidth="max-w-lg">
-        <DialogContent className="p-0 overflow-hidden border border-[var(--theme-border)] shadow-2xl rounded-2xl bg-[var(--theme-surface)] font-body animate-in zoom-in-95 duration-200">
-          {/* Header */}
-          <DialogHeader className="p-8 pb-5 border-b border-[var(--theme-border-muted)] bg-[var(--theme-primary)] text-white relative overflow-hidden">
-            <div className="absolute -top-12 -right-12 w-24 h-24 bg-white/5 rounded-full blur-xl pointer-events-none" />
-            <div className="relative z-10 flex items-center gap-3 text-left">
-              <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white/10 text-white shrink-0">
-                <span className="material-symbols-outlined text-white" style={{ fontSize: '20px' }}>send</span>
-              </div>
-              <div>
-                <DialogTitle className="text-base font-bold uppercase tracking-tight font-headline">Surat Rujukan Baru</DialogTitle>
-                <DialogDescription className="text-xs text-white/70 font-semibold uppercase tracking-widest mt-0.5">Buat Rujukan untuk Pasien</DialogDescription>
-              </div>
+      <DialogModal
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        title="Surat Rujukan Baru"
+        subtitle="Buat Rujukan untuk Pasien"
+        icon="send"
+        maxWidth="max-w-lg"
+        bodyClassName="!p-0"
+        footer={
+          <div className="flex gap-3 w-full">
+            <button 
+              type="button" 
+              onClick={() => setIsModalOpen(false)} 
+              className="flex-1 h-11 rounded-xl text-[10px] font-bold uppercase tracking-widest border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors"
+            >
+              Batal
+            </button>
+            <button 
+              type="submit"
+              form="create-referral-form"
+              className="flex-1 text-white px-5 h-11 rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-sm flex items-center justify-center gap-2 bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] active:scale-95 transition-all border-none cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[16px] shrink-0">save</span> Buat Rujukan
+            </button>
+          </div>
+        }
+      >
+        <form id="create-referral-form" onSubmit={handleCreateReferral} className="flex flex-col space-y-5 bg-white p-6 sm:p-8">
+          <div className="relative">
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Pilih Pasien</label>
+            <div className="relative">
+              <input 
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setShowDropdown(true);
+                  if(e.target.value === '') {
+                    setNewReferral({ ...newReferral, mahasiswa_id: '' });
+                  }
+                }}
+                onFocus={() => setShowDropdown(true)}
+                onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+                placeholder="Cari nama pasien atau NIM..."
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
+              />
+              <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-base shrink-0">search</span>
             </div>
-          </DialogHeader>
 
-          <form onSubmit={handleCreateReferral} className="flex flex-col">
-            <div className="p-8 overflow-y-auto max-h-[50vh] no-scrollbar space-y-4 text-left bg-[var(--theme-surface)]">
-              <div className="relative">
-                <label className="text-[9px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest ml-1 mb-2 block">Pilih Pasien</label>
-                <div className="relative">
-                  <input 
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      setShowDropdown(true);
-                      if(e.target.value === '') {
-                        setNewReferral({ ...newReferral, mahasiswa_id: '' });
+            {showDropdown && (
+              <div className="absolute z-20 w-full mt-2 bg-white border border-slate-200 rounded-xl shadow-xl max-h-56 overflow-y-auto">
+                {mahasiswaList.filter(m => {
+                  const str = `${m.nama || m.name} ${m.nim || m.id}`.toLowerCase();
+                  return str.includes(searchQuery.toLowerCase());
+                }).map((maba) => (
+                  <div 
+                    key={maba.id} 
+                    onClick={async () => {
+                      setNewReferral({ ...newReferral, mahasiswa_id: maba.id });
+                      setSearchQuery(`${maba.nama || maba.name} (${maba.nim || maba.id})`);
+                      setShowDropdown(false);
+                      setLoadingHistory(true);
+                      try {
+                        const res = await psychologistService.getMedicalRecord(maba.id);
+                        setSelectedPatientHistory(res.data?.records || []);
+                      } catch (err) {
+                        console.error('Error fetching medical record:', err);
+                        setSelectedPatientHistory([]);
+                      } finally {
+                        setLoadingHistory(false);
                       }
                     }}
-                    onFocus={() => setShowDropdown(true)}
-                    onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
-                    placeholder="Cari nama pasien atau NIM..."
-                    className="w-full bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl px-4 py-2.5 text-xs font-semibold text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] transition-colors"
-                  />
-                  <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-[var(--theme-text-subtle)] pointer-events-none text-base shrink-0">search</span>
-                </div>
+                    className={cn(
+                      "px-4 py-3 cursor-pointer text-xs transition-colors hover:bg-slate-50 border-b border-slate-100 last:border-0",
+                      newReferral.mahasiswa_id === maba.id ? 'text-primary font-bold bg-primary/5' : 'text-slate-600 font-medium'
+                    )}
+                  >
+                    {maba.nama || maba.name} <span className="text-[10px] text-slate-400 ml-1">({maba.nim || maba.id})</span>
+                  </div>
+                ))}
+                {mahasiswaList.filter(m => {
+                  const str = `${m.nama || m.name} ${m.nim || m.id}`.toLowerCase();
+                  return str.includes(searchQuery.toLowerCase());
+                }).length === 0 && (
+                  <div className="px-4 py-4 text-center text-xs text-slate-400 italic">
+                    Pasien tidak ditemukan
+                  </div>
+                )}
+              </div>
+            )}
 
-                {showDropdown && (
-                  <div className="absolute z-20 w-full mt-2 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl shadow-xl max-h-56 overflow-y-auto">
-                    {mahasiswaList.filter(m => {
-                      const str = `${m.nama || m.name} ${m.nim || m.id}`.toLowerCase();
-                      return str.includes(searchQuery.toLowerCase());
-                    }).map((maba) => (
-                      <div 
-                        key={maba.id} 
-                        onClick={async () => {
-                          setNewReferral({ ...newReferral, mahasiswa_id: maba.id });
-                          setSearchQuery(`${maba.nama || maba.name} (${maba.nim || maba.id})`);
-                          setShowDropdown(false);
-                          setLoadingHistory(true);
-                          try {
-                            const res = await psychologistService.getMedicalRecord(maba.id);
-                            setSelectedPatientHistory(res.data?.records || []);
-                          } catch (err) {
-                            console.error('Error fetching medical record:', err);
-                            setSelectedPatientHistory([]);
-                          } finally {
-                            setLoadingHistory(false);
-                          }
-                        }}
-                        className={cn(
-                          "px-4 py-3 cursor-pointer text-xs transition-colors hover:bg-[var(--theme-bg)] border-b border-[var(--theme-border-muted)] last:border-0",
-                          newReferral.mahasiswa_id === maba.id ? 'text-[var(--theme-primary)] font-bold bg-[var(--theme-primary-light)]/30' : 'text-[var(--theme-text-muted)] font-medium'
-                        )}
-                      >
-                        {maba.nama || maba.name} <span className="text-[10px] text-[var(--theme-text-subtle)] ml-1">({maba.nim || maba.id})</span>
+            {newReferral.mahasiswa_id && (
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mt-3 max-h-48 overflow-y-auto">
+                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-2.5 flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-sm shrink-0">history</span> Riwayat Sesi Konseling
+                </p>
+                {loadingHistory ? (
+                  <div className="flex items-center justify-center py-4">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                  </div>
+                ) : selectedPatientHistory.length === 0 ? (
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide text-center py-2">Tidak ada riwayat konseling</p>
+                ) : (
+                  <div className="space-y-3">
+                    {selectedPatientHistory.map((item, idx) => (
+                      <div key={item.id || idx} className="border-b border-slate-200 last:border-0 pb-2.5 last:pb-0">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-[9px] font-bold text-slate-800 uppercase tracking-wider">{item.date}</span>
+                          <span className="px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest bg-primary/10 text-primary">{item.type}</span>
+                        </div>
+                        <p className="text-[10px] text-slate-600 font-medium leading-relaxed">
+                          <span className="font-bold text-slate-800">Keluhan:</span> {item.complaint || '-'}
+                        </p>
+                        <p className="text-[10px] text-slate-500 font-medium leading-relaxed mt-0.5">
+                          <span className="font-bold text-slate-600">Rekomendasi:</span> {item.recommendation || '-'}
+                        </p>
                       </div>
                     ))}
-                    {mahasiswaList.filter(m => {
-                      const str = `${m.nama || m.name} ${m.nim || m.id}`.toLowerCase();
-                      return str.includes(searchQuery.toLowerCase());
-                    }).length === 0 && (
-                      <div className="px-4 py-4 text-center text-xs text-[var(--theme-text-subtle)] italic">
-                        Pasien tidak ditemukan
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {newReferral.mahasiswa_id && (
-                  <div className="bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl p-4 mt-2 max-h-48 overflow-y-auto">
-                    <p className="text-[9px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest mb-2.5 flex items-center gap-1.5">
-                      <span className="material-symbols-outlined text-sm shrink-0">history</span> Riwayat Sesi Konseling
-                    </p>
-                    {loadingHistory ? (
-                      <div className="flex items-center justify-center py-4">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[var(--theme-primary)]"></div>
-                      </div>
-                    ) : selectedPatientHistory.length === 0 ? (
-                      <p className="text-[10px] text-[var(--theme-text-subtle)] font-bold uppercase tracking-wide text-center py-2">Tidak ada riwayat konseling</p>
-                    ) : (
-                      <div className="space-y-3">
-                        {selectedPatientHistory.map((item, idx) => (
-                          <div key={item.id || idx} className="border-b border-[var(--theme-border-muted)] last:border-0 pb-2.5 last:pb-0">
-                            <div className="flex justify-between items-center mb-1">
-                              <span className="text-[9px] font-bold text-[var(--theme-text)] uppercase tracking-wider">{item.date}</span>
-                              <span className="px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest bg-[var(--theme-primary-light)] text-[var(--theme-primary)]">{item.type}</span>
-                            </div>
-                            <p className="text-[10px] text-[var(--theme-text-muted)] font-medium leading-relaxed">
-                              <span className="font-bold text-[var(--theme-text)]">Keluhan:</span> {item.complaint || '-'}
-                            </p>
-                            <p className="text-[10px] text-[var(--theme-text-subtle)] font-medium leading-relaxed mt-0.5">
-                              <span className="font-bold text-[var(--theme-text-muted)]">Rekomendasi:</span> {item.recommendation || '-'}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
                   </div>
                 )}
               </div>
+            )}
+          </div>
 
-              <div>
-                <label className="text-[9px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest ml-1 mb-2 block">Tipe Rujukan</label>
-                <select 
-                  value={newReferral.tipe}
-                  onChange={(e) => setNewReferral({ ...newReferral, tipe: e.target.value })}
-                  className="w-full bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl px-4 py-2.5 text-xs font-semibold text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] transition-colors cursor-pointer"
-                >
-                  <option value="Medis">Medis</option>
-                  <option value="Akademik">Akademik</option>
-                </select>
-              </div>
+          <div>
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Tipe Rujukan</label>
+            <select 
+              value={newReferral.tipe}
+              onChange={(e) => setNewReferral({ ...newReferral, tipe: e.target.value })}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors cursor-pointer"
+            >
+              <option value="Medis">Medis</option>
+              <option value="Akademik">Akademik</option>
+            </select>
+          </div>
 
-              <div>
-                <label className="text-[9px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest ml-1 mb-2 block">Alasan Rujukan</label>
-                <textarea 
-                  required
-                  value={newReferral.alasan}
-                  onChange={(e) => setNewReferral({ ...newReferral, alasan: e.target.value })}
-                  className="w-full bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl px-4 py-2.5 text-xs font-medium text-[var(--theme-text)] placeholder-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] transition-colors h-24 resize-none leading-relaxed"
-                  placeholder="Jelaskan alasan rujukan..."
-                />
-              </div>
+          <div>
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Alasan Rujukan</label>
+            <textarea 
+              required
+              value={newReferral.alasan}
+              onChange={(e) => setNewReferral({ ...newReferral, alasan: e.target.value })}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-medium text-slate-900 placeholder-slate-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors h-24 resize-none leading-relaxed"
+              placeholder="Jelaskan alasan rujukan..."
+            />
+          </div>
 
-              <div>
-                <label className="text-[9px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest ml-1 mb-2 block">Pihak Tujuan</label>
-                <input 
-                  required
-                  type="text"
-                  value={newReferral.pihak_tujuan}
-                  onChange={(e) => setNewReferral({ ...newReferral, pihak_tujuan: e.target.value })}
-                  className="w-full bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl px-4 py-2.5 text-xs font-semibold text-[var(--theme-text)] placeholder-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] transition-colors"
-                  placeholder="Nama klinik/psikolog tujuan"
-                />
-              </div>
+          <div>
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Pihak Tujuan</label>
+            <input 
+              required
+              type="text"
+              value={newReferral.pihak_tujuan}
+              onChange={(e) => setNewReferral({ ...newReferral, pihak_tujuan: e.target.value })}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-900 placeholder-slate-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
+              placeholder="Nama klinik/psikolog tujuan"
+            />
+          </div>
 
-              <div>
-                <label className="text-[9px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest ml-1 mb-2 block">Email Tujuan</label>
-                <input 
-                  required
-                  type="email"
-                  value={newReferral.email_tujuan}
-                  onChange={(e) => setNewReferral({ ...newReferral, email_tujuan: e.target.value })}
-                  className="w-full bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl px-4 py-2.5 text-xs font-semibold text-[var(--theme-text)] placeholder-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] transition-colors"
-                  placeholder="email@example.com"
-                />
-              </div>
-            </div>
-
-            <DialogFooter className="p-8 border-t border-[var(--theme-border-muted)] bg-[var(--theme-bg)]/50 shrink-0 flex gap-3">
-              <Button 
-                type="button" 
-                variant="outline"
-                onClick={() => setIsModalOpen(false)} 
-                className="flex-1 h-11 rounded-xl text-xs font-bold border-[var(--theme-border)] text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg)]"
-              >
-                Batal
-              </Button>
-              <button 
-                type="submit"
-                className="flex-1 text-white px-5 h-11 rounded-xl text-xs font-bold uppercase tracking-wider shadow-sm flex items-center justify-center gap-2 bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] active:scale-95 transition-all border-none cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-base shrink-0">save</span> Buat Rujukan
-              </button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+          <div>
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Email Tujuan</label>
+            <input 
+              required
+              type="email"
+              value={newReferral.email_tujuan}
+              onChange={(e) => setNewReferral({ ...newReferral, email_tujuan: e.target.value })}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-900 placeholder-slate-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
+              placeholder="email@example.com"
+            />
+          </div>
+        </form>
+      </DialogModal>
     </>
   );
 }

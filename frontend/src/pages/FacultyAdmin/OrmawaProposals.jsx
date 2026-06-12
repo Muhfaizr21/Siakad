@@ -92,7 +92,10 @@ export default function FacultyProposalApproval() {
       if (date) {
         const d = new Date(date)
         if (!isNaN(d.getTime())) {
-          periods.add(String(d.getFullYear()))
+          const year = d.getFullYear()
+          if (year > 1900) {
+            periods.add(String(year))
+          }
         }
       }
     })
@@ -420,28 +423,7 @@ export default function FacultyProposalApproval() {
           </div>
         )}
 
-        {/* Filters */}
-        <div className="mb-4 flex flex-wrap items-center gap-2">
-          <Select value={filterStatus} onValueChange={setFilter}>
-            <SelectTrigger className="h-10 w-40 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] px-3 text-xs text-[var(--theme-text-muted)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="rounded-xl border border-[var(--theme-border)] shadow-md bg-[var(--theme-surface)]">
-              {[
-                { value: 'all', label: 'Semua Status' },
-                { value: 'pending', label: 'Diajukan' },
-                { value: 'revisi', label: 'Revisi' },
-                { value: 'disetujui_fakultas', label: 'ACC Fakultas' },
-                { value: 'disetujui_univ', label: 'Disyahkan Univ' },
-                { value: 'ditolak', label: 'Ditolak' }
-              ].map(opt => (
-                <SelectItem key={opt.value} value={opt.value} className="rounded-lg text-xs py-1.5 focus:bg-[var(--theme-primary-light)] focus:text-[var(--theme-primary)]">
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+
 
         {/* Table */}
         <div>
@@ -455,6 +437,27 @@ export default function FacultyProposalApproval() {
             emptyMessage="Belum Ada Proposal"
             emptyIcon="description"
             searchPlaceholder="Cari judul atau organisasi..."
+            searchValue={search}
+            onSearchChange={setSearch}
+            manualFiltering={true}
+            filterValues={{ status: filterStatus }}
+            onFilterChange={(key, val) => {
+              if (key === 'status') setFilter(val);
+            }}
+            filters={[
+              {
+                key: 'status',
+                placeholder: 'Status',
+                options: [
+                  { value: 'pending', label: 'Diajukan' },
+                  { value: 'revisi', label: 'Revisi' },
+                  { value: 'disetujui_fakultas', label: 'ACC Fakultas' },
+                  { value: 'disetujui_univ', label: 'Disyahkan Univ' },
+                  { value: 'ditolak', label: 'Ditolak' }
+                ],
+                className: 'w-[140px]'
+              }
+            ]}
           />
         </div>
       </PageContent>

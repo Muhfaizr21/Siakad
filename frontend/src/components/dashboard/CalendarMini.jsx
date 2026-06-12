@@ -94,7 +94,7 @@ export default function CalendarMini({ events }) {
       </div>
 
       <div className="flex-1 flex flex-col gap-4 border-t border-border-muted pt-6">
-         <h4 className="text-xs font-black text-text-muted uppercase tracking-widest leading-none mb-2">Kegiatan di Bulan {MONTHS[month]}</h4>
+         <h4 className="text-[13px] font-bold text-slate-800 font-headline mb-2">Kegiatan di Bulan {MONTHS[month]}</h4>
          {viewedEvents?.length > 0 ? (
            <div className="space-y-3">
               {viewedEvents.map((e, idx) => (
@@ -111,7 +111,7 @@ export default function CalendarMini({ events }) {
               ))}
            </div>
          ) : (
-           <p className="text-xs font-bold text-text-muted/40 italic">Tidak ada kegiatan terjadwal di bulan ini.</p>
+           <p className="text-[13px] text-slate-500 font-medium">Tidak ada kegiatan terjadwal di bulan ini.</p>
          )}
       </div>
     </PageCard>

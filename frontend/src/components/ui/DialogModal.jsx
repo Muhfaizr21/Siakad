@@ -29,7 +29,9 @@ export function DialogModal({
         <Dialog.Root open={open} onOpenChange={handleOpenChange}>
             <Dialog.Portal>
                 <Dialog.Overlay className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-                <Dialog.Content className={cn(
+                <Dialog.Content 
+                    aria-describedby={undefined}
+                    className={cn(
                     "fixed left-1/2 top-1/2 z-[100] -translate-x-1/2 -translate-y-1/2 w-full max-h-[95vh] flex flex-col rounded-[2rem] bg-[var(--theme-bg)]/95 backdrop-blur-xl shadow-2xl border border-[var(--theme-border)] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 overflow-hidden",
                     maxWidth,
                     className

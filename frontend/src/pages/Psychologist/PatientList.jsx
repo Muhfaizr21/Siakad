@@ -8,18 +8,17 @@ import { PrimaryStatsCard } from '@/components/ui/StatsCard';
 // Fallback Icons
 const GroupIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>group</span>;
 const ChartIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>show_chart</span>;
+const WarningIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>error</span>;
+const HeartIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>favorite</span>;
 
 export default function PatientList() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [patients, setPatients] = useState([]);
-  const [filterStatus, setFilterStatus] = useState('Semua Status');
   const [fakultasList, setFakultasList] = useState([]);
   const [prodiList, setProdiList] = useState([]);
   const [selectedFakultas, setSelectedFakultas] = useState('Semua Fakultas');
   const [selectedProdi, setSelectedProdi] = useState('Semua Prodi');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
 
   useEffect(() => {
     let ignore = false;
@@ -77,23 +76,14 @@ export default function PatientList() {
 
   const filteredPatients = useMemo(() => {
     let result = [...patients];
-    if (filterStatus !== 'Semua Status') {
-      result = result.filter(p => p.status === filterStatus);
-    }
     if (selectedFakultas !== 'Semua Fakultas') {
       result = result.filter(p => p.faculty === selectedFakultas);
     }
     if (selectedProdi !== 'Semua Prodi') {
       result = result.filter(p => p.program_studi === selectedProdi);
     }
-    if (startDate) {
-      result = result.filter(p => p.raw_last_visit && p.raw_last_visit >= startDate);
-    }
-    if (endDate) {
-      result = result.filter(p => p.raw_last_visit && p.raw_last_visit <= endDate);
-    }
     return result;
-  }, [patients, filterStatus, selectedFakultas, selectedProdi, startDate, endDate]);
+  }, [patients, selectedFakultas, selectedProdi]);
 
   const handleTableSearch = (data, searchVal) => {
     const query = searchVal.trim().toLowerCase();
@@ -117,16 +107,40 @@ export default function PatientList() {
       sortable: true,
       render: (v, row) => (
         <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-xl ${row.color || 'bg-primary'} text-white flex items-center justify-center font-black text-xs shadow-sm bg-primary border border-primary/20 shrink-0 overflow-hidden relative`}>
+          <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center border border-slate-200 shrink-0 overflow-hidden relative">
             {row.foto_url || row.foto ? (
               <img src={row.foto_url || row.foto} alt={row.name} className="w-full h-full object-cover" />
             ) : (
-              row.name?.charAt(0) || 'P'
+              <span className="material-symbols-outlined text-[20px]">person</span>
             )}
           </div>
           <div>
             <p className="font-bold text-sm text-slate-900 group-hover:text-primary transition-colors max-w-[200px] truncate">{row.name}</p>
             <p className="text-[10px] text-slate-400 font-medium mt-0.5">{row.nim} &bull; {row.faculty}</p>
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'kontak',
+      label: 'Demografi & Kontak',
+      render: (v, row) => (
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <span className="w-5 h-5 rounded flex items-center justify-center shrink-0 bg-slate-100 text-slate-500">
+              <span className="material-symbols-outlined !text-[12px]">{row.jenis_kelamin === 'Perempuan' ? 'female' : 'male'}</span>
+            </span>
+            <div>
+              <p className="text-[11px] font-bold text-slate-700">{row.jenis_kelamin || 'Tidak ada data'}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-5 h-5 rounded flex items-center justify-center shrink-0 bg-slate-100 text-slate-500">
+              <span className="material-symbols-outlined !text-[12px]">call</span>
+            </span>
+            <div>
+              <p className="text-[10px] font-bold text-slate-500">{row.no_hp || 'Tidak ada data'}</p>
+            </div>
           </div>
         </div>
       )
@@ -175,210 +189,128 @@ export default function PatientList() {
     }
   ];
 
+  const HeaderActions = (
+    <div className="flex flex-col sm:flex-row gap-3 items-end">
+      <div className="flex flex-col gap-1.5 w-full sm:w-auto">
+        <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--theme-text-muted)] pl-1">Fakultas</label>
+        <div className="relative">
+          <select
+            value={selectedFakultas}
+            onChange={(e) => handleFakultasChange(e.target.value)}
+            className="h-10 appearance-none rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] pl-4 pr-8 text-sm font-semibold text-[var(--theme-text)] outline-none transition-all focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 cursor-pointer"
+          >
+            <option value="Semua Fakultas">Semua Fakultas</option>
+            {fakultasList.map((f) => (
+              <option key={f.id} value={f.nama}>{f.nama}</option>
+            ))}
+          </select>
+          <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-[18px] text-[var(--theme-text-muted)] pointer-events-none">expand_more</span>
+        </div>
+      </div>
+      <div className="flex flex-col gap-1.5 w-full sm:w-auto">
+        <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--theme-text-muted)] pl-1">Program Studi</label>
+        <div className="relative">
+          <select
+            value={selectedProdi}
+            onChange={(e) => setSelectedProdi(e.target.value)}
+            disabled={selectedFakultas === 'Semua Fakultas'}
+            className="h-10 appearance-none rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] pl-4 pr-8 text-sm font-semibold text-[var(--theme-text)] outline-none transition-all focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <option value="Semua Prodi">Semua Prodi</option>
+            {filteredProdis.map((p) => (
+              <option key={p.id} value={p.nama}>{p.nama}</option>
+            ))}
+          </select>
+          <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-[18px] text-[var(--theme-text-muted)] pointer-events-none">expand_more</span>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <>
       <div className="w-full relative space-y-6 scroll-smooth">
-          
-          <DashboardHero title="Daftar" highlightedTitle="Pasien" subtitle="Lihat profil riwayat konseling dari seluruh mahasiswa yang terdaftar." icon="groups" badges={[{ label: 'Database Pasien', active: false }]} />
 
-          {/* ── Filter Bar Card ──────────────────────────────────────────── */}
-          <section className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-5 space-y-5 relative overflow-hidden group">
-            <div className="absolute -top-32 -right-32 w-64 h-64 rounded-full blur-3xl pointer-events-none opacity-50 bg-primary/5 transition-opacity group-hover:opacity-100" />
-            
-            <div className="relative z-10 flex flex-col gap-5">
-              <div className="flex items-center gap-2 border-b border-slate-100 pb-4">
-                <span className="material-symbols-outlined text-[20px] text-primary">filter_list</span>
-                <h3 className="text-xs font-black uppercase tracking-widest text-slate-800 font-headline">Filter Data</h3>
-              </div>
+        <DashboardHero
+          title="Daftar"
+          highlightedTitle="Pasien"
+          subtitle="Lihat profil riwayat konseling dari seluruh mahasiswa yang terdaftar."
+          icon="groups"
+          badges={[{ label: 'Database Pasien', active: false }]}
+          actions={HeaderActions}
+        />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5">
-                {/* Status */}
-                <div className="space-y-2">
-                  <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                    <span className="material-symbols-outlined text-base">vital_signs</span>
-                    Status Klinis
-                  </label>
-                  <select
-                    value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
-                    className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 cursor-pointer"
-                  >
-                    <option value="Semua Status">Semua Status</option>
-                    <option value="Stabil">Stabil</option>
-                    <option value="Perlu Perhatian">Perlu Perhatian</option>
-                    <option value="Pemulihan">Pemulihan</option>
-                  </select>
-                </div>
-
-                {/* Fakultas */}
-                <div className="space-y-2">
-                  <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                    <span className="material-symbols-outlined text-base">domain</span>
-                    Fakultas
-                  </label>
-                  <select
-                    value={selectedFakultas}
-                    onChange={(e) => handleFakultasChange(e.target.value)}
-                    className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 cursor-pointer"
-                  >
-                    <option value="Semua Fakultas">Semua Fakultas</option>
-                    {fakultasList.map((f) => (
-                      <option key={f.id} value={f.nama}>{f.nama}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Prodi */}
-                <div className="space-y-2">
-                  <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                    <span className="material-symbols-outlined text-base">school</span>
-                    Program Studi
-                  </label>
-                  <select
-                    value={selectedProdi}
-                    onChange={(e) => setSelectedProdi(e.target.value)}
-                    disabled={selectedFakultas === 'Semua Fakultas'}
-                    className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <option value="Semua Prodi">Semua Prodi</option>
-                    {filteredProdis.map((p) => (
-                      <option key={p.id} value={p.nama}>{p.nama}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Dari Tanggal */}
-                <div className="space-y-2">
-                  <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                    <span className="material-symbols-outlined text-base">event</span>
-                    Dari Tanggal
-                  </label>
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
-                  />
-                </div>
-
-                {/* Sampai Tanggal */}
-                <div className="space-y-2">
-                  <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                    <span className="material-symbols-outlined text-base">event</span>
-                    Sampai Tanggal
-                  </label>
-                  <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
-                  />
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between border-t border-slate-100 pt-5">
-                <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-1">
-                  {/* Empty space for tabs if needed in the future */}
-                  <span className="text-[10px] font-bold text-slate-400">Pilih kriteria untuk menyaring data</span>
-                </div>
-                <button
-                  onClick={() => {
-                    setSelectedFakultas('Semua Fakultas');
-                    setSelectedProdi('Semua Prodi');
-                    setFilterStatus('Semua Status');
-                    setStartDate('');
-                    setEndDate('');
-                  }}
-                  disabled={!(selectedFakultas !== 'Semua Fakultas' || selectedProdi !== 'Semua Prodi' || filterStatus !== 'Semua Status' || startDate || endDate)}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-5 py-2.5 text-[10px] font-black uppercase tracking-widest text-slate-500 transition-all hover:bg-slate-50 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <span className="material-symbols-outlined text-[16px]">restart_alt</span>
-                  Reset Filter
-                </button>
-              </div>
-            </div>
-          </section>
-
-          <div className="grid grid-cols-1 gap-5 lg:grid-cols-12 w-full">
-            
-            {/* Main Patient List (Col 9) */}
-            <div className="lg:col-span-9 space-y-4">
-              <div className="rounded-2xl border shadow-sm p-5 space-y-5 relative overflow-hidden bg-white" style={{ borderColor: 'var(--theme-border)' }}>
-                <div className="flex flex-col gap-2 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <h2 className="text-sm font-black uppercase tracking-widest text-slate-800 font-headline">Daftar Pasien Terdaftar</h2>
-                    <p className="text-[10px] font-bold text-slate-500 mt-1">Total {filteredPatients.length} pasien ditemukan</p>
-                  </div>
-                </div>
-
-                <DataTable
-                  columns={columns}
-                  data={filteredPatients}
-                  loading={loading}
-                  searchable={true}
-                  onSearch={handleTableSearch}
-                  searchPlaceholder="Cari nama, NIM, fakultas..."
-                  pagination={true}
-                  pageSize={10}
-                  onRowClick={(row) => navigate(`/psychologist/patients/${row.id}/medical-record`)}
-                  emptyMessage="Tidak ada pasien. Coba ubah filter atau kata kunci pencarian."
-                  emptyIcon="group_off"
-                />
-              </div>
-            </div>
-
-            {/* Statistics Sidebar (Col 3) */}
-            <div className="lg:col-span-3 space-y-6">
-              
-              {/* Ringkasan Data Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 px-2">
-                  <span className="material-symbols-outlined text-base shrink-0" style={{ color: 'color-mix(in srgb, var(--theme-primary) 60%, transparent)' }}>analytics</span>
-                  <h3 className="text-[10px] font-black font-headline uppercase tracking-widest" style={{ color: 'var(--theme-h3)' }}>Ringkasan Data</h3>
-                </div>
-                
-                {/* Premium Card 1: Total Pasien Unik */}
-                <PrimaryStatsCard
-                  title="Pasien Unik"
-                  value={`${patients.length} Orang`}
-                  icon={GroupIcon}
-                  colorTheme="primary"
-                  badgeText="AKTIF"
-                />
-
-                {/* Premium Card 2: Sesi Bulan Ini */}
-                <PrimaryStatsCard
-                  title="Sesi Bulan Ini"
-                  value={`${patients.reduce((sum, item) => sum + Number(item.sessions || 0), 0)} Sesi`}
-                  icon={ChartIcon}
-                  colorTheme="success"
-                  badgeText="LIVE"
-                  badgeIcon={<span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />}
-                />
-              </div>
-
-              {/* Data Security Info Card */}
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-bku-primary via-[#0b338f] to-[#003B95] p-5 text-white shadow-xl shadow-blue-900/10 border border-white/5">
-                <div className="absolute -right-12 -bottom-12 w-32 h-32 bg-white/5 rounded-full blur-2xl pointer-events-none" />
-                
-                <div className="relative z-10">
-                  <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-emerald-400 border border-white/10 mb-4 shadow-inner">
-                    <span className="material-symbols-outlined text-base shrink-0">security</span>
-                  </div>
-                  <h4 className="text-[10px] font-black uppercase tracking-widest text-emerald-300">Keamanan Data</h4>
-                  <p className="mt-2 text-xs font-semibold text-slate-100/90 leading-relaxed uppercase tracking-wider">
-                    Hanya Anda dan mahasiswa bersangkutan yang memiliki akses ke detail rekam medis ini.
-                  </p>
-                </div>
-                
-                <span className="material-symbols-outlined absolute -right-6 -bottom-6 text-9xl text-white/5 rotate-12 pointer-events-none font-thin" >shield</span>
-              </div>
-              
-            </div>
-
-          </div>
-
+        {/* Statistics Top Row */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+          <PrimaryStatsCard
+            title="Total Pasien"
+            value={`${patients.length} Orang`}
+            icon={GroupIcon}
+            colorTheme="primary"
+            badgeText="AKTIF"
+          />
+          <PrimaryStatsCard
+            title="Sesi Bulan Ini"
+            value={`${patients.reduce((sum, item) => sum + Number(item.sessions || 0), 0)} Sesi`}
+            icon={ChartIcon}
+            colorTheme="success"
+            badgeText="LIVE"
+            badgeIcon={<span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />}
+          />
+          <PrimaryStatsCard
+            title="Perlu Perhatian"
+            value={`${patients.filter(p => p.status === 'Perlu Perhatian').length} Orang`}
+            icon={WarningIcon}
+            colorTheme="error"
+            badgeText="URGENT"
+          />
+          <PrimaryStatsCard
+            title="Pasien Stabil"
+            value={`${patients.filter(p => p.status === 'Stabil' || p.status === 'Pemulihan').length} Orang`}
+            icon={HeartIcon}
+            colorTheme="info"
+            badgeText="PROGRESS"
+          />
         </div>
+
+        <div className="w-full">
+          <DataTable
+            title="Daftar Pasien Terdaftar"
+            subtitle={`Total ${filteredPatients.length} pasien ditemukan berdasarkan filter`}
+            columns={columns}
+            data={filteredPatients}
+            loading={loading}
+            searchable={true}
+            onSearch={handleTableSearch}
+            searchPlaceholder="Cari nama, NIM, fakultas..."
+            pagination={true}
+            pageSize={10}
+            onRowClick={(row) => navigate(`/psychologist/patients/${row.id}/medical-record`)}
+            emptyMessage="Tidak ada pasien. Coba ubah filter atau kata kunci pencarian."
+            emptyIcon="group_off"
+            filters={[
+              {
+                key: 'status',
+                placeholder: 'Status Klinis',
+                options: [
+                  { label: 'Stabil', value: 'Stabil' },
+                  { label: 'Perlu Perhatian', value: 'Perlu Perhatian' },
+                  { label: 'Pemulihan', value: 'Pemulihan' }
+                ]
+              },
+              {
+                key: 'jenis_kelamin',
+                placeholder: 'Jenis Kelamin',
+                options: [
+                  { label: 'Laki-laki', value: 'Laki-laki' },
+                  { label: 'Perempuan', value: 'Perempuan' }
+                ]
+              }
+            ]}
+          />
+        </div>
+
+      </div>
     </>
   );
 }

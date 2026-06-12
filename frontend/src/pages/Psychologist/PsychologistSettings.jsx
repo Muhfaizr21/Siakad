@@ -3,6 +3,7 @@ import { UI } from '../../constants/designSystem';
 import { psychologistService } from '../../services/api';
 import { DashboardHero } from '@/components/ui/dashboard';
 import { PageContent } from '@/components/ui/page';
+import { cn } from '@/lib/utils';
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Lock = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>lock</span>;
@@ -39,7 +40,7 @@ const EMPTY_PROFILE = {
 };
 
 const DAYS = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
-const FIELD_CLASS = 'w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-primary/30 focus:bg-white focus:ring-4 focus:ring-primary/10';
+const FIELD_CLASS = 'w-full rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg)] px-4 py-3 text-sm font-semibold text-[var(--theme-text)] outline-none transition-all focus:border-[var(--theme-primary)] focus:bg-[var(--theme-surface)] focus:ring-4 focus:ring-[var(--theme-primary-light)] placeholder-[var(--theme-text-subtle)]';
 
 const getInitials = (name) => {
   if (!name) return '?';
@@ -129,14 +130,14 @@ export default function PsychologistSettings() {
       />
 
           {message && (
-            <div className="flex items-center gap-3 rounded-3xl border border-emerald-100 bg-emerald-50 px-5 py-4 text-emerald-700">
+            <div className="flex items-center gap-3 rounded-2xl border border-[var(--theme-success)]/20 bg-[var(--theme-success-light)] px-5 py-4 text-[var(--theme-success)]">
               <span className="material-symbols-outlined text-lg shrink-0">check_circle</span>
               <p className="text-sm font-semibold">{message}</p>
             </div>
           )}
 
           {error && (
-            <div className="flex items-start gap-3 rounded-3xl border border-rose-100 bg-rose-50 px-5 py-4 text-rose-700">
+            <div className="flex items-start gap-3 rounded-2xl border border-[var(--theme-error)]/20 bg-[var(--theme-error-light)] px-5 py-4 text-[var(--theme-error)]">
               <span className="material-symbols-outlined mt-0.5 shrink-0 text-lg">error</span>
               <p className="text-sm font-semibold">{error}</p>
             </div>
@@ -149,10 +150,14 @@ export default function PsychologistSettings() {
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex w-full items-center gap-4 rounded-2xl px-5 py-4 transition ${activeTab === tab.id ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'border text-slate-500 hover:bg-slate-50'}`}
-                  style={activeTab !== tab.id ? { backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' } : {}}
+                  className={cn(
+                    "flex w-full items-center gap-4 rounded-2xl px-5 py-4 transition-all cursor-pointer active:scale-95 border",
+                    activeTab === tab.id 
+                      ? 'bg-[var(--theme-primary)] text-white shadow-lg shadow-[var(--theme-primary)]/20 border-transparent' 
+                      : 'border-[var(--theme-border)] text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg)] bg-[var(--theme-surface)] hover:text-[var(--theme-text)]'
+                  )}
                 >
-                  <tab.icon size={20} />
+                  <tab.icon size={20} className={activeTab === tab.id ? 'text-white' : 'text-[var(--theme-text-subtle)]'} />
                   <span className="text-[10px] font-black uppercase tracking-widest">{tab.label}</span>
                 </button>
               ))}
@@ -168,13 +173,13 @@ export default function PsychologistSettings() {
                   <>
                     {activeTab === 'profil' && (
                       <div className="space-y-6 p-5 lg:p-5">
-                        <div className="flex flex-col gap-5 border-b border-slate-100 pb-6 md:flex-row md:items-center">
-                          <div className="flex size-28 items-center justify-center rounded-2xl bg-primary text-3xl font-black text-white shadow-lg shadow-primary/20 overflow-hidden relative">
+                        <div className="flex flex-col gap-5 border-b border-[var(--theme-border-muted)] pb-6 md:flex-row md:items-center">
+                          <div className="flex size-28 items-center justify-center rounded-2xl bg-[var(--theme-primary)] text-3xl font-black text-white shadow-lg shadow-[var(--theme-primary)]/20 overflow-hidden relative">
                             {getInitials(profile.nama)}
                           </div>
                           <div>
                             <h2 className="text-sm font-black font-headline uppercase tracking-widest" style={{ color: 'var(--theme-h2)' }}>Identitas Profesional</h2>
-                            <p className="mt-1 max-w-xl text-xs font-semibold leading-relaxed text-slate-400">
+                            <p className="mt-1 max-w-xl text-xs font-semibold leading-relaxed text-[var(--theme-text-muted)]">
                               Data ini digunakan oleh portal booking mahasiswa dan dashboard psikolog.
                             </p>
                           </div>
@@ -215,12 +220,12 @@ export default function PsychologistSettings() {
 
                     {activeTab === 'keamanan' && (
                       <div className="space-y-6 p-5 lg:p-5">
-                        <div className="rounded-3xl border border-amber-100 bg-amber-50 p-5">
+                        <div className="rounded-2xl border border-[var(--theme-warning)]/20 bg-[var(--theme-warning-light)] p-5">
                           <div className="flex items-start gap-3">
-                            <Lock size={22} className="mt-0.5 text-amber-600" />
+                            <Lock size={22} className="mt-0.5 text-[var(--theme-warning)]" />
                             <div>
-                              <h2 className="text-xs font-black uppercase tracking-widest text-amber-700">Keamanan Akun</h2>
-                              <p className="mt-1 text-xs font-semibold leading-relaxed text-amber-700/70">
+                              <h2 className="text-xs font-black uppercase tracking-widest text-[var(--theme-warning)]">Keamanan Akun</h2>
+                              <p className="mt-1 text-xs font-semibold leading-relaxed text-[var(--theme-warning)]/80">
                                 Perubahan password langsung memperbarui hash password akun psikolog di database.
                               </p>
                             </div>
@@ -264,7 +269,7 @@ export default function PsychologistSettings() {
                           type="button"
                           onClick={savePassword}
                           disabled={saving === 'password'}
-                          className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-7 py-3 text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-primary/20 transition hover:bg-primary/90 disabled:cursor-wait disabled:opacity-70"
+                          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--theme-primary)] px-7 py-3 text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-[var(--theme-primary)]/20 transition-all hover:bg-[var(--theme-primary-hover)] active:scale-95 disabled:cursor-wait disabled:opacity-70 border-none cursor-pointer"
                         >
                           {saving === 'password' ? <span className="material-symbols-outlined animate-spin text-base shrink-0">sync</span> : <span className="material-symbols-outlined text-base shrink-0">save</span>}
                           Simpan Password
@@ -274,7 +279,7 @@ export default function PsychologistSettings() {
                           type="button"
                           onClick={saveProfile}
                           disabled={saving === 'profile'}
-                          className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-7 py-3 text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-primary/20 transition hover:bg-primary/90 disabled:cursor-wait disabled:opacity-70"
+                          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--theme-primary)] px-7 py-3 text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-[var(--theme-primary)]/20 transition-all hover:bg-[var(--theme-primary-hover)] active:scale-95 disabled:cursor-wait disabled:opacity-70 border-none cursor-pointer"
                         >
                           {saving === 'profile' ? <span className="material-symbols-outlined animate-spin text-base shrink-0">sync</span> : <span className="material-symbols-outlined text-base shrink-0">save</span>}
                           Simpan Profil
@@ -293,8 +298,8 @@ export default function PsychologistSettings() {
 function Field({ label, icon, children }) {
   return (
     <label className="block">
-      <span className="mb-2 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-slate-400">
-        {React.createElement(icon, { size: 13 })}
+      <span className="mb-2 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-[var(--theme-text-muted)]">
+        {React.createElement(icon, { size: 13, className: "text-[var(--theme-text-subtle)]" })}
         {label}
       </span>
       {children}

@@ -26,7 +26,7 @@ const REFERRAL_STATUS_CONFIG = {
 };
 
 import { PageContent, PageHeader } from '@/components/ui/page';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
+import { DialogModal } from '@/components/ui/DialogModal';
 import { NotifListSkeleton } from '@/components/ui/SkeletonGroups';
 import EmptyState from '@/components/ui/EmptyState';
 
@@ -160,15 +160,15 @@ export default function CounselingHistoryPage() {
 
   return (
     <PageContent className="font-body">
-      <PageHeader 
-        title="Riwayat Konseling" 
-        subtitle="Pantau booking konseling dan lihat rekam medis yang sudah dicatat psikolog setelah sesi." 
-        icon="history" 
+      <PageHeader
+        title="Riwayat Konseling"
+        subtitle="Pantau booking konseling dan lihat rekam medis yang sudah dicatat psikolog setelah sesi."
+        icon="history"
         breadcrumbs={[
           { label: 'Student Hub', path: '/student/dashboard' },
           { label: 'Konseling', path: '/student/counseling' },
           { label: 'Riwayat' }
-        ]} 
+        ]}
         action={
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:min-w-[520px]">
             {[
@@ -183,7 +183,7 @@ export default function CounselingHistoryPage() {
               </div>
             ))}
           </div>
-        } 
+        }
       />
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
@@ -215,10 +215,10 @@ export default function CounselingHistoryPage() {
                                 {item.tipe?.startsWith('[Personal]')
                                   ? item.tipe.replace('[Personal]', '[Psikologi]')
                                   : item.tipe?.startsWith('[Karir]')
-                                  ? item.tipe.replace('[Karir]', '[Psikologi]')
-                                  : item.tipe === 'Personal' || item.tipe === 'Karir'
-                                  ? 'Psikologi'
-                                  : item.tipe}
+                                    ? item.tipe.replace('[Karir]', '[Psikologi]')
+                                    : item.tipe === 'Personal' || item.tipe === 'Karir'
+                                      ? 'Psikologi'
+                                      : item.tipe}
                               </h3>
                               <p className="mt-1 flex items-center gap-1.5 text-xs font-semibold text-neutral-500">
                                 <User size={13} className="text-neutral-300" />
@@ -312,7 +312,7 @@ export default function CounselingHistoryPage() {
                   })}
                 </div>
               ) : (
-                 <EmptyState
+                <EmptyState
                   size="sm"
                   icon="Clock"
                   iconColor="text-[var(--theme-primary)]"
@@ -332,49 +332,43 @@ export default function CounselingHistoryPage() {
               <div className="flex gap-4 border-b border-neutral-100 pb-3 overflow-x-auto">
                 <button
                   onClick={() => handleTabChange('medical_record')}
-                  className={`pb-2 text-xs font-black uppercase tracking-wider transition-all border-b-2 flex items-center gap-1.5 -mb-3.5 whitespace-nowrap ${
-                    activeTab === 'medical_record'
+                  className={`pb-2 text-xs font-black uppercase tracking-wider transition-all border-b-2 flex items-center gap-1.5 -mb-3.5 whitespace-nowrap ${activeTab === 'medical_record'
                       ? 'border-[var(--theme-primary)] text-[var(--theme-primary)]'
                       : 'border-transparent text-neutral-400 hover:text-neutral-600'
-                  }`}
+                    }`}
                 >
                   <span className="material-symbols-outlined text-[16px]">description</span>
                   Rekam Medis
-                  <span className={`px-1.5 py-0.5 text-[9px] font-extrabold rounded-full ${
-                    activeTab === 'medical_record' ? 'bg-[var(--theme-primary-light)] text-[var(--theme-primary)]' : 'bg-neutral-100 text-neutral-500'
-                  }`}>
+                  <span className={`px-1.5 py-0.5 text-[9px] font-extrabold rounded-full ${activeTab === 'medical_record' ? 'bg-[var(--theme-primary-light)] text-[var(--theme-primary)]' : 'bg-neutral-100 text-neutral-500'
+                    }`}>
                     {records.length}
                   </span>
                 </button>
                 <button
                   onClick={() => handleTabChange('screening')}
-                  className={`pb-2 text-xs font-black uppercase tracking-wider transition-all border-b-2 flex items-center gap-1.5 -mb-3.5 whitespace-nowrap ${
-                    activeTab === 'screening'
+                  className={`pb-2 text-xs font-black uppercase tracking-wider transition-all border-b-2 flex items-center gap-1.5 -mb-3.5 whitespace-nowrap ${activeTab === 'screening'
                       ? 'border-violet-600 text-violet-600'
                       : 'border-transparent text-neutral-400 hover:text-neutral-600'
-                  }`}
+                    }`}
                 >
                   <span className="material-symbols-outlined text-[16px]">psychology</span>
                   Hasil Screening
-                  <span className={`px-1.5 py-0.5 text-[9px] font-extrabold rounded-full ${
-                    activeTab === 'screening' ? 'bg-violet-100 text-violet-700' : 'bg-neutral-100 text-neutral-500'
-                  }`}>
+                  <span className={`px-1.5 py-0.5 text-[9px] font-extrabold rounded-full ${activeTab === 'screening' ? 'bg-violet-100 text-violet-700' : 'bg-neutral-100 text-neutral-500'
+                    }`}>
                     {screeningRecords.length}
                   </span>
                 </button>
                 <button
                   onClick={() => handleTabChange('referrals')}
-                  className={`pb-2 text-xs font-black uppercase tracking-wider transition-all border-b-2 flex items-center gap-1.5 -mb-3.5 whitespace-nowrap ${
-                    activeTab === 'referrals'
+                  className={`pb-2 text-xs font-black uppercase tracking-wider transition-all border-b-2 flex items-center gap-1.5 -mb-3.5 whitespace-nowrap ${activeTab === 'referrals'
                       ? 'border-[var(--theme-primary)] text-[var(--theme-primary)]'
                       : 'border-transparent text-neutral-400 hover:text-neutral-600'
-                  }`}
+                    }`}
                 >
                   <span className="material-symbols-outlined text-[16px]">assignment_turned_in</span>
                   Tindak Lanjut
-                  <span className={`px-1.5 py-0.5 text-[9px] font-extrabold rounded-full ${
-                    activeTab === 'referrals' ? 'bg-[var(--theme-primary-light)] text-[var(--theme-primary)]' : 'bg-neutral-100 text-neutral-500'
-                  }`}>
+                  <span className={`px-1.5 py-0.5 text-[9px] font-extrabold rounded-full ${activeTab === 'referrals' ? 'bg-[var(--theme-primary-light)] text-[var(--theme-primary)]' : 'bg-neutral-100 text-neutral-500'
+                    }`}>
                     {referrals.length}
                   </span>
                 </button>
@@ -383,8 +377,8 @@ export default function CounselingHistoryPage() {
                 {activeTab === 'medical_record'
                   ? 'Catatan sesi yang sudah disimpan oleh psikolog.'
                   : activeTab === 'screening'
-                  ? 'Hasil asesmen psikologis dari psikolog berdasarkan sesi konseling.'
-                  : 'Rujukan dan rekomendasi tindak lanjut penanganan dari psikolog.'}
+                    ? 'Hasil asesmen psikologis dari psikolog berdasarkan sesi konseling.'
+                    : 'Rujukan dan rekomendasi tindak lanjut penanganan dari psikolog.'}
               </p>
             </div>
 
@@ -433,9 +427,8 @@ export default function CounselingHistoryPage() {
                                   {record.tindak_lanjut?.length > 0 && (
                                     <div className="mt-2 flex flex-wrap gap-1.5">
                                       {record.tindak_lanjut.map((t) => (
-                                        <span key={t} className={`inline-flex items-center gap-0.5 rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-wide ${
-                                          tindakChipConfig[t] || 'bg-neutral-50 text-neutral-600 border-neutral-200'
-                                        }`}>
+                                        <span key={t} className={`inline-flex items-center gap-0.5 rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-wide ${tindakChipConfig[t] || 'bg-neutral-50 text-neutral-600 border-neutral-200'
+                                          }`}>
                                           <span className="material-symbols-outlined" style={{ fontSize: '10px' }}>
                                             {t === 'Tuntas' ? 'check_circle' : t === 'Rujuk' ? 'local_hospital' : 'repeat'}
                                           </span>
@@ -457,9 +450,8 @@ export default function CounselingHistoryPage() {
                                     <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>download</span>
                                     PDF
                                   </button>
-                                  <span className={`flex h-6 w-6 items-center justify-center rounded-full transition-transform ${
-                                    isExpanded ? 'bg-violet-100 rotate-180' : 'bg-neutral-100'
-                                  }`}>
+                                  <span className={`flex h-6 w-6 items-center justify-center rounded-full transition-transform ${isExpanded ? 'bg-violet-100 rotate-180' : 'bg-neutral-100'
+                                    }`}>
                                     <span className="material-symbols-outlined text-neutral-600" style={{ fontSize: '14px' }}>expand_more</span>
                                   </span>
                                 </div>
@@ -652,9 +644,8 @@ export default function CounselingHistoryPage() {
                                       Rujuk: 'bg-amber-50 text-amber-700 border-amber-200',
                                     };
                                     return (
-                                      <span key={t} className={`inline-flex items-center gap-0.5 rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-wide ${
-                                        tindakChipConfig[t] || 'bg-neutral-50 text-neutral-600 border-neutral-200'
-                                      }`}>
+                                      <span key={t} className={`inline-flex items-center gap-0.5 rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-wide ${tindakChipConfig[t] || 'bg-neutral-50 text-neutral-600 border-neutral-200'
+                                        }`}>
                                         <span className="material-symbols-outlined" style={{ fontSize: '10px' }}>
                                           {t === 'Tuntas' ? 'check_circle' : t === 'Rujuk' ? 'local_hospital' : 'repeat'}
                                         </span>
@@ -786,89 +777,20 @@ export default function CounselingHistoryPage() {
 
       {/* ── RESCHEDULE MODAL ── */}
       {rescheduleItem && (
-        <Dialog open={!!rescheduleItem} onOpenChange={(open) => !open && setRescheduleItem(null)} maxWidth="max-w-md">
-          <DialogContent>
-            {/* Header */}
-            <DialogHeader>
-              <div className="flex items-center gap-3 text-left">
-                <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[var(--theme-primary-light)] text-[var(--theme-primary)] shrink-0">
-                  <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '20px' }}>event_repeat</span>
-                </div>
-                <div>
-                  <DialogTitle>Jadwalkan Ulang</DialogTitle>
-                  <DialogDescription className="text-xs text-[var(--theme-text-muted)] font-semibold mt-0.5">Ubah tanggal & waktu sesi konseling</DialogDescription>
-                </div>
-              </div>
-            </DialogHeader>
-
-            <div className="p-8 overflow-y-auto max-h-[50vh] no-scrollbar space-y-4 text-left bg-white">
-              {/* Booking info */}
-              <div className="rounded-2xl border border-neutral-100 bg-neutral-50 p-4">
-                <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">Booking Saat Ini</p>
-                <p className="mt-1 text-sm font-extrabold text-neutral-900">
-                  {rescheduleItem.nama_konselor}
-                </p>
-                <p className="mt-0.5 text-xs text-neutral-500 font-semibold">
-                  {formatLongDate(rescheduleItem.tanggal)} • {rescheduleItem.jam_mulai}
-                  {rescheduleItem.jam_selesai ? ` - ${rescheduleItem.jam_selesai}` : ''}
-                </p>
-              </div>
-
-              {/* Date input */}
-              <div>
-                <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wide text-neutral-500">
-                  Tanggal Baru <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="date"
-                  value={rescheduleDate}
-                  min={new Date().toISOString().split('T')[0]}
-                  onChange={(e) => setRescheduleDate(e.target.value)}
-                  className="w-full rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm font-semibold text-neutral-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
-                />
-              </div>
-
-              {/* Time inputs */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wide text-neutral-500">
-                    Jam Mulai <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="time"
-                    value={rescheduleStart}
-                    onChange={(e) => setRescheduleStart(e.target.value)}
-                    className="w-full rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm font-semibold text-neutral-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wide text-neutral-500">
-                    Jam Selesai
-                  </label>
-                  <input
-                    type="time"
-                    value={rescheduleEnd}
-                    onChange={(e) => setRescheduleEnd(e.target.value)}
-                    className="w-full rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm font-semibold text-neutral-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
-                  />
-                </div>
-              </div>
-
-              {/* Warning */}
-              <div className="flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 p-3">
-                <span className="material-symbols-outlined text-amber-500 mt-0.5 shrink-0" style={{ fontSize: '16px' }}>info</span>
-                <p className="text-[11px] leading-relaxed text-amber-800 font-semibold">
-                  Setelah reschedule, status booking akan kembali ke <strong>Menunggu</strong> dan psikolog perlu mengonfirmasi ulang jadwal baru.
-                </p>
-              </div>
-            </div>
-
-            {/* Actions */}
-            <DialogFooter className="p-8 border-t border-slate-100/60 bg-slate-50/20 shrink-0 flex gap-3">
+        <DialogModal
+          open={!!rescheduleItem}
+          onOpenChange={(open) => !open && setRescheduleItem(null)}
+          maxWidth="max-w-md"
+          title="Jadwalkan Ulang"
+          subtitle="Ubah Jadwal"
+          description="Ubah tanggal & waktu sesi konseling"
+          icon="event_repeat"
+          footer={
+            <div className="flex gap-3 w-full">
               <button
                 type="button"
                 onClick={() => setRescheduleItem(null)}
-                className="flex-1 rounded-xl border border-neutral-200 bg-white py-3 text-xs font-black text-neutral-600 transition-all hover:bg-neutral-50 cursor-pointer uppercase tracking-wider"
+                className="flex-1 rounded-xl border border-neutral-200 bg-white py-3 text-[13px] font-black text-neutral-600 transition-all hover:bg-neutral-50 cursor-pointer tracking-widest uppercase"
               >
                 Batal
               </button>
@@ -876,23 +798,85 @@ export default function CounselingHistoryPage() {
                 type="button"
                 onClick={handleReschedule}
                 disabled={rescheduleMutation.isPending}
-                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[var(--theme-primary)] py-3 text-xs font-black text-white shadow-sm transition-all hover:shadow-md disabled:opacity-60 cursor-pointer uppercase tracking-wider border-none"
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[var(--theme-primary)] py-3 text-[13px] font-black text-white shadow-sm transition-all hover:shadow-md disabled:opacity-60 cursor-pointer border-none tracking-widest uppercase"
               >
                 {rescheduleMutation.isPending ? (
                   <>
-                    <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }}>progress_activity</span>
+                    <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>progress_activity</span>
                     Menyimpan...
                   </>
                 ) : (
                   <>
-                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>check</span>
-                    Simpan Jadwal Ulang
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>check</span>
+                    Simpan
                   </>
                 )}
               </button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </div>
+          }
+        >
+          <div className="space-y-4 p-2">
+            {/* Booking info */}
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Booking Saat Ini</p>
+              <p className="mt-1 text-[15px] font-bold font-headline text-slate-900">
+                {rescheduleItem.nama_konselor}
+              </p>
+              <p className="mt-0.5 text-[12px] text-slate-500 font-semibold tracking-wider">
+                {formatLongDate(rescheduleItem.tanggal)} • {rescheduleItem.jam_mulai}
+                {rescheduleItem.jam_selesai ? ` - ${rescheduleItem.jam_selesai}` : ''}
+              </p>
+            </div>
+
+            {/* Date input */}
+            <div>
+              <label className="mb-2 block text-[11px] font-bold uppercase tracking-widest text-slate-500">
+                Tanggal Baru <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="date"
+                value={rescheduleDate}
+                min={new Date().toISOString().split('T')[0]}
+                onChange={(e) => setRescheduleDate(e.target.value)}
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[13px] font-semibold text-slate-800 focus:border-[var(--theme-primary)] focus:outline-none focus:ring-4 focus:ring-[var(--theme-primary)]/10 transition-all"
+              />
+            </div>
+
+            {/* Time inputs */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="mb-2 block text-[11px] font-bold uppercase tracking-widest text-slate-500">
+                  Jam Mulai <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="time"
+                  value={rescheduleStart}
+                  onChange={(e) => setRescheduleStart(e.target.value)}
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[13px] font-semibold text-slate-800 focus:border-[var(--theme-primary)] focus:outline-none focus:ring-4 focus:ring-[var(--theme-primary)]/10 transition-all"
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-[11px] font-bold uppercase tracking-widest text-slate-500">
+                  Jam Selesai
+                </label>
+                <input
+                  type="time"
+                  value={rescheduleEnd}
+                  onChange={(e) => setRescheduleEnd(e.target.value)}
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[13px] font-semibold text-slate-800 focus:border-[var(--theme-primary)] focus:outline-none focus:ring-4 focus:ring-[var(--theme-primary)]/10 transition-all"
+                />
+              </div>
+            </div>
+
+            {/* Warning */}
+            <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 mt-2">
+              <span className="material-symbols-outlined text-amber-500 mt-0.5 shrink-0" style={{ fontSize: '20px' }}>info</span>
+              <p className="text-[12px] leading-relaxed text-amber-800 font-semibold">
+                Setelah reschedule, status booking akan kembali ke <strong>Menunggu</strong> dan psikolog perlu mengonfirmasi ulang jadwal baru.
+              </p>
+            </div>
+          </div>
+        </DialogModal>
       )}
     </PageContent>
   );

@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { PageContent, PageHeader } from '@/components/ui/page';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
+import { PageContent, PageHeader, PageCard, PageCardHeader } from '@/components/ui/page';
+import { DialogModal } from '@/components/ui/DialogModal';
+import { DataTable } from '@/components/ui/DataTable';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -11,16 +12,8 @@ import {
 } from '../../queries/useAchievementQuery';
 import { useOrganisasiListQuery } from '../../queries/useOrganisasiQuery';
 
-import {
-  flexRender,
-  getCoreRowModel,
-  getPaginationRowModel,
-  getFilteredRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
+
 import { toast } from 'react-hot-toast';
-import { TableSkeleton } from '@/components/ui/SkeletonGroups';
-import EmptyState from '@/components/ui/EmptyState';
 import { API_BASE_URL } from '../../services/api';
 import useAuthStore from '../../store/useAuthStore';
 
@@ -96,7 +89,7 @@ const achievementSchema = z.object({
 
 export default function AchievementPage() {
   const user = useAuthStore(state => state.user);
-  const [globalFilter, setGlobalFilter] = useState('');
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDetail, setSelectedDetail] = useState(null); // Data For Detail Modal
 
@@ -107,9 +100,7 @@ export default function AchievementPage() {
 
   const stats = achievementData?.stats || { total: 0, verified: 0, pending: 0 };
 
-  const [filterSemester, setFilterSemester] = useState('all');
-  const [filterPeriode, setFilterPeriode] = useState('all');
-  const [filterProdi, setFilterProdi] = useState('all');
+
 
   const mappedList = useMemo(() => {
     return (achievementData?.list || []).map(a => {
@@ -146,14 +137,6 @@ export default function AchievementPage() {
     return Array.from(prodis).sort();
   }, [mappedList]);
 
-  const data = useMemo(() => {
-    return mappedList.filter(item => {
-      const matchSem = filterSemester === 'all' || item.semester_filter === filterSemester;
-      const matchPer = filterPeriode === 'all' || item.periode_filter === filterPeriode;
-      const matchPr = filterProdi === 'all' || item.prodi_filter === filterProdi;
-      return matchSem && matchPer && matchPr;
-    });
-  }, [mappedList, filterSemester, filterPeriode, filterProdi]);
 
   const { data: orgData } = useOrganisasiListQuery();
   const orgList = orgData || [];
@@ -234,16 +217,18 @@ export default function AchievementPage() {
   const columns = useMemo(
     () => [
       {
-        header: 'No',
-        cell: (info) => info.row.index + 1,
+        key: 'no',
+        label: 'No',
+        render: (v, row, idx) => idx + 1,
       },
       {
-        accessorKey: 'nama_kegiatan',
-        header: 'Nama Lomba & Kategori',
-        cell: (info) => {
-          const name = info.row.original.nama_kegiatan || info.row.original.NamaKegiatan || '';
-          const category = info.row.original.kategori || info.row.original.Kategori || '';
-          const tipe = info.row.original.tipe || info.row.original.Tipe || 'Laporan Prestasi';
+        key: 'nama_kegiatan',
+        label: 'Nama Lomba & Kategori',
+        sortable: true,
+        render: (v, row) => {
+          const name = row.nama_kegiatan || row.NamaKegiatan || '';
+          const category = row.kategori || row.Kategori || '';
+          const tipe = row.tipe || row.Tipe || 'Laporan Prestasi';
           return (
             <div>
               <p className="font-bold text-on-surface">{name}</p>
@@ -256,18 +241,19 @@ export default function AchievementPage() {
         },
       },
       {
-        accessorKey: 'tingkat',
-        header: 'Tingkat',
-        cell: (info) => {
-          const val = info.row.original.tingkat || info.row.original.Tingkat || '';
+        key: 'tingkat',
+        label: 'Tingkat',
+        sortable: true,
+        render: (v, row) => {
+          const val = row.tingkat || row.Tingkat || '';
           return <span className="text-[#525252]">{val}</span>;
         },
       },
       {
-        accessorKey: 'peringkat',
-        header: 'Peringkat / Pendanaan',
-        cell: (info) => {
-          const row = info.row.original;
+        key: 'peringkat',
+        label: 'Peringkat / Pendanaan',
+        sortable: true,
+        render: (v, row) => {
           const tipe = row.tipe || row.Tipe || 'Laporan Prestasi';
           if (tipe === 'Pengajuan Dana') {
             const reqAmt = row.dana_diajukan || row.DanaDiajukan || 0;
@@ -288,18 +274,20 @@ export default function AchievementPage() {
         },
       },
       {
-        accessorKey: 'created_at',
-        header: 'Tanggal',
-        cell: (info) => {
-          const val = info.row.original.created_at || info.row.original.CreatedAt || '';
+        key: 'created_at',
+        label: 'Tanggal',
+        sortable: true,
+        render: (v, row) => {
+          const val = row.created_at || row.CreatedAt || '';
           return <span className="text-[#525252] text-sm">{formatDate(val)}</span>;
         },
       },
       {
-        accessorKey: 'status',
-        header: 'Status',
-        cell: (info) => {
-          const val = info.row.original.status || info.row.original.Status || 'Menunggu';
+        key: 'status',
+        label: 'Status',
+        sortable: true,
+        render: (v, row) => {
+          const val = row.status || row.Status || 'Menunggu';
           let style = 'bg-[#f5f5f5] text-[#525252] border-border';
           if (val === 'Diverifikasi' || val === 'Valid' || val === 'Disetujui') style = 'bg-[#f0fdf4] text-[#16a34a] border-[#bbf7d0]';
           if (val === 'Menunggu' || val === 'Pending') style = 'bg-[var(--theme-primary-light)] text-[var(--theme-primary)] border-[var(--theme-primary-light)]';
@@ -311,50 +299,10 @@ export default function AchievementPage() {
             </span>
           );
         },
-      },
-      {
-        id: 'actions',
-        header: 'Aksi',
-        cell: (info) => {
-          const status = info.row.original.status || info.row.original.Status || 'Menunggu';
-          const id = info.row.original.id || info.row.original.ID;
-          return (
-            <div className="flex gap-2">
-              <button
-                onClick={() => setSelectedDetail(info.row.original)}
-                className="p-1.5 text-[var(--theme-primary)] bg-[var(--theme-primary-light)] rounded hover:bg-[var(--theme-primary-light)] transition-colors"
-                title="Detail"
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >visibility</span>
-              </button>
-              {status === 'Menunggu' && user?.role !== 'super_admin' && (
-                <button
-                  onClick={() => handleDelete(id)}
-                  className="p-1.5 text-[#dc2626] bg-[#fef2f2] rounded hover:bg-[#fee2e2] transition-colors"
-                  title="Hapus"
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >delete</span>
-                </button>
-              )}
-            </div>
-          );
-        },
-      },
+      }
     ],
     []
   );
-
-  const table = useReactTable({
-    data,
-    columns,
-    state: {
-      globalFilter,
-    },
-    onGlobalFilterChange: setGlobalFilter,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-  });
 
   return (
     <PageContent className="font-body">
@@ -382,363 +330,272 @@ export default function AchievementPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-surface p-4 rounded-2xl border border-border shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 bg-[var(--theme-primary-light)] rounded-xl flex justify-center items-center text-[var(--theme-primary)]">
-            <Trophy size={18} />
+        <PageCard>
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex justify-center items-center text-indigo-600 shadow-sm border border-indigo-100">
+              <Trophy size={20} />
+            </div>
+            <div>
+              <p className="text-[11px] text-neutral-400 font-bold tracking-wider uppercase">TOTAL PRESTASI</p>
+              <p className="text-2xl font-black text-neutral-800 tracking-tight">{stats.total}</p>
+            </div>
           </div>
-          <div>
-            <p className="text-xs text-[#a3a3a3] font-semibold tracking-wide">TOTAL PRESTASI</p>
-            <p className="text-xl font-extrabold text-on-surface">{stats.total}</p>
+        </PageCard>
+        <PageCard>
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex justify-center items-center text-emerald-600 shadow-sm border border-emerald-100">
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >check_circle</span>
+            </div>
+            <div>
+              <p className="text-[11px] text-neutral-400 font-bold tracking-wider uppercase">DIVERIFIKASI</p>
+              <p className="text-2xl font-black text-neutral-800 tracking-tight">{stats.verified}</p>
+            </div>
           </div>
-        </div>
-        <div className="bg-surface p-4 rounded-2xl border border-border shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 bg-[#f0fdf4] rounded-xl flex justify-center items-center text-[#16a34a]">
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >check_circle</span>
+        </PageCard>
+        <PageCard>
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-amber-50 rounded-2xl flex justify-center items-center text-amber-600 shadow-sm border border-amber-100">
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >schedule</span>
+            </div>
+            <div>
+              <p className="text-[11px] text-neutral-400 font-bold tracking-wider uppercase">MENUNGGU VALIDASI</p>
+              <p className="text-2xl font-black text-neutral-800 tracking-tight">{stats.pending}</p>
+            </div>
           </div>
-          <div>
-            <p className="text-xs text-[#a3a3a3] font-semibold tracking-wide">DIVERIFIKASI</p>
-            <p className="text-xl font-extrabold text-on-surface">{stats.verified}</p>
-          </div>
-        </div>
-        <div className="bg-surface p-4 rounded-2xl border border-border shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 bg-[var(--theme-primary-light)] rounded-xl flex justify-center items-center text-[var(--theme-primary)]">
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >schedule</span>
-          </div>
-          <div>
-            <p className="text-xs text-[#a3a3a3] font-semibold tracking-wide">MENUNGGU VALIDASI</p>
-            <p className="text-xl font-extrabold text-on-surface">{stats.pending}</p>
-          </div>
-        </div>
+        </PageCard>
       </div>
 
       {/* Table Section */}
-      <div className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden">
-        <div className="p-4 md:p-5 border-b border-border flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-[var(--theme-bg)]">
-          <div>
-            <h2 className="font-bold text-base md:text-lg">Riwayat Prestasi</h2>
-            <p className="text-xs text-[#737373] mt-0.5">Gunakan pencarian dan filter untuk menyaring data prestasimu.</p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2.5 w-full xl:w-auto">
-            <div className="relative w-full sm:w-64">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]" style={{ fontSize: '18px' }} >search</span>
-              <input
-                type="text"
-                placeholder="Cari nama lomba..."
-                value={globalFilter ?? ''}
-                onChange={(e) => setGlobalFilter(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-xl border border-border focus:outline-none focus:border-[var(--theme-primary)] text-sm bg-white"
-              />
-            </div>
-            
-            <div className="relative">
-              <select value={filterSemester} onChange={e => setFilterSemester(e.target.value)}
-                className="h-9 pl-3 pr-8 rounded-xl border border-border text-xs font-bold bg-white text-[#525252] focus:outline-none focus:border-[var(--theme-primary)] appearance-none cursor-pointer">
-                <option value="all">Semua Semester</option>
-                {semesterOptions.map(sem => (
-                  <option key={sem} value={sem}>Semester {sem}</option>
-                ))}
-              </select>
-              <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[#525252] pointer-events-none select-none" style={{ fontSize: '16px' }}>keyboard_arrow_down</span>
-            </div>
+      <DataTable
+        title="Riwayat Prestasi"
+        subtitle="Daftar laporan prestasi dan pengajuan dana yang telah diajukan."
+        columns={columns}
+        data={mappedList}
+        loading={isLoading}
+        searchable={true}
+        searchPlaceholder="Cari lomba, kategori..."
+        pagination={true}
+        pageSize={10}
+        onRowClick={(row) => setSelectedDetail(row)}
+        emptyMessage="Belum Ada Prestasi. Lapor prestasi pertamamu sekarang!"
+        emptyIcon="emoji_events"
 
-            <div className="relative">
-              <select value={filterPeriode} onChange={e => setFilterPeriode(e.target.value)}
-                className="h-9 pl-3 pr-8 rounded-xl border border-border text-xs font-bold bg-white text-[#525252] focus:outline-none focus:border-[var(--theme-primary)] appearance-none cursor-pointer">
-                <option value="all">Semua Periode</option>
-                {periodeOptions.map(per => (
-                  <option key={per} value={per}>Periode {per}</option>
-                ))}
-              </select>
-              <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[#525252] pointer-events-none select-none" style={{ fontSize: '16px' }}>keyboard_arrow_down</span>
-            </div>
-
-            <div className="relative">
-              <select value={filterProdi} onChange={e => setFilterProdi(e.target.value)}
-                className="h-9 pl-3 pr-8 rounded-xl border border-border text-xs font-bold bg-white text-[#525252] focus:outline-none focus:border-[var(--theme-primary)] appearance-none cursor-pointer">
-                <option value="all">Semua Prodi</option>
-                {prodiOptions.map(prod => (
-                  <option key={prod} value={prod}>{prod}</option>
-                ))}
-              </select>
-              <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[#525252] pointer-events-none select-none" style={{ fontSize: '16px' }}>keyboard_arrow_down</span>
-            </div>
-
-            {(globalFilter || filterSemester !== 'all' || filterPeriode !== 'all' || filterProdi !== 'all') && (
-              <button 
-                onClick={() => { setGlobalFilter(''); setFilterSemester('all'); setFilterPeriode('all'); setFilterProdi('all'); }}
-                className="h-9 px-3 text-xs font-bold text-rose-600 bg-rose-50 rounded-xl border border-rose-200 hover:bg-rose-100 transition-colors"
+        actions={(row) => {
+          const status = row.status || row.Status || 'Menunggu';
+          const id = row.id || row.ID;
+          return (
+            status === 'Menunggu' && user?.role !== 'super_admin' ? (
+              <button
+                onClick={(e) => { e.stopPropagation(); handleDelete(id); }}
+                className="p-1.5 text-[#dc2626] bg-[#fef2f2] rounded hover:bg-[#fee2e2] transition-colors"
+                title="Hapus"
               >
-                Reset
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>delete</span>
               </button>
-            )}
-          </div>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <tr key={headerGroup.id} className="bg-[var(--theme-bg)] border-b border-[var(--theme-border-muted)]">
-                  {headerGroup.headers.map((header) => (
-                    <th key={header.id} className="px-4 md:px-6 py-3.5 text-xs font-bold text-[var(--theme-primary)] uppercase tracking-wider">
-                      {flexRender(header.column.columnDef.header, header.getContext())}
-                    </th>
-                  ))}
-                </tr>
-              ))}
-            </thead>
-            <tbody>
-              {isLoading ? (
-                <tr>
-                  <td colSpan="7" className="p-8">
-                    <TableSkeleton rows={5} cols={7} />
-                  </td>
-                </tr>
-              ) : table.getRowModel().rows.length === 0 ? (
-                <tr>
-                  <td colSpan="7" className="p-12">
-                    <EmptyState 
-                      icon="Trophy" 
-                      iconColor="text-[var(--theme-primary)]"
-                      iconBgClass="bg-[var(--theme-primary-light)]"
-                      iconBorderClass="border-[var(--theme-primary-light)]"
-                      title="Belum Ada Prestasi" 
-                      description="Lapor prestasi pertamamu sekarang dan dapatkan poin serta pengakuan resmi dari kampus!" 
-                      actionLabel="Lapor Prestasi"
-                      actionClassName="bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)]"
-                      onAction={() => setIsModalOpen(true)}
-                    />
-                  </td>
-                </tr>
-              ) : (
-                table.getRowModel().rows.map((row) => (
-                  <tr key={row.id} className="border-b border-[var(--theme-border-muted)] hover:bg-[var(--theme-primary-light)] transition-colors">
-                    {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className="px-4 md:px-6 py-3.5">
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination Details */}
-        <div className="p-4 border-t border-border flex items-center justify-between text-sm text-[#525252]">
-          <div>
-            Menampilkan halaman {table.getState().pagination.pageIndex + 1} dari {table.getPageCount() || 1}
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-              className="px-3 py-1 border border-border rounded bg-surface hover:bg-[var(--theme-primary-light)] disabled:opacity-50"
-            >
-              Sebelumnya
-            </button>
-            <button
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-              className="px-3 py-1 border border-border rounded bg-surface hover:bg-[var(--theme-primary-light)] disabled:opacity-50"
-            >
-              Selanjutnya
-            </button>
-          </div>
-        </div>
-      </div>
+            ) : null
+          );
+        }}
+        filters={[
+          {
+            key: 'semester_filter',
+            placeholder: 'Semester',
+            options: semesterOptions.map(s => ({ label: `Semester ${s}`, value: s }))
+          },
+          {
+            key: 'periode_filter',
+            placeholder: 'Periode',
+            options: periodeOptions.map(p => ({ label: `Periode ${p}`, value: p }))
+          },
+          {
+            key: 'prodi_filter',
+            placeholder: 'Prodi',
+            options: prodiOptions.map(p => ({ label: p, value: p }))
+          }
+        ]}
+      />
 
       {/* MODAL LAPOR PRESTASI */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen} maxWidth="max-w-2xl">
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {tipeValue === 'Pengajuan Dana' ? 'Ajukan Dana Lomba Baru' : 'Lapor Prestasi Baru'}
-            </DialogTitle>
-            <DialogDescription className="text-xs text-[var(--theme-text-muted)] font-semibold mt-0.5">
-              Isi data prestasi atau rencana pendanaan lomba luar kampus dengan lengkap.
-            </DialogDescription>
-          </DialogHeader>
+      <DialogModal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={tipeValue === 'Pengajuan Dana' ? 'Ajukan Dana Lomba Baru' : 'Lapor Prestasi Baru'}
+        subtitle="Isi data prestasi atau rencana pendanaan lomba luar kampus dengan lengkap."
+        maxWidth="max-w-2xl"
+      >
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col max-h-[85vh]">
+          <div className="p-5 sm:p-8 overflow-y-auto space-y-5 text-left bg-white">
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-[#525252]">Tipe Pengajuan <span className="text-red-500">*</span></label>
+              <select {...register('tipe')} defaultValue="Laporan Prestasi" className="w-full border border-border rounded-xl px-4 py-2 focus:border-[var(--theme-primary)] outline-none text-on-surface bg-[var(--theme-bg)] h-[40px] text-xs font-semibold">
+                <option value="Laporan Prestasi">Laporan Prestasi (Riwayat Kompetisi)</option>
+                <option value="Pengajuan Dana">Pengajuan Dana Lomba (Keikutsertaan Lomba Luar Kampus)</option>
+              </select>
+              {errors.tipe && <p className="text-xs text-red-500 mt-1">{errors.tipe.message}</p>}
+            </div>
 
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="p-8 overflow-y-auto max-h-[50vh] no-scrollbar space-y-5 text-left bg-white">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-[#525252]">Tipe Pengajuan <span className="text-red-500">*</span></label>
-                <select {...register('tipe')} defaultValue="Laporan Prestasi" className="w-full border border-border rounded-xl px-4 py-2 focus:border-[var(--theme-primary)] outline-none text-on-surface bg-[var(--theme-bg)] h-[40px] text-xs font-semibold">
-                  <option value="Laporan Prestasi">Laporan Prestasi (Riwayat Kompetisi)</option>
-                  <option value="Pengajuan Dana">Pengajuan Dana Lomba (Keikutsertaan Lomba Luar Kampus)</option>
+                <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-[#525252]">Nama Lomba/Kompetisi <span className="text-red-500">*</span></label>
+                <input {...register('nama_lomba')} className="w-full border border-border rounded-xl px-4 py-2 focus:border-[var(--theme-primary)] outline-none text-xs font-semibold h-[40px] bg-white text-[var(--theme-text)]" placeholder="Cth: Gemastik 2026" />
+                {errors.nama_lomba && <p className="text-xs text-red-500 mt-1">{errors.nama_lomba.message}</p>}
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-[#525252]">Kategori <span className="text-red-500">*</span></label>
+                <select {...register('kategori')} className="w-full border border-border rounded-xl px-4 py-2 focus:border-[var(--theme-primary)] outline-none text-on-surface bg-[var(--theme-bg)] h-[40px] text-xs font-semibold">
+                  <option value="">Pilih Kategori</option>
+                  <option value="Akademik">Akademik</option>
+                  <option value="Non-Akademik">Non-Akademik</option>
+                  <option value="Olahraga">Olahraga</option>
+                  <option value="Seni">Seni</option>
+                  <option value="Wirausaha">Wirausaha</option>
                 </select>
-                {errors.tipe && <p className="text-xs text-red-500 mt-1">{errors.tipe.message}</p>}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-[#525252]">Nama Lomba/Kompetisi <span className="text-red-500">*</span></label>
-                  <input {...register('nama_lomba')} className="w-full border border-border rounded-xl px-4 py-2 focus:border-[var(--theme-primary)] outline-none text-xs font-semibold h-[40px] bg-white text-[var(--theme-text)]" placeholder="Cth: Gemastik 2026" />
-                  {errors.nama_lomba && <p className="text-xs text-red-500 mt-1">{errors.nama_lomba.message}</p>}
-                </div>
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-[#525252]">Kategori <span className="text-red-500">*</span></label>
-                  <select {...register('kategori')} className="w-full border border-border rounded-xl px-4 py-2 focus:border-[var(--theme-primary)] outline-none text-on-surface bg-[var(--theme-bg)] h-[40px] text-xs font-semibold">
-                    <option value="">Pilih Kategori</option>
-                    <option value="Akademik">Akademik</option>
-                    <option value="Non-Akademik">Non-Akademik</option>
-                    <option value="Olahraga">Olahraga</option>
-                    <option value="Seni">Seni</option>
-                    <option value="Wirausaha">Wirausaha</option>
-                  </select>
-                  {errors.kategori && <p className="text-xs text-red-500 mt-1">{errors.kategori.message}</p>}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-[#525252]">Tingkat <span className="text-red-500">*</span></label>
-                  <select {...register('tingkat')} className="w-full border border-border rounded-xl px-4 py-2 focus:border-[var(--theme-primary)] outline-none text-on-surface bg-[var(--theme-bg)] h-[40px] text-xs font-semibold">
-                    <option value="">Pilih Tingkat</option>
-                    <option value="Lokal">Lokal (Antar Prodi/Univ)</option>
-                    <option value="Regional">Regional (Antar Kampus Jabar)</option>
-                    <option value="Nasional">Nasional</option>
-                    <option value="Internasional">Internasional</option>
-                  </select>
-                  {errors.tingkat && <p className="text-xs text-red-500 mt-1">{errors.tingkat.message}</p>}
-                </div>
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-[#525252]">Penyelenggara <span className="text-red-500">*</span></label>
-                  <input {...register('penyelenggara')} className="w-full border border-border rounded-xl px-4 py-2 focus:border-[var(--theme-primary)] outline-none text-xs font-semibold h-[40px] bg-white text-[var(--theme-text)]" placeholder="Cth: Kemendikbud" />
-                  {errors.penyelenggara && <p className="text-xs text-red-500 mt-1">{errors.penyelenggara.message}</p>}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-[#525252]">Tanggal Pelaksanaan <span className="text-red-500">*</span></label>
-                  <input type="date" {...register('tanggal')} className="w-full border border-border rounded-xl px-4 py-2 focus:border-[var(--theme-primary)] outline-none text-on-surface bg-white h-[40px] text-xs font-semibold" />
-                  {errors.tanggal && <p className="text-xs text-red-500 mt-1">{errors.tanggal.message}</p>}
-                </div>
-                {tipeValue === 'Laporan Prestasi' ? (
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-[#525252]">Peringkat Diraih <span className="text-red-500">*</span></label>
-                    <select {...register('peringkat')} className="w-full border border-border rounded-xl px-4 py-2 focus:border-[var(--theme-primary)] outline-none text-on-surface bg-[var(--theme-bg)] h-[40px] text-xs font-semibold">
-                      <option value="">Pilih Peringkat</option>
-                      <option value="Juara 1">Juara 1 (Emas)</option>
-                      <option value="Juara 2">Juara 2 (Perak)</option>
-                      <option value="Juara 3">Juara 3 (Perunggu)</option>
-                      <option value="Harapan 1">Harapan 1</option>
-                      <option value="Harapan 2">Harapan 2</option>
-                      <option value="Finalis">Finalis</option>
-                      <option value="Peserta">Partisipan / Peserta</option>
-                    </select>
-                    {errors.peringkat && <p className="text-xs text-red-500 mt-1">{errors.peringkat.message}</p>}
-                  </div>
-                ) : (
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-[#525252]">Dana yang Diajukan (Rp) <span className="text-red-500">*</span></label>
-                    <input type="number" {...register('dana_diajukan')} className="w-full border border-border rounded-xl px-4 py-2 focus:border-[var(--theme-primary)] outline-none text-xs font-semibold h-[40px] bg-white text-[var(--theme-text)]" placeholder="Cth: 1500000" />
-                    {errors.dana_diajukan && <p className="text-xs text-red-500 mt-1">{errors.dana_diajukan.message}</p>}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-[#525252]">Pilih Organisasi Berafiliasi (Opsional)</label>
-                <select {...register('riwayat_organisasi_id')} className="w-full border border-border rounded-xl px-4 py-2 focus:border-[var(--theme-primary)] outline-none text-on-surface bg-[var(--theme-bg)] h-[40px] text-xs font-semibold">
-                  <option value="">(Tidak terkait organisasi)</option>
-                  {orgList.map(org => (
-                    <option key={org.id || org.ID} value={org.id || org.ID}>{org.NamaOrganisasi} ({org.Jabatan})</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* SIMKATMAWA Optional Fields */}
-              <div className="bg-[#f8fafc] border border-slate-200 rounded-xl p-4 mt-2">
-                 <h3 className="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{fontSize: '18px'}}>account_balance</span>
-                    Informasi Tambahan untuk SIMKATMAWA (Opsional)
-                 </h3>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-semibold mb-1 text-[#525252]">Cabang Lomba</label>
-                      <input {...register('cabang')} className="w-full border border-border rounded-xl px-3 py-1.5 focus:border-[var(--theme-primary)] outline-none text-sm" placeholder="Cth: Lomba Esai" />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold mb-1 text-[#525252]">Bentuk Kompetisi</label>
-                      <input {...register('bentuk')} className="w-full border border-border rounded-xl px-3 py-1.5 focus:border-[var(--theme-primary)] outline-none text-sm" placeholder="Cth: Luring / Daring" />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold mb-1 text-[#525252]">URL Peserta / Info Lomba</label>
-                      <input {...register('url_peserta')} className="w-full border border-border rounded-xl px-3 py-1.5 focus:border-[var(--theme-primary)] outline-none text-sm" placeholder="https://..." />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold mb-1 text-[#525252]">URL Foto UPP (Serah Terima)</label>
-                      <input {...register('url_foto_upp')} className="w-full border border-border rounded-xl px-3 py-1.5 focus:border-[var(--theme-primary)] outline-none text-sm" placeholder="https://..." />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold mb-1 text-[#525252]">URL Dokumen Undangan</label>
-                      <input {...register('url_dokumen_undangan')} className="w-full border border-border rounded-xl px-3 py-1.5 focus:border-[var(--theme-primary)] outline-none text-sm" placeholder="https://..." />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold mb-1 text-[#525252]">Jumlah Unit Peserta</label>
-                      <input type="number" {...register('jumlah_unit_peserta')} className="w-full border border-border rounded-xl px-3 py-1.5 focus:border-[var(--theme-primary)] outline-none text-sm" placeholder="Cth: 1" />
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="block text-xs font-semibold mb-1 text-[#525252]">ID Mahasiswa Tim (Pisahkan dengan koma)</label>
-                      <input {...register('anggota_mahasiswa')} className="w-full border border-border rounded-xl px-3 py-1.5 focus:border-[var(--theme-primary)] outline-none text-sm" placeholder="Cth: 1, 2, 3" />
-                      <p className="text-[10px] text-slate-500 mt-1">Isi jika prestasi ini diraih secara berkelompok.</p>
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="block text-xs font-semibold mb-1 text-[#525252]">ID Dosen Pembimbing (Pisahkan dengan koma)</label>
-                      <input {...register('pembimbing_dosen')} className="w-full border border-border rounded-xl px-3 py-1.5 focus:border-[var(--theme-primary)] outline-none text-sm" placeholder="Cth: 5, 8" />
-                    </div>
-                 </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-[#525252]">
-                  {tipeValue === 'Pengajuan Dana' ? 'Upload Proposal/Bukti Pendukung' : 'Upload Sertifikat/Bukti'} <span className="text-red-500">*</span>
-                </label>
-                <div className="border-2 border-dashed border-border rounded-xl p-6 text-center hover:bg-background transition-colors relative">
-                  <input type="file" accept=".pdf,.png,.jpg,.jpeg" {...register('sertifikat')} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                  <div className="pointer-events-none flex flex-col items-center">
-                    <span className="material-symbols-outlined text-[#a3a3a3] mb-2" style={{ fontSize: '32px' }}>upload</span>
-                    <p className="text-sm font-semibold text-[var(--theme-primary)]">Klik untuk Upload File</p>
-                    <p className="text-xs text-[#a3a3a3] mt-1">Format: PDF, JPG, PNG (Max. 5MB)</p>
-                    {fileValue && fileValue.length > 0 && (
-                      <div className="mt-3 px-3 py-1 bg-[var(--theme-primary-light)] border border-[var(--theme-primary-light)] text-[var(--theme-primary)] text-xs font-bold rounded-lg truncate w-full max-w-xs">
-                        Terpilih: {fileValue[0].name}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                {errors.sertifikat && <p className="text-xs text-red-500 mt-1">{errors.sertifikat?.message || errors.sertifikat?.root?.message}</p>}
+                {errors.kategori && <p className="text-xs text-red-500 mt-1">{errors.kategori.message}</p>}
               </div>
             </div>
 
-            <DialogFooter className="p-8 border-t border-slate-100/60 bg-slate-50/20 shrink-0 flex gap-3">
-              <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3 rounded-2xl border border-border text-neutral-500 text-xs font-black hover:bg-neutral-50 transition-colors cursor-pointer bg-white uppercase tracking-wider">Batal</button>
-              <button type="submit" disabled={createMutation.isLoading} className="flex-1 py-3 rounded-xl bg-[var(--theme-primary)] text-white text-xs font-black hover:bg-[var(--theme-primary-hover)] disabled:opacity-50 transition-all flex items-center justify-center gap-2 cursor-pointer uppercase tracking-wider border-none shadow-md shadow-[var(--theme-primary)]/20">
-                {createMutation.isLoading ? 'Menyimpan...' : (tipeValue === 'Pengajuan Dana' ? 'Kirim Pengajuan Dana' : 'Simpan Laporan')}
-              </button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-[#525252]">Tingkat <span className="text-red-500">*</span></label>
+                <select {...register('tingkat')} className="w-full border border-border rounded-xl px-4 py-2 focus:border-[var(--theme-primary)] outline-none text-on-surface bg-[var(--theme-bg)] h-[40px] text-xs font-semibold">
+                  <option value="">Pilih Tingkat</option>
+                  <option value="Lokal">Lokal (Antar Prodi/Univ)</option>
+                  <option value="Regional">Regional (Antar Kampus Jabar)</option>
+                  <option value="Nasional">Nasional</option>
+                  <option value="Internasional">Internasional</option>
+                </select>
+                {errors.tingkat && <p className="text-xs text-red-500 mt-1">{errors.tingkat.message}</p>}
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-[#525252]">Penyelenggara <span className="text-red-500">*</span></label>
+                <input {...register('penyelenggara')} className="w-full border border-border rounded-xl px-4 py-2 focus:border-[var(--theme-primary)] outline-none text-xs font-semibold h-[40px] bg-white text-[var(--theme-text)]" placeholder="Cth: Kemendikbud" />
+                {errors.penyelenggara && <p className="text-xs text-red-500 mt-1">{errors.penyelenggara.message}</p>}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-[#525252]">Tanggal Pelaksanaan <span className="text-red-500">*</span></label>
+                <input type="date" {...register('tanggal')} className="w-full border border-border rounded-xl px-4 py-2 focus:border-[var(--theme-primary)] outline-none text-on-surface bg-white h-[40px] text-xs font-semibold" />
+                {errors.tanggal && <p className="text-xs text-red-500 mt-1">{errors.tanggal.message}</p>}
+              </div>
+              {tipeValue === 'Laporan Prestasi' ? (
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-[#525252]">Peringkat Diraih <span className="text-red-500">*</span></label>
+                  <select {...register('peringkat')} className="w-full border border-border rounded-xl px-4 py-2 focus:border-[var(--theme-primary)] outline-none text-on-surface bg-[var(--theme-bg)] h-[40px] text-xs font-semibold">
+                    <option value="">Pilih Peringkat</option>
+                    <option value="Juara 1">Juara 1 (Emas)</option>
+                    <option value="Juara 2">Juara 2 (Perak)</option>
+                    <option value="Juara 3">Juara 3 (Perunggu)</option>
+                    <option value="Harapan 1">Harapan 1</option>
+                    <option value="Harapan 2">Harapan 2</option>
+                    <option value="Finalis">Finalis</option>
+                    <option value="Peserta">Partisipan / Peserta</option>
+                  </select>
+                  {errors.peringkat && <p className="text-xs text-red-500 mt-1">{errors.peringkat.message}</p>}
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-[#525252]">Dana yang Diajukan (Rp) <span className="text-red-500">*</span></label>
+                  <input type="number" {...register('dana_diajukan')} className="w-full border border-border rounded-xl px-4 py-2 focus:border-[var(--theme-primary)] outline-none text-xs font-semibold h-[40px] bg-white text-[var(--theme-text)]" placeholder="Cth: 1500000" />
+                  {errors.dana_diajukan && <p className="text-xs text-red-500 mt-1">{errors.dana_diajukan.message}</p>}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-[#525252]">Pilih Organisasi Berafiliasi (Opsional)</label>
+              <select {...register('riwayat_organisasi_id')} className="w-full border border-border rounded-xl px-4 py-2 focus:border-[var(--theme-primary)] outline-none text-on-surface bg-[var(--theme-bg)] h-[40px] text-xs font-semibold">
+                <option value="">(Tidak terkait organisasi)</option>
+                {orgList.map(org => (
+                  <option key={org.id || org.ID} value={org.id || org.ID}>{org.NamaOrganisasi} ({org.Jabatan})</option>
+                ))}
+              </select>
+            </div>
+
+            {/* SIMKATMAWA Optional Fields */}
+            <div className="bg-[#f8fafc] border border-slate-200 rounded-xl p-4 mt-2">
+               <h3 className="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{fontSize: '18px'}}>account_balance</span>
+                  Informasi Tambahan untuk SIMKATMAWA (Opsional)
+               </h3>
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold mb-1 text-[#525252]">Cabang Lomba</label>
+                    <input {...register('cabang')} className="w-full border border-border rounded-xl px-3 py-1.5 focus:border-[var(--theme-primary)] outline-none text-sm" placeholder="Cth: Lomba Esai" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold mb-1 text-[#525252]">Bentuk Kompetisi</label>
+                    <input {...register('bentuk')} className="w-full border border-border rounded-xl px-3 py-1.5 focus:border-[var(--theme-primary)] outline-none text-sm" placeholder="Cth: Luring / Daring" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold mb-1 text-[#525252]">URL Peserta / Info Lomba</label>
+                    <input {...register('url_peserta')} className="w-full border border-border rounded-xl px-3 py-1.5 focus:border-[var(--theme-primary)] outline-none text-sm" placeholder="https://..." />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold mb-1 text-[#525252]">URL Foto UPP (Serah Terima)</label>
+                    <input {...register('url_foto_upp')} className="w-full border border-border rounded-xl px-3 py-1.5 focus:border-[var(--theme-primary)] outline-none text-sm" placeholder="https://..." />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold mb-1 text-[#525252]">URL Dokumen Undangan</label>
+                    <input {...register('url_dokumen_undangan')} className="w-full border border-border rounded-xl px-3 py-1.5 focus:border-[var(--theme-primary)] outline-none text-sm" placeholder="https://..." />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold mb-1 text-[#525252]">Jumlah Unit Peserta</label>
+                    <input type="number" {...register('jumlah_unit_peserta')} className="w-full border border-border rounded-xl px-3 py-1.5 focus:border-[var(--theme-primary)] outline-none text-sm" placeholder="Cth: 1" />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-semibold mb-1 text-[#525252]">ID Mahasiswa Tim (Pisahkan dengan koma)</label>
+                    <input {...register('anggota_mahasiswa')} className="w-full border border-border rounded-xl px-3 py-1.5 focus:border-[var(--theme-primary)] outline-none text-sm" placeholder="Cth: 1, 2, 3" />
+                    <p className="text-[10px] text-slate-500 mt-1">Isi jika prestasi ini diraih secara berkelompok.</p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-semibold mb-1 text-[#525252]">ID Dosen Pembimbing (Pisahkan dengan koma)</label>
+                    <input {...register('pembimbing_dosen')} className="w-full border border-border rounded-xl px-3 py-1.5 focus:border-[var(--theme-primary)] outline-none text-sm" placeholder="Cth: 5, 8" />
+                  </div>
+               </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-[#525252]">
+                {tipeValue === 'Pengajuan Dana' ? 'Upload Proposal/Bukti Pendukung' : 'Upload Sertifikat/Bukti'} <span className="text-red-500">*</span>
+              </label>
+              <div className="border-2 border-dashed border-border rounded-xl p-6 text-center hover:bg-background transition-colors relative">
+                <input type="file" accept=".pdf,.png,.jpg,.jpeg" {...register('sertifikat')} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                <div className="pointer-events-none flex flex-col items-center">
+                  <span className="material-symbols-outlined text-[#a3a3a3] mb-2" style={{ fontSize: '32px' }}>upload</span>
+                  <p className="text-sm font-semibold text-[var(--theme-primary)]">Klik untuk Upload File</p>
+                  <p className="text-xs text-[#a3a3a3] mt-1">Format: PDF, JPG, PNG (Max. 5MB)</p>
+                  {fileValue && fileValue.length > 0 && (
+                    <div className="mt-3 px-3 py-1 bg-[var(--theme-primary-light)] border border-[var(--theme-primary-light)] text-[var(--theme-primary)] text-xs font-bold rounded-lg truncate w-full max-w-xs">
+                      Terpilih: {fileValue[0].name}
+                    </div>
+                  )}
+                </div>
+              </div>
+              {errors.sertifikat && <p className="text-xs text-red-500 mt-1">{errors.sertifikat?.message || errors.sertifikat?.root?.message}</p>}
+            </div>
+          </div>
+
+          <div className="p-5 sm:p-6 border-t border-slate-100 bg-slate-50 shrink-0 flex gap-3">
+            <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3 rounded-xl border border-border text-neutral-500 text-xs font-black hover:bg-neutral-50 transition-colors cursor-pointer bg-white uppercase tracking-wider">Batal</button>
+            <button type="submit" disabled={createMutation.isLoading} className="flex-1 py-3 rounded-xl bg-[var(--theme-primary)] text-white text-xs font-black hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2 cursor-pointer uppercase tracking-wider border-none shadow-md shadow-[var(--theme-primary)]/20">
+              {createMutation.isLoading ? 'Menyimpan...' : (tipeValue === 'Pengajuan Dana' ? 'Kirim Pengajuan' : 'Simpan Laporan')}
+            </button>
+          </div>
+        </form>
+      </DialogModal>
 
       {/* MODAL DETAIL */}
-      <Dialog open={!!selectedDetail} onOpenChange={(open) => !open && setSelectedDetail(null)} maxWidth="max-w-xl">
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {selectedDetail && (selectedDetail.tipe || selectedDetail.Tipe || 'Laporan Prestasi') === 'Pengajuan Dana' ? 'Detail Pengajuan Dana Lomba' : 'Detail Prestasi'}
-            </DialogTitle>
-            <DialogDescription className="text-xs text-[var(--theme-text-muted)] font-semibold mt-0.5">
-              Informasi lengkap dan status verifikasi pengajuan atau pelaporan prestasi.
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedDetail && (
-            <div className="p-8 overflow-y-auto max-h-[50vh] no-scrollbar space-y-5 text-left bg-white">
+      <DialogModal
+        open={!!selectedDetail}
+        onClose={() => setSelectedDetail(null)}
+        title={selectedDetail && (selectedDetail.tipe || selectedDetail.Tipe || 'Laporan Prestasi') === 'Pengajuan Dana' ? 'Detail Pengajuan Dana Lomba' : 'Detail Prestasi'}
+        subtitle="Informasi lengkap dan status verifikasi pengajuan atau pelaporan prestasi."
+        maxWidth="max-w-xl"
+      >
+        {selectedDetail && (
+          <div className="flex flex-col max-h-[85vh]">
+            <div className="p-5 sm:p-8 overflow-y-auto space-y-5 text-left bg-white">
               {(selectedDetail.catatan_verifikator || selectedDetail.CatatanVerifikator) && (
                  <div className={`p-4 rounded-xl border ${selectedDetail.status === 'Ditolak' || selectedDetail.Status === 'Ditolak' ? 'bg-[#fef2f2] border-[#fecaca] text-[#991b1b]' : 'bg-[#f0fdf4] border-[#bbf7d0] text-[#166534]'} font-semibold text-xs leading-relaxed`}>
                    <p className="font-bold text-sm">{selectedDetail.status === 'Ditolak' || selectedDetail.Status === 'Ditolak' ? 'Alasan Ditolak:' : 'Catatan Verifikator:'}</p>
@@ -792,18 +649,18 @@ export default function AchievementPage() {
                 )}
               </div>
             </div>
-          )}
 
-          <DialogFooter className="p-8 border-t border-slate-100/60 bg-slate-50/20 shrink-0">
-            <button
-              onClick={() => setSelectedDetail(null)}
-              className="py-3 px-6 bg-white border border-border text-[var(--theme-text-muted)] text-xs font-black rounded-xl hover:bg-[var(--theme-bg)] transition-all uppercase tracking-wider cursor-pointer flex-1 sm:flex-initial"
-            >
-              Tutup
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <div className="p-5 sm:p-6 border-t border-slate-100 bg-slate-50 shrink-0">
+              <button
+                onClick={() => setSelectedDetail(null)}
+                className="w-full sm:w-auto py-3 px-6 bg-white border border-border text-[var(--theme-text-muted)] text-xs font-black rounded-xl hover:bg-[var(--theme-bg)] transition-all uppercase tracking-wider cursor-pointer"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        )}
+      </DialogModal>
 
     </PageContent>
   );

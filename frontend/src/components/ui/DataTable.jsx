@@ -39,11 +39,17 @@ export default function DataTable({
   toolbarActions,
   title,
   subtitle,
+  searchValue,
+  filterValues,
+  onFilterChange,
+  manualFiltering = false,
 }) {
-  const [search, setSearch] = useState('');
+  const [internalSearch, setInternalSearch] = useState('');
+  const search = searchValue !== undefined ? searchValue : internalSearch;
   const [internalPage, setInternalPage] = useState(1);
   const activePage = serverPagination ? currentPage : internalPage;
-  const [selectedFilters, setSelectedFilters] = useState({});
+  const [internalFilters, setInternalFilters] = useState({});
+  const selectedFilters = filterValues !== undefined ? filterValues : internalFilters;
   const [limit, setLimit] = useState(pageSize);
 
   const handlePageChange = (p) => {
@@ -59,20 +65,14 @@ export default function DataTable({
   }, [pageSize]);
 
   // Search filter
-  const searchedData = searchable && onSearch
-    ? onSearch(data, search)
-    : search
-      ? data.filter(row =>
-        columns.some(col =>
-          String(row[col.key] || '')
-            .toLowerCase()
-            .includes(search.toLowerCase())
-        )
-      )
-      : data;
+  const searchedData = (searchable && !manualFiltering)
+    ? (onSearch ? onSearch(data, search) : (search ? data.filter(row =>
+        columns.some(col => String(row[col.key] || '').toLowerCase().includes(search.toLowerCase()))
+      ) : data))
+    : data;
 
   // Selected filters
-  const filteredData = searchedData.filter(row => {
+  const filteredData = manualFiltering ? searchedData : searchedData.filter(row => {
     for (const key of Object.keys(selectedFilters)) {
       const val = selectedFilters[key];
       if (val && val !== 'all') {
@@ -133,7 +133,9 @@ export default function DataTable({
 
   const handleSearch = (e) => {
     const val = e.target.value;
-    setSearch(val);
+    if (searchValue === undefined) {
+      setInternalSearch(val);
+    }
     if (onSearchChange) onSearchChange(val);
     handlePageChange(1);
   };
@@ -165,7 +167,7 @@ export default function DataTable({
       </div>
 
       {/* Table Toolbar */}
-      {(searchable || onAdd || filters.length > 0) && (
+      {(searchable || onAdd || filters.length > 0 || toolbarActions) && (
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between p-3 gap-3 border-b" style={{ borderColor: 'var(--theme-border-muted)' }}>
           {searchable && (
             <div className="relative flex-1 max-w-sm">
@@ -190,46 +192,51 @@ export default function DataTable({
             </div>
           )}
 
-          {/* Filters */}
-          {filters.length > 0 && (
-            <div className="flex items-center gap-2 flex-wrap">
-              {filters.map((f) => (
-                <div key={f.key} className="w-40">
-                  <SelectField
-                    value={selectedFilters[f.key] || 'all'}
-                    onValueChange={(val) => {
-                      setSelectedFilters(prev => ({ ...prev, [f.key]: val }));
-                      handlePageChange(1);
-                    }}
-                    placeholder={f.placeholder}
-                    className="w-full h-9 text-xs rounded-lg"
-                  >
-                    <SelectOption value="all">Semua {f.placeholder}</SelectOption>
-                    {f.options.map((opt) => (
-                      <SelectOption key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectOption>
-                    ))}
-                  </SelectField>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Actions & Add Button */}
-          <div className="flex items-center gap-2 sm:ml-auto">
-            {toolbarActions && toolbarActions}
-            {onAdd && (
-              <button
-                type="button"
-                onClick={onAdd}
-                className="h-9 px-3.5 rounded-lg bg-[var(--theme-primary)] text-white text-[11px] font-black uppercase tracking-widest hover:bg-[var(--theme-primary-hover)] transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer border-none shadow-sm"
-              >
-                <span className="material-symbols-outlined text-[14px]">add</span>
-                {addLabel}
-              </button>
+          <div className="flex items-center gap-3 sm:ml-auto flex-wrap justify-end">
+            {/* Filters */}
+            {filters.length > 0 && (
+              <div className="flex items-center gap-2 flex-wrap">
+                {filters.map((f) => (
+                  <div key={f.key} className={f.className || "w-40"}>
+                    <SelectField
+                      value={selectedFilters[f.key] || 'all'}
+                      onValueChange={(val) => {
+                        if (filterValues === undefined) {
+                          setInternalFilters(prev => ({ ...prev, [f.key]: val }));
+                        }
+                        if (onFilterChange) onFilterChange(f.key, val);
+                        handlePageChange(1);
+                      }}
+                      placeholder={f.placeholder}
+                      className="w-full h-9 text-xs rounded-lg"
+                    >
+                      <SelectOption value="all">Semua {f.placeholder}</SelectOption>
+                      {f.options.map((opt) => (
+                        <SelectOption key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectOption>
+                      ))}
+                    </SelectField>
+                  </div>
+                ))}
+              </div>
             )}
-            {actions && typeof actions !== 'function' && actions}
+
+            {/* Actions & Add Button */}
+            <div className="flex items-center gap-2">
+              {toolbarActions && toolbarActions}
+              {onAdd && (
+                <button
+                  type="button"
+                  onClick={onAdd}
+                  className="h-9 px-3.5 rounded-lg bg-[var(--theme-primary)] text-white text-[11px] font-black uppercase tracking-widest hover:bg-[var(--theme-primary-hover)] transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer border-none shadow-sm"
+                >
+                  <span className="material-symbols-outlined text-[14px]">add</span>
+                  {addLabel}
+                </button>
+              )}
+              {actions && typeof actions !== 'function' && actions}
+            </div>
           </div>
         </div>
       )}
@@ -334,11 +341,11 @@ export default function DataTable({
                         {actions && typeof actions === 'function' && actions(row)}
                         {onRowClick && (
                           <button
-                            className="p-2 rounded-lg hover:bg-black/[0.05] transition-colors"
+                            className="p-1.5 rounded-lg hover:bg-black/[0.05] transition-colors"
                             style={{ color: 'var(--theme-text-muted)' }}
                             onClick={(e) => { e.stopPropagation(); onRowClick(row); }}
                           >
-                            <span className="material-symbols-outlined text-base">visibility</span>
+                            <span className="material-symbols-outlined text-[16px]">visibility</span>
                           </button>
                         )}
                       </div>

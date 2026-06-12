@@ -101,10 +101,6 @@ export default function FacultyKesehatan() {
 
   const [statsDetail, setStatsDetail] = useState(null)
   const [statsSearch, setStatsSearch] = useState('')
-  const [distribusiGol, setDistribusiGol] = useState({})
-  const [distribusiBMI, setDistribusiBMI] = useState([])
-  const [genderStats, setGenderStats] = useState([])
-  const [angkatanStats, setAngkatanStats] = useState([])
 
   const uniqueProdis = useMemo(() => {
     const prodis = new Set();
@@ -125,6 +121,20 @@ export default function FacultyKesehatan() {
     });
     return Array.from(js);
   }, [healthRecords]);
+
+  const availablePeriods = useMemo(() => {
+    const aMap = {}
+    healthRecords.forEach(r => {
+      let ang = r.Mahasiswa?.Angkatan || r.Mahasiswa?.angkatan
+      if (!ang && r.Mahasiswa?.NIM) {
+        ang = `20${r.Mahasiswa.NIM.substring(0, 2)}`
+      }
+      if (!ang) ang = 'Unknown'
+      if (!aMap[ang]) aMap[ang] = 0
+      aMap[ang]++
+    })
+    return Object.keys(aMap).sort((a, b) => b - a)
+  }, [healthRecords])
 
   const handleOpenStatsDetail = (key, label) => {
     let list = []
@@ -170,10 +180,7 @@ export default function FacultyKesehatan() {
         console.error("Failed to fetch faculty profile", err)
       }
 
-      const [progRes, summaryRes] = await Promise.all([
-        api.get('/faculty/health-screening'),
-        api.get('/faculty/health-screening/summary')
-      ])
+      const progRes = await api.get('/faculty/health-screening')
       if (progRes.data.status === 'success') {
         const normalized = (progRes.data.data || []).map((r, i) => ({
           ...r,
@@ -196,55 +203,6 @@ export default function FacultyKesehatan() {
         }))
         setHealthRecords(normalized)
       }
-      if (summaryRes.data.status === 'success')
-        setStatsData(summaryRes.data.data || { total: 0, condition: { prima: 0, stabil: 0, pantauan: 0, kritis: 0 } })
-
-      // Process distribusi Golongan Darah
-      const golMap = {}
-      healthRecords.forEach(r => {
-        const gol = r.GolonganDarah || 'Unknown'
-        if (!golMap[gol]) golMap[gol] = 0
-        golMap[gol]++
-      })
-      setDistribusiGol(golMap)
-
-      // Process distribusi BMI
-      const bmiRanges = { '<18.5': 0, '18.5-24.9': 0, '25-29.9': 0, '>=30': 0 }
-      healthRecords.forEach(r => {
-        const bmiVal = bmi(r)
-        if (bmiVal) {
-          const b = parseFloat(bmiVal)
-          if (b < 18.5) bmiRanges['<18.5']++
-          else if (b < 25) bmiRanges['18.5-24.9']++
-          else if (b < 30) bmiRanges['25-29.9']++
-          else bmiRanges['>=30']++
-        }
-      })
-      setDistribusiBMI([
-        { range: '<18.5', label: 'Kurus', count: bmiRanges['<18.5'] },
-        { range: '18.5-24.9', label: 'Normal', count: bmiRanges['18.5-24.9'] },
-        { range: '25-29.9', label: 'Gemuk', count: bmiRanges['25-29.9'] },
-        { range: '>=30', label: 'Obesitas', count: bmiRanges['>=30'] },
-      ])
-
-      // Process gender stats
-      const gMap = { 'Laki-laki': { total: 0, prima: 0 }, 'Perempuan': { total: 0, prima: 0 }, 'Unknown': { total: 0, prima: 0 } }
-      healthRecords.forEach(r => {
-        const g = r.Mahasiswa?.jenis_kelamin || r.Mahasiswa?.JenisKelamin || 'Unknown'
-        if (!gMap[g]) gMap[g] = { total: 0, prima: 0 }
-        gMap[g].total++
-        if ((r.StatusKesehatan || '').toLowerCase() === 'prima') gMap[g].prima++
-      })
-      setGenderStats(Object.entries(gMap).filter(([k]) => k !== 'Unknown' && gMap[k].total > 0).map(([gender, data]) => ({ gender, ...data })));
-
-      // Process angkatan stats
-      const aMap = {}
-      healthRecords.forEach(r => {
-        const ang = r.Mahasiswa?.Angkatan || r.Mahasiswa?.angkatan || 'Unknown'
-        if (!aMap[ang]) aMap[ang] = 0
-        aMap[ang]++
-      })
-      setAngkatanStats(Object.entries(aMap).map(([angkatan, count]) => ({ angkatan, count })).sort((a, b) => b.angkatan - a.angkatan))
     } catch { toast.error('Gagal sinkronisasi data kesehatan') }
     finally { setLoading(false) }
   }
@@ -309,12 +267,12 @@ export default function FacultyKesehatan() {
         <div style="margin-top:45px; font-weight:700; text-decoration:underline;">${nameResolved}</div>
       </div>
     </body></html>`;
-    
+
     try {
       printWindow.document.open();
       printWindow.document.write(htmlContent);
       printWindow.document.close();
-      
+
       printWindow.onload = () => {
         setTimeout(() => {
           printWindow.print();
@@ -396,7 +354,7 @@ export default function FacultyKesehatan() {
     const matchProdi = filterProdi === 'all' || r.Mahasiswa?.ProgramStudi?.Nama === filterProdi
     const matchBlood = filterBlood === 'all' || (r.GolonganDarah || '').toUpperCase() === filterBlood.toUpperCase()
     const matchJenis = filterJenis === 'all' || r.JenisPemeriksaan === filterJenis
-    const matchPeriod = filterPeriod === 'all' || String(r.Mahasiswa?.Angkatan || r.Mahasiswa?.angkatan || (r.Mahasiswa?.NIM ? `20${r.Mahasiswa.NIM.substring(0,2)}` : null)) === filterPeriod
+    const matchPeriod = filterPeriod === 'all' || String(r.Mahasiswa?.TahunMasuk || r.Mahasiswa?.tahun_masuk || r.Mahasiswa?.Angkatan || r.Mahasiswa?.angkatan || (r.Mahasiswa?.NIM ? `20${r.Mahasiswa.NIM.substring(0, 2)}` : null)) === filterPeriod
     return matchQ && matchS && matchProdi && matchBlood && matchJenis && matchPeriod
   }), [healthRecords, search, filterStatus, filterProdi, filterBlood, filterJenis, filterPeriod])
 
@@ -450,32 +408,67 @@ export default function FacultyKesehatan() {
 
   // Calculate max values for the new StatsCards
   const maxGol = useMemo(() => {
-    if (Object.keys(distribusiGol).length === 0) return { name: '—', count: 0 };
-    const max = Object.entries(distribusiGol).reduce((a, b) => b[1] > a[1] ? b : a);
+    const golMap = {}
+    filtered.forEach(r => {
+      const gol = r.GolonganDarah || 'Unknown'
+      if (!golMap[gol]) golMap[gol] = 0
+      golMap[gol]++
+    })
+    if (Object.keys(golMap).length === 0) return { name: '—', count: 0 };
+    const max = Object.entries(golMap).reduce((a, b) => b[1] > a[1] ? b : a);
     return { name: max[0], count: max[1] };
-  }, [distribusiGol]);
+  }, [filtered]);
 
   const avgBmi = useMemo(() => {
-    const valid = healthRecords.filter(r => bmi(r));
+    const valid = filtered.filter(r => bmi(r));
     if (valid.length === 0) return 0;
     return (valid.reduce((a, r) => a + (parseFloat(bmi(r)) || 0), 0) / valid.length).toFixed(1);
-  }, [healthRecords]);
+  }, [filtered]);
 
   const maxGender = useMemo(() => {
-    if (genderStats.length === 0) return { gender: '—', total: 0 };
-    return genderStats.reduce((max, curr) => curr.total > max.total ? curr : max, { gender: '—', total: 0 });
-  }, [genderStats]);
+    const gMap = { 'Laki-laki': 0, 'Perempuan': 0 }
+    filtered.forEach(r => {
+      const g = r.Mahasiswa?.jenis_kelamin || r.Mahasiswa?.JenisKelamin || 'Unknown'
+      if (gMap[g] !== undefined) gMap[g]++
+    })
+    const max = gMap['Laki-laki'] > gMap['Perempuan'] ? { gender: 'Laki-laki', total: gMap['Laki-laki'] } : { gender: 'Perempuan', total: gMap['Perempuan'] }
+    if (max.total === 0) return { gender: '—', total: 0 }
+    return max
+  }, [filtered]);
 
   const maxAngkatan = useMemo(() => {
-    if (angkatanStats.length === 0) return { angkatan: '—', count: 0 };
-    return angkatanStats.reduce((max, curr) => curr.count > max.count ? curr : max, { angkatan: '—', count: 0 });
-  }, [angkatanStats]);
+    if (filtered.length === 0) return { angkatan: '—', count: 0 };
+    const aMap = {}
+    filtered.forEach(r => {
+      let ang = r.Mahasiswa?.Angkatan || r.Mahasiswa?.angkatan
+      if (!ang && r.Mahasiswa?.NIM) {
+        ang = `20${r.Mahasiswa.NIM.substring(0, 2)}`
+      }
+      if (!ang) ang = 'Unknown'
+      if (!aMap[ang]) aMap[ang] = 0
+      aMap[ang]++
+    })
+    const list = Object.entries(aMap).map(([angkatan, count]) => ({ angkatan, count }))
+    return list.reduce((max, curr) => curr.count > max.count ? curr : max, { angkatan: '—', count: 0 });
+  }, [filtered]);
 
   const avgSistole = useMemo(() => {
-    const sys = healthRecords.filter(r => r.Sistole).map(r => parseFloat(r.Sistole));
+    const sys = filtered.filter(r => r.Sistole).map(r => parseFloat(r.Sistole));
     if (sys.length === 0) return 0;
     return Math.round(sys.reduce((a, b) => a + b, 0) / sys.length);
-  }, [healthRecords]);
+  }, [filtered]);
+
+  const computedStatsData = useMemo(() => {
+    const counts = { prima: 0, stabil: 0, pantauan: 0, kritis: 0 }
+    filtered.forEach(r => {
+      const s = (r.StatusKesehatan || 'stabil').toLowerCase()
+      if (counts[s] !== undefined) counts[s]++
+    })
+    return {
+      total: filtered.length,
+      condition: counts
+    }
+  }, [filtered]);
 
   const columns = [
     {
@@ -563,7 +556,7 @@ export default function FacultyKesehatan() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Semua Periode</SelectItem>
-                {angkatanStats.map(a => <SelectItem key={a.angkatan} value={String(a.angkatan)}>Angkatan {a.angkatan}</SelectItem>)}
+                {availablePeriods.filter(a => a !== 'Unknown').map(a => <SelectItem key={a} value={String(a)}>Angkatan {a}</SelectItem>)}
               </SelectContent>
             </Select>
             <button onClick={exportHealthPDF} disabled={loading || healthRecords.length === 0}
@@ -582,7 +575,7 @@ export default function FacultyKesehatan() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <PrimaryStatsCard
           title="Total Skrining"
-          value={statsData.total}
+          value={computedStatsData.total}
           badgeText="Semua rekam medis"
           icon="show_chart"
           colorTheme="primary"
@@ -590,7 +583,7 @@ export default function FacultyKesehatan() {
         />
         <PrimaryStatsCard
           title="Kondisi Prima"
-          value={statsData.condition?.prima || 0}
+          value={computedStatsData.condition?.prima || 0}
           badgeText="Status sangat sehat"
           icon="monitor_heart"
           colorTheme="success"
@@ -598,7 +591,7 @@ export default function FacultyKesehatan() {
         />
         <PrimaryStatsCard
           title="Status Stabil"
-          value={statsData.condition?.stabil || 0}
+          value={computedStatsData.condition?.stabil || 0}
           badgeText="Kondisi normal"
           icon="verified_user"
           colorTheme="info"
@@ -606,7 +599,7 @@ export default function FacultyKesehatan() {
         />
         <PrimaryStatsCard
           title="Dalam Pantauan"
-          value={statsData.condition?.pantauan || 0}
+          value={computedStatsData.condition?.pantauan || 0}
           badgeText="Butuh pemantauan"
           icon="error"
           colorTheme="warning"
@@ -614,7 +607,7 @@ export default function FacultyKesehatan() {
         />
         <PrimaryStatsCard
           title="Kondisi Kritis"
-          value={statsData.condition?.kritis || 0}
+          value={computedStatsData.condition?.kritis || 0}
           badgeText="Penanganan segera"
           icon="warning"
           colorTheme="error"
@@ -662,59 +655,53 @@ export default function FacultyKesehatan() {
       </div>
 
       {/* Table */}
-      <Card className="border border-[var(--theme-border)] shadow-sm bg-[var(--theme-surface)] rounded-2xl overflow-hidden mt-6 mb-6">
-        <div className="px-6 py-5 border-b border-[var(--theme-border)] flex flex-col gap-3 bg-[var(--theme-surface)]">
-          <div className="flex-1">
-            <h2 className="font-headline font-bold text-lg text-[var(--theme-text)]">Rekam Medis Mahasiswa</h2>
-          </div>
-          <div className="flex flex-wrap items-center gap-3 w-full">
-            <div className="relative">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--theme-text-muted)]" style={{ fontSize: '16px' }} >search</span>
-              <input type="text" placeholder="Cari nama atau NIM..." value={search} onChange={e => setSearch(e.target.value)}
-                className="pl-9 pr-4 h-10 w-48 rounded-xl border border-[var(--theme-border)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] text-sm bg-white transition-colors" />
+      <div className="mt-6 mb-6">
+        <DataTable
+          title="Rekam Medis Mahasiswa"
+          subtitle="Daftar lengkap hasil pemeriksaan kesehatan mahasiswa"
+          data={filtered}
+          columns={columns}
+          loading={loading}
+          searchable={true}
+          searchValue={search}
+          onSearchChange={setSearch}
+          searchPlaceholder="Cari nama atau NIM..."
+          pagination={true}
+          pageSize={10}
+          emptyMessage="Tidak Ada Data Kesehatan"
+          emptyIcon="monitor_heart"
+          toolbarActions={
+            <div className="flex flex-wrap items-center gap-2 w-full">
+              <SelectField value={filterStatus} onValueChange={setFilterStatus} placeholder="Semua Status" className="w-32 h-9 text-xs">
+                <SelectOption value="all">Semua Status</SelectOption>
+                <SelectOption value="prima">Prima</SelectOption>
+                <SelectOption value="stabil">Stabil</SelectOption>
+                <SelectOption value="pantauan">Pantauan</SelectOption>
+                <SelectOption value="kritis">Kritis</SelectOption>
+              </SelectField>
+              <SelectField value={filterProdi} onValueChange={setFilterProdi} placeholder="Semua Prodi" className="w-36 h-9 text-xs">
+                <SelectOption value="all">Semua Prodi</SelectOption>
+                {uniqueProdis.map(p => <SelectOption key={p} value={p}>{p}</SelectOption>)}
+              </SelectField>
+              <SelectField value={filterBlood} onValueChange={setFilterBlood} placeholder="Gol. Darah" className="w-32 h-9 text-xs">
+                <SelectOption value="all">Semua Gol. Darah</SelectOption>
+                <SelectOption value="A">Gol. Darah A</SelectOption>
+                <SelectOption value="B">Gol. Darah B</SelectOption>
+                <SelectOption value="AB">Gol. Darah AB</SelectOption>
+                <SelectOption value="O">Gol. Darah O</SelectOption>
+              </SelectField>
+              <SelectField value={filterJenis} onValueChange={setFilterJenis} placeholder="Jenis Periksa" className="w-36 h-9 text-xs">
+                <SelectOption value="all">Semua Jenis Periksa</SelectOption>
+                {uniqueJenis.map(j => <SelectOption key={j} value={j}>{j}</SelectOption>)}
+              </SelectField>
+              {(search || filterStatus !== 'all' || filterProdi !== 'all' || filterBlood !== 'all' || filterJenis !== 'all') && (
+                <button onClick={() => { setSearch(''); setFilterStatus('all'); setFilterProdi('all'); setFilterBlood('all'); setFilterJenis('all'); }}
+                  className="h-9 px-3 text-xs font-semibold text-[var(--theme-error)] bg-[var(--theme-error-light)] rounded-lg hover:bg-[var(--theme-error)]/20 transition-colors border border-[var(--theme-error)]/20">Reset</button>
+              )}
             </div>
-            <SelectField value={filterStatus} onValueChange={setFilterStatus} placeholder="Semua Status" className="w-36">
-              <SelectOption value="all">Semua Status</SelectOption>
-              <SelectOption value="prima">Prima</SelectOption>
-              <SelectOption value="stabil">Stabil</SelectOption>
-              <SelectOption value="pantauan">Pantauan</SelectOption>
-              <SelectOption value="kritis">Kritis</SelectOption>
-            </SelectField>
-            <SelectField value={filterProdi} onValueChange={setFilterProdi} placeholder="Semua Prodi" className="w-40">
-              <SelectOption value="all">Semua Prodi</SelectOption>
-              {uniqueProdis.map(p => <SelectOption key={p} value={p}>{p}</SelectOption>)}
-            </SelectField>
-            <SelectField value={filterBlood} onValueChange={setFilterBlood} placeholder="Semua Gol. Darah" className="w-40">
-              <SelectOption value="all">Semua Gol. Darah</SelectOption>
-              <SelectOption value="A">Gol. Darah A</SelectOption>
-              <SelectOption value="B">Gol. Darah B</SelectOption>
-              <SelectOption value="AB">Gol. Darah AB</SelectOption>
-              <SelectOption value="O">Gol. Darah O</SelectOption>
-            </SelectField>
-            <SelectField value={filterJenis} onValueChange={setFilterJenis} placeholder="Semua Jenis Periksa" className="w-44">
-              <SelectOption value="all">Semua Jenis Periksa</SelectOption>
-              {uniqueJenis.map(j => <SelectOption key={j} value={j}>{j}</SelectOption>)}
-            </SelectField>
-            {(search || filterStatus !== 'all' || filterProdi !== 'all' || filterBlood !== 'all' || filterJenis !== 'all') && (
-              <button onClick={() => { setSearch(''); setFilterStatus('all'); setFilterProdi('all'); setFilterBlood('all'); setFilterJenis('all'); }}
-                className="h-10 px-4 text-xs font-semibold text-[var(--theme-error)] bg-[var(--theme-error-light)] rounded-xl hover:bg-[var(--theme-error)]/20 transition-colors border border-[var(--theme-error)]/20">Reset</button>
-            )}
-          </div>
-        </div>
-
-        <CardContent className="p-0 [&>div]:border-none [&>div]:rounded-none [&>div]:shadow-none">
-          <DataTable
-            data={filtered}
-            columns={columns}
-            loading={loading}
-            searchable={false}
-            pagination={true}
-            pageSize={10}
-            emptyMessage="Tidak Ada Data Kesehatan"
-            emptyIcon="monitor_heart"
-          />
-        </CardContent>
-      </Card>
+          }
+        />
+      </div>
 
       {/* Stats Detail Modal (Pop-up rincian dari card stats) */}
       <DialogModal
@@ -815,121 +802,121 @@ export default function FacultyKesehatan() {
           </>
         }
       >
-            <div className="flex flex-col gap-6 p-1 pb-4">
-              {/* Main Card */}
-              <div className="flex flex-col bg-white rounded-2xl border border-[var(--theme-border-muted)] overflow-hidden shadow-sm">
-                {/* Header Identity & Status */}
-                <div className="p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[var(--theme-border-muted)] bg-[var(--theme-surface)]">
-                  <div>
-                    <h3 className="text-sm font-bold text-[var(--theme-text)]">{selected?.Mahasiswa?.Nama || '—'}</h3>
-                    <p className="text-xs text-[var(--theme-text-muted)] font-medium mt-0.5">{selected?.Mahasiswa?.NIM || '—'} · {selected?.Mahasiswa?.ProgramStudi?.Nama || '—'}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="flex items-center gap-1.5 bg-[var(--theme-error-light)] border border-[var(--theme-error)]/10 px-3 py-1 rounded-full text-[10px] font-semibold text-[var(--theme-error)] font-mono tracking-wider">
-                      <span className="material-symbols-outlined text-[13px]">water_drop</span> Gol. {selected?.GolonganDarah || '?'}
+        <div className="flex flex-col gap-6 p-1 pb-4">
+          {/* Main Card */}
+          <div className="flex flex-col bg-white rounded-2xl border border-[var(--theme-border-muted)] overflow-hidden shadow-sm">
+            {/* Header Identity & Status */}
+            <div className="p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[var(--theme-border-muted)] bg-[var(--theme-surface)]">
+              <div>
+                <h3 className="text-sm font-bold text-[var(--theme-text)]">{selected?.Mahasiswa?.Nama || '—'}</h3>
+                <p className="text-xs text-[var(--theme-text-muted)] font-medium mt-0.5">{selected?.Mahasiswa?.NIM || '—'} · {selected?.Mahasiswa?.ProgramStudi?.Nama || '—'}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="flex items-center gap-1.5 bg-[var(--theme-error-light)] border border-[var(--theme-error)]/10 px-3 py-1 rounded-full text-[10px] font-semibold text-[var(--theme-error)] font-mono tracking-wider">
+                  <span className="material-symbols-outlined text-[13px]">water_drop</span> Gol. {selected?.GolonganDarah || '?'}
+                </span>
+                {selected?.StatusKesehatan && (() => {
+                  const hs = getHealth(selected.StatusKesehatan);
+                  return (
+                    <span className={cn('flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-semibold border uppercase tracking-wider', hs.cls)}>
+                      <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', hs.dot)} />
+                      {selected.StatusKesehatan}
                     </span>
-                    {selected?.StatusKesehatan && (() => {
-                      const hs = getHealth(selected.StatusKesehatan);
-                      return (
-                        <span className={cn('flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-semibold border uppercase tracking-wider', hs.cls)}>
-                          <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', hs.dot)} />
-                          {selected.StatusKesehatan}
-                        </span>
-                      );
-                    })()}
-                  </div>
-                </div>
+                  );
+                })()}
+              </div>
+            </div>
 
-                {/* Data Fisik Grid */}
-                <div className="p-5">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-5 h-5 rounded-md bg-[var(--theme-primary-light)] flex items-center justify-center">
-                      <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '11px' }} >show_chart</span>
+            {/* Data Fisik Grid */}
+            <div className="p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-5 h-5 rounded-md bg-[var(--theme-primary-light)] flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '11px' }} >show_chart</span>
+                </div>
+                <h3 className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Data Fisik & Vital</h3>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {[
+                  { label: 'Tinggi Badan', value: selected?.TinggiBadan ? `${parseFloat(selected.TinggiBadan).toFixed(1)} cm` : '—' },
+                  { label: 'Berat Badan', value: selected?.BeratBadan ? `${parseFloat(selected.BeratBadan).toFixed(1)} kg` : '—' },
+                  { label: 'BMI', value: (selected ? bmi(selected) : null) || '—', highlight: selected && bmi(selected) >= 25 },
+                  { label: 'Tekanan Darah', value: (selected?.Sistole || selected?.Diastole) ? `${selected.Sistole || 0}/${selected.Diastole || 0}` : '—' },
+                  { label: 'Gula Darah', value: selected?.GulaDarah ? `${selected.GulaDarah} mg/dL` : '—' },
+                  { label: 'Buta Warna', value: selected?.ButaWarna || '—' },
+                  { label: 'Pemeriksaan', value: selected?.JenisPemeriksaan || '—' },
+                  { label: 'Hasil Medis', value: selected?.Hasil || '—' },
+                ].map((item, idx) => (
+                  <div key={idx} className="flex flex-col justify-between gap-1 p-3 rounded-xl bg-[var(--theme-bg)]/30 border border-[var(--theme-border)]">
+                    <p className="text-[9px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">{item.label}</p>
+                    <p className={cn('text-sm font-bold text-[var(--theme-text)] line-clamp-2', item.highlight && 'text-[var(--theme-error)]')} title={String(item.value)}>
+                      {item.value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Medical Notes */}
+            {((selected?.RiwayatPenyakit) || (selected?.Catatan)) && (
+              <div className="p-5 border-t border-[var(--theme-border-muted)] bg-[var(--theme-surface)] space-y-4">
+                {selected?.RiwayatPenyakit && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="material-symbols-outlined text-[var(--theme-error)]" style={{ fontSize: '14px' }}>medical_information</span>
+                      <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Riwayat Penyakit</span>
                     </div>
-                    <h3 className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Data Fisik & Vital</h3>
+                    <p className="text-xs text-[var(--theme-text)] font-medium leading-relaxed bg-white border border-[var(--theme-border)] rounded-xl p-3 shadow-sm">{selected.RiwayatPenyakit}</p>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {[
-                      { label: 'Tinggi Badan', value: selected?.TinggiBadan ? `${parseFloat(selected.TinggiBadan).toFixed(1)} cm` : '—' },
-                      { label: 'Berat Badan', value: selected?.BeratBadan ? `${parseFloat(selected.BeratBadan).toFixed(1)} kg` : '—' },
-                      { label: 'BMI', value: (selected ? bmi(selected) : null) || '—', highlight: selected && bmi(selected) >= 25 },
-                      { label: 'Tekanan Darah', value: (selected?.Sistole || selected?.Diastole) ? `${selected.Sistole || 0}/${selected.Diastole || 0}` : '—' },
-                      { label: 'Gula Darah', value: selected?.GulaDarah ? `${selected.GulaDarah} mg/dL` : '—' },
-                      { label: 'Buta Warna', value: selected?.ButaWarna || '—' },
-                      { label: 'Pemeriksaan', value: selected?.JenisPemeriksaan || '—' },
-                      { label: 'Hasil Medis', value: selected?.Hasil || '—' },
-                    ].map((item, idx) => (
-                      <div key={idx} className="flex flex-col justify-between gap-1 p-3 rounded-xl bg-[var(--theme-bg)]/30 border border-[var(--theme-border)]">
-                        <p className="text-[9px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">{item.label}</p>
-                        <p className={cn('text-sm font-bold text-[var(--theme-text)] line-clamp-2', item.highlight && 'text-[var(--theme-error)]')} title={String(item.value)}>
-                          {item.value}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Medical Notes */}
-                {((selected?.RiwayatPenyakit) || (selected?.Catatan)) && (
-                  <div className="p-5 border-t border-[var(--theme-border-muted)] bg-[var(--theme-surface)] space-y-4">
-                    {selected?.RiwayatPenyakit && (
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="material-symbols-outlined text-[var(--theme-error)]" style={{ fontSize: '14px' }}>medical_information</span>
-                          <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Riwayat Penyakit</span>
-                        </div>
-                        <p className="text-xs text-[var(--theme-text)] font-medium leading-relaxed bg-white border border-[var(--theme-border)] rounded-xl p-3 shadow-sm">{selected.RiwayatPenyakit}</p>
-                      </div>
-                    )}
-                    {selected?.Catatan && (
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="material-symbols-outlined text-[var(--theme-warning)]" style={{ fontSize: '14px' }}>warning</span>
-                          <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Catatan Khusus</span>
-                        </div>
-                        <p className="text-xs text-[var(--theme-text)] font-medium leading-relaxed bg-[var(--theme-warning-light)] border border-[var(--theme-warning)]/20 rounded-xl p-3 shadow-sm">{selected.Catatan}</p>
-                      </div>
-                    )}
+                )}
+                {selected?.Catatan && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="material-symbols-outlined text-[var(--theme-warning)]" style={{ fontSize: '14px' }}>warning</span>
+                      <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Catatan Khusus</span>
+                    </div>
+                    <p className="text-xs text-[var(--theme-text)] font-medium leading-relaxed bg-[var(--theme-warning-light)] border border-[var(--theme-warning)]/20 rounded-xl p-3 shadow-sm">{selected.Catatan}</p>
                   </div>
                 )}
               </div>
+            )}
+          </div>
 
-              {/* Document & Info Row */}
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex-1 bg-white rounded-2xl border border-[var(--theme-border-muted)] shadow-sm p-4 flex items-center justify-between group hover:border-[var(--theme-primary)]/40 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[var(--theme-info-light)] flex items-center justify-center text-[var(--theme-info)]">
-                      <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>assignment</span>
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Berkas Medis</p>
-                      <p className="text-sm font-bold text-[var(--theme-text)]">Dokumen Skrining</p>
-                    </div>
-                  </div>
-                  {selected?.FileURL ? (
-                    <a href={getFullUrl(selected.FileURL)} target="_blank" rel="noreferrer"
-                      className="h-8 px-4 rounded-lg bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-sm">
-                      <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>open_in_new</span> Buka
-                    </a>
-                  ) : (
-                    <span className="h-8 px-3 rounded-lg bg-[var(--theme-bg)] text-[var(--theme-text-muted)] text-xs font-bold flex items-center">
-                      Kosong
-                    </span>
-                  )}
+          {/* Document & Info Row */}
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex-1 bg-white rounded-2xl border border-[var(--theme-border-muted)] shadow-sm p-4 flex items-center justify-between group hover:border-[var(--theme-primary)]/40 transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[var(--theme-info-light)] flex items-center justify-center text-[var(--theme-info)]">
+                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>assignment</span>
                 </div>
-
-                <div className="flex-1 bg-white rounded-2xl border border-[var(--theme-border-muted)] shadow-sm p-4 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[var(--theme-success-light)] flex items-center justify-center text-[var(--theme-success)]">
-                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>event_available</span>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Tanggal Periksa</p>
-                    <p className="text-sm font-bold text-[var(--theme-text)]">{selected ? formatDate(selected.Tanggal) : '—'}</p>
-                  </div>
+                <div>
+                  <p className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Berkas Medis</p>
+                  <p className="text-sm font-bold text-[var(--theme-text)]">Dokumen Skrining</p>
                 </div>
               </div>
+              {selected?.FileURL ? (
+                <a href={getFullUrl(selected.FileURL)} target="_blank" rel="noreferrer"
+                  className="h-8 px-4 rounded-lg bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-sm">
+                  <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>open_in_new</span> Buka
+                </a>
+              ) : (
+                <span className="h-8 px-3 rounded-lg bg-[var(--theme-bg)] text-[var(--theme-text-muted)] text-xs font-bold flex items-center">
+                  Kosong
+                </span>
+              )}
             </div>
-          </DialogModal>
+
+            <div className="flex-1 bg-white rounded-2xl border border-[var(--theme-border-muted)] shadow-sm p-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[var(--theme-success-light)] flex items-center justify-center text-[var(--theme-success)]">
+                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>event_available</span>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">Tanggal Periksa</p>
+                <p className="text-sm font-bold text-[var(--theme-text)]">{selected ? formatDate(selected.Tanggal) : '—'}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </DialogModal>
     </PageContent>
   )
 }

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { UI } from '../../constants/designSystem';
 import { psychologistService } from '../../services/api';
 import { DashboardHero } from '@/components/ui/dashboard';
+import { PageContent } from '@/components/ui/page';
 import { toast } from 'react-hot-toast';
 import { PrimaryStatsCard } from '@/components/ui/StatsCard';
 
@@ -23,8 +23,13 @@ const defaultSchedule = [
 const scheduleTypes = ['Personal', 'Akademik', 'Karir'];
 
 const dayIcons = {
-  Senin: 'light_mode',
-  Jumat: 'coffee',
+  Senin: 'calendar_today',
+  Selasa: 'event',
+  Rabu: 'calendar_month',
+  Kamis: 'event_note',
+  Jumat: 'event_available',
+  Sabtu: 'weekend',
+  Minggu: 'hotel',
 };
 
 const normalizeSchedule = (items) => {
@@ -159,273 +164,239 @@ export default function ScheduleManagement() {
   };
 
   return (
-    <>
-      <div className="w-full relative space-y-6 min-h-screen bg-transparent font-inter pb-8">
-          <DashboardHero title="Manajemen" highlightedTitle="Jadwal" subtitle="Kelola jam praktik, cuti, dan ketersediaan waktu untuk sesi konseling." icon="event_note" badges={[{ label: 'Jadwal Saya', active: false }]} />
-
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-3 w-full mb-6 mt-6">
-            <PrimaryStatsCard
-              title="Hari Aktif"
-              value={summary.activeDays}
-              icon={CalendarToday}
-              colorTheme="success"
-              badgeText="AKTIF"
-              badgeIcon={<span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />}
-            />
-            <PrimaryStatsCard
-              title="Total Slot"
-              value={summary.totalSlots}
-              icon={ScheduleIcon}
-              colorTheme="info"
-              badgeText="LIVE"
-              badgeIcon={<span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />}
-            />
-            <PrimaryStatsCard
-              title="Kuota Mingguan"
-              value={summary.totalQuota}
-              icon={GroupIcon}
-              colorTheme="warning"
-              badgeText="KUOTA"
-              badgeIcon={<span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />}
-            />
+    <PageContent>
+      <DashboardHero 
+        title="Manajemen" 
+        highlightedTitle="Jadwal" 
+        subtitle="Kelola jam praktik, cuti, dan ketersediaan waktu untuk sesi konseling." 
+        icon="event_note" 
+        badges={[{ label: 'Jadwal Saya', active: false }]} 
+        actions={hasUnsavedChanges ? (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={resetChanges}
+              disabled={saving}
+              className="flex items-center justify-center gap-2 rounded-xl bg-rose-50 text-rose-600 px-4 py-2 text-xs font-bold uppercase tracking-wider hover:bg-rose-100 transition-colors disabled:opacity-50"
+            >
+              <span className="material-symbols-outlined text-[16px]">restart_alt</span>
+              Batal
+            </button>
+            <button
+              onClick={saveSchedule}
+              disabled={saving}
+              className="flex items-center justify-center gap-2 rounded-xl bg-[var(--theme-primary)] text-white px-5 py-2 text-xs font-bold uppercase tracking-wider hover:bg-[var(--theme-primary-hover)] transition-colors shadow-md disabled:opacity-50"
+            >
+              <span className="material-symbols-outlined text-[16px]">
+                {saving ? 'sync' : 'save'}
+              </span>
+              {saving ? 'Menyimpan...' : 'Simpan Jadwal'}
+            </button>
           </div>
+        ) : null}
+      />
 
-          <div className="grid grid-cols-1 gap-5 lg:grid-cols-12 w-full">
-            <aside className="lg:col-span-4 xl:col-span-3">
-              <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-5">
-                <div className="mb-4 flex items-center justify-between px-2">
-                  <h2 className="text-[10px] font-black font-headline uppercase tracking-widest text-slate-800">Pilih Hari</h2>
-                  {loading && <span className="material-symbols-outlined text-base shrink-0 animate-spin text-primary/60" >sync</span>}
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-3 w-full mb-6 mt-6">
+        <PrimaryStatsCard
+          title="Hari Aktif"
+          value={summary.activeDays}
+          icon={CalendarToday}
+          colorTheme="success"
+          badgeText="AKTIF"
+          badgeIcon={<span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />}
+        />
+        <PrimaryStatsCard
+          title="Total Slot"
+          value={summary.totalSlots}
+          icon={ScheduleIcon}
+          colorTheme="info"
+          badgeText="LIVE"
+          badgeIcon={<span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />}
+        />
+        <PrimaryStatsCard
+          title="Kuota Mingguan"
+          value={summary.totalQuota}
+          icon={GroupIcon}
+          colorTheme="warning"
+          badgeText="KUOTA"
+          badgeIcon={<span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />}
+        />
+      </div>
+
+      <div className="bg-[var(--theme-surface)] rounded-2xl border border-[var(--theme-border)] shadow-sm overflow-hidden flex flex-col">
+        {/* Horizontal Tabs for Days */}
+        <div className="flex items-center overflow-x-auto no-scrollbar border-b border-[var(--theme-border)] bg-slate-50/50 px-3 py-3 gap-2">
+          {schedule.map((item) => {
+            const isSelected = selectedDay === item.day;
+            const Icon = dayIcons[item.day] || 'calendar_month';
+            return (
+              <button
+                key={item.day}
+                type="button"
+                onClick={() => setSelectedDay(item.day)}
+                className={`
+                  flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all whitespace-nowrap min-w-max outline-none
+                  ${isSelected
+                    ? 'bg-white text-[var(--theme-primary)] shadow-sm ring-1 ring-[var(--theme-border)] font-bold'
+                    : 'text-[var(--theme-text-muted)] hover:bg-white hover:text-[var(--theme-text)] font-semibold'}
+                `}
+              >
+                <span className="material-symbols-outlined text-[16px]">{Icon}</span>
+                <span className="text-sm">{item.day}</span>
+                <span className={`ml-1 size-2 rounded-full ${item.enabled ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Content Section */}
+        <div className="p-5 md:p-8">
+          {!currentDayData.enabled ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <span className="material-symbols-outlined text-[48px] text-[var(--theme-text-muted)] opacity-50 mb-4">event_busy</span>
+              <h3 className="text-lg font-bold text-[var(--theme-text)]">Hari Tidak Aktif</h3>
+              <p className="mt-2 max-w-sm text-sm text-[var(--theme-text-muted)]">Mahasiswa tidak akan melihat slot booking untuk hari {selectedDay}.</p>
+              <button
+                type="button"
+                onClick={() => toggleDay(selectedDay)}
+                className="mt-6 rounded-xl bg-[var(--theme-primary)] px-6 py-3 text-xs font-bold uppercase tracking-wider text-white shadow-sm hover:bg-[var(--theme-primary-hover)] transition-colors"
+              >
+                Aktifkan Hari {selectedDay}
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Header Pengaturan Slot */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-base font-bold text-[var(--theme-text)]">Pengaturan Slot Waktu - {selectedDay}</h3>
+                  <p className="text-sm text-[var(--theme-text-muted)]">Atur jam buka dan detail layanan untuk hari ini.</p>
                 </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => toggleDay(selectedDay)}
+                    className="px-4 py-2 text-[13px] font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-xl transition-colors"
+                  >
+                    Nonaktifkan Hari
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => addSlot(selectedDay)}
+                    className="flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-white bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] rounded-xl transition-colors shadow-sm"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">add</span>
+                    Tambah Slot
+                  </button>
+                </div>
+              </div>
 
-                <div className="space-y-2">
-                  {schedule.map((item) => {
-                    const isSelected = selectedDay === item.day;
-                    const Icon = dayIcons[item.day] || 'calendar_month';
+              {currentDayData.slots.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 border-2 border-dashed border-[var(--theme-border)] rounded-2xl bg-slate-50/50">
+                  <span className="material-symbols-outlined text-[32px] text-slate-300 mb-3">schedule</span>
+                  <p className="text-sm text-[var(--theme-text-muted)] font-medium">Belum ada slot waktu di hari ini.</p>
+                  <button
+                    type="button"
+                    onClick={() => addSlot(selectedDay)}
+                    className="mt-4 rounded-xl bg-[var(--theme-primary)] px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider text-white shadow-sm hover:bg-[var(--theme-primary-hover)] transition-colors"
+                  >
+                    Tambah Slot Pertama
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* Table Header (visible on lg screens) */}
+                  <div className="hidden lg:grid grid-cols-[120px_120px_minmax(140px,1fr)_minmax(180px,1.5fr)_100px_48px] gap-4 px-4 text-[11px] font-bold uppercase tracking-wider text-[var(--theme-text-subtle)] pb-1">
+                    <div className="pl-9">Jam Mulai</div>
+                    <div className="pl-9">Jam Selesai</div>
+                    <div className="pl-9">Jenis Layanan</div>
+                    <div className="pl-9">Lokasi / Ruangan</div>
+                    <div className="pl-9">Kuota</div>
+                    <div></div>
+                  </div>
 
+                  {currentDayData.slots.map((slot, index) => {
+                    const invalidTime = toMinutes(slot.end) <= toMinutes(slot.start);
                     return (
-                      <button
-                        key={item.day}
-                        type="button"
-                        onClick={() => setSelectedDay(item.day)}
-                        className={`
-                          w-full rounded-2xl p-4 text-left transition-all duration-300 relative overflow-hidden group/day border-2 flex flex-col gap-1
-                          ${isSelected
-                            ? 'border-primary bg-primary text-white shadow-xl shadow-primary/20 scale-[1.02] ring-4 ring-primary/10 z-10'
-                            : 'border-transparent bg-slate-50/50 text-slate-600 hover:bg-white hover:border-slate-200 hover:shadow-md'}
-                        `}
-                      >
-                        {isSelected && (
-                          <div className="absolute -right-4 -top-4 w-16 h-16 rounded-full bg-white/10 blur-xl" />
-                        )}
-                        <div className="flex items-center justify-between gap-3 w-full relative z-10">
-                          <div className="flex items-center gap-2">
-                            <div className={`flex items-center justify-center w-8 h-8 rounded-xl transition-colors ${isSelected ? 'bg-white/20 text-white' : 'bg-primary/10 text-primary'}`}>
-                              <span className="material-symbols-outlined text-[16px] shrink-0">{Icon}</span>
+                      <div key={`${selectedDay}-${index}`} className="relative group flex flex-col">
+                        <div className={`grid grid-cols-1 lg:grid-cols-[120px_120px_minmax(140px,1fr)_minmax(180px,1.5fr)_100px_48px] gap-4 p-3 rounded-2xl border transition-all duration-300 ${invalidTime ? 'border-rose-300 bg-rose-50/50' : 'border-[var(--theme-border)] bg-white hover:border-[var(--theme-primary)]/40 hover:shadow-sm'}`}>
+                          {/* Jam Mulai */}
+                          <div className="flex flex-col lg:block gap-1.5">
+                            <label className="lg:hidden text-[10px] font-bold uppercase tracking-wider text-[var(--theme-text-muted)]">Jam Mulai</label>
+                            <div className="relative">
+                              <input type="time" value={slot.start} onChange={(e) => updateSlot(selectedDay, index, 'start', e.target.value)} className="h-10 w-full rounded-xl bg-transparent pl-9 pr-2 text-[13px] font-bold text-[var(--theme-text)] outline-none transition-all hover:bg-slate-50 focus:bg-slate-50 focus:ring-1 focus:ring-[var(--theme-primary)]/30 cursor-pointer" />
+                              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[16px] text-[var(--theme-text-subtle)] pointer-events-none">schedule</span>
                             </div>
-                            <span className="text-sm font-black tracking-tight">{item.day}</span>
                           </div>
-                          <span className={`size-2.5 rounded-full shadow-sm ${item.enabled ? (isSelected ? 'bg-emerald-300' : 'bg-emerald-500') : 'bg-slate-300'}`} />
+                          
+                          {/* Jam Selesai */}
+                          <div className="flex flex-col lg:block gap-1.5">
+                            <label className="lg:hidden text-[10px] font-bold uppercase tracking-wider text-[var(--theme-text-muted)]">Jam Selesai</label>
+                            <div className="relative">
+                              <input type="time" value={slot.end} onChange={(e) => updateSlot(selectedDay, index, 'end', e.target.value)} className={`h-10 w-full rounded-xl bg-transparent pl-9 pr-2 text-[13px] font-bold outline-none transition-all cursor-pointer ${invalidTime ? 'text-rose-600 bg-rose-50/50 hover:bg-rose-100/50 focus:ring-1 focus:ring-rose-400' : 'text-[var(--theme-text)] hover:bg-slate-50 focus:bg-slate-50 focus:ring-1 focus:ring-[var(--theme-primary)]/30'}`} />
+                              <span className={`material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[16px] pointer-events-none ${invalidTime ? 'text-rose-500' : 'text-[var(--theme-text-subtle)]'}`}>update</span>
+                            </div>
+                          </div>
+                          
+                          {/* Kategori */}
+                          <div className="flex flex-col lg:block gap-1.5">
+                            <label className="lg:hidden text-[10px] font-bold uppercase tracking-wider text-[var(--theme-text-muted)]">Jenis Layanan</label>
+                            <div className="relative">
+                              <select value={slot.kategori || 'Personal'} onChange={(e) => updateSlot(selectedDay, index, 'kategori', e.target.value)} className="h-10 w-full appearance-none rounded-xl bg-transparent pl-9 pr-8 text-[13px] font-semibold text-[var(--theme-text)] outline-none transition-all hover:bg-slate-50 focus:bg-slate-50 focus:ring-1 focus:ring-[var(--theme-primary)]/30 cursor-pointer">
+                                {scheduleTypes.map((type) => <option key={type} value={type}>{type}</option>)}
+                              </select>
+                              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[16px] text-[var(--theme-text-subtle)] pointer-events-none">category</span>
+                              <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-[16px] text-[var(--theme-text-subtle)] pointer-events-none">expand_more</span>
+                            </div>
+                          </div>
+
+                          {/* Lokasi */}
+                          <div className="flex flex-col lg:block gap-1.5">
+                            <label className="lg:hidden text-[10px] font-bold uppercase tracking-wider text-[var(--theme-text-muted)]">Lokasi</label>
+                            <div className="relative">
+                              <input value={slot.lokasi || ''} onChange={(e) => updateSlot(selectedDay, index, 'lokasi', e.target.value)} placeholder="Ruang Konseling A" className="h-10 w-full rounded-xl bg-transparent pl-9 pr-3 text-[13px] font-semibold text-[var(--theme-text)] outline-none transition-all hover:bg-slate-50 focus:bg-slate-50 focus:ring-1 focus:ring-[var(--theme-primary)]/30 placeholder:text-[var(--theme-text-subtle)]" />
+                              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[16px] text-[var(--theme-text-subtle)] pointer-events-none">meeting_room</span>
+                            </div>
+                          </div>
+
+                          {/* Kuota */}
+                          <div className="flex flex-col lg:block gap-1.5">
+                            <label className="lg:hidden text-[10px] font-bold uppercase tracking-wider text-[var(--theme-text-muted)]">Kuota</label>
+                            <div className="relative">
+                              <input type="number" min="1" value={slot.kuota || 1} onChange={(e) => updateSlot(selectedDay, index, 'kuota', Number(e.target.value))} className="h-10 w-full rounded-xl bg-transparent pl-9 pr-3 text-[13px] font-semibold text-[var(--theme-text)] outline-none transition-all hover:bg-slate-50 focus:bg-slate-50 focus:ring-1 focus:ring-[var(--theme-primary)]/30" />
+                              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[16px] text-[var(--theme-text-subtle)] pointer-events-none">group</span>
+                            </div>
+                          </div>
+
+                          {/* Hapus Action */}
+                          <div className="flex items-end lg:items-center justify-end lg:justify-center">
+                            <button
+                              type="button"
+                              onClick={() => removeSlot(selectedDay, index)}
+                              className="h-8 w-8 flex items-center justify-center rounded-lg text-rose-400 hover:bg-rose-50 hover:text-rose-600 transition-colors"
+                            >
+                              <span className="material-symbols-outlined text-[16px]">delete</span>
+                            </button>
+                          </div>
                         </div>
-                        <p className={`mt-1 text-[10px] font-bold uppercase tracking-widest relative z-10 ${isSelected ? 'text-white/80' : 'text-slate-400'}`}>
-                          {item.enabled ? `${item.slots.length} slot aktif` : 'Tidak aktif'}
-                        </p>
-                      </button>
-                    );
+
+                        {/* Validasi Waktu */}
+                        {invalidTime && (
+                          <div className="mt-1.5 flex items-center gap-1.5 text-rose-500 text-[10px] font-bold uppercase tracking-wider px-4">
+                            <span className="material-symbols-outlined text-[14px]">error</span>
+                            <span>Jam selesai harus setelah jam mulai.</span>
+                          </div>
+                        )}
+                      </div>
+                    )
                   })}
                 </div>
-              </div>
-            </aside>
-
-            <section className="lg:col-span-8 xl:col-span-9">
-              <div className="bg-white overflow-hidden rounded-2xl border border-slate-200/60 shadow-sm transition-all duration-300">
-                <div className={`border-b border-slate-100 p-4 ${currentDayData.enabled ? 'bg-slate-50/50' : 'bg-rose-50/30'}`}>
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`flex w-10 h-10 items-center justify-center rounded-xl shadow-sm ${currentDayData.enabled ? 'bg-primary text-white' : 'border border-slate-100 bg-white text-slate-300'}`}>
-                        <span className="material-symbols-outlined text-[20px] shrink-0">{currentDayIcon}</span>
-                      </div>
-                      <div>
-                        <h2 className="text-lg font-black font-headline uppercase tracking-tight text-slate-800">{selectedDay}</h2>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">
-                          {currentDayData.enabled ? 'Menerima booking' : 'Tidak menerima booking'}
-                        </p>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => toggleDay(selectedDay)}
-                      className={`rounded-xl px-4 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${currentDayData.enabled ? 'bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white' : 'bg-primary text-white shadow-md shadow-primary/20 hover:bg-primary/95'}`}
-                    >
-                      {currentDayData.enabled ? 'Nonaktifkan Hari' : 'Aktifkan Hari'}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="p-4 sm:p-5">
-                  {currentDayData.enabled ? (
-                    <div className="space-y-5">
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                          <h3 className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-primary">
-                            <span className="material-symbols-outlined text-base shrink-0" >schedule</span>
-                            Slot Waktu
-                          </h3>
-                          <p className="mt-1 text-[11px] font-semibold text-slate-500">Setiap slot bisa punya jenis layanan, lokasi, dan kuota berbeda.</p>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => addSlot(selectedDay)}
-                          className="inline-flex items-center justify-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-primary transition-all duration-300 hover:bg-primary hover:text-white"
-                        >
-                          <span className="material-symbols-outlined text-[16px] shrink-0">add</span>
-                          Tambah Slot
-                        </button>
-                      </div>
-
-                      {currentDayData.slots.length === 0 ? (
-                        <div className="flex min-h-[220px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/70 px-6 text-center">
-                          <span className="material-symbols-outlined text-[28px] shrink-0 text-slate-300" >schedule</span>
-                          <h4 className="mt-3 text-sm font-black font-headline uppercase tracking-tight text-slate-600">Belum Ada Slot</h4>
-                          <p className="mt-1 text-[11px] font-semibold text-slate-500">Tambahkan slot agar mahasiswa bisa memilih jadwal konseling.</p>
-                          <button
-                            type="button"
-                            onClick={() => addSlot(selectedDay)}
-                            className="mt-4 rounded-xl bg-primary px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-white shadow-sm hover:bg-primary/95 transition-all duration-300"
-                          >
-                            Tambah Slot Pertama
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="space-y-3">
-                          {currentDayData.slots.map((slot, index) => {
-                            const invalidTime = toMinutes(slot.end) <= toMinutes(slot.start);
-
-                            return (
-                              <div key={`${selectedDay}-${index}`} className={`relative overflow-hidden rounded-2xl border-2 p-5 transition-all duration-300 shadow-sm ${invalidTime ? 'border-rose-300 bg-rose-50/50 ring-4 ring-rose-50' : 'border-slate-100 bg-white hover:border-primary/30 hover:shadow-xl hover:-translate-y-1'}`}>
-                                <div className={`absolute left-0 top-0 bottom-0 w-1.5 transition-colors duration-300 ${slot.kategori === 'Personal' ? 'bg-indigo-500' : slot.kategori === 'Akademik' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-                                
-                                <div className="flex flex-col gap-4 xl:flex-row xl:items-center pl-2">
-                                  <div className="grid flex-1 grid-cols-2 gap-4">
-                                    <label className="space-y-1.5">
-                                      <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Jam Mulai</span>
-                                      <div className="relative">
-                                        <input
-                                          type="time"
-                                          value={slot.start}
-                                          onChange={(event) => updateSlot(selectedDay, index, 'start', event.target.value)}
-                                          className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-3 text-xs font-black text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
-                                        />
-                                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[16px] text-slate-400">schedule</span>
-                                      </div>
-                                    </label>
-                                    <label className="space-y-1.5">
-                                      <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Jam Selesai</span>
-                                      <div className="relative">
-                                        <input
-                                          type="time"
-                                          value={slot.end}
-                                          onChange={(event) => updateSlot(selectedDay, index, 'end', event.target.value)}
-                                          className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-3 text-xs font-black text-slate-800 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
-                                        />
-                                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[16px] text-slate-400">update</span>
-                                      </div>
-                                    </label>
-                                  </div>
-
-                                  <div className="grid flex-[1.7] grid-cols-1 gap-4 sm:grid-cols-[140px_1fr_100px]">
-                                    <label className="space-y-1.5">
-                                      <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Jenis Layanan</span>
-                                      <div className="relative">
-                                        <select
-                                          value={slot.kategori || 'Personal'}
-                                          onChange={(event) => updateSlot(selectedDay, index, 'kategori', event.target.value)}
-                                          className="h-10 w-full appearance-none rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-8 text-[11px] font-black text-slate-700 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
-                                        >
-                                          {scheduleTypes.map((type) => (
-                                            <option key={type} value={type}>{type}</option>
-                                          ))}
-                                        </select>
-                                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[16px] text-slate-400">category</span>
-                                        <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-[16px] text-slate-400 pointer-events-none">expand_more</span>
-                                      </div>
-                                    </label>
-                                    <label className="space-y-1.5">
-                                      <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Lokasi / Ruangan</span>
-                                      <div className="relative">
-                                        <input
-                                          value={slot.lokasi || ''}
-                                          onChange={(event) => updateSlot(selectedDay, index, 'lokasi', event.target.value)}
-                                          placeholder="Ruang Konseling A"
-                                          className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-3 text-[11px] font-bold text-slate-700 outline-none transition-all placeholder:text-slate-300 focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
-                                        />
-                                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[16px] text-slate-400">meeting_room</span>
-                                      </div>
-                                    </label>
-                                    <label className="space-y-1.5">
-                                      <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Kuota Pasien</span>
-                                      <div className="relative">
-                                        <input
-                                          type="number"
-                                          min="1"
-                                          value={slot.kuota || 1}
-                                          onChange={(event) => updateSlot(selectedDay, index, 'kuota', Number(event.target.value))}
-                                          className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-3 text-[11px] font-black text-slate-700 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
-                                        />
-                                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[16px] text-slate-400">group</span>
-                                      </div>
-                                    </label>
-                                  </div>
-
-                                  <button
-                                    type="button"
-                                    onClick={() => removeSlot(selectedDay, index)}
-                                    aria-label={`Hapus slot ${selectedDay} ${index + 1}`}
-                                    className="inline-flex w-10 h-10 shrink-0 items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-slate-400 transition-all hover:bg-rose-500 hover:text-white hover:border-rose-500 hover:shadow-lg hover:shadow-rose-500/30 active:scale-95 duration-300 mt-5 xl:mt-0"
-                                  >
-                                    <span className="material-symbols-outlined text-[20px] shrink-0">delete</span>
-                                  </button>
-                                </div>
-
-                                {invalidTime && (
-                                  <div className="mt-4 flex items-center gap-2 rounded-xl bg-rose-50 px-3 py-2 text-rose-700">
-                                    <span className="material-symbols-outlined text-[16px]">error</span>
-                                    <p className="text-[10px] font-black uppercase tracking-widest">Jam selesai harus setelah jam mulai.</p>
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="flex min-h-[280px] flex-col items-center justify-center px-6 text-center">
-                      <div className="flex w-16 h-16 items-center justify-center rounded-2xl bg-rose-50 text-rose-300">
-                        <span className="material-symbols-outlined text-[32px] shrink-0">dark_mode</span>
-                      </div>
-                      <h3 className="mt-4 text-sm font-black font-headline uppercase tracking-tight text-slate-800">Hari Tidak Aktif</h3>
-                      <p className="mt-1 max-w-md text-[11px] font-semibold leading-5 text-slate-500">
-                        Mahasiswa tidak akan melihat slot booking untuk hari {selectedDay}. Aktifkan hari ini jika ingin membuka layanan.
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => toggleDay(selectedDay)}
-                        className="mt-4 rounded-xl bg-primary px-5 py-2.5 text-[10px] font-black uppercase tracking-widest text-white shadow-sm transition-all duration-300 hover:bg-primary/95"
-                      >
-                        Aktifkan {selectedDay}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </section>
-          </div>
+              )}
+            </div>
+          )}
         </div>
-    </>
+      </div>
+    </PageContent>
   );
 }
 

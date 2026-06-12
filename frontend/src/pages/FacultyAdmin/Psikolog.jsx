@@ -110,7 +110,6 @@ export default function PsikologPage() {
   const [activeTab, setActiveTab] = useState('profile')
   const [bookings, setBookings] = useState([])
   const [loadingBookings, setLoadingBookings] = useState(false)
-  const [distribusiSpes, setDistribusiSpes] = useState([])
   const [monthlyTrend, setMonthlyTrend] = useState([])
 
   const fetchBookingsForPsikolog = async (psikologId) => {
@@ -178,15 +177,6 @@ export default function PsikologPage() {
         CreatedAt: p.created_at || p.CreatedAt || new Date().toISOString(),
         colorIdx: i % AVATAR_COLORS.length,
       })))
-
-      // Process distribusi spesialisasi
-      const spesMap = {}
-      list.forEach(p => {
-        const spes = p.spesialisasi || p.Spesialisasi || 'Umum'
-        if (!spesMap[spes]) spesMap[spes] = 0
-        spesMap[spes]++
-      })
-      setDistribusiSpes(Object.entries(spesMap).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count))
     } catch {
       toast.error("Gagal memuat data psikolog")
     } finally {
@@ -221,6 +211,18 @@ export default function PsikologPage() {
       return !isNaN(d.getTime()) && String(d.getFullYear()) === filterPeriode
     })
   }, [psychologists, filterPeriode])
+
+  const distribusiSpes = useMemo(() => {
+    const spesMap = {}
+    filteredPsychologists.forEach(p => {
+      const spes = p.Spesialisasi || 'Umum'
+      if (!spesMap[spes]) spesMap[spes] = 0
+      spesMap[spes]++
+    })
+    return Object.entries(spesMap)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+  }, [filteredPsychologists])
 
   const filtersConfig = useMemo(() => [
     {
@@ -557,6 +559,8 @@ export default function PsikologPage() {
       {/* ── Table Card ─────────────────────────────────────────── */}
       <div className="mt-6 mb-6">
         <DataTable
+          title="Direktori Psikolog"
+          subtitle="Daftar lengkap praktisi dan konselor yang tersedia"
           data={filteredPsychologists}
           columns={columns}
           loading={loading}

@@ -53,31 +53,31 @@ export default function KencanaPage() {
 
       {/* Metrics */}
       <section className="grid gap-4 md:grid-cols-4 mb-6">
-        <PrimaryStatsCard 
-          title="Periode" 
-          value={dashboardData?.period?.year || '-'} 
-          badgeText={dashboardData?.period?.name} 
+        <PrimaryStatsCard
+          title="Periode"
+          value={dashboardData?.period?.year || '-'}
+          badgeText={dashboardData?.period?.name}
           icon={({ size }) => <span className="material-symbols-outlined" style={{ fontSize: size }}>calendar_month</span>}
           colorTheme="primary"
         />
-        <PrimaryStatsCard 
-          title="Progress" 
-          value={`${dashboardData?.progress_total || 0}%`} 
-          badgeText="Selesai" 
+        <PrimaryStatsCard
+          title="Progress"
+          value={`${dashboardData?.progress_total || 0}%`}
+          badgeText="Selesai"
           icon={({ size }) => <span className="material-symbols-outlined" style={{ fontSize: size }}>trending_up</span>}
           colorTheme="success"
         />
-        <PrimaryStatsCard 
-          title="Nilai Univ" 
-          value={Number(dashboardData?.temporary_final_score || 0).toFixed(1)} 
-          badgeText="Bobot 25/35/40" 
+        <PrimaryStatsCard
+          title="Nilai Univ"
+          value={Number(dashboardData?.temporary_final_score || 0).toFixed(1)}
+          badgeText="Bobot 25/35/40"
           icon={({ size }) => <span className="material-symbols-outlined" style={{ fontSize: size }}>grade</span>}
           colorTheme="warning"
         />
-        <PrimaryStatsCard 
-          title="Remedial" 
-          value={dashboardData?.needs_remedial ? 'Perlu' : 'Tidak'} 
-          badgeText="Status" 
+        <PrimaryStatsCard
+          title="Remedial"
+          value={dashboardData?.needs_remedial ? 'Perlu' : 'Tidak'}
+          badgeText="Status"
           icon={({ size }) => <span className="material-symbols-outlined" style={{ fontSize: size }}>rule</span>}
           colorTheme={dashboardData?.needs_remedial ? "error" : "success"}
         />
@@ -230,15 +230,15 @@ export default function KencanaPage() {
                 <p className="text-sm font-medium text-[var(--theme-text-muted)] mt-1">Pilih tahapan untuk melihat sesi, materi, tugas, dan kuis.</p>
               </div>
             </div>
-            
+
             <div className="space-y-4">
               {sortedStages.map((stage, index) => {
                 const CardComponent = user?.role === 'super_admin' ? 'div' : Link;
                 const linkProps = user?.role === 'super_admin' ? {} : { to: stage.phase_type === 'pasca_kencana' ? '/student/kencana/score' : `/student/kencana/stage/${stage.id}` };
                 return (
-                  <CardComponent 
-                    key={stage.id} 
-                    {...linkProps} 
+                  <CardComponent
+                    key={stage.id}
+                    {...linkProps}
                     className={`group relative grid gap-4 rounded-2xl border ${stage.status === 'active' ? 'border-bku-primary/30 bg-blue-50/80 shadow-md' : 'border-slate-200/60 bg-white/60'} p-5 transition-all ${user?.role === 'super_admin' ? '' : 'hover:-translate-y-1 hover:shadow-lg'} md:grid-cols-[auto_1fr_auto]`}
                   >
                     {stage.status === 'active' && (
@@ -259,7 +259,7 @@ export default function KencanaPage() {
                       <p className="mt-1 text-sm font-medium text-[var(--theme-text-muted)] line-clamp-2">{stage.description}</p>
                       {stage.phase_type !== 'pasca_kencana' && (
                         <p className="mt-2 text-[10px] md:text-xs font-bold uppercase tracking-widest text-[var(--theme-text-subtle)] flex items-center gap-1">
-                          <span className="material-symbols-outlined text-[14px]">calendar_today</span> 
+                          <span className="material-symbols-outlined text-[14px]">calendar_today</span>
                           {fmtDate(stage.start_date)} - {fmtDate(stage.end_date)}
                         </p>
                       )}
@@ -299,7 +299,7 @@ export default function KencanaPage() {
                 <h4 className="font-bold text-[var(--theme-text)] group-hover:text-[var(--theme-warning)] transition-colors font-headline">Pasca-Kencana</h4>
                 <p className="text-[11px] font-semibold text-[var(--theme-text-muted)] mt-1">Rekap Nilai & Sertifikat</p>
               </Link>
-              
+
               <Link to="/student/kencana/invitations" className="group glass-card p-5 transition hover:bg-slate-50/80 hover:-translate-y-1 hover:shadow-md">
                 <div className="grid size-12 place-items-center rounded-xl bg-[var(--theme-primary)] text-[var(--theme-text-on-primary)] mb-4 shadow-sm">
                   <span className="material-symbols-outlined">group</span>
@@ -391,13 +391,12 @@ export default function KencanaPage() {
 
 function Mini({ label, value, active }) {
   return (
-    <div className={`rounded-xl px-3 py-2 text-center min-w-[64px] border ${
-      active 
-        ? 'bg-[var(--theme-surface)] shadow-sm border-[var(--theme-primary)]/20' 
-        : 'bg-[var(--theme-border-muted)] border-border'
-    }`}>
+    <div className={`rounded-xl px-3 py-2 text-center min-w-[64px] border ${active
+      ? 'bg-[var(--theme-surface)] shadow-sm border-[var(--theme-primary)]/20'
+      : 'bg-[var(--theme-border-muted)] border-border'
+      }`}>
       <p className={`text-lg font-bold font-headline ${active ? 'text-[var(--theme-primary)]' : 'text-[var(--theme-text)]'}`}>{value || 0}</p>
       <p className="text-[9px] font-bold uppercase tracking-widest text-[var(--theme-text-muted)] mt-0.5">{label}</p>
     </div>
   );
-}
+}

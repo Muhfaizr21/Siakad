@@ -43,7 +43,22 @@ export default function AspirationManagement() {
     try {
       const res = await fetchWithAuth(`${API}/aspirations?ormawaId=${ormawaId}`)
       if (res.status === 'success') {
-        setData(res.data || [])
+        const normalizedData = (res.data || []).map(a => {
+          const createdAt = a.created_at || a.CreatedAt || new Date();
+          const year = new Date(createdAt).getFullYear();
+          return {
+            ...a,
+            ID: a.id || a.ID,
+            Judul: a.judul || a.Judul || '—',
+            Isi: a.isi || a.Isi || '—',
+            Status: (a.status || a.Status || 'pending').toLowerCase(),
+            Tanggapan: a.tanggapan || a.Tanggapan || '',
+            CreatedAt: createdAt,
+            OrmawaNama: a.ormawa?.nama || a.Ormawa?.Nama || 'Organisasi Mahasiswa',
+            PeriodeFilter: String(year)
+          };
+        });
+        setData(normalizedData)
       } else {
         toast.error('Gagal memuat aspirasi')
       }
@@ -57,6 +72,18 @@ export default function AspirationManagement() {
   useEffect(() => {
     fetchData()
   }, [ormawaId])
+
+  const periodeOptions = React.useMemo(() => {
+    const periods = new Set()
+    data.forEach(a => {
+      if (a.PeriodeFilter) {
+        periods.add(a.PeriodeFilter)
+      }
+    })
+    return Array.from(periods).sort((a, b) => Number(b) - Number(a)).map(p => ({
+      label: `Tahun ${p}`, value: p
+    }))
+  }, [data])
 
   const handleTanggapi = async () => {
     if (!tanggapan.trim()) {
@@ -209,6 +236,11 @@ export default function AspirationManagement() {
             loading={loading}
             searchPlaceholder="Cari topik atau konten aspirasi..."
             filters={[
+              {
+                key: 'PeriodeFilter',
+                placeholder: 'Periode Akademik',
+                options: periodeOptions
+              },
               {
                 key: 'Status',
                 placeholder: 'Filter Status',

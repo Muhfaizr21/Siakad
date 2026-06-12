@@ -4,7 +4,8 @@ import { useHealthRingkasanQuery } from '../../queries/useHealthQuery';
 import { DashboardSkeleton } from '@/components/ui/SkeletonGroups';
 import BannerPinned from '../../components/dashboard/BannerPinned';
 import DeadlineAlert from '../../components/dashboard/DeadlineAlert';
-import { DashboardHero, DashboardStatGrid, DashboardStatCard, DashboardQuickActions } from '@/components/ui/dashboard';
+import { DashboardHero, DashboardStatGrid, DashboardQuickActions } from '@/components/ui/dashboard';
+import { PrimaryStatsCard } from '@/components/ui/StatsCard';
 import ActivityFeed from '../../components/dashboard/ActivityFeed';
 import CalendarMini from '../../components/dashboard/CalendarMini';
 import AnnouncementSection from '../../components/dashboard/AnnouncementSection';
@@ -57,71 +58,61 @@ export default function BkuDashboard() {
   const currentStatus = mahasiswa?.status?.toLowerCase() || 'alumni';
 
   const statCards = [
-    { 
-      label: 'KENCANA', 
-      value: `${Math.round(kencana?.persentase || 0)}%`, 
-      icon: 'school', 
-      colorClass: 'text-[var(--theme-primary)]', 
-      bgClass: 'bg-[var(--theme-primary-light)] border-[var(--theme-primary)]/20 border', 
-      accentGradient: 'from-[var(--theme-primary-light)]', 
-      route: '/student/kencana', 
-      badge: { text: kencana?.status === 'Selesai ✓' ? 'Selesai' : (kencana?.status || 'Aktif'), icon: kencana?.status === 'Selesai ✓' ? 'check_circle' : 'schedule' } 
+    {
+      title: 'KENCANA',
+      value: `${Math.round(kencana?.persentase || 0)}%`,
+      icon: 'school',
+      colorTheme: 'primary',
+      route: '/student/kencana',
+      badgeText: kencana?.status === 'Selesai ✓' ? 'Selesai' : (kencana?.status || 'Aktif'),
+      badgeIcon: <span className="material-symbols-outlined" style={{ fontSize: '10px' }}>{kencana?.status === 'Selesai ✓' ? 'check_circle' : 'schedule'}</span>
     },
-    { 
-      label: 'Beasiswa Aktif', 
-      value: beasiswa?.total_tersedia || 0, 
-      icon: 'menu_book', 
-      colorClass: 'text-[var(--theme-success)]', 
-      bgClass: 'bg-[var(--theme-success-light)] border-[var(--theme-success)]/20 border', 
-      accentGradient: 'from-[var(--theme-success-light)]', 
-      route: '/student/scholarship', 
-      badge: { text: beasiswa?.total_tersedia > 0 ? 'Terbuka' : 'Tutup', icon: 'info' } 
+    {
+      title: 'Beasiswa Aktif',
+      value: beasiswa?.total_tersedia || 0,
+      icon: 'menu_book',
+      colorTheme: 'success',
+      route: '/student/scholarship',
+      badgeText: beasiswa?.total_tersedia > 0 ? 'Terbuka' : 'Tutup',
+      badgeIcon: <span className="material-symbols-outlined" style={{ fontSize: '10px' }}>info</span>
     },
-    { 
-      label: 'Aspirasi Terbuka', 
-      value: voice?.jumlah_aktif || 0, 
-      icon: 'chat', 
-      colorClass: 'text-[var(--theme-secondary)]', 
-      bgClass: 'bg-[var(--theme-secondary-light)] border-[var(--theme-secondary)]/20 border', 
-      accentGradient: 'from-[var(--theme-secondary-light)]', 
-      route: '/student/voice', 
-      badge: { text: voice?.jumlah_belum_direspons > 0 ? `${voice.jumlah_belum_direspons} Menunggu` : 'Aman', icon: voice?.jumlah_belum_direspons > 0 ? 'warning' : 'check_circle' } 
+    {
+      title: 'Aspirasi Terbuka',
+      value: voice?.jumlah_aktif || 0,
+      icon: 'chat',
+      colorTheme: 'secondary',
+      route: '/student/voice',
+      badgeText: voice?.jumlah_belum_direspons > 0 ? `${voice.jumlah_belum_direspons} Menunggu` : 'Aman',
+      badgeIcon: <span className="material-symbols-outlined" style={{ fontSize: '10px' }}>{voice?.jumlah_belum_direspons > 0 ? 'warning' : 'check_circle'}</span>
     },
   ];
 
   const bmi = kesehatanData?.bmi;
   const bmiDisplay = bmi ? bmi.toFixed(1) : null;
   const healthStatus = (kesehatanData?.status_kesehatan || 'sehat').toLowerCase();
-  
+
   let healthBadgeText = 'Sehat';
   let healthIcon = 'check_circle';
-  let healthColor = 'text-[var(--theme-success)]';
-  let healthBg = 'bg-[var(--theme-success-light)] border-[var(--theme-success)]/20 border';
-  let healthGradient = 'from-[var(--theme-success-light)]';
+  let healthColorTheme = 'success';
 
   if (healthStatus.includes('bahaya') || healthStatus.includes('tindak')) {
     healthBadgeText = 'Perlu Tindakan';
     healthIcon = 'warning';
-    healthColor = 'text-[var(--theme-error)]';
-    healthBg = 'bg-[var(--theme-error-light)] border-[var(--theme-error)]/20 border';
-    healthGradient = 'from-[var(--theme-error-light)]';
+    healthColorTheme = 'error';
   } else if (healthStatus.includes('pantauan') || healthStatus.includes('observasi') || healthStatus.includes('waspada')) {
     healthBadgeText = 'Pantauan';
     healthIcon = 'warning';
-    healthColor = 'text-[var(--theme-warning)]';
-    healthBg = 'bg-[var(--theme-warning-light)] border-[var(--theme-warning)]/20 border';
-    healthGradient = 'from-[var(--theme-warning-light)]';
+    healthColorTheme = 'warning';
   }
 
   statCards.push({
-    label: 'Kesehatan',
+    title: 'Kesehatan',
     value: bmiDisplay ? bmiDisplay : (healthBadgeText === 'Sehat' ? 'Sehat' : 'Perhatian'),
     icon: 'monitor_heart',
-    colorClass: healthColor,
-    bgClass: healthBg,
-    accentGradient: healthGradient,
+    colorTheme: healthColorTheme,
     route: '/student/health',
-    badge: { text: bmiDisplay ? 'BMI' : 'Status', icon: healthIcon }
+    badgeText: bmiDisplay ? 'BMI' : 'Status',
+    badgeIcon: <span className="material-symbols-outlined" style={{ fontSize: '10px' }}>{healthIcon}</span>
   });
 
   return (
@@ -141,7 +132,7 @@ export default function BkuDashboard() {
         )}
 
         <section aria-label="Ringkasan Harian">
-          <DashboardHero 
+          <DashboardHero
             title={getGreeting()}
             highlightedTitle={firstName + "!"}
             subtitle={`${mahasiswa?.nim ? `${mahasiswa.nim} · ` : ''}${mahasiswa?.prodi || ''}${mahasiswa?.semester ? ` · Semester ${mahasiswa.semester}` : ''}`}
@@ -168,14 +159,19 @@ export default function BkuDashboard() {
         </section>
 
         <section aria-label="Status Permohonan">
-          <DashboardStatGrid>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
             {statCards.map((card, i) => (
-              <DashboardStatCard key={i} {...card} loading={kesehatanLoading && i === 3} />
+              <PrimaryStatsCard
+                key={i}
+                {...card}
+                onClick={() => navigate(card.route)}
+                className={kesehatanLoading && i === 3 ? "animate-pulse" : ""}
+              />
             ))}
-          </DashboardStatGrid>
+          </div>
         </section>
 
-        <DashboardQuickActions 
+        <DashboardQuickActions
           title="Akses Cepat"
           description="Pintasan Menu"
           actions={[
@@ -211,4 +207,4 @@ export default function BkuDashboard() {
       </div>
     </PageContent>
   );
-}
+}

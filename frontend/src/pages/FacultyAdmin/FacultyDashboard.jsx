@@ -10,9 +10,9 @@ import {
 } from "recharts"
 import { API_BASE_URL, fetchWithAuth } from "../../services/api"
 import useAuthStore from '../../store/useAuthStore';
-import { SelectField, SelectOption } from '../../components/ui/SelectField';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/Select"
 import { PageContent, PageCard, PageCardHeader } from '@/components/ui/page'
-import { DashboardHero, DashboardFilter, FilterItem, DashboardQuickActions } from '@/components/ui/dashboard'
+import { DashboardHero, DashboardQuickActions } from '@/components/ui/dashboard'
 import { PrimaryStatsCard } from '@/components/ui/StatsCard'
 import { Button } from '@/components/ui/Button'
 
@@ -158,61 +158,46 @@ export default function FacultyDashboard() {
           { label: 'Active Session', active: true }
         ]}
         actions={
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <Select value={filterPeriod} onValueChange={handlePeriodChange}>
+              <SelectTrigger className="w-[150px] h-10 bg-white/80 backdrop-blur-sm border border-[var(--theme-border)] rounded-xl font-bold text-xs text-[var(--theme-text-muted)] hover:border-[var(--theme-primary)]/50 focus:ring-0 transition-colors">
+                <SelectValue placeholder="Semua Periode" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl border border-[var(--theme-border)] shadow-md bg-white">
+                <SelectItem value="all" className="text-xs rounded-lg py-1.5 font-medium">Semua Periode</SelectItem>
+                {summaryData.periods?.map(p => (
+                  <SelectItem key={p.id} value={String(p.id)} className="text-xs rounded-lg py-1.5 font-medium">{p.Name || p.nama_periode}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={filterProdi} onValueChange={setFilterProdi}>
+              <SelectTrigger className="w-[180px] h-10 bg-white/80 backdrop-blur-sm border border-[var(--theme-border)] rounded-xl font-bold text-xs text-[var(--theme-text-muted)] hover:border-[var(--theme-primary)]/50 focus:ring-0 transition-colors">
+                <SelectValue placeholder="Semua Prodi" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl border border-[var(--theme-border)] shadow-md bg-white">
+                <SelectItem value="all" className="text-xs rounded-lg py-1.5 font-medium">Semua Prodi</SelectItem>
+                {summaryData.prodis?.map(p => (
+                  <SelectItem key={p.id} value={String(p.id)} className="text-xs rounded-lg py-1.5 font-medium">{p.Nama || p.nama} ({p.Jenjang || p.jenjang})</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
             <button onClick={() => navigate('/faculty/mahasiswa')}
               className="h-10 px-4 rounded-xl text-white text-xs font-bold uppercase tracking-wider gap-2 flex items-center transition-all active:scale-95 shadow-lg shrink-0"
               style={{
                 backgroundColor: 'var(--theme-primary)',
                 boxShadow: '0 10px 15px -3px color-mix(in srgb, var(--theme-primary) 30%, transparent)'
               }}>
-              Lihat Data Mahasiswa
+              <span className="material-symbols-outlined text-[16px]">groups</span> Mahasiswa
             </button>
             <button onClick={() => navigate('/faculty/laporan')}
-              className="h-10 px-4 rounded-xl border border-[var(--theme-border)] bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-[var(--theme-text-muted)] hover:text-[var(--theme-primary)] hover:border-[var(--theme-primary)]/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 flex items-center gap-2 cursor-pointer shrink-0">
-              Unduh Laporan
+              className="h-10 px-4 rounded-xl border border-[var(--theme-border)] bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-[var(--theme-text-muted)] hover:text-[var(--theme-primary)] hover:border-[var(--theme-primary)]/30 hover:bg-[var(--theme-surface-hover)] shadow-sm transition-all duration-200 active:scale-95 flex items-center gap-2 cursor-pointer shrink-0">
+              <span className="material-symbols-outlined text-[16px]">download</span> Laporan
             </button>
           </div>
         }
       />
-
-      {/* Filter Section */}
-      <DashboardFilter 
-        title="Filterasi Data"
-        description="Filter data berdasarkan periode akademik"
-        icon="filter_list"
-        activeFiltersCount={(filterPeriod !== 'all' ? 1 : 0) + (filterProdi !== 'all' ? 1 : 0)}
-        onResetFilters={handleResetFilters}
-      >
-        <FilterItem label="Periode Akademik" icon="calendar_month">
-          <SelectField
-            value={filterPeriod}
-            onValueChange={(val) => handlePeriodChange(val)}
-            className="w-full pl-9 h-10"
-          >
-            <SelectOption value="all">Pilih Semua</SelectOption>
-            {summaryData.periods?.map((p) => (
-              <SelectOption key={p.id} value={String(p.id)}>
-                {p.Name || p.nama_periode}
-              </SelectOption>
-            ))}
-          </SelectField>
-        </FilterItem>
-
-        <FilterItem label="Program Studi" icon="layers">
-          <SelectField
-            value={filterProdi}
-            onValueChange={(val) => setFilterProdi(val)}
-            className="w-full pl-9 h-10"
-          >
-            <SelectOption value="all">Semua Prodi</SelectOption>
-            {summaryData.prodis?.map((p) => (
-              <SelectOption key={p.id} value={String(p.id)}>
-                {p.Nama || p.nama} ({p.Jenjang || p.jenjang})
-              </SelectOption>
-            ))}
-          </SelectField>
-        </FilterItem>
-      </DashboardFilter>
 
       {/* ── Enriched Stats Grid (Like KelolaFakultas) ─────────────────────────────────── */}
       <div className="space-y-6 mb-6">

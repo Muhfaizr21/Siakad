@@ -65,12 +65,20 @@ export default function LaporanFakultasPage() {
   const [isMounted, setMounted] = useState(false)
   const [facultyInfo, setFacultyInfo] = useState(null)
   const [filterPeriode, setFilterPeriode] = useState('all')
+  const [availablePeriods, setAvailablePeriods] = useState([])
 
   const fetchData = async () => {
     setLoading(true)
     try {
       const res = await api.get(`${API}/reports/summary${filterPeriode !== 'all' ? `?angkatan=${filterPeriode}` : ''}`)
-      if (res.data.status === "success") setData(res.data.data || data)
+      if (res.data.status === "success") {
+        setData(res.data.data || data)
+        if (filterPeriode === 'all' && res.data.data?.perAngkatan) {
+          const periods = res.data.data.perAngkatan.map(a => String(a.angkatan)).filter(Boolean);
+          const uniquePeriods = [...new Set(periods)].sort((a, b) => Number(b) - Number(a));
+          setAvailablePeriods(uniquePeriods);
+        }
+      }
 
       const profileRes = await api.get(`${API}/profile`)
       if (profileRes.data.success && profileRes.data.data?.fakultas) {
@@ -640,10 +648,7 @@ export default function LaporanFakultasPage() {
 
   useEffect(() => { setMounted(true) }, [])
 
-  const periodeOptions = React.useMemo(() => {
-    if (!data.perAngkatan) return []
-    return data.perAngkatan.map(a => a.angkatan).filter(Boolean).sort((a,b) => Number(b) - Number(a))
-  }, [data.perAngkatan])
+  const periodeOptions = availablePeriods;
 
   const prodiWithColors = (data.perProdi || []).map((item, i) => ({ ...item, nama_prodi: item.nama_prodi || "Unknown", value: item.value || 0, color: CHART_COLORS[i % CHART_COLORS.length] }))
 
@@ -692,7 +697,7 @@ export default function LaporanFakultasPage() {
               <SelectContent className="rounded-xl border border-[var(--theme-border)] shadow-md bg-white">
                 <SelectItem value="all" className="rounded-lg text-xs py-1.5 focus:bg-[var(--theme-primary-light)] focus:text-[var(--theme-primary)]">Semua Tahun</SelectItem>
                 {periodeOptions.map(per => (
-                  <SelectItem key={per} value={per} className="rounded-lg text-xs py-1.5 focus:bg-[var(--theme-primary-light)] focus:text-[var(--theme-primary)]">
+                  <SelectItem key={per} value={String(per)} className="rounded-lg text-xs py-1.5 focus:bg-[var(--theme-primary-light)] focus:text-[var(--theme-primary)]">
                     Tahun {per}
                   </SelectItem>
                 ))}

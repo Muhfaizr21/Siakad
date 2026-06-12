@@ -151,8 +151,9 @@ export default function FacultyScholarship() {
   const [selectedProgram, setSelectedProgram] = useState(null)
   const [previewApp, setPreviewApp] = useState(null)
   const [search, setSearch] = useState('')
-  const [selectedScholarshipFilter, setSelectedScholarshipFilter] = useState('Semua')
-  const [filterPeriode, setFilterPeriode] = useState('all')
+  const [selectedScholarshipFilter, setSelectedScholarshipFilter] = useState('all')
+  const [filterProgramStatus, setFilterProgramStatus] = useState('all')
+  const [filterAppStatus, setFilterAppStatus] = useState('all')
   const [facultyInfo, setFacultyInfo] = useState(null)
 
   const [currentPage, setCurrentPage] = useState(1)
@@ -172,25 +173,9 @@ export default function FacultyScholarship() {
   useEffect(() => {
     setCurrentPage(1)
     setSortConfig(activeTab === 'programs' ? { key: 'Nama', direction: 'asc' } : { key: 'Mahasiswa.Nama', direction: 'asc' })
-    setFilterPeriode('all')
+    setFilterProgramStatus('all')
+    setFilterAppStatus('all')
   }, [activeTab])
-
-  const periodeOptions = useMemo(() => {
-    const periods = new Set()
-    if (activeTab === 'programs') {
-      scholarships.forEach(s => {
-        if (s.CreatedAt || s.created_at) {
-          periods.add(String(new Date(s.CreatedAt || s.created_at).getFullYear()))
-        }
-      })
-    } else {
-      applications.forEach(a => {
-        const ang = a.Mahasiswa?.Angkatan || a.Mahasiswa?.angkatan || (a.Mahasiswa?.NIM ? `20${a.Mahasiswa.NIM.substring(0,2)}` : null)
-        if (ang) periods.add(String(ang))
-      })
-    }
-    return Array.from(periods).sort((a, b) => Number(b) - Number(a))
-  }, [scholarships, applications, activeTab])
 
   const getKopImage = (facName) => {
     const name = (facName || "").toLowerCase();
@@ -261,12 +246,12 @@ export default function FacultyScholarship() {
         <div style="margin-top:45px; font-weight:700; text-decoration:underline;">${nameResolved}</div>
       </div>
     </body></html>`;
-    
+
     try {
       printWindow.document.open();
       printWindow.document.write(htmlContent);
       printWindow.document.close();
-      
+
       printWindow.onload = () => {
         setTimeout(() => {
           printWindow.print();
@@ -413,18 +398,18 @@ export default function FacultyScholarship() {
   const filteredPrograms = useMemo(() => scholarships.filter(s => {
     const q = search.toLowerCase()
     const matchSearch = !q || s.Nama?.toLowerCase().includes(q) || s.Penyelenggara?.toLowerCase().includes(q)
-    const matchPeriod = filterPeriode === 'all' || (s.CreatedAt || s.created_at ? String(new Date(s.CreatedAt || s.created_at).getFullYear()) : '') === filterPeriode
-    return matchSearch && matchPeriod
-  }), [scholarships, search, filterPeriode])
+    const isAktif = new Date(s.Deadline) > new Date()
+    const matchStatus = filterProgramStatus === 'all' || (filterProgramStatus === 'aktif' ? isAktif : !isAktif)
+    return matchSearch && matchStatus
+  }), [scholarships, search, filterProgramStatus])
 
   const filteredApps = useMemo(() => applications.filter(a => {
     const q = search.toLowerCase()
     const matchesSearch = !q || a.Mahasiswa?.Nama?.toLowerCase().includes(q) || a.Mahasiswa?.NIM?.includes(q)
-    const matchesScholarship = selectedScholarshipFilter === 'Semua' || a.Beasiswa?.Nama === selectedScholarshipFilter
-    const ang = a.Mahasiswa?.Angkatan || a.Mahasiswa?.angkatan || (a.Mahasiswa?.NIM ? `20${a.Mahasiswa.NIM.substring(0,2)}` : null)
-    const matchPeriod = filterPeriode === 'all' || String(ang) === filterPeriode
-    return matchesSearch && matchesScholarship && matchPeriod
-  }), [applications, search, selectedScholarshipFilter, filterPeriode])
+    const matchesScholarship = selectedScholarshipFilter === 'all' || a.Beasiswa?.Nama === selectedScholarshipFilter
+    const matchStatus = filterAppStatus === 'all' || (a.Status || 'proses').toLowerCase() === filterAppStatus
+    return matchesSearch && matchesScholarship && matchStatus
+  }), [applications, search, selectedScholarshipFilter, filterAppStatus])
 
   const sortedPrograms = useMemo(() => {
     let items = [...filteredPrograms]
@@ -693,167 +678,167 @@ export default function FacultyScholarship() {
   return (
     <PageContent>
       <Toaster position="top-right" />
-        <DashboardHero
-          title="Manajemen "
-          highlightedTitle="Beasiswa"
-          subtitle="Kelola program beasiswa dan verifikasi pendaftaran mahasiswa di lingkungan fakultas."
-          icon="school"
-          badges={[
-            { label: 'Program Bantuan Akademik', active: false },
-            { label: `${stats.aktif} Program Aktif`, active: true }
-          ]}
-          actions={
-            <div className="flex items-center gap-2">
-              <Select value={filterPeriode} onValueChange={setFilterPeriode}>
-                <SelectTrigger className="w-[180px] h-10 border border-slate-200/80 bg-white/80 rounded-xl text-xs font-bold text-slate-600 focus:ring-0">
-                  <SelectValue placeholder="Semua Periode" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Periode</SelectItem>
-                  {periodeOptions.map(per => (
-                    <SelectItem key={per} value={per}>{activeTab === 'programs' ? 'Tahun ' : 'Angkatan '}{per}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <button onClick={exportBeasiswaPDF} disabled={loading || (activeTab === 'programs' ? scholarships.length === 0 : applications.length === 0)}
-                className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-50 flex items-center gap-2 shrink-0">
-                <Download size={13} className="text-primary" /> Ekspor PDF
-              </button>
-              <button onClick={fetchData} disabled={loading}
-                className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-60 flex items-center gap-2 shrink-0">
-                {loading ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '13px' }} >sync</span> : <RefreshCw size={13} className="text-primary" />} Refresh Data
-              </button>
-            </div>
-          }
-        />
+      <DashboardHero
+        title="Manajemen "
+        highlightedTitle="Beasiswa"
+        subtitle="Kelola program beasiswa dan verifikasi pendaftaran mahasiswa di lingkungan fakultas."
+        icon="school"
+        badges={[
+          { label: 'Program Bantuan Akademik', active: false },
+          { label: `${stats.aktif} Program Aktif`, active: true }
+        ]}
+        actions={
+          <div className="flex items-center gap-2">
 
-        {/* Stats */}
-        <div className="space-y-4 md:space-y-5 mb-6">
-          {/* Row 1: Utama (4 Cards) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
-            <PrimaryStatsCard
-              title="Total Beasiswa"
-              value={stats.totalPrograms}
-              badgeText="Program terdaftar"
-              icon={GraduationCap}
-              colorTheme="primary"
-            />
-            <PrimaryStatsCard
-              title="Program Aktif"
-              value={stats.aktif}
-              badgeText="Deadline belum lewat"
-              icon={Clock}
-              colorTheme="success"
-            />
-            <PrimaryStatsCard
-              title="Pendaftar Baru"
-              value={stats.pendingApps}
-              badgeText="Sedang diproses"
-              icon={Users}
-              colorTheme="warning"
-            />
-            <PrimaryStatsCard
-              title="Lolos Seleksi"
-              value={stats.activeAwardees}
-              badgeText="Diterima beasiswa"
-              icon={UserCheck}
-              colorTheme="info"
-            />
-          </div>
-
-          {/* Row 2: Analytics & Budget (4 Cards) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
-            <PrimaryStatsCard
-              title="Pendaftar Terbanyak"
-              value={getShortFacultyName(highestApplicantFaculty.name)}
-              badgeText={`${highestApplicantFaculty.count} Pendaftar`}
-              icon="trending_up"
-              colorTheme="primary"
-            />
-            <PrimaryStatsCard
-              title="Pendaftar Terendah"
-              value={getShortFacultyName(lowestApplicantFaculty.name)}
-              badgeText={`${lowestApplicantFaculty.count} Pendaftar`}
-              icon="trending_down"
-              colorTheme="error"
-            />
-            <PrimaryStatsCard
-              title="Total Anggaran"
-              value={formatCurrency(stats.totalBudget)}
-              badgeText="Proyeksi dana fakultas"
-              icon="payments"
-              colorTheme="info"
-            />
-            <PrimaryStatsCard
-              title="Realisasi Anggaran"
-              value={formatCurrency(absorbedBudget)}
-              badgeText={`${absorptionRate}% Anggaran terserap`}
-              icon="account_balance_wallet"
-              colorTheme="success"
-            />
-          </div>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex items-center gap-1 glass-card border border-slate-200/60 rounded-2xl p-1.5 w-fit shadow-none">
-          {TABS.map(t => (
-            <button key={t.key} onClick={() => {
-              setActiveTab(t.key);
-              setSearch('');
-              setSelectedScholarshipFilter('Semua');
-            }}
-              className={cn('flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all',
-                activeTab === t.key ? 'bg-primary text-white shadow-lg shadow-bku-primary/25' : 'text-slate-500 hover:bg-slate-50')}>
-              <t.icon size={14} />{t.label}
+            <button onClick={exportBeasiswaPDF} disabled={loading || (activeTab === 'programs' ? scholarships.length === 0 : applications.length === 0)}
+              className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-50 flex items-center gap-2 shrink-0">
+              <Download size={13} className="text-primary" /> Ekspor PDF
             </button>
-          ))}
+            <button onClick={fetchData} disabled={loading}
+              className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-60 flex items-center gap-2 shrink-0">
+              {loading ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '13px' }} >sync</span> : <RefreshCw size={13} className="text-primary" />} Refresh Data
+            </button>
+          </div>
+        }
+      />
+
+      {/* Stats */}
+      <div className="space-y-4 md:space-y-5 mb-6">
+        {/* Row 1: Utama (4 Cards) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+          <PrimaryStatsCard
+            title="Total Beasiswa"
+            value={stats.totalPrograms}
+            badgeText="Program terdaftar"
+            icon={GraduationCap}
+            colorTheme="primary"
+          />
+          <PrimaryStatsCard
+            title="Program Aktif"
+            value={stats.aktif}
+            badgeText="Deadline belum lewat"
+            icon={Clock}
+            colorTheme="success"
+          />
+          <PrimaryStatsCard
+            title="Pendaftar Baru"
+            value={stats.pendingApps}
+            badgeText="Sedang diproses"
+            icon={Users}
+            colorTheme="warning"
+          />
+          <PrimaryStatsCard
+            title="Lolos Seleksi"
+            value={stats.activeAwardees}
+            badgeText="Diterima beasiswa"
+            icon={UserCheck}
+            colorTheme="info"
+          />
         </div>
 
-        {/* Table Wrapper */}
-        <Card className="border border-[var(--theme-border)] shadow-sm bg-[var(--theme-surface)] rounded-2xl overflow-hidden mt-6 mb-6">
-          <div className="px-5 py-4 border-b border-[var(--theme-border)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-[var(--theme-bg)]/50">
-            <div className="flex-1">
-              <h2 className="font-bold text-base text-[var(--theme-text)]">
-                {activeTab === 'programs' ? 'Daftar Program Beasiswa' : 'Daftar Pendaftar Beasiswa'}
-              </h2>
-            </div>
-            {activeTab === 'applications' && uniqueScholarships.length > 0 && (
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest whitespace-nowrap">Filter:</span>
-                <Select value={selectedScholarshipFilter} onValueChange={setSelectedScholarshipFilter}>
-                  <SelectTrigger className="h-9 w-48 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] font-semibold text-xs shadow-sm focus:ring-[var(--theme-primary)]/20 px-3 py-1 flex items-center justify-between">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-2xl border border-[var(--theme-border)] shadow-xl p-1 bg-[var(--theme-surface)]">
-                    <SelectItem value="Semua" className="rounded-xl text-xs py-1.5 focus:bg-[var(--theme-primary-light)] focus:text-[var(--theme-primary)]">
-                      Semua Beasiswa
-                    </SelectItem>
-                    {uniqueScholarships.map((name) => (
-                      <SelectItem key={name} value={name} className="rounded-xl text-xs py-1.5 focus:bg-[var(--theme-primary-light)] focus:text-[var(--theme-primary)]">
-                        {name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
-          <CardContent className="p-0 [&>div]:border-none [&>div]:rounded-none [&>div]:shadow-none">
-            <DataTable
-              data={activeTab === 'programs' ? filteredPrograms : filteredApps}
-              columns={activeTab === 'programs' ? programColumns : appColumns}
-              loading={loading}
-              searchable={true}
-              pagination={true}
-              pageSize={10}
-              emptyMessage={activeTab === 'programs' ? "Tidak Ada Program Beasiswa" : "Belum Ada Pendaftar"}
-              emptyIcon={activeTab === 'programs' ? "school" : "group"}
-              searchPlaceholder={activeTab === 'programs' ? 'Cari nama beasiswa...' : 'Cari mahasiswa atau NIM...'}
-              searchValue={search}
-              onSearchChange={setSearch}
-            />
-          </CardContent>
-        </Card>
+        {/* Row 2: Analytics & Budget (4 Cards) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+          <PrimaryStatsCard
+            title="Pendaftar Terbanyak"
+            value={getShortFacultyName(highestApplicantFaculty.name)}
+            badgeText={`${highestApplicantFaculty.count} Pendaftar`}
+            icon="trending_up"
+            colorTheme="primary"
+          />
+          <PrimaryStatsCard
+            title="Pendaftar Terendah"
+            value={getShortFacultyName(lowestApplicantFaculty.name)}
+            badgeText={`${lowestApplicantFaculty.count} Pendaftar`}
+            icon="trending_down"
+            colorTheme="error"
+          />
+          <PrimaryStatsCard
+            title="Total Anggaran"
+            value={formatCurrency(stats.totalBudget)}
+            badgeText="Proyeksi dana fakultas"
+            icon="payments"
+            colorTheme="info"
+          />
+          <PrimaryStatsCard
+            title="Realisasi Anggaran"
+            value={formatCurrency(absorbedBudget)}
+            badgeText={`${absorptionRate}% Anggaran terserap`}
+            icon="account_balance_wallet"
+            colorTheme="success"
+          />
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex items-center gap-1 glass-card border border-slate-200/60 rounded-2xl p-1.5 w-fit shadow-none">
+        {TABS.map(t => (
+          <button key={t.key} onClick={() => {
+            setActiveTab(t.key);
+            setSearch('');
+            setSelectedScholarshipFilter('all');
+          }}
+            className={cn('flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all',
+              activeTab === t.key ? 'bg-primary text-white shadow-lg shadow-bku-primary/25' : 'text-slate-500 hover:bg-slate-50')}>
+            <t.icon size={14} />{t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Table */}
+      <div className="mt-6 mb-6">
+        <DataTable
+          title={activeTab === 'programs' ? 'Daftar Program Beasiswa' : 'Daftar Pendaftar Beasiswa'}
+          subtitle={activeTab === 'programs' ? 'Kelola program beasiswa yang aktif' : 'Review pendaftar beasiswa masuk'}
+          data={activeTab === 'programs' ? filteredPrograms : filteredApps}
+          columns={activeTab === 'programs' ? programColumns : appColumns}
+          loading={loading}
+          searchable={true}
+          pagination={true}
+          pageSize={10}
+          emptyMessage={activeTab === 'programs' ? "Tidak Ada Program Beasiswa" : "Belum Ada Pendaftar"}
+          emptyIcon={activeTab === 'programs' ? "school" : "group"}
+          searchPlaceholder={activeTab === 'programs' ? 'Cari nama beasiswa...' : 'Cari mahasiswa atau NIM...'}
+          searchValue={search}
+          onSearchChange={setSearch}
+          manualFiltering={true}
+          filterValues={{
+            ...(activeTab === 'applications' && uniqueScholarships.length > 0 ? { beasiswa: selectedScholarshipFilter } : {}),
+            ...(activeTab === 'programs' ? { programStatus: filterProgramStatus } : { appStatus: filterAppStatus })
+          }}
+          onFilterChange={(key, val) => {
+            if (key === 'beasiswa') setSelectedScholarshipFilter(val);
+            if (key === 'programStatus') setFilterProgramStatus(val);
+            if (key === 'appStatus') setFilterAppStatus(val);
+          }}
+          filters={[
+            ...(activeTab === 'programs' ? [{
+              key: 'programStatus',
+              placeholder: 'Status Program',
+              options: [
+                { value: 'aktif', label: 'Aktif' },
+                { value: 'selesai', label: 'Selesai' }
+              ],
+              className: 'w-40'
+            }] : []),
+            ...(activeTab === 'applications' && uniqueScholarships.length > 0 ? [{
+              key: 'beasiswa',
+              placeholder: 'Beasiswa',
+              options: uniqueScholarships.map(name => ({ value: name, label: name })),
+              className: 'w-48'
+            }] : []),
+            ...(activeTab === 'applications' ? [{
+              key: 'appStatus',
+              placeholder: 'Status Seleksi',
+              options: [
+                { value: 'diterima', label: 'Diterima' },
+                { value: 'ditolak', label: 'Ditolak' },
+                { value: 'proses', label: 'Proses' }
+              ],
+              className: 'w-44'
+            }] : [])
+          ]}
+        />
+      </div>
 
       {/* Read-Only Preview Application Modal */}
       {previewApp && (() => {
@@ -874,122 +859,122 @@ export default function FacultyScholarship() {
               </button>
             }
           >
-            <div className="space-y-4 overflow-y-auto flex-1 font-inter max-h-[60vh] no-scrollbar">
-                {/* Scholarship Program */}
-                <div className="space-y-1">
-                  <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">PROGRAM BEASISWA</span>
-                  <p className="text-xs font-semibold text-[var(--theme-text)] bg-[var(--theme-bg)] p-3.5 rounded-2xl border border-[var(--theme-border-muted)]">
-                    {previewApp.Beasiswa?.Nama}
-                  </p>
-                </div>
+            <div className="space-y-4 flex-1 font-inter">
+              {/* Scholarship Program */}
+              <div className="space-y-1">
+                <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">PROGRAM BEASISWA</span>
+                <p className="text-xs font-semibold text-[var(--theme-text)] bg-[var(--theme-bg)] p-3.5 rounded-2xl border border-[var(--theme-border-muted)]">
+                  {previewApp.Beasiswa?.Nama}
+                </p>
+              </div>
 
-                {/* Tanggal Daftar - Full Width */}
-                <div className="bg-[var(--theme-bg)] p-3.5 rounded-2xl border border-[var(--theme-border-muted)] flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-[var(--theme-info-light)] flex items-center justify-center text-[var(--theme-info)] flex-shrink-0">
-                    <span className="material-symbols-outlined" style={{ fontSize: 16 }}>calendar_add_on</span>
-                  </div>
-                  <div>
-                    <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-0.5">TANGGAL & WAKTU DAFTAR</span>
-                    <span className="text-xs font-semibold text-[var(--theme-text)]">
-                      {formatDateTime(previewApp.CreatedAt || previewApp.created_at)}
-                    </span>
-                  </div>
+              {/* Tanggal Daftar - Full Width */}
+              <div className="bg-[var(--theme-bg)] p-3.5 rounded-2xl border border-[var(--theme-border-muted)] flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-[var(--theme-info-light)] flex items-center justify-center text-[var(--theme-info)] flex-shrink-0">
+                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>calendar_add_on</span>
                 </div>
-
-                {/* Status Seleksi - Full Width */}
-                <div className="bg-[var(--theme-bg)] p-3.5 rounded-2xl border border-[var(--theme-border-muted)] flex items-center gap-3">
-                  <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0",
-                    previewApp.Status === 'diterima' ? 'bg-[var(--theme-success-light)] text-[var(--theme-success)]' :
-                      previewApp.Status === 'ditolak' ? 'bg-[var(--theme-error-light)] text-[var(--theme-error)]' : 'bg-[var(--theme-warning-light)] text-[var(--theme-warning)]')}>
-                    <span className="material-symbols-outlined" style={{ fontSize: 16 }}>verified</span>
-                  </div>
-                  <div>
-                    <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-0.5">STATUS SELEKSI</span>
-                    <span className={cn('inline-flex items-center text-[10px] font-semibold uppercase tracking-wider',
-                      previewApp.Status === 'diterima' ? 'text-[var(--theme-success)]' :
-                        previewApp.Status === 'ditolak' ? 'text-[var(--theme-error)]' : 'text-[var(--theme-warning)]')}>
-                      {st.label}
-                    </span>
-                  </div>
+                <div>
+                  <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-0.5">TANGGAL & WAKTU DAFTAR</span>
+                  <span className="text-xs font-semibold text-[var(--theme-text)]">
+                    {formatDateTime(previewApp.CreatedAt || previewApp.created_at)}
+                  </span>
                 </div>
+              </div>
 
-                {/* Submitted Files */}
-                <div className="space-y-1.5">
-                  <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">BERKAS PENDAFTARAN</span>
-                  {!previewApp.FileURL && !previewApp.KtmKtpURL && !previewApp.TranskripURL && !previewApp.SertifikatURL ? (
-                    <div className="bg-[var(--theme-bg)]/50 p-4 rounded-2xl border border-dashed border-[var(--theme-border)] text-center">
-                      <p className="text-xs text-[var(--theme-text-subtle)] italic">Tidak ada berkas yang dilampirkan</p>
+              {/* Status Seleksi - Full Width */}
+              <div className="bg-[var(--theme-bg)] p-3.5 rounded-2xl border border-[var(--theme-border-muted)] flex items-center gap-3">
+                <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0",
+                  previewApp.Status === 'diterima' ? 'bg-[var(--theme-success-light)] text-[var(--theme-success)]' :
+                    previewApp.Status === 'ditolak' ? 'bg-[var(--theme-error-light)] text-[var(--theme-error)]' : 'bg-[var(--theme-warning-light)] text-[var(--theme-warning)]')}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>verified</span>
+                </div>
+                <div>
+                  <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-0.5">STATUS SELEKSI</span>
+                  <span className={cn('inline-flex items-center text-[10px] font-semibold uppercase tracking-wider',
+                    previewApp.Status === 'diterima' ? 'text-[var(--theme-success)]' :
+                      previewApp.Status === 'ditolak' ? 'text-[var(--theme-error)]' : 'text-[var(--theme-warning)]')}>
+                    {st.label}
+                  </span>
+                </div>
+              </div>
+
+              {/* Submitted Files */}
+              <div className="space-y-1.5">
+                <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">BERKAS PENDAFTARAN</span>
+                {!previewApp.FileURL && !previewApp.KtmKtpURL && !previewApp.TranskripURL && !previewApp.SertifikatURL ? (
+                  <div className="bg-[var(--theme-bg)]/50 p-4 rounded-2xl border border-dashed border-[var(--theme-border)] text-center">
+                    <p className="text-xs text-[var(--theme-text-subtle)] italic">Tidak ada berkas yang dilampirkan</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-1">
+                    {renderAttachment(previewApp.FileURL, "Berkas Utama")}
+                    {renderAttachment(previewApp.KtmKtpURL, "KTM / KTP")}
+                    {renderAttachment(previewApp.TranskripURL, "Transkrip Nilai")}
+                    {renderAttachment(previewApp.SertifikatURL, "Sertifikat Pendukung")}
+                  </div>
+                )}
+              </div>
+
+              {/* Custom Answers in Preview */}
+              {(() => {
+                const rawAnswers = previewApp.custom_answers || previewApp.CustomAnswers;
+                if (!rawAnswers) return null;
+                let answers = {};
+                try {
+                  answers = typeof rawAnswers === 'string' ? JSON.parse(rawAnswers) : rawAnswers;
+                } catch (e) {
+                  console.error(e);
+                  return null;
+                }
+                if (Object.keys(answers).length === 0) return null;
+                return (
+                  <div className="space-y-1.5 text-left">
+                    <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">JAWABAN PERSYARATAN KUSTOM</span>
+                    <div className="space-y-2">
+                      {Object.entries(answers).map(([label, value]) => {
+                        const isFile = typeof value === 'string' && (value.startsWith('/uploads/') || value.startsWith('http') || value.includes('/api/scholarship/upload-custom-file'));
+                        return (
+                          <div key={label} className="bg-[var(--theme-bg)] p-3 rounded-2xl border border-[var(--theme-border-muted)]">
+                            <span className="block text-[9px] font-bold text-[var(--theme-text-muted)] uppercase">{label}</span>
+                            {isFile ? (
+                              <div className="mt-1">
+                                {renderAttachment(value, label)}
+                              </div>
+                            ) : (
+                              <p className="text-xs font-semibold text-[var(--theme-text)] mt-1 whitespace-pre-line">
+                                {Array.isArray(value) ? value.join(', ') : String(value)}
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
+                  </div>
+                );
+              })()}
+
+              {/* Motivasi */}
+              <div className="space-y-1.5">
+                <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">MOTIVASI / MOTIVATION LETTER</span>
+                <div className="bg-[var(--theme-bg)] p-4 rounded-2xl border border-[var(--theme-border-muted)]">
+                  {previewApp.Motivasi ? (
+                    <div
+                      className="text-xs text-[var(--theme-text)] leading-relaxed prose prose-sm max-w-none"
+                      dangerouslySetInnerHTML={{ __html: previewApp.Motivasi }}
+                    />
                   ) : (
-                    <div className="flex flex-col gap-1">
-                      {renderAttachment(previewApp.FileURL, "Berkas Utama")}
-                      {renderAttachment(previewApp.KtmKtpURL, "KTM / KTP")}
-                      {renderAttachment(previewApp.TranskripURL, "Transkrip Nilai")}
-                      {renderAttachment(previewApp.SertifikatURL, "Sertifikat Pendukung")}
-                    </div>
+                    <p className="text-xs text-[var(--theme-text-subtle)] italic">Tidak ada motivasi yang diinputkan</p>
                   )}
                 </div>
+              </div>
 
-                {/* Custom Answers in Preview */}
-                {(() => {
-                  const rawAnswers = previewApp.custom_answers || previewApp.CustomAnswers;
-                  if (!rawAnswers) return null;
-                  let answers = {};
-                  try {
-                    answers = typeof rawAnswers === 'string' ? JSON.parse(rawAnswers) : rawAnswers;
-                  } catch (e) {
-                    console.error(e);
-                    return null;
-                  }
-                  if (Object.keys(answers).length === 0) return null;
-                  return (
-                    <div className="space-y-1.5 text-left">
-                      <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">JAWABAN PERSYARATAN KUSTOM</span>
-                      <div className="space-y-2">
-                        {Object.entries(answers).map(([label, value]) => {
-                          const isFile = typeof value === 'string' && (value.startsWith('/uploads/') || value.startsWith('http') || value.includes('/api/scholarship/upload-custom-file'));
-                          return (
-                            <div key={label} className="bg-[var(--theme-bg)] p-3 rounded-2xl border border-[var(--theme-border-muted)]">
-                              <span className="block text-[9px] font-bold text-[var(--theme-text-muted)] uppercase">{label}</span>
-                              {isFile ? (
-                                <div className="mt-1">
-                                  {renderAttachment(value, label)}
-                                </div>
-                              ) : (
-                                <p className="text-xs font-semibold text-[var(--theme-text)] mt-1 whitespace-pre-line">
-                                  {Array.isArray(value) ? value.join(', ') : String(value)}
-                                </p>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })()}
-
-                {/* Motivasi */}
-                <div className="space-y-1.5">
-                  <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">MOTIVASI / MOTIVATION LETTER</span>
-                  <div className="bg-[var(--theme-bg)] p-4 rounded-2xl border border-[var(--theme-border-muted)]">
-                    {previewApp.Motivasi ? (
-                      <div
-                        className="text-xs text-[var(--theme-text)] leading-relaxed prose prose-sm max-w-none"
-                        dangerouslySetInnerHTML={{ __html: previewApp.Motivasi }}
-                      />
-                    ) : (
-                      <p className="text-xs text-[var(--theme-text-subtle)] italic">Tidak ada motivasi yang diinputkan</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Reviewer Notes */}
-                <div className="space-y-1.5">
-                  <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">CATATAN REVIEWER</span>
-                  <p className="text-xs text-[var(--theme-text)] leading-relaxed bg-[var(--theme-bg)] p-3.5 rounded-2xl border border-[var(--theme-border-muted)]">
-                    {previewApp.Catatan || 'Belum ada catatan dari reviewer.'}
-                  </p>
-                </div>
+              {/* Reviewer Notes */}
+              <div className="space-y-1.5">
+                <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">CATATAN REVIEWER</span>
+                <p className="text-xs text-[var(--theme-text)] leading-relaxed bg-[var(--theme-bg)] p-3.5 rounded-2xl border border-[var(--theme-border-muted)]">
+                  {previewApp.Catatan || 'Belum ada catatan dari reviewer.'}
+                </p>
+              </div>
             </div>
           </DialogModal>
         );
@@ -1031,162 +1016,162 @@ export default function FacultyScholarship() {
               </>
             }
           >
-            <div className="space-y-4 overflow-y-auto flex-1 font-inter max-h-[60vh] no-scrollbar">
-                {/* Deskripsi */}
-                {selectedProgram.Deskripsi && (
+            <div className="space-y-4 flex-1 font-inter">
+              {/* Deskripsi */}
+              {selectedProgram.Deskripsi && (
+                <div className="space-y-1">
+                  <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">DESKRIPSI PROGRAM</span>
+                  <p className="text-xs text-[var(--theme-text-muted)] leading-relaxed bg-[var(--theme-bg)]/60 p-3.5 rounded-2xl border border-[var(--theme-border-muted)]">
+                    {selectedProgram.Deskripsi}
+                  </p>
+                </div>
+              )}
+
+              {/* Persyaratan Kustom */}
+              {(() => {
+                const rawFields = selectedProgram.CustomFields || selectedProgram.custom_fields;
+                if (!rawFields) return null;
+                let fields = [];
+                try {
+                  fields = typeof rawFields === 'string' ? JSON.parse(rawFields) : rawFields;
+                } catch (e) {
+                  console.error(e);
+                }
+                if (!Array.isArray(fields) || fields.length === 0) return null;
+                return (
                   <div className="space-y-1">
-                    <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">DESKRIPSI PROGRAM</span>
-                    <p className="text-xs text-[var(--theme-text-muted)] leading-relaxed bg-[var(--theme-bg)]/60 p-3.5 rounded-2xl border border-[var(--theme-border-muted)]">
-                      {selectedProgram.Deskripsi}
-                    </p>
-                  </div>
-                )}
-
-                {/* Persyaratan Kustom */}
-                {(() => {
-                  const rawFields = selectedProgram.CustomFields || selectedProgram.custom_fields;
-                  if (!rawFields) return null;
-                  let fields = [];
-                  try {
-                    fields = typeof rawFields === 'string' ? JSON.parse(rawFields) : rawFields;
-                  } catch (e) {
-                    console.error(e);
-                  }
-                  if (!Array.isArray(fields) || fields.length === 0) return null;
-                  return (
-                    <div className="space-y-1">
-                      <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">PERSYARATAN TAMBAHAN (KUSTOM)</span>
-                      <div className="bg-[var(--theme-bg)]/60 p-3.5 rounded-2xl border border-[var(--theme-border-muted)] space-y-2 font-inter">
-                        {fields.map((f, i) => (
-                          <div key={i} className="flex justify-between items-start text-xs border-b border-[var(--theme-border-muted)] last:border-0 pb-1.5 last:pb-0">
-                            <div className="min-w-0 pr-2 text-left">
-                              <span className="font-bold text-[var(--theme-text)] block">{f.label}</span>
-                              {f.options && (
-                                <span className="text-[9px] text-[var(--theme-text-muted)] block mt-0.5">Opsi: {f.options}</span>
-                              )}
-                            </div>
-                            <div className="flex flex-col items-end gap-1 shrink-0">
-                              <span className="font-semibold text-[9px] px-1.5 py-0.5 bg-[var(--theme-info-light)] text-[var(--theme-info)] rounded">
-                                {f.type}
-                              </span>
-                              {f.required && (
-                                <span className="font-bold text-[8px] px-1 bg-[var(--theme-error-light)] text-[var(--theme-error)] rounded">
-                                  Wajib
-                                </span>
-                              )}
-                            </div>
+                    <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">PERSYARATAN TAMBAHAN (KUSTOM)</span>
+                    <div className="bg-[var(--theme-bg)]/60 p-3.5 rounded-2xl border border-[var(--theme-border-muted)] space-y-2 font-inter">
+                      {fields.map((f, i) => (
+                        <div key={i} className="flex justify-between items-start text-xs border-b border-[var(--theme-border-muted)] last:border-0 pb-1.5 last:pb-0">
+                          <div className="min-w-0 pr-2 text-left">
+                            <span className="font-bold text-[var(--theme-text)] block">{f.label}</span>
+                            {f.options && (
+                              <span className="text-[9px] text-[var(--theme-text-muted)] block mt-0.5">Opsi: {f.options}</span>
+                            )}
                           </div>
-                        ))}
-                      </div>
+                          <div className="flex flex-col items-end gap-1 shrink-0">
+                            <span className="font-semibold text-[9px] px-1.5 py-0.5 bg-[var(--theme-info-light)] text-[var(--theme-info)] rounded">
+                              {f.type}
+                            </span>
+                            {f.required && (
+                              <span className="font-bold text-[8px] px-1 bg-[var(--theme-error-light)] text-[var(--theme-error)] rounded">
+                                Wajib
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  );
-                })()}
+                  </div>
+                );
+              })()}
 
-                {/* Tanggal & Waktu Dibuat - Full Width */}
-                <div className="bg-[var(--theme-bg)] p-3.5 rounded-2xl border border-[var(--theme-border-muted)] flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-[var(--theme-info-light)] flex items-center justify-center text-[var(--theme-info)] flex-shrink-0">
-                    <span className="material-symbols-outlined" style={{ fontSize: 16 }}>calendar_add_on</span>
+              {/* Tanggal & Waktu Dibuat - Full Width */}
+              <div className="bg-[var(--theme-bg)] p-3.5 rounded-2xl border border-[var(--theme-border-muted)] flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-[var(--theme-info-light)] flex items-center justify-center text-[var(--theme-info)] flex-shrink-0">
+                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>calendar_add_on</span>
+                </div>
+                <div>
+                  <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-0.5">TANGGAL & WAKTU DIBUAT</span>
+                  <span className="text-xs font-semibold text-[var(--theme-text)]">
+                    {selectedProgram.CreatedAt || selectedProgram.created_at ? formatDateTime(selectedProgram.CreatedAt || selectedProgram.created_at) : '—'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Deadline & IPK Requirement - Side by Side (grid-cols-2) */}
+              <div className="grid grid-cols-2 gap-3.5">
+                <div className="bg-[var(--theme-bg)] p-3 rounded-2xl border border-[var(--theme-border-muted)] flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-[var(--theme-error-light)] flex items-center justify-center text-[var(--theme-error)] flex-shrink-0">
+                    <span className="material-symbols-outlined" style={{ fontSize: 16 }}>event_busy</span>
                   </div>
                   <div>
-                    <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-0.5">TANGGAL & WAKTU DIBUAT</span>
-                    <span className="text-xs font-semibold text-[var(--theme-text)]">
-                      {selectedProgram.CreatedAt || selectedProgram.created_at ? formatDateTime(selectedProgram.CreatedAt || selectedProgram.created_at) : '—'}
+                    <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-0.5">DEADLINE</span>
+                    <span className="text-xs font-semibold text-[var(--theme-error)]">
+                      {selectedProgram.Deadline ? formatDate(selectedProgram.Deadline) : '—'}
                     </span>
                   </div>
                 </div>
-
-                {/* Deadline & IPK Requirement - Side by Side (grid-cols-2) */}
-                <div className="grid grid-cols-2 gap-3.5">
-                  <div className="bg-[var(--theme-bg)] p-3 rounded-2xl border border-[var(--theme-border-muted)] flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-[var(--theme-error-light)] flex items-center justify-center text-[var(--theme-error)] flex-shrink-0">
-                      <span className="material-symbols-outlined" style={{ fontSize: 16 }}>event_busy</span>
-                    </div>
-                    <div>
-                      <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-0.5">DEADLINE</span>
-                      <span className="text-xs font-semibold text-[var(--theme-error)]">
-                        {selectedProgram.Deadline ? formatDate(selectedProgram.Deadline) : '—'}
-                      </span>
-                    </div>
+                <div className="bg-[var(--theme-bg)] p-3 rounded-2xl border border-[var(--theme-border-muted)] flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-[var(--theme-warning-light)] flex items-center justify-center text-[var(--theme-warning)] flex-shrink-0">
+                    <span className="material-symbols-outlined" style={{ fontSize: 16 }}>star</span>
                   </div>
-                  <div className="bg-[var(--theme-bg)] p-3 rounded-2xl border border-[var(--theme-border-muted)] flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-[var(--theme-warning-light)] flex items-center justify-center text-[var(--theme-warning)] flex-shrink-0">
-                      <span className="material-symbols-outlined" style={{ fontSize: 16 }}>star</span>
-                    </div>
-                    <div>
-                      <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-0.5">MINIMAL IPK</span>
-                      <span className="text-xs font-semibold text-[var(--theme-text)]">{selectedProgram.MinIPK || '3.00'}</span>
-                    </div>
+                  <div>
+                    <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-0.5">MINIMAL IPK</span>
+                    <span className="text-xs font-semibold text-[var(--theme-text)]">{selectedProgram.MinIPK || '3.00'}</span>
                   </div>
                 </div>
+              </div>
 
-                {/* Capacity - Full Width */}
-                <div className="bg-[var(--theme-bg)] p-3.5 rounded-2xl border border-[var(--theme-border-muted)] flex flex-col justify-between">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">KAPASITAS & KETERISIAN</span>
-                    <span className="text-xs font-semibold text-[var(--theme-text)]">{current} / {selectedProgram.Kuota || 0} Mahasiswa</span>
+              {/* Capacity - Full Width */}
+              <div className="bg-[var(--theme-bg)] p-3.5 rounded-2xl border border-[var(--theme-border-muted)] flex flex-col justify-between">
+                <div className="flex justify-between items-center">
+                  <span className="text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">KAPASITAS & KETERISIAN</span>
+                  <span className="text-xs font-semibold text-[var(--theme-text)]">{current} / {selectedProgram.Kuota || 0} Mahasiswa</span>
+                </div>
+                <div className="w-full h-1.5 bg-[var(--theme-border-muted)] rounded-full overflow-hidden mt-2.5">
+                  <div
+                    className={cn(
+                      "h-full rounded-full transition-all duration-500",
+                      pct > 90
+                        ? "bg-[var(--theme-error)]"
+                        : "bg-gradient-to-r from-[var(--theme-primary)] to-[var(--theme-info)]"
+                    )}
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Anggaran - Full Width */}
+              {selectedProgram.Anggaran > 0 && (
+                <div className="bg-[var(--theme-bg)] p-3.5 rounded-2xl border border-[var(--theme-border-muted)] flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-[var(--theme-success-light)] flex items-center justify-center text-[var(--theme-success)] flex-shrink-0">
+                    <span className="material-symbols-outlined" style={{ fontSize: 16 }}>payments</span>
                   </div>
-                  <div className="w-full h-1.5 bg-[var(--theme-border-muted)] rounded-full overflow-hidden mt-2.5">
-                    <div
-                      className={cn(
-                        "h-full rounded-full transition-all duration-500",
-                        pct > 90
-                          ? "bg-[var(--theme-error)]"
-                          : "bg-gradient-to-r from-[var(--theme-primary)] to-[var(--theme-info)]"
-                      )}
-                      style={{ width: `${pct}%` }}
-                    />
+                  <div>
+                    <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-0.5">TOTAL ANGGARAN</span>
+                    <span className="text-xs font-semibold text-[var(--theme-success)]">
+                      Rp {new Intl.NumberFormat('id-ID').format(selectedProgram.Anggaran)}
+                    </span>
                   </div>
                 </div>
+              )}
 
-                {/* Anggaran - Full Width */}
-                {selectedProgram.Anggaran > 0 && (
-                  <div className="bg-[var(--theme-bg)] p-3.5 rounded-2xl border border-[var(--theme-border-muted)] flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-[var(--theme-success-light)] flex items-center justify-center text-[var(--theme-success)] flex-shrink-0">
-                      <span className="material-symbols-outlined" style={{ fontSize: 16 }}>payments</span>
-                    </div>
-                    <div>
-                      <span className="block text-[8px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-0.5">TOTAL ANGGARAN</span>
-                      <span className="text-xs font-semibold text-[var(--theme-success)]">
-                        Rp {new Intl.NumberFormat('id-ID').format(selectedProgram.Anggaran)}
-                      </span>
-                    </div>
+              {/* Applicants List */}
+              <div>
+                <h3 className="text-xs font-bold text-[var(--theme-text)] uppercase tracking-wider mb-3 flex items-center justify-between">
+                  <span>Pendaftar ({programApps.length})</span>
+                  <span className="text-[10px] text-[var(--theme-text-muted)] lowercase font-medium">menampilkan {first5Apps.length} pendaftar pertama</span>
+                </h3>
+
+                {first5Apps.length === 0 ? (
+                  <div className="bg-[var(--theme-bg)]/50 rounded-2xl border border-dashed border-[var(--theme-border)] py-8 px-4 text-center">
+                    <span className="material-symbols-outlined text-[var(--theme-text-subtle)] mb-2" style={{ fontSize: 24 }}>group</span>
+                    <p className="text-xs text-[var(--theme-text-muted)] font-medium">Belum ada mahasiswa yang mendaftar program ini.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2.5">
+                    {first5Apps.map(app => {
+                      const st = getAppStatus(app.Status);
+                      return (
+                        <div key={app.ID} className="flex items-center justify-between p-3 rounded-2xl border border-[var(--theme-border-muted)] hover:bg-[var(--theme-bg)]/50 transition-colors">
+                          <div className="flex items-center gap-3">
+                            <StudentAvatar src={app.Mahasiswa?.Foto} name={app.Mahasiswa?.Nama} className="w-8 h-8 rounded-lg" />
+                            <div className="min-w-0">
+                              <p className="font-bold text-xs text-[var(--theme-text)] truncate">{app.Mahasiswa?.Nama || '—'}</p>
+                              <p className="text-[10px] text-[var(--theme-text-muted)] font-semibold">{app.Mahasiswa?.NIM || '—'}</p>
+                            </div>
+                          </div>
+                          <span className={cn('inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[9px] font-bold border uppercase tracking-wider', st.cls)}>
+                            {st.label}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
-
-                {/* Applicants List */}
-                <div>
-                  <h3 className="text-xs font-bold text-[var(--theme-text)] uppercase tracking-wider mb-3 flex items-center justify-between">
-                    <span>Pendaftar ({programApps.length})</span>
-                    <span className="text-[10px] text-[var(--theme-text-muted)] lowercase font-medium">menampilkan {first5Apps.length} pendaftar pertama</span>
-                  </h3>
-
-                  {first5Apps.length === 0 ? (
-                    <div className="bg-[var(--theme-bg)]/50 rounded-2xl border border-dashed border-[var(--theme-border)] py-8 px-4 text-center">
-                      <span className="material-symbols-outlined text-[var(--theme-text-subtle)] mb-2" style={{ fontSize: 24 }}>group</span>
-                      <p className="text-xs text-[var(--theme-text-muted)] font-medium">Belum ada mahasiswa yang mendaftar program ini.</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2.5">
-                      {first5Apps.map(app => {
-                        const st = getAppStatus(app.Status);
-                        return (
-                          <div key={app.ID} className="flex items-center justify-between p-3 rounded-2xl border border-[var(--theme-border-muted)] hover:bg-[var(--theme-bg)]/50 transition-colors">
-                            <div className="flex items-center gap-3">
-                              <StudentAvatar src={app.Mahasiswa?.Foto} name={app.Mahasiswa?.Nama} className="w-8 h-8 rounded-lg" />
-                              <div className="min-w-0">
-                                <p className="font-bold text-xs text-[var(--theme-text)] truncate">{app.Mahasiswa?.Nama || '—'}</p>
-                                <p className="text-[10px] text-[var(--theme-text-muted)] font-semibold">{app.Mahasiswa?.NIM || '—'}</p>
-                              </div>
-                            </div>
-                            <span className={cn('inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[9px] font-bold border uppercase tracking-wider', st.cls)}>
-                              {st.label}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
+              </div>
             </div>
           </DialogModal>
         );

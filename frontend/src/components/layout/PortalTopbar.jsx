@@ -218,7 +218,10 @@ export default function PortalTopbar({ config, onMenuClick }) {
   };
 
   // Get user display info
-  const displayName = user?.nama_lengkap || user?.name || user?.nama || user?.Nama || mahasiswa?.nama || 'User';
+  let displayName = user?.nama_lengkap || user?.name || user?.nama || user?.Nama || mahasiswa?.nama || 'User';
+  if (typeof displayName === 'string' && displayName.toLowerCase().startsWith('admin ')) {
+    displayName = displayName.substring(6).trim();
+  }
   const displayRole = user?.role_display || user?.role || config.roleLabel || 'User';
   const cleanNameForInitial = String(displayName).replace(/Dr\.\s*|M\.Psi|S\.Psi|,/gi, '').trim();
   const displayInitial = cleanNameForInitial.charAt(0).toUpperCase() || 'U';

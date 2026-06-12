@@ -43,8 +43,6 @@ const statusMeta = {
 };
 
 export default function BookingManagement() {
-  const [selectedTab, setSelectedTab] = useState('Semua');
-  const [issueFilter, setIssueFilter] = useState('Semua Topik');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [updatingId, setUpdatingId] = useState(null);
@@ -54,9 +52,6 @@ export default function BookingManagement() {
   const navigate = useNavigate();
 
   const [bookings, setBookings] = useState([]);
-  const [selectedProdi, setSelectedProdi] = useState('Semua Prodi');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
 
   useEffect(() => {
     let ignore = false;
@@ -99,25 +94,13 @@ export default function BookingManagement() {
   }, [bookings]);
 
   const filteredBookings = useMemo(() => {
-    return bookings
-      .filter((booking) => {
-        const status = booking.status || 'Menunggu';
-        const matchesTab = selectedTab === 'Semua' || status === selectedTab;
-        const matchesIssue = issueFilter === 'Semua Topik' || booking.issue === issueFilter;
-        const matchesProdi = selectedProdi === 'Semua Prodi' || booking.prodi === selectedProdi;
-        
-        const bookingRawDate = booking.raw_date || (booking.date ? new Date(booking.date).toISOString().split('T')[0] : '');
-        const matchesStartDate = !startDate || (bookingRawDate && bookingRawDate >= startDate);
-        const matchesEndDate = !endDate || (bookingRawDate && bookingRawDate <= endDate);
-
-        return matchesTab && matchesIssue && matchesProdi && matchesStartDate && matchesEndDate;
-      })
+    return [...bookings]
       .sort((a, b) => {
         const first = new Date(a.created_at || a.date).getTime();
         const second = new Date(b.created_at || b.date).getTime();
         return second - first;
       });
-  }, [bookings, issueFilter, selectedTab, selectedProdi, startDate, endDate]);
+  }, [bookings]);
 
   const handleTableSearch = (data, searchVal) => {
     const query = searchVal.trim().toLowerCase();
@@ -136,15 +119,7 @@ export default function BookingManagement() {
     });
   };
 
-  const hasActiveFilter = selectedTab !== 'Semua' || issueFilter !== 'Semua Topik' || selectedProdi !== 'Semua Prodi' || startDate || endDate;
 
-  const resetFilters = () => {
-    setSelectedTab('Semua');
-    setIssueFilter('Semua Topik');
-    setSelectedProdi('Semua Prodi');
-    setStartDate('');
-    setEndDate('');
-  };
 
   const handleAction = async (id, newStatus, link = '') => {
     setUpdatingId(id);
@@ -320,100 +295,41 @@ export default function BookingManagement() {
         })}
       </div>
 
-      <section className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-5 space-y-5 relative overflow-hidden">
-        
-        <div className="flex flex-col gap-4 border-b border-slate-100 pb-5">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-sm font-black uppercase tracking-widest text-slate-800 font-headline">Daftar Booking</h2>
-              <p className="text-[10px] font-bold text-slate-500 mt-1">Total {filteredBookings.length} permintaan ditemukan</p>
-            </div>
-            {hasActiveFilter && (
-              <button
-                type="button"
-                onClick={resetFilters}
-                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors cursor-pointer border border-rose-100"
-              >
-                <span className="material-symbols-outlined text-[14px]">close</span>
-                Reset Filter
-              </button>
-            )}
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
-            <select
-              value={issueFilter}
-              onChange={(e) => setIssueFilter(e.target.value)}
-              className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-800 outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 cursor-pointer"
-            >
-              {issueOptions.map((issue) => (
-                <option key={issue} value={issue}>{issue}</option>
-              ))}
-            </select>
-
-            <select
-              value={selectedProdi}
-              onChange={(e) => setSelectedProdi(e.target.value)}
-              className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-800 outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 cursor-pointer"
-            >
-              {prodiOptions.map((p) => (
-                <option key={p} value={p}>{p}</option>
-              ))}
-            </select>
-
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-800 outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10"
-              title="Dari Tanggal"
-            />
-
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-800 outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10"
-              title="Sampai Tanggal"
-            />
-          </div>
+      <div className="space-y-5">
+        <div>
+          <DataTable
+            columns={columns}
+            data={filteredBookings}
+            loading={loading}
+            searchable={true}
+            filters={[
+              {
+                key: 'status',
+                placeholder: 'Status',
+                options: tabs.filter(t => t !== 'Semua').map(t => ({ label: t, value: t }))
+              },
+              {
+                key: 'issue',
+                placeholder: 'Topik',
+                options: issueOptions.filter(i => i !== 'Semua Topik').map(i => ({ label: i, value: i }))
+              },
+              {
+                key: 'prodi',
+                placeholder: 'Prodi',
+                options: prodiOptions.filter(p => p !== 'Semua Prodi').map(p => ({ label: p, value: p }))
+              }
+            ]}
+            onSearch={handleTableSearch}
+            searchPlaceholder="Cari nama, NIM, topik..."
+            pagination={true}
+            pageSize={10}
+            actions={renderActions}
+            onRowClick={(row) => navigate(`/psychologist/bookings/${row.id}`)}
+            emptyMessage="Tidak ada booking. Coba ubah filter atau kata kunci untuk menampilkan data lain."
+            emptyIcon="assignment"
+          />
         </div>
-
-        <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-1">
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setSelectedTab(tab)}
-              className={`
-                inline-flex shrink-0 items-center gap-2 rounded-full border px-5 py-2.5 text-[11px] font-black uppercase tracking-widest transition-all
-                ${selectedTab === tab
-                  ? 'border-[var(--theme-primary)] bg-[var(--theme-primary)] text-white shadow-md shadow-[var(--theme-primary)]/20'
-                  : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-[var(--theme-primary)]/50 hover:bg-[var(--theme-primary)]/5 hover:text-[var(--theme-primary)]'}
-              `}
-            >
-              {tab}
-              <span className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold ${selectedTab === tab ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'}`}>
-                {statusCounts[tab] || 0}
-              </span>
-            </button>
-          ))}
-        </div>
-
-        <DataTable
-          columns={columns}
-          data={filteredBookings}
-          loading={loading}
-          searchable={true}
-          onSearch={handleTableSearch}
-          searchPlaceholder="Cari nama, NIM, topik..."
-          pagination={true}
-          pageSize={10}
-          actions={renderActions}
-          onRowClick={(row) => navigate(`/psychologist/bookings/${row.id}`)}
-          emptyMessage="Tidak ada booking. Coba ubah filter atau kata kunci untuk menampilkan data lain."
-          emptyIcon="assignment"
-        />
-      </section>
+      </div>
 
       {/* Zoom / Meeting Link Modal */}
       <Dialog open={showLinkModal} onOpenChange={(val) => { if (!val) { setShowLinkModal(false); setPendingConfirmId(null); } }} maxWidth="max-w-md">

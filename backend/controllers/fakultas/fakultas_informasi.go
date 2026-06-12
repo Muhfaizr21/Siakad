@@ -294,6 +294,7 @@ func AmbilDaftarPeran(c *fiber.Ctx) error {
 func AmbilRingkasanLaporan(c *fiber.Ctx) error {
 	role := c.Locals("role").(string)
 	fid := c.Locals("fakultas_id").(uint)
+	angkatanStr := c.Query("angkatan")
 
 	var total int64
 	var active int64
@@ -310,31 +311,38 @@ func AmbilRingkasanLaporan(c *fiber.Ctx) error {
 		pid, _ := c.Locals("program_studi_id").(uint)
 		qMhs = qMhs.Where("fakultas_id = ? AND program_studi_id = ?", fid, pid)
 	}
+	if angkatanStr != "" && angkatanStr != "all" {
+		qMhs = qMhs.Where("tahun_masuk = ?", angkatanStr)
+	}
 
 	qMhs.Count(&total)
 	qMhs.Where("status_akun = ?", "Aktif").Count(&active)
 	qMhs.Where("status_akun = ?", "Lulus").Count(&graduated)
 
-	qP := config.DB.Model(&models.Prestasi{})
-	qB := config.DB.Model(&models.Beasiswa{}) // Beasiswa is global, but pendaftar is per mhs
-	qK := config.DB.Model(&models.Konseling{})
+	qP := config.DB.Model(&models.Prestasi{}).Joins("Mahasiswa")
+	qK := config.DB.Model(&models.Konseling{}).Joins("Mahasiswa")
+	qBeasiswaPend := config.DB.Model(&models.BeasiswaPendaftaran{}).Joins("Mahasiswa")
 
 	if role == "faculty_admin" {
-		qP = qP.Joins("Mahasiswa").Where("\"Mahasiswa\".fakultas_id = ?", fid)
-		qK = qK.Joins("Mahasiswa").Where("\"Mahasiswa\".fakultas_id = ?", fid)
-		// For beasiswa, we count participants from this faculty
-		config.DB.Model(&models.BeasiswaPendaftaran{}).Joins("Mahasiswa").Where("\"Mahasiswa\".fakultas_id = ?", fid).Count(&totalBeasiswa)
+		qP = qP.Where("\"Mahasiswa\".fakultas_id = ?", fid)
+		qK = qK.Where("\"Mahasiswa\".fakultas_id = ?", fid)
+		qBeasiswaPend = qBeasiswaPend.Where("\"Mahasiswa\".fakultas_id = ?", fid)
 	} else if role == "prodi_admin" {
 		pid, _ := c.Locals("program_studi_id").(uint)
-		qP = qP.Joins("Mahasiswa").Where("\"Mahasiswa\".fakultas_id = ? AND \"Mahasiswa\".program_studi_id = ?", fid, pid)
-		qK = qK.Joins("Mahasiswa").Where("\"Mahasiswa\".fakultas_id = ? AND \"Mahasiswa\".program_studi_id = ?", fid, pid)
-		config.DB.Model(&models.BeasiswaPendaftaran{}).Joins("Mahasiswa").Where("\"Mahasiswa\".fakultas_id = ? AND \"Mahasiswa\".program_studi_id = ?", fid, pid).Count(&totalBeasiswa)
-	} else {
-		qB.Count(&totalBeasiswa)
+		qP = qP.Where("\"Mahasiswa\".fakultas_id = ? AND \"Mahasiswa\".program_studi_id = ?", fid, pid)
+		qK = qK.Where("\"Mahasiswa\".fakultas_id = ? AND \"Mahasiswa\".program_studi_id = ?", fid, pid)
+		qBeasiswaPend = qBeasiswaPend.Where("\"Mahasiswa\".fakultas_id = ? AND \"Mahasiswa\".program_studi_id = ?", fid, pid)
+	}
+
+	if angkatanStr != "" && angkatanStr != "all" {
+		qP = qP.Where("\"Mahasiswa\".tahun_masuk = ?", angkatanStr)
+		qK = qK.Where("\"Mahasiswa\".tahun_masuk = ?", angkatanStr)
+		qBeasiswaPend = qBeasiswaPend.Where("\"Mahasiswa\".tahun_masuk = ?", angkatanStr)
 	}
 
 	qP.Count(&totalPrestasi)
 	qK.Count(&totalKonseling)
+	qBeasiswaPend.Count(&totalBeasiswa)
 
 	sqlAvg := "SELECT COALESCE(AVG(ip_k), 0) FROM mahasiswa.mahasiswa WHERE deleted_at IS NULL"
 	if role == "faculty_admin" {
@@ -342,6 +350,9 @@ func AmbilRingkasanLaporan(c *fiber.Ctx) error {
 	} else if role == "prodi_admin" {
 		pid, _ := c.Locals("program_studi_id").(uint)
 		sqlAvg += fmt.Sprintf(" AND fakultas_id = %d AND program_studi_id = %d", fid, pid)
+	}
+	if angkatanStr != "" && angkatanStr != "all" {
+		sqlAvg += fmt.Sprintf(" AND tahun_masuk = %s", angkatanStr)
 	}
 	config.DB.Raw(sqlAvg).Scan(&avgIPK)
 
@@ -356,7 +367,12 @@ func AmbilRingkasanLaporan(c *fiber.Ctx) error {
 	}
 	var perProdi = []ProdiDistReport{}
 
-	sqlProdiDist := `
+	joinCond := "m.program_studi_id = ps.id AND m.deleted_at IS NULL"
+	if angkatanStr != "" && angkatanStr != "all" {
+		joinCond += fmt.Sprintf(" AND m.tahun_masuk = %s", angkatanStr)
+	}
+
+	sqlProdiDist := fmt.Sprintf(`
 		SELECT 
 			ps.nama || ' (' || ps.jenjang || ')' as nama_prodi,
 			COUNT(m.id) as value,
@@ -365,8 +381,8 @@ func AmbilRingkasanLaporan(c *fiber.Ctx) error {
 			SUM(CASE WHEN m.status_akun = 'Lulus' THEN 1 ELSE 0 END) as graduated,
 			COALESCE(AVG(m.ip_k), 0) as avg_gpa
 		FROM fakultas.program_studi ps
-		LEFT JOIN mahasiswa.mahasiswa m ON m.program_studi_id = ps.id AND m.deleted_at IS NULL
-		WHERE ps.deleted_at IS NULL `
+		LEFT JOIN mahasiswa.mahasiswa m ON %s
+		WHERE ps.deleted_at IS NULL `, joinCond)
 
 	if role == "faculty_admin" {
 		sqlProdiDist += fmt.Sprintf(" AND ps.fakultas_id = %d ", fid)
@@ -389,9 +405,7 @@ func AmbilRingkasanLaporan(c *fiber.Ctx) error {
 		Select("tahun_masuk as angkatan, " +
 			"sum(case when status_akun = 'Aktif' then 1 else 0 end) as aktif, " +
 			"sum(case when status_akun = 'Lulus' then 1 else 0 end) as lulus").
-		Where("tahun_masuk > 0 AND deleted_at IS NULL").
-		Group("tahun_masuk").
-		Order("tahun_masuk asc")
+		Where("tahun_masuk > 0 AND deleted_at IS NULL")
 
 	if role == "faculty_admin" {
 		qTrend = qTrend.Where("fakultas_id = ?", fid)
@@ -399,7 +413,12 @@ func AmbilRingkasanLaporan(c *fiber.Ctx) error {
 		pid, _ := c.Locals("program_studi_id").(uint)
 		qTrend = qTrend.Where("fakultas_id = ? AND program_studi_id = ?", fid, pid)
 	}
-	qTrend.Scan(&perAngkatan)
+	
+	if angkatanStr != "" && angkatanStr != "all" {
+		qTrend = qTrend.Where("tahun_masuk = ?", angkatanStr)
+	}
+
+	qTrend.Group("tahun_masuk").Order("tahun_masuk asc").Scan(&perAngkatan)
 
 	// Distribusi IPK Real
 	type IPKRange struct {
@@ -424,6 +443,9 @@ func AmbilRingkasanLaporan(c *fiber.Ctx) error {
 	} else if role == "prodi_admin" {
 		pid, _ := c.Locals("program_studi_id").(uint)
 		sqlIPK += fmt.Sprintf(" AND fakultas_id = %d AND program_studi_id = %d", fid, pid)
+	}
+	if angkatanStr != "" && angkatanStr != "all" {
+		sqlIPK += fmt.Sprintf(" AND tahun_masuk = %s", angkatanStr)
 	}
 	sqlIPK += " GROUP BY range ORDER BY range DESC"
 	config.DB.Raw(sqlIPK).Scan(&ipkDist)

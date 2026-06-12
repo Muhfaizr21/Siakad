@@ -43,6 +43,7 @@ export default function FacultyOrganisasi() {
   const [delTarget, setDelTarget] = useState(null)
   const [search, setSearch] = useState('')
   const [filterPeriode, setFilterPeriode] = useState('all')
+  const [filterStatus, setFilterStatus] = useState('all')
   const [formData, setFormData] = useState(EMPTY_FORM)
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
@@ -145,8 +146,10 @@ export default function FacultyOrganisasi() {
         matchP = String(d.getFullYear()) === filterPeriode
       }
     }
-    return matchSearch && matchP
-  }), [organizations, search, filterPeriode])
+    const matchS = filterStatus === 'all' || o.status === filterStatus
+    
+    return matchSearch && matchP && matchS
+  }), [organizations, search, filterPeriode, filterStatus])
 
   const periodeOptions = useMemo(() => {
     const periods = new Set()
@@ -154,7 +157,10 @@ export default function FacultyOrganisasi() {
       if (o.CreatedAt) {
         const d = new Date(o.CreatedAt)
         if (!isNaN(d.getTime())) {
-          periods.add(String(d.getFullYear()))
+          const year = d.getFullYear()
+          if (year > 1900) {
+            periods.add(String(year))
+          }
         }
       }
     })
@@ -357,7 +363,7 @@ export default function FacultyOrganisasi() {
       {/* Table */}
       <div>
         <DataTable
-          data={organizations}
+          data={filtered}
           columns={tableColumns}
           loading={loading}
           searchable={true}
@@ -366,6 +372,25 @@ export default function FacultyOrganisasi() {
           emptyMessage="Belum Ada Organisasi"
           emptyIcon="groups"
           searchPlaceholder="Cari nama atau kode..."
+          searchValue={search}
+          onSearchChange={setSearch}
+          manualFiltering={true}
+          filterValues={{ status: filterStatus }}
+          onFilterChange={(key, val) => {
+            if (key === 'status') setFilterStatus(val);
+          }}
+          filters={[
+            {
+              key: 'status',
+              placeholder: 'Status',
+              options: [
+                { value: 'Aktif', label: 'Aktif' },
+                { value: 'Nonaktif', label: 'Nonaktif' },
+                { value: 'Pembekuan', label: 'Pembekuan' }
+              ],
+              className: 'w-[140px]'
+            }
+          ]}
         />
       </div>
 

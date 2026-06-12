@@ -751,61 +751,7 @@ export default function FacultyPrestasi() {
         </div>
       )}
 
-      {/* Filters */}
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="h-10 w-40 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] px-3 text-xs text-[var(--theme-text-muted)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent className="rounded-xl border border-[var(--theme-border)] shadow-md bg-[var(--theme-surface)]">
-            <SelectItem value="all" className="text-xs py-1.5 focus:bg-[var(--theme-primary-light)]">Semua Status</SelectItem>
-            <SelectItem value="verified" className="text-xs py-1.5 focus:bg-[var(--theme-primary-light)]">Terverifikasi</SelectItem>
-            <SelectItem value="pending" className="text-xs py-1.5 focus:bg-[var(--theme-primary-light)]">Menunggu</SelectItem>
-            <SelectItem value="rejected" className="text-xs py-1.5 focus:bg-[var(--theme-primary-light)]">Ditolak</SelectItem>
-          </SelectContent>
-        </Select>
 
-        <Select value={filterSemester} onValueChange={setFilterSemester}>
-          <SelectTrigger className="h-10 w-40 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] px-3 text-xs text-[var(--theme-text-muted)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent className="rounded-xl border border-[var(--theme-border)] shadow-md bg-[var(--theme-surface)]">
-            <SelectItem value="all" className="text-xs py-1.5 focus:bg-[var(--theme-primary-light)]">Semua Semester</SelectItem>
-            {semesterOptions.map(sem => (
-              <SelectItem key={sem} value={sem} className="text-xs py-1.5 focus:bg-[var(--theme-primary-light)]">Semester {sem}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select value={filterPeriode} onValueChange={setFilterPeriode}>
-          <SelectTrigger className="h-10 w-40 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] px-3 text-xs text-[var(--theme-text-muted)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent className="rounded-xl border border-[var(--theme-border)] shadow-md bg-[var(--theme-surface)]">
-            <SelectItem value="all" className="text-xs py-1.5 focus:bg-[var(--theme-primary-light)]">Semua Periode</SelectItem>
-            {periodeOptions.map(per => (
-              <SelectItem key={per} value={per} className="text-xs py-1.5 focus:bg-[var(--theme-primary-light)]">Periode {per}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select value={filterProdi} onValueChange={setFilterProdi}>
-          <SelectTrigger className="h-10 w-40 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] px-3 text-xs text-[var(--theme-text-muted)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent className="rounded-xl border border-[var(--theme-border)] shadow-md bg-[var(--theme-surface)]">
-            <SelectItem value="all" className="text-xs py-1.5 focus:bg-[var(--theme-primary-light)]">Semua Prodi</SelectItem>
-            {prodiOptions.map(prod => (
-              <SelectItem key={prod} value={prod} className="text-xs py-1.5 focus:bg-[var(--theme-primary-light)]">{prod}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {(filterStatus !== 'all' || filterSemester !== 'all' || filterPeriode !== 'all' || filterProdi !== 'all') && (
-          <button onClick={() => { setFilterStatus('all'); setFilterSemester('all'); setFilterPeriode('all'); setFilterProdi('all'); }}
-            className="h-10 px-4 text-xs font-semibold text-[var(--theme-error)] bg-[var(--theme-error-light)] rounded-xl border border-[var(--theme-error)]/20 hover:bg-[var(--theme-error)]/10 transition-colors">Reset</button>
-        )}
-      </div>
 
       {/* Table */}
       <div>
@@ -821,6 +767,41 @@ export default function FacultyPrestasi() {
           searchPlaceholder="Cari nama atau prestasi..."
           searchValue={search}
           onSearchChange={setSearch}
+          manualFiltering={true}
+          filterValues={{
+            status: filterStatus,
+            semester: filterSemester,
+            prodi: filterProdi
+          }}
+          onFilterChange={(key, val) => {
+            if (key === 'status') setFilterStatus(val);
+            if (key === 'semester') setFilterSemester(val);
+            if (key === 'prodi') setFilterProdi(val);
+          }}
+          filters={[
+            {
+              key: 'status',
+              placeholder: 'Status',
+              options: [
+                { value: 'verified', label: 'Terverifikasi' },
+                { value: 'pending', label: 'Menunggu' },
+                { value: 'rejected', label: 'Ditolak' }
+              ],
+              className: 'w-40'
+            },
+            {
+              key: 'semester',
+              placeholder: 'Semester',
+              options: semesterOptions.map(sem => ({ value: sem, label: `Semester ${sem}` })),
+              className: 'w-44'
+            },
+            {
+              key: 'prodi',
+              placeholder: 'Prodi',
+              options: prodiOptions.map(prod => ({ value: prod, label: prod })),
+              className: 'w-48'
+            }
+          ]}
         />
       </div>
 

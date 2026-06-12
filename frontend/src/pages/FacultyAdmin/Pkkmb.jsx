@@ -169,20 +169,13 @@ const studentColumns = [
 export default function FacultyPkkmb() {
   const [activeTab, setTab] = useState('prodi')
   const [loading, setLoading] = useState(true)
-  const [data, setData] = useState([])
   const [students, setStudents] = useState([])
-  const [summary, setSummary] = useState({ totalMaba: 0, totalLulus: 0, totalProses: 0, totalSertifikat: 0 })
   const [search, setSearch] = useState('')
   const [filterStatus, setFilter] = useState('all')
   const [filterPeriod, setFilterPeriod] = useState('all')
   const [selected, setSelected] = useState(null)
-
   const [statsDetail, setStatsDetail] = useState(null)
   const [statsSearch, setStatsSearch] = useState('')
-  const [distribusi, setDistribusi] = useState({ Lulus: 0, Proses: 0, Gagal: 0, Total: 0 })
-  const [angkatanStats, setAngkatanStats] = useState([])
-  const [genderStats, setGenderStats] = useState([])
-  const [nilaiDist, setNilaiDist] = useState([])
   const [kegiatanList, setKegiatanList] = useState([])
   const [batasNilai, setBatasNilai] = useState(70)
 
@@ -213,12 +206,6 @@ export default function FacultyPkkmb() {
     try {
       const json = await fetchWithAuth(`${API}/ringkasan`)
       if (json.status === 'success') {
-        setData(json.prodiBreakdown || [])
-        setSummary(json.stats || { totalMaba: 0, totalLulus: 0, totalProses: 0, totalSertifikat: 0 })
-        setDistribusi(json.distribusi || { Lulus: 0, Proses: 0, Gagal: 0, Total: 0 })
-        setAngkatanStats(json.angkatanStats || [])
-        setGenderStats(json.genderStats || [])
-        setNilaiDist(json.nilaiDist || [])
         setKegiatanList(json.kegiatanList || [])
         setBatasNilai(json.batasNilai || 70)
       }
@@ -236,6 +223,18 @@ export default function FacultyPkkmb() {
 
   useEffect(() => { fetchSummary(); fetchStudents() }, [])
 
+  const periodeOptions = useMemo(() => {
+    const periods = new Set()
+    students.forEach(s => {
+      const angkatan = s.Mahasiswa?.angkatan || s.Mahasiswa?.TahunMasuk || (s.Mahasiswa?.NIM ? `20${s.Mahasiswa.NIM.substring(0,2)}` : null);
+      if (angkatan) {
+        const year = parseInt(angkatan)
+        if (year > 1900 && year < 2100) periods.add(String(year))
+      }
+    })
+    return Array.from(periods).sort((a, b) => Number(b) - Number(a))
+  }, [students])
+
   const filteredStudents = useMemo(() => {
     return students.filter(s => {
       if (filterPeriod === 'all') return true;
@@ -243,6 +242,80 @@ export default function FacultyPkkmb() {
       return String(angkatan) === filterPeriod;
     });
   }, [students, filterPeriod]);
+
+  // Dynamically calculate everything from filteredStudents so filters affect the entire dashboard
+  const data = useMemo(() => {
+    const prodiMap = {}
+    filteredStudents.forEach(s => {
+      const pName = s.Mahasiswa?.ProgramStudi?.Nama || 'Tanpa Prodi'
+      if (!prodiMap[pName]) prodiMap[pName] = { total: 0, hadir: 0, nilai: 0 }
+      prodiMap[pName].total += 1
+      prodiMap[pName].hadir += (s.attendanceRate || 0)
+      prodiMap[pName].nilai += (s.Nilai || 0)
+    })
+    return Object.entries(prodiMap).map(([prodi, stats]) => {
+      const partisipasi = stats.total > 0 ? (stats.hadir / stats.total) : 0
+      const avgNilai = stats.total > 0 ? (stats.nilai / stats.total) : 0
+      return {
+        prodi, partisipasi, nilai: avgNilai, status: partisipasi >= 80 ? 'Optimal' : 'Kurang'
+      }
+    })
+  }, [filteredStudents])
+
+  const summary = useMemo(() => ({
+    totalMaba: filteredStudents.length,
+    totalLulus: filteredStudents.filter(s => s.StatusKelulusan === 'Lulus').length,
+    totalProses: filteredStudents.filter(s => s.StatusKelulusan === 'Proses').length,
+    totalSertifikat: filteredStudents.filter(s => s.Mahasiswa?.PkkmbSertifikat).length
+  }), [filteredStudents])
+
+  const distribusi = useMemo(() => {
+    const lulus = filteredStudents.filter(s => s.StatusKelulusan === 'Lulus').length
+    const proses = filteredStudents.filter(s => s.StatusKelulusan === 'Proses').length
+    const gagal = filteredStudents.filter(s => s.StatusKelulusan === 'Gagal').length
+    return { Lulus: lulus, Proses: proses, Gagal: gagal, Total: filteredStudents.length }
+  }, [filteredStudents])
+
+  const genderStats = useMemo(() => {
+    const map = { 'Laki-laki': { total: 0, lulus: 0 }, 'Perempuan': { total: 0, lulus: 0 } }
+    filteredStudents.forEach(s => {
+      const g = s.Mahasiswa?.JenisKelamin || s.Mahasiswa?.gender || 'Unknown'
+      if (map[g]) {
+        map[g].total++
+        if (s.StatusKelulusan === 'Lulus') map[g].lulus++
+      }
+    })
+    return Object.entries(map).map(([gender, stats]) => ({ gender, ...stats }))
+  }, [filteredStudents])
+
+  const angkatanStats = useMemo(() => {
+    const map = {}
+    filteredStudents.forEach(s => {
+      const angkatan = s.Mahasiswa?.angkatan || s.Mahasiswa?.TahunMasuk || (s.Mahasiswa?.NIM ? `20${s.Mahasiswa.NIM.substring(0,2)}` : null);
+      const k = String(angkatan || 'Unknown')
+      if (!map[k]) map[k] = { total: 0, lulus: 0 }
+      map[k].total++
+      if (s.StatusKelulusan === 'Lulus') map[k].lulus++
+    })
+    return Object.entries(map).map(([angkatan, stats]) => ({ angkatan, ...stats })).sort((a,b) => b.angkatan.localeCompare(a.angkatan))
+  }, [filteredStudents])
+
+  const nilaiDist = useMemo(() => {
+    const dist = [
+      { range: '90-100', count: 0 },
+      { range: '80-89', count: 0 },
+      { range: '70-79', count: 0 },
+      { range: '< 70', count: 0 }
+    ]
+    filteredStudents.forEach(s => {
+      const n = s.Nilai || 0
+      if (n >= 90) dist[0].count++
+      else if (n >= 80) dist[1].count++
+      else if (n >= 70) dist[2].count++
+      else dist[3].count++
+    })
+    return dist
+  }, [filteredStudents])
 
   return (
     <PageContent>
@@ -265,10 +338,9 @@ export default function FacultyPkkmb() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Semua Periode</SelectItem>
-                <SelectItem value="2024">Angkatan 2024</SelectItem>
-                <SelectItem value="2023">Angkatan 2023</SelectItem>
-                <SelectItem value="2022">Angkatan 2022</SelectItem>
-                <SelectItem value="2021">Angkatan 2021</SelectItem>
+                {periodeOptions.map(p => (
+                  <SelectItem key={p} value={p}>Angkatan {p}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <button onClick={() => { fetchSummary(); fetchStudents() }} disabled={loading}
@@ -533,6 +605,17 @@ export default function FacultyPkkmb() {
             searchable={true}
             searchPlaceholder="Cari program studi..."
             loading={loading}
+            filters={[
+              {
+                key: 'status',
+                placeholder: 'Status',
+                options: [
+                  { value: 'Optimal', label: 'Optimal' },
+                  { value: 'Kurang', label: 'Kurang' }
+                ],
+                className: 'w-[140px]'
+              }
+            ]}
           />
         ) : (
           <DataTable
@@ -549,7 +632,8 @@ export default function FacultyPkkmb() {
                   { value: 'Lulus', label: 'Lulus' },
                   { value: 'Proses', label: 'Proses' },
                   { value: 'Gagal', label: 'Gagal' },
-                ]
+                ],
+                className: 'w-[140px]'
               }
             ]}
             actions={(row) => (

@@ -328,7 +328,7 @@ const FacultyAspirationManagement = () => {
         subtitle={`Status: ${selected?.Status || 'Terbuka'}`}
         badgeText={`FACULTY AUDIT PANEL · #ASP-${selected?.ID?.toString().padStart(4, '0')}`}
         maxWidth="max-w-3xl"
-        bodyClassName="p-0 overflow-y-auto no-scrollbar"
+        bodyClassName="p-0 overflow-y-auto max-h-[80vh]"
         footer={
           <div className="w-full flex items-center justify-end gap-3 px-6 py-4 bg-[var(--theme-surface)] border-t border-[var(--theme-border)]">
             <ModalCancelButton onClick={() => setSelected(null)} text="Tutup" />

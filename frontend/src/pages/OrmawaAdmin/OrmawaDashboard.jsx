@@ -13,10 +13,17 @@ import { fetchWithAuth, API_BASE_URL, ormawaService } from '../../services/api'
 import useAuthStore from '../../store/useAuthStore'
 import { getOrmawaId } from '../../utils/getOrmawaId'
 import { PageContent, PageCard, PageCardHeader } from '@/components/ui/page'
-import { DashboardHero, DashboardStatCard, DashboardStatGrid } from '@/components/ui/dashboard'
+import { DashboardHero } from '@/components/ui/dashboard'
+import { PrimaryStatsCard } from '@/components/ui/StatsCard'
 
 const API = `${API_BASE_URL}/ormawa`
 const formatRp = (n) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, notation: 'compact' }).format(n || 0)
+
+const Group = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>group</span>;
+const Description = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>description</span>;
+const AttachMoney = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>account_balance_wallet</span>;
+const Event = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>calendar_today</span>;
+const Checklist = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>checklist</span>;
 
 const getProposalStatusStyle = (status) => {
   const s = String(status || 'draft').toLowerCase().trim();
@@ -131,13 +138,7 @@ export default function OrmawaDashboard() {
 
   const PIE_COLORS = ['var(--theme-primary)', 'var(--theme-secondary)', 'var(--theme-warning)', 'var(--theme-error)', 'var(--theme-info)', 'var(--theme-success)']
 
-  const statCards = [
-    { label: 'Total Proposal', value: stats.totalProposals || proposals.length, icon: 'description', colorClass: 'text-[var(--theme-primary)]', bgClass: 'bg-[var(--theme-primary-light)] border-[var(--theme-primary)]/20 border', accentGradient: 'from-[var(--theme-primary-light)]', route: '/ormawa/proposal', badge: { text: 'Live', icon: 'show_chart' } },
-    { label: 'Total Anggota', value: stats.totalMembers || members.length, icon: 'group', colorClass: 'text-[var(--theme-secondary)]', bgClass: 'bg-[var(--theme-secondary-light)] border-[var(--theme-secondary)]/20 border', accentGradient: 'from-[var(--theme-secondary-light)]', route: '/ormawa/anggota', badge: { text: 'Live', icon: 'show_chart' } },
-    { label: 'PAGU', value: formatRp(stats.totalKas), icon: 'attach_money', colorClass: 'text-[var(--theme-success)]', bgClass: 'bg-[var(--theme-success-light)] border-[var(--theme-success)]/20 border', accentGradient: 'from-[var(--theme-success-light)]', route: '/ormawa/keuangan', badge: { text: 'Live', icon: 'show_chart' } },
-    { label: 'Kegiatan Aktif', value: stats.totalEvents || events.length, icon: 'calendar_today', colorClass: 'text-[var(--theme-warning)]', bgClass: 'bg-[var(--theme-warning-light)] border-[var(--theme-warning)]/20 border', accentGradient: 'from-[var(--theme-warning-light)]', route: '/ormawa/jadwal', badge: { text: 'Live', icon: 'show_chart' } },
-    { label: 'Approval Rate', value: `${approvalRate}%`, icon: 'checklist', colorClass: 'text-[var(--theme-info)]', bgClass: 'bg-[var(--theme-info-light)] border-[var(--theme-info)]/20 border', accentGradient: 'from-[var(--theme-info-light)]', route: '/ormawa/proposal', badge: { text: proposals.length > 0 ? `${proposals.filter(p => ['disetujui_fakultas','disetujui_univ','selesai'].includes(p.Status)).length}/${proposals.length}` : '0/0', icon: 'trending_up' } },
-  ]
+
 
   const firstName = user?.Email?.split('@')[0] || 'Admin';
 
@@ -178,11 +179,52 @@ export default function OrmawaDashboard() {
       />
 
       {/* Stat Cards */}
-      <DashboardStatGrid>
-        {statCards.map((card, i) => (
-          <DashboardStatCard key={i} {...card} loading={isLoading} />
-        ))}
-      </DashboardStatGrid>
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-5 mb-6">
+        <PrimaryStatsCard
+          title="Total Proposal"
+          value={stats.totalProposals || proposals.length}
+          icon={Description}
+          colorTheme="primary"
+          badgeText="Live"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">show_chart</span>}
+          onClick={() => navigate('/ormawa/proposal')}
+        />
+        <PrimaryStatsCard
+          title="Total Anggota"
+          value={stats.totalMembers || members.length}
+          icon={Group}
+          colorTheme="secondary"
+          badgeText="Live"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">show_chart</span>}
+          onClick={() => navigate('/ormawa/anggota')}
+        />
+        <PrimaryStatsCard
+          title="Total PAGU"
+          value={formatRp(stats.totalKas)}
+          icon={AttachMoney}
+          colorTheme="success"
+          badgeText="Saldo Tersedia"
+          onClick={() => navigate('/ormawa/keuangan')}
+        />
+        <PrimaryStatsCard
+          title="Kegiatan Aktif"
+          value={stats.totalEvents || events.length}
+          icon={Event}
+          colorTheme="warning"
+          badgeText="Live"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">show_chart</span>}
+          onClick={() => navigate('/ormawa/jadwal')}
+        />
+        <PrimaryStatsCard
+          title="Approval Rate"
+          value={`${approvalRate}%`}
+          icon={Checklist}
+          colorTheme="info"
+          badgeText={proposals.length > 0 ? `${proposals.filter(p => ['disetujui_fakultas','disetujui_univ','selesai'].includes(p.Status)).length}/${proposals.length}` : '0/0'}
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">trending_up</span>}
+          onClick={() => navigate('/ormawa/proposal')}
+        />
+      </div>
 
       {/* ── 5W1H Charts ─────────────────────────────────────────────── */}
       {!isLoading && (
