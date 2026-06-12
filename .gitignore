@@ -29,6 +29,11 @@ backend/*.test
 backend/*.out
 backend/coverage.out
 backend/coverage.html
+backend/main
+backend/test_bin
+backend/test_json.go
+backend/SIAKAD.db
+backend/*.db
 
 # Local scratch scripts
 backend/scratch_*.go
