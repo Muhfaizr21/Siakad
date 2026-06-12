@@ -11,7 +11,6 @@ import 'package:bkuhub_mobile/features/ormawa/proposal/presentation/pages/ormawa
 import 'package:bkuhub_mobile/features/ormawa/finance/presentation/pages/ormawa_finance_screen.dart';
 import 'package:bkuhub_mobile/features/ormawa/absensi/presentation/pages/ormawa_absensi_screen.dart';
 import 'package:bkuhub_mobile/features/ormawa/anggota/presentation/pages/ormawa_anggota_screen.dart';
-import 'package:bkuhub_mobile/features/ormawa/staff/presentation/pages/ormawa_staff_screen.dart';
 import 'package:bkuhub_mobile/features/ormawa/kalender/presentation/pages/ormawa_kalender_screen.dart';
 import 'package:bkuhub_mobile/features/ormawa/laporan/presentation/pages/ormawa_laporan_screen.dart';
 import 'package:bkuhub_mobile/features/ormawa/aspirasi/presentation/pages/ormawa_aspirasi_screen.dart';
@@ -19,7 +18,6 @@ import 'package:bkuhub_mobile/features/ormawa/pengumuman/presentation/pages/orma
 import 'package:bkuhub_mobile/features/ormawa/notifications/presentation/pages/ormawa_notifications_screen.dart';
 import 'package:bkuhub_mobile/features/ormawa/settings/presentation/pages/ormawa_settings_screen.dart';
 import 'package:bkuhub_mobile/features/ormawa/struktur/presentation/pages/ormawa_struktur_screen.dart';
-import 'package:bkuhub_mobile/features/ormawa/rbac/presentation/pages/ormawa_role_screen.dart';
 import 'package:bkuhub_mobile/features/ormawa/recruitment/presentation/pages/ormawa_recruitment_screen.dart';
 
 class OrmawaServiceGrid extends StatelessWidget {
@@ -155,18 +153,6 @@ class OrmawaServiceGridModal extends StatelessWidget {
                 icon: Icons.notifications_rounded,
                 color: Colors.amber,
                 target: const OrmawaNotificationsScreen(),
-              ),
-              _ModalServiceIcon(
-                title: 'Manaj. Staf',
-                icon: Icons.person_add_alt_1_rounded,
-                color: Colors.blue,
-                target: const OrmawaStaffScreen(),
-              ),
-              _ModalServiceIcon(
-                title: 'Hak Akses',
-                icon: Icons.admin_panel_settings_rounded,
-                color: Colors.blueGrey,
-                target: const OrmawaRoleScreen(),
               ),
               _ModalServiceIcon(
                 title: 'Pengaturan',

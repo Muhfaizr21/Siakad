@@ -182,6 +182,31 @@ class AuthService {
     await prefs.clear();
   }
 
+  Future<Map<String, dynamic>> changePassword(String oldPassword, String newPassword) async {
+    try {
+      final response = await ApiClient().client.put('/auth/change-password', data: {
+        'old_password': oldPassword,
+        'new_password': newPassword,
+      });
+      return {
+        'success': response.data['success'] == true,
+        'message': response.data['message'] ?? 'Berhasil mengubah kata sandi',
+      };
+    } on DioException catch (e) {
+      debugPrint('ChangePassword DioException: $e');
+      return {
+        'success': false,
+        'message': e.response?.data['message'] ?? 'Gagal mengubah kata sandi. Periksa koneksi Anda.',
+      };
+    } catch (e) {
+      debugPrint('ChangePassword Error: $e');
+      return {
+        'success': false,
+        'message': 'Terjadi kesalahan sistem',
+      };
+    }
+  }
+
   String? get token => _token;
   Map<String, dynamic>? get userData => _userData;
 }

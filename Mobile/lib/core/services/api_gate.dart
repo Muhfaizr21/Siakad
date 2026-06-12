@@ -8,8 +8,8 @@ class ApiGate {
     }
     try {
       if (Platform.isAndroid) {
-        // Untuk emulator Android Studio default, gunakan 10.0.2.2
-        return 'http://10.0.2.2:8000/api';
+        // Gunakan IP lokal PC karena di-run di HP Android fisik
+        return 'http://192.168.18.84:8000/api';
       }
     } catch (_) {}
 

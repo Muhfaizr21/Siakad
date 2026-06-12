@@ -52,7 +52,8 @@ class _OrmawaAbsensiScreenState extends State<OrmawaAbsensiScreen> {
                 final matchesFilter = _statusFilter == 'Semua' || _statusFilter.toUpperCase() == status;
                 
                 return matchesSearch && matchesFilter;
-              }).toList();
+              }).toList()
+                ..sort((a, b) => b.date.compareTo(a.date));
               
               if (provider.isLoading && allAgendas.isEmpty) {
                 return const SliverFillRemaining(
@@ -328,16 +329,28 @@ class _OrmawaAbsensiScreenState extends State<OrmawaAbsensiScreen> {
   }
 
   Widget _buildAbsensiCard(String id, String title, String time, String status, Color statusColor) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => OrmawaAbsensiDetailScreen(title: title, eventId: id),
+            ),
+          );
+        },
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFF1F5F9)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        child: Ink(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: const Color(0xFFF1F5F9)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -349,7 +362,6 @@ class _OrmawaAbsensiScreenState extends State<OrmawaAbsensiScreen> {
                   style: AppTextStyles.labelSm.copyWith(color: statusColor, fontWeight: FontWeight.w900, fontSize: 10),
                 ),
               ),
-              const Icon(Icons.more_horiz_rounded, color: Color(0xFF94A3B8)),
             ],
           ),
           const SizedBox(height: 16),
@@ -437,6 +449,8 @@ class _OrmawaAbsensiScreenState extends State<OrmawaAbsensiScreen> {
             ],
           ),
         ],
+      ),
+      ),
       ),
     );
   }

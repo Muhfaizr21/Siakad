@@ -20,7 +20,7 @@ class _OrmawaNotificationsScreenState extends State<OrmawaNotificationsScreen>
   late TabController _tabController;
   int _selectedTabIndex = 0;
 
-  final List<String> _tabs = ['Semua', 'Proposal', 'Keuangan', 'Aspirasi'];
+  final List<String> _tabs = ['Semua', 'Agenda', 'LPJ', 'Pengumuman'];
 
   @override
   void initState() {
@@ -46,18 +46,28 @@ class _OrmawaNotificationsScreenState extends State<OrmawaNotificationsScreen>
   }
 
   List<OrmawaNotification> _getFilteredNotifications(List<OrmawaNotification> all) {
-    if (_selectedTabIndex == 0) return all;
+    final sorted = List<OrmawaNotification>.from(all)
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+    if (_selectedTabIndex == 0) return sorted;
 
     final typeMap = {
-      1: 'proposal',
-      2: 'finance',
-      3: 'aspiration',
+      1: 'agenda',
+      2: 'lpj',
+      3: 'pengumuman',
     };
 
     final type = typeMap[_selectedTabIndex];
-    if (type == null) return all;
+    if (type == null) return sorted;
 
-    return all.where((n) => n.type.toLowerCase() == type).toList();
+    return sorted.where((n) {
+      final t = n.type.toLowerCase();
+      final title = n.title.toLowerCase();
+      if (type == 'agenda') return t == 'agenda' || title.contains('agenda') || title.contains('kegiatan');
+      if (type == 'lpj') return t == 'lpj' || title.contains('lpj');
+      if (type == 'pengumuman') return t == 'announcement' || t == 'pengumuman' || title.contains('pengumuman');
+      return false;
+    }).toList();
   }
 
   IconData _getNotificationIcon(String type, String title) {
@@ -273,12 +283,30 @@ class _OrmawaNotificationsScreenState extends State<OrmawaNotificationsScreen>
     final color = _getNotificationColor(notification.type, notification.title);
     final icon = _getNotificationIcon(notification.type, notification.title);
 
-    return UnifiedCard(
+    return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      onTap: () => _showNotificationDetail(notification),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      decoration: BoxDecoration(
+        color: notification.isRead ? Colors.white : color.withAlpha(15),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: notification.isRead ? const Color(0xFFF1F5F9) : color.withAlpha(50)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _showNotificationDetail(notification),
+          borderRadius: BorderRadius.circular(24),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -352,6 +380,9 @@ class _OrmawaNotificationsScreenState extends State<OrmawaNotificationsScreen>
             ),
           ),
         ],
+      ),
+      ),
+      ),
       ),
     );
   }

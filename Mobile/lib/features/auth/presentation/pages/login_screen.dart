@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:bkuhub_mobile/core/routes/app_routes.dart';
 
 import 'package:bkuhub_mobile/core/services/auth_service.dart';
+import 'package:bkuhub_mobile/core/services/biometric_service.dart';
 import 'package:provider/provider.dart';
 import 'package:bkuhub_mobile/core/providers/student_provider.dart';
 
@@ -23,6 +24,40 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
+  bool _isBiometricEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkBiometric();
+  }
+
+  Future<void> _checkBiometric() async {
+    final bioService = BiometricService();
+    final enabled = await bioService.isBiometricEnabled();
+    final creds = await bioService.getCredentials();
+    
+    if (enabled && creds != null) {
+      if (mounted) {
+        setState(() => _isBiometricEnabled = true);
+        // Automatically prompt for fingerprint
+        _handleBiometricLogin();
+      }
+    }
+  }
+
+  Future<void> _handleBiometricLogin() async {
+    final bioService = BiometricService();
+    final authenticated = await bioService.authenticate(reason: 'Pindai sidik jari Anda untuk masuk');
+    if (authenticated) {
+      final creds = await bioService.getCredentials();
+      if (creds != null) {
+        _usernameController.text = creds['identifier']!;
+        _passwordController.text = creds['password']!;
+        _handleLogin();
+      }
+    }
+  }
 
   void _navigateToDashboard() {
     if (_authService.currentRole == UserRole.student) {
@@ -82,6 +117,12 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() => _isLoading = false);
 
       if (result.success) {
+        // Save credentials if biometric is enabled (to keep them updated)
+        final bioService = BiometricService();
+        if (await bioService.isBiometricEnabled()) {
+          await bioService.saveCredentials(_usernameController.text, _passwordController.text);
+        }
+
         if (result.requiresRoleSelection) {
           _showRoleSelectionBottomSheet(result.tempToken!, result.roles!);
         } else {
@@ -355,38 +396,63 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildLoginButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 56, // Reduced height
-      child: ElevatedButton(
-        onPressed: _isLoading ? null : _handleLogin,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16), // Smaller radius
-          ),
-          elevation: 0,
-          disabledBackgroundColor: AppColors.primary.withAlpha(150),
-        ),
-        child: _isLoading
-            ? const SizedBox(
-                height: 24,
-                width: 24,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 3,
+    return Row(
+      children: [
+        Expanded(
+          child: SizedBox(
+            height: 56,
+            child: ElevatedButton(
+              onPressed: _isLoading ? null : _handleLogin,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
                 ),
-              )
-            : Text(
-                'Masuk ke Akun', // Title Case
-                style: AppTextStyles.bodyLg.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
+                elevation: 0,
+                disabledBackgroundColor: AppColors.primary.withAlpha(150),
               ),
-      ),
+              child: _isLoading
+                  ? const SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 3,
+                      ),
+                    )
+                  : Text(
+                      'Masuk ke Akun',
+                      style: AppTextStyles.bodyLg.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+            ),
+          ),
+        ),
+        if (_isBiometricEnabled) ...[
+          const SizedBox(width: 16),
+          SizedBox(
+            height: 56,
+            width: 56,
+            child: ElevatedButton(
+              onPressed: _isLoading ? null : _handleBiometricLogin,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryContainer,
+                foregroundColor: AppColors.primary,
+                padding: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 0,
+              ),
+              child: const Icon(Icons.fingerprint_rounded, size: 32),
+            ),
+          ),
+        ],
+      ],
     );
   }
 

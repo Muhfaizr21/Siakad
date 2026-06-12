@@ -5,13 +5,13 @@ import 'package:bkuhub_mobile/core/providers/ormawa_provider.dart';
 import 'package:bkuhub_mobile/core/routes/app_routes.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
-import 'package:bkuhub_mobile/features/ormawa/rbac/presentation/pages/ormawa_role_screen.dart';
 import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
 import 'package:bkuhub_mobile/core/widgets/coming_soon_screen.dart';
 import 'package:bkuhub_mobile/features/ormawa/struktur/presentation/pages/ormawa_struktur_screen.dart';
-import 'package:bkuhub_mobile/features/ormawa/staff/presentation/pages/ormawa_staff_screen.dart';
 import 'package:bkuhub_mobile/features/ormawa/recruitment/presentation/pages/ormawa_recruitment_screen.dart';
 import 'package:bkuhub_mobile/features/ormawa/aspirasi/presentation/pages/ormawa_aspirasi_screen.dart';
+import 'package:bkuhub_mobile/features/ormawa/settings/presentation/pages/ormawa_profile_screen.dart';
+import 'package:bkuhub_mobile/features/ormawa/settings/presentation/pages/ormawa_security_screen.dart';
 
 class OrmawaSettingsScreen extends StatefulWidget {
   final bool showBackButton;
@@ -61,13 +61,13 @@ class _OrmawaSettingsScreenState extends State<OrmawaSettingsScreen> {
                       () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const ComingSoonScreen(featureName: 'Profil Pribadi'),
+                          builder: (context) => const OrmawaProfileScreen(),
                         ),
                       ),
                     ),
 
                     if (provider.hasPermission('ADMIN_PANEL') || provider.hasPermission('MANAGE_ORG')) ...[
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 12),
                       _buildSectionHeader('MANAJEMEN ORGANISASI'),
                       _buildSettingTile(
                         Icons.storefront_rounded,
@@ -91,20 +91,11 @@ class _OrmawaSettingsScreenState extends State<OrmawaSettingsScreen> {
                           MaterialPageRoute(builder: (context) => const OrmawaStrukturScreen()),
                         ),
                       ),
-                      _buildSettingTile(
-                        Icons.people_alt_rounded,
-                        'Manajemen Staf',
-                        'Daftar pengurus aktif',
-                        Colors.teal,
-                        () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const OrmawaStaffScreen()),
-                        ),
-                      ),
+
                     ],
 
                     if (provider.hasPermission('ADMIN_PANEL') || provider.hasPermission('MANAGE_MODULES')) ...[
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 12),
                       _buildSectionHeader('LAYANAN & MODUL'),
                       _buildSettingTile(
                         Icons.person_add_rounded,
@@ -128,19 +119,8 @@ class _OrmawaSettingsScreenState extends State<OrmawaSettingsScreen> {
                       ),
                     ],
 
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 12),
                     _buildSectionHeader('KEAMANAN & AKSES'),
-                    if (provider.hasPermission('ADMIN_PANEL'))
-                      _buildSettingTile(
-                        Icons.admin_panel_settings_rounded,
-                        'Hak Akses & Role',
-                        'Kelola admin & izin',
-                        Colors.blueGrey,
-                        () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const OrmawaRoleScreen()),
-                        ),
-                      ),
                     _buildSettingTile(
                       Icons.security_rounded,
                       'Keamanan Akun',
@@ -149,33 +129,13 @@ class _OrmawaSettingsScreenState extends State<OrmawaSettingsScreen> {
                       () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const ComingSoonScreen(featureName: 'Keamanan Akun'),
+                          builder: (context) => const OrmawaSecurityScreen(),
                         ),
                       ),
                     ),
 
-                    const SizedBox(height: 32),
-                    _buildSectionHeader('PREFERENSI NOTIFIKASI'),
-                    _buildSwitchTile(
-                      'Approval Proposal',
-                      'Terima notifikasi status proposal',
-                      provider.notifApproval,
-                      (v) => provider.updateNotificationPreferences(notifApproval: v),
-                    ),
-                    _buildSwitchTile(
-                      'Update Keuangan',
-                      'Notifikasi setiap mutasi kas masuk',
-                      provider.notifFinance,
-                      (v) => provider.updateNotificationPreferences(notifFinance: v),
-                    ),
-                    _buildSwitchTile(
-                      'Aspirasi Anggota',
-                      'Notifikasi setiap ada keluhan baru',
-                      provider.notifAspiration,
-                      (v) => provider.updateNotificationPreferences(notifAspiration: v),
-                    ),
 
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 12),
                     _buildSectionHeader('LAINNYA'),
                     _buildSettingTile(
                       Icons.help_outline_rounded,

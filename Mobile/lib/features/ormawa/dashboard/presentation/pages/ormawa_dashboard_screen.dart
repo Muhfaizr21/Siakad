@@ -20,7 +20,6 @@ import 'package:bkuhub_mobile/features/ormawa/dashboard/presentation/widgets/orm
 import 'package:bkuhub_mobile/features/ormawa/proposal/presentation/pages/ormawa_proposal_screen.dart';
 import 'package:bkuhub_mobile/features/ormawa/kalender/presentation/pages/ormawa_kalender_screen.dart';
 import 'package:bkuhub_mobile/features/ormawa/kalender/presentation/pages/ormawa_agenda_detail_screen.dart';
-import 'package:bkuhub_mobile/features/ormawa/notifications/presentation/pages/ormawa_notification_screen.dart';
 
 class OrmawaDashboardScreen extends StatefulWidget {
   const OrmawaDashboardScreen({super.key});
@@ -61,12 +60,6 @@ class _OrmawaDashboardScreenState extends State<OrmawaDashboardScreen> {
               profileImage: Icon(Icons.groups_rounded, color: Colors.white, size: 28),
               isExpandable: true,
               notificationCount: context.watch<OrmawaProvider>().unreadNotificationsCount,
-              onNotificationTap: (context, variant) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const OrmawaNotificationScreen()),
-                );
-              },
               actions: [],
             ),
             SliverToBoxAdapter(

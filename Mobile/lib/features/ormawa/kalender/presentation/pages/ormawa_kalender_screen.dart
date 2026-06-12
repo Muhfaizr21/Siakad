@@ -8,6 +8,9 @@ import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 import 'package:bkuhub_mobile/core/widgets/ormawa_list_header.dart';
+import 'package:bkuhub_mobile/features/ormawa/data/repositories/ormawa_repository_impl.dart';
+import 'package:bkuhub_mobile/core/services/auth_service.dart';
+import 'package:bkuhub_mobile/features/ormawa/kalender/presentation/pages/ormawa_agenda_detail_screen.dart';
 
 class OrmawaKalenderScreen extends StatefulWidget {
   const OrmawaKalenderScreen({super.key});
@@ -249,16 +252,28 @@ class _OrmawaKalenderScreenState extends State<OrmawaKalenderScreen> {
         statusColor = Colors.blue;
     }
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => OrmawaAgendaDetailScreen(agenda: agenda),
+            ),
+          );
+        },
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFF1F5F9)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        child: Ink(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: const Color(0xFFF1F5F9)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -375,6 +390,8 @@ class _OrmawaKalenderScreenState extends State<OrmawaKalenderScreen> {
             ],
           ),
         ],
+      ),
+      ),
       ),
     );
   }

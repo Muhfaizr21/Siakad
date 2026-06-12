@@ -6,6 +6,7 @@ import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 import 'package:bkuhub_mobile/core/providers/ormawa_provider.dart';
 import 'package:bkuhub_mobile/features/ormawa/data/repositories/ormawa_repository_impl.dart';
 import 'package:bkuhub_mobile/core/services/auth_service.dart';
+import 'package:bkuhub_mobile/features/ormawa/absensi/presentation/pages/ormawa_absensi_success_screen.dart';
 
 class OrmawaQrScanScreen extends StatefulWidget {
   final String eventId;
@@ -351,11 +352,12 @@ class _OrmawaQrScanScreenState extends State<OrmawaQrScanScreen> with SingleTick
           throw Exception('Gagal melakukan presensi mandiri: Akun mahasiswa tidak terdeteksi.');
         }
         
-        // Get name of the logged-in student
+        // Get name and nim of the logged-in student
         final authData = AuthService().userData;
         studentName = authData?['mahasiswa']?['Nama'] ?? authData?['mahasiswa']?['nama'] ?? authData?['user']?['nama'] ?? 'Anda';
+        nim = authData?['mahasiswa']?['NIM'] ?? authData?['mahasiswa']?['nim'] ?? authData?['user']?['nim'] ?? 'NIM Anda';
         
-        debugPrint('Self-presensi: Event ID: $targetEventId, Student ID: $resolvedId, Name: $studentName');
+        debugPrint('Self-presensi: Event ID: $targetEventId, Student ID: $resolvedId, Name: $studentName, NIM: $nim');
       } else {
         // Mode 2: Admin scanning student KTM/NIM QR
         debugPrint('Mode: Student KTM QR (Admin Mode)');
@@ -440,26 +442,21 @@ class _OrmawaQrScanScreenState extends State<OrmawaQrScanScreen> with SingleTick
         _scannedStudentName = studentName ?? 'Mahasiswa NIM $nim';
       });
 
-      // Show success feedback
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle_rounded, color: Colors.white),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text('Kehadiran dicatat: ${studentName ?? nim}'),
-              ),
-            ],
+      // Navigate to success screen
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OrmawaAbsensiSuccessScreen(
+            eventId: targetEventId,
+            eventTitle: widget.eventTitle,
+            studentName: studentName ?? 'Mahasiswa',
+            nim: nim,
+            timestamp: DateTime.now(),
           ),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       );
 
-      // Auto-reset scanned state after 1.5 seconds to scan the next one
-      await Future.delayed(const Duration(milliseconds: 1500));
+      // Reset state when returned from success screen
       if (mounted) {
         setState(() {
           _hasScanned = false;
