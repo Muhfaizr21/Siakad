@@ -100,7 +100,7 @@ class _TkScheduleScreenState extends State<TkScheduleScreen> {
           return RefreshIndicator(
             onRefresh: () => provider.loadSchedules(),
             child: ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 170),
               itemCount: groupedSchedules.length,
               itemBuilder: (context, index) {
                 final entry = groupedSchedules.entries.elementAt(index);
@@ -125,11 +125,14 @@ class _TkScheduleScreenState extends State<TkScheduleScreen> {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/tk/add-schedule'),
-        backgroundColor: AppColors.primary,
-        icon: const Icon(Icons.add_rounded, color: Colors.white),
-        label: const Text('Buat Jadwal', style: TextStyle(color: Colors.white)),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 90), // Lift it above BottomNav
+        child: FloatingActionButton.extended(
+          onPressed: () => context.push('/tk/add-schedule'),
+          backgroundColor: AppColors.primary,
+          icon: const Icon(Icons.add_rounded, color: Colors.white),
+          label: const Text('Buat Jadwal', style: TextStyle(color: Colors.white)),
+        ),
       ),
     );
   }
