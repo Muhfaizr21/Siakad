@@ -78,6 +78,21 @@ class TkRepositoryImpl implements TkRepository {
     }
   }
 
+  @override
+  Future<List<Map<String, dynamic>>> getActivities() async {
+    try {
+      final response = await apiClient.client.get('/tenagakes/activities');
+      final data = response.data['data'];
+      if (data is List) {
+        return data.map((e) => e as Map<String, dynamic>).toList();
+      }
+      return [];
+    } catch (e) {
+      log('Error getting activities: $e');
+      return [];
+    }
+  }
+
   // ==================== SCHEDULES ====================
 
   @override
@@ -245,7 +260,7 @@ class TkRepositoryImpl implements TkRepository {
   @override
   Future<MedicalRecord> createScreening(int patientId, Map<String, dynamic> data) async {
     try {
-      final response = await apiClient.client.post('/tenagakes/patients/$patientId/screenings', data: data);
+      final response = await apiClient.client.post('/tenagakes/patients/$patientId/screening', data: data);
       final result = response.data['data'] ?? response.data;
       if (result is Map<String, dynamic>) {
         return MedicalRecord.fromJson(result);

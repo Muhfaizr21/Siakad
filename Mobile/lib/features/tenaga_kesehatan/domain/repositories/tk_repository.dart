@@ -15,6 +15,7 @@ abstract class TkRepository {
 
   // Dashboard
   Future<Map<String, dynamic>> getDashboard();
+  Future<List<Map<String, dynamic>>> getActivities();
 
   // Schedules
   Future<List<Schedule>> getSchedules();

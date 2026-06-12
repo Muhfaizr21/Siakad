@@ -119,6 +119,9 @@ func UpdateProfile(c *fiber.Ctx) error {
 	}
 
 	_ = config.DB.Preload("User").First(&tk, tk.ID).Error
+
+	logActivity(c, tk.UserID, "Update Profil", "Memperbarui data profil")
+
 	return jsonOK(c, tk)
 }
 
@@ -164,7 +167,11 @@ func ChangePassword(c *fiber.Ctx) error {
 	if err := config.DB.Exec("UPDATE users SET password = ? WHERE id = ?", string(hash), user.ID).Error; err != nil {
 		return err
 	}
-	return jsonOK(c, fiber.Map{"updated": true, "message": "Password berhasil diubah"})
+	config.DB.Save(&tk.User)
+
+	logActivity(c, tk.UserID, "Ubah Kata Sandi", "Mengubah kata sandi akun")
+
+	return jsonOK(c, fiber.Map{"message": "Kata sandi berhasil diubah"})
 }
 
 func GetDashboard(c *fiber.Ctx) error {
@@ -182,8 +189,9 @@ func GetDashboard(c *fiber.Ctx) error {
 		Count(&totalDiperiksa)
 
 	var belumScreening int64
-	config.DB.Model(&models.Mahasiswa{}).
-		Where("id NOT IN (SELECT DISTINCT mahasiswa_id FROM mahasiswa.kesehatan)").
+	config.DB.Model(&models.BookingKesehatan{}).
+		Joins("JOIN public.jadwal_kesehatan jk ON jk.id = booking_kesehatan.jadwal_id").
+		Where("jk.tenaga_kes_id = ? AND booking_kesehatan.status IN ('Menunggu Konfirmasi', 'Dikonfirmasi')", tk.ID).
 		Count(&belumScreening)
 
 	var perluPerhatian int64
@@ -231,6 +239,64 @@ func GetDashboard(c *fiber.Ctx) error {
 		})
 	}
 
+	// ==========================================
+	// CHart Data (5W1H)
+	// ==========================================
+	type chartResult struct {
+		Name  string `json:"name"`
+		Value int    `json:"value"`
+	}
+
+	// 1. Where (Distribusi Fakultas)
+	var chartFakultas []chartResult
+	config.DB.Table("kesehatan").
+		Select("fakultas.nama as name, count(*) as value").
+		Joins("JOIN mahasiswa ON mahasiswa.id = kesehatan.mahasiswa_id").
+		Joins("JOIN fakultas ON fakultas.id = mahasiswa.fakultas_id").
+		Group("fakultas.nama").
+		Order("value desc").
+		Limit(5).
+		Scan(&chartFakultas)
+
+	// 2. What (Kondisi Kesehatan)
+	var rawKondisi []chartResult
+	config.DB.Table("kesehatan").
+		Select("status_kesehatan as name, count(*) as value").
+		Group("status_kesehatan").
+		Scan(&rawKondisi)
+	
+	kondisiMap := map[string]int{"Prima": 0, "Pantauan": 0, "Kritis": 0}
+	for _, k := range rawKondisi {
+		if k.Name == "prima" {
+			kondisiMap["Prima"] += k.Value
+		} else if k.Name == "pantauan" {
+			kondisiMap["Pantauan"] += k.Value
+		} else {
+			kondisiMap["Kritis"] += k.Value
+		}
+	}
+	chartKondisi := []fiber.Map{
+		{"name": "Prima", "value": kondisiMap["Prima"]},
+		{"name": "Pantauan", "value": kondisiMap["Pantauan"]},
+		{"name": "Kritis", "value": kondisiMap["Kritis"]},
+	}
+
+	// 3. When (Tren 7 Hari)
+	sevenDaysAgo := today.AddDate(0, 0, -6)
+	var healthRecords7Days []models.Kesehatan
+	config.DB.Where("tanggal >= ?", sevenDaysAgo).Find(&healthRecords7Days)
+
+	trenMap := make(map[string]int)
+	for _, r := range healthRecords7Days {
+		trenMap[r.Tanggal.Format("02 Jan")]++
+	}
+
+	var chartTren []fiber.Map
+	for i := 0; i < 7; i++ {
+		d := sevenDaysAgo.AddDate(0, 0, i).Format("02 Jan")
+		chartTren = append(chartTren, fiber.Map{"name": d, "value": trenMap[d]})
+	}
+
 	return jsonOK(c, fiber.Map{
 		"total_diperiksa_hari_ini": totalDiperiksa,
 		"belum_screening":          belumScreening,
@@ -238,7 +304,34 @@ func GetDashboard(c *fiber.Ctx) error {
 		"booking_hari_ini_count":   bookingHariIni,
 		"bookings":                 bookingItems,
 		"alerts":                   criticalItems,
+		"chart_data": fiber.Map{
+			"fakultas": chartFakultas,
+			"kondisi":  chartKondisi,
+			"tren":     chartTren,
+		},
 	})
+}
+
+func GetActivities(c *fiber.Ctx) error {
+	tk, err := currentTenagaKesehatan(c)
+	if err != nil {
+		return err
+	}
+
+	var activities []models.LogAktivitas
+	config.DB.Where("user_id = ?", tk.UserID).Order("created_at desc").Limit(20).Find(&activities)
+
+	items := make([]fiber.Map, 0, len(activities))
+	for _, act := range activities {
+		items = append(items, fiber.Map{
+			"id":         act.ID,
+			"aktivitas":  act.Aktivitas,
+			"deskripsi":  act.Deskripsi,
+			"created_at": act.CreatedAt.Format(time.RFC3339),
+		})
+	}
+
+	return jsonOK(c, items)
 }
 
 // ========================
@@ -309,6 +402,8 @@ func CreateSchedule(c *fiber.Ctx) error {
 		return err
 	}
 
+	logActivity(c, tk.UserID, "Buat Jadwal Praktek", fmt.Sprintf("Menambahkan jadwal pada %s", schedule.Tanggal.Format("02 Jan 2006")))
+
 	return jsonOK(c, schedule)
 }
 
@@ -370,6 +465,8 @@ func UpdateSchedule(c *fiber.Ctx) error {
 		return err
 	}
 
+	logActivity(c, tk.UserID, "Update Jadwal Praktek", "Memperbarui data jadwal praktek")
+
 	config.DB.First(&schedule, schedule.ID)
 	return jsonOK(c, schedule)
 }
@@ -395,6 +492,8 @@ func DeleteSchedule(c *fiber.Ctx) error {
 	if err := config.DB.Delete(&schedule).Error; err != nil {
 		return err
 	}
+
+	logActivity(c, tk.UserID, "Hapus Jadwal Praktek", "Menghapus data jadwal praktek")
 
 	return jsonOK(c, fiber.Map{"deleted": true})
 }
@@ -639,9 +738,43 @@ func mapMahasiswaToFrontend(student models.Mahasiswa, latestAlergi string) fiber
 }
 
 func GetPatients(c *fiber.Ctx) error {
-	var students []models.Mahasiswa
-	if err := config.DB.Preload("Fakultas").Preload("ProgramStudi").Limit(50).Find(&students).Error; err != nil {
+	tk, err := currentTenagaKesehatan(c)
+	if err != nil {
 		return err
+	}
+
+	// Ambil semua mahasiswa yang pernah booking dengan TK ini
+	var studentIDsFromBookings []uint
+	config.DB.Table("public.booking_kesehatan").
+		Joins("JOIN public.jadwal_kesehatan j ON j.id = booking_kesehatan.jadwal_id").
+		Where("j.tenaga_kes_id = ?", tk.ID).
+		Pluck("DISTINCT booking_kesehatan.mahasiswa_id", &studentIDsFromBookings)
+
+	// Ambil semua mahasiswa yang punya rekam medis dengan TK ini
+	var studentIDsFromKesehatan []uint
+	config.DB.Table("mahasiswa.kesehatan").
+		Where("tenaga_kes_id = ?", tk.ID).
+		Pluck("DISTINCT mahasiswa_id", &studentIDsFromKesehatan)
+
+	// Gabungkan ID unik
+	studentMap := make(map[uint]bool)
+	for _, id := range studentIDsFromBookings {
+		studentMap[id] = true
+	}
+	for _, id := range studentIDsFromKesehatan {
+		studentMap[id] = true
+	}
+
+	var allStudentIDs []uint
+	for id := range studentMap {
+		allStudentIDs = append(allStudentIDs, id)
+	}
+
+	var students []models.Mahasiswa
+	if len(allStudentIDs) > 0 {
+		if err := config.DB.Preload("Fakultas").Preload("ProgramStudi").Where("id IN ?", allStudentIDs).Find(&students).Error; err != nil {
+			return err
+		}
 	}
 
 	items := make([]fiber.Map, 0, len(students))
@@ -653,6 +786,11 @@ func GetPatients(c *fiber.Ctx) error {
 }
 
 func GetMedicalRecord(c *fiber.Ctx) error {
+	tk, err := currentTenagaKesehatan(c)
+	if err != nil {
+		return err
+	}
+
 	studentID := c.Params("id")
 	var student models.Mahasiswa
 	if err := config.DB.Preload("Fakultas").Preload("ProgramStudi").First(&student, studentID).Error; err != nil {
@@ -660,7 +798,8 @@ func GetMedicalRecord(c *fiber.Ctx) error {
 	}
 
 	var records []models.Kesehatan
-	config.DB.Where("mahasiswa_id = ?", student.ID).Order("tanggal desc").Find(&records)
+	// Isolasi data medis: hanya rekam medis yang ditangani TK ini
+	config.DB.Where("mahasiswa_id = ? AND tenaga_kes_id = ?", student.ID, tk.ID).Order("tanggal desc").Find(&records)
 
 	latestAlergi := ""
 	if len(records) > 0 {
@@ -881,6 +1020,8 @@ func CreateScreening(c *fiber.Ctx) error {
 		}()
 	}
 
+	logActivity(c, tk.UserID, "Input Rekam Medis", fmt.Sprintf("Menginput rekam medis baru untuk mahasiswa %s (%s)", student.Nama, student.NIM))
+
 	return jsonOK(c, record)
 }
 
@@ -909,4 +1050,14 @@ func ExportExcel(c *fiber.Ctx) error {
 
 func ExportPDF(c *fiber.Ctx) error {
 	return jsonOK(c, fiber.Map{"message": "Export PDF successfully stubbed"})
+}
+
+func logActivity(c *fiber.Ctx, userID uint, aktivitas, deskripsi string) {
+	audit := models.LogAktivitas{
+		UserID:    userID,
+		Aktivitas: aktivitas,
+		Deskripsi: deskripsi,
+		IPAddress: c.IP(),
+	}
+	config.DB.Create(&audit)
 }

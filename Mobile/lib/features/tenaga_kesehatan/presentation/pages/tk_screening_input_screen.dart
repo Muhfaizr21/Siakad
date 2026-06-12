@@ -22,8 +22,14 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
   final _searchController = TextEditingController();
 
   // Step 2: Vital Signs
-  double _tinggiBadan = 160;
-  double _beratBadan = 55;
+  DateTime _tanggalScreening = DateTime.now();
+  String _jenisPemeriksaan = 'Pemeriksaan Reguler';
+  String _sumberPemeriksaan = 'Klinik Kampus';
+  double _tinggiBadan = 170;
+  double _beratBadan = 60;
+  int _gulaDarah = 90;
+  String _golonganDarah = 'O';
+  String _tesButaWarna = 'Normal';
   int _sistole = 120;
   int _diastole = 80;
   double _suhuTubuh = 36.5;
@@ -70,6 +76,7 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
   int _skalaNyeri = 0;
   String _riwayatPenyakit = '';
   String _alergiObat = '';
+  String _konsumsiObatTerkini = '';
   String _kondisiPsikologis = 'Normal';
 
   // Step 4: Actions
@@ -410,6 +417,29 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
         ),
         const SizedBox(height: 24),
 
+        _buildSectionTitle('Info Pemeriksaan'),
+        const SizedBox(height: 12),
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          title: Text('Tanggal Screening', style: AppTextStyles.labelSm.copyWith(color: AppColors.neutral600)),
+          subtitle: Text('${_tanggalScreening.day}/${_tanggalScreening.month}/${_tanggalScreening.year}', style: AppTextStyles.bodyMd),
+          trailing: const Icon(Icons.calendar_today, size: 20, color: AppColors.primary),
+          onTap: () async {
+            final date = await showDatePicker(
+              context: context,
+              initialDate: _tanggalScreening,
+              firstDate: DateTime(2000),
+              lastDate: DateTime(2100),
+            );
+            if (date != null) setState(() => _tanggalScreening = date);
+          },
+        ),
+        const SizedBox(height: 16),
+        _buildDropdown('Jenis Pemeriksaan', _jenisPemeriksaan, ['Pemeriksaan Reguler', 'Pemeriksaan Insidental', 'Tindak Lanjut'], (v) => setState(() => _jenisPemeriksaan = v!)),
+        const SizedBox(height: 16),
+        _buildDropdown('Sumber Pemeriksaan', _sumberPemeriksaan, ['Klinik Kampus', 'Luar Kampus', 'Rujukan'], (v) => setState(() => _sumberPemeriksaan = v!)),
+        const SizedBox(height: 24),
+
         // BMI Display
         Container(
           padding: const EdgeInsets.all(16),
@@ -483,6 +513,17 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
           200,
         ),
         const SizedBox(height: 24),
+        _buildSliderInput(
+          'Gula Darah',
+          _gulaDarah.toDouble(),
+          (v) => setState(() => _gulaDarah = v.round()),
+          50,
+          300,
+          'mg/dL',
+        ),
+        const SizedBox(height: 16),
+        _buildDropdown('Golongan Darah', _golonganDarah, ['A', 'B', 'AB', 'O'], (v) => setState(() => _golonganDarah = v!)),
+        const SizedBox(height: 24),
 
         // Blood Pressure
         _buildSectionTitle('Tekanan Darah'),
@@ -548,6 +589,8 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
           100,
           '%',
         ),
+        const SizedBox(height: 16),
+        _buildDropdown('Tes Buta Warna', _tesButaWarna, ['Normal', 'Buta Warna Parsial', 'Buta Warna Total'], (v) => setState(() => _tesButaWarna = v!)),
       ],
     );
   }
@@ -627,6 +670,15 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
         ),
         const SizedBox(height: 16),
 
+        // Konsumsi Obat Terkini
+        _buildTextArea(
+          'Konsumsi Obat Terkini',
+          _konsumsiObatTerkini,
+          (v) => _konsumsiObatTerkini = v,
+          hint: 'Obat rutin yang sedang dikonsumsi...',
+        ),
+        const SizedBox(height: 16),
+
         // Kondisi Psikologis
         _buildSectionTitle('Kondisi Psikologis'),
         const SizedBox(height: 8),
@@ -673,35 +725,11 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
         const SizedBox(height: 24),
 
         // Tindakan
-        _buildSectionTitle('Tindakan Diberikan'),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children:
-              [
-                'Istirahat',
-                'Obat P3K',
-                'Rujukan Klinik',
-                'Rujukan RS',
-                'Tidak Ada',
-              ].map((option) {
-                final isSelected = _tindakanDiberikan.contains(option);
-                return FilterChip(
-                  label: Text(option),
-                  selected: isSelected,
-                  onSelected: (selected) {
-                    setState(() {
-                      if (selected) {
-                        _tindakanDiberikan = option;
-                      } else {
-                        _tindakanDiberikan = '';
-                      }
-                    });
-                  },
-                  selectedColor: AppColors.primary.withAlpha(30),
-                );
-              }).toList(),
+        _buildTextArea(
+          'Tindakan Diberikan',
+          _tindakanDiberikan,
+          (v) => _tindakanDiberikan = v,
+          hint: 'Misal: Istirahat di UKS, Kompres air hangat',
         ),
         const SizedBox(height: 16),
 
@@ -733,7 +761,7 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
         const SizedBox(height: 24),
 
         // Eskalasi
-        _buildSectionTitle('Eskalasi (Opsional)'),
+        _buildSectionTitle('Rujukan & Alur Eskalasi'),
         const SizedBox(height: 8),
         SwitchListTile(
           title: const Text('Rujuk ke Psikolog'),
@@ -1031,6 +1059,37 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
     );
   }
 
+  Widget _buildDropdown(
+    String label,
+    String value,
+    List<String> items,
+    Function(String?) onChanged,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: AppTextStyles.labelSm.copyWith(color: AppColors.neutral600),
+        ),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<String>(
+          value: value,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.neutral200),
+            ),
+          ),
+          items: items.map((i) => DropdownMenuItem(value: i, child: Text(i))).toList(),
+          onChanged: onChanged,
+        ),
+      ],
+    );
+  }
+
   Widget _buildStatusOption(String status, String description, Color color) {
     final isSelected = _hasil == status;
     return GestureDetector(
@@ -1171,6 +1230,13 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
       riwayatPenyakit: _riwayatPenyakit.isNotEmpty ? _riwayatPenyakit : null,
       alergiObat: _alergiObat.isNotEmpty ? _alergiObat : null,
       kondisiPsikologis: _kondisiPsikologis,
+      tanggalScreening: _tanggalScreening,
+      jenisPemeriksaan: _jenisPemeriksaan,
+      sumberPemeriksaan: _sumberPemeriksaan,
+      gulaDarah: _gulaDarah,
+      golonganDarah: _golonganDarah,
+      tesButaWarna: _tesButaWarna,
+      konsumsiObatTerkini: _konsumsiObatTerkini.isNotEmpty ? _konsumsiObatTerkini : null,
       tindakanDiberikan:
           _tindakanDiberikan.isNotEmpty ? _tindakanDiberikan : null,
       obatDiberikan: _obatDiberikan.isNotEmpty ? _obatDiberikan : null,

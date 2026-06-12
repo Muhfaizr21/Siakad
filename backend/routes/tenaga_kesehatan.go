@@ -14,6 +14,7 @@ func SetupTenagaKesehatanRoutes(app *fiber.App) {
 	api.Put("/profile", tenaga_kesehatan.UpdateProfile)
 	api.Put("/change-password", tenaga_kesehatan.ChangePassword)
 	api.Get("/dashboard", tenaga_kesehatan.GetDashboard)
+	api.Get("/activities", tenaga_kesehatan.GetActivities)
 
 	// Jadwal & Booking
 	api.Get("/schedules", tenaga_kesehatan.GetSchedules)

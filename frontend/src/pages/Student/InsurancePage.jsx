@@ -223,6 +223,10 @@ export default function InsurancePage() {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount);
   };
 
+  const pendingClaim = claims.find(c => c.status === 'PENDING_VERIFICATION' || c.status === 'APPROVED_TK');
+  const approvedClaim = claims.find(c => c.status === 'APPROVED_FINAL');
+  const hasActiveClaim = pendingClaim || approvedClaim;
+
   return (
     <div className="px-4 py-5 md:px-6 md:py-6 lg:px-8 lg:py-8 font-body text-[#171717] min-h-screen bg-[#fafafa]">
       
@@ -248,7 +252,8 @@ export default function InsurancePage() {
                 <span className="material-symbols-outlined text-sm">history</span>
                 Riwayat Saya
                 {claims.length > 0 && (
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${activeTab === 'riwayat' ? 'bg-white/20 text-white' : 'bg-[#e5e5e5] text-[#525252]'}`}>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${activeTab === 'riwayat' ? 'bg-white/20 text-white' : 'bg-[#e5e5e5] text-[#525252]'}`}
+                  >
                     {claims.length}
                   </span>
                 )}
@@ -321,8 +326,32 @@ export default function InsurancePage() {
 
             {/* Right side: Form */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Form Card */}
-              <div className="bg-surface rounded-2xl border border-border p-6 md:p-8 shadow-sm space-y-6">
+              {hasActiveClaim ? (
+                <div className="bg-surface rounded-2xl border border-border p-8 md:p-12 shadow-sm text-center flex flex-col items-center justify-center min-h-[400px]">
+                  <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-6 border-2 shadow-sm ${approvedClaim ? 'bg-[var(--theme-success)]/10 border-[var(--theme-success)]/20' : 'bg-[var(--theme-warning)]/10 border-[var(--theme-warning)]/20'}`}>
+                    <span className={`material-symbols-outlined text-4xl ${approvedClaim ? 'text-[var(--theme-success)]' : 'text-[var(--theme-warning)]'}`} style={{ fontVariationSettings: "'FILL' 1" }}>
+                      {approvedClaim ? 'check_circle' : 'hourglass_top'}
+                    </span>
+                  </div>
+                  <h3 className="font-black text-[var(--theme-text)] text-xl mb-3">
+                    {approvedClaim ? 'Klaim Asuransi Telah Disetujui' : 'Pengajuan Sedang Diproses'}
+                  </h3>
+                  <p className="text-[var(--theme-text-muted)] text-sm font-semibold leading-relaxed mb-8 max-w-md">
+                    {approvedClaim 
+                      ? 'Surat pengantar klaim asuransi Anda telah berhasil diterbitkan dan siap diunduh. Anda tidak dapat mengajukan klaim baru saat ini.' 
+                      : 'Anda masih memiliki pengajuan klaim asuransi yang sedang menunggu persetujuan dari Tenaga Kesehatan. Harap tunggu proses ini selesai sebelum mengajukan klaim baru.'}
+                  </p>
+                  <button
+                    onClick={() => setActiveTab('riwayat')}
+                    className="px-6 py-3 bg-[var(--theme-primary)] text-white text-sm font-black rounded-xl hover:bg-[var(--theme-primary-hover)] transition-all shadow-md shadow-[var(--theme-primary)]/20 flex items-center gap-2"
+                  >
+                    <span className="material-symbols-outlined text-sm">history</span>
+                    Lihat Status Pengajuan
+                  </button>
+                </div>
+              ) : (
+                <div className="bg-surface rounded-2xl border border-border p-6 md:p-8 shadow-sm space-y-6">
+                  {/* Form Card */}
                 
                 {/* Provider Selection */}
                 <div>
@@ -465,6 +494,7 @@ export default function InsurancePage() {
                   )}
                 </button>
               </div>
+              )}
             </div>
           </motion.div>
         )}

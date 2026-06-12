@@ -18,7 +18,7 @@ import {
   useHealthMandiriMutation,
   useHealthTipsQuery,
 } from '../../queries/useHealthQuery';
-import { healthBookingService } from '../../services/api';
+import { healthBookingService, insuranceService } from '../../services/api';
 import { Skeleton } from '@/components/ui/Skeleton';
 import toast from 'react-hot-toast';
 import { NavLink } from 'react-router-dom';
@@ -172,6 +172,19 @@ export default function HealthScreeningPage() {
   const [selectedSchedule, setSelectedSchedule] = useState(null);
   const [bookingKeluhan, setBookingKeluhan] = useState('');
   const [submittingBooking, setSubmittingBooking] = useState(false);
+  const [claims, setClaims] = useState([]);
+
+  // Fetch claims data
+  const fetchClaims = async () => {
+    try {
+      const res = await insuranceService.getMyClaims();
+      if (res.status === 'success') {
+        setClaims(res.data || []);
+      }
+    } catch (err) {
+      console.error('Error fetching claims:', err);
+    }
+  };
 
   // Fetch booking data
   const fetchBookingData = async () => {
@@ -195,10 +208,8 @@ export default function HealthScreeningPage() {
   };
 
   useEffect(() => {
-    if (isBookingModalOpen) {
-      fetchBookingData();
-    }
-  }, [isBookingModalOpen]);
+    fetchBookingData();
+  }, []);
 
   // Create booking
   const handleCreateBooking = async () => {
@@ -284,11 +295,6 @@ export default function HealthScreeningPage() {
   const air = lifestyleData?.konsumsi_air ?? 2.0;
   const stres = lifestyleData?.tingkat_stres ?? 5;
 
-  // Fetch booking data on mount
-  useEffect(() => {
-    fetchBookingData();
-  }, []);
-
   const handleInputSubmit = (formData) => {
     mandiriMutation.mutate(formData, {
       onSuccess: (res) => {
@@ -302,10 +308,13 @@ export default function HealthScreeningPage() {
     });
   };
 
-  // Fetch booking data on mount
+  // Fetch initial data on mount
   useEffect(() => {
     fetchBookingData();
+    fetchClaims();
   }, []);
+
+  const hasActiveInsuranceClaim = claims.some(c => c.status === 'PENDING_VERIFICATION' || c.status === 'APPROVED_TK');
 
   return (
     <PageContent className="font-body">
@@ -320,10 +329,13 @@ export default function HealthScreeningPage() {
         action={
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setIsBookingModalOpen(true)}
+              onClick={() => {
+                const el = document.getElementById('jadwal-tersedia-section');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
               className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500 text-white font-semibold rounded-xl hover:bg-emerald-600 transition-all text-sm shadow-md shadow-emerald-500/20"
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }} strokeWidth={2.5}>calendar_month</span> Ambil Antrian
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }} strokeWidth={2.5}>calendar_month</span> Ambil Antrean
             </button>
             <button
               onClick={() => setIsInputOpen(true)}
@@ -559,6 +571,84 @@ export default function HealthScreeningPage() {
             </div>
           </div>
         )}
+
+        {/* ── Jadwal Klinik Tersedia ── */}
+        <div id="jadwal-tersedia-section" className="bg-surface rounded-2xl border border-border px-5 py-4 mb-6 scroll-mt-24">
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-bold font-headline">Jadwal Tersedia</h2>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-600 text-[10px] font-bold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  LIVE
+                </span>
+              </div>
+              <p className="text-xs text-[var(--theme-text-muted)] mt-0.5">Pilih jadwal klinik kesehatan yang sesuai untuk Anda</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {loadingSchedules ? (
+              <div className="col-span-full text-center py-8">
+                <span className="material-symbols-outlined animate-spin text-[var(--theme-primary)] text-3xl">progress_activity</span>
+              </div>
+            ) : availableSchedules.length > 0 ? (
+              availableSchedules.map((schedule) => {
+                const isFull = schedule.sisa_kuota <= 0;
+                return (
+                  <div key={schedule.id} className="bg-white rounded-2xl border border-border p-5 hover:border-[var(--theme-primary)] hover:shadow-sm transition-all flex flex-col justify-between group">
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide bg-emerald-50 text-emerald-700 border border-emerald-100">
+                          {schedule.tipe_layanan}
+                        </span>
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${isFull ? 'bg-red-50 text-red-500 border-red-100' : 'bg-neutral-50 text-neutral-400 border-border'}`}>
+                          Kuota {schedule.sisa_kuota}/{schedule.kuota}
+                        </span>
+                      </div>
+                      <h4 className="font-bold text-[15px] mb-1">{schedule.tenaga_kes?.nama || 'Tenaga Kesehatan'}</h4>
+                      
+                      <div className="space-y-1.5 mt-3 text-sm text-[var(--theme-text-muted)] font-semibold">
+                        <div className="flex items-center gap-2">
+                          <span className="material-symbols-outlined text-neutral-300" style={{ fontSize: '16px' }}>calendar_month</span>
+                          <span>{new Date(schedule.tanggal).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="material-symbols-outlined text-neutral-300" style={{ fontSize: '16px' }}>schedule</span>
+                          <span>{schedule.jam_mulai.substring(0, 5)} - {schedule.jam_selesai.substring(0, 5)} WIB</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="material-symbols-outlined text-neutral-300" style={{ fontSize: '16px' }}>location_on</span>
+                          <span className="truncate">{schedule.lokasi}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-5 pt-4 border-t border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <span className={`text-[10px] text-center font-bold uppercase tracking-wide px-2.5 py-1 rounded-lg border ${isFull ? 'bg-red-50 text-red-400 border-red-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}>
+                        {isFull ? 'Penuh' : 'Tersedia'}
+                      </span>
+                      <button
+                        onClick={() => {
+                          setSelectedSchedule(schedule);
+                          setIsBookingModalOpen(true);
+                        }}
+                        disabled={isFull}
+                        className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all border-2 border-[var(--theme-primary)] text-[var(--theme-primary)] hover:bg-[var(--theme-primary)] hover:text-white disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        Ambil Antrean <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>arrow_forward</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="col-span-full text-center py-8 bg-neutral-50 rounded-xl border border-border">
+                <span className="material-symbols-outlined text-3xl text-neutral-300 mb-2">event_busy</span>
+                <p className="text-sm text-neutral-500 font-semibold">Belum ada jadwal tersedia saat ini.</p>
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* ── Analytics & Vitals ── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
@@ -881,6 +971,7 @@ export default function HealthScreeningPage() {
           <DetailModal
             record={detailRecord}
             isLoading={isDetailLoading}
+            hasActiveInsuranceClaim={hasActiveInsuranceClaim}
             onClose={() => setSelectedDetailId(null)}
           />
         )}
@@ -1361,7 +1452,7 @@ function InputField({ label, unit, value, onChange, icon, placeholder, isOptiona
   );
 }
 
-function DetailModal({ record, isLoading, onClose }) {
+function DetailModal({ record, isLoading, onClose, hasActiveInsuranceClaim }) {
   if (isLoading || !record) {
     return (
       <Dialog open={true} onOpenChange={onClose} maxWidth="max-w-lg">
@@ -1578,17 +1669,26 @@ function DetailModal({ record, isLoading, onClose }) {
         </div>
 
         <DialogFooter className="flex flex-col sm:flex-row gap-3 p-8 border-t border-slate-100/60 bg-slate-50/20 shrink-0">
-          <NavLink
-            to="/student/insurance"
-            state={{
-              tanggal: record.tanggal_periksa ? record.tanggal_periksa.split('T')[0] : '',
-              deskripsi: `Klaim biaya pemeriksaan kesehatan (${record.jenis_pemeriksaan}) pada tanggal ${fmt(record.tanggal_periksa, { day: 'numeric', month: 'long', year: 'numeric' })}. Catatan: ${record.catatan_medis || record.catatan || 'Pemeriksaan rutin.'}`
-            }}
-            onClick={onClose}
-            className="flex-1 py-3 bg-emerald-500 text-white text-xs font-black rounded-xl hover:bg-emerald-600 transition-all uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/20 text-center border-none cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-[16px]">health_and_safety</span> Ajukan Asuransi
-          </NavLink>
+          {hasActiveInsuranceClaim ? (
+            <button
+              disabled
+              className="flex-1 py-3 bg-slate-200 text-slate-400 text-xs font-black rounded-xl cursor-not-allowed uppercase tracking-wider flex items-center justify-center gap-1.5 text-center border-none"
+            >
+              <span className="material-symbols-outlined text-[16px]">hourglass_top</span> Klaim Sedang Diproses / Disetujui
+            </button>
+          ) : (
+            <NavLink
+              to="/student/insurance"
+              state={{
+                tanggal: record.tanggal_periksa ? record.tanggal_periksa.split('T')[0] : '',
+                deskripsi: `Klaim biaya pemeriksaan kesehatan (${record.jenis_pemeriksaan}) pada tanggal ${fmt(record.tanggal_periksa, { day: 'numeric', month: 'long', year: 'numeric' })}. Catatan: ${record.catatan_medis || record.catatan || 'Pemeriksaan rutin.'}`
+              }}
+              onClick={onClose}
+              className="flex-1 py-3 bg-emerald-500 text-white text-xs font-black rounded-xl hover:bg-emerald-600 transition-all uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/20 text-center border-none cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[16px]">health_and_safety</span> Ajukan Asuransi
+            </NavLink>
+          )}
           <button
             onClick={onClose}
             className="py-3 px-6 bg-[var(--theme-bg)] border border-border text-[var(--theme-text-muted)] text-xs font-black rounded-xl hover:bg-[var(--theme-bg)] transition-all uppercase tracking-wider cursor-pointer"
@@ -1797,7 +1897,7 @@ function BookingModal({
   const formatDate = (dateStr) => {
     if (!dateStr) return '-';
     const d = new Date(dateStr);
-    return d.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' });
+    return d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   };
 
   const formatTime = (timeStr) => {
@@ -1805,157 +1905,57 @@ function BookingModal({
     return timeStr.substring(0, 5);
   };
 
-  const getStatusBadge = (status) => {
-    const badges = {
-      'Menunggu Konfirmasi': 'bg-amber-100 text-amber-700',
-      'Dikonfirmasi': 'bg-blue-100 text-blue-700',
-      'Ditolak': 'bg-red-100 text-red-700',
-      'Dibatalkan': 'bg-slate-100 text-slate-500',
-      'Selesai': 'bg-emerald-100 text-emerald-700',
-    };
-    return badges[status] || 'bg-slate-100 text-slate-600';
-  };
-
-  // Filter schedules yang masih ada kuota
-  const availableSchedules = schedules.filter(s => s.sisa_kuota > 0);
+  if (!selectedSchedule) return null;
 
   return (
-    <Dialog open={true} onOpenChange={onClose} maxWidth="max-w-2xl">
+    <Dialog open={true} onOpenChange={onClose} maxWidth="max-w-md">
       <DialogContent>
         {/* Header */}
         <DialogHeader>
-          <DialogTitle>Ambil Antrian Klinik Kesehatan</DialogTitle>
-          <DialogDescription>Pilih jadwal yang tersedia</DialogDescription>
+          <DialogTitle>Konfirmasi Antrean Klinik</DialogTitle>
+          <DialogDescription>Isi keluhan untuk mengamankan jadwalmu</DialogDescription>
         </DialogHeader>
 
         {/* Content */}
-        <div className="overflow-y-auto p-8 space-y-5 max-h-[50vh] no-scrollbar text-left bg-white">
-          {/* My Bookings Section */}
-          {myBookings && myBookings.length > 0 && (
+        <div className="p-8 space-y-6 bg-white text-left">
+          {/* Jadwal Terpilih Info */}
+          <div className="bg-emerald-50/50 rounded-2xl p-4 border border-emerald-100 flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>medical_services</span>
+            </div>
             <div>
-              <h4 className="text-xs font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-3 flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[var(--theme-primary)]"></span>
-                Booking Saya
-              </h4>
-              <div className="space-y-2">
-                {myBookings.slice(0, 3).map((booking) => (
-                  <div key={booking.id} className="bg-[var(--theme-bg)] rounded-xl p-3 border border-border">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3 text-left">
-                        <div className="w-10 h-10 rounded-lg bg-surface border border-border flex items-center justify-center">
-                          <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '18px' }}>calendar_month</span>
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-[var(--theme-text)]">{formatDate(booking.jadwal?.tanggal)}</p>
-                          <p className="text-xs text-[var(--theme-text-muted)]">{formatTime(booking.jadwal?.jam_mulai)} - {formatTime(booking.jadwal?.jam_selesai)}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold ${getStatusBadge(booking.status)}`}>
-                          {booking.status}
-                        </span>
-                        {(booking.status === 'Menunggu Konfirmasi' || booking.status === 'Dikonfirmasi') && (
-                          <button
-                            onClick={() => onCancel(booking.id)}
-                            className="text-[10px] font-bold text-red-500 hover:underline cursor-pointer bg-transparent border-none"
-                          >
-                            Batal
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              <p className="text-sm font-bold text-emerald-900 mb-1">{selectedSchedule.tenaga_kes?.nama || 'Tenaga Kesehatan'}</p>
+              <div className="space-y-1">
+                <p className="text-xs text-emerald-700 flex items-center gap-1.5 font-semibold">
+                  <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>calendar_month</span>
+                  {formatDate(selectedSchedule.tanggal)}
+                </p>
+                <p className="text-xs text-emerald-700 flex items-center gap-1.5 font-semibold">
+                  <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>schedule</span>
+                  {formatTime(selectedSchedule.jam_mulai)} - {formatTime(selectedSchedule.jam_selesai)} WIB
+                </p>
+                <p className="text-xs text-emerald-700 flex items-center gap-1.5 font-semibold">
+                  <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>location_on</span>
+                  <span className="truncate">{selectedSchedule.lokasi}</span>
+                </p>
               </div>
             </div>
-          )}
-
-          {/* Available Schedules */}
-          <div>
-            <h4 className="text-xs font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-3 flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-              Jadwal Tersedia ({availableSchedules.length})
-            </h4>
-
-            {loading ? (
-              <div className="space-y-3">
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="h-20 bg-[var(--theme-bg)] rounded-xl animate-pulse" />
-                ))}
-              </div>
-            ) : availableSchedules.length === 0 ? (
-              <div className="text-center py-8 bg-[var(--theme-bg)] rounded-xl border border-border">
-                <span className="material-symbols-outlined text-4xl text-[var(--theme-text-muted)]">event_busy</span>
-                <p className="text-sm text-[var(--theme-text-muted)] mt-2">Belum ada jadwal tersedia</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {availableSchedules.map((schedule) => {
-                  const isSelected = selectedSchedule?.id === schedule.id;
-                  return (
-                    <button
-                      key={schedule.id}
-                      onClick={() => setSelectedSchedule(schedule)}
-                      className={`w-full text-left p-4 rounded-xl border-2 transition-all cursor-pointer ${
-                        isSelected
-                          ? 'border-[var(--theme-primary)] bg-[var(--theme-primary)]/5'
-                          : 'border-border bg-surface hover:border-border'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                            isSelected ? 'bg-[var(--theme-primary)] text-white' : 'bg-emerald-50 text-emerald-600'
-                          }`}>
-                            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>medical_services</span>
-                          </div>
-                          <div>
-                            <p className="text-sm font-bold text-[var(--theme-text)]">
-                              {schedule.tenaga_kes?.nama || 'Tenaga Kesehatan'} • {schedule.tipe_layanan}
-                            </p>
-                            <p className="text-xs text-[var(--theme-text-muted)] mt-0.5">
-                              {formatDate(schedule.tanggal)} • {formatTime(schedule.jam_mulai)} - {formatTime(schedule.jam_selesai)}
-                            </p>
-                            <p className="text-xs text-[var(--theme-text-muted)] mt-0.5 flex items-center gap-1">
-                              <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>location_on</span>
-                              {schedule.lokasi}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className={`px-2.5 py-1 rounded-lg text-[10px] font-bold ${
-                            schedule.sisa_kuota <= 2 ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
-                          }`}>
-                            Sisa: {schedule.sisa_kuota}/{schedule.kuota}
-                          </div>
-                          {isSelected && (
-                            <span className="material-symbols-outlined text-[var(--theme-primary)] mt-1 block" style={{ fontSize: '20px' }}>check_circle</span>
-                          )}
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
           </div>
 
           {/* Keluhan Input */}
-          {selectedSchedule && (
-            <div>
-              <label className="text-xs font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-2 flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span>
-                Keluhan Anda
-              </label>
-              <textarea
-                value={bookingKeluhan}
-                onChange={(e) => setBookingKeluhan(e.target.value)}
-                placeholder="Jelaskan keluhan atau kebutuhan kesehatan Anda..."
-                rows={3}
-                className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-bku-primary/20 resize-none font-semibold text-[var(--theme-text)] bg-[var(--theme-bg)]"
-              />
-            </div>
-          )}
+          <div>
+            <label className="text-xs font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-2 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span>
+              Keluhan Anda
+            </label>
+            <textarea
+              value={bookingKeluhan}
+              onChange={(e) => setBookingKeluhan(e.target.value)}
+              placeholder="Jelaskan secara singkat apa yang kamu rasakan (contoh: Pusing dan mual sejak 2 hari lalu)..."
+              rows={4}
+              className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-bku-primary/20 resize-none font-semibold text-[var(--theme-text)] bg-[var(--theme-bg)]"
+            />
+          </div>
         </div>
 
         {/* Footer */}
@@ -1968,18 +1968,18 @@ function BookingModal({
           </button>
           <button
             onClick={onSubmit}
-            disabled={!selectedSchedule || !bookingKeluhan.trim() || isSubmitting}
+            disabled={!bookingKeluhan.trim() || isSubmitting}
             className="flex-1 py-3 bg-[var(--theme-primary)] text-white text-xs font-black rounded-xl hover:bg-[var(--theme-primary-dark)] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 uppercase tracking-wider cursor-pointer border-none shadow-md shadow-[var(--theme-primary)]/20"
           >
             {isSubmitting ? (
               <>
                 <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }}>progress_activity</span>
-                Mengirim...
+                Memproses...
               </>
             ) : (
               <>
-                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>check</span>
-                Daftarkan Sekarang
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>check_circle</span>
+                Daftarkan
               </>
             )}
           </button>

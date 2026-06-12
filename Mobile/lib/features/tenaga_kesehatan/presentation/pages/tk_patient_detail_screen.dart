@@ -50,8 +50,14 @@ class _TkPatientDetailScreenState extends State<TkPatientDetailScreen>
             backgroundColor: Colors.white,
             elevation: 0,
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back_rounded),
-              onPressed: () => context.pop(),
+              icon: const Icon(Icons.arrow_back_rounded, color: AppColors.neutral900),
+              onPressed: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/tk');
+                }
+              },
             ),
             title: Text(
               'Detail Pasien',

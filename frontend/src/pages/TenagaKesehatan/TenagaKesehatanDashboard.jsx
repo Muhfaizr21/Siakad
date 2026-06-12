@@ -3,15 +3,22 @@ import { useNavigate } from 'react-router-dom';
 import { tenagaKesehatanService } from '../../services/api';
 import { PageContent, PageCard, PageCardHeader } from '@/components/ui/page';
 import { DashboardHero, DashboardStatGrid, DashboardStatCard } from '@/components/ui/dashboard';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, CartesianGrid } from 'recharts';
 
 export default function TenagaKesehatanDashboard() {
   const [dashboard, setDashboard] = useState(null);
+  const [isAvailable, setIsAvailable] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     let ignore = false;
     tenagaKesehatanService.getDashboard().then((res) => {
-      if (!ignore) setDashboard(res.data);
+      if (!ignore) {
+        setDashboard(res.data);
+        if (res.data?.profile?.is_aktif !== undefined) {
+          setIsAvailable(res.data.profile.is_aktif);
+        }
+      }
     }).catch(() => {
       if (!ignore) setDashboard(null);
     });
@@ -25,6 +32,30 @@ export default function TenagaKesehatanDashboard() {
   const bookings = dashboard?.bookings || [];
   const alerts = dashboard?.alerts || [];
   const profileName = dashboard?.profile?.nama || 'Tenaga Kesehatan';
+  
+  const chartData = dashboard?.chart_data || {};
+  const chartFakultas = chartData.fakultas || [];
+  const chartKondisi = chartData.kondisi || [];
+  const chartTren = chartData.tren || [];
+
+  const KONDISI_COLORS = {
+    'Prima': 'var(--theme-success, #10b981)',
+    'Pantauan': 'var(--theme-warning, #f59e0b)',
+    'Kritis': 'var(--theme-error, #ef4444)'
+  };
+
+  const handleToggleAvailability = async () => {
+    const newStatus = !isAvailable;
+    try {
+      setIsAvailable(newStatus);
+      await tenagaKesehatanService.updateProfile({ is_aktif: newStatus });
+      const res = await tenagaKesehatanService.getDashboard();
+      setDashboard(res.data);
+    } catch (err) {
+      alert('Gagal mengubah status ketersediaan');
+      setIsAvailable(!newStatus);
+    }
+  };
 
   const statCards = [
     { 
@@ -43,7 +74,7 @@ export default function TenagaKesehatanDashboard() {
       colorClass: 'text-primary', 
       bgClass: 'bg-primary/10 border border-primary/20', 
       accentGradient: 'from-primary/10',
-      badge: { text: 'MAHASISWA' }
+      badge: { text: 'ANTREAN' }
     },
     { 
       label: 'Perlu Perhatian', 
@@ -92,7 +123,19 @@ export default function TenagaKesehatanDashboard() {
           { label: 'Sesi Aktif', active: true }
         ]}
         actions={
-          <>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={handleToggleAvailability}
+              className={`flex-1 md:flex-initial px-4 py-2 h-10 rounded-xl font-bold text-xs transition-all shadow-sm flex items-center justify-center gap-1.5 ${
+                isAvailable 
+                  ? 'bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-100' 
+                  : 'bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100'
+              }`}
+            >
+              <div className={`w-2 h-2 rounded-full ${isAvailable ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
+              {isAvailable ? 'Tersedia' : 'Tidak Tersedia'}
+              <span className="material-symbols-outlined text-sm ml-1">swap_horiz</span>
+            </button>
             <button
               onClick={() => navigate('/tenagakes/bookings')}
               className="flex-1 md:flex-initial px-4 py-2 h-10 rounded-xl font-bold text-xs transition-all text-white hover:opacity-90 shadow-sm flex items-center justify-center gap-1.5"
@@ -106,7 +149,7 @@ export default function TenagaKesehatanDashboard() {
             >
               <span className="material-symbols-outlined text-sm">history</span> Riwayat Pasien
             </button>
-          </>
+          </div>
         }
       />
 
@@ -121,24 +164,31 @@ export default function TenagaKesehatanDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
         {/* Left Column (Col 4) */}
         <div className="lg:col-span-4 space-y-6">
-          {/* Quick Access Services */}
+          {/* Distribusi Fakultas (Bar Chart) */}
           <PageCard>
-            <PageCardHeader title="Pintasan Layanan" icon="apps" />
-            <div className="grid grid-cols-2 gap-4">
-              {services.map((item, i) => (
-                <button 
-                  key={i} 
-                  onClick={() => navigate(item.path)} 
-                  className="group flex flex-col items-center justify-center p-4 bg-background hover:bg-surface rounded-xl border border-border-muted hover:border-primary transition-all duration-300 w-full"
-                >
-                  <div 
-                    className="size-10 rounded-lg flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-sm bg-primary/10 text-primary border border-primary/20"
-                  >
-                    <span className="material-symbols-outlined text-base">{item.icon}</span>
-                  </div>
-                  <span className="text-xs font-semibold text-on-surface tracking-tight text-center font-headline" style={{ color: 'var(--theme-text)' }}>{item.name}</span>
-                </button>
-              ))}
+            <PageCardHeader
+              title="Distribusi Demografi Fakultas"
+              description="Asal fakultas mahasiswa yang diperiksa"
+              icon="bar_chart"
+            />
+            <div className="h-64 mt-4">
+              {chartFakultas.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartFakultas} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--theme-border)" />
+                    <XAxis dataKey="name" tick={{ fontSize: 10, fill: 'var(--theme-text-muted)' }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 10, fill: 'var(--theme-text-muted)' }} axisLine={false} tickLine={false} />
+                    <Tooltip
+                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                      itemStyle={{ color: 'var(--theme-text)', fontSize: '12px' }}
+                      labelStyle={{ color: 'var(--theme-text-muted)', fontSize: '12px', fontWeight: 'bold', marginBottom: '4px' }}
+                    />
+                    <Bar dataKey="value" fill="var(--theme-primary)" radius={[4, 4, 0, 0]} barSize={30} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-full text-xs text-[var(--theme-text-muted)]">Belum ada data distribusi fakultas.</div>
+              )}
             </div>
           </PageCard>
         </div>
@@ -261,6 +311,105 @@ export default function TenagaKesehatanDashboard() {
             </div>
           </PageCard>
         </div>
+      </div>
+
+      {/* Analytics 5W1H Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full mt-6">
+        {/* Kondisi Kesehatan (Pie Chart) */}
+        <PageCard className="col-span-1 lg:col-span-1">
+          <PageCardHeader
+            title="Sebaran Kondisi Medis"
+            description="Proporsi hasil pemeriksaan medis"
+            icon="pie_chart"
+          />
+          <div className="h-64 mt-4 relative">
+            {chartKondisi.some(c => c.value > 0) ? (
+              <>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Tooltip
+                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                      itemStyle={{ color: 'var(--theme-text)', fontSize: '12px', fontWeight: 'bold' }}
+                    />
+                    <Pie
+                      data={chartKondisi}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {chartKondisi.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={KONDISI_COLORS[entry.name] || 'var(--theme-primary)'} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+                {/* Legend Custom */}
+                <div className="absolute bottom-0 left-0 right-0 flex justify-center gap-4">
+                  {chartKondisi.map(c => (
+                    <div key={c.name} className="flex items-center gap-1.5 text-[10px] font-bold text-[var(--theme-text-muted)] uppercase">
+                      <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: KONDISI_COLORS[c.name] }}></div>
+                      {c.name} ({c.value})
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center justify-center h-full text-xs text-[var(--theme-text-muted)]">Belum ada data pemeriksaan.</div>
+            )}
+          </div>
+        </PageCard>
+
+        {/* Tren 7 Hari (Line Chart) */}
+        <PageCard className="col-span-1 lg:col-span-1">
+          <PageCardHeader
+            title="Aktivitas Pemeriksaan (7 Hari)"
+            description="Tren operasional harian"
+            icon="show_chart"
+          />
+          <div className="h-64 mt-4">
+            {chartTren.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartTren} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--theme-border)" />
+                  <XAxis dataKey="name" tick={{ fontSize: 10, fill: 'var(--theme-text-muted)' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 10, fill: 'var(--theme-text-muted)' }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <Tooltip
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                    itemStyle={{ color: 'var(--theme-text)', fontSize: '12px' }}
+                    labelStyle={{ color: 'var(--theme-text-muted)', fontSize: '12px', fontWeight: 'bold', marginBottom: '4px' }}
+                  />
+                  <Line type="monotone" dataKey="value" stroke="var(--theme-primary)" strokeWidth={3} dot={{ r: 4, fill: 'var(--theme-primary)', strokeWidth: 0 }} activeDot={{ r: 6 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-full text-xs text-[var(--theme-text-muted)]">Belum ada tren data.</div>
+            )}
+          </div>
+        </PageCard>
+
+        {/* Quick Access Services */}
+        <PageCard className="col-span-1 lg:col-span-1 h-full">
+          <PageCardHeader title="Pintasan Layanan" icon="apps" />
+          <div className="grid grid-cols-2 gap-4 mt-4">
+            {services.map((item, i) => (
+              <button 
+                key={i} 
+                onClick={() => navigate(item.path)} 
+                className="group flex flex-col items-center justify-center p-4 bg-background hover:bg-surface rounded-xl border border-border-muted hover:border-primary transition-all duration-300 w-full"
+              >
+                <div 
+                  className="size-10 rounded-lg flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-sm bg-primary/10 text-primary border border-primary/20"
+                >
+                  <span className="material-symbols-outlined text-base">{item.icon}</span>
+                </div>
+                <span className="text-xs font-semibold text-on-surface tracking-tight text-center font-headline" style={{ color: 'var(--theme-text)' }}>{item.name}</span>
+              </button>
+            ))}
+          </div>
+        </PageCard>
       </div>
     </PageContent>
   );

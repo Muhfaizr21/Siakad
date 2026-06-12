@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:bkuhub_mobile/features/tenaga_kesehatan/presentation/pages/tk_main_screen.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 import 'package:bkuhub_mobile/features/tenaga_kesehatan/presentation/providers/tk_schedule_provider.dart';
@@ -34,6 +35,19 @@ class _TkScheduleScreenState extends State<TkScheduleScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.primary),
+          onPressed: () {
+            final mainState = context.findAncestorStateOfType<TkMainScreenState>();
+            if (mainState != null) {
+              mainState.setSelectedIndex(0);
+            } else if (GoRouter.of(context).canPop()) {
+              context.pop();
+            } else {
+              context.go('/tenagakes?tab=0');
+            }
+          },
+        ),
         title: Text(
           'Jadwal Praktik',
           style: AppTextStyles.titleMd.copyWith(

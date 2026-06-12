@@ -21,6 +21,13 @@ export default function PatientList() {
   const [selectedGender, setSelectedGender] = useState('Semua Gender');
   const [globalResults, setGlobalResults] = useState([]);
   const [isSearchingGlobal, setIsSearchingGlobal] = useState(false);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  
+  // Sort state
+  const [sortConfig, setSortConfig] = useState({ key: 'nama', direction: 'asc' });
 
   const navigate = useNavigate();
 
@@ -92,6 +99,11 @@ export default function PatientList() {
     return [...locals, ...globals];
   }, [patients, globalResults]);
 
+  // Reset pagination when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedFakultas, selectedProdi, selectedGender]);
+
   const filteredPatients = useMemo(() => {
     return combinedList.filter((p) => {
       const query = searchQuery.trim().toLowerCase();
@@ -111,6 +123,67 @@ export default function PatientList() {
       return matchesSearch && matchesFakultas && matchesProdi && matchesGender;
     });
   }, [combinedList, searchQuery, selectedFakultas, selectedProdi, selectedGender]);
+
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const sortedPatients = useMemo(() => {
+    const sortableItems = [...filteredPatients];
+    if (sortConfig.key) {
+      sortableItems.sort((a, b) => {
+        let aValue = '';
+        let bValue = '';
+        
+        switch (sortConfig.key) {
+          case 'nama':
+            aValue = (a.nama || '').toLowerCase();
+            bValue = (b.nama || '').toLowerCase();
+            break;
+          case 'nim':
+            aValue = (a.nim || '').toLowerCase();
+            bValue = (b.nim || '').toLowerCase();
+            break;
+          case 'prodi':
+            aValue = (a.ProgramStudi?.nama || '').toLowerCase();
+            bValue = (b.ProgramStudi?.nama || '').toLowerCase();
+            break;
+          case 'fakultas':
+            aValue = (a.Fakultas?.nama || '').toLowerCase();
+            bValue = (b.Fakultas?.nama || '').toLowerCase();
+            break;
+          case 'kontak':
+            aValue = (a.no_hp || a.email_personal || '').toLowerCase();
+            bValue = (b.no_hp || b.email_personal || '').toLowerCase();
+            break;
+          default:
+            break;
+        }
+
+        if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    return sortableItems;
+  }, [filteredPatients, sortConfig]);
+
+  const totalPages = Math.max(1, Math.ceil(sortedPatients.length / itemsPerPage));
+  const paginatedPatients = sortedPatients.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const SortIcon = ({ columnKey }) => {
+    if (sortConfig.key !== columnKey) return <span className="material-symbols-outlined text-sm ml-1 opacity-30">unfold_more</span>;
+    return sortConfig.direction === 'asc' 
+      ? <span className="material-symbols-outlined text-sm ml-1 text-bku-primary">keyboard_arrow_up</span>
+      : <span className="material-symbols-outlined text-sm ml-1 text-bku-primary">keyboard_arrow_down</span>;
+  };
 
   return (
     <PageContent>
@@ -274,17 +347,27 @@ export default function PatientList() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-200 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                    <th className="py-3 px-4">Nama Mahasiswa</th>
-                    <th className="py-3 px-4">NIM</th>
-                    <th className="py-3 px-4">Program Studi</th>
-                    <th className="py-3 px-4">Fakultas</th>
-                    <th className="py-3 px-4">Kontak</th>
+                  <tr className="border-b border-slate-200 text-[10px] font-black text-slate-400 uppercase tracking-widest select-none">
+                    <th className="py-3 px-4 cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => handleSort('nama')}>
+                      <div className="flex items-center">Nama Mahasiswa <SortIcon columnKey="nama" /></div>
+                    </th>
+                    <th className="py-3 px-4 cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => handleSort('nim')}>
+                      <div className="flex items-center">NIM <SortIcon columnKey="nim" /></div>
+                    </th>
+                    <th className="py-3 px-4 cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => handleSort('prodi')}>
+                      <div className="flex items-center">Program Studi <SortIcon columnKey="prodi" /></div>
+                    </th>
+                    <th className="py-3 px-4 cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => handleSort('fakultas')}>
+                      <div className="flex items-center">Fakultas <SortIcon columnKey="fakultas" /></div>
+                    </th>
+                    <th className="py-3 px-4 cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => handleSort('kontak')}>
+                      <div className="flex items-center">Kontak <SortIcon columnKey="kontak" /></div>
+                    </th>
                     <th className="py-3 px-4 text-right">Tindakan Medis</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-600">
-                  {filteredPatients.map((p) => (
+                  {paginatedPatients.map((p) => (
                     <tr key={p.id} className="hover:bg-bku-primary/5 transition-colors duration-150">
                       <td className="py-4 px-4 font-bold text-slate-800">
                         <div className="flex items-center gap-3">
@@ -331,6 +414,52 @@ export default function PatientList() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {/* Pagination Controls */}
+          {filteredPatients.length > 0 && (
+            <div className="flex items-center justify-between border-t border-slate-100 pt-4 mt-4">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                Menampilkan {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredPatients.length)} dari {filteredPatients.length} Data
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="inline-flex items-center justify-center p-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-500 hover:bg-white hover:text-bku-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  <span className="material-symbols-outlined text-sm">chevron_left</span>
+                </button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter(page => page === 1 || page === totalPages || Math.abs(currentPage - page) <= 1)
+                    .map((page, index, array) => (
+                      <React.Fragment key={page}>
+                        {index > 0 && array[index - 1] !== page - 1 && (
+                          <span className="text-slate-400 text-xs font-bold px-1">...</span>
+                        )}
+                        <button
+                          onClick={() => setCurrentPage(page)}
+                          className={`w-8 h-8 flex items-center justify-center rounded-xl text-[10px] font-black transition-all ${
+                            currentPage === page
+                              ? 'bg-bku-primary text-white shadow-md shadow-bku-primary/20'
+                              : 'bg-slate-50 border border-slate-200 text-slate-500 hover:bg-white hover:text-bku-primary'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      </React.Fragment>
+                    ))}
+                </div>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className="inline-flex items-center justify-center p-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-500 hover:bg-white hover:text-bku-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  <span className="material-symbols-outlined text-sm">chevron_right</span>
+                </button>
+              </div>
             </div>
           )}
         </section>

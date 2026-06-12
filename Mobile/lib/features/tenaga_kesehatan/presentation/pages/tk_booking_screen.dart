@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
+import 'package:bkuhub_mobile/features/tenaga_kesehatan/presentation/pages/tk_main_screen.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 import 'package:bkuhub_mobile/features/tenaga_kesehatan/presentation/providers/tk_booking_provider.dart';
+import 'package:bkuhub_mobile/features/tenaga_kesehatan/domain/entities/booking.dart';
 
 class TkBookingScreen extends StatefulWidget {
   const TkBookingScreen({super.key});
@@ -15,7 +18,6 @@ class _TkBookingScreenState extends State<TkBookingScreen> {
   int _selectedTabIndex = 0;
 
   final List<Map<String, dynamic>> _tabs = [
-    {'label': 'Semua', 'icon': Icons.list_alt_rounded},
     {'label': 'Menunggu', 'icon': Icons.hourglass_empty_rounded},
     {'label': 'Dikonfirmasi', 'icon': Icons.check_circle_outline_rounded},
     {'label': 'Selesai', 'icon': Icons.task_alt_rounded},
@@ -54,6 +56,22 @@ class _TkBookingScreenState extends State<TkBookingScreen> {
                   children: [
                     Row(
                       children: [
+                        IconButton(
+                          onPressed: () {
+                            final mainState = context.findAncestorStateOfType<TkMainScreenState>();
+                            if (mainState != null) {
+                              mainState.setSelectedIndex(0);
+                            } else if (GoRouter.of(context).canPop()) {
+                              context.pop();
+                            } else {
+                              context.go('/tenagakes?tab=0');
+                            }
+                          },
+                          icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                        const SizedBox(width: 16),
                         Expanded(
                           child: Text(
                             'Booking Kesehatan',
@@ -216,17 +234,15 @@ class _TkBookingScreenState extends State<TkBookingScreen> {
     );
   }
 
-  List _getFilteredBookings(TkBookingProvider provider) {
+  List<Booking> _getFilteredBookings(TkBookingProvider provider) {
     switch (_selectedTabIndex) {
       case 0:
-        return provider.allBookings;
-      case 1:
         return provider.pendingBookings;
-      case 2:
+      case 1:
         return provider.confirmedBookings;
-      case 3:
+      case 2:
         return provider.completedBookings;
-      case 4:
+      case 3:
         return provider.rejectedBookings;
       default:
         return provider.allBookings;
@@ -285,7 +301,7 @@ class _TkBookingScreenState extends State<TkBookingScreen> {
       color: AppColors.primary,
       onRefresh: () => context.read<TkBookingProvider>().loadBookings(),
       child: ListView.builder(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
         itemCount: bookings.length,
         itemBuilder: (context, index) {
           final booking = bookings[index];

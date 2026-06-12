@@ -105,7 +105,7 @@ class _TkNotificationsScreenState extends State<TkNotificationsScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Notifikasi booking dan pengingat akan muncul di sini',
+              'Notifikasi aktivitas, pembaruan, dan pengingat akan muncul di sini',
               style: AppTextStyles.labelMd.copyWith(color: const Color(0xFFCBD5E1)),
               textAlign: TextAlign.center,
             ),

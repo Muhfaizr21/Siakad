@@ -20,6 +20,12 @@ class TkDashboardProvider extends ChangeNotifier {
   int _bookingHariIniCount = 0;
   List<Map<String, dynamic>> _bookings = [];
   List<Map<String, dynamic>> _alerts = [];
+  List<Map<String, dynamic>> _activities = [];
+
+  // Chart Data
+  List<Map<String, dynamic>> _chartFakultas = [];
+  List<Map<String, dynamic>> _chartKondisi = [];
+  List<Map<String, dynamic>> _chartTren = [];
 
   // Getters
   bool get isLoading => _isLoading;
@@ -32,6 +38,11 @@ class TkDashboardProvider extends ChangeNotifier {
   int get bookingHariIniCount => _bookingHariIniCount;
   List<Map<String, dynamic>> get bookings => _bookings;
   List<Map<String, dynamic>> get alerts => _alerts;
+  List<Map<String, dynamic>> get activities => _activities;
+
+  List<Map<String, dynamic>> get chartFakultas => _chartFakultas;
+  List<Map<String, dynamic>> get chartKondisi => _chartKondisi;
+  List<Map<String, dynamic>> get chartTren => _chartTren;
 
   Future<void> loadDashboard() async {
     _isLoading = true;
@@ -57,6 +68,7 @@ class TkDashboardProvider extends ChangeNotifier {
 
       if (profileData != null) {
         _profile = profileData;
+        _isAvailable = profileData.isAktif;
       }
 
       // Parse dashboard data
@@ -64,8 +76,39 @@ class TkDashboardProvider extends ChangeNotifier {
       _belumScreening = dashboardData['belum_screening'] ?? 0;
       _perluPerhatian = dashboardData['perlu_perhatian'] ?? 0;
       _bookingHariIniCount = dashboardData['booking_hari_ini_count'] ?? 0;
-      _bookings = (dashboardData['bookings'] as List?)?.map((e) => e as Map<String, dynamic>).toList() ?? [];
-      _alerts = (dashboardData['alerts'] as List?)?.map((e) => e as Map<String, dynamic>).toList() ?? [];
+      _bookings =
+          (dashboardData['bookings'] as List?)
+              ?.map((e) => e as Map<String, dynamic>)
+              .toList() ??
+          [];
+      _alerts =
+          (dashboardData['alerts'] as List?)
+              ?.map((e) => e as Map<String, dynamic>)
+              .toList() ??
+          [];
+
+      if (dashboardData['chart_data'] != null) {
+        final cd = dashboardData['chart_data'] as Map<String, dynamic>;
+        _chartFakultas =
+            (cd['fakultas'] as List?)
+                ?.map((e) => e as Map<String, dynamic>)
+                .toList() ??
+            [];
+        _chartKondisi =
+            (cd['kondisi'] as List?)
+                ?.map((e) => e as Map<String, dynamic>)
+                .toList() ??
+            [];
+        _chartTren =
+            (cd['tren'] as List?)
+                ?.map((e) => e as Map<String, dynamic>)
+                .toList() ??
+            [];
+      } else {
+        _chartFakultas = [];
+        _chartKondisi = [];
+        _chartTren = [];
+      }
 
       _isLoading = false;
       notifyListeners();
@@ -78,7 +121,11 @@ class TkDashboardProvider extends ChangeNotifier {
 
   Future<void> refreshProfile() async {
     try {
-      _profile = await repository.getProfile();
+      final updatedProfile = await repository.getProfile();
+      if (updatedProfile != null) {
+        _profile = updatedProfile;
+        _isAvailable = updatedProfile.isAktif;
+      }
       notifyListeners();
     } catch (e) {
       debugPrint('Error refreshing profile: $e');
@@ -116,7 +163,11 @@ class TkDashboardProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> changePassword(String oldPass, String newPass, String confirmPass) async {
+  Future<bool> changePassword(
+    String oldPass,
+    String newPass,
+    String confirmPass,
+  ) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -131,6 +182,22 @@ class TkDashboardProvider extends ChangeNotifier {
       _error = e.toString();
       notifyListeners();
       return false;
+    }
+  }
+
+  Future<void> loadActivities() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      _activities = await repository.getActivities();
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _isLoading = false;
+      _error = e.toString();
+      notifyListeners();
     }
   }
 

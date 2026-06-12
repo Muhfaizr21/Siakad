@@ -21,13 +21,13 @@ class _TkSettingsScreenState extends State<TkSettingsScreen> {
   bool _notifReminder = true;
   bool _notifAlert = true;
 
-  // Activity log
-  final List<Map<String, String>> _activityLog = [
-    {'title': 'Login ke aplikasi', 'time': 'Hari ini, 08:00'},
-    {'title': 'Menerima booking - Andi Pratama', 'time': 'Kemarin, 14:30'},
-    {'title': 'Input screening - Budi Santoso', 'time': 'Kemarin, 11:20'},
-    {'title': 'Update jadwal pemeriksaan', 'time': '2 hari lalu, 16:00'},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<TkDashboardProvider>().loadActivities();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -161,7 +161,7 @@ class _TkSettingsScreenState extends State<TkSettingsScreen> {
                       // Aktivitas Section
                       _buildSectionHeader('Log Aktivitas'),
                       const SizedBox(height: 12),
-                      _buildActivityLogCard(),
+                      _buildActivityLogCard(provider),
                       const SizedBox(height: 24),
 
                       // App Info Section
@@ -181,7 +181,7 @@ class _TkSettingsScreenState extends State<TkSettingsScreen> {
                           title: 'Ketentuan Layanan',
                           subtitle: 'Baca syarat dan ketentuan',
                           color: AppColors.neutral500,
-                          onTap: () {},
+                          onTap: () => _showTermsSheet(),
                         ),
                       ]),
                       const SizedBox(height: 32),
@@ -450,7 +450,50 @@ class _TkSettingsScreenState extends State<TkSettingsScreen> {
     );
   }
 
-  Widget _buildActivityLogCard() {
+  Widget _buildActivityLogCard(TkDashboardProvider provider) {
+    final activities = provider.activities;
+
+    if (provider.isLoading && activities.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(20),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (activities.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(5),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            const Icon(
+              Icons.history_rounded,
+              size: 48,
+              color: AppColors.neutral300,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Belum ada aktivitas',
+              style: AppTextStyles.bodyMd.copyWith(color: AppColors.neutral500),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -465,9 +508,20 @@ class _TkSettingsScreenState extends State<TkSettingsScreen> {
       ),
       child: Column(
         children: [
-          ...List.generate(_activityLog.length, (index) {
-            final log = _activityLog[index];
-            final isLast = index == _activityLog.length - 1;
+          ...List.generate(activities.length, (index) {
+            final log = activities[index];
+            final isLast = index == activities.length - 1;
+
+            // Format datetime if available, fallback to basic text
+            String timeText = log['created_at'] ?? '';
+            if (timeText.isNotEmpty) {
+              try {
+                final dt = DateTime.parse(timeText).toLocal();
+                timeText =
+                    '${dt.day}/${dt.month}/${dt.year} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+              } catch (_) {}
+            }
+
             return Column(
               children: [
                 Padding(
@@ -493,18 +547,27 @@ class _TkSettingsScreenState extends State<TkSettingsScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              log['title'] ?? '',
+                              log['aktivitas'] ?? '',
                               style: AppTextStyles.bodySm.copyWith(
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              log['time'] ?? '',
+                              log['deskripsi'] ?? '',
                               style: AppTextStyles.labelSm.copyWith(
-                                color: AppColors.neutral400,
+                                color: AppColors.neutral500,
                               ),
                             ),
+                            if (timeText.isNotEmpty) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                timeText,
+                                style: AppTextStyles.labelSm.copyWith(
+                                  color: AppColors.neutral400,
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -1093,6 +1156,121 @@ class _TkSettingsScreenState extends State<TkSettingsScreen> {
                         ),
                       ),
                 ),
+          ),
+    );
+  }
+
+  void _showTermsSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder:
+          (context) => Container(
+            height: MediaQuery.of(context).size.height * 0.85,
+            padding: const EdgeInsets.only(
+              top: 24,
+              left: 24,
+              right: 24,
+              bottom: 0,
+            ),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.neutral300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Ketentuan Layanan',
+                      style: AppTextStyles.titleMd.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded),
+                      onPressed: () => Navigator.pop(context),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                const Divider(height: 1),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '1. Pendahuluan',
+                          style: AppTextStyles.bodyMd.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Selamat datang di aplikasi kami. Dengan menggunakan aplikasi ini, Anda menyetujui Ketentuan Layanan yang berlaku. Harap baca dengan cermat.',
+                          style: AppTextStyles.bodySm,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          '2. Penggunaan Layanan',
+                          style: AppTextStyles.bodyMd.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Anda bertanggung jawab atas segala aktivitas yang terjadi di bawah akun Anda. Aplikasi ini ditujukan untuk memfasilitasi layanan kesehatan dan informasi medis secara elektronik.',
+                          style: AppTextStyles.bodySm,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          '3. Privasi Data',
+                          style: AppTextStyles.bodyMd.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Kami sangat menghargai privasi data pasien Anda. Seluruh data rekam medis dilindungi melalui enkripsi, dan tidak akan disebarluaskan tanpa persetujuan pihak terkait.',
+                          style: AppTextStyles.bodySm,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          '4. Perubahan Layanan',
+                          style: AppTextStyles.bodyMd.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Kami berhak mengubah atau menghentikan layanan (atau bagian atau konten di dalamnya) tanpa pemberitahuan sewaktu-waktu.',
+                          style: AppTextStyles.bodySm,
+                        ),
+                        const SizedBox(height: 32),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
     );
   }

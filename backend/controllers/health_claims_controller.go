@@ -2,13 +2,16 @@ package controllers
 
 import (
 	"fmt"
+	"log"
+	"os"
 	"path/filepath"
 	"siakad-backend/config"
 	"siakad-backend/models"
-	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/jung-kurt/gofpdf"
 )
 
 // ========================
@@ -41,6 +44,25 @@ func mapClaimToFrontend(claim models.PengajuanAsuransi) fiber.Map {
 			},
 			"email_personal": claim.Mahasiswa.EmailPersonal,
 			"no_hp":          claim.Mahasiswa.NoHP,
+		}
+	}
+
+	// Dynamic PDF regeneration if missing on disk
+	if claim.Status == models.StatusAsuransiApprovedTK && claim.SuratPengantarURL != "" {
+		filePath := "." + claim.SuratPengantarURL
+		if _, err := os.Stat(filePath); os.IsNotExist(err) {
+			fullClaim := claim
+			if fullClaim.Mahasiswa.ID == 0 {
+				config.DB.Preload("Mahasiswa.Fakultas").Preload("Mahasiswa.ProgramStudi").First(&fullClaim, claim.ID)
+			}
+			nomorSurat := fullClaim.SuratPengantarURL
+			nomorSurat = strings.TrimPrefix(nomorSurat, "/uploads/surat/")
+			nomorSurat = strings.TrimSuffix(nomorSurat, ".pdf")
+
+			_, errGen := BuildSuratPengantarPDF(fullClaim, nomorSurat)
+			if errGen != nil {
+				log.Printf("[Asuransi] Gagal meregenerasi PDF surat pengantar: %v", errGen)
+			}
 		}
 	}
 
@@ -85,7 +107,8 @@ func GetInsuranceClaims(c *fiber.Ctx) error {
 		}
 		query = query.Where("mahasiswa_id = ?", mahasiswa.ID)
 	case "tenaga_kesehatan":
-		// TK bisa lihat semua (for review)
+		// TK bisa lihat semua yang belum direview atau yang sudah dia review sendiri
+		query = query.Where("status = ? OR reviewed_by = ?", models.StatusAsuransiPending, userID)
 	case "super_admin":
 		// Super admin bisa lihat semua
 	default:
@@ -270,6 +293,17 @@ func UpdateInsuranceClaimStatus(c *fiber.Ctx) error {
 		// Generate nomor surat
 		nomorSurat := fmt.Sprintf("XX/Direktorat-LK/%s/%d", "Klaim-Assurance", now.Year())
 		updates["surat_pengantar_url"] = "/uploads/surat/" + nomorSurat + ".pdf"
+
+		// Preload Mahasiswa data to generate the PDF
+		var fullClaim models.PengajuanAsuransi
+		if err := config.DB.Preload("Mahasiswa.Fakultas").Preload("Mahasiswa.ProgramStudi").First(&fullClaim, claimID).Error; err == nil {
+			_, errGen := BuildSuratPengantarPDF(fullClaim, nomorSurat)
+			if errGen != nil {
+				log.Printf("[Asuransi] Gagal generate PDF surat pengantar: %v", errGen)
+			}
+		} else {
+			log.Printf("[Asuransi] Gagal load fullClaim untuk PDF: %v", err)
+		}
 	}
 
 	if err := config.DB.Model(&claim).Updates(updates).Error; err != nil {
@@ -1009,7 +1043,7 @@ func GetClinicalReports(c *fiber.Ctx) error {
 // PDF EXPORT HELPERS (STUBS)
 // ========================
 
-// ExportSuratPengantarPDF - Generate Surat Pengantar Klaim PDF
+// ExportSuratPengantarPDF - Generate/Serve Surat Pengantar Klaim PDF
 func ExportSuratPengantarPDF(c *fiber.Ctx) error {
 	claimID := c.Params("id")
 
@@ -1018,20 +1052,36 @@ func ExportSuratPengantarPDF(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusNotFound, "Pengajuan tidak ditemukan")
 	}
 
-	// For now, return placeholder
-	return c.JSON(fiber.Map{
-		"status": "success",
-		"message": "PDF export for claim " + claimID + " - to be implemented with gofpdf",
-		"data": fiber.Map{
-			"nomor_surat": "XX/Direktorat-LK/Klaim-Assurance/" + strconv.Itoa(time.Now().Year()),
-			"tanggal":     time.Now().Format("02 January 2006"),
-			"mahasiswa":  claim.Mahasiswa.Nama,
-			"nim":         claim.Mahasiswa.NIM,
-			"prodi":       claim.Mahasiswa.ProgramStudi.Nama,
-			"jenis_provider": claim.JenisProvider,
-			"deskripsi":   claim.Deskripsi,
-		},
-	})
+	if claim.Status != models.StatusAsuransiApprovedTK {
+		return fiber.NewError(fiber.StatusBadRequest, "Surat pengantar hanya tersedia untuk pengajuan yang telah disetujui Tenaga Kesehatan")
+	}
+
+	// Generate nomor surat if not exists
+	if claim.SuratPengantarURL == "" {
+		now := time.Now()
+		nomorSurat := fmt.Sprintf("XX/Direktorat-LK/%s/%d", "Klaim-Assurance", now.Year())
+		claim.SuratPengantarURL = "/uploads/surat/" + nomorSurat + ".pdf"
+		config.DB.Model(&claim).Update("surat_pengantar_url", claim.SuratPengantarURL)
+	}
+
+	filePath := "." + claim.SuratPengantarURL
+	// Build/regenerate if file doesn't exist
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		nomorSurat := claim.SuratPengantarURL
+		nomorSurat = strings.TrimPrefix(nomorSurat, "/uploads/surat/")
+		nomorSurat = strings.TrimSuffix(nomorSurat, ".pdf")
+
+		var errGen error
+		filePath, errGen = BuildSuratPengantarPDF(claim, nomorSurat)
+		if errGen != nil {
+			return fiber.NewError(fiber.StatusInternalServerError, "Gagal membuat PDF surat pengantar: "+errGen.Error())
+		}
+	}
+
+	// Set header for file download
+	c.Set("Content-Type", "application/pdf")
+	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=surat_pengantar_klaim_%s.pdf", claimID))
+	return c.SendFile(filePath)
 }
 
 // ExportBAPPDF - Generate BAP PDF
@@ -1080,4 +1130,110 @@ func ExportRujukanPDF(c *fiber.Ctx) error {
 			"tanggal": time.Now().Format("02 January 2006"),
 		},
 	})
+}
+
+func BuildSuratPengantarPDF(claim models.PengajuanAsuransi, nomorSurat string) (string, error) {
+	pdf := gofpdf.New("L", "mm", "A4", "")
+	pdf.SetMargins(25, 45, 25)
+	pdf.SetAutoPageBreak(false, 0)
+	pdf.AliasNbPages("")
+
+	pdf.SetHeaderFunc(func() {
+		pdf.Image("assets/kop_rektorat_landscape.jpeg", 0, 0, 297, 210, false, "JPEG", 0, "")
+	})
+
+	pdf.AddPage()
+
+	// Title
+	pdf.SetFont("Helvetica", "B", 13)
+	pdf.SetTextColor(15, 23, 42) // Slate 900
+	pdf.CellFormat(0, 6, "SURAT PENGANTAR KLAIM ASURANSI", "", 1, "C", false, 0, "")
+	pdf.SetFont("Helvetica", "", 9.5)
+	pdf.SetTextColor(100, 116, 139) // Slate 500
+	refNum := fmt.Sprintf("Nomor: %s", nomorSurat)
+	pdf.CellFormat(0, 5, refNum, "", 1, "C", false, 0, "")
+	pdf.Ln(4)
+
+	// Content
+	pdf.SetFont("Helvetica", "", 10)
+	pdf.SetTextColor(15, 23, 42)
+	pdf.MultiCell(0, 5, "Yang bertanda tangan di bawah ini, Direktorat Kemahasiswaan Universitas Bhakti Kencana menerangkan bahwa mahasiswa berikut ini mengajukan klaim asuransi kesehatan:", "", "L", false)
+	pdf.Ln(4)
+
+	// Student Profile Table Grid (2 Columns)
+	col1 := [][]string{
+		{"Nama Mahasiswa", claim.Mahasiswa.Nama},
+		{"NIM", claim.Mahasiswa.NIM},
+		{"Program Studi", claim.Mahasiswa.ProgramStudi.Nama},
+		{"Fakultas", claim.Mahasiswa.Fakultas.Nama},
+	}
+
+	col2 := [][]string{
+		{"Jenis Provider", claim.JenisProvider},
+		{"Tanggal Kejadian", claim.TanggalKejadian.Format("02 January 2006")},
+		{"Fasilitas Kesehatan", claim.LokasiFaskes},
+		{"Estimasi Biaya", fmt.Sprintf("Rp %.0f", claim.EstimasiBiaya)},
+	}
+
+	yStartTable := pdf.GetY()
+	for i := 0; i < 4; i++ {
+		// Draw Column 1
+		pdf.SetXY(25, yStartTable + float64(i)*5)
+		pdf.SetFont("Helvetica", "B", 9)
+		pdf.CellFormat(35, 5, col1[i][0], "", 0, "L", false, 0, "")
+		pdf.SetFont("Helvetica", "", 9)
+		pdf.CellFormat(5, 5, ":", "", 0, "C", false, 0, "")
+		pdf.CellFormat(80, 5, col1[i][1], "", 0, "L", false, 0, "")
+
+		// Draw Column 2
+		pdf.SetXY(150, yStartTable + float64(i)*5)
+		pdf.SetFont("Helvetica", "B", 9)
+		pdf.CellFormat(35, 5, col2[i][0], "", 0, "L", false, 0, "")
+		pdf.SetFont("Helvetica", "", 9)
+		pdf.CellFormat(5, 5, ":", "", 0, "C", false, 0, "")
+		pdf.CellFormat(80, 5, col2[i][1], "", 0, "L", false, 0, "")
+	}
+	pdf.SetY(yStartTable + 20)
+	pdf.Ln(4)
+
+	pdf.SetFont("Helvetica", "B", 9.5)
+	pdf.Cell(0, 5, "Deskripsi Kronologis Kejadian:")
+	pdf.Ln(6)
+
+	pdf.SetFont("Helvetica", "", 9)
+	pdf.MultiCell(0, 4.5, claim.Deskripsi, "", "L", false)
+	pdf.Ln(6)
+
+	pdf.SetFont("Helvetica", "", 10)
+	pdf.MultiCell(0, 5, "Demikian surat pengantar ini dibuat agar dapat dipergunakan sebagaimana mestinya untuk proses klaim ke provider asuransi yang bersangkutan.", "", "L", false)
+
+	// Signature Block (Fixed at the bottom of Page 1)
+	sigY := 142.0
+	pdf.SetFont("Helvetica", "", 9)
+	pdf.SetXY(180, sigY)
+	pdf.Cell(0, 5, fmt.Sprintf("Bandung, %s", time.Now().Format("02 January 2006")))
+	pdf.SetXY(180, sigY+5)
+	pdf.Cell(0, 5, "Mengetahui,")
+	pdf.SetXY(180, sigY+10)
+	pdf.Cell(0, 5, "Direktur Kemahasiswaan BKU")
+
+	// Signature space (increased to 30mm space)
+	pdf.SetXY(180, sigY+40)
+	pdf.SetFont("Helvetica", "BU", 9.5)
+	pdf.Cell(0, 5, "Bagian Pelayanan Kesehatan BKU")
+
+	dirPath := filepath.Dir("uploads/surat/" + nomorSurat + ".pdf")
+	if err := os.MkdirAll(dirPath, 0755); err != nil {
+		return "", err
+	}
+
+	filePath := "uploads/surat/" + nomorSurat + ".pdf"
+	// Delete existing file first if it exists to overwrite cleanly
+	_ = os.Remove(filePath)
+
+	if err := pdf.OutputFileAndClose(filePath); err != nil {
+		return "", err
+	}
+
+	return filePath, nil
 }
