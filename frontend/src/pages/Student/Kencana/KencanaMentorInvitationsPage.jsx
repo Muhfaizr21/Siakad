@@ -3,18 +3,20 @@ import { createPortal } from 'react-dom';
 import { 
   useKencanaMentorInvitationsQuery, 
   useRespondMentorInvitationMutation,
-  useRespondGroupInvitationMutation 
+  useRespondGroupInvitationMutation,
+  useKencanaDashboardQuery
 } from '../../../queries/useKencanaQuery';
 import { ErrorPanel, KencanaShell, LoadingPanel, StatusBadge } from './components';
 
 export default function KencanaMentorInvitationsPage() {
   const { data, isLoading, isError } = useKencanaMentorInvitationsQuery();
+  const { data: dashboardData } = useKencanaDashboardQuery();
   const respondMentor = useRespondMentorInvitationMutation();
   const respondGroup = useRespondGroupInvitationMutation();
   const [message, setMessage] = useState('');
 
-  if (isLoading) return <KencanaShell title="Undangan Dewan Pembimbing" breadcrumbs={[{ label: 'Undangan Pembimbing' }]}><LoadingPanel /></KencanaShell>;
-  if (isError) return <KencanaShell title="Undangan Dewan Pembimbing" breadcrumbs={[{ label: 'Undangan Pembimbing' }]}><ErrorPanel message="Gagal memuat undangan pembimbing." /></KencanaShell>;
+  if (isLoading) return <KencanaShell title="Undangan" highlightedTitle="Kencana" breadcrumbs={[{ label: 'Undangan Pembimbing' }]}><LoadingPanel /></KencanaShell>;
+  if (isError) return <KencanaShell title="Undangan" highlightedTitle="Kencana" breadcrumbs={[{ label: 'Undangan Pembimbing' }]}><ErrorPanel message="Gagal memuat undangan pembimbing." /></KencanaShell>;
 
   const invitations = data?.invitations || [];
   const groupInvitations = data?.group_invitations || [];
@@ -51,16 +53,38 @@ export default function KencanaMentorInvitationsPage() {
   };
 
   return (
-    <KencanaShell title="Undangan Dewan Pembimbing" subtitle="Konfirmasi undangan sebelum bergabung dengan kelompok atau Dewan Pembimbing aktif." breadcrumbs={[{ label: 'Undangan Pembimbing' }]}>
+    <KencanaShell 
+      title="Undangan" 
+      highlightedTitle="Kencana"
+      subtitle="Konfirmasi undangan sebelum bergabung dengan kelompok atau Dewan Pembimbing aktif." 
+      breadcrumbs={[{ label: 'Undangan Pembimbing' }]}
+      badges={[
+        { label: dashboardData?.period?.name || 'Kencana', active: false },
+        { label: `Status: ${dashboardData?.graduation_status?.replaceAll('_', ' ') || 'Belum Mulai'}`, active: true }
+      ]}
+      actions={
+        <div className="flex items-center gap-6 bg-[var(--theme-surface)] p-4 md:p-6 rounded-2xl border border-[var(--theme-border-muted)] shadow-sm">
+          <div className="flex flex-col text-right">
+            <span className="text-[11px] font-bold text-[var(--theme-text-muted)] tracking-wide mb-1 uppercase">Nilai Kencana</span>
+            <span className="text-3xl font-bold text-[var(--theme-text)] font-headline tracking-tight tabular-nums leading-none">
+              {Number(dashboardData?.temporary_final_score || 0).toFixed(1)}
+            </span>
+          </div>
+          <div className="size-14 rounded-2xl bg-[var(--theme-primary)] flex items-center justify-center text-white shadow-md border-none">
+            <span className="material-symbols-outlined animate-pulse" style={{ fontSize: '28px' }} strokeWidth={2.5}>grade</span>
+          </div>
+        </div>
+      }
+    >
       {activeMentor && (
-        <section className="rounded-[2rem] border border-emerald-200 bg-emerald-50 p-6 text-emerald-900">
-          <p className="text-xs font-black uppercase tracking-[0.24em]">Dewan Pembimbing Aktif (1-on-1 Lama)</p>
-          <h2 className="mt-2 text-2xl font-black">{activeMentor.name}</h2>
-          <p className="mt-1 text-sm font-bold">{activeMentor.email || '-'} {activeMentor.phone ? `- ${activeMentor.phone}` : ''}</p>
+        <section className="rounded-2xl border border-[var(--theme-success)]/20 bg-[var(--theme-success)]/10 p-6 text-[var(--theme-success)] mb-6 shadow-sm">
+          <p className="text-[10px] font-black uppercase tracking-widest opacity-80">Dewan Pembimbing Aktif (1-on-1 Lama)</p>
+          <h2 className="mt-2 text-2xl font-bold font-headline">{activeMentor.name}</h2>
+          <p className="mt-1 text-sm font-semibold">{activeMentor.email || '-'} {activeMentor.phone ? `- ${activeMentor.phone}` : ''}</p>
         </section>
       )}
 
-      {message && <p className="rounded-2xl bg-[#f7f1e5] p-4 text-sm font-black text-[#1d1b16]">{message}</p>}
+      {message && <p className="rounded-2xl bg-[var(--theme-warning)]/10 border border-[var(--theme-warning)]/20 p-4 mb-6 text-sm font-bold text-[var(--theme-warning)] shadow-sm">{message}</p>}
 
       <GroupInvitationSection 
         title="Undangan Kelompok DP Kencana Universitas" 
@@ -101,7 +125,10 @@ export default function KencanaMentorInvitationsPage() {
       )}
 
       {(!invitationList.length && !groupList.length) && (
-        <p className="rounded-[2rem] border border-border bg-white/85 p-8 text-center text-sm font-bold text-[#756b5a]">Belum ada undangan Dewan Pembimbing.</p>
+        <div className="text-center py-12 rounded-2xl border-2 border-dashed border-border bg-[var(--theme-surface)]/50">
+          <span className="material-symbols-outlined text-4xl text-[var(--theme-text-subtle)] mb-3">inbox</span>
+          <p className="text-[var(--theme-text-subtle)] font-bold font-headline">Belum ada undangan Dewan Pembimbing.</p>
+        </div>
       )}
     </KencanaShell>
   );
@@ -115,43 +142,43 @@ function GroupDetailModal({ isOpen, onClose, group }) {
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-2xl rounded-2xl bg-[#fdfcf9] p-8 shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#0f4c5c] to-emerald-500"></div>
-        <button onClick={onClose} className="absolute right-6 top-6 text-[#9b8f7a] hover:text-[#1d1b16]">
+      <div className="w-full max-w-2xl rounded-3xl bg-[var(--theme-surface)] p-8 shadow-2xl relative overflow-hidden border border-[var(--theme-border-muted)]">
+        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[var(--theme-primary)] to-[var(--theme-info)]"></div>
+        <button onClick={onClose} className="absolute right-6 top-6 text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] transition-colors">
           <span className="material-symbols-rounded">close</span>
         </button>
 
-        <h2 className="text-2xl font-black text-[#1d1b16]">Detail Kelompok</h2>
-        <p className="text-sm font-semibold text-[#756b5a] mt-1">{group.name || group.Name || '-'}</p>
+        <h2 className="text-2xl font-bold font-headline text-[var(--theme-text)]">Detail Kelompok</h2>
+        <p className="text-sm font-medium text-[var(--theme-text-muted)] mt-1">{group.name || group.Name || '-'}</p>
 
         <div className="mt-6 grid gap-6 md:grid-cols-2">
-          <div className="rounded-2xl border border-border bg-surface p-5">
-            <p className="text-xs font-black uppercase tracking-[0.24em] text-[#9b8f7a]">Dewan Pembimbing</p>
-            <p className="mt-2 text-lg font-bold text-[#1d1b16]">{mentor.name || mentor.Name || '-'}</p>
-            <p className="text-sm text-[#756b5a]">{mentor.email || mentor.Email || '-'}</p>
+          <div className="rounded-2xl border border-[var(--theme-border-muted)] bg-[var(--theme-bg)] p-5">
+            <p className="text-[10px] font-black uppercase tracking-widest text-[var(--theme-text-muted)]">Dewan Pembimbing</p>
+            <p className="mt-2 text-lg font-bold font-headline text-[var(--theme-text)]">{mentor.name || mentor.Name || '-'}</p>
+            <p className="text-sm font-medium text-[var(--theme-text-muted)]">{mentor.email || mentor.Email || '-'}</p>
           </div>
 
-          <div className="rounded-2xl border border-border bg-surface p-5">
-            <p className="text-xs font-black uppercase tracking-[0.24em] text-[#9b8f7a]">Informasi Grup</p>
-            <p className="mt-2 text-sm font-bold text-[#1d1b16]">Kode: {group.code || group.Code || '-'}</p>
-            <p className="mt-1 text-sm font-bold text-[#1d1b16]">Lingkup: {(group.scope_type || group.ScopeType) === 'faculty' ? 'Fakultas' : 'Universitas'}</p>
-            <p className="mt-1 text-sm font-bold text-[#1d1b16]">Jumlah Anggota: {members.length}</p>
+          <div className="rounded-2xl border border-[var(--theme-border-muted)] bg-[var(--theme-bg)] p-5">
+            <p className="text-[10px] font-black uppercase tracking-widest text-[var(--theme-text-muted)]">Informasi Grup</p>
+            <p className="mt-2 text-sm font-bold text-[var(--theme-text)]">Kode: {group.code || group.Code || '-'}</p>
+            <p className="mt-1 text-sm font-bold text-[var(--theme-text)]">Lingkup: {(group.scope_type || group.ScopeType) === 'faculty' ? 'Fakultas' : 'Universitas'}</p>
+            <p className="mt-1 text-sm font-bold text-[var(--theme-text)]">Jumlah Anggota: {members.length}</p>
           </div>
         </div>
 
         <div className="mt-6">
-          <p className="text-xs font-black uppercase tracking-[0.24em] text-[#9b8f7a] mb-3">Daftar Anggota Saat Ini</p>
-          <div className="max-h-48 overflow-y-auto rounded-2xl border border-border bg-white">
+          <p className="text-[10px] font-black uppercase tracking-widest text-[var(--theme-text-muted)] mb-3">Daftar Anggota Saat Ini</p>
+          <div className="max-h-48 overflow-y-auto rounded-2xl border border-[var(--theme-border-muted)] bg-[var(--theme-bg)]">
             {members.length > 0 ? (
-              <ul className="divide-y divide-[#e8dfcf]">
+              <ul className="divide-y divide-[var(--theme-border-muted)]">
                 {members.map((m, idx) => {
                   const student = m.student || m.Student || {};
                   return (
-                    <li key={idx} className="p-3 text-sm flex items-center justify-between">
-                      <span className="font-bold text-[#1d1b16]">{student.nama || student.Nama || `Mahasiswa ${m.student_id}`}</span>
-                      <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-md ${
-                        (m.status || m.Status) === 'active' ? 'bg-emerald-100 text-emerald-800' :
-                        (m.status || m.Status) === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'
+                    <li key={idx} className="p-4 text-sm flex items-center justify-between hover:bg-[var(--theme-surface)] transition-colors">
+                      <span className="font-bold text-[var(--theme-text)]">{student.nama || student.Nama || `Mahasiswa ${m.student_id}`}</span>
+                      <span className={`text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-lg ${
+                        (m.status || m.Status) === 'active' ? 'bg-[var(--theme-success)]/10 text-[var(--theme-success)]' :
+                        (m.status || m.Status) === 'pending' ? 'bg-[var(--theme-warning)]/10 text-[var(--theme-warning)]' : 'bg-[var(--theme-error)]/10 text-[var(--theme-error)]'
                       }`}>
                         {m.status || m.Status}
                       </span>
@@ -160,13 +187,13 @@ function GroupDetailModal({ isOpen, onClose, group }) {
                 })}
               </ul>
             ) : (
-              <p className="p-4 text-center text-sm text-[#756b5a] font-medium">Belum ada anggota.</p>
+              <p className="p-6 text-center text-sm text-[var(--theme-text-subtle)] font-medium">Belum ada anggota.</p>
             )}
           </div>
         </div>
 
         <div className="mt-8 flex justify-end">
-          <button onClick={onClose} className="rounded-xl border border-[#d8c9ad] bg-white px-5 py-2.5 text-sm font-black text-[#1d1b16] hover:bg-[#f7f1e5]">
+          <button onClick={onClose} className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] px-6 py-2.5 text-sm font-bold text-[var(--theme-text)] hover:bg-[var(--theme-bg)] transition-colors">
             Tutup
           </button>
         </div>
@@ -181,10 +208,15 @@ function GroupInvitationSection({ title, description, items, hasActive, respond,
 
   if (!items.length) return null; // Only render if there are items to prevent clutter
   return (
-    <section className="rounded-[2rem] border border-border bg-white/60 p-5">
-      <div className="mb-4">
-        <h2 className="text-xl font-black text-[#1d1b16]">{title}</h2>
-        <p className="mt-1 text-sm font-semibold text-[#756b5a]">{description}</p>
+    <section className="glass-card p-6 mb-6 group hover:shadow-md transition-all duration-300">
+      <div className="flex items-center gap-4 mb-6">
+        <div className="w-12 h-12 bg-indigo-50/80 rounded-xl flex justify-center items-center text-indigo-600 group-hover:scale-110 transition-all duration-300">
+          <span className="material-symbols-outlined text-[24px]">groups</span>
+        </div>
+        <div>
+          <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest block mb-0.5">{description}</span>
+          <h3 className="text-sm font-bold text-[var(--theme-text)] leading-tight">{title}</h3>
+        </div>
       </div>
       <div className="grid gap-4">
         {items.map((inv) => {
@@ -193,27 +225,32 @@ function GroupInvitationSection({ title, description, items, hasActive, respond,
           const status = inv.status || inv.Status;
           
           return (
-            <article key={inv.id || inv.ID} className="rounded-[2rem] border border-border bg-white/90 p-6 shadow-sm">
+            <article key={inv.id || inv.ID} className="rounded-2xl border border-[var(--theme-border-muted)] bg-[var(--theme-surface)] p-6 shadow-sm hover:shadow-md transition-all duration-300">
               <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                 <div>
-                  <p className="text-xs font-black uppercase tracking-[0.24em] text-[#9b8f7a]">Undangan Kelompok</p>
-                  <h3 className="mt-2 text-2xl font-black text-[#1d1b16]">{group.name || group.Name || 'Kelompok'}</h3>
-                  <p className="mt-1 text-sm font-bold text-[#756b5a]">Kode: {group.code || group.Code || '-'}</p>
-                  <div className="mt-3 p-3 bg-[#f7f1e5] rounded-xl border border-[#d8c9ad]/30">
-                    <p className="text-[10px] font-black uppercase tracking-wider text-[#9b8f7a]">Dewan Pembimbing</p>
-                    <p className="font-bold text-[#1d1b16]">{mentor.name || mentor.Name || '-'}</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-[var(--theme-text-muted)]">Undangan Kelompok</p>
+                  <h3 className="mt-1 text-xl font-bold font-headline text-[var(--theme-text)]">{group.name || group.Name || 'Kelompok'}</h3>
+                  <p className="mt-1 text-xs font-semibold text-[var(--theme-text-muted)]">Kode: {group.code || group.Code || '-'}</p>
+                  <div className="mt-4 p-4 bg-[var(--theme-bg)] rounded-xl border border-[var(--theme-border-muted)] flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-[var(--theme-primary)]/10 text-[var(--theme-primary)] flex items-center justify-center">
+                      <span className="material-symbols-outlined text-[20px]">person</span>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-[var(--theme-text-muted)]">Dewan Pembimbing</p>
+                      <p className="font-bold text-[var(--theme-text)] text-sm">{mentor.name || mentor.Name || '-'}</p>
+                    </div>
                   </div>
-                  <button onClick={() => setSelectedGroup(group)} className="mt-4 text-sm font-bold text-[#0f4c5c] hover:underline flex items-center gap-1">
-                    <span className="material-symbols-rounded text-[18px]">info</span>
+                  <button onClick={() => setSelectedGroup(group)} className="mt-4 text-xs font-bold text-[var(--theme-primary)] hover:text-[var(--theme-primary-hover)] transition-colors flex items-center gap-1">
+                    <span className="material-symbols-rounded text-[16px]">info</span>
                     Lihat Detail Kelompok
                   </button>
                 </div>
                 <StatusBadge status={status} />
               </div>
               {status === 'pending' && (
-                <div className="mt-5 flex flex-wrap gap-3">
-                  <button onClick={() => handleRespond(inv.id || inv.ID, 'accept')} disabled={respond.isPending || hasActive} className="rounded-2xl bg-[#0f4c5c] px-5 py-3 text-sm font-black text-white disabled:bg-slate-300">Terima Undangan</button>
-                  <button onClick={() => handleRespond(inv.id || inv.ID, 'reject')} disabled={respond.isPending} className="rounded-2xl border border-[#d8c9ad] px-5 py-3 text-sm font-black text-[#1d1b16] disabled:opacity-50">Tolak</button>
+                <div className="mt-6 flex flex-wrap gap-3 pt-4 border-t border-[var(--theme-border-muted)]">
+                  <button onClick={() => handleRespond(inv.id || inv.ID, 'accept')} disabled={respond.isPending || hasActive} className="rounded-xl bg-[var(--theme-primary)] px-6 py-2.5 text-sm font-bold text-white hover:bg-[var(--theme-primary-hover)] transition-colors shadow-sm disabled:opacity-50">Terima Undangan</button>
+                  <button onClick={() => handleRespond(inv.id || inv.ID, 'reject')} disabled={respond.isPending} className="rounded-xl border border-[var(--theme-border-muted)] bg-[var(--theme-surface)] px-6 py-2.5 text-sm font-bold text-[var(--theme-text)] hover:bg-[var(--theme-bg)] transition-colors disabled:opacity-50">Tolak</button>
                 </div>
               )}
             </article>
@@ -233,30 +270,42 @@ function GroupInvitationSection({ title, description, items, hasActive, respond,
 function InvitationSection({ title, description, items, activeMentor, respond, handleRespond }) {
   if (!items.length) return null;
   return (
-    <section className="rounded-[2rem] border border-border bg-white/60 p-5">
-      <div className="mb-4">
-        <h2 className="text-xl font-black text-[#1d1b16]">{title}</h2>
-        <p className="mt-1 text-sm font-semibold text-[#756b5a]">{description}</p>
+    <section className="glass-card p-6 mb-6 group hover:shadow-md transition-all duration-300">
+      <div className="flex items-center gap-4 mb-6">
+        <div className="w-12 h-12 bg-amber-50/80 rounded-xl flex justify-center items-center text-amber-600 group-hover:scale-110 transition-all duration-300">
+          <span className="material-symbols-outlined text-[24px]">person_add</span>
+        </div>
+        <div>
+          <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest block mb-0.5">{description}</span>
+          <h3 className="text-sm font-bold text-[var(--theme-text)] leading-tight">{title}</h3>
+        </div>
       </div>
       <div className="grid gap-4">
         {items.map((inv) => {
           const mentor = inv.mentor || inv.Mentor || {};
           const status = inv.status || inv.Status;
           return (
-            <article key={inv.id || inv.ID} className="rounded-[2rem] border border-border bg-white/90 p-6 shadow-sm">
+            <article key={inv.id || inv.ID} className="rounded-2xl border border-[var(--theme-border-muted)] bg-[var(--theme-surface)] p-6 shadow-sm hover:shadow-md transition-all duration-300">
               <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                <div>
-                  <p className="text-xs font-black uppercase tracking-[0.24em] text-[#9b8f7a]">Undangan Pembimbing</p>
-                  <h3 className="mt-2 text-2xl font-black text-[#1d1b16]">{mentor.name || mentor.Name || 'Dewan Pembimbing'}</h3>
-                  <p className="mt-1 text-sm font-bold text-[#756b5a]">{mentor.email || mentor.Email || '-'}</p>
-                  <p className="mt-1 text-sm font-semibold text-[#756b5a]">Scope: {mentor.scope_type || mentor.ScopeType || '-'}</p>
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-full bg-[var(--theme-primary)]/10 text-[var(--theme-primary)] flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-[24px]">person</span>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-[var(--theme-text-muted)]">Undangan Pembimbing (1-on-1)</p>
+                    <h3 className="mt-1 text-xl font-bold font-headline text-[var(--theme-text)]">{mentor.name || mentor.Name || 'Dewan Pembimbing'}</h3>
+                    <p className="mt-1 text-sm font-medium text-[var(--theme-text-muted)] flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">mail</span> {mentor.email || mentor.Email || '-'}</p>
+                    <span className="inline-block mt-2 px-2 py-1 bg-[var(--theme-bg)] border border-[var(--theme-border-muted)] rounded-lg text-[10px] font-bold text-[var(--theme-text-muted)] tracking-widest uppercase">
+                      Scope: {mentor.scope_type || mentor.ScopeType || '-'}
+                    </span>
+                  </div>
                 </div>
                 <StatusBadge status={status} />
               </div>
               {status === 'pending' && (
-                <div className="mt-5 flex flex-wrap gap-3">
-                  <button onClick={() => handleRespond(inv.id || inv.ID, 'accept')} disabled={respond.isPending || !!activeMentor} className="rounded-2xl bg-[#0f4c5c] px-5 py-3 text-sm font-black text-white disabled:bg-slate-300">Terima Undangan</button>
-                  <button onClick={() => handleRespond(inv.id || inv.ID, 'reject')} disabled={respond.isPending} className="rounded-2xl border border-[#d8c9ad] px-5 py-3 text-sm font-black text-[#1d1b16] disabled:opacity-50">Tolak</button>
+                <div className="mt-6 flex flex-wrap gap-3 pt-4 border-t border-[var(--theme-border-muted)]">
+                  <button onClick={() => handleRespond(inv.id || inv.ID, 'accept')} disabled={respond.isPending || !!activeMentor} className="rounded-xl bg-[var(--theme-primary)] px-6 py-2.5 text-sm font-bold text-white hover:bg-[var(--theme-primary-hover)] transition-colors shadow-sm disabled:opacity-50">Terima Undangan</button>
+                  <button onClick={() => handleRespond(inv.id || inv.ID, 'reject')} disabled={respond.isPending} className="rounded-xl border border-[var(--theme-border-muted)] bg-[var(--theme-surface)] px-6 py-2.5 text-sm font-bold text-[var(--theme-text)] hover:bg-[var(--theme-bg)] transition-colors disabled:opacity-50">Tolak</button>
                 </div>
               )}
             </article>

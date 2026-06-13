@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -7,8 +7,17 @@ import api from '../../../lib/axios';
 import { toast } from 'react-hot-toast';
 
 
-import Input from '@/components/ui/Input';
-import { Label } from '@/components/ui/Label';
+import { cn } from '@/lib/utils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/AlertDialog';
 import { Textarea } from '@/components/ui/Textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
 
@@ -22,6 +31,19 @@ const User = ({ size, className, ...props }) => <span className={`material-symbo
 const Phone = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>phone</span>;
 
 
+
+const FIELD_CLASS = 'w-full rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg)] px-4 py-3 text-sm font-semibold text-[var(--theme-text)] outline-none transition-all focus:border-[var(--theme-primary)] focus:bg-[var(--theme-surface)] focus:ring-4 focus:ring-[var(--theme-primary-light)] placeholder-[var(--theme-text-subtle)]';
+
+const Label = ({ children, icon: Icon, ...props }) => (
+  <span className="mb-2 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-[var(--theme-text-muted)]" {...props}>
+    {Icon && <Icon size={13} className="text-[var(--theme-text-subtle)]" />}
+    {children}
+  </span>
+);
+
+const Input = React.forwardRef(({ className, type, ...props }, ref) => (
+  <input type={type} className={cn(FIELD_CLASS, className)} ref={ref} {...props} />
+));
 
 const schema = z.object({
   // Pribadi
@@ -55,6 +77,8 @@ const schema = z.object({
 
 export default function DataDiriTab({ profile }) {
   const queryClient = useQueryClient();
+  const [confirmDataOpen, setConfirmDataOpen] = useState(false);
+  const [pendingData, setPendingData] = useState(null);
 
   const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm({
     resolver: zodResolver(schema),
@@ -111,7 +135,10 @@ export default function DataDiriTab({ profile }) {
   return (
     <form
       onSubmit={handleSubmit(
-        (data) => mutation.mutate(data),
+        (data) => {
+          setPendingData(data);
+          setConfirmDataOpen(true);
+        },
         (errs) => {
           const flatErrors = Object.keys(errs).reduce((acc, k) => ({ ...acc, [k]: errs[k].message }), {});
           console.error('Validation errors:', JSON.stringify(flatErrors, null, 2));
@@ -128,15 +155,13 @@ export default function DataDiriTab({ profile }) {
           }
         }
       )}
-      className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden"
+      className="space-y-8 p-5 lg:p-5"
     >
-      
       {/* SEKSI: PRIBADI */}
-      <div className="p-6 md:p-8 border-b border-[var(--theme-border-muted)]">
-        <h3 className="text-lg font-bold font-headline mb-5 flex items-center gap-2 text-[var(--theme-primary)]">
-           <User size={18} /> Data Pribadi
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+      <div className="border-b border-[var(--theme-border-muted)] pb-6">
+        <h2 className="text-sm font-black font-headline uppercase tracking-widest mb-1" style={{ color: 'var(--theme-h2)' }}>Data Pribadi</h2>
+        <p className="text-xs font-semibold leading-relaxed text-[var(--theme-text-muted)] mb-6">Identitas dasar yang terdaftar dalam sistem akademik.</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
           <div className="space-y-2">
             <Label>NIK KTP</Label>
             <Input {...register('nik')} placeholder="16 Digit NIK" maxLength={16} />
@@ -220,11 +245,10 @@ export default function DataDiriTab({ profile }) {
       </div>
 
       {/* SEKSI: KONTAK */}
-      <div className="p-6 md:p-8 border-b border-[var(--theme-border-muted)] bg-background">
-        <h3 className="text-lg font-bold font-headline mb-5 flex items-center gap-2 text-[var(--theme-primary)]">
-           <Phone size={18} /> Kontak Katut & Domisili
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+      <div className="border-b border-[var(--theme-border-muted)] pb-6">
+        <h2 className="text-sm font-black font-headline uppercase tracking-widest mb-1" style={{ color: 'var(--theme-h2)' }}>Kontak & Domisili</h2>
+        <p className="text-xs font-semibold leading-relaxed text-[var(--theme-text-muted)] mb-6">Informasi untuk komunikasi dan pengiriman dokumen.</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
            <div className="space-y-2">
             <Label>Email Personal Aktif</Label>
             <Input {...register('email')} placeholder="email@contoh.com" />
@@ -255,11 +279,10 @@ export default function DataDiriTab({ profile }) {
       </div>
 
       {/* SEKSI: KELUARGA */}
-      <div className="p-6 md:p-8 border-b border-[var(--theme-border-muted)]">
-        <h3 className="text-lg font-bold font-headline mb-5 flex items-center gap-2 text-[#0B4FAE]">
-           <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >group</span> Data Keluarga / Orang Tua
-        </h3>
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+      <div className="border-b border-[var(--theme-border-muted)] pb-6">
+        <h2 className="text-sm font-black font-headline uppercase tracking-widest mb-1" style={{ color: 'var(--theme-h2)' }}>Data Keluarga</h2>
+        <p className="text-xs font-semibold leading-relaxed text-[var(--theme-text-muted)] mb-6">Informasi orang tua / wali untuk keperluan administrasi.</p>
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
            <div className="space-y-2">
             <Label>Nama Lengkap Ayah Kandung</Label>
             <Input {...register('nama_ayah')} />
@@ -286,11 +309,10 @@ export default function DataDiriTab({ profile }) {
       </div>
 
        {/* SEKSI: PENDIDIKAN */}
-      <div className="p-6 md:p-8 bg-background">
-        <h3 className="text-lg font-bold font-headline mb-5 flex items-center gap-2 text-[#0B4FAE]">
-           <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >school</span> Pendidikan Terakhir
-        </h3>
-        <div className="grid grid-cols-1 gap-x-8 gap-y-6">
+      <div className="pb-6">
+        <h2 className="text-sm font-black font-headline uppercase tracking-widest mb-1" style={{ color: 'var(--theme-h2)' }}>Pendidikan Terakhir</h2>
+        <p className="text-xs font-semibold leading-relaxed text-[var(--theme-text-muted)] mb-6">Riwayat asal sekolah menengah.</p>
+        <div className="grid grid-cols-1 gap-x-6 gap-y-5">
           <div className="space-y-2">
             <Label>Asal Sekolah (SMA / SMK / Sederajat)</Label>
             <Input {...register('asal_sekolah')} placeholder="SMA Negeri 1 ..." />
@@ -299,22 +321,22 @@ export default function DataDiriTab({ profile }) {
       </div>
 
       {/* AKSI */}
-      <div className="p-6 md:px-8 md:py-6 flex flex-col sm:flex-row gap-4 border-t border-[var(--theme-border-muted)]">
-        <button 
-          type="submit" 
-          disabled={mutation.isPending}
-          className="flex-1 bg-[var(--theme-primary)] text-white py-3.5 px-8 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[var(--theme-primary-hover)] transition-all shadow-md shadow-bku-primary/20 disabled:opacity-50"
-        >
-          {mutation.isPending ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >save</span>}
-          Simpan Seluruh Perubahan
-        </button>
+      <div className="flex flex-col gap-3 border-t px-6 py-5 sm:flex-row sm:justify-end" style={{ borderColor: 'var(--theme-border)', backgroundColor: 'var(--theme-bg)' }}>
         <button 
           type="button" 
           onClick={() => reset()}
-          className="bg-surface border border-border text-on-surface py-3.5 px-8 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-background transition-all"
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--theme-surface)] border border-[var(--theme-border)] px-7 py-3 text-[10px] font-black uppercase tracking-widest text-[var(--theme-text-muted)] transition-all hover:bg-[var(--theme-bg)] hover:text-[var(--theme-text)] active:scale-95 cursor-pointer"
         >
-          <RotateCcw size={18} />
-          Batal & Reset
+          <RotateCcw size={16} />
+          Reset
+        </button>
+        <button 
+          type="submit" 
+          disabled={mutation.isPending}
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--theme-primary)] px-7 py-3 text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-[var(--theme-primary)]/20 transition-all hover:bg-[var(--theme-primary-hover)] active:scale-95 disabled:cursor-wait disabled:opacity-70 border-none cursor-pointer"
+        >
+          {mutation.isPending ? <span className="material-symbols-outlined animate-spin text-base shrink-0">sync</span> : <span className="material-symbols-outlined text-base shrink-0">save</span>}
+          Simpan Profil
         </button>
       </div>
     </form>

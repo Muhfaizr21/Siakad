@@ -25,7 +25,9 @@ const REFERRAL_STATUS_CONFIG = {
   default: { bg: 'bg-neutral-50', text: 'text-neutral-600', border: 'border-neutral-200' },
 };
 
-import { PageContent, PageHeader } from '@/components/ui/page';
+import { DashboardHero } from '@/components/ui/dashboard';
+import { PageContent } from '@/components/ui/page';
+import { PrimaryStatsCard } from '@/components/ui/StatsCard';
 import { DialogModal } from '@/components/ui/DialogModal';
 import { NotifListSkeleton } from '@/components/ui/SkeletonGroups';
 import EmptyState from '@/components/ui/EmptyState';
@@ -160,44 +162,60 @@ export default function CounselingHistoryPage() {
 
   return (
     <PageContent className="font-body">
-      <PageHeader
+      <DashboardHero
         title="Riwayat Konseling"
         subtitle="Pantau booking konseling dan lihat rekam medis yang sudah dicatat psikolog setelah sesi."
-        icon="history"
         breadcrumbs={[
-          { label: 'Student Hub', path: '/student/dashboard' },
           { label: 'Konseling', path: '/student/counseling' },
           { label: 'Riwayat' }
         ]}
-        action={
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:min-w-[520px]">
-            {[
-              { label: 'Total Booking', value: history.length },
-              { label: 'Menunggu', value: waitingCount },
-              { label: 'Dikonfirmasi', value: confirmedCount },
-              { label: 'Selesai', value: completedCount },
-            ].map((item) => (
-              <div key={item.label} className="rounded-2xl border border-border bg-surface p-4 shadow-sm text-center">
-                <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--theme-text-muted)]">{item.label}</p>
-                <p className="mt-1 text-2xl font-extrabold text-[var(--theme-text)]">{item.value}</p>
-              </div>
-            ))}
-          </div>
-        }
       />
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <PrimaryStatsCard 
+          title="Total Booking" 
+          value={history.length} 
+          badgeText="Sesi" 
+          icon={({ size }) => <span className="material-symbols-outlined" style={{ fontSize: size }}>calendar_month</span>}
+          colorTheme="primary"
+        />
+        <PrimaryStatsCard 
+          title="Menunggu" 
+          value={waitingCount} 
+          badgeText="Konfirmasi" 
+          icon={({ size }) => <span className="material-symbols-outlined" style={{ fontSize: size }}>hourglass_empty</span>}
+          colorTheme="warning"
+        />
+        <PrimaryStatsCard 
+          title="Dikonfirmasi" 
+          value={confirmedCount} 
+          badgeText="Disetujui" 
+          icon={({ size }) => <span className="material-symbols-outlined" style={{ fontSize: size }}>event_available</span>}
+          colorTheme="info"
+        />
+        <PrimaryStatsCard 
+          title="Selesai" 
+          value={completedCount} 
+          badgeText="Tuntas" 
+          icon={({ size }) => <span className="material-symbols-outlined" style={{ fontSize: size }}>check_circle</span>}
+          colorTheme="success"
+        />
+      </div>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
         <section className="xl:col-span-7">
-          <div className="overflow-hidden rounded-3xl border border-neutral-100 bg-white shadow-sm">
-            <div className="border-b border-neutral-100 px-5 py-4">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '18px' }} >calendar_month</span>
-                <h2 className="text-sm font-extrabold uppercase tracking-tight text-[var(--theme-primary)]">Daftar Booking</h2>
+          <div className="glass-card overflow-hidden flex flex-col h-[calc(100vh-240px)] min-h-[500px]">
+            <div className="border-b border-[var(--theme-border-muted)] px-6 py-5 flex items-center gap-4 shrink-0">
+              <div className="w-12 h-12 bg-blue-50/80 rounded-xl flex justify-center items-center text-blue-600">
+                <span className="material-symbols-outlined text-[24px]">calendar_month</span>
               </div>
-              <p className="mt-1 text-xs font-semibold text-neutral-400">Status booking konseling kamu dari yang terbaru.</p>
+              <div>
+                <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest block mb-0.5">Status & Daftar</span>
+                <h3 className="text-sm font-bold text-[var(--theme-text)] leading-tight">Booking Konseling</h3>
+              </div>
             </div>
 
-            <div className="p-4">
+            <div className="p-4 flex-1 overflow-y-auto">
               {isHistoryLoading ? (
                 <NotifListSkeleton count={5} />
               ) : history.length > 0 ? (
@@ -205,13 +223,13 @@ export default function CounselingHistoryPage() {
                   {history.map((item) => {
                     const status = STATUS_CONFIG[item.status] || STATUS_CONFIG.default;
                     return (
-                      <article key={item.id} className="overflow-hidden rounded-2xl border border-neutral-100 bg-white shadow-sm">
+                      <article key={item.id} className="overflow-hidden rounded-2xl border border-[var(--theme-border-muted)] bg-[var(--theme-surface)] shadow-sm">
                         <div className={`h-1 w-full ${status.bar}`} />
                         <div className="p-4">
                           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                             <div>
-                              <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">{formatLongDate(item.tanggal)}</p>
-                              <h3 className="mt-1 text-sm font-extrabold text-neutral-900">
+                              <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--theme-text-muted)]">{formatLongDate(item.tanggal)}</p>
+                              <h3 className="mt-1 text-sm font-extrabold text-[var(--theme-text)]">
                                 {item.tipe?.startsWith('[Personal]')
                                   ? item.tipe.replace('[Personal]', '[Psikologi]')
                                   : item.tipe?.startsWith('[Karir]')
@@ -220,8 +238,8 @@ export default function CounselingHistoryPage() {
                                       ? 'Psikologi'
                                       : item.tipe}
                               </h3>
-                              <p className="mt-1 flex items-center gap-1.5 text-xs font-semibold text-neutral-500">
-                                <User size={13} className="text-neutral-300" />
+                              <p className="mt-1 flex items-center gap-1.5 text-xs font-semibold text-[var(--theme-text-subtle)]">
+                                <User size={13} className="opacity-50" />
                                 {item.nama_konselor}
                               </p>
                               {item.queue_number ? (
@@ -237,21 +255,21 @@ export default function CounselingHistoryPage() {
                           </div>
 
                           <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
-                            <div className="rounded-xl border border-neutral-100 bg-neutral-50 p-3">
-                              <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-neutral-400">
+                            <div className="rounded-xl border border-[var(--theme-border-muted)] bg-[var(--theme-bg)] p-3">
+                              <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-[var(--theme-text-muted)]">
                                 <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >schedule</span>
                                 Waktu
                               </p>
-                              <p className="mt-1 text-xs font-extrabold text-neutral-800">{item.jam_mulai}{item.jam_selesai ? ` - ${item.jam_selesai}` : ''}</p>
+                              <p className="mt-1 text-xs font-extrabold text-[var(--theme-text)]">{item.jam_mulai}{item.jam_selesai ? ` - ${item.jam_selesai}` : ''}</p>
                             </div>
-                            <div className="rounded-xl border border-neutral-100 bg-neutral-50 p-3">
-                              <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-neutral-400">
+                            <div className="rounded-xl border border-[var(--theme-border-muted)] bg-[var(--theme-bg)] p-3">
+                              <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-[var(--theme-text-muted)]">
                                 <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >
                                   {item.mode === 'Online' ? 'videocam' : 'groups'}
                                 </span>
                                 Metode & Lokasi
                               </p>
-                              <p className="mt-1 text-xs font-extrabold text-neutral-800">
+                              <p className="mt-1 text-xs font-extrabold text-[var(--theme-text)]">
                                 {item.mode === 'Online' ? 'Online (Zoom)' : 'Tatap Muka'}
                               </p>
                               {item.mode === 'Online' && item.status === 'Dikonfirmasi' && item.link_meeting ? (
@@ -265,22 +283,22 @@ export default function CounselingHistoryPage() {
                                   Gabung Meeting
                                 </a>
                               ) : (
-                                <p className="text-[10px] text-neutral-400 mt-0.5 leading-snug">
+                                <p className="text-[10px] text-[var(--theme-text-subtle)] mt-0.5 leading-snug">
                                   {item.mode === 'Online' ? 'Link dikirim jika disetujui' : 'Ruang Konseling BKU'}
                                 </p>
                               )}
                             </div>
-                            <div className="rounded-xl border border-neutral-100 bg-neutral-50 p-3 sm:col-span-2 md:col-span-1">
-                              <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-neutral-400">
+                            <div className="rounded-xl border border-[var(--theme-border-muted)] bg-[var(--theme-bg)] p-3 sm:col-span-2 md:col-span-1">
+                              <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-[var(--theme-text-muted)]">
                                 <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >chat</span>
                                 Topik Mahasiswa
                               </p>
-                              <p className="mt-1 text-xs font-medium leading-relaxed text-neutral-700">{item.keluhan || 'Tidak ada topik tambahan.'}</p>
+                              <p className="mt-1 text-xs font-medium leading-relaxed text-[var(--theme-text)]">{item.keluhan || 'Tidak ada topik tambahan.'}</p>
                             </div>
                           </div>
 
-                          <div className="mt-3 flex items-center justify-between border-t border-neutral-50 pt-3">
-                            <span className="text-[11px] font-semibold text-neutral-400">
+                          <div className="mt-3 flex items-center justify-between border-t border-[var(--theme-border-muted)] pt-3">
+                            <span className="text-[11px] font-semibold text-[var(--theme-text-subtle)]">
                               Rekam medis: {item.medical_record_count || 0} catatan
                             </span>
                             <div className="flex items-center gap-1">
@@ -327,9 +345,9 @@ export default function CounselingHistoryPage() {
         </section>
 
         <section className="xl:col-span-5">
-          <div className="rounded-3xl border border-neutral-100 bg-white shadow-sm">
-            <div className="border-b border-neutral-100 px-5 py-4">
-              <div className="flex gap-4 border-b border-neutral-100 pb-3 overflow-x-auto">
+          <div className="glass-card overflow-hidden flex flex-col h-[calc(100vh-240px)] min-h-[500px]">
+            <div className="border-b border-[var(--theme-border-muted)] px-5 py-4 shrink-0">
+              <div className="flex gap-4 border-b border-[var(--theme-border-muted)] pb-3 overflow-x-auto">
                 <button
                   onClick={() => handleTabChange('medical_record')}
                   className={`pb-2 text-xs font-black uppercase tracking-wider transition-all border-b-2 flex items-center gap-1.5 -mb-3.5 whitespace-nowrap ${activeTab === 'medical_record'
@@ -373,7 +391,7 @@ export default function CounselingHistoryPage() {
                   </span>
                 </button>
               </div>
-              <p className="mt-4 text-xs font-semibold text-neutral-400">
+              <p className="mt-4 text-xs font-semibold text-[var(--theme-text-muted)]">
                 {activeTab === 'medical_record'
                   ? 'Catatan sesi yang sudah disimpan oleh psikolog.'
                   : activeTab === 'screening'
@@ -382,7 +400,7 @@ export default function CounselingHistoryPage() {
               </p>
             </div>
 
-            <div className="p-4">
+            <div className="p-4 flex-1 overflow-y-auto">
               {activeTab === 'screening' ? (
                 <>
                   <div className="mb-4 grid grid-cols-2 gap-3">
@@ -390,9 +408,9 @@ export default function CounselingHistoryPage() {
                       <p className="text-[10px] font-bold uppercase tracking-wide text-violet-500">Total Screening</p>
                       <p className="mt-1 text-2xl font-extrabold text-violet-700">{screeningRecords.length}</p>
                     </div>
-                    <div className="rounded-2xl border border-neutral-100 bg-neutral-50 p-4">
-                      <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">Status Terakhir</p>
-                      <p className="mt-1 text-sm font-extrabold text-neutral-900">{summary.latest_status}</p>
+                    <div className="rounded-2xl border border-[var(--theme-border-muted)] bg-[var(--theme-bg)] p-4">
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--theme-text-muted)]">Status Terakhir</p>
+                      <p className="mt-1 text-sm font-extrabold text-[var(--theme-text)]">{summary.latest_status}</p>
                     </div>
                   </div>
 
@@ -408,7 +426,7 @@ export default function CounselingHistoryPage() {
                           Rujuk: 'bg-amber-50 text-amber-700 border-amber-200',
                         };
                         return (
-                          <article key={record.id} className="overflow-hidden rounded-2xl border border-neutral-100 bg-white shadow-sm transition-shadow hover:shadow-md">
+                          <article key={record.id} className="overflow-hidden rounded-2xl border border-[var(--theme-border-muted)] bg-[var(--theme-surface)] shadow-sm transition-shadow hover:shadow-md">
                             {/* Header */}
                             <div className="h-1 w-full bg-gradient-to-r from-violet-500 to-purple-500" />
                             <button
@@ -571,13 +589,13 @@ export default function CounselingHistoryPage() {
               ) : activeTab === 'medical_record' ? (
                 <>
                   <div className="mb-4 grid grid-cols-2 gap-3">
-                    <div className="rounded-2xl border border-neutral-100 bg-neutral-50 p-4">
-                      <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">Total Catatan</p>
-                      <p className="mt-1 text-2xl font-extrabold text-[bku-primary]">{summary.total_records}</p>
+                    <div className="rounded-2xl border border-[var(--theme-border-muted)] bg-[var(--theme-bg)] p-4">
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--theme-text-muted)]">Total Catatan</p>
+                      <p className="mt-1 text-2xl font-extrabold text-[var(--theme-primary)]">{summary.total_records}</p>
                     </div>
-                    <div className="rounded-2xl border border-neutral-100 bg-neutral-50 p-4">
-                      <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">Status Terakhir</p>
-                      <p className="mt-1 text-sm font-extrabold text-neutral-900">{summary.latest_status}</p>
+                    <div className="rounded-2xl border border-[var(--theme-border-muted)] bg-[var(--theme-bg)] p-4">
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--theme-text-muted)]">Status Terakhir</p>
+                      <p className="mt-1 text-sm font-extrabold text-[var(--theme-text)]">{summary.latest_status}</p>
                     </div>
                   </div>
 
@@ -586,15 +604,15 @@ export default function CounselingHistoryPage() {
                   ) : records.length > 0 ? (
                     <div className="space-y-3">
                       {records.map((record) => (
-                        <article key={record.id} className="rounded-2xl border border-neutral-100 bg-white p-4 shadow-sm">
+                        <article key={record.id} className="rounded-2xl border border-[var(--theme-border-muted)] bg-[var(--theme-surface)] p-4 shadow-sm">
                           <div className="flex items-start justify-between gap-3">
                             <div>
-                              <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-neutral-400">
+                              <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-[var(--theme-text-muted)]">
                                 <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >calendar_month</span>
                                 {record.display_date} • {record.time}
                               </p>
-                              <h3 className="mt-1 text-sm font-extrabold text-neutral-900">{record.type}</h3>
-                              <p className="mt-0.5 text-xs font-semibold text-neutral-500">Psikolog: {record.psychologist}</p>
+                              <h3 className="mt-1 text-sm font-extrabold text-[var(--theme-text)]">{record.type}</h3>
+                              <p className="mt-0.5 text-xs font-semibold text-[var(--theme-text-subtle)]">Psikolog: {record.psychologist}</p>
                             </div>
                             <div className="flex flex-col items-end gap-2 shrink-0">
                               <span className="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700">
@@ -612,9 +630,9 @@ export default function CounselingHistoryPage() {
                           </div>
 
                           <div className="mt-4 space-y-3">
-                            <div className="rounded-xl border border-neutral-100 bg-neutral-50 p-3">
-                              <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">Keluhan / Isu</p>
-                              <p className="mt-1 text-xs leading-relaxed text-neutral-700">{record.complaint}</p>
+                            <div className="rounded-xl border border-[var(--theme-border-muted)] bg-[var(--theme-bg)] p-3">
+                              <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--theme-text-muted)]">Keluhan / Isu</p>
+                              <p className="mt-1 text-xs leading-relaxed text-[var(--theme-text)]">{record.complaint}</p>
                             </div>
                             <div className="rounded-xl border border-blue-100 bg-blue-50 p-3">
                               <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-blue-500">
@@ -631,8 +649,8 @@ export default function CounselingHistoryPage() {
                               <p className="mt-1 text-xs leading-relaxed text-emerald-900">{record.recommendation}</p>
                             </div>
                             {record.tindak_lanjut?.length > 0 && (
-                              <div className="rounded-xl border border-neutral-100 bg-white p-3 shadow-sm">
-                                <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-neutral-500">
+                              <div className="rounded-xl border border-[var(--theme-border-muted)] bg-[var(--theme-surface)] p-3 shadow-sm">
+                                <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-[var(--theme-text-muted)]">
                                   <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>assignment_turned_in</span>
                                   Tindak Lanjut Sesi
                                 </p>
@@ -675,13 +693,13 @@ export default function CounselingHistoryPage() {
               ) : (
                 <>
                   <div className="mb-4 grid grid-cols-2 gap-3">
-                    <div className="rounded-2xl border border-neutral-100 bg-neutral-50 p-4">
-                      <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">Total Tindak Lanjut</p>
-                      <p className="mt-1 text-2xl font-extrabold text-[bku-primary]">{referrals.length}</p>
+                    <div className="rounded-2xl border border-[var(--theme-border-muted)] bg-[var(--theme-bg)] p-4">
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--theme-text-muted)]">Total Tindak Lanjut</p>
+                      <p className="mt-1 text-2xl font-extrabold text-[var(--theme-primary)]">{referrals.length}</p>
                     </div>
-                    <div className="rounded-2xl border border-neutral-100 bg-neutral-50 p-4">
-                      <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">Status Aktif</p>
-                      <p className="mt-1 text-sm font-extrabold text-neutral-900">
+                    <div className="rounded-2xl border border-[var(--theme-border-muted)] bg-[var(--theme-bg)] p-4">
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--theme-text-muted)]">Status Aktif</p>
+                      <p className="mt-1 text-sm font-extrabold text-[var(--theme-text)]">
                         {referrals.filter(r => r.status === 'Sent' || r.status === 'Received').length} Diproses
                       </p>
                     </div>
@@ -694,15 +712,15 @@ export default function CounselingHistoryPage() {
                       {referrals.map((ref) => {
                         const statusConfig = REFERRAL_STATUS_CONFIG[ref.status] || REFERRAL_STATUS_CONFIG.default;
                         return (
-                          <article key={ref.id} className="rounded-2xl border border-neutral-100 bg-white p-4 shadow-sm">
+                          <article key={ref.id} className="rounded-2xl border border-[var(--theme-border-muted)] bg-[var(--theme-surface)] p-4 shadow-sm">
                             <div className="flex items-start justify-between gap-3">
                               <div>
-                                <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-neutral-400">
+                                <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-[var(--theme-text-muted)]">
                                   <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >calendar_month</span>
                                   {ref.display_date} • {ref.time}
                                 </p>
-                                <h3 className="mt-1 text-sm font-extrabold text-neutral-900">{ref.type}</h3>
-                                <p className="mt-0.5 text-xs font-semibold text-neutral-500">Dari: {ref.psychologist}</p>
+                                <h3 className="mt-1 text-sm font-extrabold text-[var(--theme-text)]">{ref.type}</h3>
+                                <p className="mt-0.5 text-xs font-semibold text-[var(--theme-text-subtle)]">Dari: {ref.psychologist}</p>
                               </div>
                               <span className={`rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-wide ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}>
                                 {ref.status === 'Sent' ? 'Dikirim' : ref.status === 'Received' ? 'Diterima' : ref.status}
@@ -710,20 +728,20 @@ export default function CounselingHistoryPage() {
                             </div>
 
                             <div className="mt-4 space-y-3">
-                              <div className="rounded-xl border border-neutral-100 bg-neutral-50 p-3">
-                                <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-400 font-bold">Pihak Penerima Rujukan</p>
-                                <p className="mt-1 text-xs font-extrabold text-neutral-800">{ref.target_party}</p>
+                              <div className="rounded-xl border border-[var(--theme-border-muted)] bg-[var(--theme-bg)] p-3">
+                                <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--theme-text-muted)]">Pihak Penerima Rujukan</p>
+                                <p className="mt-1 text-xs font-extrabold text-[var(--theme-text)]">{ref.target_party}</p>
                                 {ref.target_email && (
-                                  <p className="text-[10px] text-neutral-500 mt-0.5 flex items-center gap-1">
+                                  <p className="text-[10px] text-[var(--theme-text-subtle)] mt-0.5 flex items-center gap-1">
                                     <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>mail</span>
                                     {ref.target_email}
                                   </p>
                                 )}
                               </div>
 
-                              <div className="rounded-xl border border-neutral-100 bg-neutral-50 p-3">
-                                <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-400 font-bold">Alasan / Rekomendasi Rujukan</p>
-                                <p className="mt-1 text-xs leading-relaxed text-neutral-700">{ref.reason}</p>
+                              <div className="rounded-xl border border-[var(--theme-border-muted)] bg-[var(--theme-bg)] p-3">
+                                <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--theme-text-muted)]">Alasan / Rekomendasi Rujukan</p>
+                                <p className="mt-1 text-xs leading-relaxed text-[var(--theme-text)]">{ref.reason}</p>
                               </div>
 
                               {(ref.referral_pdf_url || ref.support_file_url) && (

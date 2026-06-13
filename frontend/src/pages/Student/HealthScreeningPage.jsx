@@ -23,7 +23,8 @@ import { healthBookingService, insuranceService } from '../../services/api';
 import { Skeleton } from '@/components/ui/Skeleton';
 import toast from 'react-hot-toast';
 import { NavLink } from 'react-router-dom';
-import { PageContent, PageHeader } from '@/components/ui/page';
+import { PageContent } from '@/components/ui/page';
+import { DashboardHero } from '@/components/ui/dashboard';
 import HealthCharacter from '../../components/health/HealthCharacter';
 import {
   normalizeRecord,
@@ -319,28 +320,26 @@ export default function HealthScreeningPage() {
 
   return (
     <PageContent className="font-body">
-      <PageHeader
+      <DashboardHero
         title="Pusat Kesehatan BKU"
         subtitle="Pantau tren kesehatan & rekam medis digital kamu"
-        icon="medical_services"
         breadcrumbs={[
-          { label: 'Student Hub', path: '/student/dashboard' },
           { label: 'Health Screening', path: '/student/health' }
         ]}
-        action={
+        actions={
           <div className="flex items-center gap-2">
             <button
               onClick={() => {
                 const el = document.getElementById('jadwal-tersedia-section');
                 if (el) el.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500 text-white font-semibold rounded-xl hover:bg-emerald-600 transition-all text-sm shadow-md shadow-emerald-500/20"
+              className="flex items-center gap-2 px-4 py-2.5 bg-[var(--theme-primary)] text-[var(--theme-text-on-primary)] font-semibold rounded-xl hover:opacity-90 transition-all text-sm shadow-md shadow-[var(--theme-primary)]/20"
             >
               <span className="material-symbols-outlined" style={{ fontSize: '16px' }} strokeWidth={2.5}>calendar_month</span> Ambil Antrean
             </button>
             <button
               onClick={() => setIsInputOpen(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-[var(--theme-primary)] text-white font-semibold rounded-xl hover:opacity-90 transition-all text-sm shadow-md shadow-[var(--theme-primary)]/20"
+              className="flex items-center gap-2 px-4 py-2.5 bg-[var(--theme-primary)] text-[var(--theme-text-on-primary)] font-semibold rounded-xl hover:opacity-90 transition-all text-sm shadow-md shadow-[var(--theme-primary)]/20"
             >
               <span className="material-symbols-outlined" style={{ fontSize: '16px' }} strokeWidth={2.5}>add</span> Input Data Mandiri
             </button>
@@ -355,26 +354,24 @@ export default function HealthScreeningPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-6">
 
           {/* Main Stats */}
-          <div className="lg:col-span-8 bg-surface rounded-2xl border border-border shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-border flex items-center justify-between bg-surface/50">
-              <div className="flex items-center gap-3">
-                <div className={`flex items-center justify-center p-2 rounded-xl text-white shadow-md ${statusInfo.iconBg}`}>
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >schedule</span>
+          <div className="lg:col-span-8 glass-card overflow-hidden">
+            <div className="px-6 py-5 border-b border-[var(--theme-border-muted)] flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-md ${statusInfo.iconBg}`}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '24px' }} >monitor_heart</span>
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-[var(--theme-text)] tracking-tight">Kondisi Terakhir</h3>
-                  <p className="text-[11px] font-medium text-[var(--theme-text-muted)] mt-0.5">
-                    Diperbarui {fmt(terbaru.tanggal_periksa, { day: 'numeric', month: 'long', year: 'numeric' })}
-                  </p>
+                  <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest block mb-0.5">Kondisi</span>
+                  <h3 className="text-sm font-bold text-[var(--theme-text)] tracking-tight">Kesehatan Terakhir</h3>
                 </div>
               </div>
-              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-600 shadow-sm">
+              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--theme-success)]/10 border border-[var(--theme-success)]/20 text-[var(--theme-success)] shadow-sm">
                 <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >security</span>
                 <span className="text-[10px] font-bold uppercase tracking-wider">Tervalidasi BKU</span>
               </div>
             </div>
 
-            <div className="p-5 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 bg-[var(--theme-bg)]">
+            <div className="p-5 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 bg-[var(--theme-surface)]">
               <StatItem label="Tinggi" value={terbaru.tinggi_badan} unit="cm" icon={<span className="material-symbols-outlined font-bold" style={{ fontSize: '16px' }} >straighten</span>} colorClass="text-[var(--theme-primary)]" bgClass="bg-[var(--theme-primary-light)]" />
               <StatItem label="Berat" value={terbaru.berat_badan} unit="kg" icon={<Scale size={16} />} colorClass="text-[var(--theme-success)]" bgClass="bg-[var(--theme-success-light)]" />
               <StatItem label="Tidur" value={jamTidur} unit="Jam" icon={<span className="material-symbols-outlined font-bold" style={{ fontSize: '16px' }} >bedtime</span>} colorClass="text-[var(--theme-info)]" bgClass="bg-[var(--theme-info-light)]" />
@@ -383,7 +380,7 @@ export default function HealthScreeningPage() {
               <StatItem label="Stres" value={stres} unit="/10" icon={<span className="material-symbols-outlined font-bold" style={{ fontSize: '16px' }} >psychology</span>} colorClass="text-[var(--theme-error)]" bgClass="bg-[var(--theme-error-light)]" />
             </div>
 
-            <div className="p-6 bg-surface border-t border-border flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden">
+            <div className="p-6 bg-[var(--theme-surface)] border-t border-[var(--theme-border-muted)] flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden">
               <div className="flex items-center gap-5 relative z-10 w-full">
                 <HealthCharacter
                   bmi={terbaru.bmi}
@@ -455,7 +452,7 @@ export default function HealthScreeningPage() {
           </div>
 
           {/* BMI Card */}
-          <div className={`lg:col-span-4 rounded-2xl border p-5 flex flex-col justify-between relative overflow-hidden ${bmiCat.bg} ${bmiCat.border}`}>
+          <div className={`lg:col-span-4 glass-card p-6 flex flex-col justify-between relative overflow-hidden ${bmiCat.bg} ${bmiCat.border}`}>
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-4">
                 <p className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">Indeks Massa Tubuh</p>
@@ -507,25 +504,25 @@ export default function HealthScreeningPage() {
 
       {/* ── Antrian Saya ── */}
       {myBookings && myBookings.length > 0 && (
-        <div className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden mb-6">
-          <div className="px-5 py-4 border-b border-border flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
-                <span className="material-symbols-outlined text-emerald-600" style={{ fontSize: '20px' }}>calendar_month</span>
+        <div className="glass-card overflow-hidden mb-6">
+          <div className="px-6 py-5 border-b border-[var(--theme-border-muted)] flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-emerald-50/80 rounded-xl flex justify-center items-center text-emerald-600">
+                <span className="material-symbols-outlined text-[24px]">event_note</span>
               </div>
               <div>
-                <h2 className="text-sm font-bold text-[var(--theme-text)]">Antrian Saya</h2>
-                <p className="text-[10px] text-[var(--theme-text-muted)]">Riwayat pendaftaran klinik</p>
+                <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest block mb-0.5">Booking</span>
+                <h2 className="text-sm font-bold text-[var(--theme-text)] leading-tight">Antrian Saya</h2>
               </div>
             </div>
             <button
               onClick={() => setIsBookingModalOpen(true)}
-              className="text-xs font-bold text-emerald-600 hover:text-emerald-700"
+              className="text-xs font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100 transition-colors"
             >
               + Tambah
             </button>
           </div>
-          <div className="divide-y divide-border">
+          <div className="divide-y divide-[var(--theme-border-muted)]">
             {myBookings.slice(0, 3).map((booking) => {
               const statusColors = {
                 'Menunggu Konfirmasi': 'bg-amber-50 text-amber-600 border-amber-200',
@@ -577,13 +574,18 @@ export default function HealthScreeningPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
 
         {/* Weight Trend */}
-        <div className="lg:col-span-2 bg-surface rounded-2xl border border-border shadow-sm p-5">
-          <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-            <div>
-              <h3 className="text-base font-bold font-headline">Tren & Perkembangan Tubuh</h3>
-              <p className="text-[11px] text-[var(--theme-text-muted)] mt-0.5">6 Pemeriksaan Terakhir</p>
+        <div className="lg:col-span-2 glass-card p-6">
+          <div className="flex items-center justify-between mb-6 flex-wrap gap-4 border-b border-[var(--theme-border-muted)] pb-4">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-blue-50/80 rounded-xl flex justify-center items-center text-blue-600">
+                <span className="material-symbols-outlined text-[24px]">timeline</span>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest block mb-0.5">Grafik</span>
+                <h3 className="text-sm font-bold text-[var(--theme-text)] leading-tight">Tren Kesehatan</h3>
+              </div>
             </div>
-            <div className="flex bg-[var(--theme-bg)] p-1 rounded-xl gap-1 shrink-0 border border-border/50">
+            <div className="flex bg-[var(--theme-surface)] p-1 rounded-xl gap-1 shrink-0 border border-[var(--theme-border-muted)]">
               {[
                 { id: 'berat', label: 'Berat' },
                 { id: 'bmi', label: 'IMT/BMI' },
@@ -652,38 +654,40 @@ export default function HealthScreeningPage() {
         </div>
 
         {/* BP Reference */}
-        <div className="bg-[var(--theme-primary)] rounded-2xl p-5 text-white flex flex-col justify-between relative overflow-hidden">
+        <div className="glass-card p-6 flex flex-col justify-between relative overflow-hidden">
           <div className="relative z-10">
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-8 h-8 rounded-xl bg-surface/10 flex items-center justify-center border border-white/10">
-                <span className="material-symbols-outlined text-blue-200" style={{ fontSize: '16px' }} >show_chart</span>
+              <div className="w-8 h-8 rounded-xl bg-[var(--theme-primary)]/10 flex items-center justify-center border border-[var(--theme-primary)]/20">
+                <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '16px' }} >show_chart</span>
               </div>
-              <h3 className="text-sm font-bold tracking-wide">Tensi Referensi</h3>
+              <h3 className="text-sm font-bold tracking-wide text-[var(--theme-text)]">Tensi Referensi</h3>
             </div>
             <div className="space-y-4">
-              <BPReference label="Normal" range="< 120 / 80" color="bg-emerald-500" text="text-emerald-400" />
-              <BPReference label="Pre-Hipertensi" range="120–139 / 80–89" color="bg-blue-300" text="text-blue-300" />
-              <BPReference label="Hipertensi" range="≥ 140 / 90" color="bg-red-500" text="text-red-400" />
+              <BPReference label="Normal" range="< 120 / 80" color="bg-emerald-500" text="text-[var(--theme-text)]" />
+              <BPReference label="Pre-Hipertensi" range="120–139 / 80–89" color="bg-amber-500" text="text-[var(--theme-text)]" />
+              <BPReference label="Hipertensi" range="≥ 140 / 90" color="bg-red-500" text="text-[var(--theme-text)]" />
             </div>
           </div>
-          <div className="mt-5 p-3.5 bg-surface/5 rounded-xl border border-white/10 flex gap-3 relative z-10">
-            <Thermometer size={14} className="text-blue-200 shrink-0 mt-0.5" />
-            <p className="text-[11px] text-white/50 leading-relaxed">
+          <div className="mt-5 p-3.5 bg-[var(--theme-bg)] rounded-xl border border-[var(--theme-border-muted)] flex gap-3 relative z-10">
+            <Thermometer size={14} className="text-[var(--theme-primary)] shrink-0 mt-0.5" />
+            <p className="text-[11px] text-[var(--theme-text-muted)] font-semibold leading-relaxed">
               Istirahat 5 menit sebelum mengecek tensi mandiri untuk hasil yang akurat.
             </p>
           </div>
-          <Heart size={200} className="absolute right-[-70px] top-[-70px] text-white opacity-[0.03] pointer-events-none" />
+          <Heart size={200} className="absolute right-[-70px] top-[-70px] text-[var(--theme-primary)] opacity-[0.03] pointer-events-none" />
         </div>
       </div>
 
       {/* ── History Table ── */}
-      <div className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden mb-6">
-        <div className="px-5 py-4 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h2 className="text-base font-bold font-headline">Riwayat Rekam Medis</h2>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              <p className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider">BKU Hub Validated</p>
+      <div className="glass-card overflow-hidden mb-6">
+        <div className="px-6 py-5 border-b border-[var(--theme-border-muted)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-indigo-50/80 rounded-xl flex justify-center items-center text-indigo-600">
+              <span className="material-symbols-outlined text-[24px]">receipt_long</span>
+            </div>
+            <div>
+              <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest block mb-0.5">Rincian</span>
+              <h2 className="text-sm font-bold text-[var(--theme-text)] leading-tight">Riwayat Medis</h2>
             </div>
           </div>
           {/* Filter tabs */}
@@ -826,54 +830,54 @@ export default function HealthScreeningPage() {
       {/* ── CTA Panels ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Asuransi CTA */}
-        <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-5 text-white relative overflow-hidden">
+        <div className="glass-card p-6 relative overflow-hidden flex flex-col justify-between border-[var(--theme-primary)]/20 bg-[var(--theme-primary)]/5">
           <div className="relative z-10">
-            <div className="bg-surface/10 w-fit p-2 rounded-xl mb-4 border border-white/10">
-              <span className="material-symbols-outlined text-blue-200" style={{ fontSize: '20px' }} >health_and_safety</span>
+            <div className="bg-[var(--theme-primary)]/10 w-fit p-2 rounded-xl mb-4 border border-[var(--theme-primary)]/20 text-[var(--theme-primary)] shadow-sm">
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >health_and_safety</span>
             </div>
-            <h4 className="text-base font-bold mb-2 leading-tight">Asuransi Kesehatan</h4>
-            <p className="text-white/60 text-sm leading-relaxed mb-4">
+            <h4 className="text-base font-bold mb-2 leading-tight text-[var(--theme-text)]">Asuransi Kesehatan</h4>
+            <p className="text-[var(--theme-text-muted)] text-sm leading-relaxed mb-4 font-semibold">
               Ajukan klaim asuransi kesehatan BKU Assurance atau reimburse biaya medis kamu.
             </p>
             <div className="flex flex-wrap gap-2 mb-4">
-              <span className="bg-surface/10 px-3 py-1.5 rounded-lg text-[11px] font-semibold border border-white/10">BKU Assurance</span>
-              <span className="bg-surface/10 px-3 py-1.5 rounded-lg text-[11px] font-semibold border border-white/10">BPJS</span>
+              <span className="bg-[var(--theme-bg)] px-3 py-1.5 rounded-lg text-[11px] font-bold border border-[var(--theme-border-muted)] text-[var(--theme-text-muted)]">BKU Assurance</span>
+              <span className="bg-[var(--theme-bg)] px-3 py-1.5 rounded-lg text-[11px] font-bold border border-[var(--theme-border-muted)] text-[var(--theme-text-muted)]">BPJS</span>
             </div>
             <NavLink
               to="/student/insurance"
-              className="flex items-center gap-2 px-4 py-2.5 bg-surface text-emerald-600 text-sm font-bold rounded-xl hover:bg-emerald-50 transition-all w-fit"
+              className="flex items-center gap-2 px-4 py-2.5 bg-[var(--theme-primary)] text-[var(--theme-text-on-primary)] text-sm font-bold rounded-xl hover:opacity-90 transition-all w-fit shadow-md shadow-[var(--theme-primary)]/20"
             >
               Ajukan Klaim <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >arrow_forward</span>
             </NavLink>
           </div>
-          <span className="material-symbols-outlined absolute right-[-60px] top-[-60px] text-white opacity-[0.05] pointer-events-none" style={{ fontSize: '200px' }} >health_and_safety</span>
+          <span className="material-symbols-outlined absolute right-[-60px] top-[-60px] text-[var(--theme-primary)] opacity-[0.03] pointer-events-none" style={{ fontSize: '200px' }} >health_and_safety</span>
         </div>
 
         {/* Privacy Info */}
-        <div className="bg-surface rounded-2xl border border-border shadow-sm p-5 flex flex-col justify-between">
+        <div className="glass-card p-6 flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-blue-50 rounded-xl text-[var(--theme-primary)] border border-blue-100">
+              <div className="p-2 bg-[var(--theme-bg)] rounded-xl text-[var(--theme-primary)] border border-[var(--theme-border-muted)]">
                 <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >security</span>
               </div>
-              <h4 className="text-base font-bold tracking-tight">Kerahasiaan Rekam Medis</h4>
+              <h4 className="text-base font-bold tracking-tight text-[var(--theme-text)]">Kerahasiaan Rekam Medis</h4>
             </div>
-            <p className="text-sm text-[var(--theme-text-muted)] leading-relaxed mb-4">
+            <p className="text-sm text-[var(--theme-text-muted)] leading-relaxed mb-4 font-medium">
               BKU Student Hub menjaga 100% privasi data kesehatan Anda. Riwayat medis hanya dapat diakses oleh Anda dan tenaga medis universitas bersertifikasi untuk keperluan klinis resmi.
             </p>
-            <div className="p-3 bg-[var(--theme-bg)] rounded-xl border border-border flex items-start gap-2">
-              <span className="material-symbols-outlined text-[#0B4FAE] shrink-0 mt-0.5" style={{ fontSize: '14px' }} >error</span>
-              <p className="text-[11px] text-[var(--theme-text-muted)] leading-relaxed">
+            <div className="p-3 bg-[var(--theme-primary)]/5 rounded-xl border border-[var(--theme-primary)]/20 flex items-start gap-2">
+              <span className="material-symbols-outlined text-[var(--theme-primary)] shrink-0 mt-0.5" style={{ fontSize: '14px' }} >error</span>
+              <p className="text-[11px] text-[var(--theme-text-muted)] font-semibold leading-relaxed">
                 Data mandiri digunakan sebagai referensi awal, bukan hasil diagnosis medis final.
               </p>
             </div>
           </div>
-          <div className="mt-4 pt-4 border-t border-border flex items-center justify-between text-[var(--theme-text-muted)]">
+          <div className="mt-5 pt-4 border-t border-[var(--theme-border-muted)] flex items-center justify-between text-[var(--theme-text-muted)]">
             <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >schedule</span>
-              <span className="text-[11px] font-semibold uppercase tracking-wider">Verified System 2026</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >verified_user</span>
+              <span className="text-[11px] font-bold uppercase tracking-wider">Verified System 2026</span>
             </div>
-            <div className="w-8 h-1 bg-[var(--theme-bg)] rounded-full" />
+            <div className="w-8 h-1 bg-[var(--theme-primary)]/20 rounded-full" />
           </div>
         </div>
       </div>
@@ -1358,18 +1362,19 @@ function InputField({ label, unit, value, onChange, icon, placeholder, isOptiona
 function DetailModal({ record, isLoading, onClose, hasActiveInsuranceClaim }) {
   if (isLoading || !record) {
     return (
-      <Dialog open={true} onOpenChange={onClose} maxWidth="max-w-lg">
-        <DialogContent className="p-8 space-y-4">
-          <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3 text-left">
-            <DialogTitle className="text-base font-bold text-[var(--theme-text)]">Memuat rekam medis...</DialogTitle>
-          </div>
-          <div className="space-y-3">
-            <Skeleton className="h-12 w-full rounded-xl" />
-            <Skeleton className="h-20 w-full rounded-xl" />
-            <Skeleton className="h-12 w-full rounded-xl" />
-          </div>
-        </DialogContent>
-      </Dialog>
+      <DialogModal
+        open={true}
+        onOpenChange={onClose}
+        maxWidth="max-w-lg"
+        title="Memuat rekam medis..."
+        icon="hourglass_empty"
+      >
+        <div className="space-y-3 p-4">
+          <Skeleton className="h-12 w-full rounded-xl" />
+          <Skeleton className="h-20 w-full rounded-xl" />
+          <Skeleton className="h-12 w-full rounded-xl" />
+        </div>
+      </DialogModal>
     );
   }
 
@@ -1387,29 +1392,48 @@ function DetailModal({ record, isLoading, onClose, hasActiveInsuranceClaim }) {
   }
 
   return (
-    <Dialog open={true} onOpenChange={onClose} maxWidth="max-w-xl">
-      <DialogContent>
-        <DialogHeader>
-          <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
-            <span className="material-symbols-outlined text-8xl text-slate-900">medical_services</span>
-          </div>
-          <div className="text-left relative z-10">
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${bmiCat.color} ${bmiCat.bg} border ${bmiCat.border}`}>
-                BMI: {bmiCat.label}
-              </span>
-            </div>
-            <DialogTitle className="text-lg font-black text-[var(--theme-text)] tracking-tight">Laporan Rekam Medis</DialogTitle>
-            <DialogDescription className="text-xs text-[var(--theme-text-muted)] flex items-center gap-1.5 mt-1 font-semibold">
-              <span className="material-symbols-outlined text-[var(--theme-primary)] font-bold animate-pulse" style={{ fontSize: '12px' }} >calendar_month</span>
-              {fmt(record.tanggal_periksa, { day: 'numeric', month: 'long', year: 'numeric' })}
-            </DialogDescription>
-          </div>
-        </DialogHeader>
-
-        {/* Body */}
-        <div className="p-8 overflow-y-auto max-h-[50vh] no-scrollbar space-y-5 text-left">
-          {/* Physical Metrics Grid */}
+    <DialogModal
+      open={true}
+      onOpenChange={onClose}
+      maxWidth="max-w-xl"
+      title="Laporan Rekam Medis"
+      subtitle={`BMI: ${bmiCat.label}`}
+      description={fmt(record.tanggal_periksa, { day: 'numeric', month: 'long', year: 'numeric' })}
+      icon="medical_services"
+      footer={
+        <div className="flex flex-col sm:flex-row gap-3 w-full">
+          {hasActiveInsuranceClaim ? (
+            <button
+              disabled
+              className="flex-1 py-3 bg-slate-200 text-slate-400 text-xs font-black rounded-xl cursor-not-allowed uppercase tracking-wider flex items-center justify-center gap-1.5 text-center border-none"
+            >
+              <span className="material-symbols-outlined text-[16px]">hourglass_top</span> Klaim Sedang Diproses / Disetujui
+            </button>
+          ) : (
+            <NavLink
+              to="/student/insurance"
+              state={{
+                tanggal: record.tanggal_periksa ? record.tanggal_periksa.split('T')[0] : '',
+                deskripsi: `Klaim biaya pemeriksaan kesehatan (${record.jenis_pemeriksaan}) pada tanggal ${fmt(record.tanggal_periksa, { day: 'numeric', month: 'long', year: 'numeric' })}. Catatan: ${parsedNotes ? "Hasil Skrining Mandiri" : (record.catatan_medis || record.catatan || 'Pemeriksaan rutin.')}`
+              }}
+              onClick={onClose}
+              className="flex-1 py-3 bg-[var(--theme-primary)] text-[var(--theme-text-on-primary)] text-xs font-black rounded-xl hover:opacity-90 transition-all uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md shadow-[var(--theme-primary)]/20 text-center border-none cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[16px]">health_and_safety</span> Ajukan Asuransi
+            </NavLink>
+          )}
+          <button
+            onClick={onClose}
+            className="py-3 px-6 bg-[var(--theme-bg)] border border-[var(--theme-border-muted)] text-[var(--theme-text-muted)] text-xs font-black rounded-xl hover:bg-surface transition-all uppercase tracking-wider cursor-pointer"
+          >
+            Tutup
+          </button>
+        </div>
+      }
+      bodyClassName="p-5 sm:p-6 space-y-4"
+    >
+      <div className="text-left space-y-4">
+        {/* Physical Metrics Grid */}
           <div>
             <h4 className="text-[10px] font-black font-headline uppercase tracking-wider mb-2.5" style={{ color: 'var(--theme-h4)' }}>Indikator Utama</h4>
             <div className="grid grid-cols-4 gap-2.5">
@@ -1542,7 +1566,7 @@ function DetailModal({ record, isLoading, onClose, hasActiveInsuranceClaim }) {
             </div>
           )}
 
-          {record.catatan_medis && (
+          {!parsedNotes && record.catatan_medis && (
             <div className="p-3.5 bg-blue-50 rounded-2xl border border-blue-100 text-left">
               <p className="text-[10px] font-bold text-blue-500 uppercase tracking-wider flex items-center gap-1.5 mb-2">
                 <span className="material-symbols-outlined font-bold text-blue-500" style={{ fontSize: '14px' }} >error</span> Analisis & Saran Medis
@@ -1568,39 +1592,9 @@ function DetailModal({ record, isLoading, onClose, hasActiveInsuranceClaim }) {
                 {record.status_kesehatan.replace('_', ' ')}
               </p>
             </div>
+            </div>
           </div>
-        </div>
-
-        <DialogFooter className="flex flex-col sm:flex-row gap-3 p-8 border-t border-slate-100/60 bg-slate-50/20 shrink-0">
-          {hasActiveInsuranceClaim ? (
-            <button
-              disabled
-              className="flex-1 py-3 bg-slate-200 text-slate-400 text-xs font-black rounded-xl cursor-not-allowed uppercase tracking-wider flex items-center justify-center gap-1.5 text-center border-none"
-            >
-              <span className="material-symbols-outlined text-[16px]">hourglass_top</span> Klaim Sedang Diproses / Disetujui
-            </button>
-          ) : (
-            <NavLink
-              to="/student/insurance"
-              state={{
-                tanggal: record.tanggal_periksa ? record.tanggal_periksa.split('T')[0] : '',
-                deskripsi: `Klaim biaya pemeriksaan kesehatan (${record.jenis_pemeriksaan}) pada tanggal ${fmt(record.tanggal_periksa, { day: 'numeric', month: 'long', year: 'numeric' })}. Catatan: ${record.catatan_medis || record.catatan || 'Pemeriksaan rutin.'}`
-              }}
-              onClick={onClose}
-              className="flex-1 py-3 bg-emerald-500 text-white text-xs font-black rounded-xl hover:bg-emerald-600 transition-all uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/20 text-center border-none cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[16px]">health_and_safety</span> Ajukan Asuransi
-            </NavLink>
-          )}
-          <button
-            onClick={onClose}
-            className="py-3 px-6 bg-[var(--theme-bg)] border border-border text-[var(--theme-text-muted)] text-xs font-black rounded-xl hover:bg-[var(--theme-bg)] transition-all uppercase tracking-wider cursor-pointer"
-          >
-            Tutup
-          </button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    </DialogModal>
   );
 }
 
@@ -1810,16 +1804,43 @@ function BookingModal({
   if (!selectedSchedule) return null;
 
   return (
-    <Dialog open={true} onOpenChange={onClose} maxWidth="max-w-md">
-      <DialogContent>
-        {/* Header */}
-        <DialogHeader>
-          <DialogTitle>Konfirmasi Antrean Klinik</DialogTitle>
-          <DialogDescription>Isi keluhan untuk mengamankan jadwalmu</DialogDescription>
-        </DialogHeader>
-
-        {/* Content */}
-        <div className="p-8 space-y-6 bg-white text-left">
+    <DialogModal
+      open={true}
+      onOpenChange={onClose}
+      maxWidth="max-w-md"
+      title="Konfirmasi Antrean Klinik"
+      subtitle="Isi keluhan untuk mengamankan jadwalmu"
+      icon="medical_services"
+      footer={
+        <div className="flex gap-3 w-full">
+          <button
+            onClick={onClose}
+            className="flex-1 py-3 border border-[var(--theme-border-muted)] text-[var(--theme-text-muted)] text-xs font-black rounded-xl hover:bg-[var(--theme-bg)] transition-all uppercase tracking-wider cursor-pointer bg-[var(--theme-surface)]"
+          >
+            Batal
+          </button>
+          <button
+            onClick={onSubmit}
+            disabled={!bookingKeluhan.trim() || isSubmitting}
+            className="flex-1 py-3 bg-[var(--theme-primary)] text-[var(--theme-text-on-primary)] text-xs font-black rounded-xl hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 uppercase tracking-wider cursor-pointer border-none shadow-md shadow-[var(--theme-primary)]/20"
+          >
+            {isSubmitting ? (
+              <>
+                <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }}>progress_activity</span>
+                Memproses...
+              </>
+            ) : (
+              <>
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>check_circle</span>
+                Daftarkan
+              </>
+            )}
+          </button>
+        </div>
+      }
+      bodyClassName="p-5 sm:p-6 space-y-4"
+    >
+      <div className="text-left space-y-5">
           {/* Jadwal Terpilih Info */}
           <div className="bg-emerald-50/50 rounded-2xl p-4 border border-emerald-100 flex items-start gap-4">
             <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
@@ -1926,35 +1947,7 @@ function BookingModal({
             />
           </div>
         </div>
-
-        {/* Footer */}
-        <DialogFooter className="p-8 border-t border-slate-100/60 bg-slate-50/20 shrink-0 flex gap-3">
-          <button
-            onClick={onClose}
-            className="flex-1 py-3 border border-border text-[var(--theme-text-muted)] text-xs font-black rounded-xl hover:bg-[var(--theme-bg)] transition-all uppercase tracking-wider cursor-pointer bg-white"
-          >
-            Batal
-          </button>
-          <button
-            onClick={onSubmit}
-            disabled={!bookingKeluhan.trim() || isSubmitting}
-            className="flex-1 py-3 bg-[var(--theme-primary)] text-white text-xs font-black rounded-xl hover:bg-[var(--theme-primary-dark)] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 uppercase tracking-wider cursor-pointer border-none shadow-md shadow-[var(--theme-primary)]/20"
-          >
-            {isSubmitting ? (
-              <>
-                <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }}>progress_activity</span>
-                Memproses...
-              </>
-            ) : (
-              <>
-                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>check_circle</span>
-                Daftarkan
-              </>
-            )}
-          </button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    </DialogModal>
   );
 }
 

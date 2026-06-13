@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 
 import { useBookingMutation, useCounselingJadwalQuery, useCounselingRiwayatQuery } from '../../queries/useCounselingQuery';
-import { PageCard, PageContent, PageHeader } from '@/components/ui/page';
+import { PageCard, PageContent } from '@/components/ui/page';
+import { DashboardHero } from '@/components/ui/dashboard';
 import { PrimaryStatsCard } from '@/components/ui/StatsCard';
 import { DialogModal } from '@/components/ui/DialogModal';
 import { CardGridSkeleton } from '@/components/ui/SkeletonGroups';
@@ -119,19 +120,16 @@ export default function CounselingPage() {
       <Toaster position="top-right" />
       <div className="w-full">
 
-        <PageHeader 
-          title="Layanan Konseling Mahasiswa"
+        <DashboardHero 
+          title="Konseling & Wellness"
           subtitle="Sesi privat bersama psikolog profesional — rahasia, sukarela, dan aman untuk semua mahasiswa."
-          icon="volunteer_activism"
           breadcrumbs={[
-            { label: 'Dashboard', path: '/student/dashboard' },
             { label: 'Konseling & Wellness', path: '/student/counseling' }
           ]}
-          action={
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-success/10 border border-success/20 text-success text-xs font-bold">
-              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>security</span> Privasi Terjamin 100%
-            </span>
-          }
+          badges={[
+            { label: 'Layanan Aktif', active: true },
+            { label: 'Privasi Terjamin', active: false }
+          ]}
         />
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -186,17 +184,22 @@ export default function CounselingPage() {
           {/* LEFT — Jadwal */}
           <div className="lg:col-span-2 space-y-4">
             {/* Header + Filter dalam satu baris */}
-            <PageCard className="px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="glass-card p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6 group hover:shadow-md transition-all duration-300">
               {/* Title */}
-              <div className="shrink-0">
-                <div className="flex items-center gap-2">
-                  <h2 className="text-[16px] font-bold font-headline text-slate-800">Jadwal Tersedia</h2>
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-600 text-[10px] font-bold tracking-widest">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    LIVE
-                  </span>
+              <div className="flex items-center gap-4 shrink-0">
+                <div className="w-12 h-12 bg-blue-50/80 rounded-xl flex justify-center items-center text-blue-600 group-hover:scale-110 transition-all duration-300">
+                  <span className="material-symbols-outlined text-[24px]">calendar_month</span>
                 </div>
-                <p className="text-[12px] text-slate-500 font-medium mt-0.5">Slot ini tersinkron dari jadwal aktif psikolog</p>
+                <div>
+                  <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest block mb-0.5">Booking</span>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-[var(--theme-text)] leading-tight">Jadwal Tersedia</h3>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-[var(--theme-success)]/10 border border-[var(--theme-success)]/20 text-[var(--theme-success)] text-[9px] font-black tracking-widest uppercase">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[var(--theme-success)] animate-pulse" />
+                      LIVE
+                    </span>
+                  </div>
+                </div>
               </div>
 
               {/* Filter pills — sejajar judul di desktop, full width di mobile */}
@@ -205,17 +208,17 @@ export default function CounselingPage() {
                   <button
                     key={tipe}
                     onClick={() => setFilterTipe(tipe)}
-                    className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-[12px] font-bold border transition-all whitespace-nowrap cursor-pointer ${
+                    className={`flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider border transition-all whitespace-nowrap cursor-pointer ${
                       filterTipe === tipe
-                        ? 'bg-[var(--theme-primary)] text-white border-[var(--theme-primary)] shadow-sm'
-                        : 'bg-slate-50 text-slate-500 border-slate-200 hover:border-[var(--theme-primary)] hover:text-[var(--theme-primary)] hover:bg-white'
+                        ? 'bg-[var(--theme-primary)] text-[var(--theme-text-on-primary)] border-[var(--theme-primary)] shadow-sm'
+                        : 'bg-[var(--theme-surface)] text-[var(--theme-text-muted)] border-[var(--theme-border-muted)] hover:border-[var(--theme-primary)] hover:text-[var(--theme-primary)] hover:bg-[var(--theme-bg)]'
                     }`}
                   >
                     {tipe}
                   </button>
                 ))}
               </div>
-            </PageCard>
+            </div>
 
             {/* Slot List */}
             <div className="space-y-3">
@@ -227,29 +230,29 @@ export default function CounselingPage() {
                   const tc = TIPE_CONFIG[slotTipeMapped] ?? TIPE_CONFIG.Akademik;
                   const isFull = slot.SisaKuota <= 0;
                   return (
-                    <PageCard
+                    <div
                       key={slot.ID}
-                      className="p-5 hover:border-[var(--theme-primary)] hover:shadow-md transition-all group flex flex-col sm:flex-row sm:items-center justify-between gap-5 relative overflow-hidden"
+                      className="glass-card p-6 hover:border-[var(--theme-primary)] hover:shadow-md transition-all group flex flex-col sm:flex-row sm:items-center justify-between gap-5 relative overflow-hidden"
                     >
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-slate-100 to-transparent rounded-full -mr-10 -mt-10 opacity-50 pointer-events-none transition-transform group-hover:scale-150"></div>
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[var(--theme-primary)]/5 to-transparent rounded-full -mr-10 -mt-10 opacity-50 pointer-events-none transition-transform group-hover:scale-150"></div>
                       <div className="min-w-0 flex-1 relative z-10">
                         {/* Badges */}
                         <div className="flex items-center gap-2 mb-3 flex-wrap">
-                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${tc.bg} ${tc.text} border ${tc.border}`}>
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${tc.bg} ${tc.text} border ${tc.border}`}>
                             <span className={`w-1.5 h-1.5 rounded-full ${tc.dot}`} />
                             {tc.label}
                           </span>
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold tracking-widest border ${isFull ? 'bg-red-50 text-red-500 border-red-100' : 'bg-slate-50 text-slate-500 border-slate-200'}`}>
+                          <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black tracking-widest uppercase border ${isFull ? 'bg-[var(--theme-error)]/10 text-[var(--theme-error)] border-[var(--theme-error)]/20' : 'bg-[var(--theme-surface)] text-[var(--theme-text-muted)] border-[var(--theme-border-muted)]'}`}>
                             Kuota {slot.SisaKuota}/{slot.Kuota}
                           </span>
                         </div>
 
-                        <h4 className="font-bold text-[16px] font-headline mb-1 text-slate-800">{slot.NamaKonselor}</h4>
+                        <h4 className="font-bold text-[16px] font-headline mb-1 text-[var(--theme-text)]">{slot.NamaKonselor}</h4>
                         {slot.Spesialisasi && (
-                          <p className="text-[11px] font-bold tracking-wider text-slate-400 mb-4">{slot.Spesialisasi}</p>
+                          <p className="text-[11px] font-bold tracking-wider text-[var(--theme-text-muted)] mb-4">{slot.Spesialisasi}</p>
                         )}
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-[13px] font-medium text-slate-500">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-[13px] font-medium text-[var(--theme-text-muted)]">
                           <span className="flex items-center gap-2"><span className="material-symbols-outlined text-[var(--theme-primary)] opacity-70 shrink-0" style={{ fontSize: '16px' }} >calendar_month</span>{formatLongDate(slot.Tanggal)}</span>
                           <span className="flex items-center gap-2"><span className="material-symbols-outlined text-[var(--theme-primary)] opacity-70 shrink-0" style={{ fontSize: '16px' }} >schedule</span>{slot.JamMulai} – {slot.JamSelesai} WIB</span>
                           <span className="flex items-center gap-2 sm:col-span-2"><span className="material-symbols-outlined text-[var(--theme-primary)] opacity-70 shrink-0" style={{ fontSize: '16px' }} >location_on</span>{slot.Lokasi}</span>
@@ -257,18 +260,18 @@ export default function CounselingPage() {
                       </div>
 
                       <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-3 shrink-0 relative z-10">
-                        <span className={`text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-lg border ${isFull ? 'bg-red-50 text-red-500 border-red-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}>
+                        <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg border ${isFull ? 'bg-[var(--theme-error)]/10 text-[var(--theme-error)] border-[var(--theme-error)]/20' : 'bg-[var(--theme-success)]/10 text-[var(--theme-success)] border-[var(--theme-success)]/20'}`}>
                           {isFull ? 'Penuh' : 'Tersedia'}
                         </span>
                         <button
                           onClick={() => !isFull && setSelectedSlot(slot)}
                           disabled={isFull}
-                          className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-bold transition-all bg-[var(--theme-primary)] text-white hover:opacity-90 hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none"
+                          className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-[13px] font-bold transition-all bg-[var(--theme-primary)] text-[var(--theme-text-on-primary)] hover:opacity-90 hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-[var(--theme-surface)] disabled:text-[var(--theme-text-muted)] disabled:border disabled:border-[var(--theme-border-muted)] disabled:shadow-none"
                         >
                           Ambil Antrean <span className="material-symbols-outlined transition-transform group-hover:translate-x-1" style={{ fontSize: '16px' }} >arrow_forward</span>
                         </button>
                       </div>
-                    </PageCard>
+                    </div>
                   );
                 })
               ) : (
@@ -286,34 +289,33 @@ export default function CounselingPage() {
 
           {/* RIGHT — Riwayat Summary */}
           <div className="space-y-4 lg:sticky lg:top-6 h-fit">
-            <PageCard noPadding className="overflow-hidden">
-              <div className="bg-gradient-to-br from-[var(--theme-primary)] to-[#00184A] p-6 text-[var(--theme-text-on-primary)] relative">
+            <div className="glass-card overflow-hidden">
+              <div className="bg-[var(--theme-primary)] p-6 text-[var(--theme-text-on-primary)] relative border-b border-[var(--theme-primary)]">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10 pointer-events-none"></div>
-                <div className="relative z-10">
-                  <div className="flex items-center gap-2 opacity-80 mb-2">
-                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >description</span>
-                    <span className="text-[10px] font-bold uppercase tracking-widest">Riwayat Konseling</span>
+                <div className="relative z-10 flex items-center gap-4 mb-2">
+                  <div className="w-12 h-12 bg-white/10 rounded-xl flex justify-center items-center text-white shrink-0">
+                    <span className="material-symbols-outlined text-[24px]">history</span>
                   </div>
-                  <h2 className="text-[18px] font-black font-headline text-white leading-tight">Pantau Sesi & Rekam Medis</h2>
-                  <p className="mt-2 text-[13px] font-medium leading-relaxed text-white/80">
-                    Riwayat booking dan catatan psikolog sekarang tersedia di halaman khusus agar lebih mudah dibaca.
-                  </p>
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-widest opacity-80 block mb-0.5">Pantauan Sesi</span>
+                    <h3 className="text-sm font-bold text-white leading-tight">Riwayat Konseling</h3>
+                  </div>
                 </div>
               </div>
 
-              <div className="p-6 bg-white">
+              <div className="p-6 bg-[var(--theme-surface)]">
                 <div className="grid grid-cols-3 gap-3">
-                  <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4 text-center">
-                    <p className="text-2xl font-black font-headline text-slate-800">{totalRiwayat}</p>
-                    <p className="mt-1 text-[9px] font-bold uppercase tracking-widest text-slate-400">Total</p>
+                  <div className="rounded-2xl border border-[var(--theme-border-muted)] bg-[var(--theme-bg)] p-4 text-center">
+                    <p className="text-2xl font-black font-headline text-[var(--theme-text)]">{totalRiwayat}</p>
+                    <p className="mt-1 text-[9px] font-black uppercase tracking-widest text-[var(--theme-text-muted)]">Total</p>
                   </div>
-                  <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4 text-center">
-                    <p className="text-2xl font-black font-headline text-amber-600">{totalMenunggu}</p>
-                    <p className="mt-1 text-[9px] font-bold uppercase tracking-widest text-amber-500">Menunggu</p>
+                  <div className="rounded-2xl border border-[var(--theme-warning)]/20 bg-[var(--theme-warning)]/5 p-4 text-center">
+                    <p className="text-2xl font-black font-headline text-[var(--theme-warning)]">{totalMenunggu}</p>
+                    <p className="mt-1 text-[9px] font-black uppercase tracking-widest text-[var(--theme-warning)]">Menunggu</p>
                   </div>
-                  <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-center">
-                    <p className="text-2xl font-black font-headline text-emerald-600">{totalMedicalRecords}</p>
-                    <p className="mt-1 text-[9px] font-bold uppercase tracking-widest text-emerald-500">Rekam</p>
+                  <div className="rounded-2xl border border-[var(--theme-success)]/20 bg-[var(--theme-success)]/5 p-4 text-center">
+                    <p className="text-2xl font-black font-headline text-[var(--theme-success)]">{totalMedicalRecords}</p>
+                    <p className="mt-1 text-[9px] font-black uppercase tracking-widest text-[var(--theme-success)]">Rekam</p>
                   </div>
                 </div>
 
@@ -332,7 +334,7 @@ export default function CounselingPage() {
                   </p>
                 </div>
               </div>
-            </PageCard>
+            </div>
           </div>
         </div>
 

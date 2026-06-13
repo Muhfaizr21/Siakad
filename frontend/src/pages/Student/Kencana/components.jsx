@@ -103,14 +103,14 @@ export function StatusBadge({ status }) {
 
 export function MetricCard({ label, value, hint, icon = 'analytics' }) {
   return (
-    <div className="rounded-2xl border border-slate-200/60 bg-white/80 p-5 shadow-sm backdrop-blur group hover:shadow-md transition-all duration-300">
+    <div className="rounded-2xl border border-[var(--theme-border-muted)] bg-[var(--theme-surface)] p-5 shadow-sm hover:border-[var(--theme-primary-light)] transition-all duration-300 group">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-400">{label}</p>
-          <p className="mt-2 text-3xl font-bold text-slate-800 font-headline">{value}</p>
-          {hint && <p className="mt-1 text-xs font-semibold text-slate-500">{hint}</p>}
+          <p className="text-[10px] font-black uppercase tracking-widest text-[var(--theme-text-muted)]">{label}</p>
+          <p className="mt-2 text-3xl font-black text-[var(--theme-text)] font-headline">{value}</p>
+          {hint && <p className="mt-1 text-xs font-semibold text-[var(--theme-text-muted)] opacity-80">{hint}</p>}
         </div>
-        <div className="grid size-11 place-items-center rounded-xl bg-bku-primary text-white shadow-sm group-hover:scale-110 transition-transform duration-300">
+        <div className="grid size-11 place-items-center rounded-xl bg-[var(--theme-primary-light)] text-[var(--theme-primary)] group-hover:bg-[var(--theme-primary)] group-hover:text-white transition-all duration-300">
           <span className="material-symbols-outlined" style={{ fontSize: 22 }}>{icon}</span>
         </div>
       </div>

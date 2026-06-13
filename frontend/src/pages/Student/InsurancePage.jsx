@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
-import { insuranceService } from '../../services/api';
-import toast from 'react-hot-toast';
-import StudentPageHeader from './components/StudentPageHeader';
+import { DialogModal } from '@/components/ui/DialogModal';
+import { DashboardHero } from '@/components/ui/dashboard';
+import { PageContent } from '@/components/ui/page';
 
 // Auto-injected Material Symbol fallbacks
 const InsuranceIcon = ({ size, className, ...props }) => (
@@ -228,40 +227,36 @@ export default function InsurancePage() {
   const hasActiveClaim = pendingClaim || approvedClaim;
 
   return (
-    <div className="px-4 py-5 md:px-6 md:py-6 lg:px-8 lg:py-8 font-body text-[#171717] min-h-screen bg-[#fafafa]">
-      
-      <div className="mb-8">
-        <StudentPageHeader
-          title="Klaim Asuransi"
-          subtitle="Layanan Mandiri Klaim Asuransi Kesehatan Mahasiswa BKU"
-          icon="health_and_safety"
-          breadcrumbs={[{ label: 'Klaim Asuransi' }]}
-          actions={
-            <div className="flex p-1 bg-white rounded-2xl shadow-sm border border-[#e5e5e5] w-fit">
-              <button 
-                onClick={() => setActiveTab('ajuan')}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs md:text-sm transition-all ${activeTab === 'ajuan' ? 'bg-bku-primary text-white shadow-md shadow-bku-primary/20' : 'text-[#a3a3a3] hover:text-[#525252]'}`}
-              >
-                <span className="material-symbols-outlined text-sm">add_circle</span>
-                Ajukan Klaim
-              </button>
-              <button 
-                onClick={() => setActiveTab('riwayat')}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs md:text-sm transition-all ${activeTab === 'riwayat' ? 'bg-bku-primary text-white shadow-md shadow-bku-primary/20' : 'text-[#a3a3a3] hover:text-[#525252]'}`}
-              >
-                <span className="material-symbols-outlined text-sm">history</span>
-                Riwayat Saya
-                {claims.length > 0 && (
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${activeTab === 'riwayat' ? 'bg-white/20 text-white' : 'bg-[#e5e5e5] text-[#525252]'}`}
-                  >
-                    {claims.length}
-                  </span>
-                )}
-              </button>
-            </div>
-          }
-        />
-      </div>
+    <PageContent className="font-body">
+      <DashboardHero
+        title="Klaim Asuransi"
+        subtitle="Layanan Mandiri Klaim Asuransi Kesehatan Mahasiswa BKU"
+        breadcrumbs={[{ label: 'Klaim Asuransi' }]}
+        actions={
+          <div className="flex bg-[var(--theme-surface)] p-1 rounded-xl gap-1 shrink-0 border border-[var(--theme-border-muted)]">
+            <button 
+              onClick={() => setActiveTab('ajuan')}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all ${activeTab === 'ajuan' ? 'bg-[var(--theme-primary)] text-[var(--theme-text-on-primary)] shadow-md shadow-[var(--theme-primary)]/20' : 'text-[var(--theme-text-muted)] hover:text-[var(--theme-text)]'}`}
+            >
+              <span className="material-symbols-outlined text-sm">add_circle</span>
+              Ajukan Klaim
+            </button>
+            <button 
+              onClick={() => setActiveTab('riwayat')}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all ${activeTab === 'riwayat' ? 'bg-[var(--theme-primary)] text-[var(--theme-text-on-primary)] shadow-md shadow-[var(--theme-primary)]/20' : 'text-[var(--theme-text-muted)] hover:text-[var(--theme-text)]'}`}
+            >
+              <span className="material-symbols-outlined text-sm">history</span>
+              Riwayat Saya
+              {claims.length > 0 && (
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${activeTab === 'riwayat' ? 'bg-white/20 text-white' : 'bg-[var(--theme-bg)] text-[var(--theme-text-muted)]'}`}
+                >
+                  {claims.length}
+                </span>
+              )}
+            </button>
+          </div>
+        }
+      />
 
       {/* Ajukan Tab */}
       <AnimatePresence mode="wait">
@@ -275,7 +270,7 @@ export default function InsurancePage() {
             {/* Left side: Guide & Stats */}
             <div className="space-y-6">
               {/* Info Card */}
-              <div className="bg-[var(--theme-primary)]/10 border border-[var(--theme-primary)]/20 rounded-2xl p-6 shadow-sm">
+              <div className="glass-card p-6 overflow-hidden">
                 <div className="flex gap-4">
                   <div className="w-10 h-10 rounded-xl bg-surface text-[var(--theme-primary)] flex items-center justify-center shrink-0 border border-[var(--theme-primary)]/20">
                     <span className="material-symbols-outlined">info</span>
@@ -301,7 +296,7 @@ export default function InsurancePage() {
               </div>
 
               {/* Stats Card */}
-              <div className="bg-surface rounded-2xl border border-border p-6 shadow-sm space-y-4">
+              <div className="glass-card p-6 overflow-hidden space-y-4">
                 <h4 className="text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest border-b border-[var(--theme-border-muted)] pb-2">Status Ringkasan</h4>
                 <div className="grid grid-cols-3 gap-2">
                   <div className="bg-background border border-border rounded-xl p-3 text-center">
@@ -327,7 +322,7 @@ export default function InsurancePage() {
             {/* Right side: Form */}
             <div className="lg:col-span-2 space-y-6">
               {hasActiveClaim ? (
-                <div className="bg-surface rounded-2xl border border-border p-8 md:p-12 shadow-sm text-center flex flex-col items-center justify-center min-h-[400px]">
+                <div className="glass-card p-8 md:p-12 text-center flex flex-col items-center justify-center min-h-[400px]">
                   <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-6 border-2 shadow-sm ${approvedClaim ? 'bg-[var(--theme-success)]/10 border-[var(--theme-success)]/20' : 'bg-[var(--theme-warning)]/10 border-[var(--theme-warning)]/20'}`}>
                     <span className={`material-symbols-outlined text-4xl ${approvedClaim ? 'text-[var(--theme-success)]' : 'text-[var(--theme-warning)]'}`} style={{ fontVariationSettings: "'FILL' 1" }}>
                       {approvedClaim ? 'check_circle' : 'hourglass_top'}
@@ -343,14 +338,14 @@ export default function InsurancePage() {
                   </p>
                   <button
                     onClick={() => setActiveTab('riwayat')}
-                    className="px-6 py-3 bg-[var(--theme-primary)] text-white text-sm font-black rounded-xl hover:bg-[var(--theme-primary-hover)] transition-all shadow-md shadow-[var(--theme-primary)]/20 flex items-center gap-2"
+                    className="px-6 py-3 bg-[var(--theme-primary)] text-[var(--theme-text-on-primary)] text-sm font-black rounded-xl hover:opacity-90 transition-all shadow-md shadow-[var(--theme-primary)]/20 flex items-center gap-2"
                   >
                     <span className="material-symbols-outlined text-sm">history</span>
                     Lihat Status Pengajuan
                   </button>
                 </div>
               ) : (
-                <div className="bg-surface rounded-2xl border border-border p-6 md:p-8 shadow-sm space-y-6">
+                <div className="glass-card p-6 md:p-8 space-y-6">
                   {/* Form Card */}
                 
                 {/* Provider Selection */}
@@ -398,7 +393,7 @@ export default function InsurancePage() {
                         name="tanggal_kejadian"
                         value={form.tanggal_kejadian}
                         onChange={handleInputChange}
-                        className="w-full p-3.5 pl-4 bg-background border border-border rounded-xl text-sm focus:border-[var(--theme-primary)] focus:bg-surface outline-none transition-all font-bold"
+                        className="w-full p-3.5 pl-4 bg-[var(--theme-bg)] border border-[var(--theme-border-muted)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:bg-[var(--theme-surface)] outline-none transition-all font-bold"
                       />
                     </div>
                   </div>
@@ -410,7 +405,7 @@ export default function InsurancePage() {
                       value={form.estimasi_biaya}
                       onChange={handleInputChange}
                       placeholder="0"
-                      className="w-full p-3.5 pl-4 bg-background border border-border rounded-xl text-sm focus:border-[var(--theme-primary)] focus:bg-surface outline-none transition-all font-bold"
+                      className="w-full p-3.5 pl-4 bg-[var(--theme-bg)] border border-[var(--theme-border-muted)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:bg-[var(--theme-surface)] outline-none transition-all font-bold"
                     />
                   </div>
                 </div>
@@ -423,7 +418,7 @@ export default function InsurancePage() {
                     value={form.lokasi_faskes}
                     onChange={handleInputChange}
                     placeholder="Contoh: RS Hermina Bandung, Klinik UBK"
-                    className="w-full p-3.5 pl-4 bg-background border border-border rounded-xl text-sm focus:border-[var(--theme-primary)] focus:bg-surface outline-none transition-all font-bold"
+                    className="w-full p-3.5 pl-4 bg-[var(--theme-bg)] border border-[var(--theme-border-muted)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:bg-[var(--theme-surface)] outline-none transition-all font-bold"
                   />
                 </div>
 
@@ -435,7 +430,7 @@ export default function InsurancePage() {
                     onChange={handleInputChange}
                     rows={4}
                     placeholder="Jelaskan kronologis kejadian medis secara lengkap (kapan, di mana, keluhan yang dialami)..."
-                    className="w-full p-4 bg-background border border-border rounded-xl text-sm focus:border-[var(--theme-primary)] focus:bg-surface outline-none transition-all font-medium resize-none leading-relaxed"
+                    className="w-full p-4 bg-[var(--theme-bg)] border border-[var(--theme-border-muted)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:bg-[var(--theme-surface)] outline-none transition-all font-medium resize-none leading-relaxed"
                   />
                 </div>
 
@@ -445,7 +440,7 @@ export default function InsurancePage() {
                   <div className={`border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer ${
                     file 
                       ? 'border-[var(--theme-success)] bg-[var(--theme-success)]/10 text-[var(--theme-success)]' 
-                      : 'border-border hover:border-[var(--theme-primary)] bg-background hover:bg-surface'
+                      : 'border-[var(--theme-border-muted)] hover:border-[var(--theme-primary)] bg-[var(--theme-bg)] hover:bg-[var(--theme-surface)]'
                   }`}>
                     <input
                       type="file"
@@ -479,7 +474,7 @@ export default function InsurancePage() {
                 <button
                   onClick={handleSubmit}
                   disabled={submitting}
-                  className="w-full py-4 bg-[var(--theme-primary)] text-white font-black rounded-xl shadow-xl shadow-[var(--theme-primary)]/20 hover:bg-[var(--theme-primary-hover)] transition-all hover:scale-[1.01] disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-[var(--theme-primary)] text-[var(--theme-text-on-primary)] font-black rounded-xl shadow-xl shadow-[var(--theme-primary)]/20 hover:opacity-90 transition-all hover:scale-[1.01] disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {submitting ? (
                     <>
@@ -520,15 +515,15 @@ export default function InsurancePage() {
                 ))}
               </div>
             ) : claims.length === 0 ? (
-              <div className="bg-surface rounded-2xl p-12 border border-border text-center max-w-lg mx-auto shadow-sm">
-                <div className="w-16 h-16 rounded-full bg-background flex items-center justify-center mx-auto mb-4 border border-border">
+              <div className="glass-card p-12 text-center max-w-lg mx-auto">
+                <div className="w-16 h-16 rounded-full bg-[var(--theme-bg)] flex items-center justify-center mx-auto mb-4 border border-[var(--theme-border-muted)]">
                   <span className="material-symbols-outlined text-3xl text-[var(--theme-text-muted)]">receipt_long</span>
                 </div>
                 <h3 className="font-black text-[var(--theme-text)] text-lg mb-1">Belum Ada Riwayat Klaim</h3>
                 <p className="text-[var(--theme-text-muted)] text-xs font-semibold leading-relaxed mb-6">Seluruh daftar pengajuan klaim asuransi kesehatan mandiri Anda akan ditampilkan di sini.</p>
                 <button
                   onClick={() => setActiveTab('ajuan')}
-                  className="px-6 py-3 bg-[var(--theme-primary)] text-white text-xs font-black rounded-xl hover:bg-[var(--theme-primary-hover)] transition-all"
+                  className="px-6 py-3 bg-[var(--theme-primary)] text-[var(--theme-text-on-primary)] text-xs font-black rounded-xl hover:opacity-90 transition-all"
                 >
                   Ajukan Klaim Pertama Anda
                 </button>
@@ -547,7 +542,7 @@ export default function InsurancePage() {
                   return (
                     <div 
                       key={claim.id} 
-                      className={`bg-surface rounded-2xl p-5 border border-border border-l-4 ${statusBorder} hover:shadow-md transition-all flex flex-col justify-between`}
+                      className={`glass-card p-5 border-l-4 ${statusBorder} hover:shadow-md transition-all flex flex-col justify-between`}
                     >
                       <div className="space-y-3">
                         <div className="flex justify-between items-start">
@@ -557,7 +552,7 @@ export default function InsurancePage() {
                         
                         <div>
                           <p className="text-[10px] text-[var(--theme-text-muted)] font-black uppercase tracking-wider mb-0.5">ID Pengajuan</p>
-                          <code className="text-xs font-bold bg-background px-2 py-0.5 rounded border border-border text-[var(--theme-text-muted)]">#{claim.id}</code>
+                          <code className="text-xs font-bold bg-[var(--theme-bg)] px-2 py-0.5 rounded border border-[var(--theme-border-muted)] text-[var(--theme-text-muted)]">#{claim.id}</code>
                         </div>
  
                         <div className="pt-2">
@@ -578,7 +573,7 @@ export default function InsurancePage() {
                       <div className="flex items-center justify-end gap-2 pt-4 mt-3 border-t border-[var(--theme-border-muted)]">
                         <button
                           onClick={() => setSelectedClaim(claim)}
-                          className="px-4 py-2 rounded-xl bg-surface border border-border text-xs font-black hover:border-[var(--theme-primary)] hover:text-[var(--theme-primary)] transition-all"
+                          className="px-4 py-2 rounded-xl bg-[var(--theme-surface)] border border-[var(--theme-border-muted)] text-xs font-black hover:border-[var(--theme-primary)] hover:text-[var(--theme-primary)] transition-all cursor-pointer"
                         >
                           Lihat Detail
                         </button>
@@ -604,44 +599,61 @@ export default function InsurancePage() {
       </AnimatePresence>
 
       {/* DETAIL MODAL */}
-      <Dialog open={!!selectedClaim} onOpenChange={() => setSelectedClaim(null)} maxWidth="max-w-2xl">
-        <DialogContent>
-          <DialogHeader>
-            <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
-              <span className="material-symbols-outlined text-8xl text-slate-900">health_and_safety</span>
+      {selectedClaim && (
+        <DialogModal
+          open={true}
+          onOpenChange={() => setSelectedClaim(null)}
+          maxWidth="max-w-2xl"
+          title={`ID Pengajuan: #${selectedClaim.id}`}
+          subtitle="Detail Klaim Asuransi"
+          icon="health_and_safety"
+          footer={
+            <div className="flex flex-col sm:flex-row gap-3 w-full">
+              {selectedClaim.surat_pengantar_url && (
+                <a 
+                  href={selectedClaim.surat_pengantar_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 py-3.5 rounded-xl font-black text-xs md:text-sm bg-[var(--theme-primary)] text-[var(--theme-text-on-primary)] hover:opacity-90 text-center flex items-center justify-center gap-1.5 shadow-xl shadow-[var(--theme-primary)]/10 transition-all hover:scale-[1.01] active:scale-95"
+                >
+                  <DownloadIcon size={16} /> Unduh Surat Pengantar
+                </a>
+              )}
+              <button 
+                onClick={() => setSelectedClaim(null)}
+                className="flex-1 py-3.5 rounded-xl font-black text-xs md:text-sm border border-[var(--theme-border-muted)] text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] transition-all bg-[var(--theme-surface)] active:scale-95 cursor-pointer uppercase tracking-wider"
+              >
+                Tutup
+              </button>
             </div>
-            <div className="text-left relative z-10">
-              <p className="text-xs font-semibold text-text-muted uppercase tracking-wider">Detail Klaim Asuransi</p>
-              <DialogTitle className="text-xl font-extrabold mt-1 text-[#171717] leading-tight">ID Pengajuan: #{selectedClaim?.id}</DialogTitle>
-            </div>
-          </DialogHeader>
-
-          {selectedClaim && (
-            <div className="p-8 overflow-y-auto max-h-[50vh] no-scrollbar space-y-6 text-sm">
-              {/* Stats Summary Block */}
+          }
+          bodyClassName="p-5 sm:p-6 space-y-4"
+        >
+          <div className="space-y-4 text-sm text-left">
+            {/* Stats Summary Block */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="p-3 bg-background rounded-xl border border-border">
+                <div className="p-3 bg-[var(--theme-bg)] rounded-xl border border-[var(--theme-border-muted)]">
                   <p className="text-[9px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-1">Provider</p>
                   <span className="font-black text-xs text-[var(--theme-primary)]">
                     {PROVIDER_OPTIONS.find(p => p.value === selectedClaim.jenis_provider)?.label.split(' (')[0] || selectedClaim.jenis_provider}
                   </span>
                 </div>
-                <div className="p-3 bg-background rounded-xl border border-border">
+                <div className="p-3 bg-[var(--theme-bg)] rounded-xl border border-[var(--theme-border-muted)]">
                   <p className="text-[9px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-1">Tgl Kejadian</p>
                   <p className="text-xs font-black text-[var(--theme-text)]">{formatDate(selectedClaim.tanggal_kejadian)}</p>
                 </div>
-                <div className="p-3 bg-background rounded-xl border border-border">
+                <div className="p-3 bg-[var(--theme-bg)] rounded-xl border border-[var(--theme-border-muted)]">
                   <p className="text-[9px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-1">Estimasi Biaya</p>
                   <p className="text-xs font-black text-[var(--theme-text)]">{formatCurrency(selectedClaim.estimasi_biaya)}</p>
                 </div>
-                <div className="p-3 bg-background rounded-xl border border-border">
+                <div className="p-3 bg-[var(--theme-bg)] rounded-xl border border-[var(--theme-border-muted)]">
                   <p className="text-[9px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-1">Fasilitas Kesehatan</p>
                   <p className="text-xs font-black text-[var(--theme-text)] truncate">{selectedClaim.lokasi_faskes || '—'}</p>
                 </div>
               </div>
 
               {/* Progress/Status Info */}
-              <div className="p-4 bg-background rounded-xl border border-border space-y-3">
+              <div className="p-4 bg-[var(--theme-bg)] rounded-xl border border-[var(--theme-border-muted)] space-y-3">
                 <h4 className="flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-[var(--theme-text-muted)]">
                   <Clock size={16} className="text-[var(--theme-primary)]" /> Status Pengajuan
                 </h4>
@@ -671,7 +683,7 @@ export default function InsurancePage() {
               {/* Deskripsi Kronologi */}
               <div>
                 <h4 className="text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-2">Kronologis Kejadian Medis</h4>
-                <div className="bg-background p-5 rounded-xl border border-border leading-relaxed font-medium text-[var(--theme-text)]">
+                <div className="bg-[var(--theme-bg)] p-5 rounded-xl border border-[var(--theme-border-muted)] leading-relaxed font-medium text-[var(--theme-text)]">
                   {selectedClaim.deskripsi || '—'}
                 </div>
               </div>
@@ -680,7 +692,7 @@ export default function InsurancePage() {
               <div>
                 <h4 className="text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-2">Berkas Dokumen Terlampir</h4>
                 {selectedClaim.file_url ? (
-                  <div className="flex justify-between items-center bg-background p-4 rounded-xl border border-border group hover:border-[var(--theme-primary)] transition-all">
+                  <div className="flex justify-between items-center bg-[var(--theme-bg)] p-4 rounded-xl border border-[var(--theme-border-muted)] group hover:border-[var(--theme-primary)] transition-all">
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-lg bg-[var(--theme-primary)]/10 text-[var(--theme-primary)] flex items-center justify-center shrink-0">
                         <DocumentIcon size={18} />
@@ -694,7 +706,7 @@ export default function InsurancePage() {
                       href={selectedClaim.file_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-3 py-1.5 bg-surface border border-border rounded-lg text-xs font-black text-[var(--theme-text)] hover:text-[var(--theme-primary)] hover:border-[var(--theme-primary)] transition-all flex items-center gap-1 shadow-sm"
+                      className="px-3 py-1.5 bg-[var(--theme-surface)] border border-[var(--theme-border-muted)] rounded-lg text-xs font-black text-[var(--theme-text)] hover:text-[var(--theme-primary)] hover:border-[var(--theme-primary)] transition-all flex items-center gap-1 shadow-sm"
                     >
                       <span className="material-symbols-outlined text-sm">visibility</span> Lihat
                     </a>
@@ -703,30 +715,10 @@ export default function InsurancePage() {
                   <p className="text-xs text-[var(--theme-text-muted)] font-semibold italic">Tidak ada berkas dokumen pendukung yang dilampirkan.</p>
                 )}
               </div>
-            </div>
-          )}
-
-          <DialogFooter className="flex gap-3 bg-slate-50/30 p-8 border-t border-slate-100">
-            <button 
-              onClick={() => setSelectedClaim(null)}
-              className="flex-1 py-3.5 rounded-xl font-black text-xs md:text-sm border border-border text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] transition-all bg-surface active:scale-95 cursor-pointer"
-            >
-              Tutup
-            </button>
-            {selectedClaim?.surat_pengantar_url && (
-              <a 
-                href={selectedClaim.surat_pengantar_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 py-3.5 rounded-xl font-black text-xs md:text-sm bg-[var(--theme-primary)] text-white hover:bg-[var(--theme-primary-hover)] text-center flex items-center justify-center gap-1.5 shadow-xl shadow-[var(--theme-primary)]/10 transition-all hover:scale-[1.01] active:scale-95"
-              >
-                <DownloadIcon size={16} /> Unduh Surat Pengantar
-              </a>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+          </div>
+        </DialogModal>
+      )}
+    </PageContent>
   );
 }
 

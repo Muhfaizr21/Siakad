@@ -7,8 +7,25 @@ import api from '../../../lib/axios';
 import { toast } from 'react-hot-toast';
 
 
-import Input from '@/components/ui/Input';
-import { Label } from '@/components/ui/Label';
+import { cn } from '@/lib/utils';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from '@/components/ui/Table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/AlertDialog';
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Smartphone = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>smartphone</span>;
@@ -27,6 +44,19 @@ const History = ({ size, className, ...props }) => <span className={`material-sy
 
 const Mail = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>mail</span>;
 
+
+const FIELD_CLASS = 'w-full rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg)] px-4 py-3 text-sm font-semibold text-[var(--theme-text)] outline-none transition-all focus:border-[var(--theme-primary)] focus:bg-[var(--theme-surface)] focus:ring-4 focus:ring-[var(--theme-primary-light)] placeholder-[var(--theme-text-subtle)]';
+
+const Label = ({ children, icon: Icon, ...props }) => (
+  <span className="mb-2 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-[var(--theme-text-muted)]" {...props}>
+    {Icon && <Icon size={13} className="text-[var(--theme-text-subtle)]" />}
+    {children}
+  </span>
+);
+
+const Input = React.forwardRef(({ className, type, ...props }, ref) => (
+  <input type={type} className={cn(FIELD_CLASS, className)} ref={ref} {...props} />
+));
 
 const passwordSchema = z.object({
   old_password: z.string().min(1, 'Password saat ini wajib diisi'),
@@ -54,7 +84,15 @@ export default function KeamananTab() {
   const queryClient = useQueryClient();
   const [showOld, setShowOld] = useState(false);
   const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [showEmailPass, setShowEmailPass] = useState(false);
+
+  // Dialog States
+  const [confirmPasswordOpen, setConfirmPasswordOpen] = useState(false);
+  const [pendingPasswordData, setPendingPasswordData] = useState(null);
+  
+  const [confirmEmailOpen, setConfirmEmailOpen] = useState(false);
+  const [pendingEmailData, setPendingEmailData] = useState(null);
 
   const { register, handleSubmit, reset, watch, formState: { errors: passwordErrors } } = useForm({
     resolver: zodResolver(passwordSchema)
@@ -120,34 +158,20 @@ export default function KeamananTab() {
     }
   });
 
-  const getStrength = (pwd) => {
-    let score = 0;
-    if (!pwd) return 0;
-    if (pwd.length >= 8) score++;
-    if (/[A-Z]/.test(pwd)) score++;
-    if (/[a-z]/.test(pwd)) score++;
-    if (/[0-9]/.test(pwd)) score++;
-    return (score / 4) * 100;
-  };
 
-  const strength = getStrength(newPassword);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 p-5 lg:p-5">
       
       {/* Card A: Ganti Password */}
-      <div className="bg-surface rounded-2xl border border-border p-6 md:p-8 shadow-sm">
-         <div className="flex items-center gap-3 mb-8">
-            <div className="bg-[var(--theme-primary-light)] text-[var(--theme-primary)] p-3 rounded-2xl">
-               <KeyRound size={24} />
-            </div>
-            <div>
-               <h3 className="text-xl font-extrabold font-headline">Ganti Password</h3>
-               <p className="text-sm font-medium text-[#a3a3a3]">Pastikan password kamu kuat dan sulit ditebak.</p>
-            </div>
-         </div>
+      <div className="border-b border-[var(--theme-border-muted)] pb-6">
+         <h2 className="text-sm font-black font-headline uppercase tracking-widest mb-1" style={{ color: 'var(--theme-h2)' }}>Ganti Password</h2>
+         <p className="text-xs font-semibold leading-relaxed text-[var(--theme-text-muted)] mb-6">Pastikan password kamu kuat dan sulit ditebak.</p>
 
-         <form onSubmit={handleSubmit((data) => passwordMutation.mutate(data))} className="grid grid-cols-1 md:grid-cols-3 gap-6">
+         <form onSubmit={handleSubmit((data) => {
+            setPendingPasswordData(data);
+            setConfirmPasswordOpen(true);
+         })} className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-2 relative">
                <Label htmlFor="old_password">Password Saat Ini</Label>
                <div className="relative">
@@ -156,8 +180,8 @@ export default function KeamananTab() {
                     type={showOld ? 'text' : 'password'}
                     {...register('old_password')}
                   />
-                  <button type="button" onClick={() => setShowOld(!showOld)} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#a3a3a3]">
-                    {showOld ? <span className="material-symbols-outlined" style={{ fontSize: '18px' }} Off >visibility</span> : <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >visibility</span>}
+                  <button type="button" onClick={() => setShowOld(!showOld)} className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--theme-text-muted)] hover:text-[var(--theme-primary)] transition-colors">
+                    {showOld ? <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>visibility_off</span> : <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>visibility</span>}
                   </button>
                </div>
                {passwordErrors.old_password && <p className="text-xs font-bold text-[#0B4FAE]">{passwordErrors.old_password.message}</p>}
@@ -171,35 +195,36 @@ export default function KeamananTab() {
                     type={showNew ? 'text' : 'password'}
                     {...register('new_password')}
                   />
-                  <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#a3a3a3]">
-                    {showNew ? <span className="material-symbols-outlined" style={{ fontSize: '18px' }} Off >visibility</span> : <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >visibility</span>}
+                  <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--theme-text-muted)] hover:text-[var(--theme-primary)] transition-colors">
+                    {showNew ? <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>visibility_off</span> : <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>visibility</span>}
                   </button>
                </div>
-               <div className="h-1.5 w-full bg-[#f5f5f5] rounded-full overflow-hidden mt-2">
-                  <div
-                    className={`h-full transition-all duration-500 ${
-                        strength < 50 ? 'bg-[#93B4FF]' :
-                        strength < 100 ? 'bg-[var(--theme-primary-hover)]' : 'bg-[var(--theme-primary)]'
-                    }`}
-                    style={{ width: `${strength}%` }}
-                   />
-               </div>
+
                {passwordErrors.new_password && <p className="text-xs font-bold text-[#0B4FAE]">{passwordErrors.new_password.message}</p>}
             </div>
 
             <div className="space-y-2">
                <Label htmlFor="confirm_password">Konfirmasi Password Baru</Label>
-               <Input id="confirm_password" type="password" {...register('confirm_password')} />
+               <div className="relative">
+                  <Input
+                    id="confirm_password"
+                    type={showConfirm ? 'text' : 'password'}
+                    {...register('confirm_password')}
+                  />
+                  <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--theme-text-muted)] hover:text-[var(--theme-primary)] transition-colors">
+                    {showConfirm ? <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>visibility_off</span> : <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>visibility</span>}
+                  </button>
+               </div>
                {passwordErrors.confirm_password && <p className="text-xs font-bold text-[#0B4FAE]">{passwordErrors.confirm_password.message}</p>}
             </div>
 
-            <div className="md:col-span-3 pt-4 border-t border-[var(--theme-border-muted)] flex justify-end">
+            <div className="md:col-span-3 pt-2 flex justify-end">
                <button
                 type="submit"
                 disabled={passwordMutation.isPending}
-                className="bg-[var(--theme-primary)] text-white py-3 px-8 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[var(--theme-primary-hover)] transition-all disabled:opacity-50"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--theme-primary)] px-7 py-3 text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-[var(--theme-primary)]/20 transition-all hover:bg-[var(--theme-primary-hover)] active:scale-95 disabled:cursor-wait disabled:opacity-70 border-none cursor-pointer"
                >
-                 {passwordMutation.isPending && <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }} >sync</span>}
+                 {passwordMutation.isPending && <span className="material-symbols-outlined animate-spin text-base shrink-0">sync</span>}
                  Perbarui Password
                </button>
             </div>
@@ -207,18 +232,14 @@ export default function KeamananTab() {
       </div>
 
       {/* Card: Ubah Email */}
-      <div className="bg-surface rounded-2xl border border-border p-6 md:p-8 shadow-sm">
-         <div className="flex items-center gap-3 mb-8">
-            <div className="bg-[var(--theme-primary-light)] text-[var(--theme-primary)] p-3 rounded-2xl">
-               <Mail size={24} />
-            </div>
-            <div>
-               <h3 className="text-xl font-extrabold font-headline">Ubah Email</h3>
-               <p className="text-sm font-medium text-[#a3a3a3]">Perbarui email akun Anda untuk login dan notifikasi.</p>
-            </div>
-         </div>
+      <div className="border-b border-[var(--theme-border-muted)] pb-6">
+         <h2 className="text-sm font-black font-headline uppercase tracking-widest mb-1" style={{ color: 'var(--theme-h2)' }}>Ubah Email</h2>
+         <p className="text-xs font-semibold leading-relaxed text-[var(--theme-text-muted)] mb-6">Perbarui email akun Anda untuk login dan notifikasi.</p>
 
-         <form onSubmit={handleEmailSubmit((data) => emailMutation.mutate(data))} className="grid grid-cols-1 md:grid-cols-3 gap-6">
+         <form onSubmit={handleEmailSubmit((data) => {
+            setPendingEmailData(data);
+            setConfirmEmailOpen(true);
+         })} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
             <div className="space-y-2">
                <Label htmlFor="email">Email Baru</Label>
                <Input
@@ -244,124 +265,146 @@ export default function KeamananTab() {
             <div className="space-y-2">
                <Label htmlFor="email_password">Password (Konfirmasi)</Label>
                <div className="relative">
-                  <Input
-                    id="email_password"
-                    type={showEmailPass ? 'text' : 'password'}
-                    {...registerEmail('password')}
-                    placeholder="Masukkan password"
-                  />
-                  <button type="button" onClick={() => setShowEmailPass(!showEmailPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#a3a3a3]">
-                    {showEmailPass ? <span className="material-symbols-outlined" style={{ fontSize: '18px' }} Off >visibility</span> : <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >visibility</span>}
-                  </button>
+                     <Input
+                       id="email_password"
+                       type={showEmailPass ? 'text' : 'password'}
+                       {...registerEmail('password')}
+                     />
+                     <button type="button" onClick={() => setShowEmailPass(!showEmailPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--theme-text-muted)] hover:text-[var(--theme-primary)] transition-colors">
+                       {showEmailPass ? <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>visibility_off</span> : <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>visibility</span>}
+                     </button>
                </div>
                {emailErrors.password && <p className="text-xs font-bold text-[#0B4FAE]">{emailErrors.password.message}</p>}
             </div>
 
-            <div className="md:col-span-3 pt-4 border-t border-[var(--theme-border-muted)] flex justify-end">
+            <div className="md:col-span-3 pt-2 flex justify-end">
                <button
                 type="submit"
                 disabled={emailMutation.isPending}
-                className="bg-[var(--theme-primary)] text-white py-3 px-8 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[var(--theme-primary-hover)] transition-all disabled:opacity-50"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--theme-primary)] px-7 py-3 text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-[var(--theme-primary)]/20 transition-all hover:bg-[var(--theme-primary-hover)] active:scale-95 disabled:cursor-wait disabled:opacity-70 border-none cursor-pointer"
                >
-                 {emailMutation.isPending && <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }} >sync</span>}
+                 {emailMutation.isPending && <span className="material-symbols-outlined animate-spin text-base shrink-0">sync</span>}
                  Simpan Email Baru
                </button>
             </div>
          </form>
       </div>
 
-      {/* Card B: Sesi Aktif */}
-      <div className="bg-surface rounded-2xl border border-border p-6 md:p-8 shadow-sm">
-         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-            <div className="flex items-center gap-3">
-                <div className="bg-[var(--theme-primary-light)] text-[var(--theme-primary)] p-3 rounded-2xl">
-                   <Monitor size={24} />
-                </div>
-               <div>
-                  <h3 className="text-xl font-extrabold font-headline">Sesi Aktif</h3>
-                  <p className="text-sm font-medium text-[#a3a3a3]">Kelola perangkat yang sedang masuk ke akun kamu.</p>
-               </div>
-            </div>
-            <button 
-                className="text-xs font-black text-[var(--theme-primary)] uppercase tracking-widest px-4 py-2 bg-[var(--theme-primary-light)] rounded-xl hover:bg-[var(--theme-primary-light)] transition-colors"
-                onClick={() => toast('Fitur ini akan segera hadir')}
-            >
-                Akhiri Semua Sesi Lain
-            </button>
-         </div>
-
-         <div className="space-y-4">
-            {sessions?.map((s, idx) => (
-               <div key={`session-${s.id ?? idx}-${s.device ?? 'unknown'}-${s.last_active ?? ''}`} className="flex items-center justify-between p-4 rounded-2xl border border-[var(--theme-border-muted)] hover:bg-background transition-all group">
-                  <div className="flex items-center gap-4">
-                     <div className="w-12 h-12 rounded-xl bg-surface border border-border shadow-sm flex items-center justify-center text-[#525252]">
-                        {s.device.includes('iPhone') || s.device.includes('Android') ? <Smartphone size={24} /> : <span className="material-symbols-outlined" style={{ fontSize: '24px' }} >language</span>}
-                     </div>
-                     <div>
-                        <div className="flex items-center gap-2">
-                           <h4 className="font-bold text-sm">{s.device}</h4>
-                           {s.is_current && <span className="bg-[var(--theme-primary-light)] text-[#0B4FAE] text-[10px] font-black uppercase px-2 py-0.5 rounded-full">Perangkat Ini</span>}
-                        </div>
-                        <p className="text-xs font-medium text-[#a3a3a3]">{s.location} <span className="mx-1">•</span> {s.last_active}</p>
-                     </div>
-                  </div>
-                  {!s.is_current && (
-                    <button className="p-2 text-[#a3a3a3] hover:text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)] rounded-xl transition-all">
-                       <LogOut size={18} />
-                    </button>
-                  )}
-               </div>
-            ))}
-         </div>
-      </div>
-
       {/* Card C: Riwayat Login */}
-      <div className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden">
-         <div className="p-6 md:p-8 flex items-center justify-between border-b border-[var(--theme-border-muted)]">
-            <div className="flex items-center gap-3">
-                <div className="bg-[var(--theme-primary-light)] text-[#1D4E9E] p-3 rounded-2xl">
-                   <History size={24} />
-                </div>
-                <h3 className="text-xl font-extrabold font-headline">Riwayat Login</h3>
+      <div className="pb-2">
+         <div className="flex items-center justify-between mb-6">
+            <div>
+               <h2 className="text-sm font-black font-headline uppercase tracking-widest mb-1" style={{ color: 'var(--theme-h2)' }}>Riwayat Login</h2>
+               <p className="text-xs font-semibold leading-relaxed text-[var(--theme-text-muted)]">Aktivitas akses terakhir ke akun Anda.</p>
             </div>
-            <button className="text-sm font-bold text-[var(--theme-primary)] hover:underline">Lihat Semua</button>
+            <button className="text-xs font-black text-[var(--theme-primary)] uppercase tracking-widest hover:underline cursor-pointer">Lihat Semua</button>
           </div>
-         <div className="overflow-x-auto">
-            <table className="w-full text-left">
-               <thead>
-                  <tr className="bg-background border-b border-[var(--theme-border-muted)]">
-                     <th className="px-8 py-4 text-xs font-black text-[#a3a3a3] uppercase tracking-widest">Waktu</th>
-                     <th className="px-8 py-4 text-xs font-black text-[#a3a3a3] uppercase tracking-widest">Perangkat</th>
-                     <th className="px-8 py-4 text-xs font-black text-[#a3a3a3] uppercase tracking-widest">Lokasi</th>
-                     <th className="px-8 py-4 text-xs font-black text-[#a3a3a3] uppercase tracking-widest">Status</th>
-                  </tr>
-               </thead>
-               <tbody className="divide-y divide-[#f5f5f5]">
+         <div className="rounded-xl border border-[var(--theme-border-muted)] overflow-hidden bg-[var(--theme-surface)]">
+            <Table>
+               <TableHeader>
+                  <TableRow className="bg-[var(--theme-surface)] hover:bg-[var(--theme-surface)] border-b border-[var(--theme-border-muted)]">
+                     <TableHead className="w-[180px] text-[var(--theme-text-muted)]">Waktu</TableHead>
+                     <TableHead className="text-[var(--theme-text-muted)]">Perangkat</TableHead>
+                     <TableHead className="text-[var(--theme-text-muted)]">Lokasi</TableHead>
+                     <TableHead className="text-[var(--theme-text-muted)]">Status</TableHead>
+                  </TableRow>
+               </TableHeader>
+               <TableBody className="divide-y divide-[var(--theme-border-muted)]">
                   {history?.map((h, idx) => (
-                    <tr key={`history-${h.id ?? idx}-${h.created_at ?? ''}-${h.user_agent ?? 'unknown'}`} className="hover:bg-background transition-colors">
-                       <td className="px-8 py-4 text-sm font-bold text-[#525252]">
+                     <TableRow key={`history-${h.id ?? idx}-${h.created_at ?? ''}-${h.user_agent ?? 'unknown'}`} className="border-b border-[var(--theme-border-muted)] last:border-0 hover:bg-[var(--theme-bg)] transition-colors">
+                       <TableCell className="font-semibold text-[var(--theme-text)]">
                           {new Date(h.created_at).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}
-                       </td>
-                       <td className="px-8 py-4 text-sm font-bold">{h.user_agent}</td>
-                       <td className="px-8 py-4 text-sm font-medium text-[#525252]">{h.location}</td>
-                       <td className="px-8 py-4">
+                       </TableCell>
+                       <TableCell className="font-semibold text-[var(--theme-text)]">{h.user_agent}</TableCell>
+                       <TableCell className="font-semibold text-[var(--theme-text-muted)]">{h.location}</TableCell>
+                       <TableCell>
                           <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
-                            h.status === 'Berhasil' ? 'bg-[var(--theme-primary-light)] text-[#0B4FAE] border-[var(--theme-primary-light)]' : 'bg-[#EDF3FF] text-[#1D4E9E] border-[#D3E1FF]'
+                            h.status === 'Berhasil' ? 'bg-[var(--theme-success-light)] text-[var(--theme-success)] border-[var(--theme-success)]/20' : 'bg-[var(--theme-error-light)] text-[var(--theme-error)] border-[var(--theme-error)]/20'
                           }`}>
                              {h.status}
                           </span>
-                       </td>
-                    </tr>
+                       </TableCell>
+                    </TableRow>
                   ))}
                   {!history?.length && (
-                    <tr>
-                       <td colSpan={4} className="px-8 py-12 text-center text-[#a3a3a3] italic text-sm font-medium">Belum ada riwayat login.</td>
-                    </tr>
+                    <TableRow>
+                       <TableCell colSpan={4} className="h-32 text-center">
+                          <div className="flex flex-col items-center justify-center text-[var(--theme-text-subtle)] gap-2">
+                             <span className="material-symbols-outlined text-4xl opacity-30">history</span>
+                             <span className="font-semibold text-xs">Belum ada riwayat login.</span>
+                          </div>
+                       </TableCell>
+                    </TableRow>
                   )}
-               </tbody>
-            </table>
+               </TableBody>
+            </Table>
          </div>
       </div>
+
+      {/* ── Dialog Modals ────────────────────────────────────── */}
+      <AlertDialog open={confirmPasswordOpen} onOpenChange={setConfirmPasswordOpen}>
+        <AlertDialogContent className="rounded-3xl p-6 md:p-8 border border-[var(--theme-border)] shadow-2xl bg-[var(--theme-surface)] max-w-md mx-auto text-left gap-0">
+          <AlertDialogHeader className="text-left space-y-0">
+            <div className="w-12 h-12 rounded-2xl bg-[var(--theme-warning-light)] text-[var(--theme-warning)] flex items-center justify-center mb-5">
+               <span className="material-symbols-outlined text-2xl">lock_reset</span>
+            </div>
+            <AlertDialogTitle className="text-xl font-black font-headline text-[var(--theme-text)] mb-2">Perbarui Password?</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs font-semibold text-[var(--theme-text-muted)] leading-relaxed">
+              Anda akan memperbarui kata sandi akun Anda. Pastikan untuk mengingat kata sandi baru Anda untuk login di kemudian hari.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-8 flex justify-end gap-3 flex-row items-center w-full sm:justify-end">
+            <AlertDialogCancel 
+              className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] text-[10px] font-black text-[var(--theme-text)] uppercase tracking-widest hover:bg-[var(--theme-bg)] transition-colors h-11 px-6 shadow-sm m-0"
+              onClick={(e) => { e.preventDefault(); setConfirmPasswordOpen(false); }}
+            >
+              Batal
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              className="rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-[10px] font-black uppercase tracking-widest transition-colors h-11 px-6 border-none shadow-md m-0"
+              onClick={(e) => {
+                e.preventDefault();
+                passwordMutation.mutate(pendingPasswordData);
+                setConfirmPasswordOpen(false);
+              }}
+            >
+              Ya, Perbarui
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={confirmEmailOpen} onOpenChange={setConfirmEmailOpen}>
+        <AlertDialogContent className="rounded-3xl p-6 md:p-8 border border-[var(--theme-border)] shadow-2xl bg-[var(--theme-surface)] max-w-md mx-auto text-left gap-0">
+          <AlertDialogHeader className="text-left space-y-0">
+            <div className="w-12 h-12 rounded-2xl bg-[var(--theme-primary-light)] text-[var(--theme-primary)] flex items-center justify-center mb-5">
+               <span className="material-symbols-outlined text-2xl">mark_email_read</span>
+            </div>
+            <AlertDialogTitle className="text-xl font-black font-headline text-[var(--theme-text)] mb-2">Perbarui Alamat Email?</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs font-semibold text-[var(--theme-text-muted)] leading-relaxed">
+              Email ini akan digunakan untuk pengiriman notifikasi penting dan tautan pemulihan kata sandi. Apakah Anda yakin ingin melanjutkannya?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-8 flex justify-end gap-3 flex-row items-center w-full sm:justify-end">
+            <AlertDialogCancel 
+              className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] text-[10px] font-black text-[var(--theme-text)] uppercase tracking-widest hover:bg-[var(--theme-bg)] transition-colors h-11 px-6 shadow-sm m-0"
+              onClick={(e) => { e.preventDefault(); setConfirmEmailOpen(false); }}
+            >
+              Batal
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              className="rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-[10px] font-black uppercase tracking-widest transition-colors h-11 px-6 border-none shadow-md m-0"
+              onClick={(e) => {
+                e.preventDefault();
+                emailMutation.mutate(pendingEmailData);
+                setConfirmEmailOpen(false);
+              }}
+            >
+              Ya, Perbarui
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
     </div>
   );

@@ -397,6 +397,15 @@ func BuildReferralLetterPDF(referral models.PsikologReferral) (string, string, e
 
 	pdf.AddPage()
 
+	// Draw horizontal double line under Kop Rektorat
+	pdf.SetLineWidth(0.6)
+	pdf.SetDrawColor(15, 23, 42) // Slate 900
+	pdf.Line(25, 41, 272, 41)
+	pdf.SetLineWidth(0.2)
+	pdf.Line(25, 42.5, 272, 42.5)
+	
+	pdf.SetY(48) // Give some breathing room before the title
+
 	// ── Title ────────────────────────────────────────────────────────────────
 	pdf.SetFont("Helvetica", "B", 13)
 	pdf.SetTextColor(15, 23, 42) // Slate 900

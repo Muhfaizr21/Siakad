@@ -20,25 +20,35 @@ export default function PreferensiTab() {
   const queryClient = useQueryClient();
 
   const { data: prefs, isLoading } = useQuery({
-    queryKey: ['profil', 'preferensi-notif'],
+    queryKey: ['profil', 'preferensi-notif-local'],
     queryFn: async () => {
-      const { data } = await api.get('/profil/preferensi-notif');
-      return data.data;
+      // Simulate network delay for UX consistency
+      await new Promise(r => setTimeout(r, 400));
+      const localPrefs = localStorage.getItem('bku_notif_prefs');
+      if (localPrefs) {
+         return JSON.parse(localPrefs);
+      }
+      return {
+         EmailAchievement: true,
+         EmailBeasiswa: true,
+         EmailCounseling: true,
+         EmailVoice: true,
+         EmailKencana: true,
+         EmailNews: true,
+      };
     }
   });
 
   const mutation = useMutation({
     mutationFn: async (updatedData) => {
-      const { data: res } = await api.put('/profil/preferensi-notif', updatedData);
-      return res;
+      await new Promise(r => setTimeout(r, 300));
+      localStorage.setItem('bku_notif_prefs', JSON.stringify(updatedData));
+      return updatedData;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['profil', 'preferensi-notif']);
-      toast.success('Preferensi notifikasi disimpan');
+      queryClient.invalidateQueries(['profil', 'preferensi-notif-local']);
+      toast.success('Preferensi notifikasi disimpan secara lokal');
     },
-    onError: (error) => {
-      toast.error(error.response?.data?.message || 'Gagal menyimpan preferensi');
-    }
   });
 
   const handleToggle = (id, prevValue) => {
@@ -55,16 +65,12 @@ export default function PreferensiTab() {
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in-50 slide-in-from-bottom-2 duration-500">
+    <div className="space-y-8 p-5 lg:p-5">
       
       {/* Section: In-App Notifications (Locked) */}
-      <div className="bg-surface rounded-2xl border border-border p-6 md:p-8 shadow-sm">
-         <div className="flex items-center gap-3 mb-6">
-            <div className="bg-[var(--theme-primary-light)] text-[var(--theme-primary)] p-2.5 rounded-xl">
-               <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >notifications</span>
-            </div>
-            <h3 className="text-lg font-extrabold font-headline">Notifikasi Dalam Aplikasi</h3>
-         </div>
+      <div className="border-b border-[var(--theme-border-muted)] pb-6">
+         <h2 className="text-sm font-black font-headline uppercase tracking-widest mb-1" style={{ color: 'var(--theme-h2)' }}>Notifikasi Dalam Aplikasi</h2>
+         <p className="text-xs font-semibold leading-relaxed text-[var(--theme-text-muted)] mb-6">Pemberitahuan real-time melalui panel navigasi aplikasi.</p>
          
           <div className="bg-background p-5 rounded-2xl border border-[var(--theme-border-muted)] flex items-center justify-between">
              <div className="flex items-center gap-4">
@@ -84,18 +90,9 @@ export default function PreferensiTab() {
       </div>
 
       {/* Section: Email Notifications */}
-      <div className="bg-surface rounded-2xl border border-border p-6 md:p-8 shadow-sm">
-         <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-3">
-                <div className="bg-[var(--theme-primary-light)] text-[var(--theme-primary)] p-2.5 rounded-xl">
-                   <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >mail</span>
-                </div>
-               <div>
-                  <h3 className="text-lg font-extrabold font-headline">Notifikasi Email</h3>
-                  <p className="text-sm font-medium text-[#a3a3a3]">Atur email apa saja yang ingin kamu terima.</p>
-               </div>
-            </div>
-         </div>
+      <div className="pb-2">
+         <h2 className="text-sm font-black font-headline uppercase tracking-widest mb-1" style={{ color: 'var(--theme-h2)' }}>Notifikasi Email</h2>
+         <p className="text-xs font-semibold leading-relaxed text-[var(--theme-text-muted)] mb-6">Pilih kategori update yang ingin diteruskan ke email Anda.</p>
 
          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {NOTIF_CATEGORIES.map((cat) => (
@@ -109,19 +106,21 @@ export default function PreferensiTab() {
                         <p className="text-xs font-medium text-[#a3a3a3] leading-relaxed max-w-[240px]">{cat.desc}</p>
                      </div>
                   </div>
-                  <Switch 
-                    id={cat.id} 
-                    checked={prefs?.[cat.id]} 
-                    onCheckedChange={() => handleToggle(cat.id, prefs?.[cat.id])} 
-                    disabled={mutation.isPending}
-                  />
+                  <div className="flex flex-col items-end gap-3">
+                     <Switch 
+                       id={cat.id} 
+                       checked={prefs?.[cat.id]} 
+                       onCheckedChange={() => handleToggle(cat.id, prefs?.[cat.id])} 
+                       disabled={mutation.isPending}
+                     />
+                  </div>
                </div>
             ))}
          </div>
 
-          <div className="mt-10 p-5 rounded-2xl bg-[var(--theme-primary-light)] border border-[var(--theme-primary-light)] flex items-start gap-3">
-             <span className="material-symbols-outlined text-[#0B4FAE] shrink-0 mt-0.5" style={{ fontSize: 18 }}>info</span>
-             <p className="text-xs font-medium text-[#1D4E9E] leading-relaxed">
+          <div className="mt-8 p-5 rounded-2xl bg-[var(--theme-primary-light)] border border-[var(--theme-primary-light)] flex items-start gap-3">
+             <span className="material-symbols-outlined text-[var(--theme-primary)] shrink-0 mt-0.5" style={{ fontSize: 18 }}>info</span>
+             <p className="text-xs font-medium text-[var(--theme-primary)] leading-relaxed">
                 <strong>Catatan:</strong> Perubahan preferensi akan segera diterapkan. Kami menyarankan untuk tetap mengaktifkan notifikasi <strong>Beasiswa</strong> dan <strong>Konseling</strong> agar kamu tidak melewatkan informasi penting.
              </p>
           </div>
