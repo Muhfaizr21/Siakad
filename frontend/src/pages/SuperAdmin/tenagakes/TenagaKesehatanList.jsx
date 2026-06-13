@@ -87,19 +87,61 @@ export default function TenagaKesehatanList() {
   const [scheduleData, setScheduleData] = useState([])
   const [scheduleLoading, setScheduleLoading] = useState(false)
   const [isSavingSchedule, setIsSavingSchedule] = useState(false)
-  const [showScheduleAddForm, setShowScheduleAddForm] = useState(false)
-  const [editingScheduleSlot, setEditingScheduleSlot] = useState(null)
-  const [scheduleForm, setScheduleForm] = useState({
-    tanggal: '',
-    jam_mulai: '08:00',
-    jam_selesai: '12:00',
-    kuota: 10,
-    lokasi: 'Klinik Kampus BKU',
-    tipe_layanan: 'Pemeriksaan Umum',
-    catatan: '',
-    is_repeat: false,
-    repeat_days: []
-  })
+  const [selectedDay, setSelectedDay] = useState('Senin')
+
+  const defaultSchedule = [
+    { day: 'Senin', enabled: false, slots: [] },
+    { day: 'Selasa', enabled: false, slots: [] },
+    { day: 'Rabu', enabled: false, slots: [] },
+    { day: 'Kamis', enabled: false, slots: [] },
+    { day: 'Jumat', enabled: false, slots: [] },
+    { day: 'Sabtu', enabled: false, slots: [] },
+    { day: 'Minggu', enabled: false, slots: [] }
+  ]
+
+  const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
+
+  const getEnglishDay = (dayName) => {
+    const map = { 'Minggu': 'Sunday', 'Senin': 'Monday', 'Selasa': 'Tuesday', 'Rabu': 'Wednesday', 'Kamis': 'Thursday', 'Jumat': 'Friday', 'Sabtu': 'Saturday' }
+    return map[dayName] || 'Monday'
+  }
+
+  const getNextDateForDay = (dayName) => {
+    const dayMap = { 'Minggu': 0, 'Senin': 1, 'Selasa': 2, 'Rabu': 3, 'Kamis': 4, 'Jumat': 5, 'Sabtu': 6 }
+    const target = dayMap[dayName]
+    const d = new Date()
+    d.setDate(d.getDate() + ((target + 7 - d.getDay()) % 7))
+    return d.toISOString().split('T')[0]
+  }
+
+  const toMinutes = (timeStr) => {
+    if (!timeStr) return 0
+    const [h, m] = timeStr.split(':').map(Number)
+    return h * 60 + m
+  }
+
+  const normalizeSchedule = (apiData) => {
+    const grouped = defaultSchedule.map(g => ({ ...g, slots: [] }))
+    
+    // Group slots by day
+    apiData.forEach(sch => {
+      const dateObj = new Date(sch.tanggal)
+      const dayName = dayNames[dateObj.getDay()]
+      const group = grouped.find(g => g.day === dayName)
+      if (group) {
+        group.enabled = true
+        group.slots.push({
+          id: sch.id,
+          kategori: sch.tipe_layanan,
+          start: sch.jam_mulai,
+          end: sch.jam_selesai,
+          lokasi: sch.lokasi,
+          kuota: sch.kuota || 1
+        })
+      }
+    })
+    return grouped
+  }
 
   const [form, setForm] = useState({
     ID: '', Nama: '', Spesialisasi: 'Pemeriksaan Umum', Lokasi: 'Klinik Kampus BKU', IsAktif: true,
@@ -202,12 +244,10 @@ export default function TenagaKesehatanList() {
     setSelected(row)
     setIsScheduleOpen(true)
     setScheduleLoading(true)
-    setShowScheduleAddForm(false)
-    setEditingScheduleSlot(null)
     try {
       const res = await adminService.getTenagaKesehatanSchedules(row.id || row.ID)
       if (res.status === 'success') {
-        setScheduleData(res.data || [])
+        setScheduleData(normalizeSchedule(res.data || []))
       } else {
         toast.error('Gagal memuat jadwal')
       }
@@ -224,7 +264,7 @@ export default function TenagaKesehatanList() {
     try {
       const res = await adminService.getTenagaKesehatanSchedules(tkId)
       if (res.status === 'success') {
-        setScheduleData(res.data || [])
+        setScheduleData(normalizeSchedule(res.data || []))
       }
     } catch (err) {
       console.error(err)
@@ -233,113 +273,128 @@ export default function TenagaKesehatanList() {
     }
   }
 
-  const handleOpenAddScheduleSlot = () => {
-    setEditingScheduleSlot(null)
-    setScheduleForm({
-      tanggal: new Date().toISOString().split('T')[0],
-      jam_mulai: '08:00',
-      jam_selesai: '12:00',
-      kuota: 10,
-      lokasi: selected?.lokasi || 'Klinik Kampus BKU',
-      tipe_layanan: 'Pemeriksaan Umum',
-      catatan: '',
-      is_repeat: false,
-      repeat_days: []
-    })
-    setShowScheduleAddForm(true)
-  }
-
-  const handleOpenEditScheduleSlot = (slot) => {
-    setEditingScheduleSlot(slot)
-    const rawDate = slot.tanggal ? slot.tanggal.split('T')[0] : ''
-    setScheduleForm({
-      tanggal: rawDate,
-      jam_mulai: slot.jam_mulai || '08:00',
-      jam_selesai: slot.jam_selesai || '12:00',
-      kuota: slot.kuota || 10,
-      lokasi: slot.lokasi || 'Klinik Kampus BKU',
-      tipe_layanan: slot.tipe_layanan || 'Pemeriksaan Umum',
-      catatan: slot.catatan || '',
-      is_repeat: slot.is_repeat || false,
-      repeat_days: slot.repeat_days ? slot.repeat_days.split(',') : []
-    })
-    setShowScheduleAddForm(true)
-  }
-
-  const handleToggleRepeatDay = (dayValue) => {
-    setScheduleForm(prev => {
-      const repeat_days = prev.repeat_days.includes(dayValue)
-        ? prev.repeat_days.filter(d => d !== dayValue)
-        : [...prev.repeat_days, dayValue]
-      return { ...prev, repeat_days }
-    })
-  }
-
-  const handleSaveScheduleSlot = async (e) => {
-    e.preventDefault()
-    if (!scheduleForm.tanggal) {
-      toast.error('Harap pilih tanggal.')
-      return
+  const resetScheduleChanges = () => {
+    if (selected) {
+      loadSchedules(selected.id || selected.ID)
     }
-    if (scheduleForm.jam_selesai <= scheduleForm.jam_mulai) {
-      toast.error('Jam selesai harus setelah jam mulai.')
-      return
-    }
+  }
 
-    const payload = {
-      tanggal: scheduleForm.tanggal,
-      jam_mulai: scheduleForm.jam_mulai,
-      jam_selesai: scheduleForm.jam_selesai,
-      kuota: Number(scheduleForm.kuota),
-      lokasi: scheduleForm.lokasi,
-      tipe_layanan: scheduleForm.tipe_layanan,
-      catatan: scheduleForm.catatan,
-      is_repeat: scheduleForm.is_repeat,
-      repeat_days: scheduleForm.is_repeat ? scheduleForm.repeat_days.join(',') : ''
+  const toggleDay = (dayName) => {
+    setScheduleData(prev => prev.map(d => {
+      if (d.day === dayName) {
+        return { ...d, enabled: !d.enabled }
+      }
+      return d
+    }))
+  }
+
+  const addSlot = (dayName) => {
+    setScheduleData(prev => prev.map(d => {
+      if (d.day === dayName) {
+        return {
+          ...d,
+          slots: [...d.slots, { kategori: 'Pemeriksaan Umum', start: '08:00', end: '12:00', lokasi: 'Klinik Kampus BKU', kuota: 10 }]
+        }
+      }
+      return d
+    }))
+  }
+
+  const removeSlot = (dayName, idx) => {
+    setScheduleData(prev => prev.map(d => {
+      if (d.day === dayName) {
+        return {
+          ...d,
+          slots: d.slots.filter((_, i) => i !== idx)
+        }
+      }
+      return d
+    }))
+  }
+
+  const updateSlot = (dayName, idx, field, val) => {
+    setScheduleData(prev => prev.map(d => {
+      if (d.day === dayName) {
+        const slots = [...d.slots]
+        slots[idx] = { ...slots[idx], [field]: val }
+        return { ...d, slots }
+      }
+      return d
+    }))
+  }
+
+  const saveSchedule = async () => {
+    let hasError = false;
+    scheduleData.forEach((day) => {
+      if (day.enabled) {
+        day.slots.forEach((slot) => {
+          if (toMinutes(slot.end) <= toMinutes(slot.start)) {
+            hasError = true;
+          }
+        });
+      }
+    });
+
+    if (hasError) {
+      toast.error('Gagal menyimpan. Harap pastikan jam selesai diatur setelah jam mulai pada setiap slot.');
+      return;
     }
 
     setIsSavingSchedule(true)
     try {
-      const tkId = selected.id || selected.ID
-      if (editingScheduleSlot) {
-        await adminService.updateTenagaKesehatanSchedule(editingScheduleSlot.id, payload)
-        toast.success('Slot jadwal diperbarui')
-      } else {
-        await adminService.createTenagaKesehatanSchedule(tkId, payload)
-        toast.success('Slot jadwal baru dibuat')
+      const tkId = selected.id || selected.ID;
+      
+      const currentRes = await adminService.getTenagaKesehatanSchedules(tkId);
+      const currentSlots = currentRes.data || [];
+      const currentIds = currentSlots.map(s => s.id);
+
+      const desiredIds = [];
+      const createPromises = [];
+      const updatePromises = [];
+
+      for (const dayGrp of scheduleData) {
+        if (dayGrp.enabled) {
+          for (const slot of dayGrp.slots) {
+            const nextDate = getNextDateForDay(dayGrp.day);
+            const payload = {
+              tanggal: nextDate,
+              jam_mulai: slot.start,
+              jam_selesai: slot.end,
+              kuota: Number(slot.kuota),
+              lokasi: slot.lokasi,
+              tipe_layanan: slot.kategori,
+              catatan: '',
+              is_repeat: true,
+              repeat_days: getEnglishDay(dayGrp.day)
+            };
+
+            if (slot.id) {
+              desiredIds.push(slot.id);
+              updatePromises.push(adminService.updateTenagaKesehatanSchedule(slot.id, payload));
+            } else {
+              createPromises.push(adminService.createTenagaKesehatanSchedule(tkId, payload));
+            }
+          }
+        }
       }
-      setShowScheduleAddForm(false)
-      loadSchedules(tkId)
+
+      const deletePromises = currentIds
+        .filter(id => !desiredIds.includes(id))
+        .map(id => adminService.deleteTenagaKesehatanSchedule(id));
+
+      await Promise.all([...createPromises, ...updatePromises, ...deletePromises]);
+
+      toast.success('Jadwal operasional tenaga medis berhasil diperbarui');
+      setIsScheduleOpen(false);
+      fetchData();
     } catch (err) {
-      toast.error(err.message || 'Gagal menyimpan slot jadwal')
+      toast.error(err.message || 'Terjadi kesalahan sistem');
     } finally {
-      setIsSavingSchedule(false)
+      setIsSavingSchedule(false);
     }
   }
 
-  const handleDeleteScheduleSlot = async (slotId) => {
-    if (!confirm('Apakah Anda yakin ingin menghapus slot jadwal ini?')) return
-    try {
-      await adminService.deleteTenagaKesehatanSchedule(slotId)
-      toast.success('Slot jadwal berhasil dihapus')
-      loadSchedules(selected.id || selected.ID)
-    } catch (err) {
-      toast.error(err.message || 'Gagal menghapus slot jadwal')
-    }
-  }
-
-  const formatDisplayDate = (dateStr) => {
-    if (!dateStr) return '-'
-    const cleanStr = dateStr.split('T')[0]
-    const date = new Date(cleanStr)
-    if (isNaN(date)) return cleanStr
-    return date.toLocaleDateString('id-ID', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    })
-  }
+  const currentDayData = scheduleData.find(d => d.day === selectedDay) || { enabled: false, slots: [] }
 
   const columns = [
     {
@@ -559,236 +614,209 @@ export default function TenagaKesehatanList() {
       <DialogModal
         open={isScheduleOpen}
         onOpenChange={setIsScheduleOpen}
-        title="Kelola Jadwal Praktik"
-        description={`Tenaga Medis: ${selected?.nama || '-'}`}
         icon="calendar_month"
+        title={`Kelola Jadwal: ${selected?.nama || ''}`}
+        description="Atur ketersediaan slot jam praktik untuk tenaga medis."
+        subtitle="Jadwal Praktik"
         maxWidth="max-w-4xl"
-        bodyClassName="p-0 font-jakarta overflow-hidden bg-white"
+        bodyClassName="p-0 font-jakarta overflow-hidden"
         footer={
-          <div className="flex justify-end w-full gap-3">
+          <div className="flex flex-col sm:flex-row justify-between items-center w-full gap-3">
             <ModalCancelButton onClick={() => setIsScheduleOpen(false)}>Tutup Panel</ModalCancelButton>
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              <button
+                type="button"
+                onClick={resetScheduleChanges}
+                disabled={isSavingSchedule || scheduleLoading}
+                className="h-12 px-6 bg-white hover:bg-slate-50 border border-slate-200 text-slate-500 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200 font-jakarta cursor-pointer"
+              >
+                Reset
+              </button>
+              <ModalSaveButton onClick={saveSchedule} loading={isSavingSchedule} disabled={isSavingSchedule || scheduleLoading} icon="save">
+                {isSavingSchedule ? 'Menyimpan...' : 'Simpan Jadwal'}
+              </ModalSaveButton>
+            </div>
           </div>
         }
       >
-        <div className="flex flex-col h-full max-h-[75vh]">
-          <div className="flex items-center justify-between px-6 md:px-8 py-5 border-b border-slate-100 bg-slate-50/50">
-            <div>
-              <h3 className="text-sm font-bold text-slate-800">Daftar Slot Praktik</h3>
-              <p className="text-xs text-slate-500 font-medium mt-0.5">Kelola hari dan jam layanan medis</p>
+
+          {scheduleLoading ? (
+            <div className="h-[350px] flex items-center justify-center flex-col gap-3 bg-white">
+              <span className="material-symbols-outlined animate-spin text-bku-primary" style={{ fontSize: '40px' }}>sync</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">Memuat Jadwal...</span>
             </div>
-            <button
-              type="button"
-              onClick={handleOpenAddScheduleSlot}
-              className="bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white font-bold text-xs uppercase tracking-widest h-10 px-5 rounded-xl flex items-center gap-2 shadow-sm border-none cursor-pointer transition-colors"
-            >
-              <span className="material-symbols-outlined text-[18px]">add_circle</span>
-              <span>Tambah Slot</span>
-            </button>
-          </div>
-
-          <div className="p-6 md:p-8 overflow-y-auto no-scrollbar space-y-6 flex-1">
-            {showScheduleAddForm && (
-              <form onSubmit={handleSaveScheduleSlot} className="bg-slate-50 p-4 border border-slate-200 rounded-2xl space-y-4 animate-in slide-in-from-top-4 duration-200 font-jakarta">
-                <div className="text-xs font-bold text-bku-primary uppercase tracking-wider mb-2">
-                  {editingScheduleSlot ? 'Edit Slot Jadwal' : 'Buat Slot Jadwal Baru'}
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-1">
-                    <Label className="text-[9px] font-black uppercase tracking-widest text-[#737373]">Tanggal Praktik</Label>
-                    <input
-                      type="date"
-                      required
-                      value={scheduleForm.tanggal}
-                      onChange={e => setScheduleForm(prev => ({ ...prev, tanggal: e.target.value }))}
-                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-bku-primary"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <Label className="text-[9px] font-black uppercase tracking-widest text-[#737373]">Jam Mulai</Label>
-                    <input
-                      type="time"
-                      required
-                      value={scheduleForm.jam_mulai}
-                      onChange={e => setScheduleForm(prev => ({ ...prev, jam_mulai: e.target.value }))}
-                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-bku-primary"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <Label className="text-[9px] font-black uppercase tracking-widest text-[#737373]">Jam Selesai</Label>
-                    <input
-                      type="time"
-                      required
-                      value={scheduleForm.jam_selesai}
-                      onChange={e => setScheduleForm(prev => ({ ...prev, jam_selesai: e.target.value }))}
-                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-bku-primary"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-1">
-                    <Label className="text-[9px] font-black uppercase tracking-widest text-[#737373]">Tipe Layanan</Label>
-                    <SelectField
-                      value={scheduleForm.tipe_layanan}
-                      onValueChange={val => setScheduleForm(prev => ({ ...prev, tipe_layanan: val }))}
-                      className="w-full h-10"
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-12 max-h-[70vh] min-h-[450px] bg-white border-t border-b border-neutral-100">
+              {/* Day Selector Aside */}
+              <aside className="md:col-span-3 border-r border-neutral-100 p-4 bg-slate-50/30 overflow-y-auto space-y-2">
+                <span className="text-[9px] font-black uppercase tracking-widest text-neutral-400 block px-2 mb-2">Pilih Hari</span>
+                {scheduleData.map((item) => {
+                  const isSelected = selectedDay === item.day;
+                  return (
+                    <button
+                      key={item.day}
+                      type="button"
+                      onClick={() => setSelectedDay(item.day)}
+                      className={cn(
+                        "w-full rounded-xl border p-3 text-left transition-all duration-200 relative overflow-hidden flex flex-col gap-1.5 cursor-pointer",
+                        isSelected
+                          ? "border-bku-primary bg-bku-primary/10 text-bku-primary shadow-sm"
+                          : "border-neutral-200/60 bg-white text-neutral-600 hover:border-bku-primary/30"
+                      )}
                     >
-                      {SERVICE_TYPES.map(type => (
-                        <SelectOption key={type} value={type}>{type}</SelectOption>
-                      ))}
-                    </SelectField>
-                  </div>
+                      <div className="flex items-center justify-between w-full">
+                        <span className="text-xs font-bold uppercase font-jakarta">{item.day}</span>
+                        <span className={cn("size-2 rounded-full", item.enabled ? "bg-emerald-500" : "bg-neutral-300")} />
+                      </div>
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-400">
+                        {item.enabled ? `${item.slots?.length || 0} slot aktif` : 'Tidak Aktif'}
+                      </span>
+                    </button>
+                  );
+                })}
+              </aside>
 
-                  <div className="space-y-1">
-                    <Label className="text-[9px] font-black uppercase tracking-widest text-[#737373]">Kuota Pasien</Label>
-                    <input
-                      type="number"
-                      min="1"
-                      required
-                      value={scheduleForm.kuota}
-                      onChange={e => setScheduleForm(prev => ({ ...prev, kuota: e.target.value }))}
-                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-bku-primary"
-                    />
-                  </div>
+              {/* Slot Editor Area */}
+              <section className="md:col-span-9 p-6 overflow-y-auto h-full no-scrollbar">
+                {currentDayData.enabled ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+                      <div>
+                        <h3 className="text-sm font-black uppercase tracking-tight text-neutral-900 font-jakarta flex items-center gap-1.5">
+                          <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '16px' }}>schedule</span>
+                          Slot Hari {selectedDay}
+                        </h3>
+                        <p className="text-[10px] font-medium text-neutral-400">Tentukan jam mulai, selesai, jenis layanan, lokasi, dan kuota.</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => toggleDay(selectedDay)}
+                          className="h-9 px-3 rounded-xl text-[10px] font-bold uppercase tracking-widest text-rose-600 border border-rose-100 hover:bg-rose-50 hover:text-rose-700 cursor-pointer bg-white"
+                        >
+                          Nonaktifkan Hari
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => addSlot(selectedDay)}
+                          className="h-9 rounded-xl bg-bku-primary/10 text-bku-primary hover:bg-bku-primary hover:text-white text-[10px] font-bold uppercase tracking-widest flex items-center px-3 border border-bku-primary/20 cursor-pointer"
+                        >
+                          <span className="material-symbols-outlined mr-1" style={{ fontSize: '12px' }}>add</span>
+                          Tambah Slot
+                        </button>
+                      </div>
+                    </div>
 
-                  <div className="space-y-1">
-                    <Label className="text-[9px] font-black uppercase tracking-widest text-[#737373]">Lokasi Pemeriksaan</Label>
-                    <input
-                      type="text"
-                      required
-                      value={scheduleForm.lokasi}
-                      onChange={e => setScheduleForm(prev => ({ ...prev, lokasi: e.target.value }))}
-                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 outline-none focus:border-bku-primary"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <Label className="text-[9px] font-black uppercase tracking-widest text-[#737373]">Catatan / Keterangan</Label>
-                  <input
-                    type="text"
-                    value={scheduleForm.catatan}
-                    onChange={e => setScheduleForm(prev => ({ ...prev, catatan: e.target.value }))}
-                    placeholder="Bawa KTM..."
-                    className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 outline-none focus:border-bku-primary"
-                  />
-                </div>
-
-                <div className="border-t border-slate-200 pt-3 space-y-3">
-                  <label className="flex items-center gap-2 cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      checked={scheduleForm.is_repeat}
-                      onChange={e => setScheduleForm(prev => ({ ...prev, is_repeat: e.target.checked }))}
-                      className="rounded text-[var(--theme-primary)] focus:ring-[var(--theme-primary)] size-4 border-slate-300"
-                    />
-                    <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wide">Ulangi Jadwal Tiap Minggu</span>
-                  </label>
-
-                  {scheduleForm.is_repeat && (
-                    <div className="space-y-1.5 animate-in fade-in duration-200">
-                      <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">Pilih Hari Berulang</label>
-                      <div className="flex flex-wrap gap-2">
-                        {REPEAT_DAYS_OPTIONS.map((day) => {
-                          const active = scheduleForm.repeat_days.includes(day.value);
+                    {currentDayData.slots.length === 0 ? (
+                      <div className="h-[240px] flex flex-col items-center justify-center border-2 border-dashed border-neutral-200 rounded-xl bg-slate-50/50 text-center p-6">
+                        <span className="material-symbols-outlined text-neutral-300 mb-2" style={{ fontSize: '32px' }}>schedule</span>
+                        <h4 className="text-xs font-bold uppercase tracking-tight text-neutral-800">Belum Ada Slot Waktu</h4>
+                        <p className="text-[11px] text-neutral-400 mt-1 max-w-xs">Tambahkan slot waktu praktik agar pasien dapat memilih hari ini.</p>
+                        <button
+                          type="button"
+                          onClick={() => addSlot(selectedDay)}
+                          className="mt-4 h-9 bg-bku-primary text-white rounded-lg text-[10px] font-bold uppercase tracking-widest cursor-pointer px-4 border-none"
+                        >
+                          Tambah Slot Pertama
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {currentDayData.slots.map((slot, index) => {
+                          const invalidTime = toMinutes(slot.end) <= toMinutes(slot.start);
                           return (
-                            <button
-                              key={day.value}
-                              type="button"
-                              onClick={() => handleToggleRepeatDay(day.value)}
-                              className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all ${active
-                                ? 'bg-[var(--theme-primary)] text-white border-[var(--theme-primary)]'
-                                : 'bg-white border-slate-200 text-slate-500 hover:border-bku-primary/30'
-                                }`}
-                            >
-                              {day.label}
-                            </button>
+                            <div key={index} className={cn("border rounded-xl p-4 bg-slate-50/30 transition-all hover:bg-white hover:shadow-sm", invalidTime ? "border-amber-200 bg-amber-50/20" : "border-neutral-200/60")}>
+                              <div className="flex flex-col xl:flex-row gap-4 items-end xl:items-center justify-between">
+                                <div className="grid grid-cols-2 md:grid-cols-[130px_130px_1fr_1fr_80px] gap-3 w-full items-start">
+                                  <div className="space-y-1">
+                                    <Label className="text-[9px] font-bold text-neutral-400 uppercase">Mulai</Label>
+                                    <Input
+                                      type="time"
+                                      value={slot.start}
+                                      onChange={(e) => updateSlot(selectedDay, index, 'start', e.target.value)}
+                                      className="h-9 rounded-lg border-neutral-200 text-xs font-bold"
+                                    />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <Label className="text-[9px] font-bold text-neutral-400 uppercase">Selesai</Label>
+                                    <Input
+                                      type="time"
+                                      value={slot.end}
+                                      onChange={(e) => updateSlot(selectedDay, index, 'end', e.target.value)}
+                                      className="h-9 rounded-lg border-neutral-200 text-xs font-bold"
+                                    />
+                                  </div>
+                                  <div className="space-y-1 min-w-0">
+                                    <Label className="text-[9px] font-bold text-neutral-400 uppercase">Jenis</Label>
+                                    <SelectField
+                                      value={slot.kategori}
+                                      onValueChange={(val) => updateSlot(selectedDay, index, 'kategori', val)}
+                                      className="h-9 rounded-lg border-neutral-200 text-xs font-bold w-full truncate"
+                                    >
+                                      {SERVICE_TYPES.map((type) => (
+                                        <SelectOption key={type} value={type}>{type}</SelectOption>
+                                      ))}
+                                    </SelectField>
+                                  </div>
+                                  <div className="space-y-1 min-w-0">
+                                    <Label className="text-[9px] font-bold text-neutral-400 uppercase">Lokasi</Label>
+                                    <Input
+                                      value={slot.lokasi}
+                                      placeholder="Lokasi..."
+                                      onChange={(e) => updateSlot(selectedDay, index, 'lokasi', e.target.value)}
+                                      className="h-9 rounded-lg border-neutral-200 text-xs font-bold w-full truncate"
+                                    />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <Label className="text-[9px] font-bold text-neutral-400 uppercase">Kuota</Label>
+                                    <Input
+                                      type="number"
+                                      min="1"
+                                      value={slot.kuota}
+                                      onChange={(e) => updateSlot(selectedDay, index, 'kuota', parseInt(e.target.value) || 1)}
+                                      className="h-9 rounded-lg border-neutral-200 text-xs font-bold"
+                                    />
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => removeSlot(selectedDay, index)}
+                                  className="h-9 w-9 text-neutral-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg shrink-0 flex items-center justify-center border-none bg-transparent cursor-pointer"
+                                >
+                                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>delete</span>
+                                </button>
+                              </div>
+                              {invalidTime && (
+                                <p className="mt-2 text-[9px] font-black uppercase tracking-wider text-amber-700">Jam selesai harus setelah jam mulai.</p>
+                              )}
+                            </div>
                           );
                         })}
                       </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center text-center p-6">
+                    <div className="size-16 rounded-full bg-slate-50 flex items-center justify-center text-neutral-300 mb-4 border border-neutral-100">
+                      <span className="material-symbols-outlined text-[32px]">dark_mode</span>
                     </div>
-                  )}
-                </div>
+                    <h3 className="text-xs font-bold uppercase tracking-tight text-neutral-800">Hari Ini Tidak Aktif</h3>
+                    <p className="text-[11px] text-neutral-400 mt-1 max-w-xs leading-normal">
+                      Tenaga medis tidak akan menerima pasien pada hari {selectedDay}. Aktifkan hari ini jika ingin membuka jadwal praktik.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => toggleDay(selectedDay)}
+                      className="mt-5 h-9 bg-bku-primary hover:bg-bku-primary/90 text-white rounded-lg text-[10px] font-bold uppercase tracking-widest cursor-pointer px-4 border-none"
+                    >
+                      Aktifkan Hari {selectedDay}
+                    </button>
+                  </div>
+                )}
+              </section>
+            </div>
+          )}
 
-                <div className="flex gap-2 justify-end pt-2 border-t border-slate-200/60">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setShowScheduleAddForm(false)}
-                    className="h-9 px-4 text-xs font-bold uppercase tracking-wider rounded-lg text-slate-500 border border-slate-200 hover:bg-slate-100"
-                  >
-                    Batal
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={isSavingSchedule}
-                    className="h-9 px-4 text-xs font-bold uppercase tracking-wider rounded-lg bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-[var(--theme-primary-content)] flex items-center gap-1 border-none"
-                  >
-                    {isSavingSchedule && <span className="material-symbols-outlined animate-spin text-xs">sync</span>}
-                    {editingScheduleSlot ? 'Simpan Slot' : 'Tambah Slot'}
-                  </Button>
-                </div>
-              </form>
-            )}
-
-            {scheduleLoading ? (
-              <div className="flex flex-col items-center justify-center py-12 gap-2 text-[var(--theme-text-muted)]">
-                <span className="material-symbols-outlined text-3xl animate-spin text-[var(--theme-primary)]/50">sync</span>
-                <p className="text-[10px] font-black uppercase tracking-widest">Memuat jadwal...</p>
-              </div>
-            ) : scheduleData.length === 0 ? (
-              <div className="text-center py-12 border-2 border-dashed border-[var(--theme-border-muted)] rounded-2xl p-6">
-                <span className="material-symbols-outlined text-[var(--theme-text-muted)] text-4xl">event_busy</span>
-                <h3 className="mt-2 text-xs font-bold uppercase tracking-wide text-[var(--theme-text)]">Belum Ada Slot Jadwal Praktik</h3>
-                <p className="text-xs text-[var(--theme-text-muted)] mt-1">Tenaga medis ini belum memiliki jadwal praktik terdaftar.</p>
-              </div>
-            ) : (
-              <div className="overflow-hidden border border-slate-200 rounded-2xl">
-                <table className="w-full text-left border-collapse bg-white">
-                  <thead>
-                    <tr className="bg-slate-50 border-b border-slate-200 text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                      <th className="py-3 px-4">Tanggal Pelayanan</th>
-                      <th className="py-3 px-4">Waktu</th>
-                      <th className="py-3 px-4">Layanan</th>
-                      <th className="py-3 px-4">Lokasi</th>
-                      <th className="py-3 px-4 text-right">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-600">
-                    {scheduleData.map((sch) => (
-                      <tr key={sch.id} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="py-4 px-4 font-bold text-slate-800">
-                          {formatDisplayDate(sch.tanggal)}
-                          {sch.is_repeat && (
-                            <div className="mt-1 text-[8px] font-extrabold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full w-fit uppercase tracking-widest">
-                              Mingguan
-                            </div>
-                          )}
-                        </td>
-                        <td className="py-4 px-4 font-bold text-slate-700">{sch.jam_mulai} - {sch.jam_selesai}</td>
-                        <td className="py-4 px-4">
-                          <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md font-bold uppercase tracking-wider text-[9px]">
-                            {sch.tipe_layanan}
-                          </span>
-                        </td>
-                        <td className="py-4 px-4">{sch.lokasi}</td>
-                        <td className="py-4 px-4 text-right">
-                          <div className="inline-flex gap-1">
-                            <button onClick={() => handleOpenEditScheduleSlot(sch)} className="p-1.5 hover:bg-slate-200 rounded-lg text-slate-500"><span className="material-symbols-outlined text-sm">edit</span></button>
-                            <button onClick={() => handleDeleteScheduleSlot(sch.id)} className="p-1.5 hover:bg-rose-100 rounded-lg text-rose-500"><span className="material-symbols-outlined text-sm">delete</span></button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        </div>
       </DialogModal>
     </PageContent>
   )

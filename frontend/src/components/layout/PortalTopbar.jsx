@@ -391,7 +391,7 @@ export default function PortalTopbar({ config, onMenuClick }) {
           </nav>
 
           {/* Faculty Switcher for Super Admin */}
-          {user?.role === 'super_admin' && facultiesList.length > 0 && !location.pathname.includes('/admin/ormawa') && (
+          {user?.role === 'super_admin' && facultiesList.length > 0 && !location.pathname.includes('/admin/ormawa') && !location.pathname.includes('/admin/psychologist') && !location.pathname.includes('/admin/tenagakes') && (
             <div className="flex items-center gap-2 ml-4 bg-slate-50 border border-slate-100 rounded-xl px-2.5 py-1 shrink-0">
               <span className="material-symbols-outlined text-slate-400 !text-[16px]">corporate_fare</span>
               <select
@@ -411,7 +411,7 @@ export default function PortalTopbar({ config, onMenuClick }) {
           )}
 
           {/* Prodi Switcher for Super Admin */}
-          {user?.role === 'super_admin' && activeFacultyId !== 'all' && prodisList.length > 0 && !location.pathname.includes('/admin/ormawa') && (
+          {user?.role === 'super_admin' && activeFacultyId !== 'all' && prodisList.length > 0 && !location.pathname.includes('/admin/ormawa') && !location.pathname.includes('/admin/psychologist') && !location.pathname.includes('/admin/tenagakes') && (
             <div className="flex items-center gap-2 ml-2 bg-slate-50 border border-slate-100 rounded-xl px-2.5 py-1 shrink-0">
               <span className="material-symbols-outlined text-slate-400 !text-[16px]">school</span>
               <select
@@ -431,7 +431,7 @@ export default function PortalTopbar({ config, onMenuClick }) {
           )}
 
           {/* Period Switcher for Super Admin */}
-          {user?.role === 'super_admin' && periodsList.length > 0 && !location.pathname.includes('/admin/ormawa') && (
+          {user?.role === 'super_admin' && periodsList.length > 0 && !location.pathname.includes('/admin/ormawa') && !location.pathname.includes('/admin/psychologist') && !location.pathname.includes('/admin/tenagakes') && (
             <div className="flex items-center gap-2 ml-2 bg-slate-50 border border-slate-100 rounded-xl px-2.5 py-1 shrink-0">
               <span className="material-symbols-outlined text-slate-400 !text-[16px]">calendar_month</span>
               <select
@@ -451,7 +451,7 @@ export default function PortalTopbar({ config, onMenuClick }) {
           )}
 
           {/* Reset Filters Button */}
-          {user?.role === 'super_admin' && (activeFacultyId !== 'all' || activeProdiId !== 'all' || activePeriodId !== 'all') && !location.pathname.includes('/admin/ormawa') && (
+          {user?.role === 'super_admin' && (activeFacultyId !== 'all' || activeProdiId !== 'all' || activePeriodId !== 'all') && !location.pathname.includes('/admin/ormawa') && !location.pathname.includes('/admin/psychologist') && (
             <button
               onClick={handleResetFilters}
               title="Reset Filter"

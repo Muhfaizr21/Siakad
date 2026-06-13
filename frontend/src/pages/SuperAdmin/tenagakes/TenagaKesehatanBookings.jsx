@@ -149,7 +149,7 @@ export default function TenagaKesehatanBookings() {
   return (
     <PageContent>
       <Toaster position="top-right" />
-      
+
       <DashboardHero
         title="Jadwal &"
         highlightedTitle="Janji Temu"
@@ -158,33 +158,33 @@ export default function TenagaKesehatanBookings() {
         badges={[{ label: 'Klinik Kesehatan Kampus', active: false }]}
         actions={
           <div className="px-4 py-2 bg-bku-primary/5 border border-bku-primary/20 rounded-xl flex items-center gap-3 w-full lg:w-auto justify-center">
-             <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '16px' }}>calendar_month</span>
-             <div className="flex flex-col leading-tight">
-                <span className="text-[10px] font-bold text-bku-primary/70 uppercase tracking-widest">Akses Validasi</span>
-                <span className="text-[12px] font-bold text-bku-primary font-jakarta">Super Admin Portal</span>
-             </div>
+            <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '16px' }}>calendar_month</span>
+            <div className="flex flex-col leading-tight">
+              <span className="text-[10px] font-bold text-bku-primary/70 uppercase tracking-widest">Akses Validasi</span>
+              <span className="text-[12px] font-bold text-bku-primary font-jakarta">Super Admin Portal</span>
+            </div>
           </div>
         }
       />
 
-        {/* ── Table Section ────────────────────────────────────────── */}
-        <div className="bg-[var(--theme-surface)] rounded-2xl border border-[var(--theme-border)] shadow-sm overflow-hidden mb-6">
-          <DataTable
-            columns={bookingColumns}
-            data={bookings}
-            loading={loading}
-            searchPlaceholder="Cari Nama Mahasiswa, NIM, atau Keluhan..."
-            filters={[
-              { key: '_semester', placeholder: 'Pilih Semester', options: semesterOptions },
-              { key: 'status', placeholder: 'Pilih Status', options: [{ label: 'Menunggu', value: 'menunggu' }, { label: 'Dikonfirmasi', value: 'dikonfirmasi' }, { label: 'Selesai', value: 'selesai' }, { label: 'Dibatalkan', value: 'dibatalkan' }] }
-            ]}
-            actions={(row) => (
-              <div className="flex items-center gap-1.5">
-                <Button onClick={() => handleOpenDetail(row)} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)] rounded-lg transition-colors shadow-none cursor-pointer" title="Lihat Detail"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >visibility</span></Button>
-              </div>
-            )}
-          />
-        </div>
+      {/* ── Table Section ────────────────────────────────────────── */}
+      <div className="bg-[var(--theme-surface)] rounded-2xl border border-[var(--theme-border)] shadow-sm overflow-hidden mb-6">
+        <DataTable
+          columns={bookingColumns}
+          data={bookings}
+          loading={loading}
+          searchPlaceholder="Cari Nama Mahasiswa, NIM, atau Keluhan..."
+          filters={[
+            { key: '_semester', placeholder: 'Pilih Semester', options: semesterOptions },
+            { key: 'status', placeholder: 'Pilih Status', options: [{ label: 'Menunggu', value: 'menunggu' }, { label: 'Dikonfirmasi', value: 'dikonfirmasi' }, { label: 'Selesai', value: 'selesai' }, { label: 'Dibatalkan', value: 'dibatalkan' }] }
+          ]}
+          actions={(row) => (
+            <div className="flex items-center gap-1.5">
+              <Button onClick={() => handleOpenDetail(row)} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)] rounded-lg transition-colors shadow-none cursor-pointer" title="Lihat Detail"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >visibility</span></Button>
+            </div>
+          )}
+        />
+      </div>
 
       {/* ── Detail Modal ─────────────────────────────────────────── */}
       <DialogModal
@@ -205,7 +205,7 @@ export default function TenagaKesehatanBookings() {
           const tanggalStr = jdwl.tanggal || jdwl.Tanggal;
           const formattedDate = tanggalStr ? new Date(tanggalStr).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : '—';
           const stat = detailItem.status || detailItem.Status || 'Menunggu';
-          
+
           return (
             <>
               {/* Mahasiswa Info Section */}
@@ -259,19 +259,19 @@ export default function TenagaKesehatanBookings() {
               {/* Booking Details Section */}
               <div className="bg-white p-4 rounded-xl border border-neutral-200 shadow-sm space-y-3">
                 <h4 className="text-[10px] font-bold text-bku-primary uppercase tracking-widest">Detail Keluhan & Status</h4>
-                
+
                 <div className="space-y-4">
                   <div>
                     <span className="text-[10px] text-neutral-500 block mb-1">Status Reservasi</span>
-                    <Badge className={cn('px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider shadow-none', 
+                    <Badge className={cn('px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider shadow-none',
                       stat.toLowerCase() === 'selesai' || stat.toLowerCase() === 'dikonfirmasi' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                      stat.toLowerCase() === 'ditolak' || stat.toLowerCase() === 'dibatalkan' ? 'bg-rose-50 text-rose-600 border-rose-100' :
-                      'bg-amber-50 text-amber-600 border-amber-100'
+                        stat.toLowerCase() === 'ditolak' || stat.toLowerCase() === 'dibatalkan' ? 'bg-rose-50 text-rose-600 border-rose-100' :
+                          'bg-amber-50 text-amber-600 border-amber-100'
                     )}>
                       {stat}
                     </Badge>
                   </div>
-                  
+
                   <div>
                     <span className="text-[10px] text-neutral-500 block mb-1">Keluhan / Catatan Medis</span>
                     <div className="p-3 bg-slate-50 border border-slate-100 rounded-lg text-xs leading-relaxed text-neutral-700">

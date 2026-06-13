@@ -96,7 +96,7 @@ export default function PsychologistList() {
   const [selected, setSelected] = useState(null)
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isAddOpen, setIsAddOpen] = useState(false)
-  const [addForm, setAddForm] = useState({ Nama: '', Email: '', Password: '' })
+  const [addForm, setAddForm] = useState({ Nama: '', Email: '', Password: '', Spesialisasi: 'Umum' })
   const [isDelOpen, setIsDelOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -179,13 +179,14 @@ export default function PsychologistList() {
         Role: 'psikolog',
         Nama: addForm.Nama,
         Email: addForm.Email,
-        Password: addForm.Password
+        Password: addForm.Password,
+        Spesialisasi: addForm.Spesialisasi || 'Umum'
       }
       const res = await adminService.createUser(payload)
       if (res.status === 'success') {
         toast.success('Psikolog baru berhasil didaftarkan')
         setIsAddOpen(false)
-        setAddForm({ Nama: '', Email: '', Password: '' })
+        setAddForm({ Nama: '', Email: '', Password: '', Spesialisasi: 'Umum' })
         fetchData()
       } else {
         toast.error(res.message || 'Gagal mendaftarkan psikolog')
@@ -422,7 +423,7 @@ export default function PsychologistList() {
               loading={loading}
               searchPlaceholder="Cari Nama atau Spesialisasi..."
               onAdd={() => {
-                setAddForm({ Nama: '', Email: '', Password: '' })
+                setAddForm({ Nama: '', Email: '', Password: '', Spesialisasi: 'Umum' })
                 setIsAddOpen(true)
               }}
               addLabel="Tambah Psikolog"
@@ -464,7 +465,15 @@ export default function PsychologistList() {
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">Spesialisasi Klinis</Label>
-                  <Input value={form.Spesialisasi} onChange={e => setForm({ ...form, Spesialisasi: e.target.value })} placeholder="Bidang keahlian..." className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-jakarta" />
+                  <Select value={form.Spesialisasi || "Umum"} onValueChange={v => setForm({ ...form, Spesialisasi: v })}>
+                    <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-slate-50/30 font-semibold text-sm text-slate-800 focus:border-bku-primary font-jakarta"><SelectValue placeholder="Pilih Spesialisasi" /></SelectTrigger>
+                    <SelectContent className="rounded-xl shadow-xl bg-white border border-slate-200">
+                      <SelectItem value="Umum" className="text-xs font-medium">Psikolog Umum</SelectItem>
+                      <SelectItem value="Klinis" className="text-xs font-medium">Psikolog Klinis</SelectItem>
+                      <SelectItem value="Pendidikan" className="text-xs font-medium">Psikolog Pendidikan</SelectItem>
+                      <SelectItem value="Konselor Karir" className="text-xs font-medium">Konselor Karir</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
@@ -534,6 +543,19 @@ export default function PsychologistList() {
               <div className="space-y-1.5">
                 <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">Nama Lengkap & Gelar</Label>
                 <Input required value={addForm.Nama} onChange={e => setAddForm({ ...addForm, Nama: e.target.value })} placeholder="Contoh: Budi Santoso, M.Psi." className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-jakarta uppercase" />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">Spesialisasi Klinis / Bidang</Label>
+                <Select value={addForm.Spesialisasi || "Umum"} onValueChange={v => setAddForm({ ...addForm, Spesialisasi: v })}>
+                  <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-slate-50/30 font-semibold text-sm text-slate-800 focus:border-bku-primary font-jakarta"><SelectValue placeholder="Pilih Spesialisasi" /></SelectTrigger>
+                  <SelectContent className="rounded-xl shadow-xl bg-white border border-slate-200">
+                    <SelectItem value="Umum" className="text-xs font-medium">Psikolog Umum</SelectItem>
+                    <SelectItem value="Klinis" className="text-xs font-medium">Psikolog Klinis</SelectItem>
+                    <SelectItem value="Pendidikan" className="text-xs font-medium">Psikolog Pendidikan</SelectItem>
+                    <SelectItem value="Konselor Karir" className="text-xs font-medium">Konselor Karir</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-1.5">

@@ -35,16 +35,12 @@ export default function PsychologistDashboard() {
   const [insightsTab, setInsightsTab] = useState('list')
 
   const [activeFilters, setActiveFilters] = useState({
-    facultyId: localStorage.getItem('superadmin_fakultas_id') || 'all',
-    prodiId: localStorage.getItem('superadmin_prodi_id') || 'all',
     periodId: localStorage.getItem('superadmin_period_id') || 'all'
   })
 
   useEffect(() => {
     const handleStorageChange = () => {
       setActiveFilters({
-        facultyId: localStorage.getItem('superadmin_fakultas_id') || 'all',
-        prodiId: localStorage.getItem('superadmin_prodi_id') || 'all',
         periodId: localStorage.getItem('superadmin_period_id') || 'all'
       })
     }
@@ -107,16 +103,6 @@ export default function PsychologistDashboard() {
       const mhs = b.mahasiswa || b.Mahasiswa
       if (!mhs) return false
 
-      if (activeFilters.facultyId !== 'all') {
-        const mhsFacId = String(mhs.FakultasID || mhs.fakultas_id || mhs.Fakultas?.id || mhs.Fakultas?.ID || mhs.fakultas?.id || mhs.fakultas?.ID || '')
-        if (mhsFacId !== String(activeFilters.facultyId)) return false
-      }
-
-      if (activeFilters.prodiId !== 'all') {
-        const mhsProdiId = String(mhs.ProgramStudiID || mhs.program_studi_id || mhs.ProgramStudi?.id || mhs.ProgramStudi?.ID || mhs.program_studi?.id || mhs.program_studi?.ID || '')
-        if (mhsProdiId !== String(activeFilters.prodiId)) return false
-      }
-
       if (activeFilters.periodId !== 'all') {
         const selectedPeriod = periods.find(p => String(p.id || p.ID) === String(activeFilters.periodId))
         if (selectedPeriod) {
@@ -133,16 +119,6 @@ export default function PsychologistDashboard() {
     return referrals.filter(r => {
       const mhs = r.mahasiswa || r.Mahasiswa
       if (!mhs) return false
-
-      if (activeFilters.facultyId !== 'all') {
-        const mhsFacId = String(mhs.FakultasID || mhs.fakultas_id || mhs.Fakultas?.id || mhs.Fakultas?.ID || mhs.fakultas?.id || mhs.fakultas?.ID || '')
-        if (mhsFacId !== String(activeFilters.facultyId)) return false
-      }
-
-      if (activeFilters.prodiId !== 'all') {
-        const mhsProdiId = String(mhs.ProgramStudiID || mhs.program_studi_id || mhs.ProgramStudi?.id || mhs.ProgramStudi?.ID || mhs.program_studi?.id || mhs.program_studi?.ID || '')
-        if (mhsProdiId !== String(activeFilters.prodiId)) return false
-      }
 
       if (activeFilters.periodId !== 'all') {
         const selectedPeriod = periods.find(p => String(p.id || p.ID) === String(activeFilters.periodId))
@@ -181,16 +157,16 @@ export default function PsychologistDashboard() {
       .slice(0, 5)
   }, [filteredBookings])
 
-  const modeChartData = useMemo(() => {
-    const counts = { 'Online': 0, 'Tatap Muka': 0 }
+  const facultyChartData = useMemo(() => {
+    const counts = {}
     filteredBookings.forEach(b => {
-      const m = b.mode || b.Mode || 'Tatap Muka'
-      const key = m === 'Online' ? 'Online' : 'Tatap Muka'
-      counts[key]++
+      const mhs = b.mahasiswa || b.Mahasiswa
+      const fac = mhs?.fakultas?.Nama || mhs?.Fakultas?.Nama || mhs?.fakultas?.nama || mhs?.Fakultas?.nama || 'Lainnya'
+      counts[fac] = (counts[fac] || 0) + 1
     })
     return Object.entries(counts)
       .map(([name, value]) => ({ name, value }))
-      .filter(d => d.value > 0)
+      .sort((a, b) => b.value - a.value)
   }, [filteredBookings])
 
   const specializationData = useMemo(() => {
@@ -306,11 +282,11 @@ export default function PsychologistDashboard() {
     {
       key: 'tanggal',
       label: 'Jadwal',
-      className: 'w-[180px]',
+      className: 'w-[180px] text-center',
       render: (v, row) => {
         const formattedDate = v ? new Date(v).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
         return (
-          <div className="flex flex-col py-1 font-inter">
+          <div className="flex flex-col items-center py-1 font-inter">
             <span className="font-bold text-[var(--theme-text)] text-xs">{formattedDate}</span>
             <span className="text-[10px] text-[var(--theme-text-muted)] font-semibold">{row.jam_mulai} - {row.jam_selesai}</span>
           </div>
@@ -320,13 +296,13 @@ export default function PsychologistDashboard() {
     {
       key: 'topik',
       label: 'Topik',
-      className: 'w-[120px]',
+      className: 'w-[120px] text-center',
       render: v => <span className="text-[9px] font-bold text-[var(--theme-primary)] bg-[var(--theme-primary-light)] px-2.5 py-0.5 rounded-lg border border-[var(--theme-primary)]/10 whitespace-nowrap">{v || 'Lainnya'}</span>
     },
     {
       key: 'mode',
       label: 'Metode',
-      className: 'w-[120px]',
+      className: 'w-[120px] text-center',
       render: v => (
         <Badge className={cn('px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border shadow-none bg-surface',
           v === 'Online' ? 'text-[var(--theme-primary)] border-[var(--theme-primary)]/20 bg-[var(--theme-primary-light)]' : 'text-slate-600 border-slate-200 bg-slate-50'
@@ -338,7 +314,7 @@ export default function PsychologistDashboard() {
     {
       key: 'status',
       label: 'Status',
-      className: 'w-[140px]',
+      className: 'w-[140px] text-center',
       render: v => {
         const statusLower = String(v || '').toLowerCase()
         let bg = 'text-neutral-600 border-neutral-100 bg-neutral-50'
@@ -374,6 +350,20 @@ export default function PsychologistDashboard() {
           { label: 'Akses Validasi', active: false },
           { label: 'Super Admin Portal', active: true }
         ]}
+        actions={
+            <SelectField
+              value={activeFilters.periodId || 'all'}
+              onValueChange={(val) => setActiveFilters(prev => ({ ...prev, periodId: val }))}
+              placeholder="Semua Periode"
+            >
+              <SelectOption value="all">Semua Periode</SelectOption>
+              {periods.map(p => (
+                <SelectOption key={p.id || p.ID} value={String(p.id || p.ID)}>
+                  {`${p.tahun_ajaran || p.AcademicYear} - ${p.semester || p.Semester}`}
+                </SelectOption>
+              ))}
+            </SelectField>
+        }
       />
 
       {loading ? (
@@ -467,7 +457,7 @@ export default function PsychologistDashboard() {
           </div>
 
           {/* ── Main Charts Grid ────────────────────────────────────── */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-500">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 animate-in fade-in duration-500">
             {/* Line Chart: Tren Booking Bulanan */}
             <div className="lg:col-span-2">
               <PageCard className="h-full">
@@ -492,16 +482,16 @@ export default function PsychologistDashboard() {
               </PageCard>
             </div>
 
-            {/* Pie Chart: Metode Konseling */}
+            {/* Pie Chart: Sebaran Fakultas */}
             <div className="lg:col-span-1">
               <PageCard className="h-full flex flex-col justify-between">
-                <PageCardHeader title="Metode Konseling" icon="pie_chart" />
+                <PageCardHeader title="Sebaran Fakultas" icon="pie_chart" />
                 <div className="h-[140px] w-full flex items-center justify-center mt-4">
-                  {modeChartData.length > 0 ? (
+                  {facultyChartData.length > 0 ? (
                     <ResponsiveContainer width="100%" height={140}>
                       <PieChart>
                         <Pie
-                          data={modeChartData}
+                          data={facultyChartData}
                           cx="50%"
                           cy="50%"
                           innerRadius={40}
@@ -510,7 +500,7 @@ export default function PsychologistDashboard() {
                           dataKey="value"
                           stroke="none"
                         >
-                          {modeChartData.map((entry, index) => (
+                          {facultyChartData.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                           ))}
                         </Pie>
@@ -524,8 +514,53 @@ export default function PsychologistDashboard() {
                   )}
                 </div>
                 <div className="grid grid-cols-2 gap-1.5 mt-2">
-                  {modeChartData.slice(0, 4).map((item, idx) => (
-                    <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-lg bg-[var(--theme-bg)] border border-[var(--theme-border-muted)]">
+                  {facultyChartData.slice(0, 4).map((item, idx) => (
+                    <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-lg bg-[var(--theme-bg)] border border-[var(--theme-border-muted)]" title={item.name}>
+                      <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
+                      <div className="min-w-0">
+                        <p className="text-[9px] font-bold text-[var(--theme-text-muted)] truncate leading-none">{item.name}</p>
+                        <p className="text-xs font-extrabold text-[var(--theme-text)] leading-none mt-1">{item.value}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </PageCard>
+            </div>
+
+            {/* Pie Chart: Sebaran Topik */}
+            <div className="lg:col-span-1">
+              <PageCard className="h-full flex flex-col justify-between">
+                <PageCardHeader title="Topik Masalah" icon="pie_chart" />
+                <div className="h-[140px] w-full flex items-center justify-center mt-4">
+                  {topicChartData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={140}>
+                      <PieChart>
+                        <Pie
+                          data={topicChartData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={40}
+                          outerRadius={60}
+                          paddingAngle={4}
+                          dataKey="value"
+                          stroke="none"
+                        >
+                          {topicChartData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          contentStyle={{ backgroundColor: "var(--theme-surface)", border: "1px solid var(--theme-border)", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold", color: "var(--theme-text)" }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <span className="text-xs text-[var(--theme-text-muted)] italic">Tidak ada data</span>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-1.5 mt-2">
+                  {topicChartData.slice(0, 4).map((item, idx) => (
+                    <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-lg bg-[var(--theme-bg)] border border-[var(--theme-border-muted)]" title={item.name}>
                       <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
                       <div className="min-w-0">
                         <p className="text-[9px] font-bold text-[var(--theme-text-muted)] truncate leading-none">{item.name}</p>
@@ -741,37 +776,29 @@ export default function PsychologistDashboard() {
           </div>
 
           {/* ── Detailed Booking History Table ─────────────────────── */}
-          <Card className="glass-card shadow-sm rounded-xl overflow-hidden mt-6 mb-6">
-            <div className="px-6 py-5 border-b border-[var(--theme-border)] flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-[var(--theme-surface)]">
-              <div className="flex-1">
-                <h2 className="font-headline font-bold text-lg text-[var(--theme-text)]">Riwayat & Agenda Booking Konseling</h2>
-                <p className="text-xs text-[var(--theme-text-muted)] mt-1 font-medium">
-                  Menampilkan data sesi konseling seluruh psikolog sesuai filter aktif.
-                </p>
-              </div>
-            </div>
-            <CardContent className="p-0 animate-in fade-in duration-300">
-              <DataTable
-                columns={bookingColumns}
-                data={filteredBookings}
-                loading={loading}
-                searchPlaceholder="Cari Nama Mahasiswa, NIM, atau Topik..."
-                actions={(row) => (
-                  <div className="flex items-center gap-1.5">
-                    <Button
-                      onClick={() => { setDetailItem(row); setIsDetailOpen(true); }}
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-slate-400 hover:text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)] rounded-lg transition-colors shadow-none cursor-pointer"
-                      title="Lihat Detail"
-                    >
-                      <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>visibility</span>
-                    </Button>
-                  </div>
-                )}
-              />
-            </CardContent>
-          </Card>
+          <div className="mt-6 mb-6 animate-in fade-in duration-300">
+            <DataTable
+              title="Riwayat & Agenda Booking Konseling"
+              subtitle="Menampilkan data sesi konseling seluruh psikolog sesuai filter aktif."
+              columns={bookingColumns}
+              data={filteredBookings}
+              loading={loading}
+              searchPlaceholder="Cari Nama Mahasiswa, NIM, atau Topik..."
+              actions={(row) => (
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    onClick={() => { setDetailItem(row); setIsDetailOpen(true); }}
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-slate-400 hover:text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)] rounded-lg transition-colors shadow-none cursor-pointer"
+                    title="Lihat Detail"
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>visibility</span>
+                  </Button>
+                </div>
+              )}
+            />
+          </div>
         </div>
       )}
 

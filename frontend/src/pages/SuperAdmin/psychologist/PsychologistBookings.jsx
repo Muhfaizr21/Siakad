@@ -53,11 +53,6 @@ export default function PsychologistBookings() {
 
   useEffect(() => { fetchData() }, [])
 
-  // Compute unique semester options
-  const semesterOptions = useMemo(() => {
-    const unique = [...new Set(bookings.map(i => i._semester).filter(v => v !== '' && v !== undefined && v !== null))].sort((a, b) => Number(a) - Number(b))
-    return unique.map(s => ({ label: `SEMESTER ${s}`, value: String(s) }))
-  }, [bookings])
 
   const bookingColumns = [
     {
@@ -169,7 +164,6 @@ export default function PsychologistBookings() {
           loading={loading}
           searchPlaceholder="Cari Nama Mahasiswa, NIM, atau Topik..."
           filters={[
-            { key: '_semester', placeholder: 'Semester', options: semesterOptions },
             { key: 'mode', placeholder: 'Mode', options: [{ label: 'Tatap Muka', value: 'Tatap Muka' }, { label: 'Online', value: 'Online' }] }
           ]}
           actions={(row) => (
