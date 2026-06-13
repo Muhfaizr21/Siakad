@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:bkuhub_mobile/features/counseling/domain/repositories/counseling_repository.dart';
+import 'package:bkuhub_mobile/core/services/local_notification_service.dart';
 import 'dart:developer';
 
 /// Provider untuk fitur psikolog: bookings, schedules, patients, session notes, dll.
@@ -229,6 +230,9 @@ class CounselingProvider extends ChangeNotifier {
 
   // ─── Notifications ───────────────────────────────────────────────────────────
   List<Map<String, dynamic>> _notifications = [];
+  List<String> _knownNotificationIds = [];
+  bool _isFirstFetch = true;
+
   List<Map<String, dynamic>> get notifications => _notifications;
 
   bool _notificationsLoading = false;
@@ -240,7 +244,25 @@ class CounselingProvider extends ChangeNotifier {
     _notificationsLoading = true;
     notifyListeners();
     try {
-      _notifications = await _repository.getNotifications();
+      final newNotifications = await _repository.getNotifications();
+
+      if (!_isFirstFetch) {
+        for (var n in newNotifications) {
+          final id = n['id']?.toString() ?? '';
+          final isUnread = n['unread'] == true;
+          if (isUnread && id.isNotEmpty && !_knownNotificationIds.contains(id)) {
+            LocalNotificationService.showNotification(
+              id: id.hashCode,
+              title: n['title']?.toString() ?? 'Notifikasi Baru',
+              body: n['desc']?.toString() ?? '',
+            );
+          }
+        }
+      }
+
+      _knownNotificationIds = newNotifications.map((n) => n['id']?.toString() ?? '').toList();
+      _isFirstFetch = false;
+      _notifications = newNotifications;
     } catch (e) {
       log('CounselingProvider.loadNotifications error: $e');
     }

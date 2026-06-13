@@ -375,7 +375,8 @@ export default function MedicalRecords() {
         title="Detail Rekam Medis"
         subtitle="Catatan Sesi & Diagnosis Pasien"
         icon="medical_services"
-        maxWidth="max-w-2xl"
+        maxWidth="max-w-xl"
+        bodyClassName="p-4 sm:p-5 space-y-3"
         footer={
           <button 
             onClick={() => setIsDetailOpen(false)} 
@@ -386,59 +387,59 @@ export default function MedicalRecords() {
         }
       >
         {detailItem && (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {/* Patient Identitas */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
-              <p className="text-[10px] font-black text-slate-800 uppercase tracking-widest flex items-center gap-2 border-b border-slate-100 pb-3">
-                <span className="w-7 h-7 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
-                  <span className="material-symbols-outlined text-[16px]">person</span>
+            <div className="bg-white border border-slate-200 rounded-xl p-3.5 shadow-sm space-y-3">
+              <p className="text-[10px] font-black text-slate-800 uppercase tracking-widest flex items-center gap-2 border-b border-slate-100 pb-2">
+                <span className="w-6 h-6 rounded-md bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-[14px]">person</span>
                 </span>
                 Identitas Mahasiswa
               </p>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div className="bg-slate-50 rounded-xl p-3">
-                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Nama Lengkap</span>
-                  <span className="text-xs font-bold text-slate-800">{detailItem._name || '—'}</span>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="bg-slate-50 rounded-lg p-2.5">
+                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block mb-0.5">Nama Lengkap</span>
+                  <span className="text-[11px] font-bold text-slate-800">{detailItem._name || '—'}</span>
                 </div>
-                <div className="bg-slate-50 rounded-xl p-3">
-                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block mb-1">NIM</span>
-                  <span className="text-xs font-bold text-slate-800">{detailItem._nim || '—'}</span>
+                <div className="bg-slate-50 rounded-lg p-2.5">
+                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block mb-0.5">NIM</span>
+                  <span className="text-[11px] font-bold text-slate-800">{detailItem._nim || '—'}</span>
                 </div>
-                <div className="bg-slate-50 rounded-xl p-3">
-                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Fakultas</span>
-                  <span className="text-[11px] font-semibold text-slate-700 line-clamp-2">{detailItem._fakultas || '—'}</span>
+                <div className="bg-slate-50 rounded-lg p-2.5">
+                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block mb-0.5">Fakultas</span>
+                  <span className="text-[10px] font-semibold text-slate-700 line-clamp-2">{detailItem._fakultas || '—'}</span>
                 </div>
-                <div className="bg-slate-50 rounded-xl p-3">
-                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Program Studi</span>
-                  <span className="text-[11px] font-semibold text-slate-700 line-clamp-2">{detailItem._prodi || '—'}</span>
+                <div className="bg-slate-50 rounded-lg p-2.5">
+                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block mb-0.5">Program Studi</span>
+                  <span className="text-[10px] font-semibold text-slate-700 line-clamp-2">{detailItem._prodi || '—'}</span>
                 </div>
               </div>
             </div>
 
             {/* Sesi Info */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col gap-2">
-                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-[14px]">calendar_today</span>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="bg-white border border-slate-200 rounded-xl p-3.5 shadow-sm flex flex-col gap-1.5">
+                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-md bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-[12px]">calendar_today</span>
                   </span>
                   Tanggal Pemeriksaan
                 </span>
-                <span className="text-xs font-bold text-slate-800">{detailItem.date} {detailItem.time} WIB</span>
+                <span className="text-[11px] font-bold text-slate-800">{detailItem.date} {detailItem.time} WIB</span>
               </div>
-              <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col gap-2">
-                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-lg bg-purple-50 text-purple-500 flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-[14px]">mood</span>
+              <div className="bg-white border border-slate-200 rounded-xl p-3.5 shadow-sm flex flex-col gap-1.5">
+                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-md bg-purple-50 text-purple-500 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-[12px]">mood</span>
                   </span>
                   Mood Pasien
                 </span>
-                <span className="text-xs font-bold text-indigo-600">{detailItem.mood || '—'}</span>
+                <span className="text-[11px] font-bold text-indigo-600">{detailItem.mood || '—'}</span>
               </div>
-              <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col gap-2">
-                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-[14px]">vital_signs</span>
+              <div className="bg-white border border-slate-200 rounded-xl p-3.5 shadow-sm flex flex-col gap-1.5">
+                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-md bg-rose-50 text-rose-500 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-[12px]">vital_signs</span>
                   </span>
                   Status Pasien
                 </span>
@@ -456,42 +457,42 @@ export default function MedicalRecords() {
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               {/* Keluhan */}
-              <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
-                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-[14px]">sick</span>
+              <div className="bg-white border border-slate-200 rounded-xl p-3.5 shadow-sm space-y-2">
+                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-md bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-[12px]">sick</span>
                   </span>
                   Keluhan Sesi Konseling
                 </span>
-                <div className="bg-slate-50/50 p-3.5 rounded-xl text-xs text-slate-700 font-medium whitespace-pre-wrap leading-relaxed">
+                <div className="bg-slate-50/50 p-2.5 rounded-lg text-[10px] text-slate-700 font-medium whitespace-pre-wrap leading-relaxed">
                   {detailItem.complaint || '—'}
                 </div>
               </div>
 
               {/* Observasi */}
-              <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
-                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-[14px]">visibility</span>
+              <div className="bg-white border border-slate-200 rounded-xl p-3.5 shadow-sm space-y-2">
+                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-[12px]">visibility</span>
                   </span>
                   Hasil Observasi Psikolog
                 </span>
-                <div className="bg-slate-50/50 p-3.5 rounded-xl text-xs text-slate-700 font-medium whitespace-pre-wrap leading-relaxed">
+                <div className="bg-slate-50/50 p-2.5 rounded-lg text-[10px] text-slate-700 font-medium whitespace-pre-wrap leading-relaxed">
                   {detailItem.observation || '—'}
                 </div>
               </div>
 
               {/* Rekomendasi */}
-              <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
-                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-[14px]">prescriptions</span>
+              <div className="bg-white border border-slate-200 rounded-xl p-3.5 shadow-sm space-y-2">
+                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-[12px]">prescriptions</span>
                   </span>
                   Rekomendasi Penanganan & Tindak Lanjut
                 </span>
-                <div className="bg-indigo-50/50 border border-indigo-100 p-3.5 rounded-xl text-xs text-indigo-900 font-bold whitespace-pre-wrap leading-relaxed">
+                <div className="bg-indigo-50/50 border border-indigo-100 p-2.5 rounded-lg text-[10px] text-indigo-900 font-bold whitespace-pre-wrap leading-relaxed">
                   {detailItem.recommendation || '—'}
                 </div>
               </div>

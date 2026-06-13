@@ -5,6 +5,7 @@ import 'package:bkuhub_mobile/core/providers/student_provider.dart';
 import 'package:bkuhub_mobile/core/providers/scholarship_provider.dart';
 import 'package:bkuhub_mobile/core/providers/achievement_provider.dart';
 import 'package:bkuhub_mobile/core/providers/theme_provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'package:bkuhub_mobile/core/routes/app_routes.dart';
 import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
@@ -90,6 +91,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       routerConfig: AppRoutes.router,
       theme: ThemeData(
+        fontFamily: GoogleFonts.plusJakartaSans().fontFamily,
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
           seedColor: themeProvider.primary,
@@ -98,6 +100,7 @@ class MyApp extends StatelessWidget {
           surface: themeProvider.surface,
           error: themeProvider.colorError,
         ),
+        textTheme: GoogleFonts.plusJakartaSansTextTheme(),
         scaffoldBackgroundColor: themeProvider.background,
         // Override AppBar theme with dynamic primary color
         appBarTheme: AppBarTheme(

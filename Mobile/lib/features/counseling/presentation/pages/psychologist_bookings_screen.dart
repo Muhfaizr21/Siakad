@@ -24,6 +24,10 @@ class _PsychologistBookingsScreenState
     'Ditolak'
   ];
 
+  String _searchQuery = '';
+  String _sortOrder = 'Terbaru';
+  String? _selectedProdi;
+
   @override
   void initState() {
     super.initState();
@@ -34,9 +38,37 @@ class _PsychologistBookingsScreenState
 
   List<Map<String, dynamic>> _filteredBookings(
       List<Map<String, dynamic>> bookings) {
-    if (_selectedTabIndex == 0) return bookings;
-    final statusFilter = _tabs[_selectedTabIndex];
-    return bookings.where((b) => b['status'] == statusFilter).toList();
+    List<Map<String, dynamic>> result = List.from(bookings);
+
+    // Filter Status
+    if (_selectedTabIndex != 0) {
+      final statusFilter = _tabs[_selectedTabIndex];
+      result = result.where((b) => b['status'] == statusFilter).toList();
+    }
+
+    // Filter Search (Nama / NIM)
+    if (_searchQuery.isNotEmpty) {
+      final q = _searchQuery.toLowerCase();
+      result = result.where((b) {
+        final name = (b['name']?.toString() ?? '').toLowerCase();
+        final nim = (b['nim']?.toString() ?? '').toLowerCase();
+        return name.contains(q) || nim.contains(q);
+      }).toList();
+    }
+
+    // Filter Prodi
+    if (_selectedProdi != null && _selectedProdi!.isNotEmpty) {
+      result = result.where((b) => b['faculty']?.toString() == _selectedProdi).toList();
+    }
+
+    // Sort (Menggunakan ID sebagai acuan Terbaru/Terlama, asumsi ID auto-increment)
+    result.sort((a, b) {
+      final idA = int.tryParse(a['id']?.toString() ?? '0') ?? 0;
+      final idB = int.tryParse(b['id']?.toString() ?? '0') ?? 0;
+      return _sortOrder == 'Terbaru' ? idB.compareTo(idA) : idA.compareTo(idB);
+    });
+
+    return result;
   }
 
   @override
@@ -53,11 +85,11 @@ class _PsychologistBookingsScreenState
           body: CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
-              const BkuAppBar(
+              BkuAppBar(
                 title: 'Booking Masuk',
                 info: 'Kelola & konfirmasi permintaan sesi konseling',
                 variant: AppBarVariant.psychologist,
-                showBackButton: true,
+                showBackButton: false,
                 isExpandable: false,
               ),
               SliverToBoxAdapter(
@@ -75,6 +107,8 @@ class _PsychologistBookingsScreenState
                                 const SizedBox(height: 16),
                                 _buildPendingBanner(waiting),
                               ],
+                              const SizedBox(height: 16),
+                              _buildSearchAndFilter(bookings),
                               const SizedBox(height: 16),
                               _buildTabs(),
                               const SizedBox(height: 24),
@@ -159,6 +193,106 @@ class _PsychologistBookingsScreenState
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildSearchAndFilter(List<Map<String, dynamic>> allBookings) {
+    final prodis = allBookings
+        .map((b) => b['faculty']?.toString() ?? '')
+        .where((p) => p.isNotEmpty)
+        .toSet()
+        .toList();
+    prodis.sort();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        children: [
+          TextField(
+            onChanged: (val) => setState(() => _searchQuery = val),
+            decoration: InputDecoration(
+              hintText: 'Cari nama mahasiswa atau NIM...',
+              hintStyle: TextStyle(color: Colors.grey.withAlpha(150), fontSize: 13, fontWeight: FontWeight.w600),
+              prefixIcon: const Icon(Icons.search_rounded, color: Colors.grey),
+              filled: true,
+              fillColor: Colors.white,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: Colors.grey.withAlpha(40)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: Colors.grey.withAlpha(40)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                flex: 4,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey.withAlpha(40)),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      isExpanded: true,
+                      value: _sortOrder,
+                      icon: const Icon(Icons.sort_rounded, color: AppColors.primary, size: 18),
+                      style: AppTextStyles.labelMd.copyWith(color: const Color(0xFF1E293B), fontWeight: FontWeight.w800),
+                      items: ['Terbaru', 'Terlama'].map((e) {
+                        return DropdownMenuItem(value: e, child: Text(e));
+                      }).toList(),
+                      onChanged: (val) {
+                        if (val != null) setState(() => _sortOrder = val);
+                      },
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                flex: 6,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey.withAlpha(40)),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String?>(
+                      isExpanded: true,
+                      value: _selectedProdi,
+                      hint: Text('Semua Prodi', style: AppTextStyles.labelMd.copyWith(color: const Color(0xFF1E293B), fontWeight: FontWeight.w800)),
+                      icon: const Icon(Icons.filter_list_rounded, color: AppColors.primary, size: 18),
+                      style: AppTextStyles.labelMd.copyWith(color: const Color(0xFF1E293B), fontWeight: FontWeight.w800),
+                      items: [
+                        DropdownMenuItem<String?>(value: null, child: const Text('Semua Prodi')),
+                        ...prodis.map((e) {
+                          return DropdownMenuItem<String?>(value: e, child: Text(e, overflow: TextOverflow.ellipsis));
+                        }),
+                      ],
+                      onChanged: (val) {
+                        setState(() => _selectedProdi = val);
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

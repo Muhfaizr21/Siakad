@@ -20,8 +20,29 @@ class QuickStatsCard extends StatelessWidget {
   String _todayLabel() {
     try {
       final now = DateTime.now();
-      const dayNames = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
-      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+      const dayNames = [
+        'Senin',
+        'Selasa',
+        'Rabu',
+        'Kamis',
+        'Jumat',
+        'Sabtu',
+        'Minggu',
+      ];
+      const monthNames = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'Mei',
+        'Jun',
+        'Jul',
+        'Agu',
+        'Sep',
+        'Okt',
+        'Nov',
+        'Des',
+      ];
       final day = dayNames[now.weekday - 1];
       final month = monthNames[now.month - 1];
       return '$day, ${now.day} $month ${now.year}'.toUpperCase();
@@ -33,14 +54,14 @@ class QuickStatsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [Color(0xFF001A54), Color(0xFF003399), Color(0xFF0044BB)],
         ),
-        borderRadius: BorderRadius.circular(32),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFF001A54).withAlpha(40),
@@ -76,17 +97,17 @@ class QuickStatsCard extends StatelessWidget {
                         fontSize: 14,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 4),
                     Text(
                       totalAppointments.toString(),
                       style: AppTextStyles.titleLg.copyWith(
                         color: Colors.white,
-                        fontSize: 56,
+                        fontSize: 44,
                         fontWeight: FontWeight.w900,
                         height: 1,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
                       'sesi konseling hari ini dan yang akan datang',
                       style: AppTextStyles.labelSm.copyWith(
@@ -98,26 +119,26 @@ class QuickStatsCard extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: Colors.white.withAlpha(30),
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(16),
                 ),
                 child: const Icon(
                   Icons.event_available_rounded,
                   color: Colors.white,
-                  size: 40,
+                  size: 28,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           Container(
             height: 1,
             width: double.infinity,
             color: Colors.white.withAlpha(30),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -163,20 +184,20 @@ class QuickStatsCard extends StatelessWidget {
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: Colors.white.withAlpha(40),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: iconColor, size: 20),
+            child: Icon(icon, color: iconColor, size: 16),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Text(
             value,
             style: AppTextStyles.titleMd.copyWith(
               color: Colors.white,
               fontWeight: FontWeight.w900,
-              fontSize: 16,
+              fontSize: 14,
             ),
           ),
           const SizedBox(height: 4),

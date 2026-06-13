@@ -374,9 +374,9 @@ export default function ReferralManagement() {
           </div>
         }
       >
-        <form id="create-referral-form" onSubmit={handleCreateReferral} className="flex flex-col space-y-5 bg-white p-6 sm:p-8">
+        <form id="create-referral-form" onSubmit={handleCreateReferral} className="flex flex-col gap-4 p-5 sm:p-6">
           <div className="relative">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Pilih Pasien</label>
+            <label className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest ml-1 mb-1.5 block">Pilih Pasien</label>
             <div className="relative">
               <input 
                 type="text"
@@ -391,13 +391,13 @@ export default function ReferralManagement() {
                 onFocus={() => setShowDropdown(true)}
                 onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
                 placeholder="Cari nama pasien atau NIM..."
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
+                className="h-10 w-full appearance-none rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] px-4 text-xs font-semibold text-[var(--theme-text)] outline-none transition-all focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 placeholder-[var(--theme-text-muted)]/50"
               />
-              <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-base shrink-0">search</span>
+              <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-[var(--theme-text-muted)] pointer-events-none text-[18px]">search</span>
             </div>
 
             {showDropdown && (
-              <div className="absolute z-20 w-full mt-2 bg-white border border-slate-200 rounded-xl shadow-xl max-h-56 overflow-y-auto">
+              <div className="absolute z-20 w-full mt-1 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl shadow-lg max-h-48 overflow-y-auto">
                 {mahasiswaList.filter(m => {
                   const str = `${m.nama || m.name} ${m.nim || m.id}`.toLowerCase();
                   return str.includes(searchQuery.toLowerCase());
@@ -420,18 +420,18 @@ export default function ReferralManagement() {
                       }
                     }}
                     className={cn(
-                      "px-4 py-3 cursor-pointer text-xs transition-colors hover:bg-slate-50 border-b border-slate-100 last:border-0",
-                      newReferral.mahasiswa_id === maba.id ? 'text-primary font-bold bg-primary/5' : 'text-slate-600 font-medium'
+                      "px-3 py-2.5 cursor-pointer text-xs transition-colors hover:bg-[var(--theme-bg)] border-b border-[var(--theme-border)] last:border-0",
+                      newReferral.mahasiswa_id === maba.id ? 'text-[var(--theme-primary)] font-bold bg-[var(--theme-primary)]/5' : 'text-[var(--theme-text)] font-medium'
                     )}
                   >
-                    {maba.nama || maba.name} <span className="text-[10px] text-slate-400 ml-1">({maba.nim || maba.id})</span>
+                    {maba.nama || maba.name} <span className="text-[10px] text-[var(--theme-text-muted)] ml-1">({maba.nim || maba.id})</span>
                   </div>
                 ))}
                 {mahasiswaList.filter(m => {
                   const str = `${m.nama || m.name} ${m.nim || m.id}`.toLowerCase();
                   return str.includes(searchQuery.toLowerCase());
                 }).length === 0 && (
-                  <div className="px-4 py-4 text-center text-xs text-slate-400 italic">
+                  <div className="px-3 py-3 text-center text-xs text-[var(--theme-text-muted)] italic">
                     Pasien tidak ditemukan
                   </div>
                 )}
@@ -439,29 +439,26 @@ export default function ReferralManagement() {
             )}
 
             {newReferral.mahasiswa_id && (
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mt-3 max-h-48 overflow-y-auto">
-                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-2.5 flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-sm shrink-0">history</span> Riwayat Sesi Konseling
+              <div className="bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-xl p-3 mt-2 max-h-40 overflow-y-auto">
+                <p className="text-[9px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[14px] shrink-0">history</span> Riwayat Sesi
                 </p>
                 {loadingHistory ? (
-                  <div className="flex items-center justify-center py-4">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                  <div className="flex items-center justify-center py-2">
+                    <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-[var(--theme-primary)]"></div>
                   </div>
                 ) : selectedPatientHistory.length === 0 ? (
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide text-center py-2">Tidak ada riwayat konseling</p>
+                  <p className="text-[9px] text-[var(--theme-text-muted)] font-bold uppercase tracking-wide text-center py-1">Tidak ada riwayat</p>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {selectedPatientHistory.map((item, idx) => (
-                      <div key={item.id || idx} className="border-b border-slate-200 last:border-0 pb-2.5 last:pb-0">
+                      <div key={item.id || idx} className="border-b border-[var(--theme-border)] last:border-0 pb-2 last:pb-0">
                         <div className="flex justify-between items-center mb-1">
-                          <span className="text-[9px] font-bold text-slate-800 uppercase tracking-wider">{item.date}</span>
-                          <span className="px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest bg-primary/10 text-primary">{item.type}</span>
+                          <span className="text-[8px] font-bold text-[var(--theme-text)] uppercase tracking-wider">{item.date}</span>
+                          <span className="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest bg-[var(--theme-primary)]/10 text-[var(--theme-primary)]">{item.type}</span>
                         </div>
-                        <p className="text-[10px] text-slate-600 font-medium leading-relaxed">
-                          <span className="font-bold text-slate-800">Keluhan:</span> {item.complaint || '-'}
-                        </p>
-                        <p className="text-[10px] text-slate-500 font-medium leading-relaxed mt-0.5">
-                          <span className="font-bold text-slate-600">Rekomendasi:</span> {item.recommendation || '-'}
+                        <p className="text-[9px] text-[var(--theme-text)] font-medium leading-relaxed">
+                          <span className="font-bold">Keluhan:</span> {item.complaint || '-'}
                         </p>
                       </div>
                     ))}
@@ -472,48 +469,51 @@ export default function ReferralManagement() {
           </div>
 
           <div>
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Tipe Rujukan</label>
-            <select 
-              value={newReferral.tipe}
-              onChange={(e) => setNewReferral({ ...newReferral, tipe: e.target.value })}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors cursor-pointer"
-            >
-              <option value="Medis">Medis</option>
-              <option value="Akademik">Akademik</option>
-            </select>
+            <label className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest ml-1 mb-1.5 block">Tipe Rujukan</label>
+            <div className="relative">
+              <select 
+                value={newReferral.tipe}
+                onChange={(e) => setNewReferral({ ...newReferral, tipe: e.target.value })}
+                className="h-10 w-full appearance-none rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] px-4 pr-8 text-xs font-semibold text-[var(--theme-text)] outline-none transition-all focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 cursor-pointer"
+              >
+                <option value="Medis">Medis</option>
+                <option value="Akademik">Akademik</option>
+              </select>
+              <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-[18px] text-[var(--theme-text-muted)] pointer-events-none">expand_more</span>
+            </div>
           </div>
 
           <div>
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Alasan Rujukan</label>
+            <label className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest ml-1 mb-1.5 block">Alasan Rujukan</label>
             <textarea 
               required
               value={newReferral.alasan}
               onChange={(e) => setNewReferral({ ...newReferral, alasan: e.target.value })}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-medium text-slate-900 placeholder-slate-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors h-24 resize-none leading-relaxed"
+              className="w-full appearance-none rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3 text-xs font-medium text-[var(--theme-text)] placeholder-[var(--theme-text-muted)]/50 outline-none transition-all focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10 h-20 resize-none leading-relaxed"
               placeholder="Jelaskan alasan rujukan..."
             />
           </div>
 
           <div>
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Pihak Tujuan</label>
+            <label className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest ml-1 mb-1.5 block">Pihak Tujuan</label>
             <input 
               required
               type="text"
               value={newReferral.pihak_tujuan}
               onChange={(e) => setNewReferral({ ...newReferral, pihak_tujuan: e.target.value })}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-900 placeholder-slate-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
+              className="h-10 w-full appearance-none rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] px-4 text-xs font-semibold text-[var(--theme-text)] placeholder-[var(--theme-text-muted)]/50 outline-none transition-all focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10"
               placeholder="Nama klinik/psikolog tujuan"
             />
           </div>
 
           <div>
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Email Tujuan</label>
+            <label className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest ml-1 mb-1.5 block">Email Tujuan</label>
             <input 
               required
               type="email"
               value={newReferral.email_tujuan}
               onChange={(e) => setNewReferral({ ...newReferral, email_tujuan: e.target.value })}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-900 placeholder-slate-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
+              className="h-10 w-full appearance-none rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] px-4 text-xs font-semibold text-[var(--theme-text)] placeholder-[var(--theme-text-muted)]/50 outline-none transition-all focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary)]/10"
               placeholder="email@example.com"
             />
           </div>

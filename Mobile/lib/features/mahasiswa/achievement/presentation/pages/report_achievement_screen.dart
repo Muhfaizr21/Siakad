@@ -200,7 +200,7 @@ class _ReportAchievementScreenState extends State<ReportAchievementScreen> {
       children: [
         _buildLabel(label),
         DropdownButtonFormField<String>(
-          initialValue:
+          value:
               items.contains(_selectedLevel) && label == 'Tingkat'
                   ? _selectedLevel
                   : (label == 'Peringkat' ? _selectedRank : items[0]),

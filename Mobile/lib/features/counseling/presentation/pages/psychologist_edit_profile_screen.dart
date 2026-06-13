@@ -25,7 +25,6 @@ class _PsychologistEditProfileScreenState
   late TextEditingController _bioCtrl;
   late TextEditingController _lokasiCtrl;
   late TextEditingController _bahasaCtrl;
-  late TextEditingController _tarifCtrl;
 
   @override
   void initState() {
@@ -38,7 +37,6 @@ class _PsychologistEditProfileScreenState
     _bioCtrl = TextEditingController(text: profile?.bio ?? '');
     _lokasiCtrl = TextEditingController(text: profile?.location ?? '');
     _bahasaCtrl = TextEditingController(text: profile?.languages ?? '');
-    _tarifCtrl = TextEditingController(text: profile?.fee.toString() ?? '0');
   }
 
   @override
@@ -50,7 +48,6 @@ class _PsychologistEditProfileScreenState
     _bioCtrl.dispose();
     _lokasiCtrl.dispose();
     _bahasaCtrl.dispose();
-    _tarifCtrl.dispose();
     super.dispose();
   }
 
@@ -68,7 +65,6 @@ class _PsychologistEditProfileScreenState
         'bio': _bioCtrl.text.trim(),
         'lokasi': _lokasiCtrl.text.trim(),
         'bahasa': _bahasaCtrl.text.trim(),
-        'tarif': int.tryParse(_tarifCtrl.text.trim()) ?? 0,
       });
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -118,41 +114,35 @@ class _PsychologistEditProfileScreenState
                   children: [
                     // Avatar
                     Center(
-                      child: Stack(
-                        children: [
-                          Container(
-                            width: 90,
-                            height: 90,
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [AppColors.primary, Color(0xFF003399)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.primary.withAlpha(60),
-                                  blurRadius: 16,
-                                  offset: const Offset(0, 6),
-                                ),
-                              ],
-                            ),
-                            child: const Icon(Icons.psychology_rounded, color: Colors.white, size: 44),
+                      child: Container(
+                        width: 90,
+                        height: 90,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [AppColors.primary, Color(0xFF003399)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: const BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(Icons.camera_alt_rounded, size: 16, color: AppColors.primary),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withAlpha(60),
+                              blurRadius: 16,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Text(
+                            _namaCtrl.text.trim().isEmpty ? 'P'
+                                : _namaCtrl.text.trim().split(' ').take(2).map((w) => w.isNotEmpty ? w[0].toUpperCase() : '').join(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 32,
+                              fontWeight: FontWeight.w900,
                             ),
                           ),
-                        ],
+                        ),
                       ),
                     ),
                     const SizedBox(height: 32),
@@ -210,14 +200,6 @@ class _PsychologistEditProfileScreenState
                         label: 'Bahasa',
                         icon: Icons.language_rounded,
                         hint: 'Contoh: Indonesia, Inggris',
-                      ),
-                      _buildDivider(),
-                      _buildField(
-                        controller: _tarifCtrl,
-                        label: 'Tarif (Rp)',
-                        icon: Icons.payments_rounded,
-                        keyboardType: TextInputType.number,
-                        hint: 'Contoh: 150000',
                       ),
                     ]),
 

@@ -1184,7 +1184,7 @@ class _RecruitmentFormScreenState extends State<RecruitmentFormScreen> {
                       onChanged: (val) {
                         setState(() => field.required = val);
                       },
-                      activeThumbColor: AppColors.primary,
+                      activeColor: AppColors.primary,
                     ),
                     const SizedBox(width: 8),
                     Text(

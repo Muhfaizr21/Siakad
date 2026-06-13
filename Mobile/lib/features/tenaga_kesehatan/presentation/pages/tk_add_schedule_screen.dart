@@ -104,7 +104,7 @@ class _TkAddScheduleScreenState extends State<TkAddScheduleScreen> {
             _buildSectionLabel('Tipe Layanan'),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
-              initialValue: _tipeLayanan,
+              value: _tipeLayanan,
               decoration: InputDecoration(
                 filled: true,
                 fillColor: Colors.white,

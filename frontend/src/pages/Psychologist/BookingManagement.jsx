@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { psychologistService } from '../../services/api';
 import { DataTable } from '@/components/ui/DataTable';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/Table';
-import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
+import { DialogModal, ModalCancelButton, ModalSaveButton } from '@/components/ui/DialogModal';
 import { DashboardHero } from '@/components/ui/dashboard';
 import { PageContent } from '@/components/ui/page';
 import { PrimaryStatsCard } from '@/components/ui/StatsCard';
+import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
 
 const PendingIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>pending_actions</span>;
 const ConfirmIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>event_available</span>;
@@ -159,12 +161,12 @@ export default function BookingManagement() {
       label: 'Mahasiswa',
       render: (v, row) => (
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm bg-primary/10 text-primary border border-primary/20 shrink-0">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm bg-[var(--theme-primary-light)]/20 text-[var(--theme-primary)] border border-[var(--theme-primary)]/20 shrink-0">
             {row.avatar || row.name?.charAt(0) || 'M'}
           </div>
           <div>
-            <p className="font-bold text-sm text-slate-900 group-hover:text-primary transition-colors max-w-[200px] truncate">{row.name || 'Mahasiswa'}</p>
-            <p className="text-[10px] text-slate-400 font-medium mt-0.5">{row.nim || '-'} &bull; {row.prodi || '-'}</p>
+            <p className="font-semibold text-[var(--theme-text)] font-headline tracking-tight text-[14px] max-w-[200px] truncate">{row.name || 'Mahasiswa'}</p>
+            <p className="text-[11px] text-[var(--theme-text-muted)] font-body tracking-tight mt-0.5">{row.nim || '-'} &bull; {row.prodi || '-'}</p>
           </div>
         </div>
       )
@@ -175,15 +177,17 @@ export default function BookingManagement() {
       render: (v, row) => (
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] font-bold text-slate-600 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg uppercase tracking-wider">{row.issue || '—'}</span>
-            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wider border ${
+            <Badge variant="outline" className="font-semibold text-[var(--theme-text-muted)] font-headline uppercase text-[9px] tracking-[0.2em] border-[var(--theme-border)] bg-[var(--theme-bg)] px-2.5 py-1 rounded-md">
+              {row.issue || '—'}
+            </Badge>
+            <span className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[9px] font-headline font-semibold uppercase tracking-wider border ${
               row.mode === 'Online' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-slate-50 text-slate-600 border-slate-200'
             }`}>
               <span className="material-symbols-outlined !text-[12px] shrink-0">{row.mode === 'Online' ? 'videocam' : 'groups'}</span>
               {row.mode || 'Tatap Muka'}
             </span>
           </div>
-          <p className="line-clamp-1 text-[10px] font-medium text-slate-500 italic max-w-[250px]">"{row.note || 'Tidak ada catatan'}"</p>
+          <p className="line-clamp-1 text-[10px] font-medium text-[var(--theme-text-subtle)] italic max-w-[250px] font-body">"{row.note || 'Tidak ada catatan'}"</p>
         </div>
       )
     },
@@ -191,9 +195,9 @@ export default function BookingManagement() {
       key: 'date',
       label: 'Jadwal Sesi',
       render: (v, row) => (
-        <div>
-          <p className="font-black text-sm text-slate-700">{row.date || '-'}</p>
-          <p className="text-[10px] text-primary font-bold mt-0.5 bg-primary/10 inline-block px-1.5 py-0.5 rounded uppercase tracking-wider">{row.time || '-'}</p>
+        <div className="flex flex-col leading-tight gap-1.5">
+          <span className="font-semibold text-[var(--theme-text)] font-headline text-[13px]">{row.date || '-'}</span>
+          <span className="text-[10px] text-[var(--theme-primary)] font-bold bg-[var(--theme-primary-light)]/20 border border-[var(--theme-primary)]/10 inline-block px-1.5 py-0.5 rounded uppercase tracking-wider w-fit">{row.time || '-'}</span>
         </div>
       )
     },
@@ -204,7 +208,7 @@ export default function BookingManagement() {
         const status = row.status || 'Menunggu';
         const statusCfg = statusMeta[status] || statusMeta['Menunggu'];
         return (
-          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider whitespace-nowrap ${statusCfg.badgeBg} ${statusCfg.badgeText} ${statusCfg.badgeBorder}`}>
+          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-semibold border uppercase tracking-wider whitespace-nowrap shadow-sm ${statusCfg.badgeBg} ${statusCfg.badgeText} ${statusCfg.badgeBorder}`}>
             <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${statusCfg.dot}`} />
             {status}
           </span>
@@ -220,25 +224,29 @@ export default function BookingManagement() {
     if (status !== 'Menunggu') return null;
 
     return (
-      <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-        <button
+      <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+        <Button
           type="button"
           disabled={isUpdating}
           onClick={(e) => { e.stopPropagation(); handleAction(row.id, 'Ditolak'); }}
-          className="w-8 h-8 flex items-center justify-center rounded-xl bg-rose-50 text-rose-600 border border-rose-100 hover:bg-rose-100 transition-all disabled:opacity-50"
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-neutral-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors shadow-none disabled:opacity-50"
           title="Tolak Booking"
         >
-          <span className="material-symbols-outlined text-[16px]">close</span>
-        </button>
-        <button
+          <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>close</span>
+        </Button>
+        <Button
           type="button"
           disabled={isUpdating}
           onClick={(e) => { e.stopPropagation(); handleConfirmClick(row); }}
-          className="w-8 h-8 flex items-center justify-center rounded-xl bg-primary text-white hover:bg-primary/90 shadow-sm transition-all disabled:opacity-50"
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-neutral-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors shadow-none disabled:opacity-50"
           title="Setujui Booking"
         >
-          <span className="material-symbols-outlined text-[16px]">check</span>
-        </button>
+          <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>check</span>
+        </Button>
       </div>
     );
   };
@@ -256,8 +264,8 @@ export default function BookingManagement() {
 
   return (
     <PageContent>
-      
-      <DashboardHero
+      <div className="w-full relative space-y-6 scroll-smooth">
+        <DashboardHero
         title="Manajemen"
         highlightedTitle="Janji Temu"
         subtitle="Pantau, cari, dan tindak lanjuti permintaan sesi konseling baru untuk mempercepat penyelesaian bantuan psikologis mahasiswa."
@@ -278,10 +286,13 @@ export default function BookingManagement() {
         {tabs.slice(1).map((status) => {
           let theme = 'primary';
           let StatusIcon = PendingIcon;
-          if (status === 'Menunggu') { theme = 'warning'; StatusIcon = PendingIcon; }
-          if (status === 'Dikonfirmasi') { theme = 'info'; StatusIcon = ConfirmIcon; }
-          if (status === 'Selesai') { theme = 'success'; StatusIcon = DoneIcon; }
-          if (status === 'Ditolak') { theme = 'error'; StatusIcon = RejectIcon; }
+          let badgeText = '';
+          let badgeIconStr = '';
+          
+          if (status === 'Menunggu') { theme = 'warning'; StatusIcon = PendingIcon; badgeText = 'Menunggu ACC'; badgeIconStr = 'hourglass_empty'; }
+          if (status === 'Dikonfirmasi') { theme = 'info'; StatusIcon = ConfirmIcon; badgeText = 'Disetujui'; badgeIconStr = 'event_available'; }
+          if (status === 'Selesai') { theme = 'success'; StatusIcon = DoneIcon; badgeText = 'Tuntas'; badgeIconStr = 'task_alt'; }
+          if (status === 'Ditolak') { theme = 'error'; StatusIcon = RejectIcon; badgeText = 'Dibatalkan'; badgeIconStr = 'cancel'; }
 
           return (
             <PrimaryStatsCard
@@ -290,6 +301,8 @@ export default function BookingManagement() {
               value={statusCounts[status] || 0}
               icon={StatusIcon}
               colorTheme={theme}
+              badgeText={badgeText}
+              badgeIcon={<span className="material-symbols-outlined text-[12px]">{badgeIconStr}</span>}
             />
           );
         })}
@@ -330,46 +343,36 @@ export default function BookingManagement() {
           />
         </div>
       </div>
+      </div>
 
       {/* Zoom / Meeting Link Modal */}
-      <Dialog open={showLinkModal} onOpenChange={(val) => { if (!val) { setShowLinkModal(false); setPendingConfirmId(null); } }} maxWidth="max-w-md">
-        <DialogHeader className="relative overflow-hidden">
-          <div className="pr-8 relative z-10 text-left">
-            <DialogTitle className="text-base font-bold text-[var(--theme-text)]">Sesi Online</DialogTitle>
-            <DialogDescription className="text-[10px] text-[var(--theme-text-muted)] font-semibold uppercase tracking-wider mt-1">
-              Harap masukkan link Zoom atau Google Meet untuk mahasiswa.
-            </DialogDescription>
-          </div>
-        </DialogHeader>
-        <div className="p-6 md:p-8 space-y-6">
-          <div className="space-y-2 text-left">
-            <label className="text-[10px] font-semibold uppercase tracking-widest text-[var(--theme-text-muted)]">Link Meeting</label>
-            <input
-              type="text"
-              placeholder="https://zoom.us/j/... atau https://meet.google.com/..."
-              value={meetingLink}
-              onChange={(e) => setMeetingLink(e.target.value)}
-              className="h-10 w-full rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] px-3 text-xs font-semibold text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors outline-none"
-            />
-          </div>
+      <DialogModal
+        open={showLinkModal}
+        onOpenChange={(val) => { if (!val) { setShowLinkModal(false); setPendingConfirmId(null); } }}
+        icon="videocam"
+        subtitle="Harap masukkan link Zoom atau Google Meet untuk mahasiswa."
+        title="Sesi Online"
+        maxWidth="max-w-md"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => { setShowLinkModal(false); setPendingConfirmId(null); }} />
+            <ModalSaveButton onClick={submitConfirmWithLink}>
+              Konfirmasi
+            </ModalSaveButton>
+          </>
+        }
+      >
+        <div className="space-y-2 text-left p-1">
+          <label className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider ml-1">Link Meeting</label>
+          <input
+            type="text"
+            placeholder="https://zoom.us/j/... atau https://meet.google.com/..."
+            value={meetingLink}
+            onChange={(e) => setMeetingLink(e.target.value)}
+            className="h-10 w-full rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] px-3 text-sm font-body text-[var(--theme-text)] placeholder:text-[var(--theme-text-subtle)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none transition-colors outline-none"
+          />
         </div>
-        <DialogFooter>
-          <button
-            type="button"
-            onClick={() => { setShowLinkModal(false); setPendingConfirmId(null); }}
-            className="flex-1 sm:flex-initial h-10 px-6 border border-[var(--theme-border)] bg-[var(--theme-surface)] text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] transition-colors rounded-xl cursor-pointer"
-          >
-            Batal
-          </button>
-          <button
-            type="button"
-            onClick={submitConfirmWithLink}
-            className="flex-1 sm:flex-initial h-10 px-6 bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white text-xs font-semibold uppercase tracking-wider transition-colors rounded-xl border-none cursor-pointer"
-          >
-            Konfirmasi
-          </button>
-        </DialogFooter>
-      </Dialog>
+      </DialogModal>
     </PageContent>
   );
 }

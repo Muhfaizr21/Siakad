@@ -61,12 +61,17 @@ class BkuAppBar extends StatelessWidget {
         elevation: 0,
         backgroundColor: Colors.transparent,
         automaticallyImplyLeading: false,
-        leading: leading ??
+        leading:
+            leading ??
             (showBackButton
                 ? IconButton(
-                    onPressed: onBack ?? () => Navigator.pop(context),
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: Colors.white),
-                  )
+                  onPressed: onBack ?? () => Navigator.pop(context),
+                  icon: const Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    size: 20,
+                    color: Colors.white,
+                  ),
+                )
                 : null),
         titleSpacing: 0,
         title: Padding(
@@ -117,7 +122,11 @@ class BkuAppBar extends StatelessWidget {
                   defaultOnNotificationTap!(context, variant);
                 }
               },
-              icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 24),
+              icon: const Icon(
+                Icons.notifications_outlined,
+                color: Colors.white,
+                size: 24,
+              ),
             ),
           const SizedBox(width: 8),
         ],
@@ -128,7 +137,9 @@ class BkuAppBar extends StatelessWidget {
               end: Alignment.bottomRight,
               colors: gradientColors,
             ),
-            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
+            borderRadius: const BorderRadius.vertical(
+              bottom: Radius.circular(32),
+            ),
           ),
         ),
       );
@@ -141,20 +152,23 @@ class BkuAppBar extends StatelessWidget {
       stretch: true,
       elevation: 0,
       backgroundColor: Colors.transparent,
-      leading: leading ??
+      leading:
+          leading ??
           (showBackButton
               ? IconButton(
-                  onPressed: onBack ?? () => Navigator.pop(context),
-                  icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: Colors.white),
-                )
+                onPressed: onBack ?? () => Navigator.pop(context),
+                icon: const Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  size: 20,
+                  color: Colors.white,
+                ),
+              )
               : null),
       actions: [
         if (actions != null) ...actions!,
         if (showNotification)
           Padding(
-            padding: EdgeInsets.only(
-              bottom: showProfileOnCollapse ? 8 : 4,
-            ),
+            padding: EdgeInsets.only(bottom: showProfileOnCollapse ? 8 : 4),
             child: Stack(
               alignment: Alignment.center,
               children: [
@@ -166,7 +180,11 @@ class BkuAppBar extends StatelessWidget {
                       defaultOnNotificationTap!(context, variant);
                     }
                   },
-                  icon: const Icon(Icons.notifications_outlined, size: 24, color: Colors.white),
+                  icon: const Icon(
+                    Icons.notifications_outlined,
+                    size: 24,
+                    color: Colors.white,
+                  ),
                   tooltip: 'Notifikasi',
                 ),
                 if (notificationCount > 0)
@@ -206,16 +224,21 @@ class BkuAppBar extends StatelessWidget {
             end: Alignment.bottomRight,
             colors: gradientColors,
           ),
-          borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
+          borderRadius: const BorderRadius.vertical(
+            bottom: Radius.circular(32),
+          ),
         ),
         child: LayoutBuilder(
           builder: (context, constraints) {
             final double currentHeight = constraints.biggest.height;
             final double toolbarBaseHeight = kToolbarHeight + topPadding;
-            final double percentage = (currentHeight - toolbarBaseHeight) / (expandedHeight - toolbarBaseHeight);
+            final double percentage =
+                (currentHeight - toolbarBaseHeight) /
+                (expandedHeight - toolbarBaseHeight);
             final bool isCollapsed = percentage <= 0.4;
 
             return FlexibleSpaceBar(
+              expandedTitleScale: 1.0,
               stretchModes: const [StretchMode.zoomBackground],
               centerTitle: false,
               titlePadding: EdgeInsets.zero,
@@ -225,198 +248,238 @@ class BkuAppBar extends StatelessWidget {
                   duration: const Duration(milliseconds: 200),
                   opacity: isCollapsed ? 1.0 : 0.0,
                   child: Container(
-                padding: EdgeInsets.only(
-                  left: showBackButton ? 72 : 20,
-                  bottom: 20,
-                ),
-                alignment: Alignment.bottomLeft,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (showProfileOnCollapse && profileImage != null) ...[
-                      Container(
-                        width: 34,
-                        height: 34,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white.withAlpha(80), width: 1.5),
-                          boxShadow: [
-                            BoxShadow(color: Colors.black.withAlpha(30), blurRadius: 4, offset: const Offset(0, 2)),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(17),
-                          child: profileImage!,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                    ],
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            title.toUpperCase(),
-                            style: AppTextStyles.titleLg.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w900,
-                              fontSize: 16,
-                              letterSpacing: -0.2,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                          ),
-                          if (info != null && showProfileOnCollapse)
-                            Text(
-                              info!,
-                              style: AppTextStyles.labelSm.copyWith(
-                                color: Colors.white.withAlpha(160),
-                                fontSize: 9,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                            ),
-                        ],
-                      ),
+                    padding: EdgeInsets.only(
+                      left: showBackButton ? 72 : 20,
+                      bottom: 20,
                     ),
-                  ],
+                    alignment: Alignment.bottomLeft,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (showProfileOnCollapse && profileImage != null) ...[
+                          Container(
+                            width: 34,
+                            height: 34,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white.withAlpha(80),
+                                width: 1.5,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withAlpha(30),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: ClipOval(
+                              child: SizedBox.expand(
+                                child: FittedBox(
+                                  fit: BoxFit.cover,
+                                  child: profileImage!,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                        ],
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                title.toUpperCase(),
+                                style: AppTextStyles.titleLg.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 16,
+                                  letterSpacing: -0.2,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                              if (info != null && showProfileOnCollapse)
+                                Text(
+                                  info!,
+                                  style: AppTextStyles.labelSm.copyWith(
+                                    color: Colors.white.withAlpha(160),
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
-          background: Stack(
-              children: [
-                // Dekorasi Lingkaran
-                Positioned(
-                  top: -50,
-                  right: -50,
-                  child: Container(
-                    width: 200,
-                    height: 200,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white.withAlpha(10),
+              background: Stack(
+                children: [
+                  // Dekorasi Lingkaran
+                  Positioned(
+                    top: -50,
+                    right: -50,
+                    child: Container(
+                      width: 200,
+                      height: 200,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withAlpha(10),
+                      ),
                     ),
                   ),
-                ),
-                Positioned(
-                  bottom: -30,
-                  left: -30,
-                  child: Container(
-                    width: 140,
-                    height: 140,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white.withAlpha(8),
+                  Positioned(
+                    bottom: -30,
+                    left: -30,
+                    child: Container(
+                      width: 140,
+                      height: 140,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withAlpha(8),
+                      ),
                     ),
                   ),
-                ),
-                // Konten Expanded
-                Opacity(
-                  opacity: (percentage * 2.5).clamp(0.0, 1.0),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: SingleChildScrollView(
-                      physics: const NeverScrollableScrollPhysics(),
-                      child: Padding(
-                        padding: EdgeInsets.only(top: topPadding + 20, bottom: 20, left: 20, right: 20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            GestureDetector(
-                              onTap: onProfileTap,
-                              behavior: HitTestBehavior.opaque,
-                              child: Row(
-                                children: [
-                                  if (profileImage != null) ...[
-                                    Container(
-                                      width: 60,
-                                      height: 60,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        border: Border.all(color: Colors.white.withAlpha(100), width: 2),
-                                        boxShadow: [
-                                          BoxShadow(color: Colors.black.withAlpha(40), blurRadius: 12, offset: const Offset(0, 4)),
-                                        ],
-                                      ),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(30),
-                                        child: profileImage!,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 16),
-                                  ],
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        if (subtitle != null)
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                            margin: const EdgeInsets.only(bottom: 4),
-                                            decoration: BoxDecoration(
-                                              color: Colors.white.withAlpha(40),
-                                              borderRadius: BorderRadius.circular(8),
+                  // Konten Expanded
+                  Opacity(
+                    opacity: (percentage * 2.5).clamp(0.0, 1.0),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: SingleChildScrollView(
+                        physics: const NeverScrollableScrollPhysics(),
+                        child: Padding(
+                          padding: EdgeInsets.only(
+                            top: topPadding + 20,
+                            bottom: 20,
+                            left: 20,
+                            right: 20,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              GestureDetector(
+                                onTap: onProfileTap,
+                                behavior: HitTestBehavior.opaque,
+                                child: Row(
+                                  children: [
+                                    if (profileImage != null) ...[
+                                      Container(
+                                        width: 60,
+                                        height: 60,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                            color: Colors.white.withAlpha(100),
+                                            width: 2,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withAlpha(40),
+                                              blurRadius: 12,
+                                              offset: const Offset(0, 4),
                                             ),
-                                            child: Text(
-                                              subtitle!.toUpperCase(),
-                                              style: AppTextStyles.labelSm.copyWith(
-                                                color: Colors.white,
-                                                fontSize: 9,
-                                                fontWeight: FontWeight.w900,
-                                                letterSpacing: 0.5,
+                                          ],
+                                        ),
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                            30,
+                                          ),
+                                          child: profileImage!,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                    ],
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          if (subtitle != null)
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 10,
+                                                    vertical: 4,
+                                                  ),
+                                              margin: const EdgeInsets.only(
+                                                bottom: 4,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white.withAlpha(
+                                                  40,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              child: Text(
+                                                subtitle!.toUpperCase(),
+                                                style: AppTextStyles.labelSm
+                                                    .copyWith(
+                                                      color: Colors.white,
+                                                      fontSize: 9,
+                                                      fontWeight:
+                                                          FontWeight.w900,
+                                                      letterSpacing: 0.5,
+                                                    ),
                                               ),
                                             ),
-                                          ),
-                                        Text(
-                                          title.toUpperCase(),
-                                          style: AppTextStyles.titleLg.copyWith(
-                                            color: Colors.white,
-                                            fontSize: 22,
-                                            fontWeight: FontWeight.w900,
-                                            letterSpacing: -0.5,
-                                          ),
-                                        ),
-                                        if (info != null) ...[
-                                          const SizedBox(height: 4),
                                           Text(
-                                            info!,
-                                            style: AppTextStyles.labelSm.copyWith(
-                                              color: Colors.white.withAlpha(180),
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w600,
-                                              letterSpacing: 0.5,
-                                            ),
+                                            title.toUpperCase(),
+                                            style: AppTextStyles.titleLg
+                                                .copyWith(
+                                                  color: Colors.white,
+                                                  fontSize: 22,
+                                                  fontWeight: FontWeight.w900,
+                                                  letterSpacing: -0.5,
+                                                ),
                                           ),
+                                          if (info != null) ...[
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              info!,
+                                              style: AppTextStyles.labelSm
+                                                  .copyWith(
+                                                    color: Colors.white
+                                                        .withAlpha(180),
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.w600,
+                                                    letterSpacing: 0.5,
+                                                  ),
+                                            ),
+                                          ],
                                         ],
-                                      ],
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                            // ── child widget (e.g. AvailabilityToggle) ──
-                            if (child != null) ...[
-                              const SizedBox(height: 16),
-                              child!,
+                              // ── child widget (e.g. AvailabilityToggle) ──
+                              if (child != null) ...[
+                                const SizedBox(height: 16),
+                                child!,
+                              ],
                             ],
-                          ],
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          );
-        },
+                ],
+              ),
+            );
+          },
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   List<Color> _getGradientColors(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();

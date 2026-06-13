@@ -235,15 +235,15 @@ export default function ScheduleManagement() {
                 type="button"
                 onClick={() => setSelectedDay(item.day)}
                 className={`
-                  flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all whitespace-nowrap min-w-max outline-none
+                  flex items-center gap-2 px-3 py-2 rounded-xl transition-all whitespace-nowrap min-w-max outline-none
                   ${isSelected
-                    ? 'bg-white text-[var(--theme-primary)] shadow-sm ring-1 ring-[var(--theme-border)] font-bold'
-                    : 'text-[var(--theme-text-muted)] hover:bg-white hover:text-[var(--theme-text)] font-semibold'}
+                    ? 'bg-white text-[var(--theme-primary)] shadow-sm ring-1 ring-[var(--theme-border)] font-headline font-bold'
+                    : 'text-[var(--theme-text-muted)] hover:bg-white hover:text-[var(--theme-text)] font-headline font-semibold'}
                 `}
               >
-                <span className="material-symbols-outlined text-[16px]">{Icon}</span>
-                <span className="text-sm">{item.day}</span>
-                <span className={`ml-1 size-2 rounded-full ${item.enabled ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+                <span className="material-symbols-outlined text-[15px]">{Icon}</span>
+                <span className="text-[13px]">{item.day}</span>
+                <span className={`ml-1 size-1.5 rounded-full ${item.enabled ? 'bg-emerald-500' : 'bg-slate-300'}`} />
               </button>
             )
           })}
@@ -269,23 +269,23 @@ export default function ScheduleManagement() {
               {/* Header Pengaturan Slot */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h3 className="text-base font-bold text-[var(--theme-text)]">Pengaturan Slot Waktu - {selectedDay}</h3>
-                  <p className="text-sm text-[var(--theme-text-muted)]">Atur jam buka dan detail layanan untuk hari ini.</p>
+                  <h3 className="text-[15px] font-bold text-[var(--theme-text)] font-headline">Pengaturan Slot Waktu - {selectedDay}</h3>
+                  <p className="text-[12px] text-[var(--theme-text-muted)] font-body">Atur jam buka dan detail layanan untuk hari ini.</p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => toggleDay(selectedDay)}
-                    className="px-4 py-2 text-[13px] font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-xl transition-colors"
+                    className="h-8 px-3 text-[11px] font-headline font-bold uppercase tracking-wider text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors"
                   >
                     Nonaktifkan Hari
                   </button>
                   <button
                     type="button"
                     onClick={() => addSlot(selectedDay)}
-                    className="flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-white bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] rounded-xl transition-colors shadow-sm"
+                    className="flex items-center gap-1 h-8 px-3 text-[11px] font-headline font-bold uppercase tracking-wider text-white bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] rounded-lg transition-colors shadow-sm"
                   >
-                    <span className="material-symbols-outlined text-[16px]">add</span>
+                    <span className="material-symbols-outlined text-[14px]">add</span>
                     Tambah Slot
                   </button>
                 </div>
@@ -293,12 +293,12 @@ export default function ScheduleManagement() {
 
               {currentDayData.slots.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 border-2 border-dashed border-[var(--theme-border)] rounded-2xl bg-slate-50/50">
-                  <span className="material-symbols-outlined text-[32px] text-slate-300 mb-3">schedule</span>
-                  <p className="text-sm text-[var(--theme-text-muted)] font-medium">Belum ada slot waktu di hari ini.</p>
+                  <span className="material-symbols-outlined text-[28px] text-slate-300 mb-2">schedule</span>
+                  <p className="text-[12px] text-[var(--theme-text-muted)] font-medium font-body">Belum ada slot waktu di hari ini.</p>
                   <button
                     type="button"
                     onClick={() => addSlot(selectedDay)}
-                    className="mt-4 rounded-xl bg-[var(--theme-primary)] px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider text-white shadow-sm hover:bg-[var(--theme-primary-hover)] transition-colors"
+                    className="mt-4 rounded-lg bg-[var(--theme-primary)] h-8 px-4 text-[11px] font-headline font-bold uppercase tracking-wider text-white shadow-sm hover:bg-[var(--theme-primary-hover)] transition-colors"
                   >
                     Tambah Slot Pertama
                   </button>
@@ -306,7 +306,7 @@ export default function ScheduleManagement() {
               ) : (
                 <div className="space-y-4">
                   {/* Table Header (visible on lg screens) */}
-                  <div className="hidden lg:grid grid-cols-[120px_120px_minmax(140px,1fr)_minmax(180px,1.5fr)_100px_48px] gap-4 px-4 text-[11px] font-bold uppercase tracking-wider text-[var(--theme-text-subtle)] pb-1">
+                  <div className="hidden lg:grid grid-cols-[120px_120px_minmax(140px,1fr)_minmax(180px,1.5fr)_100px_48px] gap-4 px-4 text-[11px] font-headline font-bold uppercase tracking-wider text-[var(--theme-text-subtle)] pb-1">
                     <div className="pl-9">Jam Mulai</div>
                     <div className="pl-9">Jam Selesai</div>
                     <div className="pl-9">Jenis Layanan</div>
@@ -322,27 +322,27 @@ export default function ScheduleManagement() {
                         <div className={`grid grid-cols-1 lg:grid-cols-[120px_120px_minmax(140px,1fr)_minmax(180px,1.5fr)_100px_48px] gap-4 p-3 rounded-2xl border transition-all duration-300 ${invalidTime ? 'border-rose-300 bg-rose-50/50' : 'border-[var(--theme-border)] bg-white hover:border-[var(--theme-primary)]/40 hover:shadow-sm'}`}>
                           {/* Jam Mulai */}
                           <div className="flex flex-col lg:block gap-1.5">
-                            <label className="lg:hidden text-[10px] font-bold uppercase tracking-wider text-[var(--theme-text-muted)]">Jam Mulai</label>
+                            <label className="lg:hidden text-[10px] font-headline font-bold uppercase tracking-wider text-[var(--theme-text-muted)]">Jam Mulai</label>
                             <div className="relative">
-                              <input type="time" value={slot.start} onChange={(e) => updateSlot(selectedDay, index, 'start', e.target.value)} className="h-10 w-full rounded-xl bg-transparent pl-9 pr-2 text-[13px] font-bold text-[var(--theme-text)] outline-none transition-all hover:bg-slate-50 focus:bg-slate-50 focus:ring-1 focus:ring-[var(--theme-primary)]/30 cursor-pointer" />
+                              <input type="time" value={slot.start} onChange={(e) => updateSlot(selectedDay, index, 'start', e.target.value)} className="h-10 w-full rounded-xl bg-transparent pl-9 pr-2 text-[13px] font-body font-bold text-[var(--theme-text)] outline-none transition-all hover:bg-slate-50 focus:bg-slate-50 focus:ring-1 focus:ring-[var(--theme-primary)]/30 cursor-pointer" />
                               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[16px] text-[var(--theme-text-subtle)] pointer-events-none">schedule</span>
                             </div>
                           </div>
                           
                           {/* Jam Selesai */}
                           <div className="flex flex-col lg:block gap-1.5">
-                            <label className="lg:hidden text-[10px] font-bold uppercase tracking-wider text-[var(--theme-text-muted)]">Jam Selesai</label>
+                            <label className="lg:hidden text-[10px] font-headline font-bold uppercase tracking-wider text-[var(--theme-text-muted)]">Jam Selesai</label>
                             <div className="relative">
-                              <input type="time" value={slot.end} onChange={(e) => updateSlot(selectedDay, index, 'end', e.target.value)} className={`h-10 w-full rounded-xl bg-transparent pl-9 pr-2 text-[13px] font-bold outline-none transition-all cursor-pointer ${invalidTime ? 'text-rose-600 bg-rose-50/50 hover:bg-rose-100/50 focus:ring-1 focus:ring-rose-400' : 'text-[var(--theme-text)] hover:bg-slate-50 focus:bg-slate-50 focus:ring-1 focus:ring-[var(--theme-primary)]/30'}`} />
+                              <input type="time" value={slot.end} onChange={(e) => updateSlot(selectedDay, index, 'end', e.target.value)} className={`h-10 w-full rounded-xl bg-transparent pl-9 pr-2 text-[13px] font-body font-bold outline-none transition-all cursor-pointer ${invalidTime ? 'text-rose-600 bg-rose-50/50 hover:bg-rose-100/50 focus:ring-1 focus:ring-rose-400' : 'text-[var(--theme-text)] hover:bg-slate-50 focus:bg-slate-50 focus:ring-1 focus:ring-[var(--theme-primary)]/30'}`} />
                               <span className={`material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[16px] pointer-events-none ${invalidTime ? 'text-rose-500' : 'text-[var(--theme-text-subtle)]'}`}>update</span>
                             </div>
                           </div>
                           
                           {/* Kategori */}
                           <div className="flex flex-col lg:block gap-1.5">
-                            <label className="lg:hidden text-[10px] font-bold uppercase tracking-wider text-[var(--theme-text-muted)]">Jenis Layanan</label>
+                            <label className="lg:hidden text-[10px] font-headline font-bold uppercase tracking-wider text-[var(--theme-text-muted)]">Jenis Layanan</label>
                             <div className="relative">
-                              <select value={slot.kategori || 'Personal'} onChange={(e) => updateSlot(selectedDay, index, 'kategori', e.target.value)} className="h-10 w-full appearance-none rounded-xl bg-transparent pl-9 pr-8 text-[13px] font-semibold text-[var(--theme-text)] outline-none transition-all hover:bg-slate-50 focus:bg-slate-50 focus:ring-1 focus:ring-[var(--theme-primary)]/30 cursor-pointer">
+                              <select value={slot.kategori || 'Personal'} onChange={(e) => updateSlot(selectedDay, index, 'kategori', e.target.value)} className="h-10 w-full appearance-none rounded-xl bg-transparent pl-9 pr-8 text-[13px] font-body font-semibold text-[var(--theme-text)] outline-none transition-all hover:bg-slate-50 focus:bg-slate-50 focus:ring-1 focus:ring-[var(--theme-primary)]/30 cursor-pointer">
                                 {scheduleTypes.map((type) => <option key={type} value={type}>{type}</option>)}
                               </select>
                               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[16px] text-[var(--theme-text-subtle)] pointer-events-none">category</span>
@@ -352,18 +352,18 @@ export default function ScheduleManagement() {
 
                           {/* Lokasi */}
                           <div className="flex flex-col lg:block gap-1.5">
-                            <label className="lg:hidden text-[10px] font-bold uppercase tracking-wider text-[var(--theme-text-muted)]">Lokasi</label>
+                            <label className="lg:hidden text-[10px] font-headline font-bold uppercase tracking-wider text-[var(--theme-text-muted)]">Lokasi</label>
                             <div className="relative">
-                              <input value={slot.lokasi || ''} onChange={(e) => updateSlot(selectedDay, index, 'lokasi', e.target.value)} placeholder="Ruang Konseling A" className="h-10 w-full rounded-xl bg-transparent pl-9 pr-3 text-[13px] font-semibold text-[var(--theme-text)] outline-none transition-all hover:bg-slate-50 focus:bg-slate-50 focus:ring-1 focus:ring-[var(--theme-primary)]/30 placeholder:text-[var(--theme-text-subtle)]" />
+                              <input value={slot.lokasi || ''} onChange={(e) => updateSlot(selectedDay, index, 'lokasi', e.target.value)} placeholder="Ruang Konseling A" className="h-10 w-full rounded-xl bg-transparent pl-9 pr-3 text-[13px] font-body font-semibold text-[var(--theme-text)] outline-none transition-all hover:bg-slate-50 focus:bg-slate-50 focus:ring-1 focus:ring-[var(--theme-primary)]/30 placeholder:text-[var(--theme-text-subtle)]" />
                               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[16px] text-[var(--theme-text-subtle)] pointer-events-none">meeting_room</span>
                             </div>
                           </div>
 
                           {/* Kuota */}
                           <div className="flex flex-col lg:block gap-1.5">
-                            <label className="lg:hidden text-[10px] font-bold uppercase tracking-wider text-[var(--theme-text-muted)]">Kuota</label>
+                            <label className="lg:hidden text-[10px] font-headline font-bold uppercase tracking-wider text-[var(--theme-text-muted)]">Kuota</label>
                             <div className="relative">
-                              <input type="number" min="1" value={slot.kuota || 1} onChange={(e) => updateSlot(selectedDay, index, 'kuota', Number(e.target.value))} className="h-10 w-full rounded-xl bg-transparent pl-9 pr-3 text-[13px] font-semibold text-[var(--theme-text)] outline-none transition-all hover:bg-slate-50 focus:bg-slate-50 focus:ring-1 focus:ring-[var(--theme-primary)]/30" />
+                              <input type="number" min="1" value={slot.kuota || 1} onChange={(e) => updateSlot(selectedDay, index, 'kuota', Number(e.target.value))} className="h-10 w-full rounded-xl bg-transparent pl-9 pr-3 text-[13px] font-body font-semibold text-[var(--theme-text)] outline-none transition-all hover:bg-slate-50 focus:bg-slate-50 focus:ring-1 focus:ring-[var(--theme-primary)]/30" />
                               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[16px] text-[var(--theme-text-subtle)] pointer-events-none">group</span>
                             </div>
                           </div>

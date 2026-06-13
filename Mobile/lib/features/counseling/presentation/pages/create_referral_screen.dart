@@ -71,7 +71,7 @@ class _CreateReferralScreenState extends State<CreateReferralScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildSectionTitle('Pilih Mahasiswa'),
+                    _buildSectionTitle('Pilih Pasien'),
                     const SizedBox(height: 16),
                     _buildStudentSelector(),
                     const SizedBox(height: 32),
@@ -80,7 +80,21 @@ class _CreateReferralScreenState extends State<CreateReferralScreen> {
                     _buildDropdownField('Tipe Rujukan', _referralTypes),
                     const SizedBox(height: 16),
                     _buildTextField(
-                      label: 'Pihak / Instansi Tujuan',
+                      label: 'Alasan Rujukan',
+                      hint:
+                          'Tulis deskripsi klinis singkat dan alasan perlunya rujukan...',
+                      controller: _reasonCtrl,
+                      maxLines: 5,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Alasan rujukan wajib diisi';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField(
+                      label: 'Pihak Tujuan',
                       hint: 'Contoh: RS Jiwa Dr. Soeharto Heerdjan',
                       controller: _targetCtrl,
                       icon: Icons.business_rounded,
@@ -93,32 +107,18 @@ class _CreateReferralScreenState extends State<CreateReferralScreen> {
                     ),
                     const SizedBox(height: 16),
                     _buildTextField(
-                      label: 'Email Penerima Rujukan',
+                      label: 'Email Tujuan',
                       hint: 'Contoh: rujukan@rsj.com',
                       controller: _emailCtrl,
                       icon: Icons.email_rounded,
                       keyboardType: TextInputType.emailAddress,
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'Email penerima wajib diisi';
+                          return 'Email tujuan wajib diisi';
                         }
                         final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
                         if (!emailRegex.hasMatch(value.trim())) {
                           return 'Format email tidak valid';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    _buildTextField(
-                      label: 'Alasan Rujukan',
-                      hint:
-                          'Tulis deskripsi klinis singkat dan alasan perlunya rujukan...',
-                      controller: _reasonCtrl,
-                      maxLines: 5,
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Alasan rujukan wajib diisi';
                         }
                         return null;
                       },
@@ -222,6 +222,7 @@ class _CreateReferralScreenState extends State<CreateReferralScreen> {
 
         return DropdownButtonFormField<int>(
           value: _selectedStudentId,
+          isExpanded: true,
           icon: const Icon(
             Icons.keyboard_arrow_down_rounded,
             color: AppColors.primary,
@@ -255,7 +256,7 @@ class _CreateReferralScreenState extends State<CreateReferralScreen> {
             ),
           ),
           hint: Text(
-            'Pilih Mahasiswa',
+            'Pilih Pasien',
             style: AppTextStyles.bodyMd.copyWith(
               color: const Color(0xFF94A3B8),
             ),
@@ -367,7 +368,8 @@ class _CreateReferralScreenState extends State<CreateReferralScreen> {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          initialValue: _selectedType,
+          value: _selectedType,
+          isExpanded: true,
           icon: const Icon(
             Icons.keyboard_arrow_down_rounded,
             color: AppColors.primary,

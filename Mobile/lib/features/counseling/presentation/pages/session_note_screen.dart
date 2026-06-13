@@ -4,6 +4,7 @@ import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/providers/counseling_provider.dart';
+import 'package:intl/intl.dart';
 
 class SessionNoteScreen extends StatefulWidget {
   final String studentName;
@@ -24,24 +25,57 @@ class SessionNoteScreen extends StatefulWidget {
 }
 
 class _SessionNoteScreenState extends State<SessionNoteScreen> {
-  final _complaintCtrl = TextEditingController();
-  final _observationCtrl = TextEditingController();
-  final _recommendationCtrl = TextEditingController();
-  String _selectedMood = 'Netral';
-  String _selectedType = 'Konseling Baru';
-  String _selectedStatus = 'Aktif';
+  final _tujuanCtrl = TextEditingController();
+  final _riwayatKeluhanCtrl = TextEditingController();
+  final _aspekKognitifCtrl = TextEditingController();
+  final _aspekEmosionalCtrl = TextEditingController();
+  final _aspekPerilakuCtrl = TextEditingController();
+  final _rekMahasiswaCtrl = TextEditingController();
+  final _rekProdiCtrl = TextEditingController();
+  final _rekOrangTuaCtrl = TextEditingController();
+  final _kesimpulanCtrl = TextEditingController();
+  
+  final _rujukanPihakCtrl = TextEditingController();
+  final _rujukanEmailCtrl = TextEditingController();
+
+  DateTime _tanggalAsesmen = DateTime.now();
+  String _selectedMood = 'Stabil';
+  String _rujukanTipe = 'Medis';
+
+  bool? _tindakLanjutTuntas;
+  bool? _tindakLanjutLanjutan;
+  bool? _tindakLanjutRujuk;
+
   bool _isSaving = false;
 
-  final List<String> _moods = ['Baik', 'Netral', 'Cemas', 'Sedih', 'Stres', 'Marah'];
-  final List<String> _types = ['Konseling Baru', 'Konseling Lanjutan', 'Krisis', 'Evaluasi'];
-  final List<String> _statuses = ['Aktif', 'Stabil', 'Pemulihan', 'Membaik', 'Perlu Perhatian'];
+  final List<String> _moods = ['Stabil', 'Cemas', 'Depresi', 'Netral', 'Membaik'];
 
   @override
   void dispose() {
-    _complaintCtrl.dispose();
-    _observationCtrl.dispose();
-    _recommendationCtrl.dispose();
+    _tujuanCtrl.dispose();
+    _riwayatKeluhanCtrl.dispose();
+    _aspekKognitifCtrl.dispose();
+    _aspekEmosionalCtrl.dispose();
+    _aspekPerilakuCtrl.dispose();
+    _rekMahasiswaCtrl.dispose();
+    _rekProdiCtrl.dispose();
+    _rekOrangTuaCtrl.dispose();
+    _kesimpulanCtrl.dispose();
+    _rujukanPihakCtrl.dispose();
+    _rujukanEmailCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _tanggalAsesmen,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) {
+      setState(() => _tanggalAsesmen = picked);
+    }
   }
 
   @override
@@ -51,11 +85,10 @@ class _SessionNoteScreenState extends State<SessionNoteScreen> {
       body: CustomScrollView(
         slivers: [
           const BkuAppBar(
-            title: 'CATATAN SESI',
-            subtitle: 'ELECTRONIC HEALTH RECORD',
+            title: 'Catatan Sesi',
+            info: 'Electronic Health Record',
             variant: AppBarVariant.psychologist,
             showBackButton: true,
-            expandedHeight: 160,
             isExpandable: false,
           ),
           SliverToBoxAdapter(
@@ -68,18 +101,102 @@ class _SessionNoteScreenState extends State<SessionNoteScreen> {
                   const SizedBox(height: 24),
                   _buildStudentInfo(),
                   const SizedBox(height: 24),
-                  _buildInputSection('Keluhan Utama', 'Tuliskan keluhan yang disampaikan mahasiswa...', _complaintCtrl, 4),
-                  const SizedBox(height: 20),
-                  _buildInputSection('Observasi & Catatan Sesi', 'Tuliskan observasi dan poin-poin utama sesi...', _observationCtrl, 6),
-                  const SizedBox(height: 20),
-                  _buildInputSection('Rekomendasi & Tindak Lanjut', 'Apa langkah selanjutnya untuk mahasiswa ini?', _recommendationCtrl, 4),
+
+                  // I. Informasi Asesmen
+                  _buildSectionHeader('I. Informasi Asesmen'),
+                  _buildInput('Tujuan Pemeriksaan', 'Misal: Evaluasi Layanan Konseling Akademik', _tujuanCtrl),
+                  const SizedBox(height: 16),
+                  
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Tanggal Asesmen', style: AppTextStyles.labelSm.copyWith(color: AppColors.neutral500)),
+                      const SizedBox(height: 8),
+                      InkWell(
+                        onTap: _pickDate,
+                        borderRadius: BorderRadius.circular(16),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.calendar_today, color: AppColors.primary, size: 20),
+                              const SizedBox(width: 12),
+                              Text(DateFormat('yyyy-MM-dd').format(_tanggalAsesmen), style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  _buildInput('Riwayat Keluhan', 'Deskripsikan riwayat keluhan pasien...', _riwayatKeluhanCtrl, lines: 4),
+                  const SizedBox(height: 16),
+                  _buildInput('Aspek Kognitif', 'Observasi aspek kognitif...', _aspekKognitifCtrl, lines: 3),
+                  const SizedBox(height: 16),
+                  _buildInput('Aspek Emosional', 'Observasi aspek emosional...', _aspekEmosionalCtrl, lines: 3),
+                  const SizedBox(height: 16),
+                  _buildInput('Aspek Perilaku', 'Observasi aspek perilaku...', _aspekPerilakuCtrl, lines: 3),
+                  const SizedBox(height: 32),
+
+                  // II. Rekomendasi Layanan
+                  _buildSectionHeader('II. Rekomendasi Layanan'),
+                  _buildInput('Rekomendasi Mahasiswa', 'Rekomendasi bagi mahasiswa...', _rekMahasiswaCtrl, lines: 3),
+                  const SizedBox(height: 16),
+                  _buildInput('Rekomendasi Program Studi', 'Rekomendasi bagi Prodi...', _rekProdiCtrl, lines: 3),
+                  const SizedBox(height: 16),
+                  _buildInput('Rekomendasi Orang Tua/Wali', 'Rekomendasi bagi Orang tua...', _rekOrangTuaCtrl, lines: 3),
+                  const SizedBox(height: 32),
+
+                  // III. Tindak Lanjut & Kesimpulan
+                  _buildSectionHeader('III. Tindak Lanjut & Kesimpulan'),
+                  
+                  _buildYesNoToggle('1. Sesi Tuntas *', _tindakLanjutTuntas, (val) => setState(() => _tindakLanjutTuntas = val)),
+                  if (_tindakLanjutTuntas == true)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8, bottom: 16),
+                      child: Text('⚠ Booking akan dikunci setelah disimpan', style: AppTextStyles.caption.copyWith(color: Colors.green, fontWeight: FontWeight.bold)),
+                    ),
+                  const SizedBox(height: 16),
+
+                  _buildYesNoToggle('2. Konseling Lanjutan', _tindakLanjutLanjutan, (val) => setState(() => _tindakLanjutLanjutan = val)),
+                  const SizedBox(height: 16),
+
+                  _buildYesNoToggle('3. Rujuk Klinis', _tindakLanjutRujuk, (val) => setState(() => _tindakLanjutRujuk = val)),
+                  if (_tindakLanjutRujuk == true)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8, bottom: 16),
+                      child: Text('→ Surat rujukan otomatis dibuat & dikirim ke Referral', style: AppTextStyles.caption.copyWith(color: Colors.indigo, fontWeight: FontWeight.bold)),
+                    ),
+                  const SizedBox(height: 16),
+
+                  if (_tindakLanjutRujuk == true) ...[
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(color: AppColors.primary.withAlpha(10), borderRadius: BorderRadius.circular(16)),
+                      child: Column(
+                        children: [
+                          _buildDropdown('Tipe Rujukan', ['Medis', 'Akademik'], _rujukanTipe, (v) => setState(() => _rujukanTipe = v!)),
+                          const SizedBox(height: 16),
+                          _buildInput('Pihak / Instansi Tujuan', 'Misal: RS Pusat, Dekan FT', _rujukanPihakCtrl),
+                          const SizedBox(height: 16),
+                          _buildInput('Email Tujuan', 'email@tujuan.com', _rujukanEmailCtrl),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+
+                  _buildInput('Kesimpulan', 'Tulis kesimpulan umum asesmen konseling...', _kesimpulanCtrl, lines: 3),
                   const SizedBox(height: 24),
-                  _buildDropdownSection('Mood Mahasiswa', _moods, _selectedMood, (v) => setState(() => _selectedMood = v!)),
-                  const SizedBox(height: 16),
-                  _buildDropdownSection('Jenis Sesi', _types, _selectedType, (v) => setState(() => _selectedType = v!)),
-                  const SizedBox(height: 16),
-                  _buildDropdownSection('Status Pasien', _statuses, _selectedStatus, (v) => setState(() => _selectedStatus = v!)),
+                  
+                  _buildDropdown('Status Mood / Kondisi Emosional Saat Sesi', _moods, _selectedMood, (v) => setState(() => _selectedMood = v!)),
                   const SizedBox(height: 40),
+                  
                   _buildSaveButton(),
                   const SizedBox(height: 100),
                 ],
@@ -88,6 +205,17 @@ class _SessionNoteScreenState extends State<SessionNoteScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: AppTextStyles.titleSm.copyWith(color: AppColors.primary)),
+        const Divider(),
+        const SizedBox(height: 16),
+      ],
     );
   }
 
@@ -160,41 +288,82 @@ class _SessionNoteScreenState extends State<SessionNoteScreen> {
     );
   }
 
-  Widget _buildInputSection(String label, String hint, TextEditingController ctrl, int lines) {
+  Widget _buildInput(String label, String hint, TextEditingController ctrl, {int lines = 1}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: AppTextStyles.bodyMd.copyWith(
-                fontWeight: FontWeight.bold, color: AppColors.primary)),
-        const SizedBox(height: 12),
+        Text(label, style: AppTextStyles.labelSm.copyWith(color: AppColors.neutral500)),
+        const SizedBox(height: 8),
         TextField(
           controller: ctrl,
           maxLines: lines,
-          style: AppTextStyles.bodyMd,
+          style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.bold),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: AppTextStyles.labelMd.copyWith(color: AppColors.outline.withAlpha(100)),
             filled: true,
             fillColor: const Color(0xFFF8FAFC),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide.none,
             ),
-            contentPadding: const EdgeInsets.all(20),
+            contentPadding: const EdgeInsets.all(16),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildDropdownSection(String label, List<String> items, String value, ValueChanged<String?> onChanged) {
+  Widget _buildYesNoToggle(String label, bool? value, ValueChanged<bool?> onChanged) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: AppTextStyles.bodyMd.copyWith(
-                fontWeight: FontWeight.bold, color: AppColors.primary)),
+        Text(label, style: AppTextStyles.labelSm.copyWith(color: AppColors.neutral500)),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () => onChanged(true),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: value == true ? Colors.green : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: value == true ? Colors.green : Colors.transparent),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text('Ya', style: AppTextStyles.labelLg.copyWith(color: value == true ? Colors.white : AppColors.neutral500, fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: GestureDetector(
+                onTap: () => onChanged(false),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: value == false ? Colors.red : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: value == false ? Colors.red : Colors.transparent),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text('Tidak', style: AppTextStyles.labelLg.copyWith(color: value == false ? Colors.white : AppColors.neutral500, fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDropdown(String label, List<String> items, String value, ValueChanged<String?> onChanged) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: AppTextStyles.labelSm.copyWith(color: AppColors.neutral500)),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -207,7 +376,7 @@ class _SessionNoteScreenState extends State<SessionNoteScreen> {
               value: value,
               isExpanded: true,
               icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.primary),
-              items: items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+              items: items.map((e) => DropdownMenuItem(value: e, child: Text(e, style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.bold)))).toList(),
               onChanged: onChanged,
             ),
           ),
@@ -225,7 +394,7 @@ class _SessionNoteScreenState extends State<SessionNoteScreen> {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           elevation: 0,
         ),
         child: _isSaving
@@ -235,9 +404,9 @@ class _SessionNoteScreenState extends State<SessionNoteScreen> {
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.enhanced_encryption_rounded),
+                  const Icon(Icons.save_rounded),
                   const SizedBox(width: 12),
-                  Text('Simpan & Enkripsi Catatan',
+                  Text('Simpan Catatan Asesmen',
                       style: AppTextStyles.bodyLg.copyWith(
                           color: Colors.white, fontWeight: FontWeight.bold)),
                 ],
@@ -247,24 +416,55 @@ class _SessionNoteScreenState extends State<SessionNoteScreen> {
   }
 
   Future<void> _submit() async {
-    if (_complaintCtrl.text.trim().isEmpty) {
+    if (_riwayatKeluhanCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Keluhan utama wajib diisi'), backgroundColor: Colors.red),
+        const SnackBar(content: Text('Riwayat keluhan wajib diisi'), backgroundColor: Colors.red),
       );
       return;
     }
+    if (_tindakLanjutTuntas == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Harap pilih status Sesi Tuntas (Ya/Tidak)'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+
     setState(() => _isSaving = true);
     final provider = context.read<CounselingProvider>();
+
+    final combinedObservation = 'Kognitif: ${_aspekKognitifCtrl.text}\nEmosional: ${_aspekEmosionalCtrl.text}\nPerilaku: ${_aspekPerilakuCtrl.text}';
+    final combinedRecommendation = 'Mhs: ${_rekMahasiswaCtrl.text}\nProdi: ${_rekProdiCtrl.text}\nOrangTua: ${_rekOrangTuaCtrl.text}';
+
     final data = {
-      'complaint': _complaintCtrl.text.trim(),
-      'observation': _observationCtrl.text.trim(),
-      'recommendation': _recommendationCtrl.text.trim(),
+      'tujuan_pemeriksaan': _tujuanCtrl.text.trim(),
+      'tanggal_asesmen': DateFormat('yyyy-MM-dd').format(_tanggalAsesmen),
+      'riwayat_keluhan': _riwayatKeluhanCtrl.text.trim(),
+      'aspek_kognitif': _aspekKognitifCtrl.text.trim(),
+      'aspek_emosional': _aspekEmosionalCtrl.text.trim(),
+      'aspek_perilaku': _aspekPerilakuCtrl.text.trim(),
+      'rekomendasi_mahasiswa': _rekMahasiswaCtrl.text.trim(),
+      'rekomendasi_prodi': _rekProdiCtrl.text.trim(),
+      'rekomendasi_orang_tua': _rekOrangTuaCtrl.text.trim(),
+      'tindak_lanjut_tuntas': _tindakLanjutTuntas,
+      'tindak_lanjut_lanjutan': _tindakLanjutLanjutan ?? false,
+      'tindak_lanjut_rujuk': _tindakLanjutRujuk ?? false,
+      'kesimpulan': _kesimpulanCtrl.text.trim(),
+      'rujukan_tipe': _rujukanTipe,
+      'rujukan_pihak_tujuan': _rujukanPihakCtrl.text.trim(),
+      'rujukan_email_tujuan': _rujukanEmailCtrl.text.trim(),
       'mood': _selectedMood,
-      'type': _selectedType,
-      'status': _selectedStatus,
+      'type': 'Konseling Baru',
+      'status': _tindakLanjutTuntas == true ? 'Selesai' : _selectedMood,
+      
+      // Compatibility fields for backend mapping logic
+      'complaint': _riwayatKeluhanCtrl.text.trim(),
+      'observation': combinedObservation,
+      'recommendation': combinedRecommendation,
+
       if (widget.bookingId != null && widget.bookingId!.isNotEmpty)
         'booking_id': int.tryParse(widget.bookingId!) ?? 0,
     };
+
     final success = await provider.createSessionNote(widget.studentId, data);
     if (mounted) {
       setState(() => _isSaving = false);
@@ -279,7 +479,6 @@ class _SessionNoteScreenState extends State<SessionNoteScreen> {
         ),
       );
       if (success) {
-        // Reload medical record
         provider.loadMedicalRecord(widget.studentId);
         Navigator.pop(context);
       }

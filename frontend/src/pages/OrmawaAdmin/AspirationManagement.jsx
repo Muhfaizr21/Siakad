@@ -179,57 +179,65 @@ export default function AspirationManagement() {
     <PageContent className="font-body">
       <Toaster position="top-right" />
 
-      {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <PageHeader
-        title="Aspirasi Organisasi"
-        subtitle="Tampung gagasan, kritik, dan berikan tanggapan resmi atas aspirasi dari mahasiswa."
-        icon="forum"
-
-        breadcrumbs={[{ label: 'Dashboard', path: '/ormawa' }, { label: 'Aspirasi Organisasi', path: '#' }]}
-      />
-
-      {/* ── Statistics Summary Cards ────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
-        <PrimaryStatsCard
-          title="Total Aspirasi Masuk"
-          value={totalAspirasi}
-          icon={QuestionAnswerIcon}
-          colorTheme="primary"
-          badgeText="Semua"
-          badgeIcon={<span className="material-symbols-outlined text-[12px]">forum</span>}
+      <div className="w-full relative space-y-6 scroll-smooth">
+        {/* ── Welcome Banner ─────────────────────────────────────────── */}
+        <DashboardHero
+          title="Manajemen"
+          highlightedTitle="Aspirasi"
+          subtitle="Tampung gagasan, kritik, dan berikan tanggapan resmi atas aspirasi dari mahasiswa secara transparan."
+          icon="forum"
+          badges={[{ label: 'Suara Mahasiswa', active: false }]}
+          actions={
+            <div className="px-4 py-2 bg-[var(--theme-primary)]/5 border border-[var(--theme-primary)]/20 rounded-xl flex items-center gap-3 w-full lg:w-auto justify-center">
+              <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '16px' }}>group</span>
+              <div className="flex flex-col leading-tight">
+                <span className="text-[10px] font-bold text-[var(--theme-primary)]/70 uppercase tracking-widest">Akses Validasi</span>
+                <span className="text-[12px] font-bold text-[var(--theme-primary)] font-jakarta">Ormawa Portal</span>
+              </div>
+            </div>
+          }
         />
 
-        <PrimaryStatsCard
-          title="Sudah Ditanggapi"
-          value={answeredAspirasi}
-          icon={MarkChatReadIcon}
-          colorTheme="success"
-          badgeText="Selesai"
-          badgeIcon={<span className="material-symbols-outlined text-[12px]">verified</span>}
-        />
+        {/* ── Statistics Summary Cards ────────────────────────────────── */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+          <PrimaryStatsCard
+            title="Total Aspirasi Masuk"
+            value={totalAspirasi}
+            icon={QuestionAnswerIcon}
+            colorTheme="primary"
+            badgeText="Semua"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">forum</span>}
+          />
 
-        <PrimaryStatsCard
-          title="Menunggu Tanggapan"
-          value={pendingAspirasi}
-          icon={QuickreplyIcon}
-          colorTheme="warning"
-          badgeText="Pending"
-          badgeIcon={<span className="material-symbols-outlined text-[12px]">schedule</span>}
-        />
+          <PrimaryStatsCard
+            title="Sudah Ditanggapi"
+            value={answeredAspirasi}
+            icon={MarkChatReadIcon}
+            colorTheme="success"
+            badgeText="Selesai"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">verified</span>}
+          />
 
-        <PrimaryStatsCard
-          title="Aspirasi Ditolak"
-          value={rejectedAspirasi}
-          icon={CancelIcon}
-          colorTheme="error"
-          badgeText="Ditolak"
-          badgeIcon={<span className="material-symbols-outlined text-[12px]">cancel</span>}
-        />
-      </div>
+          <PrimaryStatsCard
+            title="Menunggu Tanggapan"
+            value={pendingAspirasi}
+            icon={QuickreplyIcon}
+            colorTheme="warning"
+            badgeText="Pending"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">schedule</span>}
+          />
 
-      {/* ── DataTable Container ──────────────────────────────────────── */}
-      <div>
-        <div>
+          <PrimaryStatsCard
+            title="Aspirasi Ditolak"
+            value={rejectedAspirasi}
+            icon={CancelIcon}
+            colorTheme="error"
+            badgeText="Ditolak"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">cancel</span>}
+          />
+        </div>
+
+        <div className="space-y-5 w-full">
           <DataTable
             columns={columns}
             data={data}

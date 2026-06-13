@@ -7,13 +7,14 @@ import 'package:bkuhub_mobile/features/counseling/presentation/widgets/dashboard
 import 'package:bkuhub_mobile/features/counseling/presentation/widgets/dashboard/quick_stats_card.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/widgets/dashboard/psychologist_service_grid.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/widgets/dashboard/upcoming_appointments_card.dart';
-import 'package:bkuhub_mobile/features/counseling/presentation/widgets/dashboard/psychologist_analytics_card.dart';
+import 'package:bkuhub_mobile/features/counseling/presentation/widgets/dashboard/recent_activities_card.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/providers/psychologist_dashboard_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:go_router/go_router.dart';
 import 'package:bkuhub_mobile/core/routes/app_routes.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/providers/counseling_provider.dart';
 import 'package:bkuhub_mobile/core/services/local_notification_service.dart';
+import 'dart:async';
 
 class PsychologistDashboardScreen extends StatefulWidget {
   const PsychologistDashboardScreen({super.key});
@@ -25,6 +26,8 @@ class PsychologistDashboardScreen extends StatefulWidget {
 
 class _PsychologistDashboardScreenState
     extends State<PsychologistDashboardScreen> {
+  Timer? _notificationTimer;
+
   @override
   void initState() {
     super.initState();
@@ -36,12 +39,24 @@ class _PsychologistDashboardScreenState
       // Load notifikasi untuk badge count
       if (mounted) {
         context.read<CounselingProvider>().loadNotifications();
+        // Setup polling for notifications every 15 seconds for snappier pop-ups
+        _notificationTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
+          if (mounted) {
+            context.read<CounselingProvider>().loadNotifications();
+          }
+        });
       }
       // Load analytics untuk card tren
       if (mounted) {
         context.read<CounselingProvider>().loadAnalytics();
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _notificationTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _checkAndTriggerSessionReminders() async {
@@ -167,7 +182,7 @@ class _PsychologistDashboardScreenState
               _buildAppBar(context, provider),
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.all(24.0),
+                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -180,20 +195,36 @@ class _PsychologistDashboardScreenState
                         newAppointments: '${provider.newToday}',
                         finishedMonth: '${provider.completedThisMonth}',
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 32),
                       _buildSectionHeader('Layanan Utama'),
-                      const SizedBox(height: 8),
-                      const PsychologistServiceGrid(),
-                      const SizedBox(height: 24),
-                      _buildSectionHeader('Jadwal Mendatang'),
                       const SizedBox(height: 16),
-                      UpcomingAppointmentsCard(
-                        bookings: provider.upcomingBookings,
-                      ),
-                      const SizedBox(height: 24),
-                      _buildSectionHeader('Analitik & Tren'),
+                    ],
+                  ),
+                ),
+              ),
+              const SliverToBoxAdapter(
+                child: PsychologistServiceGrid(),
+              ),
+              SliverToBoxAdapter(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 32),
+                    UpcomingAppointmentsCard(
+                      bookings: provider.upcomingBookings,
+                    ),
+                    const SizedBox(height: 32),
+                  ],
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSectionHeader('Aktivitas Terbaru'),
                       const SizedBox(height: 16),
-                      const PsychologistAnalyticsCard(),
+                      const RecentActivitiesCard(),
                       const SizedBox(height: 80),
                     ],
                   ),
@@ -229,7 +260,7 @@ class _PsychologistDashboardScreenState
       info:
           'NIDN: ${provider.profile?.nidn ?? '-'} • ${provider.profile?.specialization ?? 'PSIKOLOG'}',
       variant: AppBarVariant.psychologist,
-      expandedHeight: 210,
+      expandedHeight: 165,
       showProfileOnCollapse: true,
       notificationCount: unreadCount,
       profileImage:

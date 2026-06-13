@@ -17,90 +17,84 @@ class AvailabilityToggle extends StatelessWidget {
       onTap: () => onToggle(!isAvailable),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        curve: Curves.easeInOut,
+        width: 110,
+        height: 36,
+        padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: isAvailable
-              ? Colors.white.withAlpha(50)
-              : Colors.white.withAlpha(20),
-          borderRadius: BorderRadius.circular(24),
+          color:
+              isAvailable
+                  ? const Color(0xFF10B981)
+                  : Colors.white.withAlpha(20),
+          borderRadius: BorderRadius.circular(30),
           border: Border.all(
-            color: isAvailable
-                ? Colors.white.withAlpha(80)
-                : Colors.white.withAlpha(40),
+            color:
+                isAvailable
+                    ? const Color(0xFF10B981)
+                    : Colors.white.withAlpha(30),
             width: 1.5,
           ),
-          boxShadow: isAvailable
-              ? [
-                  BoxShadow(
-                    color: Colors.greenAccent.withAlpha(40),
-                    blurRadius: 15,
-                    spreadRadius: -5,
-                  ),
-                ]
-              : [],
+          boxShadow:
+              isAvailable
+                  ? [
+                    BoxShadow(
+                      color: const Color(0xFF10B981).withAlpha(80),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                  : [],
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
+        child: Stack(
           children: [
-            // Pulse Indicator
-            Container(
-              width: 10,
-              height: 10,
-              decoration: BoxDecoration(
-                color: isAvailable ? Colors.greenAccent : Colors.grey[400],
-                shape: BoxShape.circle,
-                boxShadow: isAvailable
-                    ? [
-                        BoxShadow(
-                          color: Colors.greenAccent.withAlpha(150),
-                          blurRadius: 8,
-                          spreadRadius: 2,
-                        ),
-                      ]
-                    : [],
-              ),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              isAvailable ? 'Siap Melayani' : 'Sedang Istirahat',
-              style: AppTextStyles.labelMd.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 0.5,
-              ),
-            ),
-            const SizedBox(width: 24),
-            // Custom Toggle
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              width: 52,
-              height: 28,
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: isAvailable
-                    ? Colors.white.withAlpha(60)
-                    : Colors.black.withAlpha(40),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: AnimatedAlign(
+            // Text Layer
+            Align(
+              alignment: Alignment.center,
+              child: AnimatedPadding(
                 duration: const Duration(milliseconds: 300),
-                alignment: isAvailable
-                    ? Alignment.centerRight
-                    : Alignment.centerLeft,
-                child: Container(
-                  width: 20,
-                  height: 20,
-                  decoration: const BoxDecoration(
+                curve: Curves.easeInOut,
+                padding: EdgeInsets.only(
+                  left: isAvailable ? 0 : 32,
+                  right: isAvailable ? 32 : 0,
+                ),
+                child: Text(
+                  isAvailable ? 'Tersedia' : 'Sibuk',
+                  style: AppTextStyles.labelMd.copyWith(
                     color: Colors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black26,
-                        blurRadius: 4,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
+                    fontWeight: FontWeight.w800,
+                    fontSize: 11,
+                    letterSpacing: 0.2,
                   ),
+                ),
+              ),
+            ),
+            // Thumb Layer
+            AnimatedAlign(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOutBack,
+              alignment:
+                  isAvailable ? Alignment.centerRight : Alignment.centerLeft,
+              child: Container(
+                width: 28,
+                height: 28,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 6,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  isAvailable
+                      ? Icons.check_rounded
+                      : Icons.power_settings_new_rounded,
+                  color:
+                      isAvailable ? const Color(0xFF10B981) : Colors.grey[600],
+                  size: 16,
                 ),
               ),
             ),

@@ -468,7 +468,7 @@ class _AssessmentManagementScreenState
                       ),
                       const SizedBox(height: 16),
                       DropdownButtonFormField<String>(
-                        initialValue: selectedCategory,
+                        value: selectedCategory,
                         decoration: InputDecoration(
                           labelText: 'Kategori',
                           border: OutlineInputBorder(

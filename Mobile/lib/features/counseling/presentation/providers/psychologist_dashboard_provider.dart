@@ -18,6 +18,9 @@ class PsychologistDashboardProvider extends ChangeNotifier {
   int _confirmedCount = 0;
   int _reportsCount = 0;
   int _assessmentsCount = 0;
+  int _completedToday = 0;
+  int _newToday = 0;
+  int _completedThisMonth = 0;
 
   PsychologistDashboardProvider({required CounselingRepository repository})
     : _repository = repository;
@@ -34,6 +37,9 @@ class PsychologistDashboardProvider extends ChangeNotifier {
   int get confirmedCount => _confirmedCount;
   int get reportsCount => _reportsCount;
   int get assessmentsCount => _assessmentsCount;
+  int get completedToday => _completedToday;
+  int get newToday => _newToday;
+  int get completedThisMonth => _completedThisMonth;
 
   void toggleAvailability() {
     _isAvailable = !_isAvailable;
@@ -66,6 +72,9 @@ class PsychologistDashboardProvider extends ChangeNotifier {
       _confirmedCount = dashboard['confirmed_count'] ?? 0;
       _reportsCount = dashboard['reports_count'] ?? 0;
       _assessmentsCount = dashboard['assessments_count'] ?? 0;
+      _completedToday = dashboard['completed_today'] ?? 0;
+      _newToday = dashboard['new_today'] ?? 0;
+      _completedThisMonth = dashboard['completed_this_month'] ?? 0;
       _isAvailable = _profile?.isAvailable ?? true;
 
       _error = null;
@@ -84,9 +93,6 @@ class PsychologistDashboardProvider extends ChangeNotifier {
 
   // Computed getters for dashboard screen compatibility
   int get upcomingAppointments => _confirmedCount;
-  int get completedToday => _stats.isNotEmpty ? (_stats.first['completed_today'] ?? 0) : 0;
-  int get newToday => _stats.isNotEmpty ? (_stats.first['new_today'] ?? 0) : 0;
-  int get completedThisMonth => _stats.isNotEmpty ? (_stats.first['completed_month'] ?? 0) : 0;
 
   // Profile update methods
   Future<void> updateProfileData(Map<String, dynamic> data) async {

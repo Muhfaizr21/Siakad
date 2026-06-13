@@ -12,7 +12,9 @@ import { DashboardHero } from "@/components/ui/dashboard"
 import { DataTable } from "@/components/ui/DataTable"
 import { Card, CardContent } from "@/components/ui/Card"
 import { PrimaryStatsCard } from "@/components/ui/StatsCard"
-import { Dialog, DialogHeader, DialogTitle } from '@/components/ui/Dialog'
+import { DialogModal, ModalCancelButton } from '@/components/ui/DialogModal'
+import { PageContent } from '@/components/ui/page'
+import { Badge } from '@/components/ui/Badge'
 
 import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 
@@ -99,39 +101,43 @@ export default function PsychologistDashboard() {
     {
       key: 'name',
       label: 'Mahasiswa',
+      className: 'min-w-[220px]',
       render: (v, row) => (
         <div>
-          <p className="font-bold text-sm text-slate-900 max-w-[200px] truncate">{row.name}</p>
-          <p className="text-[10px] text-slate-400 font-medium mt-0.5">{row.nim} &bull; {row.prodi}</p>
+          <p className="font-semibold text-[var(--theme-text)] font-headline tracking-tight text-[14px] max-w-[200px] truncate">{row.name}</p>
+          <p className="text-[11px] text-[var(--theme-text-muted)] font-body tracking-tight mt-0.5">{row.nim} &bull; {row.prodi}</p>
         </div>
       )
     },
     {
       key: 'issue',
       label: 'Topik Keluhan',
+      className: 'w-[160px]',
       render: (v, row) => (
-        <span className="text-[10px] font-bold text-slate-600 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg">
+        <Badge variant="outline" className="font-semibold text-[var(--theme-text-muted)] font-headline uppercase text-[9px] tracking-[0.2em] border-[var(--theme-border)] bg-[var(--theme-bg)] px-2.5 py-1 rounded-md">
           {row.issue || '—'}
-        </span>
+        </Badge>
       )
     },
     {
       key: 'date',
       label: 'Jadwal Sesi',
+      className: 'w-[160px]',
       render: (v, row) => (
-        <div>
-          <p className="font-semibold text-sm text-[var(--theme-text)]">{row.date}</p>
-          <p className="text-[10px] text-[var(--theme-primary)] font-bold mt-0.5 bg-[var(--theme-primary-light)]/20 border border-[var(--theme-primary)]/10 inline-block px-1.5 py-0.5 rounded uppercase tracking-wider">{row.time}</p>
+        <div className="flex flex-col leading-tight gap-1.5">
+          <span className="font-semibold text-[var(--theme-text)] font-headline text-[13px]">{row.date}</span>
+          <span className="text-[10px] text-[var(--theme-primary)] font-bold bg-[var(--theme-primary-light)]/20 border border-[var(--theme-primary)]/10 inline-block px-1.5 py-0.5 rounded uppercase tracking-wider w-fit">{row.time}</span>
         </div>
       )
     },
     {
       key: 'status',
       label: 'Status',
+      className: 'w-[140px]',
       render: (v, row) => {
         const st = getStatus(row.status)
         return (
-          <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider whitespace-nowrap', st.cls)}>
+          <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-semibold border uppercase tracking-wider whitespace-nowrap shadow-sm', st.cls)}>
             <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', st.dot)} />
             {st.label}
           </span>
@@ -141,18 +147,22 @@ export default function PsychologistDashboard() {
     {
       key: 'actions',
       label: 'Aksi',
+      className: 'w-[120px]',
       render: (v, row) => (
-        <button
+        <Button
           type="button"
           onClick={() => {
             setSelected(row)
             setCatatan(row.note || '')
             setLinkMeeting(row.link_meeting || '')
           }}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-[var(--theme-primary)] bg-[var(--theme-primary-light)]/20 border border-[var(--theme-primary)]/20 rounded-lg hover:bg-[var(--theme-primary)] hover:text-white transition-all active:scale-95"
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7 text-neutral-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors shadow-none"
+          title="Tinjau Detail Sesi"
         >
-          <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>psychology</span> Tinjau
-        </button>
+          <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>visibility</span>
+        </Button>
       )
     }
   ], [setSelected, setCatatan, setLinkMeeting])
@@ -223,7 +233,7 @@ export default function PsychologistDashboard() {
   const PIE_COLORS = ['#f59e0b', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6', '#00236f']
 
   return (
-    <div className="w-full relative space-y-6 min-h-screen bg-transparent font-inter pb-8">
+    <PageContent>
       <Toaster position="top-right" />
         <DashboardHero title="Dashboard" highlightedTitle="Psikolog" subtitle="Ringkasan metrik harian, jadwal sesi terdekat, dan notifikasi untuk efisiensi praktik." icon="dashboard" badges={[{ label: 'Beranda Utama', active: false }]} />
 
@@ -392,141 +402,135 @@ export default function PsychologistDashboard() {
             />
         </div>
 
-      <Dialog open={!!selected} onOpenChange={() => setSelected(null)} maxWidth="max-w-4xl" className="max-h-[85vh] flex flex-col overflow-hidden">
+      <DialogModal
+        open={!!selected}
+        onOpenChange={(val) => { if (!val) setSelected(null) }}
+        icon="psychology"
+        subtitle="Detail Sesi Konseling"
+        title={selected ? `${selected.name} - ${selected.issue}` : ''}
+        maxWidth="max-w-xl"
+        footer={
+          <ModalCancelButton onClick={() => setSelected(null)}>Tutup</ModalCancelButton>
+        }
+      >
         {selected && (
-          <>
-            {/* Header */}
-            <div className="relative bg-gradient-to-br from-[#00236F] to-[#003db5] py-4 px-6 overflow-hidden flex-shrink-0 flex items-center justify-between">
-              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
-              <div className="relative z-10 pr-8">
-                <span className="text-[9px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-[0.25em]">Detail Sesi Konseling</span>
-                <DialogTitle className="text-base font-bold text-[var(--theme-text)] leading-tight line-clamp-1 mt-0.5">{selected.name} - {selected.issue}</DialogTitle>
-              </div>
-            </div>
-
-            {/* Split Screen Workspace */}
-            <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0 bg-slate-50">
-
-              {/* Left Pane (50%): Student Profile & Request */}
-              <div className="flex-1 lg:w-1/2 flex flex-col overflow-y-auto border-r border-[var(--theme-border-muted)] bg-[var(--theme-surface)] p-6 space-y-6 no-scrollbar">
-                <div>
-                  <h3 className="text-sm font-semibold text-[var(--theme-text)] uppercase tracking-wider flex items-center gap-2 mb-4">
-                    <span className="material-symbols-outlined text-[var(--theme-primary)]">account_circle</span> Identitas Pasien
-                  </h3>
-                  <div className="bg-[var(--theme-bg)] border border-[var(--theme-border-muted)] rounded-2xl p-4 grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-[9px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-widest leading-none mb-1.5">Nama Lengkap</p>
-                      <p className="font-semibold text-xs text-[var(--theme-text)]">{selected.name}</p>
-                    </div>
-                    <div>
-                      <p className="text-[9px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-widest leading-none mb-1.5">NIM</p>
-                      <p className="font-semibold text-xs text-[var(--theme-text)]">{selected.nim}</p>
-                    </div>
-                    <div>
-                      <p className="text-[9px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-widest leading-none mb-1.5">Program Studi / Fakultas</p>
-                      <p className="font-semibold text-xs text-[var(--theme-text)]">{selected.prodi} ({selected.faculty})</p>
-                    </div>
-                    <div>
-                      <p className="text-[9px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-widest leading-none mb-1.5">Semester</p>
-                      <p className="font-semibold text-xs text-[var(--theme-text)]">Semester {selected.semester}</p>
-                    </div>
+          <div className="flex flex-col gap-5 p-1">
+            {/* Left Pane */}
+            <div className="space-y-5">
+              <div>
+                <h3 className="text-sm font-semibold text-[var(--theme-text)] uppercase tracking-wider flex items-center gap-2 mb-4 font-headline">
+                  <span className="material-symbols-outlined text-[var(--theme-primary)]">account_circle</span> Identitas Pasien
+                </h3>
+                <div className="bg-[var(--theme-bg)] border border-[var(--theme-border-muted)] rounded-2xl p-4 grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-[9px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-widest leading-none mb-1.5 font-headline">Nama Lengkap</p>
+                    <p className="font-semibold text-xs text-[var(--theme-text)] font-body">{selected.name}</p>
                   </div>
-                </div>
-
-                <div>
-                  <h3 className="text-sm font-semibold text-[var(--theme-text)] uppercase tracking-wider flex items-center gap-2 mb-4">
-                    <span className="material-symbols-outlined text-[var(--theme-secondary)]">assignment_late</span> Detail Keluhan Utama
-                  </h3>
-                  <div className="bg-[var(--theme-secondary-light)]/20 border border-[var(--theme-secondary)]/20 rounded-2xl p-4 space-y-3">
-                    <div>
-                      <p className="text-[9px] font-semibold text-[var(--theme-secondary)] uppercase tracking-widest leading-none mb-1.5">Kategori / Topik</p>
-                      <p className="font-semibold text-xs text-[var(--theme-text)]">{selected.issue}</p>
-                    </div>
-                    <div className="w-full h-px bg-amber-200/50 my-2" />
-                    <div>
-                      <p className="text-[9px] font-semibold text-[var(--theme-secondary)] uppercase tracking-widest leading-none mb-1.5">Deskripsi Lengkap (Self-Report)</p>
-                      <p className="text-xs text-[var(--theme-text)] font-medium leading-relaxed italic border-l-2 border-[var(--theme-secondary)] pl-3">
-                        "{selected.note || 'Tidak ada detail spesifik yang diisi mahasiswa.'}"
-                      </p>
-                    </div>
+                  <div>
+                    <p className="text-[9px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-widest leading-none mb-1.5 font-headline">NIM</p>
+                    <p className="font-semibold text-xs text-[var(--theme-text)] font-body">{selected.nim}</p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-widest leading-none mb-1.5 font-headline">Program Studi / Fakultas</p>
+                    <p className="font-semibold text-xs text-[var(--theme-text)] font-body">{selected.prodi} ({selected.faculty})</p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-widest leading-none mb-1.5 font-headline">Semester</p>
+                    <p className="font-semibold text-xs text-[var(--theme-text)] font-body">Semester {selected.semester}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Right Pane (50%): Actions & Decision */}
-              <div className="lg:w-1/2 flex flex-col overflow-y-auto bg-[var(--theme-bg)] min-h-0 no-scrollbar">
-                <div className="p-6 space-y-6">
-                  {/* Jadwal Panel */}
-                  <div className="bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-2xl p-4 flex items-center justify-between shadow-sm">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-[var(--theme-primary-light)]/20 text-[var(--theme-primary)] rounded-xl flex items-center justify-center">
-                        <span className="material-symbols-outlined">event</span>
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-widest mb-0.5">Jadwal Sesi</p>
-                        <p className="font-semibold text-sm text-[var(--theme-text)]">{selected.date_full}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-widest mb-0.5">Pukul</p>
-                      <p className="font-semibold text-sm text-[var(--theme-primary)] bg-[var(--theme-primary-light)]/20 px-2 py-0.5 rounded-lg border border-[var(--theme-primary)]/20 inline-block">{selected.time}</p>
-                    </div>
-                  </div>
-
-                  {selected.mode === 'Online' && (
-                    <div>
-                      <label className="block text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-[0.18em] mb-2">Tautan Video Conference (Google Meet/Zoom)</label>
-                      <input
-                        type="url"
-                        value={linkMeeting}
-                        onChange={e => setLinkMeeting(e.target.value)}
-                        placeholder="https://meet.google.com/xxx-xxxx-xxx"
-                        className="h-10 w-full px-3 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] focus:outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] text-xs font-semibold text-[var(--theme-text)] transition-colors outline-none"
-                      />
-                    </div>
-                  )}
-
+              <div>
+                <h3 className="text-sm font-semibold text-[var(--theme-text)] uppercase tracking-wider flex items-center gap-2 mb-4 font-headline">
+                  <span className="material-symbols-outlined text-[var(--theme-secondary)]">assignment_late</span> Detail Keluhan Utama
+                </h3>
+                <div className="bg-[var(--theme-secondary-light)]/20 border border-[var(--theme-secondary)]/20 rounded-2xl p-4 space-y-3">
                   <div>
-                    <label className="block text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-[0.18em] mb-2">Catatan Tambahan (Khusus Psikolog)</label>
-                    <textarea
-                      value={catatan}
-                      onChange={e => setCatatan(e.target.value)}
-                      rows={4}
-                      placeholder="Masukkan catatan pendahuluan, pesan untuk pasien jika ditolak, atau ringkasan pasca-sesi jika telah selesai..."
-                      className="w-full p-3 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] focus:outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] text-xs font-semibold text-[var(--theme-text)] transition-colors resize-none outline-none"
-                    />
+                    <p className="text-[9px] font-semibold text-[var(--theme-secondary)] uppercase tracking-widest leading-none mb-1.5 font-headline">Kategori / Topik</p>
+                    <p className="font-semibold text-xs text-[var(--theme-text)] font-body">{selected.issue}</p>
                   </div>
-
+                  <div className="w-full h-px bg-amber-200/50 my-2" />
                   <div>
-                    <label className="block text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-[0.18em] mb-2">Pilih Tindakan & Perbarui Status</label>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      {[
-                        { s: 'Dikonfirmasi', label: 'Konfirmasi', icon: CheckCircle2, cls: 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-600/10' },
-                        { s: 'Selesai', label: 'Sesi Selesai', icon: ShieldCheck, cls: 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/10' },
-                        { s: 'Ditolak', label: 'Tolak / Batal', icon: XCircle, cls: 'bg-rose-600 hover:bg-rose-700 shadow-rose-600/10' },
-                      ].map(opt => (
-                        <button key={opt.s} onClick={() => handleUpdateStatus(opt.s)} disabled={isSubmitting || selected.status === opt.s || (selected.status === 'Selesai')}
-                          className={cn('flex flex-col items-center justify-center gap-1.5 h-16 rounded-xl text-white text-[10px] font-bold uppercase tracking-wider transition-all active:scale-[0.97] shadow-lg disabled:opacity-50', opt.cls)}>
-                          {isSubmitting ? (
-                            <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }}>sync</span>
-                          ) : (
-                            <opt.icon size={16} />
-                          )}
-                          {opt.label}
-                        </button>
-                      ))}
-                    </div>
-                    {selected.status === 'Selesai' && (
-                      <p className="text-[10px] font-semibold text-[var(--theme-error)] mt-2 text-center">Sesi yang sudah diselesaikan tidak dapat diubah statusnya dari halaman ini. Gunakan fitur Rekam Medis untuk mengisi catatan lanjutan.</p>
-                    )}
+                    <p className="text-[9px] font-semibold text-[var(--theme-secondary)] uppercase tracking-widest leading-none mb-1.5 font-headline">Deskripsi Lengkap (Self-Report)</p>
+                    <p className="text-xs text-[var(--theme-text)] font-medium leading-relaxed italic border-l-2 border-[var(--theme-secondary)] pl-3 font-body">
+                      "{selected.note || 'Tidak ada detail spesifik yang diisi mahasiswa.'}"
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
-          </>
+
+            {/* Right Pane */}
+            <div className="space-y-5">
+              <div className="bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-2xl p-4 flex items-center justify-between shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-[var(--theme-primary-light)]/20 text-[var(--theme-primary)] rounded-xl flex items-center justify-center">
+                    <span className="material-symbols-outlined">event</span>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-widest mb-0.5 font-headline">Jadwal Sesi</p>
+                    <p className="font-semibold text-sm text-[var(--theme-text)] font-body">{selected.date_full}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-widest mb-0.5 font-headline">Pukul</p>
+                  <p className="font-semibold text-sm text-[var(--theme-primary)] bg-[var(--theme-primary-light)]/20 px-2 py-0.5 rounded-lg border border-[var(--theme-primary)]/20 inline-block font-body">{selected.time}</p>
+                </div>
+              </div>
+
+              {selected.mode === 'Online' && (
+                <div>
+                  <label className="block text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-[0.18em] mb-2 font-headline">Tautan Video Conference (Google Meet/Zoom)</label>
+                  <input
+                    type="url"
+                    value={linkMeeting}
+                    onChange={e => setLinkMeeting(e.target.value)}
+                    placeholder="https://meet.google.com/xxx-xxxx-xxx"
+                    className="h-10 w-full px-3 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] focus:outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] text-xs font-semibold text-[var(--theme-text)] transition-colors outline-none font-body"
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="block text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-[0.18em] mb-2 font-headline">Catatan Tambahan (Khusus Psikolog)</label>
+                <textarea
+                  value={catatan}
+                  onChange={e => setCatatan(e.target.value)}
+                  rows={4}
+                  placeholder="Masukkan catatan pendahuluan, pesan untuk pasien jika ditolak, atau ringkasan pasca-sesi jika telah selesai..."
+                  className="w-full p-3 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] focus:outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] text-xs font-semibold text-[var(--theme-text)] transition-colors resize-none outline-none font-body"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-[0.18em] mb-2 font-headline">Pilih Tindakan & Perbarui Status</label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {[
+                    { s: 'Dikonfirmasi', label: 'Konfirmasi', icon: CheckCircle2, cls: 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-600/10' },
+                    { s: 'Selesai', label: 'Sesi Selesai', icon: ShieldCheck, cls: 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/10' },
+                    { s: 'Ditolak', label: 'Tolak / Batal', icon: XCircle, cls: 'bg-rose-600 hover:bg-rose-700 shadow-rose-600/10' },
+                  ].map(opt => (
+                    <button key={opt.s} onClick={() => handleUpdateStatus(opt.s)} disabled={isSubmitting || selected.status === opt.s || (selected.status === 'Selesai')}
+                      className={cn('flex flex-col items-center justify-center gap-1.5 h-16 rounded-xl text-white text-[10px] font-bold uppercase tracking-wider transition-all active:scale-[0.97] shadow-lg disabled:opacity-50 font-headline', opt.cls)}>
+                      {isSubmitting ? (
+                        <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }}>sync</span>
+                      ) : (
+                        <opt.icon size={16} />
+                      )}
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+                {selected.status === 'Selesai' && (
+                  <p className="text-[10px] font-semibold text-[var(--theme-error)] mt-2 text-center font-body">Sesi yang sudah diselesaikan tidak dapat diubah statusnya dari halaman ini. Gunakan fitur Rekam Medis untuk mengisi catatan lanjutan.</p>
+                )}
+              </div>
+            </div>
+          </div>
         )}
-      </Dialog>
-    </div>
+      </DialogModal>
+    </PageContent>
   )
 }
 

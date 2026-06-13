@@ -341,11 +341,11 @@ export default function DataTable({
                         {actions && typeof actions === 'function' && actions(row)}
                         {onRowClick && (
                           <button
-                            className="p-1.5 rounded-lg hover:bg-black/[0.05] transition-colors"
+                            className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-black/[0.05] transition-colors"
                             style={{ color: 'var(--theme-text-muted)' }}
                             onClick={(e) => { e.stopPropagation(); onRowClick(row); }}
                           >
-                            <span className="material-symbols-outlined text-[16px]">visibility</span>
+                            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>visibility</span>
                           </button>
                         )}
                       </div>

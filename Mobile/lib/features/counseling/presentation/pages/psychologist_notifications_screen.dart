@@ -133,9 +133,32 @@ class _PsychologistNotificationsScreenState
         icon = Icons.warning_amber_rounded;
         color = Colors.orange;
         break;
+      case 'referral':
+        icon = Icons.assignment_turned_in_rounded;
+        color = Colors.blue;
+        break;
       default:
         icon = Icons.notifications_rounded;
         color = Colors.teal;
+    }
+
+    String displayTitle = title;
+    if (displayTitle.toLowerCase().contains('booking confirmed')) {
+      displayTitle = 'Sesi Dikonfirmasi';
+    } else if (displayTitle.toLowerCase().contains('booking cancelled')) {
+      displayTitle = 'Sesi Dibatalkan';
+    } else if (displayTitle.toLowerCase().contains('booking rescheduled')) {
+      displayTitle = 'Sesi Dijadwalkan Ulang';
+    } else if (displayTitle.toLowerCase().contains('new assessment')) {
+      displayTitle = 'Asesmen Baru';
+    } else if (displayTitle.toLowerCase().contains('new referral')) {
+      displayTitle = 'Rujukan Baru Masuk';
+    } else if (displayTitle.toLowerCase().contains('report generated')) {
+      displayTitle = 'Laporan Tersedia';
+    } else if (displayTitle.toLowerCase().contains('reminder')) {
+      displayTitle = 'Pengingat Jadwal';
+    } else if (displayTitle.toLowerCase().contains('warning')) {
+      displayTitle = 'Peringatan Sistem';
     }
 
     return Dismissible(
@@ -143,13 +166,13 @@ class _PsychologistNotificationsScreenState
       direction: DismissDirection.endToStart,
       background: Container(
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
+        padding: const EdgeInsets.only(right: 24),
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          color: Colors.red.withAlpha(20),
+          color: const Color(0xFFEF4444).withAlpha(20),
           borderRadius: BorderRadius.circular(20),
         ),
-        child: const Icon(Icons.delete_outline_rounded, color: Colors.red),
+        child: const Icon(Icons.delete_outline_rounded, color: Color(0xFFEF4444)),
       ),
       onDismissed: (_) {
         provider.deleteNotification(id);
@@ -159,6 +182,7 @@ class _PsychologistNotificationsScreenState
             duration: const Duration(seconds: 1),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            backgroundColor: const Color(0xFF1E293B),
           ),
         );
       },
@@ -179,6 +203,9 @@ class _PsychologistNotificationsScreenState
             case 'warning':
               context.push(AppRoutes.psychologistBookings);
               break;
+            case 'referral':
+              context.push(AppRoutes.referralManagement);
+              break;
             default:
               break;
           }
@@ -188,15 +215,15 @@ class _PsychologistNotificationsScreenState
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: isUnread ? color.withAlpha(8) : Colors.white,
+            color: isUnread ? color.withAlpha(12) : Colors.white,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: isUnread ? color.withAlpha(60) : Colors.grey.withAlpha(30),
+              color: isUnread ? color.withAlpha(60) : Colors.grey.withAlpha(20),
               width: isUnread ? 1.5 : 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withAlpha(isUnread ? 8 : 4),
+                color: Colors.black.withAlpha(isUnread ? 6 : 3),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -207,14 +234,18 @@ class _PsychologistNotificationsScreenState
             children: [
               // Icon
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: color.withAlpha(15),
-                  borderRadius: BorderRadius.circular(14),
+                  color: isUnread ? color : color.withAlpha(15),
+                  shape: BoxShape.circle,
                 ),
-                child: Icon(icon, color: color, size: 22),
+                child: Icon(
+                  icon, 
+                  color: isUnread ? Colors.white : color, 
+                  size: 22
+                ),
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 16),
               // Content
               Expanded(
                 child: Column(
@@ -224,9 +255,9 @@ class _PsychologistNotificationsScreenState
                       children: [
                         Expanded(
                           child: Text(
-                            title,
+                            displayTitle,
                             style: AppTextStyles.bodyMd.copyWith(
-                              fontWeight: isUnread ? FontWeight.w900 : FontWeight.w600,
+                              fontWeight: isUnread ? FontWeight.w900 : FontWeight.w700,
                               color: const Color(0xFF1E293B),
                             ),
                           ),
@@ -238,32 +269,40 @@ class _PsychologistNotificationsScreenState
                             decoration: BoxDecoration(
                               color: color,
                               shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: color.withAlpha(100),
+                                  blurRadius: 4,
+                                  spreadRadius: 1,
+                                )
+                              ],
                             ),
                           ),
                       ],
                     ),
                     if (desc.isNotEmpty) ...[
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 6),
                       Text(
                         desc,
                         style: AppTextStyles.labelMd.copyWith(
                           color: const Color(0xFF64748B),
-                          height: 1.5,
+                          height: 1.4,
                         ),
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 10),
                     Row(
                       children: [
-                        Icon(Icons.access_time_rounded, size: 11, color: Colors.grey[400]),
-                        const SizedBox(width: 4),
+                        Icon(Icons.access_time_rounded, size: 12, color: Colors.grey[400]),
+                        const SizedBox(width: 6),
                         Text(
                           time,
                           style: AppTextStyles.labelSm.copyWith(
                             color: Colors.grey[400],
                             fontSize: 10,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],

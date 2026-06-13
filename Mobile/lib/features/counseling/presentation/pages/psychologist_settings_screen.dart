@@ -24,7 +24,7 @@ class _PsychologistSettingsScreenState extends State<PsychologistSettingsScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8FAFC),
       body: RefreshIndicator(
         onRefresh: () async => await Future.delayed(const Duration(seconds: 1)),
         color: AppColors.primary,
@@ -33,11 +33,10 @@ class _PsychologistSettingsScreenState extends State<PsychologistSettingsScreen>
           physics: const BouncingScrollPhysics(),
           slivers: [
             BkuAppBar(
-              title: 'PENGATURAN',
-              subtitle: 'KEAMANAN & PROFIL',
+              title: 'Pengaturan',
+              info: 'Keamanan & profil akun',
               variant: AppBarVariant.psychologist,
               showBackButton: widget.showBackButton,
-              expandedHeight: 160,
               isExpandable: false,
             ),
             SliverToBoxAdapter(
@@ -48,18 +47,32 @@ class _PsychologistSettingsScreenState extends State<PsychologistSettingsScreen>
                   children: [
                     const SizedBox(height: 24),
                     _buildRoleCard(),
-                    const SizedBox(height: 24),
-                    _buildSectionTitle('Profil Saya'),
-                    const SizedBox(height: 16),
-                    _buildProfileCard(),
                     const SizedBox(height: 32),
-                    _buildSectionTitle('Keamanan Akun'),
-                    const SizedBox(height: 16),
-                    _buildSecurityCard(),
-                    const SizedBox(height: 32),
-                    _buildSectionTitle('Sistem & Sesi'),
-                    const SizedBox(height: 16),
-                    _buildSystemCard(),
+                    
+                    _buildMenuGroup('AKUN & PROFIL', [
+                      _buildProfileTile(),
+                      _buildChangePwTile(),
+                    ]),
+                    
+                    const SizedBox(height: 28),
+                    
+                    _buildMenuGroup('PREFERENSI SISTEM', [
+                      _buildActionTile(
+                        Icons.history_rounded,
+                        'Log Aktivitas Sesi',
+                        'Riwayat akses & perubahan',
+                        const Color(0xFFE0E7FF), const Color(0xFF4338CA),
+                        () => _showSessionLogsSheet(),
+                      ),
+                      _buildActionTile(
+                        Icons.notifications_active_rounded,
+                        'Notifikasi & Reminder',
+                        'Atur pengingat jadwal sesi',
+                        const Color(0xFFD1FAE5), const Color(0xFF065F46),
+                        () => _showNotificationsReminderSheet(),
+                      ),
+                    ]),
+
                     const SizedBox(height: 40),
                     _buildLogoutButton(),
                     const SizedBox(height: 120),
@@ -73,100 +86,85 @@ class _PsychologistSettingsScreenState extends State<PsychologistSettingsScreen>
     );
   }
 
-  // ─── Section Title ────────────────────────────────────────────────────────
+  // ─── Menu Group Builder ───────────────────────────────────────────────────
 
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: AppTextStyles.titleLg.copyWith(
-        fontSize: 18,
-        fontWeight: FontWeight.w900,
-        color: AppColors.primary,
-      ),
+  Widget _buildMenuGroup(String title, List<Widget> items) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 8, bottom: 12),
+          child: Text(
+            title,
+            style: AppTextStyles.titleSm.copyWith(
+              color: const Color(0xFF64748B),
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.grey.withAlpha(30)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withAlpha(4),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            children: items.asMap().entries.map((entry) {
+              final isLast = entry.key == items.length - 1;
+              return Column(
+                children: [
+                  entry.value,
+                  if (!isLast) Divider(height: 1, indent: 64, endIndent: 20, color: Colors.grey.withAlpha(30)),
+                ],
+              );
+            }).toList(),
+          ),
+        ),
+      ],
     );
   }
 
-  // ─── Profile Card ─────────────────────────────────────────────────────────
+  // ─── Profile Tile ─────────────────────────────────────────────────────────
 
-  Widget _buildProfileCard() {
+  Widget _buildProfileTile() {
     final profile = context.watch<PsychologistDashboardProvider>().profile;
-    final name = profile?.name ?? '-';
-    final spec = profile?.specialization ?? '-';
-    final initials = name.trim().isEmpty ? 'P'
-        : name.trim().split(' ').take(2).map((w) => w[0].toUpperCase()).join();
+    final name = profile?.name ?? 'Psikolog';
+    final displayName = name == '-' || name.trim().isEmpty ? 'Psikolog' : name;
+    final initials = displayName.trim().isEmpty || displayName == 'Psikolog' ? 'P'
+        : displayName.trim().split(' ').take(2).map((w) => w.isNotEmpty ? w[0].toUpperCase() : '').join();
 
-    return GestureDetector(
-      onTap: () => _showProfileBottomSheet(profile),
-      child: Container(
-        padding: const EdgeInsets.all(16),
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      leading: Container(
+        width: 44,
+        height: 44,
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.grey.withAlpha(30)),
-          boxShadow: [BoxShadow(color: Colors.black.withAlpha(4), blurRadius: 12, offset: const Offset(0, 4))],
+          gradient: const LinearGradient(
+            colors: [AppColors.primary, Color(0xFF0044BB)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(12),
         ),
-        child: Row(
-          children: [
-            // Avatar
-            Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppColors.primary, Color(0xFF0044BB)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Center(
-                child: Text(
-                  initials,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 14),
-            // Info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: AppTextStyles.bodyLg.copyWith(
-                      fontWeight: FontWeight.w900,
-                      color: const Color(0xFF1E293B),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    spec.isNotEmpty && spec != '-' ? spec : 'Tap untuk lihat & edit profil',
-                    style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF64748B)),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            // Arrow
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withAlpha(12),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(Icons.chevron_right_rounded, color: AppColors.primary, size: 20),
-            ),
-          ],
+        child: Center(
+          child: Text(
+            initials,
+            style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900),
+          ),
         ),
       ),
+      title: Text(displayName, style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.bold, color: const Color(0xFF1E293B))),
+      subtitle: Text('Kelengkapan data profil', style: AppTextStyles.labelSm.copyWith(color: AppColors.outline)),
+      trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.outline),
+      onTap: () => _showProfileBottomSheet(profile),
     );
   }
 
@@ -188,96 +186,109 @@ class _PsychologistSettingsScreenState extends State<PsychologistSettingsScreen>
     final nidn = profile?.nidn ?? '-';
 
     return Container(
-      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [AppColors.primary, Color(0xFF003399)],
+          colors: [AppColors.primary, Color(0xFF1E3A8A)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(28),
         boxShadow: [
-          BoxShadow(color: AppColors.primary.withAlpha(60), blurRadius: 20, offset: const Offset(0, 10)),
+          BoxShadow(
+            color: AppColors.primary.withAlpha(80),
+            blurRadius: 24,
+            offset: const Offset(0, 12),
+          ),
         ],
       ),
-      child: Row(
-        children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(color: Colors.white.withAlpha(40), borderRadius: BorderRadius.circular(18)),
-            child: const Icon(Icons.psychology_rounded, color: Colors.white, size: 32),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                Text('$spec • BKU Care', style: TextStyle(color: Colors.white.withAlpha(180), fontSize: 12)),
-                const SizedBox(height: 4),
-                Text('NIDN: $nidn', style: TextStyle(color: Colors.white.withAlpha(150), fontSize: 11)),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(color: Colors.white.withAlpha(40), borderRadius: BorderRadius.circular(8)),
-                  child: const Text('Read/Write EHR • Scheduling', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(28),
+        child: Stack(
+          children: [
+            Positioned(
+              right: -30,
+              top: -30,
+              child: Container(
+                width: 160,
+                height: 160,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withAlpha(15),
                 ),
-              ],
+              ),
             ),
-          ),
-          const Icon(Icons.verified_rounded, color: Colors.white, size: 28),
-        ],
-      ),
-    );
-  }
-
-  // ─── Security Card ────────────────────────────────────────────────────────
-
-  Widget _buildSecurityCard() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.grey.withAlpha(30)),
-        boxShadow: [BoxShadow(color: Colors.black.withAlpha(4), blurRadius: 12, offset: const Offset(0, 4))],
-      ),
-      child: Column(
-        children: [
-          _buildChangePwTile(),
-        ],
-      ),
-    );
-  }
-
-  // ─── System Card ──────────────────────────────────────────────────────────
-
-  Widget _buildSystemCard() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.grey.withAlpha(30)),
-        boxShadow: [BoxShadow(color: Colors.black.withAlpha(4), blurRadius: 12, offset: const Offset(0, 4))],
-      ),
-      child: Column(
-        children: [
-          _buildActionTile(
-            Icons.history_rounded,
-            'Log Aktivitas Sesi',
-            'Riwayat akses & perubahan data',
-            const Color(0xFFE0E7FF), const Color(0xFF4338CA),
-            () => _showSessionLogsSheet(),
-          ),
-          Divider(height: 1, indent: 20, color: Colors.grey.withAlpha(30)),
-          _buildActionTile(
-            Icons.notifications_rounded,
-            'Notifikasi & Reminder',
-            'Atur pengingat sebelum sesi dimulai',
-            const Color(0xFFD1FAE5), const Color(0xFF065F46),
-            () => _showNotificationsReminderSheet(),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                children: [
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withAlpha(30),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Icon(Icons.psychology_alt_rounded, color: Colors.white, size: 36),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          name == '-' || name.trim().isEmpty ? 'Psikolog' : name,
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text('$spec • BKU Care', style: TextStyle(color: Colors.white.withAlpha(200), fontSize: 12, fontWeight: FontWeight.w500)),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withAlpha(40),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.badge_rounded, color: Colors.white70, size: 12),
+                                  const SizedBox(width: 6),
+                                  Text('NIDN: $nidn', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w600, letterSpacing: 0.5)),
+                                ],
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF10B981).withAlpha(40),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: const Color(0xFF10B981).withAlpha(80)),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.verified_rounded, color: Color(0xFF34D399), size: 12),
+                                  SizedBox(width: 4),
+                                  Text('Verified', style: TextStyle(color: Color(0xFF34D399), fontSize: 10, fontWeight: FontWeight.bold)),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -285,22 +296,20 @@ class _PsychologistSettingsScreenState extends State<PsychologistSettingsScreen>
   // ─── Change Password Tile ─────────────────────────────────────────────────
 
   Widget _buildChangePwTile() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: ListTile(
-        leading: Container(
-          padding: const EdgeInsets.all(9),
-          decoration: BoxDecoration(
-            color: const Color(0xFFFCE7F3),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Icon(Icons.password_rounded, color: Color(0xFFBE185D), size: 20),
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      leading: Container(
+        padding: const EdgeInsets.all(9),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFCE7F3),
+          borderRadius: BorderRadius.circular(12),
         ),
-        title: Text('Ubah Password', style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.bold)),
-        subtitle: Text('Ganti password akun Anda', style: AppTextStyles.labelSm.copyWith(color: AppColors.outline)),
-        trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.outline),
-        onTap: () => _showChangePwSheet(),
+        child: const Icon(Icons.password_rounded, color: Color(0xFFBE185D), size: 20),
       ),
+      title: Text('Ubah Password', style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.bold)),
+      subtitle: Text('Ganti password akun Anda', style: AppTextStyles.labelSm.copyWith(color: AppColors.outline)),
+      trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.outline),
+      onTap: () => _showChangePwSheet(),
     );
   }
 
@@ -317,19 +326,17 @@ class _PsychologistSettingsScreenState extends State<PsychologistSettingsScreen>
   // ─── Tile Builders ────────────────────────────────────────────────────────
 
   Widget _buildActionTile(IconData icon, String title, String subtitle, Color bg, Color color, VoidCallback onTap) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: ListTile(
-        leading: Container(
-          padding: const EdgeInsets.all(9),
-          decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(12)),
-          child: Icon(icon, color: color, size: 20),
-        ),
-        title: Text(title, style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.bold)),
-        subtitle: Text(subtitle, style: AppTextStyles.labelSm.copyWith(color: AppColors.outline)),
-        trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.outline),
-        onTap: onTap,
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      leading: Container(
+        padding: const EdgeInsets.all(9),
+        decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(12)),
+        child: Icon(icon, color: color, size: 20),
       ),
+      title: Text(title, style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.bold)),
+      subtitle: Text(subtitle, style: AppTextStyles.labelSm.copyWith(color: AppColors.outline)),
+      trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.outline),
+      onTap: onTap,
     );
   }
 

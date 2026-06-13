@@ -22,7 +22,16 @@ class _StudentNotificationsScreenState
   bool _isLoading = true;
   List<NotificationItem> _notifications = [];
 
-  static const _filters = ['Semua', 'beasiswa', 'prestasi', 'kencana', 'health', 'info'];
+  static const _filters = [
+    'Semua',
+    'beasiswa',
+    'prestasi',
+    'kencana',
+    'health',
+    'konseling',
+    'referral',
+    'info',
+  ];
 
   static const _filterLabels = {
     'Semua': 'Semua',
@@ -30,6 +39,8 @@ class _StudentNotificationsScreenState
     'prestasi': 'Prestasi',
     'kencana': 'PKKMB',
     'health': 'Kesehatan',
+    'konseling': 'Konseling',
+    'referral': 'Rujukan',
     'info': 'Info',
   };
 
@@ -99,38 +110,50 @@ class _StudentNotificationsScreenState
   Future<void> _deleteRead() async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Hapus notifikasi?',
-            style: TextStyle(fontWeight: FontWeight.w900)),
-        content:
-            const Text('Semua notifikasi yang sudah dibaca akan dihapus.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Batal',
-                style: TextStyle(color: AppColors.outline)),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+      builder:
+          (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
             ),
-            child: const Text('Hapus',
-                style: TextStyle(fontWeight: FontWeight.bold)),
+            title: const Text(
+              'Hapus notifikasi?',
+              style: TextStyle(fontWeight: FontWeight.w900),
+            ),
+            content: const Text(
+              'Semua notifikasi yang sudah dibaca akan dihapus.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text(
+                  'Batal',
+                  style: TextStyle(color: AppColors.outline),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.error,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  'Hapus',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
     );
     if (confirm != true) return;
 
     final ok = await _service.deleteReadNotifications();
     if (ok && mounted) {
-      setState(() =>
-          _notifications = _notifications.where((n) => !n.isRead).toList());
+      setState(
+        () => _notifications = _notifications.where((n) => !n.isRead).toList(),
+      );
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Notifikasi yang sudah dibaca dihapus'),
@@ -151,7 +174,8 @@ class _StudentNotificationsScreenState
         color: AppColors.primary,
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(
-              parent: BouncingScrollPhysics()),
+            parent: BouncingScrollPhysics(),
+          ),
           slivers: [
             BkuAppBar(
               title: 'Notifikasi',
@@ -174,7 +198,9 @@ class _StudentNotificationsScreenState
                         if (unreadCount > 0)
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 6),
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
                               color: AppColors.primary.withAlpha(15),
                               borderRadius: BorderRadius.circular(12),
@@ -200,26 +226,33 @@ class _StudentNotificationsScreenState
                             ),
                           ),
                         PopupMenuButton<String>(
-                          icon: const Icon(Icons.more_vert_rounded,
-                              color: AppColors.outline),
+                          icon: const Icon(
+                            Icons.more_vert_rounded,
+                            color: AppColors.outline,
+                          ),
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16)),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
                           onSelected: (v) {
                             if (v == 'delete_read') _deleteRead();
                           },
-                          itemBuilder: (_) => [
-                            const PopupMenuItem(
-                              value: 'delete_read',
-                              child: Row(
-                                children: [
-                                  Icon(Icons.delete_sweep_rounded,
-                                      color: Colors.red, size: 18),
-                                  SizedBox(width: 8),
-                                  Text('Hapus yang Sudah Dibaca'),
-                                ],
-                              ),
-                            ),
-                          ],
+                          itemBuilder:
+                              (_) => [
+                                const PopupMenuItem(
+                                  value: 'delete_read',
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.delete_sweep_rounded,
+                                        color: Colors.red,
+                                        size: 18,
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text('Hapus yang Sudah Dibaca'),
+                                    ],
+                                  ),
+                                ),
+                              ],
                         ),
                       ],
                     ),
@@ -258,41 +291,45 @@ class _StudentNotificationsScreenState
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children: _filters.map((f) {
-          final isSelected = _selectedFilter == f;
-          return Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: ChoiceChip(
-              label: Text(_filterLabels[f] ?? f),
-              selected: isSelected,
-              onSelected: (selected) {
-                if (selected) {
-                  setState(() => _selectedFilter = f);
-                  _load();
-                }
-              },
-              selectedColor: AppColors.primary,
-              labelStyle: AppTextStyles.labelSm.copyWith(
-                color: isSelected ? Colors.white : AppColors.outline,
-                fontWeight:
-                    isSelected ? FontWeight.bold : FontWeight.normal,
-              ),
-              backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: BorderSide(
-                  color: isSelected
-                      ? Colors.transparent
-                      : AppColors.surfaceVariant,
+        children:
+            _filters.map((f) {
+              final isSelected = _selectedFilter == f;
+              return Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: ChoiceChip(
+                  label: Text(_filterLabels[f] ?? f),
+                  selected: isSelected,
+                  onSelected: (selected) {
+                    if (selected) {
+                      setState(() => _selectedFilter = f);
+                      _load();
+                    }
+                  },
+                  selectedColor: AppColors.primary,
+                  labelStyle: AppTextStyles.labelSm.copyWith(
+                    color: isSelected ? Colors.white : AppColors.outline,
+                    fontWeight:
+                        isSelected ? FontWeight.bold : FontWeight.normal,
+                  ),
+                  backgroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(
+                      color:
+                          isSelected
+                              ? Colors.transparent
+                              : AppColors.surfaceVariant,
+                    ),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  elevation: isSelected ? 3 : 0,
+                  pressElevation: 0,
                 ),
-              ),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              elevation: isSelected ? 3 : 0,
-              pressElevation: 0,
-            ),
-          );
-        }).toList(),
+              );
+            }).toList(),
       ),
     );
   }
@@ -312,8 +349,11 @@ class _StudentNotificationsScreenState
           color: AppColors.error.withAlpha(20),
           borderRadius: BorderRadius.circular(20),
         ),
-        child: const Icon(Icons.delete_outline_rounded,
-            color: AppColors.error, size: 24),
+        child: const Icon(
+          Icons.delete_outline_rounded,
+          color: AppColors.error,
+          size: 24,
+        ),
       ),
       onDismissed: (_) => _deleteOne(notif),
       child: GestureDetector(
@@ -326,20 +366,20 @@ class _StudentNotificationsScreenState
             color: notif.isRead ? Colors.white : color.withAlpha(6),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: notif.isRead
-                  ? AppColors.surfaceVariant
-                  : color.withAlpha(30),
+              color:
+                  notif.isRead ? AppColors.surfaceVariant : color.withAlpha(30),
               width: notif.isRead ? 1 : 1.5,
             ),
-            boxShadow: notif.isRead
-                ? []
-                : [
-                    BoxShadow(
-                      color: color.withAlpha(15),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+            boxShadow:
+                notif.isRead
+                    ? []
+                    : [
+                      BoxShadow(
+                        color: color.withAlpha(15),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -365,9 +405,10 @@ class _StudentNotificationsScreenState
                             notif.title,
                             style: AppTextStyles.labelMd.copyWith(
                               fontWeight: FontWeight.w900,
-                              color: notif.isRead
-                                  ? AppColors.onSurface
-                                  : AppColors.primary,
+                              color:
+                                  notif.isRead
+                                      ? AppColors.onSurface
+                                      : AppColors.primary,
                             ),
                           ),
                         ),
@@ -377,7 +418,9 @@ class _StudentNotificationsScreenState
                             height: 8,
                             margin: const EdgeInsets.only(left: 8, top: 4),
                             decoration: BoxDecoration(
-                                color: color, shape: BoxShape.circle),
+                              color: color,
+                              shape: BoxShape.circle,
+                            ),
                           ),
                       ],
                     ),
@@ -392,8 +435,11 @@ class _StudentNotificationsScreenState
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        Icon(Icons.access_time_rounded,
-                            size: 12, color: AppColors.outline.withAlpha(150)),
+                        Icon(
+                          Icons.access_time_rounded,
+                          size: 12,
+                          color: AppColors.outline.withAlpha(150),
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           _formatTime(notif.createdAt),
@@ -406,7 +452,9 @@ class _StudentNotificationsScreenState
                         const SizedBox(width: 12),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 2),
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: color.withAlpha(15),
                             borderRadius: BorderRadius.circular(6),
@@ -438,8 +486,11 @@ class _StudentNotificationsScreenState
         padding: const EdgeInsets.only(top: 60),
         child: Column(
           children: [
-            Icon(Icons.notifications_none_rounded,
-                size: 72, color: AppColors.outline.withAlpha(50)),
+            Icon(
+              Icons.notifications_none_rounded,
+              size: 72,
+              color: AppColors.outline.withAlpha(50),
+            ),
             const SizedBox(height: 16),
             Text(
               'Belum ada notifikasi',
@@ -477,6 +528,9 @@ class _StudentNotificationsScreenState
       case 'konseling':
       case 'counseling':
         return Colors.orange;
+      case 'referral':
+      case 'rujukan':
+        return const Color(0xFF6366F1); // Indigo color for referrals
       default:
         return AppColors.primary;
     }
@@ -497,6 +551,9 @@ class _StudentNotificationsScreenState
       case 'konseling':
       case 'counseling':
         return Icons.psychology_rounded;
+      case 'referral':
+      case 'rujukan':
+        return Icons.send_rounded;
       default:
         return Icons.campaign_rounded;
     }
@@ -515,6 +572,9 @@ class _StudentNotificationsScreenState
         return 'PRESTASI';
       case 'konseling':
         return 'KONSELING';
+      case 'referral':
+      case 'rujukan':
+        return 'RUJUKAN';
       default:
         return type.toUpperCase();
     }

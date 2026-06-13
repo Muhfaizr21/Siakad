@@ -459,7 +459,7 @@ class _ManageStrukturScreenState extends State<ManageStrukturScreen> {
                         Text('Jabatan BPH', style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.bold)),
                         const SizedBox(height: 8),
                         DropdownButtonFormField<String>(
-                          initialValue: selectedRole,
+                          value: selectedRole,
                           items: ['Ketua', 'Wakil Ketua', 'Sekretaris', 'Bendahara', 'Pembina']
                               .map((r) => DropdownMenuItem(value: r, child: Text(r)))
                               .toList(),

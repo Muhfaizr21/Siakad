@@ -780,7 +780,7 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
           isExpanded: true,
-          initialValue: value,
+          value: value,
           onChanged: onChanged,
           items:
               items
