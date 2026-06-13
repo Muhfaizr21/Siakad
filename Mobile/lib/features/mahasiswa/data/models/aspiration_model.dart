@@ -10,6 +10,7 @@ class AspirationModel extends Aspiration {
     required super.status,
     super.feedback,
     super.imageUrl,
+    super.attachmentPath,
   });
 
   factory AspirationModel.fromJson(Map<String, dynamic> json) {
@@ -21,7 +22,7 @@ class AspirationModel extends Aspiration {
       date: json['created_at'] != null ? DateTime.parse(json['created_at']) : DateTime.now(),
       status: json['status'] ?? '',
       feedback: json['respon'],
-      imageUrl: json['file_url'],
+      imageUrl: json['lampiran_url'] ?? json['file_url'],
     );
   }
 

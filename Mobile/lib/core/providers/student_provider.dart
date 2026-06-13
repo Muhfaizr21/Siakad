@@ -414,5 +414,71 @@ class StudentProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+  Future<void> updateOrganizationHistory(String id, OrganizationHistory org) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      if (_repository != null) {
+        await _repository.updateOrganizationHistory(id, org);
+      }
+      final index = _organizationHistory.indexWhere((o) => o.id == id);
+      if (index != -1) {
+        _organizationHistory[index] = org;
+      }
+    } catch (e) {
+      debugPrint('Error updating organization history: $e');
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteOrganizationHistory(String id) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      if (_repository != null) {
+        await _repository.deleteOrganizationHistory(id);
+      }
+      _organizationHistory.removeWhere((o) => o.id == id);
+    } catch (e) {
+      debugPrint('Error deleting organization history: $e');
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getOrmawaList() async {
+    try {
+      if (_repository != null) {
+        return await _repository.getOrmawaList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error getting ormawa list: $e');
+      return [];
+    }
+  }
+
+  Future<void> daftarOrmawa(String ormawaId, String alasan, String? lampiranPath) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      if (_repository != null) {
+        await _repository.daftarOrmawa(ormawaId, alasan, lampiranPath);
+      }
+      // Re-fetch organization history to reflect the updated ormawa status if it directly pushes an entry
+      await loadOrganizationHistory();
+    } catch (e) {
+      debugPrint('Error registering ormawa: $e');
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }
  

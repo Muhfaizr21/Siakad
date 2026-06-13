@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:go_router/go_router.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
@@ -151,9 +152,89 @@ class _TkBapScreenState extends State<TkBapScreen> {
                   _buildStatItem('Tdk Layak', bap.totalTidakLayak.toString(), color: AppColors.error),
                 ],
               ),
+              const Divider(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  IconButton(
+                    onPressed: () async {
+                      final provider = Provider.of<TkHealthProvider>(context, listen: false);
+                      final url = await provider.downloadBAP(bap.id);
+                      if (url != null && context.mounted) {
+                        final uri = Uri.parse(url);
+                        try {
+                          await launchUrl(uri, mode: LaunchMode.externalApplication);
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Gagal membuka link download'), backgroundColor: Colors.red),
+                            );
+                          }
+                        }
+                      } else {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Gagal mengunduh PDF'), backgroundColor: Colors.red),
+                          );
+                        }
+                      }
+                    },
+                    icon: const Icon(Icons.download_rounded, size: 20),
+                    color: AppColors.primary,
+                    tooltip: 'Download PDF',
+                  ),
+                  TextButton.icon(
+                    onPressed: () => context.push('/tk/bap/form', extra: bap),
+                    icon: const Icon(Icons.edit_rounded, size: 18),
+                    label: const Text('Edit'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.primary,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  TextButton.icon(
+                    onPressed: () => _showDeleteConfirmation(context, bap),
+                    icon: const Icon(Icons.delete_outline_rounded, size: 18),
+                    label: const Text('Hapus'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.error,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, TkBapModel bap) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Hapus BAP?'),
+        content: Text('Apakah Anda yakin ingin menghapus BAP "${bap.namaKegiatan}"? Tindakan ini tidak dapat dibatalkan.'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              context.read<TkHealthProvider>().deleteBAP(bap.id);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Hapus'),
+          ),
+        ],
       ),
     );
   }

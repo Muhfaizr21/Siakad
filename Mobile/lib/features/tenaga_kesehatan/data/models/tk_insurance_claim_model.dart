@@ -15,6 +15,10 @@ class TkInsuranceClaimModel {
   final String? catatanReview;
   final String? suratPengantarUrl;
   final DateTime createdAt;
+  final String? namaFile;
+  final String? namaFile2;
+  final int? reviewedBy;
+  final DateTime? reviewedAt;
 
   TkInsuranceClaimModel({
     required this.id,
@@ -33,6 +37,10 @@ class TkInsuranceClaimModel {
     this.catatanReview,
     this.suratPengantarUrl,
     required this.createdAt,
+    this.namaFile,
+    this.namaFile2,
+    this.reviewedBy,
+    this.reviewedAt,
   });
 
   factory TkInsuranceClaimModel.fromJson(Map<String, dynamic> json) {
@@ -57,6 +65,12 @@ class TkInsuranceClaimModel {
       createdAt: json['created_at'] != null 
           ? DateTime.parse(json['created_at']) 
           : DateTime.now(),
+      namaFile: json['nama_file'],
+      namaFile2: json['nama_file_2'],
+      reviewedBy: json['reviewed_by'],
+      reviewedAt: json['reviewed_at'] != null 
+          ? DateTime.tryParse(json['reviewed_at'].toString()) 
+          : null,
     );
   }
 }

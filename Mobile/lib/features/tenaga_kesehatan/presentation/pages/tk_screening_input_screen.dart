@@ -39,7 +39,7 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
   @override
   void initState() {
     super.initState();
-    _currentStep = widget.patientId != null ? 1 : 0;
+    _currentStep = 0;
     _pageController = PageController(initialPage: _currentStep);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -55,16 +55,7 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
           if (idx != -1) {
             provider.selectPatient(provider.patients[idx]);
           } else {
-            provider.loadPatientMedicalRecord(widget.patientId!).then((_) {
-              if (mounted && provider.selectedPatient == null) {
-                setState(() {
-                  _currentStep = 0;
-                });
-                if (_pageController.hasClients) {
-                  _pageController.jumpToPage(0);
-                }
-              }
-            });
+            provider.loadPatientMedicalRecord(widget.patientId!);
           }
         }
       }
@@ -122,8 +113,14 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
             backgroundColor: Colors.white,
             elevation: 0,
             leading: IconButton(
-              icon: const Icon(Icons.close_rounded),
-              onPressed: () => _showExitConfirmation(),
+              icon: const Icon(Icons.arrow_back_rounded, color: AppColors.neutral900),
+              onPressed: () {
+                if (_currentStep > 0) {
+                  _goToPrevStep();
+                } else {
+                  _showExitConfirmation();
+                }
+              },
             ),
             title: Text(
               'Input Screening',
@@ -152,7 +149,7 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
                             setState(() => _currentStep = index);
                           },
                           children: [
-                            _buildPatientSelectionStep(),
+                            _buildPatientSelectionStep(provider),
                             _buildVitalSignsStep(),
                             _buildSubjectiveStep(),
                             _buildActionsStep(),
@@ -227,10 +224,61 @@ class _TkScreeningInputScreenState extends State<TkScreeningInputScreen> {
     );
   }
 
-  Widget _buildPatientSelectionStep() {
+  Widget _buildPatientSelectionStep(TkPatientProvider provider) {
+    final selectedPatient = provider.selectedPatient;
     return ListView(
       padding: const EdgeInsets.all(24),
       children: [
+        if (selectedPatient != null) ...[
+          _buildSectionTitle('Pasien Terpilih'),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withAlpha(10),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.primary.withAlpha(50)),
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: AppColors.primary.withAlpha(20),
+                  child: Text(
+                    selectedPatient.initials,
+                    style: const TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        selectedPatient.nama,
+                        style: AppTextStyles.bodyLg.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${selectedPatient.nim} • ${selectedPatient.prodi}',
+                        style: AppTextStyles.bodySm.copyWith(color: AppColors.neutral600),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.clear_rounded, color: AppColors.danger),
+                  onPressed: () {
+                    provider.clearSelection();
+                  },
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
         _buildSectionTitle('Identifikasi Pasien'),
         const SizedBox(height: 8),
         Text(

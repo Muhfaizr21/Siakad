@@ -325,15 +325,22 @@ class StudentRepositoryImpl implements StudentRepository {
   @override
   Future<void> submitAspiration(Aspiration aspiration) async {
     try {
-      final model = AspirationModel(
-        id: aspiration.id,
-        category: aspiration.category,
-        title: aspiration.title,
-        description: aspiration.description,
-        date: aspiration.date,
-        status: aspiration.status,
-      );
-      await apiClient.client.post('/student-voice/create', data: model.toJson());
+      final formData = FormData.fromMap({
+        'judul': aspiration.title,
+        'isi': aspiration.description,
+        'kategori': aspiration.category,
+        'tujuan': 'Fakultas',
+        'is_anonim': 'false',
+      });
+
+      if (aspiration.attachmentPath != null && aspiration.attachmentPath!.isNotEmpty) {
+        formData.files.add(MapEntry(
+          'lampiran',
+          await MultipartFile.fromFile(aspiration.attachmentPath!),
+        ));
+      }
+
+      await apiClient.client.post('/student-voice/create', data: formData);
     } catch (e) {
       log('Error submitting aspiration: $e');
       throw _parseError(e, 'Gagal mengirim aspirasi');
@@ -431,6 +438,73 @@ class StudentRepositoryImpl implements StudentRepository {
     } catch (e) {
       log('Error adding organization history: $e');
       throw Exception('Gagal menambah riwayat organisasi');
+    }
+  }
+
+  @override
+  Future<void> updateOrganizationHistory(String id, OrganizationHistory org) async {
+    try {
+      final model = OrganizationHistoryModel(
+        id: org.id,
+        namaOrganisasi: org.namaOrganisasi,
+        tipe: org.tipe,
+        jabatan: org.jabatan,
+        periodeMulai: org.periodeMulai,
+        periodeSelesai: org.periodeSelesai,
+        deskripsiKegiatan: org.deskripsiKegiatan,
+        apresiasi: org.apresiasi,
+        statusVerifikasi: org.statusVerifikasi,
+        achievements: org.achievements,
+      );
+      await apiClient.client.put('/organisasi/$id', data: model.toJson());
+    } catch (e) {
+      log('Error updating organization history: $e');
+      throw _parseError(e, 'Gagal memperbarui riwayat organisasi');
+    }
+  }
+
+  @override
+  Future<void> deleteOrganizationHistory(String id) async {
+    try {
+      await apiClient.client.delete('/organisasi/$id');
+    } catch (e) {
+      log('Error deleting organization history: $e');
+      throw _parseError(e, 'Gagal menghapus riwayat organisasi');
+    }
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getOrmawaList() async {
+    try {
+      final response = await apiClient.client.get('/organisasi/ormawa');
+      final rawData = response.data['data'];
+      final List list = (rawData is Map ? rawData['list'] : rawData) ?? [];
+      return List<Map<String, dynamic>>.from(list);
+    } catch (e) {
+      log('Error getting ormawa list: $e');
+      throw _parseError(e, 'Gagal memuat daftar ormawa');
+    }
+  }
+
+  @override
+  Future<void> daftarOrmawa(String ormawaId, String alasan, String? lampiranPath) async {
+    try {
+      final formData = FormData.fromMap({
+        'ormawa_id': ormawaId,
+        'alasan': alasan,
+      });
+
+      if (lampiranPath != null && lampiranPath.isNotEmpty) {
+        formData.files.add(MapEntry(
+          'lampiran',
+          await MultipartFile.fromFile(lampiranPath),
+        ));
+      }
+
+      await apiClient.client.post('/organisasi/ormawa/daftar', data: formData);
+    } catch (e) {
+      log('Error registering ormawa: $e');
+      throw _parseError(e, 'Gagal mendaftar ormawa');
     }
   }
 

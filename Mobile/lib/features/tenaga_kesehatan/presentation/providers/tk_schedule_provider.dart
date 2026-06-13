@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:bkuhub_mobile/features/tenaga_kesehatan/domain/entities/schedule.dart';
+import 'package:bkuhub_mobile/features/tenaga_kesehatan/domain/entities/booking.dart';
 import 'package:bkuhub_mobile/features/tenaga_kesehatan/domain/repositories/tk_repository.dart';
 
 class TkScheduleProvider extends ChangeNotifier {
@@ -28,7 +29,42 @@ class TkScheduleProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _schedules = await repository.getSchedules();
+      final futures = await Future.wait([
+        repository.getSchedules(),
+        repository.getBookings(),
+      ]);
+      final fetchedSchedules = futures[0] as List<Schedule>;
+      final fetchedBookings = futures[1] as List<Booking>;
+
+      // Count bookings per schedule ID (where status is not Ditolak / Dibatalkan)
+      final bookingCounts = <int, int>{};
+      for (final booking in fetchedBookings) {
+        if (booking.status != 'Ditolak' && booking.status != 'Dibatalkan') {
+          bookingCounts[booking.jadwalId] = (bookingCounts[booking.jadwalId] ?? 0) + 1;
+        }
+      }
+
+      // Map schedules with calculated bookedCount and sisaKuota
+      _schedules = fetchedSchedules.map((s) {
+        final count = bookingCounts[s.id] ?? 0;
+        return Schedule(
+          id: s.id,
+          tenagaKesId: s.tenagaKesId,
+          tanggal: s.tanggal,
+          jamMulai: s.jamMulai,
+          jamSelesai: s.jamSelesai,
+          kuota: s.kuota,
+          eventId: s.eventId,
+          lokasi: s.lokasi,
+          tipeLayanan: s.tipeLayanan,
+          catatan: s.catatan,
+          isRepeat: s.isRepeat,
+          repeatDays: s.repeatDays,
+          bookedCount: count,
+          sisaKuota: s.kuota - count,
+        );
+      }).toList();
+
       _isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -61,7 +97,25 @@ class TkScheduleProvider extends ChangeNotifier {
         'is_repeat': isRepeat,
         'repeat_days': repeatDays,
       });
-      _schedules.insert(0, newSchedule);
+
+      final wrappedSchedule = Schedule(
+        id: newSchedule.id,
+        tenagaKesId: newSchedule.tenagaKesId,
+        tanggal: newSchedule.tanggal,
+        jamMulai: newSchedule.jamMulai,
+        jamSelesai: newSchedule.jamSelesai,
+        kuota: newSchedule.kuota,
+        eventId: newSchedule.eventId,
+        lokasi: newSchedule.lokasi,
+        tipeLayanan: newSchedule.tipeLayanan,
+        catatan: newSchedule.catatan,
+        isRepeat: newSchedule.isRepeat,
+        repeatDays: newSchedule.repeatDays,
+        bookedCount: 0,
+        sisaKuota: newSchedule.kuota,
+      );
+
+      _schedules.insert(0, wrappedSchedule);
       notifyListeners();
       return true;
     } catch (e) {
@@ -94,7 +148,24 @@ class TkScheduleProvider extends ChangeNotifier {
       final updated = await repository.updateSchedule(id, data);
       final index = _schedules.indexWhere((s) => s.id == id);
       if (index != -1) {
-        _schedules[index] = updated;
+        final currentBookedCount = _schedules[index].bookedCount ?? 0;
+        final wrappedUpdated = Schedule(
+          id: updated.id,
+          tenagaKesId: updated.tenagaKesId,
+          tanggal: updated.tanggal,
+          jamMulai: updated.jamMulai,
+          jamSelesai: updated.jamSelesai,
+          kuota: updated.kuota,
+          eventId: updated.eventId,
+          lokasi: updated.lokasi,
+          tipeLayanan: updated.tipeLayanan,
+          catatan: updated.catatan,
+          isRepeat: updated.isRepeat,
+          repeatDays: updated.repeatDays,
+          bookedCount: currentBookedCount,
+          sisaKuota: updated.kuota - currentBookedCount,
+        );
+        _schedules[index] = wrappedUpdated;
         notifyListeners();
       }
       return true;

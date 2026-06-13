@@ -11,6 +11,10 @@ class TkBapModel {
   final int totalPantauan;
   final int totalTidakLayak;
   final String status;
+  final int? eventId;
+  final int? tkId;
+  final String? ttdKepalaDivisi;
+  final String? ttdTimMedis;
 
   TkBapModel({
     required this.id,
@@ -25,6 +29,10 @@ class TkBapModel {
     required this.totalPantauan,
     required this.totalTidakLayak,
     required this.status,
+    this.eventId,
+    this.tkId,
+    this.ttdKepalaDivisi,
+    this.ttdTimMedis,
   });
 
   factory TkBapModel.fromJson(Map<String, dynamic> json) {
@@ -43,6 +51,10 @@ class TkBapModel {
       totalPantauan: json['total_pantauan'] ?? 0,
       totalTidakLayak: json['total_tidak_layak'] ?? 0,
       status: json['status'] ?? 'DRAFT',
+      eventId: json['event_id'],
+      tkId: json['tk_id'],
+      ttdKepalaDivisi: json['ttd_kepala_divisi'],
+      ttdTimMedis: json['ttd_tim_medis'],
     );
   }
 
@@ -59,6 +71,10 @@ class TkBapModel {
       'total_pantauan': totalPantauan,
       'total_tidak_layak': totalTidakLayak,
       'status': status,
+      if (eventId != null) 'event_id': eventId,
+      if (tkId != null) 'tk_id': tkId,
+      if (ttdKepalaDivisi != null) 'ttd_kepala_divisi': ttdKepalaDivisi,
+      if (ttdTimMedis != null) 'ttd_tim_medis': ttdTimMedis,
     };
   }
 }

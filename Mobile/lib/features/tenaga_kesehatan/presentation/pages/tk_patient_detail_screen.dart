@@ -374,6 +374,313 @@ class _TkPatientDetailScreenState extends State<TkPatientDetailScreen>
               ),
             ),
           ],
+          const Divider(height: 24, thickness: 1),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: () => _showRecordDetails(context, record),
+              icon: const Icon(Icons.info_outline_rounded, size: 16, color: AppColors.primary),
+              label: Text(
+                'Lihat Detail Selengkapnya',
+                style: AppTextStyles.labelSm.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showRecordDetails(BuildContext context, MedicalRecord record) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+          ),
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.85,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Pull Bar
+              Center(
+                child: Container(
+                  margin: const EdgeInsets.symmetric(vertical: 12),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.neutral300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              // Header
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Detail Rekam Medis',
+                            style: AppTextStyles.titleLg.copyWith(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${_formatDate(record.tanggal)} • Oleh ${record.namaPemeriksa ?? "-"}',
+                            style: AppTextStyles.bodySm.copyWith(
+                              color: AppColors.neutral500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              // Content
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.all(20),
+                  children: [
+                    // Status Badge
+                    Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: _getStatusColor(record.statusKesehatan).withAlpha(20),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.medical_services_rounded,
+                              color: _getStatusColor(record.statusKesehatan),
+                              size: 16,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              record.statusCategory,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: _getStatusColor(record.statusKesehatan),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Section 1: Tanda Vital & Fisik
+                    _buildModalSectionTitle('Tanda Vital & Fisik'),
+                    const SizedBox(height: 12),
+                    _buildModalGrid([
+                      _buildModalGridItem('Tinggi Badan', '${record.tinggiBadan} cm'),
+                      _buildModalGridItem('Berat Badan', '${record.beratBadan} kg'),
+                      _buildModalGridItem('BMI', '${record.bmi.toStringAsFixed(1)} (${record.bmiCategory})'),
+                      _buildModalGridItem('Tekanan Darah', record.tekananDarah),
+                      _buildModalGridItem('Denyut Nadi', '${record.denyutNadi} bpm'),
+                      _buildModalGridItem('Suhu Tubuh', '${record.suhuTubuh}°C'),
+                      _buildModalGridItem('SpO2', '${record.spO2}%'),
+                      _buildModalGridItem('Gula Darah', record.gulaDarah != null ? '${record.gulaDarah} mg/dL' : '-'),
+                      _buildModalGridItem('Golongan Darah', record.golonganDarah ?? '-'),
+                    ]),
+                    const SizedBox(height: 24),
+
+                    // Section 2: Keluhan & Kondisi
+                    _buildModalSectionTitle('Keluhan & Kondisi'),
+                    const SizedBox(height: 12),
+                    _buildDetailItem('Riwayat Penyakit', record.riwayatPenyakit),
+                    _buildWarningDetailItem('Alergi Obat', record.alergiObat),
+                    _buildDetailItem('Kondisi Psikologis', record.kondisiPsikologis),
+                    _buildDetailItem('Konsumsi Obat', record.konsumsiObat),
+                    _buildDetailItem('Skala Nyeri', record.skalaNyeri != null ? '${record.skalaNyeri} / 10' : null),
+                    _buildDetailItem('Buta Warna', record.butaWarna),
+                    const SizedBox(height: 24),
+
+                    // Section 3: Tindakan & Penanganan
+                    _buildModalSectionTitle('Tindakan & Rekomendasi'),
+                    const SizedBox(height: 12),
+                    _buildDetailItem('Tindakan Diberikan', record.tindakanDiberikan),
+                    _buildDetailItem('Obat Diberikan', record.obatDiberikan),
+                    _buildDetailItem('Rekomendasi', record.rekomendasi),
+                    _buildDetailItem('Catatan Tambahan', record.catatan),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildModalSectionTitle(String title) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: AppTextStyles.titleSm.copyWith(
+            color: AppColors.primary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Container(
+          width: 40,
+          height: 3,
+          decoration: BoxDecoration(
+            color: AppColors.primary,
+            borderRadius: BorderRadius.circular(1.5),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildModalGrid(List<Widget> children) {
+    return GridView.count(
+      crossAxisCount: 2,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      childAspectRatio: 2.4,
+      mainAxisSpacing: 8,
+      crossAxisSpacing: 8,
+      children: children,
+    );
+  }
+
+  Widget _buildModalGridItem(String label, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.neutral50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.neutral200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            label,
+            style: AppTextStyles.caption.copyWith(color: AppColors.neutral500),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.bold),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailItem(String label, String? value) {
+    final displayValue = (value == null || value.trim().isEmpty) ? '-' : value;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.neutral50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.neutral200),
+      ),
+      width: double.infinity,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: AppTextStyles.caption.copyWith(color: AppColors.neutral500),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            displayValue,
+            style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.w500),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWarningDetailItem(String label, String? value) {
+    final hasWarning = value != null && value.trim().isNotEmpty && value.trim().toLowerCase() != 'tidak ada' && value.trim() != '-';
+    if (!hasWarning) {
+      return _buildDetailItem(label, value);
+    }
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.danger.withAlpha(15),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.danger.withAlpha(50)),
+      ),
+      width: double.infinity,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.warning_amber_rounded, color: AppColors.danger, size: 14),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.danger,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: AppTextStyles.bodyMd.copyWith(
+              color: AppColors.danger,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 import 'package:bkuhub_mobile/core/providers/student_provider.dart';
@@ -18,6 +19,8 @@ class _SubmitAspirationScreenState extends State<SubmitAspirationScreen> {
   final _descController = TextEditingController();
   String _selectedCategory = 'Fasilitas';
   bool _isSubmitting = false;
+  String? _attachmentPath;
+  String? _attachmentName;
 
   @override
   Widget build(BuildContext context) {
@@ -144,23 +147,23 @@ class _SubmitAspirationScreenState extends State<SubmitAspirationScreen> {
         children: [
           Icon(Icons.add_a_photo_rounded, size: 40, color: AppColors.outline.withAlpha(50)),
           const SizedBox(height: 12),
-          Text('Klik untuk unggah Foto atau Video', style: AppTextStyles.labelSm.copyWith(color: AppColors.outline)),
+          Text('Klik untuk unggah Foto atau Dokumen', style: AppTextStyles.labelSm.copyWith(color: AppColors.outline)),
           const SizedBox(height: 4),
           Text('Maksimal 10MB', style: AppTextStyles.labelSm.copyWith(color: AppColors.outline.withAlpha(50), fontSize: 10)),
+          if (_attachmentName != null) ...[
+            const SizedBox(height: 12),
+            Text('File terpilih: $_attachmentName', style: AppTextStyles.labelSm.copyWith(color: AppColors.primary)),
+          ],
           const SizedBox(height: 16),
           InkWell(
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Membuka Kamera/Galeri...')),
-              );
-            },
+            onTap: _pickFile,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               decoration: BoxDecoration(
                 color: AppColors.primary.withAlpha(10),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Text('Pilih File', style: AppTextStyles.labelSm.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold)),
+              child: Text(_attachmentName == null ? 'Pilih File' : 'Ganti File', style: AppTextStyles.labelSm.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold)),
             ),
           ),
         ],
@@ -203,6 +206,28 @@ class _SubmitAspirationScreenState extends State<SubmitAspirationScreen> {
     );
   }
 
+  Future<void> _pickFile() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
+      );
+
+      if (result != null && result.files.single.path != null) {
+        setState(() {
+          _attachmentPath = result.files.single.path;
+          _attachmentName = result.files.single.name;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gagal memilih file')),
+        );
+      }
+    }
+  }
+
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -216,6 +241,7 @@ class _SubmitAspirationScreenState extends State<SubmitAspirationScreen> {
         description: _descController.text,
         date: DateTime.now(),
         status: 'Pending',
+        attachmentPath: _attachmentPath,
       );
       await context.read<StudentProvider>().addAspiration(newAsp);
       if (!mounted) return;

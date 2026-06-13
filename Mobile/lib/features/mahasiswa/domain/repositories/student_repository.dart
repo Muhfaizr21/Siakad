@@ -39,6 +39,9 @@ abstract class StudentRepository {
   Future<void> bookCounseling(CounselingSession session);
   Future<void> addOrganizationHistory(OrganizationHistory org);
   Future<void> submitAppeal(String alasan);
+  Future<void> updateOrganizationHistory(String id, OrganizationHistory org);
+  Future<void> deleteOrganizationHistory(String id);
+  Future<List<Map<String, dynamic>>> getOrmawaList();
+  Future<void> daftarOrmawa(String ormawaId, String alasan, String? lampiranPath);
 }
-
 

@@ -1,8 +1,9 @@
 package mahasiswa
 
 import (
-	"encoding/json"
 	"fmt"
+	"os"
+	"strconv"
 	"siakad-backend/config"
 	"siakad-backend/models"
 	"time"
@@ -169,25 +170,28 @@ func DaftarOrmawa(c *fiber.Ctx) error {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
-	var req struct {
-		OrmawaID         uint                   `json:"ormawa_id"`
-		Divisi           string                 `json:"divisi"`
-		DivisiPilihanDua string                 `json:"divisi_pilihan_dua"`
-		Alasan           string                 `json:"alasan"`
-		CVURL            string                 `json:"cv_url"`
-		CustomAnswers    map[string]interface{} `json:"custom_answers"`
-	}
-	if err := c.BodyParser(&req); err != nil {
-		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Payload request tidak valid"})
+	ormawaIDStr := c.FormValue("ormawa_id")
+	if ormawaIDStr == "" {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Ormawa ID wajib diisi"})
 	}
 
-	if req.OrmawaID == 0 {
-		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Ormawa ID wajib diisi"})
+	ormawaID, err := strconv.Atoi(ormawaIDStr)
+	if err != nil || ormawaID <= 0 {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Ormawa ID tidak valid"})
+	}
+
+	alasan := c.FormValue("alasan")
+	divisi := c.FormValue("divisi")
+	divisiPilihanDua := c.FormValue("divisi_pilihan_dua")
+	
+	customAnswersJSON := c.FormValue("custom_answers")
+	if customAnswersJSON == "" {
+		customAnswersJSON = "{}"
 	}
 
 	// Fetch Ormawa details to check affiliation and open recruitment status
 	var ormawa models.Ormawa
-	if err := config.DB.Preload("KategoriDetail").First(&ormawa, req.OrmawaID).Error; err != nil {
+	if err := config.DB.Preload("KategoriDetail").First(&ormawa, uint(ormawaID)).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Ormawa tidak ditemukan"})
 	}
 
@@ -235,32 +239,45 @@ func DaftarOrmawa(c *fiber.Ctx) error {
 
 	// Check if already registered (either pending or active)
 	var count int64
-	config.DB.Model(&models.OrmawaAnggota{}).Where("mahasiswa_id = ? AND ormawa_id = ? AND status IN ?", student.ID, req.OrmawaID, []string{"aktif", "pending"}).Count(&count)
+	config.DB.Model(&models.OrmawaAnggota{}).Where("mahasiswa_id = ? AND ormawa_id = ? AND status IN ?", student.ID, uint(ormawaID), []string{"aktif", "pending"}).Count(&count)
 	if count > 0 {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Anda sudah terdaftar atau memiliki pendaftaran pending di Ormawa ini"})
 	}
 
-	div := req.Divisi
-	if div == "" {
-		div = "Umum"
+	if divisi == "" {
+		divisi = "Umum"
 	}
+	
+	var cvURL string
+	
+	// Handle Lampiran Upload
+	file, err := c.FormFile("lampiran")
+	if err == nil && file != nil {
+		// Create directory if not exists
+		uploadDir := "./uploads/ormawa"
+		if err := os.MkdirAll(uploadDir, os.ModePerm); err != nil {
+			return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal membuat direktori upload"})
+		}
 
-	// Serialize custom answers to JSON
-	customAnswersJSON := ""
-	if len(req.CustomAnswers) > 0 {
-		jb, _ := json.Marshal(req.CustomAnswers)
-		customAnswersJSON = string(jb)
+		filename := fmt.Sprintf("%d_%d_%s", student.ID, ormawaID, file.Filename)
+		filepath := fmt.Sprintf("%s/%s", uploadDir, filename)
+
+		if err := c.SaveFile(file, filepath); err != nil {
+			return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal menyimpan file lampiran"})
+		}
+
+		cvURL = "/uploads/ormawa/" + filename
 	}
 
 	anggota := models.OrmawaAnggota{
-		OrmawaID:         req.OrmawaID,
+		OrmawaID:         uint(ormawaID),
 		MahasiswaID:      student.ID,
 		Role:             "Anggota",
-		Divisi:           div,
-		DivisiPilihanDua: req.DivisiPilihanDua,
+		Divisi:           divisi,
+		DivisiPilihanDua: divisiPilihanDua,
 		IPK:              student.IPK,
-		Alasan:           req.Alasan,
-		CVURL:            req.CVURL,
+		Alasan:           alasan,
+		CVURL:            cvURL,
 		CustomAnswers:    customAnswersJSON,
 		Status:           "pending",
 		JoinedAt:         now,

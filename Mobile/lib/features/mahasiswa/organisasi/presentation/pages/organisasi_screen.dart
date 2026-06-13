@@ -6,6 +6,8 @@ import 'package:bkuhub_mobile/core/widgets/fade_in_animation.dart';
 import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
 import 'package:bkuhub_mobile/core/providers/student_provider.dart';
 import 'package:bkuhub_mobile/features/mahasiswa/domain/entities/organization_history.dart';
+import 'package:bkuhub_mobile/features/mahasiswa/organisasi/presentation/pages/add_organisasi_screen.dart';
+import 'package:bkuhub_mobile/features/mahasiswa/organisasi/presentation/pages/rekrutmen_ormawa_screen.dart';
 
 class OrganisasiScreen extends StatefulWidget {
   const OrganisasiScreen({super.key});
@@ -123,11 +125,11 @@ class _OrganisasiScreenState extends State<OrganisasiScreen> {
                       );
                     }),
                   const SizedBox(height: 24),
-                  FadeInAnimation(delay: 0.7, child: _buildAddButton()),
+                  FadeInAnimation(delay: 0.7, child: _buildAddButton(context)),
                   const SizedBox(height: 32),
                   FadeInAnimation(
                     delay: 0.75,
-                    child: _buildExploreSection(),
+                    child: _buildExploreSection(context),
                   ),
                   const SizedBox(height: 32),
                   FadeInAnimation(
@@ -341,11 +343,25 @@ class _OrganisasiScreenState extends State<OrganisasiScreen> {
     );
   }
 
-  Widget _buildExploreSection() {
+  Widget _buildExploreSection(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Jelajahi Organisasi', style: AppTextStyles.titleLg.copyWith(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.primary)),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Jelajahi Organisasi', style: AppTextStyles.titleLg.copyWith(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.primary)),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const RekrutmenOrmawaScreen()),
+                );
+              }, 
+              child: Text('Lihat Semua', style: AppTextStyles.labelSm.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold))
+            ),
+          ],
+        ),
         const SizedBox(height: 16),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
@@ -405,9 +421,14 @@ class _OrganisasiScreenState extends State<OrganisasiScreen> {
     );
   }
 
-  Widget _buildAddButton() {
+  Widget _buildAddButton(BuildContext context) {
     return InkWell(
-      onTap: () {},
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const AddOrganisasiScreen()),
+        );
+      },
       borderRadius: BorderRadius.circular(24),
       child: Container(
         width: double.infinity,

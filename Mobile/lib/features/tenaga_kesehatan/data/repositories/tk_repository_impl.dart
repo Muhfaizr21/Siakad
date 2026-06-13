@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:bkuhub_mobile/core/network/api_client.dart';
 import 'package:bkuhub_mobile/features/tenaga_kesehatan/domain/entities/tk_profile.dart';
 import 'package:bkuhub_mobile/features/tenaga_kesehatan/domain/entities/schedule.dart';
@@ -375,6 +376,19 @@ class TkRepositoryImpl implements TkRepository {
       await apiClient.client.delete('/tenagakes/bap/$id');
     } catch (e) {
       log('Error deleting BAP: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<String> exportBAPPdf(int id) async {
+    try {
+      final baseUrl = apiClient.client.options.baseUrl;
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('access_token') ?? '';
+      return '$baseUrl/tenagakes/bap/$id/export-pdf?token=$token';
+    } catch (e) {
+      log('Error getting BAP export URL: $e');
       rethrow;
     }
   }

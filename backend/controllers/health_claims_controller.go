@@ -1094,19 +1094,178 @@ func ExportBAPPDF(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusNotFound, "BAP tidak ditemukan")
 	}
 
-	return c.JSON(fiber.Map{
-		"status": "success",
-		"message": "BAP PDF export - to be implemented with gofpdf",
-		"data": fiber.Map{
-			"nama_kegiatan": bap.NamaKegiatan,
-			"tanggal":       bap.TanggalPelaksanaan.Format("02 January 2006"),
-			"jumlah_peserta": bap.JumlahPeserta,
-			"jumlah_diperiksa": bap.JumlahDiperiksa,
-			"layak": bap.TotalLayak,
-			"pantauan": bap.TotalPantauan,
-			"tidak_layak": bap.TotalTidakLayak,
-		},
-	})
+	// Build/regenerate file
+	fileName := fmt.Sprintf("bap_%d.pdf", bap.ID)
+	dirPath := "uploads/bap"
+	if err := os.MkdirAll(dirPath, 0755); err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, "Gagal membuat direktori PDF")
+	}
+
+	filePath := filepath.Join(dirPath, fileName)
+	_ = os.Remove(filePath) // clean up old file if exists
+
+	if err := BuildBAPPDF(bap, filePath); err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, "Gagal membuat PDF BAP: "+err.Error())
+	}
+
+	c.Set("Content-Type", "application/pdf")
+	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=bap_%s.pdf", bapID))
+	return c.SendFile(filePath)
+}
+
+func getIndonesianDay(t time.Time) string {
+	days := map[string]string{
+		"Sunday":    "Minggu",
+		"Monday":    "Senin",
+		"Tuesday":   "Selasa",
+		"Wednesday": "Rabu",
+		"Thursday":  "Kamis",
+		"Friday":    "Jumat",
+		"Saturday":  "Sabtu",
+	}
+	return days[t.Format("Monday")]
+}
+
+func getIndonesianMonth(t time.Time) string {
+	months := map[string]string{
+		"January":   "Januari",
+		"February":  "Februari",
+		"March":     "Maret",
+		"April":     "April",
+		"May":       "Mei",
+		"June":      "Juni",
+		"July":      "Juli",
+		"August":    "Agustus",
+		"September": "September",
+		"October":   "Oktober",
+		"November":  "November",
+		"December":  "Desember",
+	}
+	return months[t.Format("January")]
+}
+
+func BuildBAPPDF(bap models.BeritaAcaraPemeriksaan, filePath string) error {
+	pdf := gofpdf.New("L", "mm", "A4", "")
+	pdf.SetMargins(20, 15, 20)
+	pdf.SetAutoPageBreak(false, 0)
+	pdf.AddPage()
+
+	// Kop Surat (Header)
+	logoPath := "../frontend/public/images/bku logo.png"
+	if _, err := os.Stat(logoPath); err == nil {
+		pdf.ImageOptions(logoPath, 20, 12, 18, 18, false, gofpdf.ImageOptions{ImageType: "PNG", ReadDpi: true}, 0, "")
+	}
+
+	// Yayasan & University Name
+	pdf.SetFont("Helvetica", "B", 11)
+	pdf.SetXY(42, 14)
+	pdf.CellFormat(0, 5, "YAYASAN ADHI GUNA KENCANA", "", 1, "L", false, 0, "")
+	pdf.SetFont("Helvetica", "B", 15)
+	pdf.SetX(42)
+	pdf.CellFormat(0, 7, "UNIVERSITAS BHAKTI KENCANA", "", 1, "L", false, 0, "")
+
+	// Contact Info
+	pdf.SetFont("Helvetica", "", 9)
+	pdf.SetXY(20, 13)
+	pdf.CellFormat(0, 4.5, "Jl. Soekarno Hatta No 754 Bandung", "", 1, "R", false, 0, "")
+	pdf.CellFormat(0, 4.5, "Telp: (022) 7830 760, (022) 7830 768", "", 1, "R", false, 0, "")
+	pdf.CellFormat(0, 4.5, "Web: bku.ac.id | Email: contact@bku.ac.id", "", 1, "R", false, 0, "")
+
+	// Horizontal double line
+	pdf.SetLineWidth(0.8)
+	pdf.Line(20, 33, 277, 33)
+	pdf.SetLineWidth(0.3)
+	pdf.Line(20, 34.5, 277, 34.5)
+
+	// Title
+	pdf.SetFont("Helvetica", "B", 13)
+	pdf.SetXY(20, 39)
+	pdf.CellFormat(0, 7, "BERITA ACARA PEMERIKSAAN KESEHATAN MAHASISWA", "", 1, "C", false, 0, "")
+	pdf.SetFont("Helvetica", "", 10)
+	pdf.CellFormat(0, 5, fmt.Sprintf("Nomor: %04d/BAP-KES/%d", bap.ID, bap.TanggalPelaksanaan.Year()), "", 1, "C", false, 0, "")
+	pdf.Ln(4)
+
+	// Opening statement
+	pdf.SetX(20)
+	indDay := getIndonesianDay(bap.TanggalPelaksanaan)
+	indMonth := getIndonesianMonth(bap.TanggalPelaksanaan)
+	formattedDate := fmt.Sprintf("%s, %d %s %d", indDay, bap.TanggalPelaksanaan.Day(), indMonth, bap.TanggalPelaksanaan.Year())
+	pdf.CellFormat(0, 5, fmt.Sprintf("Pada hari ini %s, telah dilaksanakan kegiatan pemeriksaan kesehatan mahasiswa dengan rincian sebagai berikut:", formattedDate), "", 1, "L", false, 0, "")
+	pdf.Ln(3)
+
+	// A. Informasi Kegiatan Section
+	pdf.SetFont("Helvetica", "B", 10)
+	pdf.SetX(20)
+	pdf.CellFormat(0, 5, "A. INFORMASI KEGIATAN", "", 1, "L", false, 0, "")
+	pdf.SetFont("Helvetica", "", 10)
+	
+	pdf.SetX(25)
+	pdf.CellFormat(40, 5, "Nama Kegiatan", "", 0, "L", false, 0, "")
+	pdf.CellFormat(5, 5, ":", "", 0, "C", false, 0, "")
+	pdf.CellFormat(0, 5, bap.NamaKegiatan, "", 1, "L", false, 0, "")
+
+	pdf.SetX(25)
+	pdf.CellFormat(40, 5, "Waktu Pelaksanaan", "", 0, "L", false, 0, "")
+	pdf.CellFormat(5, 5, ":", "", 0, "C", false, 0, "")
+	pdf.CellFormat(0, 5, fmt.Sprintf("%s - %s WIB", bap.WaktuMulai, bap.WaktuSelesai), "", 1, "L", false, 0, "")
+
+	pdf.SetX(25)
+	pdf.CellFormat(40, 5, "Tempat", "", 0, "L", false, 0, "")
+	pdf.CellFormat(5, 5, ":", "", 0, "C", false, 0, "")
+	pdf.CellFormat(0, 5, bap.Tempat, "", 1, "L", false, 0, "")
+	pdf.Ln(4)
+
+	// B. Statistik Pemeriksaan Section
+	pdf.SetFont("Helvetica", "B", 10)
+	pdf.SetX(20)
+	pdf.CellFormat(0, 5, "B. REKAPITULASI HASIL PEMERIKSAAN", "", 1, "L", false, 0, "")
+	pdf.Ln(2)
+
+	// Statistics Table
+	pdf.SetX(20)
+	pdf.SetFont("Helvetica", "B", 9)
+	pdf.SetFillColor(240, 240, 240)
+	
+	// Table Headers
+	colWidths := []float64{45, 45, 49, 49, 49}
+	headers := []string{"Total Target Peserta", "Total Mahasiswa Diperiksa", "Hasil: Layak", "Hasil: Dalam Pantauan", "Hasil: Tidak Layak"}
+	for i, header := range headers {
+		pdf.CellFormat(colWidths[i], 8, header, "1", 0, "C", true, 0, "")
+	}
+	pdf.Ln(8)
+
+	// Table Data Row
+	pdf.SetFont("Helvetica", "", 10)
+	pdf.SetX(20)
+	data := []string{
+		fmt.Sprintf("%d Orang", bap.JumlahPeserta),
+		fmt.Sprintf("%d Orang", bap.JumlahDiperiksa),
+		fmt.Sprintf("%d Orang", bap.TotalLayak),
+		fmt.Sprintf("%d Orang", bap.TotalPantauan),
+		fmt.Sprintf("%d Orang", bap.TotalTidakLayak),
+	}
+	for i, val := range data {
+		pdf.CellFormat(colWidths[i], 8, val, "1", 0, "C", false, 0, "")
+	}
+	pdf.Ln(12)
+
+	// Closing statement
+	pdf.SetX(20)
+	pdf.CellFormat(0, 5, "Demikian Berita Acara Pemeriksaan ini dibuat dengan sebenar-benarnya untuk dipergunakan sebagaimana mestinya.", "", 1, "L", false, 0, "")
+
+	// Signature Area
+	pdf.Ln(10)
+	sigY := pdf.GetY()
+	pdf.SetXY(195, sigY)
+	pdf.SetFont("Helvetica", "", 10)
+	pdf.CellFormat(60, 5, fmt.Sprintf("Bandung, %d %s %d", bap.TanggalPelaksanaan.Day(), indMonth, bap.TanggalPelaksanaan.Year()), "", 1, "C", false, 0, "")
+	pdf.SetX(195)
+	pdf.CellFormat(60, 5, "Tenaga Kesehatan / Tim Medis,", "", 1, "C", false, 0, "")
+	
+	pdf.SetXY(195, sigY + 22)
+	pdf.CellFormat(60, 5, "(........................................)", "", 1, "C", false, 0, "")
+
+	return pdf.OutputFileAndClose(filePath)
 }
 
 // ExportRujukanPDF - Generate Rujukan Medis PDF

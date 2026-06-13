@@ -8,6 +8,17 @@ class Achievement {
   final String status;
   final bool isSynced;
   final String? certificateUrl;
+  
+  final String? tipe;
+  final String? danaDiajukan;
+  final String? cabang;
+  final String? jumlahUnitPeserta;
+  final String? kelompokPrestasi;
+  final String? bentuk;
+  final String? urlPeserta;
+  final String? urlFotoUpp;
+  final String? urlDokumenUndangan;
+  final String? jenisRekognisi;
 
   Achievement({
     required this.id,
@@ -19,5 +30,15 @@ class Achievement {
     this.status = 'Pending',
     this.isSynced = false,
     this.certificateUrl,
+    this.tipe,
+    this.danaDiajukan,
+    this.cabang,
+    this.jumlahUnitPeserta,
+    this.kelompokPrestasi,
+    this.bentuk,
+    this.urlPeserta,
+    this.urlFotoUpp,
+    this.urlDokumenUndangan,
+    this.jenisRekognisi,
   });
 }

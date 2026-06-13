@@ -204,7 +204,7 @@ class _TkSettingsScreenState extends State<TkSettingsScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 120),
                     ],
                   ),
                 );

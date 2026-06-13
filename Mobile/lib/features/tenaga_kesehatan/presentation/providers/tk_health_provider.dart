@@ -132,6 +132,21 @@ class TkHealthProvider extends ChangeNotifier {
     }
   }
 
+  Future<String?> downloadBAP(int id) async {
+    _setLoading(true);
+    try {
+      final url = await repository.exportBAPPdf(id);
+      _error = null;
+      return url;
+    } catch (e) {
+      _error = e.toString();
+      log('Error getting download URL: $e');
+      return null;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   // ==================== CLINICAL REPORTS ====================
 
   Future<void> fetchClinicalReports({String? startDate, String? endDate}) async {

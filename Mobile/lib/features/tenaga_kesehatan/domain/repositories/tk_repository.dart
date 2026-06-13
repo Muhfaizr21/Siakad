@@ -46,6 +46,7 @@ abstract class TkRepository {
   Future<TkBapModel> createBAP(Map<String, dynamic> data);
   Future<TkBapModel> updateBAP(int id, Map<String, dynamic> data);
   Future<void> deleteBAP(int id);
+  Future<String> exportBAPPdf(int id);
 
   // Clinical Reports
   Future<TkClinicalReportModel> getClinicalReports({String? startDate, String? endDate});

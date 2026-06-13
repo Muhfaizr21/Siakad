@@ -115,6 +115,10 @@ class _TkBapFormScreenState extends State<TkBapFormScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.neutral900),
+          onPressed: () => context.pop(),
+        ),
         title: Text(
           widget.existingBap == null ? 'Buat BAP Baru' : 'Edit BAP',
           style: AppTextStyles.titleMd.copyWith(color: AppColors.primary, fontWeight: FontWeight.w900),
