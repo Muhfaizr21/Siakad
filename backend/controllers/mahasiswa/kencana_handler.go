@@ -187,9 +187,11 @@ func CheckIn(c *fiber.Ctx) error {
 
 	kegiatanID, _ := c.ParamsInt("id")
 
+	var kegiatan models.PkkmbKegiatan
+	config.DB.First(&kegiatan, kegiatanID)
+
 	var pg models.PkkmbProgress
 	if err := config.DB.Where("mahasiswa_id = ? AND kegiatan_id = ?", student.ID, kegiatanID).First(&pg).Error; err != nil {
-		// New registration
 		pg = models.PkkmbProgress{
 			MahasiswaID: student.ID,
 			KegiatanID:  uint(kegiatanID),
@@ -201,6 +203,7 @@ func CheckIn(c *fiber.Ctx) error {
 		config.DB.Save(&pg)
 	}
 
+	logActivity(c, "kencana", "Check-in kegiatan PKKMB: "+kegiatan.Judul)
 	return c.JSON(fiber.Map{"success": true, "message": "Berhasil check-in kegiatan"})
 }
 
@@ -258,6 +261,7 @@ func SubmitBanding(c *fiber.Ctx) error {
 		Content: "Pengajuan banding kelulusan PKKMB kamu telah diterima dan sedang diproses.",
 	})
 
+	logActivity(c, "kencana", "Mengajukan banding PKKMB")
 	return c.JSON(fiber.Map{"success": true, "message": "Banding berhasil diajukan"})
 }
 
@@ -292,9 +296,10 @@ func GenerateSertifikat(c *fiber.Ctx) error {
 		TanggalTerbit: time.Now(),
 	}
 	if err := config.DB.Create(&newCert).Error; err != nil {
-		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal generate sertifikat"})
+		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal membuat sertifikat"})
 	}
 
+	logActivity(c, "kencana", "Generate sertifikat PKKMB")
 	return c.JSON(fiber.Map{"success": true, "data": newCert})
 }
 
@@ -473,6 +478,8 @@ func SubmitKuis(c *fiber.Ctx) error {
 			Link:        "/student/kencana",
 		})
 	}
+
+	logActivity(c, "kencana", fmt.Sprintf("Submit kuis: %s (nilai: %.0f, lulus: %v)", quiz.Judul, nilai, lulus))
 
 	return c.JSON(fiber.Map{
 		"success": true,

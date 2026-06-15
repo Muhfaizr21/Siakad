@@ -46,6 +46,7 @@ func GetDashboard(c *fiber.Ctx) error {
 		"blockers":              blockers,
 		"notifications":         importantNotifications(period.ID, student.ID, blockers),
 		"mentor":                activeMentorForStudent(period.ID, student.ID),
+		"weights":               fiber.Map{"cognitive": period.CognitiveWeight, "psychomotor": period.PsychomotorWeight, "affective": period.AffectiveWeight},
 	}})
 }
 
@@ -115,6 +116,9 @@ func RespondMentorInvitation(c *fiber.Ctx) error {
 	}); err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal memperbarui undangan"})
 	}
+
+	logActivity(c, "kencana", fmt.Sprintf("%s undangan DP", map[string]string{"accept": "Menerima", "reject": "Menolak"}[req.Action]))
+
 	return c.JSON(fiber.Map{"success": true, "message": "Undangan berhasil diperbarui", "data": invitation})
 }
 
@@ -160,6 +164,9 @@ func RespondGroupInvitation(c *fiber.Ctx) error {
 	}); err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal memperbarui undangan kelompok"})
 	}
+
+	logActivity(c, "kencana", fmt.Sprintf("%s undangan kelompok", map[string]string{"accept": "Menerima", "reject": "Menolak"}[req.Action]))
+
 	return c.JSON(fiber.Map{"success": true, "message": "Undangan kelompok berhasil diperbarui", "data": invitation})
 }
 
@@ -384,6 +391,9 @@ func CompleteMaterial(c *fiber.Ctx) error {
 	} else {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal menyimpan progress materi"})
 	}
+
+	logActivity(c, "kencana", fmt.Sprintf("Menyelesaikan materi #%d", materialID))
+
 	return c.JSON(fiber.Map{"success": true, "message": "Materi ditandai selesai", "data": progress})
 }
 
@@ -445,6 +455,9 @@ func StartQuiz(c *fiber.Ctx) error {
 	if err := config.DB.Create(&attempt).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal memulai quiz"})
 	}
+
+	logActivity(c, "kencana", fmt.Sprintf("Memulai quiz: %s", quiz.Title))
+
 	return c.JSON(fiber.Map{"success": true, "data": attempt})
 }
 
@@ -541,6 +554,9 @@ func SubmitQuizAttempt(c *fiber.Ctx) error {
 	period, _ := ensureDemoPeriod(config.DB, student)
 	upsertScoreItem(config.DB, period.ID, student.ID, "cognitive", fmt.Sprintf("Quiz #%d", attempt.QuizID), score, "quiz", &attempt.QuizID, nil)
 	ks, blockers, _ := calculateAndStoreScore(config.DB, period.ID, student.ID)
+
+	logActivity(c, "kencana", fmt.Sprintf("Submit quiz (nilai: %.0f, lulus: %v)", score, score >= 75))
+
 	return c.JSON(fiber.Map{"success": true, "data": fiber.Map{
 		"attempt_id": attempt.ID, "score": score, "nilai": score, "passed": score >= 75, "lulus": score >= 75,
 		"correct_count": correct, "jumlah_benar": correct, "total_questions": total, "total_soal": total,
@@ -613,6 +629,9 @@ func SubmitAssignment(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal mengumpulkan tugas"})
 	}
+
+	logActivity(c, "kencana", fmt.Sprintf("Mengumpulkan tugas #%d", assignmentID))
+
 	return c.JSON(fiber.Map{"success": true, "message": "Tugas berhasil dikumpulkan", "data": submission})
 }
 
@@ -949,5 +968,8 @@ func saveHandbook(c *fiber.Ctx, status string) error {
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal menyimpan handbook"})
 	}
+
+	logActivity(c, "kencana", fmt.Sprintf("Menyimpan handbook (%s)", status))
+
 	return c.JSON(fiber.Map{"success": true, "data": handbook})
 }

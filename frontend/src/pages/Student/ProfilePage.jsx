@@ -3,8 +3,6 @@ import { PageContent } from '@/components/ui/page';
 import { useQuery } from '@tanstack/react-query';
 import api from '../../lib/axios';
 
-import { NavLink } from 'react-router-dom';
-import { DashboardHero } from '@/components/ui/dashboard';
 import { cn } from '@/lib/utils';
 import DataDiriTab from './tabs/DataDiriTab';
 import KeamananTab from './tabs/KeamananTab';
@@ -66,15 +64,17 @@ export default function ProfilePage() {
   return (
     <PageContent className="font-body">
       <div className="w-full relative space-y-6 scroll-smooth pb-8">
-        <DashboardHero
-          title="Pengaturan"
-          highlightedTitle="Profil Akun"
-          subtitle="Kelola informasi identitas, keamanan kata sandi, dan preferensi notifikasi secara mandiri."
-          icon="manage_accounts"
-          badges={[{ label: 'Student Portal', active: false }]}
-        />
+        {/* Page Heading — slim, no card wrapper */}
+        <div className="mb-2">
+          <h1 className="text-2xl md:text-3xl font-bold font-headline text-[var(--theme-text)] tracking-tight">
+            Pengaturan <span className="text-[var(--theme-primary)]">Profil Akun</span>
+          </h1>
+          <p className="text-xs md:text-sm font-medium text-[var(--theme-text-muted)] max-w-3xl leading-relaxed mt-1.5">
+            Kelola informasi identitas, keamanan kata sandi, dan preferensi notifikasi secara mandiri.
+          </p>
+        </div>
         
-        {/* Header: Identity Section */}
+        {/* Identity Card — visual hero of the page */}
         <div className="rounded-3xl border border-[var(--theme-border)] p-5 md:p-6 shadow-sm mb-6 relative overflow-hidden group" style={{ background: 'linear-gradient(135deg, var(--theme-surface) 0%, var(--theme-bg) 100%)' }}>
           
           {/* Decorative background blobs */}
@@ -190,7 +190,7 @@ export default function ProfilePage() {
         <AvatarUploadModal 
           isOpen={isAvatarModalOpen} 
           onClose={() => setIsAvatarModalOpen(false)} 
-          currentPhoto={profile?.PhotoURL}
+          currentPhoto={profile?.FotoURL}
         />
       </div>
     </PageContent>

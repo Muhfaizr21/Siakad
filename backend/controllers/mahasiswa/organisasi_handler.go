@@ -63,6 +63,7 @@ func Create(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal menambah riwayat organisasi"})
 	}
 
+	logActivity(c, "organisasi", "Menambah riwayat organisasi: "+req.NamaOrganisasi)
 	return c.Status(201).JSON(fiber.Map{"success": true, "data": rec})
 }
 
@@ -96,6 +97,7 @@ func Update(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal menyimpan perubahan"})
 	}
 
+	logActivity(c, "organisasi", "Memperbarui riwayat organisasi: "+rec.NamaOrganisasi)
 	return c.JSON(fiber.Map{"success": true, "data": rec})
 }
 
@@ -113,6 +115,7 @@ func Delete(c *fiber.Ctx) error {
 	}
 
 	config.DB.Delete(&rec)
+	logActivity(c, "organisasi", "Menghapus riwayat organisasi: "+rec.NamaOrganisasi)
 	return c.JSON(fiber.Map{"success": true, "message": "Riwayat organisasi berhasil dihapus"})
 }
 

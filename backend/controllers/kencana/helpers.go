@@ -21,6 +21,19 @@ const (
 	statusNotStarted      = "not_started"
 )
 
+func logActivity(c *fiber.Ctx, aktivitas, deskripsi string) {
+	uid, err := userID(c)
+	if err != nil {
+		return
+	}
+	config.DB.Create(&models.LogAktivitas{
+		UserID:    uid,
+		Aktivitas: aktivitas,
+		Deskripsi: deskripsi,
+		IPAddress: c.IP(),
+	})
+}
+
 func userID(c *fiber.Ctx) (uint, error) {
 	v, ok := c.Locals("user_id").(uint)
 	if !ok || v == 0 {
@@ -229,6 +242,15 @@ func calculateAndStoreScore(db *gorm.DB, periodID, studentID uint) (*models.Kenc
 	if err := db.Where("period_id = ? AND student_id = ?", periodID, studentID).Find(&items).Error; err != nil {
 		return nil, nil, err
 	}
+
+	var period models.KencanaPeriod
+	if err := db.First(&period, periodID).Error; err != nil {
+		period = models.KencanaPeriod{CognitiveWeight: 25, PsychomotorWeight: 35, AffectiveWeight: 40}
+	}
+	cw := period.CognitiveWeight / 100
+	pw := period.PsychomotorWeight / 100
+	aw := period.AffectiveWeight / 100
+
 	components := map[string][]float64{"cognitive": {}, "psychomotor": {}, "affective": {}}
 	for _, item := range items {
 		components[strings.ToLower(item.Component)] = append(components[strings.ToLower(item.Component)], item.Score)
@@ -236,13 +258,13 @@ func calculateAndStoreScore(db *gorm.DB, periodID, studentID uint) (*models.Kenc
 	cog := roundScore(average(components["cognitive"]))
 	psy := roundScore(average(components["psychomotor"]))
 	aff := roundScore(average(components["affective"]))
-	final := roundScore(cog*0.25 + psy*0.35 + aff*0.40)
+	final := roundScore(cog*cw + psy*pw + aff*aw)
 	now := time.Now()
 	status, blockers := graduationStatus(db, periodID, studentID, final, items)
 	score := models.KencanaScore{
 		PeriodID: periodID, StudentID: studentID,
 		CognitiveAverage: cog, PsychomotorAverage: psy, AffectiveAverage: aff,
-		CognitiveWeighted: roundScore(cog * 0.25), PsychomotorWeighted: roundScore(psy * 0.35), AffectiveWeighted: roundScore(aff * 0.40),
+		CognitiveWeighted: roundScore(cog * cw), PsychomotorWeighted: roundScore(psy * pw), AffectiveWeighted: roundScore(aff * aw),
 		FinalScore: final, GraduationStatus: status, Notes: strings.Join(blockers, "; "), CalculatedAt: &now,
 	}
 	var existing models.KencanaScore

@@ -1,11 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 
-import About from './pages/About/About'
-import Academic from './pages/Academic/Academic'
-import Services from './pages/Services/Services'
-import Home from './pages/Home/Home'
-import PublicLayout from './components/layout/PublicLayout'
 import Login from './pages/Auth/Login'
 import Register from './pages/Auth/Register'
 import ChangePassword from './pages/Auth/ChangePassword'
@@ -40,6 +35,7 @@ import TenagaKesehatanPatientMedicalRecord from './pages/TenagaKesehatan/Patient
 import TenagaKesehatanSettings from './pages/TenagaKesehatan/Settings'
 import TenagaKesehatanNotificationsCenter from './pages/TenagaKesehatan/NotificationsCenter'
 
+import ScrollToTop from './components/ScrollToTop'
 import ErrorBoundary from './components/ErrorBoundary'
 import ThemeProvider from './components/ThemeProvider'
 import Error404 from './pages/Error/Error404'
@@ -135,6 +131,7 @@ import AdminPerformance from './pages/SuperAdmin/AdminPerformance'
 import AdminProfile from './pages/SuperAdmin/Profile'
 import SecuritySettings from './pages/SuperAdmin/SecuritySettings'
 import { ThemeCustomizer } from './pages/SuperAdmin/theme'
+import LandingPageEditor from './pages/SuperAdmin/LandingPageEditor'
 import AdminPsychologistDashboard from './pages/SuperAdmin/psychologist/PsychologistDashboard'
 import AdminPsychologistList from './pages/SuperAdmin/psychologist/PsychologistList'
 import AdminPsychologistBookings from './pages/SuperAdmin/psychologist/PsychologistBookings'
@@ -154,6 +151,9 @@ import InsuranceManagement from './pages/SuperAdmin/InsuranceManagement'
 import GamifikasiOrmawa from './pages/SuperAdmin/GamifikasiOrmawa'
 import KategoriOrmawaPage from './pages/FacultyAdmin/KategoriOrmawa'
 import SuperAdminLayout from './pages/SuperAdmin/components/SuperAdminLayout'
+
+// Landing Pages
+import { LandingLayout, Beranda, Tentang, ProgramStudi, Berita, Kontak, KebijakanPrivasi, SyaratKetentuan } from './pages/Landing'
 
 import InsuranceReview from './pages/TenagaKesehatan/InsuranceReview'
 import BAPManagement from './pages/TenagaKesehatan/BAPManagement'
@@ -232,16 +232,21 @@ function App() {
       <ThemeProvider>
         <AuthProvider>
           <Router>
+            <ScrollToTop />
             <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-50"><Loader2 className="animate-spin text-primary size-10" /></div>}>
               <Routes>
 
-                {/* Public Routes */}
-                <Route element={<PublicLayout />}>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/about" element={<About />} />
-                  <Route path="/academic" element={<Academic />} />
-                  <Route path="/services" element={<Services />} />
+                {/* Landing Pages */}
+                <Route path="/" element={<LandingLayout />}>
+                  <Route index element={<Beranda />} />
+                  <Route path="tentang" element={<Tentang />} />
+                  <Route path="program-studi" element={<ProgramStudi />} />
+                  <Route path="berita" element={<Berita />} />
+                  <Route path="kontak" element={<Kontak />} />
+                  <Route path="kebijakan-privasi" element={<KebijakanPrivasi />} />
+                  <Route path="syarat-ketentuan" element={<SyaratKetentuan />} />
                 </Route>
+
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -282,11 +287,13 @@ function App() {
                   <Route path="performance" element={<AdminPerformance />} />
                   <Route path="security" element={<SecuritySettings />} />
                   <Route path="theme" element={<ThemeCustomizer />} />
+                  <Route path="landing-settings" element={<LandingPageEditor />} />
                   <Route path="theme/colors" element={<ThemeCustomizer />} />
                   <Route path="theme/typography" element={<ThemeCustomizer />} />
                   <Route path="theme/branding" element={<ThemeCustomizer />} />
                   <Route path="theme/components" element={<ThemeCustomizer />} />
                   <Route path="theme/status" element={<ThemeCustomizer />} />
+
                    <Route path="psychologists/dashboard" element={<AdminPsychologistDashboard />} />
                   <Route path="psychologists/list" element={<AdminPsychologistList />} />
                   <Route path="psychologists/bookings" element={<AdminPsychologistBookings />} />

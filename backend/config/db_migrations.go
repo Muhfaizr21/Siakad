@@ -8,6 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
+
 func migrateModels(db *gorm.DB) error {
 	// ========================
 	// CREATE SCHEMA
@@ -35,6 +36,7 @@ func migrateModels(db *gorm.DB) error {
 		&models.SelfScreening{},
 		&models.RujukanKesehatan{},
 		&models.ThemeSettings{},
+		&models.LandingSetting{},
 	); err != nil {
 		return err
 	}
@@ -173,6 +175,8 @@ func migrateModels(db *gorm.DB) error {
 	); err != nil {
 		return err
 	}
+
+
 
 	return nil
 }
@@ -343,5 +347,17 @@ func InitialSyncKategoriOrmawa(db *gorm.DB) {
 		}
 	}
 	log.Println("[Initial Sync] Sinkronisasi Kategori Ormawa selesai.")
+}
+
+func InitialSyncLandingSettings(db *gorm.DB) {
+	log.Println("[Initial Sync] Memulai sinkronisasi Landing Settings...")
+	var count int64
+	db.Model(&models.LandingSetting{}).Count(&count)
+	if count == 0 {
+		db.Create(&models.LandingSetting{})
+		log.Println("[Initial Sync] Seed Landing Settings berhasil.")
+	} else {
+		log.Println("[Initial Sync] Landing Settings sudah ada.")
+	}
 }
 

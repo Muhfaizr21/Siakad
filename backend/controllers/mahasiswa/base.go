@@ -7,6 +7,22 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+func logActivity(c *fiber.Ctx, aktivitas, deskripsi string) {
+	userID, err := getUserID(c)
+	if err != nil {
+		return
+	}
+
+	ip := c.IP()
+
+	config.DB.Create(&models.LogAktivitas{
+		UserID:    userID,
+		Aktivitas: aktivitas,
+		Deskripsi: deskripsi,
+		IPAddress: ip,
+	})
+}
+
 func getUserID(c *fiber.Ctx) (uint, error) {
 	role, _ := c.Locals("role").(string)
 	if role == "super_admin" || role == "faculty_admin" {

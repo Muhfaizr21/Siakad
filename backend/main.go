@@ -83,6 +83,8 @@ func main() {
 		})
 	})
 	app.Get("/api/public/theme", controllers.GetPublicTheme)
+	app.Get("/api/public/landing-settings", controllers.GetLandingSettings)
+	app.Get("/api/public/news", controllers.GetPublicNews)
 
 	// Auth Routes
 	authGroup := app.Group("/api/auth")

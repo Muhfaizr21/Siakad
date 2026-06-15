@@ -49,6 +49,7 @@ func ConnectDB() {
 		SeedThemeSettings(db)
 		InitialSyncGamifikasiRules(db)
 		InitialSyncKategoriOrmawa(db)
+		InitialSyncLandingSettings(db)
 		// Migrate mobile theme columns if not exists
 		MigrateMobileThemeColumns(db)
 	}

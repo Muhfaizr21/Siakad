@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useMemo } from 'react'
-import { adminService } from '../../services/api'
+import { adminService, landingService } from '../../services/api'
 import { toast, Toaster } from 'react-hot-toast'
 
 import { DialogModal, ModalCancelButton, ModalSaveButton } from '@/components/ui/DialogModal'
@@ -43,6 +43,8 @@ export default function ContentManagement() {
         Judul: '',
         Isi: '',
         Status: 'Published',
+        Kategori: 'Pengumuman',
+        GambarURL: '',
         target_audience: 'semua',
         target_fakultas_id: '',
         target_ormawa_id: '',
@@ -162,6 +164,8 @@ export default function ContentManagement() {
             Judul: '',
             Isi: '',
             Status: 'Published',
+            Kategori: 'Pengumuman',
+            GambarURL: '',
             target_audience: 'semua',
             target_fakultas_id: '',
             target_ormawa_id: '',
@@ -184,6 +188,8 @@ export default function ContentManagement() {
             Judul: row.Judul || '',
             Isi: row.Isi || '',
             Status: row.Status || 'Published',
+            Kategori: row.Kategori || 'Pengumuman',
+            GambarURL: row.GambarURL || '',
             target_audience: row.target_audience || row.TargetAudience || 'semua',
             target_fakultas_id: row.target_fakultas_id || row.TargetFakultasID || '',
             target_ormawa_id: row.target_ormawa_id || row.TargetOrmawaID || '',
@@ -232,6 +238,28 @@ export default function ContentManagement() {
             target_ormawa_ids: ''
         }))
     }
+
+    const handleImageUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const formData = new FormData();
+        formData.append('image', file);
+        
+        setIsSubmitting(true);
+        try {
+            const res = await landingService.uploadImage(formData);
+            if (res.status === 'success' || res.url) {
+                setForm({ ...form, GambarURL: res.url });
+                toast.success('Gambar berhasil diunggah');
+            } else {
+                toast.error(res.message || 'Gagal mengunggah gambar');
+            }
+        } catch (error) {
+            toast.error(error.message || 'Error saat mengunggah gambar');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     const handleSave = async (e) => {
         if (e) e.preventDefault()
@@ -578,6 +606,47 @@ export default function ContentManagement() {
                         <div className="space-y-2">
                             <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Judul Utama Berita</Label>
                             <Input required value={form.Judul} onChange={e => setForm({ ...form, Judul: e.target.value })} placeholder="Tulis judul yang informatif..." className="h-11 rounded-xl border-slate-200 bg-white focus:bg-white font-bold text-sm font-headline focus:ring-bku-primary/20" />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Kategori Berita</Label>
+                                <Select value={form.Kategori} onValueChange={(v) => setForm({ ...form, Kategori: v })}>
+                                    <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-white font-bold text-sm font-headline focus:ring-bku-primary/20">
+                                        <SelectValue placeholder="Pilih Kategori" />
+                                    </SelectTrigger>
+                                    <SelectContent className="rounded-xl shadow-xl border-slate-200">
+                                        <SelectItem value="Pengumuman" className="text-[11px] font-bold uppercase tracking-widest font-headline">Pengumuman</SelectItem>
+                                        <SelectItem value="Prestasi" className="text-[11px] font-bold uppercase tracking-widest font-headline">Prestasi</SelectItem>
+                                        <SelectItem value="Acara" className="text-[11px] font-bold uppercase tracking-widest font-headline">Acara</SelectItem>
+                                        <SelectItem value="Kerja Sama" className="text-[11px] font-bold uppercase tracking-widest font-headline">Kerja Sama</SelectItem>
+                                        <SelectItem value="Pengabdian" className="text-[11px] font-bold uppercase tracking-widest font-headline">Pengabdian</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Visibilitas Publikasi</Label>
+                                <Select value={form.Status} onValueChange={(v) => setForm({ ...form, Status: v })}>
+                                    <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-white font-bold text-sm font-headline focus:ring-bku-primary/20">
+                                        <SelectValue placeholder="Pilih Visibilitas" />
+                                    </SelectTrigger>
+                                    <SelectContent className="rounded-xl shadow-xl border-slate-200">
+                                        <SelectItem value="Published" className="text-[11px] font-bold uppercase tracking-widest font-headline text-emerald-600">Published</SelectItem>
+                                        <SelectItem value="Draft" className="text-[11px] font-bold uppercase tracking-widest font-headline text-amber-600">Draft</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Gambar Cover / Thumbnail (Opsional)</Label>
+                            <div className="flex gap-3 items-center">
+                                {form.GambarURL && (
+                                    <img src={form.GambarURL.startsWith('http') ? form.GambarURL : `http://localhost:8000${form.GambarURL}`} alt="Thumbnail" className="w-16 h-16 object-cover rounded-xl border border-slate-200" />
+                                )}
+                                <Input type="file" accept="image/*" onChange={handleImageUpload} className="h-11 rounded-xl border-slate-200 bg-white focus:bg-white text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-[10px] file:font-black file:uppercase file:tracking-widest file:bg-slate-100 file:text-slate-600 hover:file:bg-slate-200 transition-all cursor-pointer flex-1" />
+                            </div>
                         </div>
 
                         <div className="space-y-2">

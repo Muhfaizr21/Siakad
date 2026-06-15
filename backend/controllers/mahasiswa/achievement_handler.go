@@ -252,6 +252,8 @@ func CreateAchievement(c *fiber.Ctx) error {
 		Link:    "/student/achievement",
 	})
 
+	logActivity(c, "achievement", "Mengirim "+tipe+": "+namaKegiatan)
+
 	return c.Status(201).JSON(fiber.Map{
 		"success": true,
 		"message": "Data berhasil dilaporkan/diajukan",

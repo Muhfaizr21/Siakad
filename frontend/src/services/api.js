@@ -13,6 +13,10 @@ export const handleResponse = async (res) => {
   return data;
 };
 
+export const getPublicLandingSettings = () => fetch(`${API_BASE_URL}/public/landing-settings`).then(handleResponse);
+export const getPublicNews = (limit = 3) => fetch(`${API_BASE_URL}/public/news?limit=${limit}`).then(handleResponse);
+
+
 export const getAuthToken = () => {
   // 1. Try Zustand store state (memory)
   let token = useAuthStore.getState().accessToken;
@@ -799,6 +803,11 @@ export const adminService = {
   resetTheme: () => fetchWithAuth(`${API_BASE_URL}/admin/theme/reset`, {
     method: 'POST'
   }),
+  updateLandingSettings: (data) => fetchWithAuth(`${API_BASE_URL}/admin/landing-settings`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
   uploadLogo: (formData) => fetchWithAuth(`${API_BASE_URL}/admin/theme/upload-logo`, {
     method: 'POST',
     body: formData
@@ -1033,6 +1042,71 @@ export const pddiktiService = {
     // Now using fetchWithAuth as the route is protected
     return fetchWithAuth(`${API_BASE_URL}/pddikti/proxy?keyword=${encodeURIComponent(keyword)}&type=${type}`);
   }
+};
+
+// ========================
+// LANDING PAGE CMS SERVICE
+// ========================
+export const landingService = {
+  // Landing Pages CRUD
+  getAll: () => fetchWithAuth(`${API_BASE_URL}/admin/landing`),
+  getBySlug: (slug) => fetchWithAuth(`${API_BASE_URL}/admin/landing/${slug}`),
+  create: (data) => fetchWithAuth(`${API_BASE_URL}/admin/landing`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  update: (slug, data) => fetchWithAuth(`${API_BASE_URL}/admin/landing/${slug}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  delete: (slug) => fetchWithAuth(`${API_BASE_URL}/admin/landing/${slug}`, {
+    method: 'DELETE'
+  }),
+  publish: (slug) => fetchWithAuth(`${API_BASE_URL}/admin/landing/${slug}/publish`, {
+    method: 'POST'
+  }),
+  unpublish: (slug) => fetchWithAuth(`${API_BASE_URL}/admin/landing/${slug}/unpublish`, {
+    method: 'POST'
+  }),
+
+  // Sections CRUD
+  getSections: (slug) => fetchWithAuth(`${API_BASE_URL}/admin/landing/${slug}/sections`),
+  createSection: (slug, data) => fetchWithAuth(`${API_BASE_URL}/admin/landing/${slug}/sections`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  updateSection: (slug, sectionId, data) => fetchWithAuth(`${API_BASE_URL}/admin/landing/${slug}/sections/${sectionId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  deleteSection: (slug, sectionId) => fetchWithAuth(`${API_BASE_URL}/admin/landing/${slug}/sections/${sectionId}`, {
+    method: 'DELETE'
+  }),
+  toggleSection: (slug, sectionId) => fetchWithAuth(`${API_BASE_URL}/admin/landing/${slug}/sections/${sectionId}/toggle`, {
+    method: 'PUT'
+  }),
+  reorderSections: (slug, sections) => fetchWithAuth(`${API_BASE_URL}/admin/landing/${slug}/sections/reorder`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sections })
+  }),
+
+  // Section Types
+  getSectionTypes: () => fetchWithAuth(`${API_BASE_URL}/admin/landing/section-types`),
+
+  // Public (No auth required) - Note: uses /public/ prefix, not /api/ to avoid auth middleware
+  getPublicPage: (slug) => fetch(`/public/landing/${slug}`).then(handleResponse),
+  getPublicPreview: (slug) => fetch(`/public/landing/${slug}/preview`).then(handleResponse),
+
+  // File Upload
+  uploadImage: (formData) => fetchWithAuth(`${API_BASE_URL}/admin/landing/upload`, {
+    method: 'POST',
+    body: formData
+  }),
 };
 
 

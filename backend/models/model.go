@@ -935,6 +935,7 @@ type Berita struct {
 	Penulis   User
 
 	Status         string
+	Kategori       string
 	TanggalPublish time.Time
 
 	TargetAudience     string `gorm:"size:50;default:'semua'" json:"target_audience"`

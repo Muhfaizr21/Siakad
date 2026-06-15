@@ -19,6 +19,13 @@ export default function KencanaPage() {
   const blockers = dashboardData?.blockers || [];
   const notifications = dashboardData?.notifications || [];
 
+  const weights = dashboardData?.weights || {};
+  const komponenBobot = [
+    { name: 'Kognitif', bobot: weights.cognitive || 25, color: 'bg-violet-500', text: 'text-violet-600', iconBg: 'bg-violet-50 text-violet-600 border-violet-100', icon: 'assignment' },
+    { name: 'Psikomotor', bobot: weights.psychomotor || 35, color: 'bg-emerald-500', text: 'text-emerald-600', iconBg: 'bg-emerald-50 text-emerald-600 border-emerald-100', icon: 'quiz' },
+    { name: 'Afektif', bobot: weights.affective || 40, color: 'bg-blue-500', text: 'text-blue-600', iconBg: 'bg-blue-50 text-blue-600 border-blue-100', icon: 'fact_check' },
+  ];
+
   // Sort stages: active first, then by order_number
   const sortedStages = [...(timelineData?.stages || [])].sort((a, b) => {
     if (a.status === 'active' && b.status !== 'active') return -1;
@@ -70,7 +77,7 @@ export default function KencanaPage() {
         <PrimaryStatsCard
           title="Nilai Univ"
           value={Number(dashboardData?.temporary_final_score || 0).toFixed(1)}
-          badgeText="Bobot 25/35/40"
+          badgeText={`Bobot ${weights.cognitive || 25}/${weights.psychomotor || 35}/${weights.affective || 40}`}
           icon={({ size }) => <span className="material-symbols-outlined" style={{ fontSize: size }}>grade</span>}
           colorTheme="warning"
         />
@@ -98,12 +105,8 @@ export default function KencanaPage() {
               </div>
             </div>
             <div className="h-[200px] w-full mt-2 overflow-y-auto space-y-3 pr-2 scrollbar-thin">
-              {[
-                { name: 'Tugas', bobot: 40, color: 'bg-violet-500', text: 'text-violet-600', iconBg: 'bg-violet-50 text-violet-600 border-violet-100', icon: 'assignment' },
-                { name: 'Kuis', bobot: 35, color: 'bg-emerald-500', text: 'text-emerald-600', iconBg: 'bg-emerald-50 text-emerald-600 border-emerald-100', icon: 'quiz' },
-                { name: 'Kehadiran', bobot: 25, color: 'bg-blue-500', text: 'text-blue-600', iconBg: 'bg-blue-50 text-blue-600 border-blue-100', icon: 'fact_check' },
-              ].map((item, idx) => (
-                <div key={idx} className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex flex-col justify-between transition-colors hover:bg-white hover:border-slate-200 hover:shadow-sm cursor-default">
+              {komponenBobot.map((item, idx) => (
+                  <div key={idx} className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex flex-col justify-between transition-colors hover:bg-white hover:border-slate-200 hover:shadow-sm cursor-default">
                   <div className="flex items-start justify-between gap-3 mb-2">
                     <div className="flex items-center gap-3 min-w-0">
                       <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 border", item.iconBg)}>
@@ -144,24 +147,16 @@ export default function KencanaPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={[
-                      { name: 'Tugas', value: 40 },
-                      { name: 'Kuis', value: 35 },
-                      { name: 'Kehadiran', value: 25 },
-                    ]}
+                    data={komponenBobot}
                     cx="50%"
                     cy="50%"
                     innerRadius={50}
                     outerRadius={75}
                     paddingAngle={4}
-                    dataKey="value"
+                    dataKey="bobot"
                     stroke="none"
                   >
-                    {[
-                      { name: 'Tugas', value: 40 },
-                      { name: 'Kuis', value: 35 },
-                      { name: 'Kehadiran', value: 25 },
-                    ].map((entry, index) => (
+                    {komponenBobot.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={['#8b5cf6', '#10b981', '#3b82f6'][index % 3]} />
                     ))}
                   </Pie>
@@ -171,16 +166,12 @@ export default function KencanaPage() {
             </div>
           </div>
           <div className="grid grid-cols-3 gap-2 mt-4">
-            {[
-              { name: 'Tugas', value: 40 },
-              { name: 'Kuis', value: 35 },
-              { name: 'Kehadiran', value: 25 },
-            ].map((item, idx) => (
+            {komponenBobot.map((item, idx) => (
               <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-md bg-slate-50 border border-slate-100 hover:bg-white transition-colors">
                 <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: ['#8b5cf6', '#10b981', '#3b82f6'][idx % 3] }} />
                 <div className="min-w-0">
                   <p className="text-[9px] font-bold text-slate-400 truncate leading-none">{item.name}</p>
-                  <p className="text-sm font-black text-slate-700 leading-none mt-1">{item.value}%</p>
+                  <p className="text-sm font-black text-slate-700 leading-none mt-1">{item.bobot}%</p>
                 </div>
               </div>
             ))}

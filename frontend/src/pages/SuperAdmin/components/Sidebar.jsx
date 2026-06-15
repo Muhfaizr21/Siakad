@@ -48,6 +48,7 @@ const menuGroups = [
     title: "Sistem & Informasi",
     items: [
       { name: "Kelola Berita", icon: 'newspaper', path: "/admin/announcements" },
+      { name: "Landing Page", icon: 'web', path: "/admin/landing-settings" },
       { name: "Pengaturan Sistem", icon: 'settings', path: "/admin/config" },
     ]
   }

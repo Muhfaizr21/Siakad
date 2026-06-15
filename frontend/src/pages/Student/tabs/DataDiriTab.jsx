@@ -165,23 +165,27 @@ export default function DataDiriTab({ profile }) {
           <div className="space-y-2">
             <Label>NIK KTP</Label>
             <Input {...register('nik')} placeholder="16 Digit NIK" maxLength={16} />
-            {errors.nik && <p className="text-xs font-bold text-[#0B4FAE]">{errors.nik.message}</p>}
+            {errors.nik && <p className="text-xs font-bold text-[var(--theme-primary)]">{errors.nik.message}</p>}
           </div>
           <div className="space-y-2">
-            <Label>NPM</Label>
+            <Label>NPM / NIM</Label>
             <Input value={profile?.NIM || ''} disabled />
-            <input type="hidden" {...register('nisn')} />
+          </div>
+          <div className="space-y-2">
+            <Label>NISN</Label>
+            <Input {...register('nisn')} placeholder="Nomor Induk Siswa Nasional" maxLength={10} />
+            {errors.nisn && <p className="text-xs font-bold text-[var(--theme-primary)]">{errors.nisn.message}</p>}
           </div>
 
           <div className="space-y-2">
             <Label>Tempat Lahir</Label>
             <Input {...register('birth_place')} />
-            {errors.birth_place && <p className="text-xs font-bold text-[#0B4FAE]">{errors.birth_place.message}</p>}
+            {errors.birth_place && <p className="text-xs font-bold text-[var(--theme-primary)]">{errors.birth_place.message}</p>}
           </div>
           <div className="space-y-2">
             <Label>Tanggal Lahir</Label>
             <Input type="date" {...register('birth_date')} />
-            {errors.birth_date && <p className="text-xs font-bold text-[#0B4FAE]">{errors.birth_date.message}</p>}
+            {errors.birth_date && <p className="text-xs font-bold text-[var(--theme-primary)]">{errors.birth_date.message}</p>}
           </div>
 
           <div className="space-y-3">
@@ -189,14 +193,14 @@ export default function DataDiriTab({ profile }) {
             <div className="flex gap-6 pt-2">
               <label className="flex items-center gap-2 cursor-pointer group">
                   <input type="radio" value="Laki-laki" {...register('gender')} className="w-4 h-4 text-[var(--theme-primary)]" />
-                  <span className="text-sm font-bold text-[#525252]">Laki-laki</span>
+                  <span className="text-sm font-bold text-[var(--theme-text)]">Laki-laki</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer group">
                   <input type="radio" value="Perempuan" {...register('gender')} className="w-4 h-4 text-[var(--theme-primary)]" />
-                  <span className="text-sm font-bold text-[#525252]">Perempuan</span>
+                  <span className="text-sm font-bold text-[var(--theme-text)]">Perempuan</span>
               </label>
             </div>
-            {errors.gender && <p className="text-xs font-bold text-[#0B4FAE]">{errors.gender.message}</p>}
+            {errors.gender && <p className="text-xs font-bold text-[var(--theme-primary)]">{errors.gender.message}</p>}
           </div>
 
           <div className="space-y-2">
@@ -209,7 +213,7 @@ export default function DataDiriTab({ profile }) {
                 ))}
               </SelectContent>
             </Select>
-            {errors.religion && <p className="text-xs font-bold text-[#0B4FAE]">{errors.religion.message}</p>}
+            {errors.religion && <p className="text-xs font-bold text-[var(--theme-primary)]">{errors.religion.message}</p>}
           </div>
 
           <div className="space-y-2">
@@ -252,28 +256,28 @@ export default function DataDiriTab({ profile }) {
            <div className="space-y-2">
             <Label>Email Personal Aktif</Label>
             <Input {...register('email')} placeholder="email@contoh.com" />
-            {errors.email && <p className="text-xs font-bold text-[#0B4FAE]">{errors.email.message}</p>}
+            {errors.email && <p className="text-xs font-bold text-[var(--theme-primary)]">{errors.email.message}</p>}
           </div>
           <div className="space-y-2">
             <Label>Nomor HP / WhatsApp Aktif</Label>
             <Input {...register('phone')} placeholder="08xxxxxxxxxx" />
-            {errors.phone && <p className="text-xs font-bold text-[#0B4FAE]">{errors.phone.message}</p>}
+            {errors.phone && <p className="text-xs font-bold text-[var(--theme-primary)]">{errors.phone.message}</p>}
           </div>
 
           <div className="col-span-1 md:col-span-2 space-y-2">
             <Label>Alamat Tinggal / Domisili Lengkap</Label>
             <Textarea {...register('address')} placeholder="Jalan Raya No. 123, RT/RW..." rows={2} />
-            {errors.address && <p className="text-xs font-bold text-[#0B4FAE]">{errors.address.message}</p>}
+            {errors.address && <p className="text-xs font-bold text-[var(--theme-primary)]">{errors.address.message}</p>}
           </div>
           <div className="space-y-2">
             <Label>Kota / Kabupaten Tinggal</Label>
             <Input {...register('city')} />
-            {errors.city && <p className="text-xs font-bold text-[#0B4FAE]">{errors.city.message}</p>}
+            {errors.city && <p className="text-xs font-bold text-[var(--theme-primary)]">{errors.city.message}</p>}
           </div>
           <div className="space-y-2">
             <Label>Kode Pos</Label>
             <Input {...register('zip_code')} maxLength={5} />
-            {errors.zip_code && <p className="text-xs font-bold text-[#0B4FAE]">{errors.zip_code.message}</p>}
+            {errors.zip_code && <p className="text-xs font-bold text-[var(--theme-primary)]">{errors.zip_code.message}</p>}
           </div>
         </div>
       </div>
@@ -284,7 +288,7 @@ export default function DataDiriTab({ profile }) {
         <p className="text-xs font-semibold leading-relaxed text-[var(--theme-text-muted)] mb-6">Informasi orang tua / wali untuk keperluan administrasi.</p>
          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
            <div className="space-y-2">
-            <Label>Nama Lengkap Ayah Kandung</Label>
+            <Label>Nama Lengkap Ayah</Label>
             <Input {...register('nama_ayah')} />
           </div>
           <div className="space-y-2">

@@ -21,9 +21,12 @@ type KencanaPeriod struct {
 	Theme         string  `gorm:"size:255" json:"theme"`
 	BannerURL     string  `gorm:"type:text" json:"banner_url"`
 	GuidebookURL  string  `gorm:"type:text" json:"guidebook_url"`
-	PassingGrade  float64 `gorm:"type:decimal(5,2);default:0" json:"passing_grade"`
-	RemedialGrade float64 `gorm:"type:decimal(5,2);default:0" json:"remedial_grade"`
-	IntroVideoURL string  `gorm:"type:text" json:"intro_video_url"`
+	PassingGrade       float64 `gorm:"type:decimal(5,2);default:0" json:"passing_grade"`
+	RemedialGrade      float64 `gorm:"type:decimal(5,2);default:0" json:"remedial_grade"`
+	CognitiveWeight    float64 `gorm:"type:decimal(5,2);default:25" json:"cognitive_weight"`
+	PsychomotorWeight  float64 `gorm:"type:decimal(5,2);default:35" json:"psychomotor_weight"`
+	AffectiveWeight    float64 `gorm:"type:decimal(5,2);default:40" json:"affective_weight"`
+	IntroVideoURL      string  `gorm:"type:text" json:"intro_video_url"`
 }
 
 func (KencanaPeriod) TableName() string { return "mahasiswa.kencana_periods" }

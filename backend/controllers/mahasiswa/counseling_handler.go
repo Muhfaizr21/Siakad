@@ -74,6 +74,8 @@ func RequestCounseling(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal mengajukan konseling"})
 	}
 
+	logActivity(c, "konseling", "Mengajukan konseling: "+req.Topik)
+
 	return c.Status(201).JSON(fiber.Map{
 		"success": true,
 		"message": "Konseling berhasil diajukan",
@@ -153,6 +155,8 @@ func CreateBooking(c *fiber.Ctx) error {
 
 	tx.Commit()
 
+	logActivity(c, "konseling", "Booking konseling: "+payload.KeluhanAwal)
+
 	return c.Status(201).JSON(fiber.Map{
 		"success": true,
 		"message": "Booking konseling berhasil diajukan",
@@ -180,6 +184,7 @@ func CancelBooking(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal membatalkan booking"})
 	}
 
+	logActivity(c, "konseling", "Membatalkan booking konseling: "+booking.Topik)
 	return c.JSON(fiber.Map{"success": true, "message": "Booking berhasil dibatalkan"})
 }
 

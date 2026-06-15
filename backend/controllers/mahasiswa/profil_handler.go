@@ -95,6 +95,8 @@ func UpdateProfile(c *fiber.Ctx) error {
 		config.DB.Model(&models.Kesehatan{}).Where("mahasiswa_id = ?", student.ID).Update("golongan_darah", strings.ToUpper(strings.TrimSpace(req.GolonganDarah)))
 	}
 
+	logActivity(c, "Memperbarui profil", "Data diri berhasil diperbarui")
+
 	return c.JSON(fiber.Map{"success": true, "message": "Profil berhasil diperbarui"})
 }
 
@@ -183,24 +185,79 @@ func UpdatePreferensiNotif(c *fiber.Ctx) error {
 }
 
 func GetSesiAktif(c *fiber.Ctx) error {
-	return c.JSON(fiber.Map{
-		"success": true,
-		"data": []fiber.Map{{
+	userID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
+	}
+
+	var sessions []fiber.Map
+
+	// Ambil dari log_aktivitas untuk sesi terbaru
+	var logs []models.LogAktivitas
+	config.DB.Where("user_id = ?", userID).
+		Order("created_at DESC").
+		Limit(5).
+		Find(&logs)
+
+	for i, log := range logs {
+		sessions = append(sessions, fiber.Map{
+			"device":      "Web Browser",
+			"last_active": log.CreatedAt,
+			"ip":          log.IPAddress,
+			"current":     i == 0,
+		})
+	}
+
+	if len(sessions) == 0 {
+		sessions = []fiber.Map{{
 			"device":      "Web Browser",
 			"last_active": time.Now(),
 			"ip":          "127.0.0.1",
 			"current":     true,
-		}},
+		}}
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    sessions,
 	})
 }
 
 func GetRiwayatLogin(c *fiber.Ctx) error {
+	userID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
+	}
+
+	var logs []models.LogAktivitas
+	config.DB.Where("user_id = ?", userID).
+		Order("created_at DESC").
+		Limit(20).
+		Find(&logs)
+
+	var riwayat []fiber.Map
+	for _, log := range logs {
+		riwayat = append(riwayat, fiber.Map{
+			"created_at": log.CreatedAt,
+			"user_agent": "Web Browser",
+			"location":   "Tidak diketahui",
+			"ip":         log.IPAddress,
+			"status":     "Berhasil",
+		})
+	}
+
+	if len(riwayat) == 0 {
+		riwayat = []fiber.Map{{
+			"created_at": time.Now(),
+			"user_agent": "Web Browser",
+			"location":   "Tidak diketahui",
+			"ip":         "127.0.0.1",
+			"status":     "Berhasil",
+		}}
+	}
+
 	return c.JSON(fiber.Map{
 		"success": true,
-		"data": []fiber.Map{{
-			"waktu":  time.Now(),
-			"ip":     "127.0.0.1",
-			"status": "Berhasil",
-		}},
+		"data":    riwayat,
 	})
 }

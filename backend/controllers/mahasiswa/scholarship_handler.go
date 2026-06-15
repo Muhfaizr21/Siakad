@@ -294,6 +294,8 @@ func DaftarBeasiswa(c *fiber.Ctx) error {
 		if err := config.DB.Save(&existing).Error; err != nil {
 			return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal memperbarui pendaftaran"})
 		}
+
+		logActivity(c, "beasiswa", "Memperbarui pendaftaran beasiswa: "+beasiswa.Nama)
 		return c.Status(200).JSON(fiber.Map{
 			"success": true,
 			"message": "Pendaftaran berhasil diperbarui",
@@ -327,6 +329,8 @@ func DaftarBeasiswa(c *fiber.Ctx) error {
 		Content:     "Pendaftaran beasiswa '" + beasiswa.Nama + "' berhasil dikirim. Menunggu verifikasi admin.",
 		Link:        "/student/scholarship",
 	})
+
+	logActivity(c, "beasiswa", "Mendaftar beasiswa: "+beasiswa.Nama)
 
 	return c.Status(201).JSON(fiber.Map{
 		"success": true,

@@ -296,6 +296,7 @@ export const PORTAL_CONFIG = {
         group: 'SISTEM & INFORMASI',
         items: [
           { name: 'Kelola Berita', icon: 'newspaper', path: '/admin/announcements' },
+          { name: 'Landing Page Editor', icon: 'web', path: '/admin/landing-settings' },
           { name: 'Pengaturan Tampilan', icon: 'palette', path: '/admin/theme' },
           { name: 'Pengaturan Sistem', icon: 'settings', path: '/admin/config' },
           { name: 'Log Aktivitas', icon: 'warning', path: '/admin/audit' },

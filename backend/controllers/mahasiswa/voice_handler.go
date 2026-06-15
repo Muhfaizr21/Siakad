@@ -128,6 +128,8 @@ func CreateAspirasi(c *fiber.Ctx) error {
 		Link:        "/student/voice",
 	})
 
+	logActivity(c, "voice", "Mengirim aspirasi: "+judul)
+
 	return c.Status(201).JSON(fiber.Map{
 		"success": true,
 		"message": "Aspirasi berhasil dikirim",
@@ -200,6 +202,8 @@ func CancelAspirasi(c *fiber.Ctx) error {
 	if err := config.DB.Model(&tiket).Update("status", "Dibatalkan").Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal membatalkan aspirasi"})
 	}
+
+	logActivity(c, "voice", "Membatalkan aspirasi: "+tiket.Judul)
 
 	return c.JSON(fiber.Map{
 		"success": true,

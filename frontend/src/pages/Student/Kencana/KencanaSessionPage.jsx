@@ -21,11 +21,13 @@ export default function KencanaSessionPage() {
           <h2 className="text-xl font-black text-slate-800">Materi</h2>
           <div className="mt-5 space-y-4">
             {(data?.materials || []).map((m) => (
-              <article key={m.id} className="rounded-2xl bg-slate-50 border border-slate-100 p-5">
+                  <article key={m.id} className="rounded-2xl bg-slate-50 border border-slate-100 p-5">
                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2"><h3 className="text-lg font-black text-slate-800">{m.title}</h3></div>
-                    <p className="mt-3 text-sm font-medium leading-relaxed text-slate-500">{m.content || m.file_url || 'Materi belum memiliki konten.'}</p>
+                  <div className="flex-1">
+                    <div className="flex flex-wrap items-center gap-2"><h3 className="text-lg font-black text-slate-800">{m.title}</h3>
+                      {m.status === 'completed' && <span className="px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-widest bg-emerald-100 text-emerald-700 border border-emerald-200">Selesai</span>}
+                    </div>
+                    <p className="mt-3 text-sm font-medium leading-relaxed text-slate-500">{m.content || 'Materi belum memiliki konten.'}</p>
                     {m.file_url && (
                       <a 
                         className="mt-3 inline-block text-sm font-black text-blue-600 hover:text-blue-800 transition-colors" 
@@ -35,6 +37,18 @@ export default function KencanaSessionPage() {
                       >
                         Buka Lampiran
                       </a>
+                    )}
+                  </div>
+                  <div className="shrink-0 self-start">
+                    {m.status !== 'completed' && (
+                      <button
+                        onClick={() => completeMaterial.mutate(m.id)}
+                        disabled={completeMaterial.isPending}
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-[var(--theme-primary)] px-4 py-2 text-[10px] font-black uppercase tracking-widest text-white hover:bg-[var(--theme-primary-hover)] transition-all cursor-pointer disabled:opacity-50 border-none"
+                      >
+                        {completeMaterial.isPending ? <span className="material-symbols-outlined animate-spin" style={{fontSize:14}}>sync</span> : <span className="material-symbols-outlined" style={{fontSize:14}}>check</span>}
+                        Tandai Selesai
+                      </button>
                     )}
                   </div>
                 </div>

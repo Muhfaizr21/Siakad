@@ -1,6 +1,7 @@
 package mahasiswa
 
 import (
+	"fmt"
 	"siakad-backend/config"
 	"siakad-backend/models"
 	"siakad-backend/pkg/notifikasi"
@@ -153,6 +154,8 @@ func CreateHealthRecord(c *fiber.Ctx) error {
 	if err := config.DB.Create(&record).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal menyimpan data"})
 	}
+
+	logActivity(c, "health", "Mengisi screening kesehatan (BMI: "+fmt.Sprintf("%.1f", bmi)+")")
 
 	// Kirim notif jika status perlu perhatian atau pantauan
 	switch statusKesehatan {
