@@ -31,7 +31,7 @@ export function PrimaryStatsCard({
       )}>
         {Icon && (typeof Icon === 'string' ? <span className="material-symbols-outlined" style={{ fontSize: 80 }}>{Icon}</span> : <Icon size={80} />)}
       </div>
-      
+
       <div className="flex items-center justify-between mb-4 relative z-10">
         <div className={cn(
           "w-12 h-12 rounded-xl flex justify-center items-center transition-colors duration-300 shadow-sm",
@@ -43,7 +43,7 @@ export function PrimaryStatsCard({
         )}>
           {Icon && (typeof Icon === 'string' ? <span className="material-symbols-outlined" style={{ fontSize: 24 }}>{Icon}</span> : <Icon size={24} />)}
         </div>
-        
+
         {badgeText && (
           <span className={cn(
             "inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border",
@@ -58,7 +58,7 @@ export function PrimaryStatsCard({
           </span>
         )}
       </div>
-      
+
       <div className="relative z-10 w-full min-w-0">
         <p className="text-[11px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest mb-1 truncate">{title}</p>
         <p className={cn(

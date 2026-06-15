@@ -524,9 +524,10 @@ func TambahOrganisasi(c *fiber.Ctx) error {
 		models.Ormawa
 		Password       string `json:"Password"`
 		KetuaID        *uint  `json:"KetuaID"`        // ID Mahasiswa yang jadi ketua
-		KetuaNama      string `json:"KetuaNama"`      // Nama ketua (optional, untuk display)
-		FakultasID     *uint  `json:"fakultas_id"`
-		ProgramStudiID *uint  `json:"program_studi_id"`
+		KetuaNama        string `json:"KetuaNama"`      // Nama ketua (optional, untuk display)
+		FakultasID       *uint  `json:"fakultas_id"`
+		ProgramStudiID   *uint  `json:"program_studi_id"`
+		KategoriOrmawaID *uint  `json:"KategoriOrmawaID"`
 	}
 
 	if err := c.BodyParser(&body); err != nil {
@@ -545,9 +546,12 @@ func TambahOrganisasi(c *fiber.Ctx) error {
 	if body.ProgramStudiID != nil {
 		org.ProgramStudiID = body.ProgramStudiID
 	}
+	if body.KategoriOrmawaID != nil {
+		org.KategoriOrmawaID = body.KategoriOrmawaID
+	}
 
 	// Hanya Himpunan yang bisa punya Program Studi parent
-	if org.Kategori != "Himpunan" {
+	if org.Kategori != "Himpunan" && (org.KategoriOrmawaID == nil) {
 		org.ProgramStudiID = nil
 	}
 
@@ -665,48 +669,57 @@ func PerbaruiOrganisasi(c *fiber.Ctx) error {
 		models.Ormawa
 		Password       string `json:"Password"`
 		KetuaID        *uint  `json:"KetuaID"`
-		KetuaNama      string `json:"KetuaNama"`
-		FakultasID     *uint  `json:"fakultas_id"`
-		ProgramStudiID *uint  `json:"program_studi_id"`
+		KetuaNama        string `json:"KetuaNama"`
+		FakultasID       *uint  `json:"fakultas_id"`
+		ProgramStudiID   *uint  `json:"program_studi_id"`
+		KategoriOrmawaID *uint  `json:"KategoriOrmawaID"`
 	}
 
 	if err := c.BodyParser(&body); err != nil {
+		fmt.Printf("[PerbaruiOrganisasi] Error BodyParser: %v\n", err)
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload tidak valid: " + err.Error()})
 	}
+	fmt.Printf("[PerbaruiOrganisasi] ID: %s, Payload: %+v\n", id, body)
 
 	// Simpan data ormawa
-	updatedOrg := body.Ormawa
-	updatedOrg.ID = org.ID
-	if role != "super_admin" && role != "kencana_admin" {
-		updatedOrg.FakultasID = org.FakultasID // Pertahankan fakultas asli untuk faculty_admin
-	} else {
-		// Super Admin bisa update FakultasID dan ProgramStudiID
-		if body.FakultasID != nil {
-			updatedOrg.FakultasID = body.FakultasID
-		}
-		if body.ProgramStudiID != nil {
-			updatedOrg.ProgramStudiID = body.ProgramStudiID
-		}
+	updates := map[string]interface{}{
+		"nama":           body.Nama,
+		"singkatan":      body.Singkatan,
+		"deskripsi":      body.Deskripsi,
+		"status":         body.Status,
+		"kategori":       body.Kategori,
+		"kategori_ormawa_id": body.KategoriOrmawaID,
+		"jumlah_anggota": body.JumlahAnggota,
+		"email":          body.Email,
+		"phone":          body.Phone,
 	}
 
-	// Untuk kategori non-Himpunan, hapus ProgramStudiID (tidak relevan)
-	if updatedOrg.Kategori != "Himpunan" {
-		updatedOrg.ProgramStudiID = nil
-	}
-	// Jika Himpunan tapi ProgramStudiID tidak dikirim, pertahankan yang lama
-	if updatedOrg.Kategori == "Himpunan" && updatedOrg.ProgramStudiID == nil {
-		updatedOrg.ProgramStudiID = org.ProgramStudiID
+	if role == "super_admin" || role == "kencana_admin" {
+		updates["fakultas_id"] = body.FakultasID
+		
+		if body.Kategori == "Himpunan" {
+			updates["program_studi_id"] = body.ProgramStudiID
+		} else {
+			updates["program_studi_id"] = nil
+		}
+	} else {
+		// Untuk Himpunan tanpa ProgramStudiID, biarkan null
+		if body.Kategori != "Himpunan" {
+			updates["program_studi_id"] = nil
+		} else if body.ProgramStudiID != nil {
+			updates["program_studi_id"] = body.ProgramStudiID
+		}
 	}
 
 	err := config.DB.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Save(&updatedOrg).Error; err != nil {
+		if err := tx.Model(&org).Updates(updates).Error; err != nil {
 			return err
 		}
 
 		// Jika password diisi, update password user-nya
-		if body.Password != "" && updatedOrg.Email != "" {
+		if body.Password != "" && body.Email != "" {
 			var user models.User
-			if err := tx.Where("ormawa_id = ?", updatedOrg.ID).First(&user).Error; err == nil {
+			if err := tx.Where("ormawa_id = ?", org.ID).First(&user).Error; err == nil {
 				hashed, _ := bcrypt.GenerateFromPassword([]byte(body.Password), bcrypt.DefaultCost)
 				tx.Model(&user).Update("password", string(hashed))
 			}
@@ -722,11 +735,11 @@ func PerbaruiOrganisasi(c *fiber.Ctx) error {
 
 			// Cek apakah sudah ada Ketua di ormawa ini
 			var ketuaAnggota models.OrmawaAnggota
-			err := tx.Where("ormawa_id = ? AND role = ?", updatedOrg.ID, "Ketua").First(&ketuaAnggota).Error
+			err := tx.Where("ormawa_id = ? AND role = ?", org.ID, "Ketua").First(&ketuaAnggota).Error
 			if err == gorm.ErrRecordNotFound {
 				// Buat baru
 				ketuaAnggota = models.OrmawaAnggota{
-					OrmawaID:    updatedOrg.ID,
+					OrmawaID:    org.ID,
 					MahasiswaID: *body.KetuaID,
 					Role:        "Ketua",
 					Divisi:      "Pengurus Inti",
@@ -747,11 +760,11 @@ func PerbaruiOrganisasi(c *fiber.Ctx) error {
 			year := time.Now().Year()
 			periodeStr := fmt.Sprintf("%d/%d", year, year+1)
 			var riwayat models.RiwayatOrganisasi
-			err = tx.Where("ormawa_id = ? AND jabatan = ? AND periode = ?", updatedOrg.ID, "Ketua", periodeStr).First(&riwayat).Error
+			err = tx.Where("ormawa_id = ? AND jabatan = ? AND periode = ?", org.ID, "Ketua", periodeStr).First(&riwayat).Error
 			if err == gorm.ErrRecordNotFound {
 				riwayat = models.RiwayatOrganisasi{
 					MahasiswaID: *body.KetuaID,
-					OrmawaID:    updatedOrg.ID,
+					OrmawaID:    org.ID,
 					Jabatan:     "Ketua",
 					Periode:     periodeStr,
 					Status:      "Aktif",
@@ -766,10 +779,11 @@ func PerbaruiOrganisasi(c *fiber.Ctx) error {
 	})
 
 	if err != nil {
+		fmt.Printf("[PerbaruiOrganisasi] Error Transaction: %v\n", err)
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal memperbarui: " + err.Error()})
 	}
 
-	return c.JSON(fiber.Map{"status": "success", "message": "Organisasi diperbarui", "data": updatedOrg})
+	return c.JSON(fiber.Map{"status": "success", "message": "Organisasi diperbarui", "data": org})
 }
 
 func HapusOrganisasi(c *fiber.Ctx) error {
@@ -785,58 +799,24 @@ func HapusOrganisasi(c *fiber.Ctx) error {
 
 	// Faculty scoping: pastikan admin hanya bisa hapus ormawa dari fakultasnya
 	if role != "super_admin" && role != "kencana_admin" && (org.FakultasID == nil || *org.FakultasID != fid) {
+		fmt.Printf("[HapusOrganisasi] Error Scoping: role=%s, org.FakultasID=%v, fid=%v\n", role, org.FakultasID, fid)
 		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Anda tidak berwenang menghapus organisasi dari fakultas lain"})
 	}
 
+	fmt.Printf("[HapusOrganisasi] Starting transaction for ID %s\n", id)
+
 	// Transaction untuk cascade delete
 	err := config.DB.Transaction(func(tx *gorm.DB) error {
-		// 1. Delete anggota
-		if err := tx.Where("ormawa_id = ?", org.ID).Delete(&models.OrmawaAnggota{}).Error; err != nil {
-			return fmt.Errorf("gagal hapus anggota: %v", err)
-		}
-
-		// 2. Delete kegiatan
-		if err := tx.Where("ormawa_id = ?", org.ID).Delete(&models.OrmawaKegiatan{}).Error; err != nil {
-			return fmt.Errorf("gagal hapus kegiatan: %v", err)
-		}
-
-		// 3. Delete mutasi saldo
-		if err := tx.Where("ormawa_id = ?", org.ID).Delete(&models.OrmawaMutasiSaldo{}).Error; err != nil {
-			return fmt.Errorf("gagal hapus mutasi saldo: %v", err)
-		}
-
-		// 4. Delete proposals (optional, bisa di-keep)
-		// tx.Where("ormawa_id = ?", org.ID).Delete(&models.Proposal{})
-
-		// 5. Delete pengumuman
-		if err := tx.Where("ormawa_id = ?", org.ID).Delete(&models.OrmawaPengumuman{}).Error; err != nil {
-			return fmt.Errorf("gagal hapus pengumuman: %v", err)
-		}
-
-		// 6. Delete divisi
-		if err := tx.Where("ormawa_id = ?", org.ID).Delete(&models.OrmawaDivisi{}).Error; err != nil {
-			return fmt.Errorf("gagal hapus divisi: %v", err)
-		}
-
-		// 7. Delete aspirasi
-		if err := tx.Where("ormawa_id = ?", org.ID).Delete(&models.OrmawaAspirasi{}).Error; err != nil {
-			return fmt.Errorf("gagal hapus aspirasi: %v", err)
-		}
-
-		// 8. Delete notifikasi
-		if err := tx.Where("ormawa_id = ?", org.ID).Delete(&models.OrmawaNotifikasi{}).Error; err != nil {
-			return fmt.Errorf("gagal hapus notifikasi: %v", err)
-		}
-
-		// 9. Delete roles
-		if err := tx.Where("ormawa_id = ?", org.ID).Delete(&models.OrmawaRole{}).Error; err != nil {
-			return fmt.Errorf("gagal hapus roles: %v", err)
-		}
-
-		// 10. Delete user account (jika ada)
-		if err := tx.Where("ormawa_id = ?", org.ID).Delete(&models.User{}).Error; err != nil {
-			return fmt.Errorf("gagal hapus user: %v", err)
-		}
+		// Delete related records without throwing error if empty
+		tx.Where("ormawa_id = ?", org.ID).Delete(&models.OrmawaAnggota{})
+		tx.Where("ormawa_id = ?", org.ID).Delete(&models.OrmawaKegiatan{})
+		tx.Where("ormawa_id = ?", org.ID).Delete(&models.OrmawaMutasiSaldo{})
+		tx.Where("ormawa_id = ?", org.ID).Delete(&models.OrmawaPengumuman{})
+		tx.Where("ormawa_id = ?", org.ID).Delete(&models.OrmawaDivisi{})
+		tx.Where("ormawa_id = ?", org.ID).Delete(&models.OrmawaAspirasi{})
+		tx.Where("ormawa_id = ?", org.ID).Delete(&models.OrmawaNotifikasi{})
+		tx.Where("ormawa_id = ?", org.ID).Delete(&models.OrmawaRole{})
+		tx.Where("ormawa_id = ?", org.ID).Delete(&models.User{})
 
 		// 11. Delete ormawa itself
 		if err := tx.Delete(&org).Error; err != nil {
@@ -847,6 +827,7 @@ func HapusOrganisasi(c *fiber.Ctx) error {
 	})
 
 	if err != nil {
+		fmt.Printf("[HapusOrganisasi] Error Transaction: %v\n", err)
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
 	}
 

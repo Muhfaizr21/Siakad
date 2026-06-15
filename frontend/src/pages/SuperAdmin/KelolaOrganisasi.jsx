@@ -65,7 +65,9 @@ export default function KelolaOrganisasi() {
   const [isDelOpen, setIsDelOpen] = useState(false)
   const [isEditMode, setIsEditMode] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [form, setForm] = useState({ Nama: '', Singkatan: '', Deskripsi: '', Visi: '', Misi: '', Email: '', LogoURL: '', Phone: '' })
+  const [form, setForm] = useState({ Nama: '', Singkatan: '', Deskripsi: '', Visi: '', Misi: '', Email: '', LogoURL: '', Phone: '', KategoriOrmawaID: '', FakultasID: '' })
+  const [kategoris, setKategoris] = useState([])
+  const [fakultasList, setFakultasList] = useState([])
 
   // Gamification states
   const [sortBy, setSortBy] = useState('xp') // 'xp' | 'lpj' | 'bintang'
@@ -132,11 +134,16 @@ export default function KelolaOrganisasi() {
   const fetchData = async () => {
     setLoading(true)
     try {
-      const [res, lpjRes, propRes] = await Promise.all([
+      const [res, lpjRes, propRes, katRes, fakRes] = await Promise.all([
         adminService.getAllOrmawa(),
         adminService.getAdminLpjs(),
-        adminService.getGlobalProposals()
+        adminService.getGlobalProposals(),
+        adminService.getOrmawaKategori().catch(() => ({ data: [] })),
+        adminService.getAllFaculties().catch(() => ({ data: [] }))
       ])
+
+      if (katRes && katRes.data) setKategoris(katRes.data.data || katRes.data)
+      if (fakRes && fakRes.data) setFakultasList(fakRes.data.data || fakRes.data)
 
       if (res.status === 'success' && res.data && res.data.length > 0) {
         let fetchedData = res.data
@@ -172,7 +179,7 @@ export default function KelolaOrganisasi() {
 
   const handleOpenAdd = () => {
     setIsEditMode(false);
-    setForm({ Nama: '', Singkatan: '', Deskripsi: '', Visi: '', Misi: '', Email: '', LogoURL: '', Phone: '' });
+    setForm({ Nama: '', Singkatan: '', Deskripsi: '', Visi: '', Misi: '', Email: '', LogoURL: '', Phone: '', KategoriOrmawaID: '', FakultasID: '' });
     setIsCrudOpen(true)
   }
 
@@ -196,7 +203,9 @@ export default function KelolaOrganisasi() {
       Misi: row.Misi || '',
       Email: row.Email || '',
       LogoURL: row.LogoURL || '',
-      Phone: row.Phone || ''
+      Phone: row.Phone || '',
+      KategoriOrmawaID: row.kategori_ormawa_id || row.KategoriOrmawaID || '',
+      FakultasID: row.fakultas_id || row.FakultasID || ''
     })
     setIsCrudOpen(true)
   }
@@ -1386,6 +1395,48 @@ export default function KelolaOrganisasi() {
               <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest font-headline ml-1">Kode Unit</Label>
               <input required value={form.Singkatan} onChange={e => setForm({ ...form, Singkatan: e.target.value })} placeholder="BEM, HIMA..." className="w-full h-11 px-4 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] outline-none transition-all duration-200 uppercase font-medium" />
             </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest font-headline ml-1">Kategori Organisasi</Label>
+              <select
+                required
+                value={form.KategoriOrmawaID}
+                onChange={e => {
+                  const val = e.target.value;
+                  const selectedKat = kategoris.find(k => String(k.id || k.ID) === val);
+                  if (selectedKat && !selectedKat.terafiliasi_fakultas) {
+                    setForm({ ...form, KategoriOrmawaID: val, FakultasID: '' });
+                  } else {
+                    setForm({ ...form, KategoriOrmawaID: val });
+                  }
+                }}
+                className="w-full h-11 px-4 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] outline-none transition-all duration-200 font-medium cursor-pointer"
+              >
+                <option value="" disabled>Pilih Kategori...</option>
+                {kategoris.map(k => (
+                  <option key={k.id || k.ID} value={String(k.id || k.ID)}>{k.nama || k.Nama}</option>
+                ))}
+              </select>
+            </div>
+            
+            {kategoris.find(k => String(k.id || k.ID) === String(form.KategoriOrmawaID))?.terafiliasi_fakultas && (
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-slate-500 uppercase tracking-widest font-headline ml-1">Fakultas</Label>
+                <select
+                  required={kategoris.find(k => String(k.id || k.ID) === String(form.KategoriOrmawaID))?.terafiliasi_fakultas}
+                  value={form.FakultasID}
+                  onChange={e => setForm({ ...form, FakultasID: e.target.value })}
+                  className="w-full h-11 px-4 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:border-[var(--theme-primary)] outline-none transition-all duration-200 font-medium cursor-pointer"
+                >
+                  <option value="" disabled>Pilih Fakultas...</option>
+                  {fakultasList.map(f => (
+                    <option key={f.id || f.ID} value={String(f.id || f.ID)}>{f.nama || f.Nama}</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

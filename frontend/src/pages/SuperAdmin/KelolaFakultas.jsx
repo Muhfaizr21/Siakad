@@ -11,6 +11,7 @@ import { Card, CardContent } from '@/components/ui/Card'
 import { PrimaryStatsCard, SecondaryStatsCard } from '@/components/ui/StatsCard'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
+import { SelectField, SelectOption } from '@/components/ui/SelectField'
 
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
@@ -45,7 +46,11 @@ const JENJANG_STYLES = {
 export default function KelolaFakultas() {
   const navigate = useNavigate()
   const [data, setData] = useState([])
+  const [rawFaculties, setRawFaculties] = useState([])
+  const [academicPeriods, setAcademicPeriods] = useState([])
   const [loading, setLoading] = useState(true)
+  const [selectedPeriode, setSelectedPeriode] = useState('all')
+  const [selectedFakultasFilter, setSelectedFakultasFilter] = useState(localStorage.getItem('superadmin_fakultas_id') || 'all')
   const [isSyncing, setIsSyncing] = useState(false)
   const [isCrudOpen, setIsCrudOpen] = useState(false)
   const [isDelOpen, setIsDelOpen] = useState(false)
@@ -66,33 +71,42 @@ export default function KelolaFakultas() {
         await adminService.syncPddikti('Universitas Bhakti Kencana', 'all')
         if (showSyncToast) toast.success('Sinkronisasi Data Fakultas Berhasil')
       }
-      const res = await adminService.getAllFaculties()
-      if (res.status === 'success') {
-        let fetchedData = res.data || []
-
-        const activeFakultas = localStorage.getItem('superadmin_fakultas_id')
-        if (activeFakultas && activeFakultas !== 'all') {
-          fetchedData = fetchedData.filter(f => String(f.id || f.ID) === activeFakultas)
-        }
-
-        const activeProdi = localStorage.getItem('superadmin_prodi_id')
-        if (activeProdi && activeProdi !== 'all') {
-          fetchedData = fetchedData.map(f => {
-            const prodis = f.ProgramStudi || f.program_studi || []
-            const filteredProdis = prodis.filter(p => String(p.id || p.ID) === activeProdi)
-            return {
-              ...f,
-              ProgramStudi: filteredProdis,
-              ...(f.program_studi ? { program_studi: filteredProdis } : {})
-            }
-          }).filter(f => f.ProgramStudi.length > 0)
-        }
-
-        setData(fetchedData)
+      const [facRes, perRes] = await Promise.all([
+        adminService.getAllFaculties(),
+        adminService.getAllAcademicPeriods()
+      ])
+      if (facRes.status === 'success') {
+        setRawFaculties(facRes.data || [])
+      } else {
+        toast.error('Gagal memuat sinkronisasi data')
       }
-      else toast.error('Gagal memuat sinkronisasi data')
+      if (perRes.status === 'success') {
+        setAcademicPeriods(perRes.data || [])
+      }
     } catch { toast.error('Koneksi node terputus') } finally { setLoading(false) }
   }
+
+  useEffect(() => {
+    let fetchedData = rawFaculties
+    if (selectedFakultasFilter && selectedFakultasFilter !== 'all') {
+      fetchedData = fetchedData.filter(f => String(f.id || f.ID) === selectedFakultasFilter)
+    }
+
+    const activeProdi = localStorage.getItem('superadmin_prodi_id')
+    if (activeProdi && activeProdi !== 'all') {
+      fetchedData = fetchedData.map(f => {
+        const prodis = f.ProgramStudi || f.program_studi || []
+        const filteredProdis = prodis.filter(p => String(p.id || p.ID) === activeProdi)
+        return {
+          ...f,
+          ProgramStudi: filteredProdis,
+          ...(f.program_studi ? { program_studi: filteredProdis } : {})
+        }
+      }).filter(f => f.ProgramStudi.length > 0)
+    }
+
+    setData(fetchedData)
+  }, [rawFaculties, selectedFakultasFilter])
 
   useEffect(() => { fetchData() }, [])
 
@@ -437,29 +451,52 @@ export default function KelolaFakultas() {
         highlightedTitle="Fakultas"
         subtitle="Manajemen struktur unit kerja dan sinkronisasi data fakultas di lingkungan Universitas Bhakti Kencana."
         icon="business"
-        badges={[{ label: 'Administrative Hierarchy', active: false }]}
+        badges={[
+          { label: 'Administrative Hierarchy', active: false }
+        ]}
         actions={
-          <>
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            <SelectField
+              value={selectedPeriode}
+              onValueChange={setSelectedPeriode}
+              placeholder="Semua Periode"
+              className="w-full sm:w-[200px]"
+            >
+              <SelectOption value="all">Semua Tahun Periode</SelectOption>
+              {academicPeriods.map(p => (
+                <SelectOption key={p.id || p.ID} value={String(p.id || p.ID)}>
+                  Tahun Ajaran {p.AcademicYear || p.academic_year} - {p.Semester || p.semester}
+                </SelectOption>
+              ))}
+            </SelectField>
+
+            <SelectField
+              value={selectedFakultasFilter}
+              onValueChange={(val) => {
+                setSelectedFakultasFilter(val);
+                localStorage.setItem('superadmin_fakultas_id', val);
+              }}
+              placeholder="Semua Fakultas"
+              className="w-full sm:w-[200px]"
+            >
+              <SelectOption value="all">Semua Fakultas</SelectOption>
+              {rawFaculties.map(f => (
+                <SelectOption key={f.id || f.ID} value={String(f.id || f.ID)}>
+                  {f.Nama || f.nama}
+                </SelectOption>
+              ))}
+            </SelectField>
+
             <Button
               onClick={handleSyncPddikti}
               variant="outline"
               disabled={isSyncing}
-              className="h-11 px-6 rounded-xl border-slate-200 text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-50 gap-2 transition-all active:scale-95 shadow-sm w-full sm:w-auto flex items-center justify-center font-headline"
+              className="h-10 px-6 rounded-xl border-slate-200 text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-50 gap-2 transition-all active:scale-95 shadow-sm w-full sm:w-auto flex items-center justify-center font-headline"
             >
               {isSyncing ? <span className="material-symbols-outlined animate-spin text-bku-primary" style={{ fontSize: '14px' }} >sync</span> : <RefreshCw size={14} className="text-bku-primary" />}
-              {isSyncing ? 'Syncing...' : 'PDDIKTI Sync'}
+              {isSyncing ? 'Syncing...' : 'Sync'}
             </Button>
-
-            <Button
-              onClick={handleOpenAdd}
-              className="h-11 px-8 rounded-xl bg-slate-900 text-white hover:bg-bku-primary shadow-xl shadow-slate-900/10 gap-3 transition-all active:scale-95 border-none group w-full sm:w-auto flex items-center justify-center font-headline"
-            >
-              <div className="size-5 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                <span className="material-symbols-outlined" style={{ fontSize: '14px' }} strokeWidth={3}>add</span>
-              </div>
-              <span className="text-xs font-bold uppercase tracking-[0.2em]">Registrasi Unit</span>
-            </Button>
-          </>
+          </div>
         }
       />
 
@@ -683,6 +720,8 @@ export default function KelolaFakultas() {
             data={data}
             loading={loading}
             searchPlaceholder="Cari nama fakultas atau kode unit..."
+            onAdd={handleOpenAdd}
+            addLabel="Registrasi Unit"
             actions={(row) => (
               <div className="flex items-center gap-1.5">
                 <Button

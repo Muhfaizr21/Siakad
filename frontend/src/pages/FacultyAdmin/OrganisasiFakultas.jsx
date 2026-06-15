@@ -28,12 +28,13 @@ const ShieldCheck = ({ size, className, ...props }) => <span className={`materia
 
 
 const API = "/faculty"
-const EMPTY_FORM = { kode_org: '', nama_org: '', ketua_nama: '', KetuaID: null, jumlah_anggota: 0, status: 'Aktif', kategori: 'Himpunan', email: '', password: '', phone: '', fakultas_id: '' }
+const EMPTY_FORM = { kode_org: '', nama_org: '', ketua_nama: '', KetuaID: null, jumlah_anggota: 0, status: 'Aktif', KategoriOrmawaID: '', email: '', password: '', phone: '', fakultas_id: '' }
 
 export default function FacultyOrganisasi() {
   const [organizations, setOrgs] = useState([])
   const [students, setStudents] = useState([])
   const [faculties, setFaculties] = useState([])
+  const [kategoris, setKategoris] = useState([])
   const [loading, setLoading] = useState(true)
   const user = JSON.parse(localStorage.getItem('user') || '{}')
   const isSuperAdmin = user.role === 'super_admin' || user.role === 'kencana_admin'
@@ -71,8 +72,9 @@ export default function FacultyOrganisasi() {
       const res = await axios.get(`${API}/organizations`)
       const data = res.data
       const mapped = Array.isArray(data.data) ? data.data.map(item => ({
-        id: item.ID, nama: item.Nama, kode: item.Singkatan || item.Kode || '',
-        status: item.Status || 'Aktif', kategori: item.Kategori || '',
+        id: item.id || item.ID, nama: item.Nama, kode: item.Singkatan || item.Kode || '',
+        status: item.Status || 'Aktif', kategori: item.kategori_detail?.nama || item.KategoriDetail?.Nama || item.Kategori || '',
+        kategori_ormawa_id: item.KategoriOrmawaID || item.kategori_ormawa_id || '',
         jumlah_anggota: item.JumlahAnggota || 0, deskripsi: item.Deskripsi || '',
         email: item.Email || '', phone: item.Phone || '', CreatedAt: item.CreatedAt || item.created_at || null
       })) : []
@@ -80,6 +82,13 @@ export default function FacultyOrganisasi() {
 
       const stdRes = await axios.get('/faculty/students')
       setStudents(stdRes.data.data || [])
+
+      try {
+        const katRes = await axios.get(`${API}/ormawa-kategori`)
+        if (katRes && katRes.data) {
+          setKategoris(katRes.data.data || katRes.data)
+        }
+      } catch (e) { console.error('Failed to load kategori', e) }
 
       if (isSuperAdmin) {
         const facRes = await axios.get('/admin/fakultas')
@@ -92,7 +101,7 @@ export default function FacultyOrganisasi() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSub(true)
-    const payload = { Nama: formData.nama_org, Singkatan: formData.kode_org, Status: formData.status, Kategori: formData.kategori, JumlahAnggota: parseInt(formData.jumlah_anggota) || 0, Deskripsi: formData.ketua_nama, Email: formData.email, Password: formData.password, Phone: formData.phone }
+    const payload = { Nama: formData.nama_org, Singkatan: formData.kode_org, Status: formData.status, KategoriOrmawaID: formData.KategoriOrmawaID, JumlahAnggota: parseInt(formData.jumlah_anggota) || 0, Deskripsi: formData.ketua_nama, Email: formData.email, Password: formData.password, Phone: formData.phone }
 
     if (formData.KetuaID) {
       payload.KetuaID = parseInt(formData.KetuaID)
@@ -126,7 +135,7 @@ export default function FacultyOrganisasi() {
   const openEdit = (org) => {
     console.log('Open Edit ORMAWA:', org);
     setEdit(org);
-    setFormData({ kode_org: org.kode || org.Singkatan || '', nama_org: org.nama || org.Nama || '', ketua_nama: org.deskripsi || org.Deskripsi || org.ketua_nama || '', KetuaID: org.ketua_id || org.KetuaID || null, jumlah_anggota: org.jumlah_anggota || org.JumlahAnggota || 0, status: org.status || org.Status || 'Aktif', kategori: org.kategori || org.Kategori || 'Himpunan', email: org.email || org.Email || '', password: '', phone: org.phone || org.Phone || '', fakultas_id: org.fakultas_id || org.FakultasID || '' });
+    setFormData({ kode_org: org.kode || org.Singkatan || '', nama_org: org.nama || org.Nama || '', ketua_nama: org.deskripsi || org.Deskripsi || org.ketua_nama || '', KetuaID: org.ketua_id || org.KetuaID || null, jumlah_anggota: org.jumlah_anggota || org.JumlahAnggota || 0, status: org.status || org.Status || 'Aktif', KategoriOrmawaID: org.kategori_ormawa_id || org.KategoriOrmawaID || '', email: org.email || org.Email || '', password: '', phone: org.phone || org.Phone || '', fakultas_id: org.fakultas_id || org.FakultasID || '' });
     const facIdToFind = org.fakultas_id || org.FakultasID;
     const foundFac = faculties.find(f => (f.id || f.ID) === facIdToFind)
     setFakultasSearch(foundFac ? (foundFac.nama || foundFac.Nama) : '')
@@ -426,14 +435,14 @@ export default function FacultyOrganisasi() {
               </div>
               <div>
                 <label className="block text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider mb-1.5">Kategori</label>
-                <Select value={formData.kategori} onValueChange={val => set('kategori', val)}>
+                <Select value={String(formData.KategoriOrmawaID || '')} onValueChange={val => set('KategoriOrmawaID', val)}>
                   <SelectTrigger className="h-10 w-full rounded-xl border border-[var(--theme-border)] bg-white px-3 text-sm text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] focus:outline-none">
-                    <SelectValue />
+                    <SelectValue placeholder="Pilih Kategori" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl border border-[var(--theme-border)] shadow-md bg-white">
-                    {['BEM', 'Himpunan', 'UKM', 'Komunitas', 'Lainnya'].map(v => (
-                      <SelectItem key={v} value={v} className="rounded-lg text-sm py-1.5 focus:bg-[var(--theme-primary-light)] focus:text-[var(--theme-primary)]">
-                        {v}
+                    {kategoris.map(v => (
+                      <SelectItem key={v.ID || v.id} value={String(v.ID || v.id)} className="rounded-lg text-sm py-1.5 focus:bg-[var(--theme-primary-light)] focus:text-[var(--theme-primary)]">
+                        {v.Nama || v.nama}
                       </SelectItem>
                     ))}
                   </SelectContent>

@@ -7,6 +7,7 @@ import useAuthStore from '../../store/useAuthStore'
 import { SelectField, SelectOption } from '@/components/ui/SelectField'
 import { PageContent, PageCard, PageCardHeader } from '@/components/ui/page'
 import { DashboardHero, DashboardFilter, DashboardStatCard, DashboardStatGrid, DashboardQuickActions, FilterItem } from '@/components/ui/dashboard'
+import { PrimaryStatsCard } from '@/components/ui/StatsCard'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const GraduationCap = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>school</span>;
@@ -309,7 +310,7 @@ export default function AdminDashboard() {
   const greeting = hour < 11 ? 'Selamat Pagi' : hour < 15 ? 'Selamat Siang' : hour < 18 ? 'Selamat Sore' : 'Selamat Malam'
   const dateStr = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 
-const fetchData = async (showRefresh = false) => {
+  const fetchData = async (showRefresh = false) => {
     if (showRefresh) setRefreshing(true)
     else setLoading(true)
     try {
@@ -375,7 +376,7 @@ const fetchData = async (showRefresh = false) => {
     setTimeout(() => {
       // Get base metrics from database mapping
       const baseMetrics = statsDatabase[fak]?.[prd] || statsDatabase['Semua Fakultas']['Semua Program Studi']
-      
+
       // Calculate multiplier based on semester for realistic data differences
       let multiplier = 1.0
       if (sem.includes('2025/2026 Genap')) multiplier = 0.96
@@ -395,7 +396,7 @@ const fetchData = async (showRefresh = false) => {
       // Generate realistic logs matching the selected Faculty / Prodi
       const targetLabel = prd === 'Semua Program Studi' ? (fak === 'Semua Fakultas' ? 'Sistem' : fak.split(' ')[1]) : prd
       const targetEmail = `ormawa.${targetLabel.toLowerCase().replace(/\s+/g, '')}@bku.ac.id`
-      
+
       const simulatedLogs = [
         { CreatedAt: new Date(Date.now() - 3 * 60000).toISOString(), Aktivitas: 'CREATE_PROPOSAL', Deskripsi: `Proposal baru diajukan oleh HMJ ${targetLabel}`, Pengguna: { Email: targetEmail } },
         { CreatedAt: new Date(Date.now() - 12 * 60000).toISOString(), Aktivitas: 'UPDATE_USER', Deskripsi: `Sinkronisasi berkas mahasiswa ${targetLabel} selesai`, Pengguna: { Email: 'siakad.admin@bku.ac.id' } },
@@ -411,20 +412,20 @@ const fetchData = async (showRefresh = false) => {
 
   // ── Stats Mapping for Cards ───────────────────────────────────────
   const statCards = [
-    { label: 'Total Mahasiswa',   value: stats.total_mahasiswa?.toLocaleString('id-ID'),  icon: 'school', colorClass: 'text-primary',  bgClass: 'bg-primary/10 border border-primary/20', route: '/admin/students',      description: 'Data mahasiswa aktif Universitas Bhakti Kencana' },
-    { label: 'Aspirasi Masuk',    value: stats.aspirasi_aktif,                             icon: 'chat',  colorClass: 'text-info',     bgClass: 'bg-info/10 border border-info/20',    route: '/admin/aspirations',   description: 'Laporan masuk yang memerlukan penanganan' },
-    { label: 'Penyelesaian Hari Ini', value: stats.resolved_today,                          icon: 'check_circle',   colorClass: 'text-success', bgClass: 'bg-success/10 border border-success/20',route: '/admin/audit',         description: 'Kasus yang berhasil ditangani hari ini' },
-    { label: 'Antrean Proposal',  value: stats.antrean_proposal,                           icon: 'description',       colorClass: 'text-warning',   bgClass: 'bg-warning/10 border border-warning/20',  route: '/admin/proposals',     description: 'Dokumen kegiatan menunggu otorisasi' },
-    { label: 'Anggota Ormawa',    value: stats.total_anggota_ormawa?.toLocaleString('id-ID'), icon: 'group',          colorClass: 'text-secondary',  bgClass: 'bg-secondary/10 border border-secondary/20', route: '/admin/organizations', description: 'Total partisipasi mahasiswa organisasi' },
+    { title: 'Total Mahasiswa', value: stats.total_mahasiswa?.toLocaleString('id-ID'), icon: 'school', colorTheme: 'primary', route: '/admin/students', subtitle: 'Data mahasiswa aktif Universitas Bhakti Kencana' },
+    { title: 'Aspirasi Masuk', value: stats.aspirasi_aktif, icon: 'chat', colorTheme: 'info', route: '/admin/aspirations', subtitle: 'Laporan masuk yang memerlukan penanganan' },
+    { title: 'Penyelesaian Hari Ini', value: stats.resolved_today, icon: 'check_circle', colorTheme: 'success', route: '/admin/audit', subtitle: 'Kasus yang berhasil ditangani hari ini' },
+    { title: 'Antrean Proposal', value: stats.antrean_proposal, icon: 'description', colorTheme: 'warning', route: '/admin/proposals', subtitle: 'Dokumen kegiatan menunggu otorisasi' },
+    { title: 'Anggota Ormawa', value: stats.total_anggota_ormawa?.toLocaleString('id-ID'), icon: 'group', colorTheme: 'primary', route: '/admin/organizations', subtitle: 'Total partisipasi mahasiswa organisasi' },
   ]
 
   const quickLinks = [
-    { label: 'Mahasiswa', icon: 'school', href: '/admin/students',       colorClass: 'text-primary',  bgClass: 'bg-primary/10 border border-primary/20' },
-    { label: 'Fakultas',  icon: 'business',     href: '/admin/faculties',      colorClass: 'text-secondary', bgClass: 'bg-secondary/10 border border-secondary/20' },
-    { label: 'Beasiswa',  icon: 'emoji_events',         href: '/admin/scholarships',   colorClass: 'text-warning',  bgClass: 'bg-warning/10 border border-warning/20' },
-    { label: 'Aspirasi',  icon: 'chat', href: '/admin/aspirations',    colorClass: 'text-error',   bgClass: 'bg-error/10 border border-error/20' },
-    { label: 'Proposal',  icon: 'description',      href: '/admin/proposals',      colorClass: 'text-success', bgClass: 'bg-success/10 border border-success/20' },
-    { label: 'Berita',    icon: 'menu_book',      href: '/admin/announcements',  colorClass: 'text-info', bgClass: 'bg-info/10 border border-info/20' },
+    { label: 'Mahasiswa', icon: 'school', href: '/admin/students', colorClass: 'text-primary', bgClass: 'bg-primary/10 border border-primary/20' },
+    { label: 'Fakultas', icon: 'business', href: '/admin/faculties', colorClass: 'text-secondary', bgClass: 'bg-secondary/10 border border-secondary/20' },
+    { label: 'Beasiswa', icon: 'emoji_events', href: '/admin/scholarships', colorClass: 'text-warning', bgClass: 'bg-warning/10 border border-warning/20' },
+    { label: 'Aspirasi', icon: 'chat', href: '/admin/aspirations', colorClass: 'text-error', bgClass: 'bg-error/10 border border-error/20' },
+    { label: 'Proposal', icon: 'description', href: '/admin/proposals', colorClass: 'text-success', bgClass: 'bg-success/10 border border-success/20' },
+    { label: 'Berita', icon: 'menu_book', href: '/admin/announcements', colorClass: 'text-info', bgClass: 'bg-info/10 border border-info/20' },
   ]
 
   const activeChartData = chartDataByFaculty[fakultas] || chartDataByFaculty['Semua Fakultas'];
@@ -475,9 +476,9 @@ const fetchData = async (showRefresh = false) => {
   };
 
   return (
-    
+
     <PageContent>
-      <DashboardHero 
+      <DashboardHero
         title={`${greeting},`}
         highlightedTitle={`${user?.Nama?.split(' ')[0] || 'Admin'}!`}
         subtitle="Pusat kendali operasional Universitas Bhakti Kencana. Kelola data dan efisiensi birokrasi dalam satu dashboard terpadu."
@@ -499,13 +500,17 @@ const fetchData = async (showRefresh = false) => {
         }
       />
 
-      <DashboardStatGrid className="sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-5 mb-6">
         {statCards.map((card, i) => (
-          <DashboardStatCard key={i} {...card} loading={loading} />
+          <PrimaryStatsCard
+            key={i}
+            {...card}
+            onClick={() => navigate(card.route)}
+          />
         ))}
-      </DashboardStatGrid>
+      </div>
 
-      <DashboardQuickActions 
+      <DashboardQuickActions
         title="Akses Cepat"
         description="Pintasan Menu"
         actions={quickLinks.map(ql => ({
@@ -517,441 +522,441 @@ const fetchData = async (showRefresh = false) => {
       />
 
       {/* ── Main Bento Grid (Bespoke Interactive Tailwind CSS Chart) ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in duration-500">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in duration-500">
 
-          {/* Bespoke Tailwind CSS Bar Chart Card — spans 2 cols */}
-          <PageCard className="lg:col-span-2 flex flex-col">
-            <PageCardHeader 
-              title="Tren Laporan & Penyelesaian" 
-              description="Perbandingan jumlah aspirasi masuk vs penyelesaian bulanan"
-              icon="show_chart"
-              action={
-                <div className="flex items-center gap-4 text-[10px] font-bold text-[var(--theme-text-muted)]">
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: 'var(--theme-primary)' }} />
-                    <span>Aspirasi</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: 'var(--theme-secondary)' }} />
-                    <span>Penyelesaian</span>
-                  </div>
+        {/* Bespoke Tailwind CSS Bar Chart Card — spans 2 cols */}
+        <PageCard className="lg:col-span-2 flex flex-col">
+          <PageCardHeader
+            title="Tren Laporan & Penyelesaian"
+            description="Perbandingan jumlah aspirasi masuk vs penyelesaian bulanan"
+            icon="show_chart"
+            action={
+              <div className="flex items-center gap-4 text-[10px] font-bold text-[var(--theme-text-muted)]">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: 'var(--theme-primary)' }} />
+                  <span>Aspirasi</span>
                 </div>
-              }
-            />
-
-            {/* Bespoke SVG Wavy Spline Area Chart with Integrated Coordinates */}
-            <div className="min-h-[280px] flex-1 w-full relative pt-6 font-inter select-none">
-              
-              {/* SVG Canvas Area */}
-              <div ref={containerRef} className="w-full h-full relative">
-                
-                {/* Interactive Floating HTML Tooltip (bound to exact SVG pixels) */}
-                {hoveredIndex !== null && (
-                  <div 
-                    style={{ 
-                      left: `${40 + (hoveredIndex * (svgWidth - 60)) / (activeChartData.length - 1)}px`,
-                      transform: 'translate(-50%, -100%)' 
-                    }}
-                    className="absolute top-2 pointer-events-none bg-slate-900 text-white text-xs font-medium py-3 px-4 rounded-2xl shadow-xl flex flex-col gap-1.5 items-center z-30 font-inter border border-white/10 animate-in fade-in zoom-in-95 duration-200"
-                  >
-                    <span className="text-muted font-medium text-[10px]">
-                      {activeChartData[hoveredIndex].name}
-                    </span>
-                    <div className="flex items-center gap-2 leading-none">
-                      <span className="w-2 h-2 rounded-full shrink-0 border border-white" style={{ backgroundColor: 'var(--theme-primary)' }} />
-                      <span>Aspirasi: {activeChartData[hoveredIndex].Aspirasi}</span>
-                    </div>
-                    <div className="flex items-center gap-2 leading-none">
-                      <span className="w-2 h-2 rounded-full shrink-0 border border-white" style={{ backgroundColor: 'var(--theme-secondary)' }} />
-                      <span>Penyelesaian: {activeChartData[hoveredIndex].Penyelesaian}</span>
-                    </div>
-                  </div>
-                )}
-
-                <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="w-full h-full overflow-visible">
-                  <defs>
-                    {/* Gradients for filled area under curves */}
-                    <linearGradient id="areaAspirasi" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="var(--theme-primary)" stopOpacity="0.22" />
-                      <stop offset="100%" stopColor="var(--theme-primary)" stopOpacity="0.00" />
-                    </linearGradient>
-                    <linearGradient id="areaPenyelesaian" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="var(--theme-secondary)" stopOpacity="0.22" />
-                      <stop offset="100%" stopColor="var(--theme-secondary)" stopOpacity="0.00" />
-                    </linearGradient>
-                  </defs>
-
-                  {/* Horizontal Gridlines & Y-Axis Labels inside SVG */}
-                  {[120, 90, 60, 30, 0].map((v) => {
-                    // Calculate exact Y coordinate based on bottom-up projection
-                    const y = (svgHeight - 30) - (v / 120) * (svgHeight - 50);
-                    return (
-                      <g key={v}>
-                        {/* Grid Line */}
-                        <line x1="40" y1={y} x2={svgWidth - 20} y2={y} stroke="var(--theme-border)" strokeOpacity="0.35" strokeWidth="1" />
-                        {/* Y-Axis text */}
-                        <text x="10" y={y + 3} fill="var(--theme-text-muted)" fontSize="9" fontWeight="normal" className="select-none">{v}</text>
-                      </g>
-                    );
-                  })}
-
-                  {/* Filled Wavy Areas */}
-                  <path d={getAreaPath(activeChartData, 'Aspirasi', svgWidth, svgHeight, 120)} fill="url(#areaAspirasi)" className="transition-all duration-500" />
-                  <path d={getAreaPath(activeChartData, 'Penyelesaian', svgWidth, svgHeight, 120)} fill="url(#areaPenyelesaian)" className="transition-all duration-500" />
-
-                  {/* Stroke Spline Curves */}
-                  <path 
-                    d={getCurvePath(activeChartData, 'Aspirasi', svgWidth, svgHeight, 120)} 
-                    fill="none" 
-                    stroke="var(--theme-primary)" 
-                    strokeWidth="3.5" 
-                    strokeLinecap="round" 
-                    className="transition-all duration-500"
-                  />
-                  <path 
-                    d={getCurvePath(activeChartData, 'Penyelesaian', svgWidth, svgHeight, 120)} 
-                    fill="none" 
-                    stroke="var(--theme-secondary)" 
-                    strokeWidth="3.5" 
-                    strokeLinecap="round" 
-                    className="transition-all duration-500"
-                  />
-
-                  {/* Dashed vertical gridline indicator on active hovered data point */}
-                  {hoveredIndex !== null && (
-                    <line 
-                      x1={40 + (hoveredIndex * (svgWidth - 60)) / (activeChartData.length - 1)}
-                      y1={20}
-                      x2={40 + (hoveredIndex * (svgWidth - 60)) / (activeChartData.length - 1)}
-                      y2={svgHeight - 30}
-                      stroke="var(--theme-text-muted)"
-                      strokeDasharray="4 4"
-                      strokeWidth="1.5"
-                    />
-                  )}
-
-                  {/* Glowing dynamic highlight rings and solid centered circles on active Y points */}
-                  {hoveredIndex !== null && (() => {
-                    const x = 40 + (hoveredIndex * (svgWidth - 60)) / (activeChartData.length - 1);
-                    const y1 = (svgHeight - 30) - (activeChartData[hoveredIndex].Aspirasi / 120) * (svgHeight - 50);
-                    const y2 = (svgHeight - 30) - (activeChartData[hoveredIndex].Penyelesaian / 120) * (svgHeight - 50);
-                    return (
-                      <g>
-                        {/* Aspirasi Glow Indicator */}
-                        <circle cx={x} cy={y1} r="10" fill="var(--theme-primary)" fillOpacity="0.2" className="animate-ping" />
-                        <circle cx={x} cy={y1} r="5.5" fill="var(--theme-primary)" stroke="white" strokeWidth="2.5" className="shadow-md" />
-
-                        {/* Penyelesaian Glow Indicator */}
-                        <circle cx={x} cy={y2} r="10" fill="var(--theme-secondary)" fillOpacity="0.2" className="animate-ping" />
-                        <circle cx={x} cy={y2} r="5.5" fill="var(--theme-secondary)" stroke="white" strokeWidth="2.5" className="shadow-md" />
-                      </g>
-                    );
-                  })()}
-
-                  {/* X-Axis Month Labels directly inside SVG coordinate grid */}
-                  {activeChartData.map((item, i) => {
-                    const x = 40 + (i * (svgWidth - 60)) / (activeChartData.length - 1);
-                    return (
-                      <text 
-                        key={i} 
-                        x={x} 
-                        y={svgHeight - 8} 
-                        textAnchor="middle" 
-                        fontSize="9" 
-                        fontWeight="bold" 
-                        className={cn(
-                          "text-[10px] font-medium text-slate-400 transition-all duration-300 select-none",
-                          hoveredIndex === i ? "fill-bku-primary scale-110" : "fill-slate-400"
-                        )}
-                      >
-                        {item.name}
-                      </text>
-                    );
-                  })}
-
-                  {/* Invisible broad hover detection regions to capture mouse events smoothly */}
-                  {activeChartData.map((item, i) => {
-                    const x = 40 + (i * (svgWidth - 60)) / (activeChartData.length - 1);
-                    const colWidth = (svgWidth - 60) / (activeChartData.length - 1);
-                    return (
-                      <rect
-                        key={i}
-                        x={x - colWidth / 2}
-                        y={20}
-                        width={colWidth}
-                        height={svgHeight - 50}
-                        fill="transparent"
-                        className="cursor-crosshair outline-none"
-                        onMouseEnter={() => setHoveredIndex(i)}
-                        onMouseLeave={() => setHoveredIndex(null)}
-                      />
-                    );
-                  })}
-                </svg>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: 'var(--theme-secondary)' }} />
+                  <span>Penyelesaian</span>
+                </div>
               </div>
-            </div>
-          </PageCard>
-
-          {/* Right Column (Health Status) */}
-          <div className="lg:col-span-1">
-            <div className="bg-gradient-to-br from-[var(--theme-primary)] to-[#00123a] text-white p-6 rounded-2xl shadow-md border border-[var(--theme-primary)]/20 relative overflow-hidden group hover:-translate-y-0.5 transition-all duration-300 h-full flex flex-col justify-between">
-              <div className="absolute -top-12 -right-12 w-24 h-24 bg-gradient-to-br from-yellow-400/20 to-transparent rounded-full opacity-35 blur-xl pointer-events-none" />
-              <div className="relative z-10 space-y-6 flex-1 flex flex-col justify-between">
-                
-                {/* Header with status pulsing dot */}
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-white/10 text-yellow-400 flex items-center justify-center border border-white/15">
-                      <span className="material-symbols-outlined text-[20px]">bolt</span>
-                    </div>
-                    <div>
-                      <h3 className="text-base font-bold leading-tight text-white">Kesehatan Perangkat</h3>
-                      <p className="text-[10px] text-white/60 font-bold mt-0.5 uppercase tracking-wider">Status Server</p>
-                    </div>
-                  </div>
-                  
-                  {/* Status Badge */}
-                  <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[9px] font-black uppercase tracking-wider">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    {systemHealth.server_status}
-                  </div>
-                </div>
-
-                {/* Progress Indicators & Core Metrics */}
-                <div className="space-y-5 my-auto">
-                  {/* CPU Usage */}
-                  <div className="space-y-1.5 text-left">
-                    <div className="flex justify-between text-[11px] font-bold text-white/70">
-                      <span>Beban CPU</span>
-                      <span className="text-white font-extrabold">{systemHealth.cpu_usage}%</span>
-                    </div>
-                    <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full transition-all duration-500" style={{ width: `${systemHealth.cpu_usage}%` }} />
-                    </div>
-                  </div>
-
-                  {/* RAM Memory Usage */}
-                  <div className="space-y-1.5 text-left">
-                    <div className="flex justify-between text-[11px] font-bold text-white/70">
-                      <span>Memori (RAM)</span>
-                      <span className="text-white font-extrabold">{systemHealth.ram_used} GB / {systemHealth.ram_total} GB ({systemHealth.ram_usage_percent}%)</span>
-                    </div>
-                    <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-blue-400 to-indigo-400 rounded-full transition-all duration-500" style={{ width: `${systemHealth.ram_usage_percent}%` }} />
-                    </div>
-                  </div>
-
-                  {/* Detailed metrics grid */}
-                  <div className="grid grid-cols-2 gap-3 pt-3 border-t border-white/5">
-                    <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-left">
-                      <p className="text-[9px] text-white/50 font-bold uppercase tracking-wider">Latency API</p>
-                      <p className="text-sm font-extrabold text-white mt-1 flex items-center gap-1">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
-                        {systemHealth.api_latency_ms}ms
-                      </p>
-                    </div>
-                    <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-left">
-                      <p className="text-[9px] text-white/50 font-bold uppercase tracking-wider">Database</p>
-                      <p className="text-sm font-extrabold text-white mt-1 flex items-center gap-1">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
-                        {systemHealth.db_connections} Active
-                      </p>
-                    </div>
-                    <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-left">
-                      <p className="text-[9px] text-white/50 font-bold uppercase tracking-wider">Baterai Klien</p>
-                      <p className="text-sm font-extrabold text-white mt-1 flex items-center gap-1">
-                        <span className={`w-2 h-2 rounded-full shrink-0 ${isCharging ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'}`} />
-                        {batteryLevel !== null ? `${batteryLevel}%` : 'N/A'}
-                      </p>
-                    </div>
-                    <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-left">
-                      <p className="text-[9px] text-white/50 font-bold uppercase tracking-wider">Jaringan</p>
-                      <p className="text-sm font-extrabold text-white mt-1 flex items-center gap-1">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
-                        {networkSpeed ? `${networkSpeed} Mbps` : 'N/A'}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Additional info */}
-                  <div className="flex justify-between items-center text-[10px] text-white/60 font-medium px-1">
-                    <span>Uptime Sistem: <strong className="text-white font-bold">{systemHealth.uptime_percent}%</strong></span>
-                    <span>Penyimpanan: <strong className="text-white font-bold">{systemHealth.disk_usage_percent}%</strong></span>
-                  </div>
-                </div>
-                
-                <button
-                  onClick={() => navigate('/admin/performance')}
-                  className="w-full py-3 bg-white text-[var(--theme-primary)] hover:bg-white/95 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-[0.98]"
-                >
-                  Lihat Detail Performa
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ── System Audit Logs Section ────────────────────────────── */}
-        <PageCard>
-          <PageCardHeader 
-            title="Log Aktivitas Sistem Terbaru"
-            description="Catatan audit operasi sistem dan aktivitas administrator secara real-time."
-            icon="history"
+            }
           />
 
-          {/* Search and Limit controls */}
-          <div className="flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center bg-slate-50/50 p-4 rounded-xl border border-[var(--theme-border-muted)] mb-6">
-            {/* Search Input */}
-            <div className="relative flex-1 max-w-md">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-muted" style={{ fontSize: '18px' }}>search</span>
-              <input
-                type="text"
-                placeholder="Cari email pengguna, tindakan, atau deskripsi log..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-10 py-2 border border-[var(--theme-border-muted)] rounded-lg text-xs font-semibold focus:border-primary focus:bg-white bg-white transition-all outline-none"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-neutral-900 transition-colors"
+          {/* Bespoke SVG Wavy Spline Area Chart with Integrated Coordinates */}
+          <div className="min-h-[280px] flex-1 w-full relative pt-6 font-inter select-none">
+
+            {/* SVG Canvas Area */}
+            <div ref={containerRef} className="w-full h-full relative">
+
+              {/* Interactive Floating HTML Tooltip (bound to exact SVG pixels) */}
+              {hoveredIndex !== null && (
+                <div
+                  style={{
+                    left: `${40 + (hoveredIndex * (svgWidth - 60)) / (activeChartData.length - 1)}px`,
+                    transform: 'translate(-50%, -100%)'
+                  }}
+                  className="absolute top-2 pointer-events-none bg-slate-900 text-white text-xs font-medium py-3 px-4 rounded-2xl shadow-xl flex flex-col gap-1.5 items-center z-30 font-inter border border-white/10 animate-in fade-in zoom-in-95 duration-200"
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>close</span>
-                </button>
+                  <span className="text-muted font-medium text-[10px]">
+                    {activeChartData[hoveredIndex].name}
+                  </span>
+                  <div className="flex items-center gap-2 leading-none">
+                    <span className="w-2 h-2 rounded-full shrink-0 border border-white" style={{ backgroundColor: 'var(--theme-primary)' }} />
+                    <span>Aspirasi: {activeChartData[hoveredIndex].Aspirasi}</span>
+                  </div>
+                  <div className="flex items-center gap-2 leading-none">
+                    <span className="w-2 h-2 rounded-full shrink-0 border border-white" style={{ backgroundColor: 'var(--theme-secondary)' }} />
+                    <span>Penyelesaian: {activeChartData[hoveredIndex].Penyelesaian}</span>
+                  </div>
+                </div>
               )}
-            </div>
 
-            {/* Limit Selector */}
-            <div className="flex items-center gap-3 self-end md:self-auto">
-              <span className="text-xs text-[var(--theme-text-muted)] font-bold">Tampilkan</span>
-              <div className="relative">
-                <select
-                  value={pageSize}
-                  onChange={(e) => setPageSize(parseInt(e.target.value))}
-                  className="pl-3 pr-8 py-1.5 bg-surface border border-[var(--theme-border-muted)] rounded-lg text-xs font-bold text-[var(--theme-text)] focus:border-primary outline-none cursor-pointer appearance-none"
-                >
-                  <option value={10}>10 baris</option>
-                  <option value={20}>20 baris</option>
-                  <option value={50}>50 baris</option>
-                </select>
-                <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" style={{ fontSize: '14px' }}>expand_more</span>
-              </div>
-            </div>
-          </div>
+              <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="w-full h-full overflow-visible">
+                <defs>
+                  {/* Gradients for filled area under curves */}
+                  <linearGradient id="areaAspirasi" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="var(--theme-primary)" stopOpacity="0.22" />
+                    <stop offset="100%" stopColor="var(--theme-primary)" stopOpacity="0.00" />
+                  </linearGradient>
+                  <linearGradient id="areaPenyelesaian" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="var(--theme-secondary)" stopOpacity="0.22" />
+                    <stop offset="100%" stopColor="var(--theme-secondary)" stopOpacity="0.00" />
+                  </linearGradient>
+                </defs>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse font-inter">
-              <thead>
-                <tr className="border-b border-[var(--theme-border-muted)] text-[var(--theme-text-muted)]">
-                  <th className="pb-3 text-xs font-bold uppercase tracking-wider">Waktu</th>
-                  <th className="pb-3 text-xs font-bold uppercase tracking-wider">Pengguna</th>
-                  <th className="pb-3 text-xs font-bold uppercase tracking-wider">Tindakan</th>
-                  <th className="pb-3 text-xs font-bold uppercase tracking-wider">Deskripsi</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-neutral-100">
-                {displayLogs.length === 0 ? (
-                  <tr>
-                    <td colSpan="4" className="py-12 text-center text-xs text-[var(--theme-text-muted)] italic">
-                      Tidak ada catatan log aktivitas yang cocok
-                    </td>
-                  </tr>
-                ) : (
-                  displayLogs.map((log, index) => {
-                    const emailStr = log.Pengguna?.Email || log.pengguna?.email || 'system';
-                    const timeStr = log.CreatedAt ? new Date(log.CreatedAt).toLocaleString('id-ID', {
-                      day: '2-digit',
-                      month: 'short',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      second: '2-digit'
-                    }) : '—';
-                    
-                    return (
-                      <tr key={index} className="hover:bg-slate-50/30 transition-colors">
-                        <td className="py-3.5 text-xs text-[var(--theme-text)] font-semibold font-mono whitespace-nowrap">{timeStr}</td>
-                        <td className="py-3.5 text-xs text-[var(--theme-text)] font-semibold">
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-[var(--theme-primary)]/10 text-[var(--theme-primary)] border border-[var(--theme-primary)]/10 flex items-center justify-center font-bold text-[10px] shrink-0">
-                              {emailStr.charAt(0).toUpperCase()}
-                            </div>
-                            <span className="truncate max-w-[200px]" title={emailStr}>{emailStr}</span>
-                          </div>
-                        </td>
-                        <td className="py-3.5 text-xs">
-                          <span className={cn(
-                            "px-2 py-0.5 border text-[10px] font-bold tracking-wide uppercase",
-                            getActionStyles(log.Aktivitas || log.aktivitas)
-                          )}>
-                            {(log.Aktivitas || log.aktivitas || 'INFO').replace('_', ' ')}
-                          </span>
-                        </td>
-                        <td className="py-3.5 text-xs text-[var(--theme-text-muted)] font-medium max-w-md truncate" title={log.Deskripsi || log.deskripsi}>
-                          {log.Deskripsi || log.deskripsi}
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination Controls */}
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 border-t border-[var(--theme-border-muted)] pt-5 mt-4">
-            <span className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta">
-              Menampilkan <span className="text-[var(--theme-text)]">{startIndex}</span> - <span className="text-[var(--theme-text)]">{endIndex}</span> dari <span className="text-[var(--theme-text)]">{totalItems}</span> log
-            </span>
-
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-                className="flex items-center gap-1 px-3 py-1.5 border border-[var(--theme-border-muted)] rounded-lg text-xs font-bold text-[var(--theme-text-muted)] hover:bg-slate-50 hover:text-[var(--theme-text)] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chevron_left</span>
-                Sebelumnya
-              </button>
-              
-              <div className="flex items-center gap-1">
-                {Array.from({ length: totalPages }).map((_, index) => {
-                  const pageNum = index + 1
-                  if (totalPages > 5 && pageNum !== 1 && pageNum !== totalPages && Math.abs(currentPage - pageNum) > 1) {
-                    if (pageNum === 2 || pageNum === totalPages - 1) {
-                      return <span key={pageNum} className="text-[var(--theme-text-muted)] px-1 text-xs">...</span>
-                    }
-                    return null
-                  }
+                {/* Horizontal Gridlines & Y-Axis Labels inside SVG */}
+                {[120, 90, 60, 30, 0].map((v) => {
+                  // Calculate exact Y coordinate based on bottom-up projection
+                  const y = (svgHeight - 30) - (v / 120) * (svgHeight - 50);
                   return (
-                    <button
-                      key={pageNum}
-                      onClick={() => setCurrentPage(pageNum)}
+                    <g key={v}>
+                      {/* Grid Line */}
+                      <line x1="40" y1={y} x2={svgWidth - 20} y2={y} stroke="var(--theme-border)" strokeOpacity="0.35" strokeWidth="1" />
+                      {/* Y-Axis text */}
+                      <text x="10" y={y + 3} fill="var(--theme-text-muted)" fontSize="9" fontWeight="normal" className="select-none">{v}</text>
+                    </g>
+                  );
+                })}
+
+                {/* Filled Wavy Areas */}
+                <path d={getAreaPath(activeChartData, 'Aspirasi', svgWidth, svgHeight, 120)} fill="url(#areaAspirasi)" className="transition-all duration-500" />
+                <path d={getAreaPath(activeChartData, 'Penyelesaian', svgWidth, svgHeight, 120)} fill="url(#areaPenyelesaian)" className="transition-all duration-500" />
+
+                {/* Stroke Spline Curves */}
+                <path
+                  d={getCurvePath(activeChartData, 'Aspirasi', svgWidth, svgHeight, 120)}
+                  fill="none"
+                  stroke="var(--theme-primary)"
+                  strokeWidth="3.5"
+                  strokeLinecap="round"
+                  className="transition-all duration-500"
+                />
+                <path
+                  d={getCurvePath(activeChartData, 'Penyelesaian', svgWidth, svgHeight, 120)}
+                  fill="none"
+                  stroke="var(--theme-secondary)"
+                  strokeWidth="3.5"
+                  strokeLinecap="round"
+                  className="transition-all duration-500"
+                />
+
+                {/* Dashed vertical gridline indicator on active hovered data point */}
+                {hoveredIndex !== null && (
+                  <line
+                    x1={40 + (hoveredIndex * (svgWidth - 60)) / (activeChartData.length - 1)}
+                    y1={20}
+                    x2={40 + (hoveredIndex * (svgWidth - 60)) / (activeChartData.length - 1)}
+                    y2={svgHeight - 30}
+                    stroke="var(--theme-text-muted)"
+                    strokeDasharray="4 4"
+                    strokeWidth="1.5"
+                  />
+                )}
+
+                {/* Glowing dynamic highlight rings and solid centered circles on active Y points */}
+                {hoveredIndex !== null && (() => {
+                  const x = 40 + (hoveredIndex * (svgWidth - 60)) / (activeChartData.length - 1);
+                  const y1 = (svgHeight - 30) - (activeChartData[hoveredIndex].Aspirasi / 120) * (svgHeight - 50);
+                  const y2 = (svgHeight - 30) - (activeChartData[hoveredIndex].Penyelesaian / 120) * (svgHeight - 50);
+                  return (
+                    <g>
+                      {/* Aspirasi Glow Indicator */}
+                      <circle cx={x} cy={y1} r="10" fill="var(--theme-primary)" fillOpacity="0.2" className="animate-ping" />
+                      <circle cx={x} cy={y1} r="5.5" fill="var(--theme-primary)" stroke="white" strokeWidth="2.5" className="shadow-md" />
+
+                      {/* Penyelesaian Glow Indicator */}
+                      <circle cx={x} cy={y2} r="10" fill="var(--theme-secondary)" fillOpacity="0.2" className="animate-ping" />
+                      <circle cx={x} cy={y2} r="5.5" fill="var(--theme-secondary)" stroke="white" strokeWidth="2.5" className="shadow-md" />
+                    </g>
+                  );
+                })()}
+
+                {/* X-Axis Month Labels directly inside SVG coordinate grid */}
+                {activeChartData.map((item, i) => {
+                  const x = 40 + (i * (svgWidth - 60)) / (activeChartData.length - 1);
+                  return (
+                    <text
+                      key={i}
+                      x={x}
+                      y={svgHeight - 8}
+                      textAnchor="middle"
+                      fontSize="9"
+                      fontWeight="bold"
                       className={cn(
-                        "size-8 rounded-lg text-xs font-bold flex items-center justify-center transition-all",
-                        currentPage === pageNum
-                          ? "bg-[var(--theme-primary)] text-white shadow-sm"
-                          : "text-[var(--theme-text-muted)] hover:bg-slate-50 hover:text-[var(--theme-text)]"
+                        "text-[10px] font-medium text-slate-400 transition-all duration-300 select-none",
+                        hoveredIndex === i ? "fill-bku-primary scale-110" : "fill-slate-400"
                       )}
                     >
-                      {pageNum}
-                    </button>
-                  )
+                      {item.name}
+                    </text>
+                  );
                 })}
-              </div>
 
-              <button
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-                className="flex items-center gap-1 px-3 py-1.5 border border-[var(--theme-border-muted)] rounded-lg text-xs font-bold text-[var(--theme-text-muted)] hover:bg-slate-50 hover:text-[var(--theme-text)] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-              >
-                Selanjutnya
-                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chevron_right</span>
-              </button>
+                {/* Invisible broad hover detection regions to capture mouse events smoothly */}
+                {activeChartData.map((item, i) => {
+                  const x = 40 + (i * (svgWidth - 60)) / (activeChartData.length - 1);
+                  const colWidth = (svgWidth - 60) / (activeChartData.length - 1);
+                  return (
+                    <rect
+                      key={i}
+                      x={x - colWidth / 2}
+                      y={20}
+                      width={colWidth}
+                      height={svgHeight - 50}
+                      fill="transparent"
+                      className="cursor-crosshair outline-none"
+                      onMouseEnter={() => setHoveredIndex(i)}
+                      onMouseLeave={() => setHoveredIndex(null)}
+                    />
+                  );
+                })}
+              </svg>
             </div>
           </div>
         </PageCard>
 
-      </PageContent>
+        {/* Right Column (Health Status) */}
+        <div className="lg:col-span-1">
+          <div className="bg-gradient-to-br from-[var(--theme-primary)] to-[#00123a] text-white p-6 rounded-2xl shadow-md border border-[var(--theme-primary)]/20 relative overflow-hidden group hover:-translate-y-0.5 transition-all duration-300 h-full flex flex-col justify-between">
+            <div className="absolute -top-12 -right-12 w-24 h-24 bg-gradient-to-br from-yellow-400/20 to-transparent rounded-full opacity-35 blur-xl pointer-events-none" />
+            <div className="relative z-10 space-y-6 flex-1 flex flex-col justify-between">
+
+              {/* Header with status pulsing dot */}
+              <div className="flex justify-between items-start">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-white/10 text-yellow-400 flex items-center justify-center border border-white/15">
+                    <span className="material-symbols-outlined text-[20px]">bolt</span>
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold leading-tight text-white">Kesehatan Perangkat</h3>
+                    <p className="text-[10px] text-white/60 font-bold mt-0.5 uppercase tracking-wider">Status Server</p>
+                  </div>
+                </div>
+
+                {/* Status Badge */}
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[9px] font-black uppercase tracking-wider">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  {systemHealth.server_status}
+                </div>
+              </div>
+
+              {/* Progress Indicators & Core Metrics */}
+              <div className="space-y-5 my-auto">
+                {/* CPU Usage */}
+                <div className="space-y-1.5 text-left">
+                  <div className="flex justify-between text-[11px] font-bold text-white/70">
+                    <span>Beban CPU</span>
+                    <span className="text-white font-extrabold">{systemHealth.cpu_usage}%</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full transition-all duration-500" style={{ width: `${systemHealth.cpu_usage}%` }} />
+                  </div>
+                </div>
+
+                {/* RAM Memory Usage */}
+                <div className="space-y-1.5 text-left">
+                  <div className="flex justify-between text-[11px] font-bold text-white/70">
+                    <span>Memori (RAM)</span>
+                    <span className="text-white font-extrabold">{systemHealth.ram_used} GB / {systemHealth.ram_total} GB ({systemHealth.ram_usage_percent}%)</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-blue-400 to-indigo-400 rounded-full transition-all duration-500" style={{ width: `${systemHealth.ram_usage_percent}%` }} />
+                  </div>
+                </div>
+
+                {/* Detailed metrics grid */}
+                <div className="grid grid-cols-2 gap-3 pt-3 border-t border-white/5">
+                  <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-left">
+                    <p className="text-[9px] text-white/50 font-bold uppercase tracking-wider">Latency API</p>
+                    <p className="text-sm font-extrabold text-white mt-1 flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
+                      {systemHealth.api_latency_ms}ms
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-left">
+                    <p className="text-[9px] text-white/50 font-bold uppercase tracking-wider">Database</p>
+                    <p className="text-sm font-extrabold text-white mt-1 flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
+                      {systemHealth.db_connections} Active
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-left">
+                    <p className="text-[9px] text-white/50 font-bold uppercase tracking-wider">Baterai Klien</p>
+                    <p className="text-sm font-extrabold text-white mt-1 flex items-center gap-1">
+                      <span className={`w-2 h-2 rounded-full shrink-0 ${isCharging ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'}`} />
+                      {batteryLevel !== null ? `${batteryLevel}%` : 'N/A'}
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-left">
+                    <p className="text-[9px] text-white/50 font-bold uppercase tracking-wider">Jaringan</p>
+                    <p className="text-sm font-extrabold text-white mt-1 flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
+                      {networkSpeed ? `${networkSpeed} Mbps` : 'N/A'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Additional info */}
+                <div className="flex justify-between items-center text-[10px] text-white/60 font-medium px-1">
+                  <span>Uptime Sistem: <strong className="text-white font-bold">{systemHealth.uptime_percent}%</strong></span>
+                  <span>Penyimpanan: <strong className="text-white font-bold">{systemHealth.disk_usage_percent}%</strong></span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => navigate('/admin/performance')}
+                className="w-full py-3 bg-white text-[var(--theme-primary)] hover:bg-white/95 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-[0.98]"
+              >
+                Lihat Detail Performa
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── System Audit Logs Section ────────────────────────────── */}
+      <PageCard>
+        <PageCardHeader
+          title="Log Aktivitas Sistem Terbaru"
+          description="Catatan audit operasi sistem dan aktivitas administrator secara real-time."
+          icon="history"
+        />
+
+        {/* Search and Limit controls */}
+        <div className="flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center bg-slate-50/50 p-4 rounded-xl border border-[var(--theme-border-muted)] mb-6">
+          {/* Search Input */}
+          <div className="relative flex-1 max-w-md">
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-muted" style={{ fontSize: '18px' }}>search</span>
+            <input
+              type="text"
+              placeholder="Cari email pengguna, tindakan, atau deskripsi log..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-10 py-2 border border-[var(--theme-border-muted)] rounded-lg text-xs font-semibold focus:border-primary focus:bg-white bg-white transition-all outline-none"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-neutral-900 transition-colors"
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>close</span>
+              </button>
+            )}
+          </div>
+
+          {/* Limit Selector */}
+          <div className="flex items-center gap-3 self-end md:self-auto">
+            <span className="text-xs text-[var(--theme-text-muted)] font-bold">Tampilkan</span>
+            <div className="relative">
+              <select
+                value={pageSize}
+                onChange={(e) => setPageSize(parseInt(e.target.value))}
+                className="pl-3 pr-8 py-1.5 bg-surface border border-[var(--theme-border-muted)] rounded-lg text-xs font-bold text-[var(--theme-text)] focus:border-primary outline-none cursor-pointer appearance-none"
+              >
+                <option value={10}>10 baris</option>
+                <option value={20}>20 baris</option>
+                <option value={50}>50 baris</option>
+              </select>
+              <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" style={{ fontSize: '14px' }}>expand_more</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse font-inter">
+            <thead>
+              <tr className="border-b border-[var(--theme-border-muted)] text-[var(--theme-text-muted)]">
+                <th className="pb-3 text-xs font-bold uppercase tracking-wider">Waktu</th>
+                <th className="pb-3 text-xs font-bold uppercase tracking-wider">Pengguna</th>
+                <th className="pb-3 text-xs font-bold uppercase tracking-wider">Tindakan</th>
+                <th className="pb-3 text-xs font-bold uppercase tracking-wider">Deskripsi</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-neutral-100">
+              {displayLogs.length === 0 ? (
+                <tr>
+                  <td colSpan="4" className="py-12 text-center text-xs text-[var(--theme-text-muted)] italic">
+                    Tidak ada catatan log aktivitas yang cocok
+                  </td>
+                </tr>
+              ) : (
+                displayLogs.map((log, index) => {
+                  const emailStr = log.Pengguna?.Email || log.pengguna?.email || 'system';
+                  const timeStr = log.CreatedAt ? new Date(log.CreatedAt).toLocaleString('id-ID', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                  }) : '—';
+
+                  return (
+                    <tr key={index} className="hover:bg-slate-50/30 transition-colors">
+                      <td className="py-3.5 text-xs text-[var(--theme-text)] font-semibold font-mono whitespace-nowrap">{timeStr}</td>
+                      <td className="py-3.5 text-xs text-[var(--theme-text)] font-semibold">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-full bg-[var(--theme-primary)]/10 text-[var(--theme-primary)] border border-[var(--theme-primary)]/10 flex items-center justify-center font-bold text-[10px] shrink-0">
+                            {emailStr.charAt(0).toUpperCase()}
+                          </div>
+                          <span className="truncate max-w-[200px]" title={emailStr}>{emailStr}</span>
+                        </div>
+                      </td>
+                      <td className="py-3.5 text-xs">
+                        <span className={cn(
+                          "px-2 py-0.5 border text-[10px] font-bold tracking-wide uppercase",
+                          getActionStyles(log.Aktivitas || log.aktivitas)
+                        )}>
+                          {(log.Aktivitas || log.aktivitas || 'INFO').replace('_', ' ')}
+                        </span>
+                      </td>
+                      <td className="py-3.5 text-xs text-[var(--theme-text-muted)] font-medium max-w-md truncate" title={log.Deskripsi || log.deskripsi}>
+                        {log.Deskripsi || log.deskripsi}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination Controls */}
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 border-t border-[var(--theme-border-muted)] pt-5 mt-4">
+          <span className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta">
+            Menampilkan <span className="text-[var(--theme-text)]">{startIndex}</span> - <span className="text-[var(--theme-text)]">{endIndex}</span> dari <span className="text-[var(--theme-text)]">{totalItems}</span> log
+          </span>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="flex items-center gap-1 px-3 py-1.5 border border-[var(--theme-border-muted)] rounded-lg text-xs font-bold text-[var(--theme-text-muted)] hover:bg-slate-50 hover:text-[var(--theme-text)] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chevron_left</span>
+              Sebelumnya
+            </button>
+
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }).map((_, index) => {
+                const pageNum = index + 1
+                if (totalPages > 5 && pageNum !== 1 && pageNum !== totalPages && Math.abs(currentPage - pageNum) > 1) {
+                  if (pageNum === 2 || pageNum === totalPages - 1) {
+                    return <span key={pageNum} className="text-[var(--theme-text-muted)] px-1 text-xs">...</span>
+                  }
+                  return null
+                }
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={cn(
+                      "size-8 rounded-lg text-xs font-bold flex items-center justify-center transition-all",
+                      currentPage === pageNum
+                        ? "bg-[var(--theme-primary)] text-white shadow-sm"
+                        : "text-[var(--theme-text-muted)] hover:bg-slate-50 hover:text-[var(--theme-text)]"
+                    )}
+                  >
+                    {pageNum}
+                  </button>
+                )
+              })}
+            </div>
+
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="flex items-center gap-1 px-3 py-1.5 border border-[var(--theme-border-muted)] rounded-lg text-xs font-bold text-[var(--theme-text-muted)] hover:bg-slate-50 hover:text-[var(--theme-text)] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            >
+              Selanjutnya
+              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chevron_right</span>
+            </button>
+          </div>
+        </div>
+      </PageCard>
+
+    </PageContent>
   )
 }

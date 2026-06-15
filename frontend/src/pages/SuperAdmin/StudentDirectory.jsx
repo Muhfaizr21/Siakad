@@ -22,6 +22,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 import { PageContent, PageCard } from '@/components/ui/page'
 import { DashboardHero, DashboardStatGrid, DashboardStatCard } from '@/components/ui/dashboard'
+import { PrimaryStatsCard, SecondaryStatsCard } from '@/components/ui/StatsCard'
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
 /*  SearchableSelect — A styled, searchable dropdown option list               */
@@ -511,7 +512,7 @@ export default function StudentDirectory() {
       label: 'ID / NIM',
       className: 'w-[120px]',
       render: v => (
-        <span className="text-[12px] font-bold text-blue-600 bg-blue-50/60 px-2.5 py-1 rounded-lg border border-blue-100/50 font-body">
+        <span className="text-[12px] font-bold text-slate-800 bg-slate-100/50 px-2.5 py-1.5 rounded-lg border border-slate-200/50 font-body">
           {v || '—'}
         </span>
       )
@@ -711,114 +712,117 @@ export default function StudentDirectory() {
         <TabsContent value="list" className="space-y-6 focus-visible:ring-0 focus-visible:outline-none">
           {/* ── Enriched Stats Grid (Core stats only, clean 4 column) ── */}
           <DashboardStatGrid className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4">
-            <DashboardStatCard
+            <PrimaryStatsCard
               title="Total Mahasiswa"
               value={students.length}
               icon="group"
-              iconColor="text-primary"
-              iconBg="bg-primary/10"
+              colorTheme="primary"
+              badgeText="All Enrolled"
+              badgeIcon={<span className="material-symbols-outlined text-[12px]">database</span>}
             />
 
-            <DashboardStatCard
+            <PrimaryStatsCard
               title="Status Aktif"
               value={students.filter(s => s.StatusAkun === 'Aktif').length}
               icon="school"
-              iconColor="text-emerald-600"
-              iconBg="bg-emerald-500/10"
+              colorTheme="success"
+              badgeText="Active"
+              badgeIcon={<span className="material-symbols-outlined text-[12px]">verified</span>}
             />
 
-            <DashboardStatCard
+            <PrimaryStatsCard
               title="Total Lulus"
               value={students.filter(s => s.StatusAkun === 'Lulus').length}
               icon="trending_up"
-              iconColor="text-blue-500"
-              iconBg="bg-blue-500/10"
+              colorTheme="info"
+              badgeText="Alumni"
+              badgeIcon={<span className="material-symbols-outlined text-[12px]">workspace_premium</span>}
             />
 
-            <DashboardStatCard
+            <PrimaryStatsCard
               title="IPK Rata-rata"
               value={avgIpk}
               icon="star"
-              iconColor="text-amber-600"
-              iconBg="bg-amber-500/10"
+              colorTheme="warning"
+              badgeText="Avg GPA"
+              badgeIcon={<span className="material-symbols-outlined text-[12px]">analytics</span>}
             />
           </DashboardStatGrid>
 
           {/* ── Table Section ── */}
-          <PageCard>
-            <CardContent className="p-0">
-              <DataTable
-                columns={columns}
-                data={students}
-                loading={loading}
-                searchPlaceholder="Search by NIM, Name, or Academic Status..."
-                searchWidth="max-w-md"
-                filters={[
-                  { key: 'StatusAkun', placeholder: 'Pilih Status', options: [{ label: 'Aktif', value: 'Aktif' }, { label: 'Cuti', value: 'Cuti' }, { label: 'Lulus', value: 'Lulus' }] },
-                  { key: 'FakultasID', placeholder: 'Pilih Fakultas', options: faculties.map(f => ({ label: f.Nama || f.nama, value: f.id || f.ID })) },
-                  { key: 'ProgramStudiID', placeholder: 'Pilih Program Studi', options: prodi.map(p => ({ label: p.Nama || p.nama, value: p.id || p.ID })) }
-                ]}
-                actions={(row) => (
-                  <div className="flex items-center gap-1.5">
-                    <Button onClick={() => handleOpenDetail(row)} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-bku-primary hover:bg-bku-primary/5 rounded-lg transition-colors shadow-none cursor-pointer"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >visibility</span></Button>
-                    <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-bku-primary hover:bg-bku-primary/5 rounded-lg transition-colors shadow-none cursor-pointer"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >edit</span></Button>
-                    <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors shadow-none cursor-pointer"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >delete</span></Button>
-                  </div>
-                )}
-              />
-            </CardContent>
-          </PageCard>
+          <DataTable
+            columns={columns}
+            data={students}
+            loading={loading}
+            searchPlaceholder="Search by NIM, Name, or Academic Status..."
+            searchWidth="max-w-md"
+            filters={[
+              { key: 'StatusAkun', placeholder: 'Pilih Status', options: [{ label: 'Aktif', value: 'Aktif' }, { label: 'Cuti', value: 'Cuti' }, { label: 'Lulus', value: 'Lulus' }] },
+              { key: 'FakultasID', placeholder: 'Pilih Fakultas', options: faculties.map(f => ({ label: f.Nama || f.nama, value: f.id || f.ID })) },
+              { key: 'ProgramStudiID', placeholder: 'Pilih Program Studi', options: prodi.map(p => ({ label: p.Nama || p.nama, value: p.id || p.ID })) }
+            ]}
+            actions={(row) => (
+              <div className="flex items-center gap-1.5">
+                <Button onClick={() => handleOpenDetail(row)} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-bku-primary hover:bg-bku-primary/5 rounded-lg transition-colors shadow-none cursor-pointer"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >visibility</span></Button>
+                <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-bku-primary hover:bg-bku-primary/5 rounded-lg transition-colors shadow-none cursor-pointer"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >edit</span></Button>
+                <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors shadow-none cursor-pointer"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >delete</span></Button>
+              </div>
+            )}
+          />
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-6 focus-visible:ring-0 focus-visible:outline-none">
           {/* ── Full Demographics Stats Grid (All 6 cards) ── */}
           <DashboardStatGrid className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-            <DashboardStatCard
+            <PrimaryStatsCard
               title="Total Mahasiswa"
               value={students.length}
               icon="group"
-              iconColor="text-primary"
-              iconBg="bg-primary/10"
+              colorTheme="primary"
+              badgeText="All Enrolled"
+              badgeIcon={<span className="material-symbols-outlined text-[12px]">database</span>}
             />
 
-            <DashboardStatCard
+            <PrimaryStatsCard
               title="Status Aktif"
               value={students.filter(s => s.StatusAkun === 'Aktif').length}
               icon="school"
-              iconColor="text-emerald-600"
-              iconBg="bg-emerald-500/10"
+              colorTheme="success"
+              badgeText="Active"
+              badgeIcon={<span className="material-symbols-outlined text-[12px]">verified</span>}
             />
 
-            <DashboardStatCard
+            <PrimaryStatsCard
               title="Total Lulus"
               value={students.filter(s => s.StatusAkun === 'Lulus').length}
               icon="trending_up"
-              iconColor="text-blue-500"
-              iconBg="bg-blue-500/10"
+              colorTheme="info"
+              badgeText="Alumni"
+              badgeIcon={<span className="material-symbols-outlined text-[12px]">workspace_premium</span>}
             />
 
-            <DashboardStatCard
+            <SecondaryStatsCard
               title="IPK Rata-rata"
               value={avgIpk}
               icon="star"
-              iconColor="text-amber-600"
-              iconBg="bg-amber-500/10"
+              colorTheme="warning"
+              subtitle="Rata-rata IPK Mahasiswa"
             />
 
-            <DashboardStatCard
+            <SecondaryStatsCard
               title="Total SKS"
               value={totalSks.toLocaleString('id-ID')}
               icon="menu_book"
-              iconColor="text-indigo-600"
-              iconBg="bg-indigo-500/10"
+              colorTheme="primary"
+              subtitle="Kumulatif SKS Diambil"
             />
 
-            <DashboardStatCard
+            <SecondaryStatsCard
               title="Jalur Terbanyak"
               value={jalurMasukPopuler}
               icon="shortcut"
-              iconColor="text-rose-500"
-              iconBg="bg-rose-500/10"
+              colorTheme="error"
+              subtitle="Dominasi Jalur Masuk"
             />
           </DashboardStatGrid>
 

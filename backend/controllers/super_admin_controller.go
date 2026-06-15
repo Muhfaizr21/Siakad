@@ -2192,20 +2192,38 @@ func DeleteCounselingJadwal(c *fiber.Ctx) error {
 
 func CreateOrmawa(c *fiber.Ctx) error {
 	var payload struct {
-		Nama      string `json:"Nama"`
-		Singkatan string `json:"Singkatan"`
-		Deskripsi string `json:"Deskripsi"`
-		Visi      string `json:"Visi"`
-		Misi      string `json:"Misi"`
-		Email     string `json:"Email"`
-		Phone     string `json:"Phone"`
+		Nama             string `json:"Nama"`
+		Singkatan        string `json:"Singkatan"`
+		Deskripsi        string `json:"Deskripsi"`
+		Visi             string `json:"Visi"`
+		Misi             string `json:"Misi"`
+		Email            string `json:"Email"`
+		Phone            string `json:"Phone"`
+		KategoriOrmawaID string `json:"KategoriOrmawaID"`
+		FakultasID       string `json:"FakultasID"`
 	}
 	if err := c.BodyParser(&payload); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid payload"})
 	}
 
-	err := config.DB.Exec("INSERT INTO ormawa.ormawa (nama, singkatan, deskripsi, visi, misi, email, phone, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-		payload.Nama, payload.Singkatan, payload.Deskripsi, payload.Visi, payload.Misi, payload.Email, payload.Phone, time.Now(), time.Now()).Error
+	var katID *uint
+	if payload.KategoriOrmawaID != "" {
+		if id, err := strconv.ParseUint(payload.KategoriOrmawaID, 10, 32); err == nil {
+			val := uint(id)
+			katID = &val
+		}
+	}
+
+	var fakID *uint
+	if payload.FakultasID != "" {
+		if id, err := strconv.ParseUint(payload.FakultasID, 10, 32); err == nil {
+			val := uint(id)
+			fakID = &val
+		}
+	}
+
+	err := config.DB.Exec("INSERT INTO ormawa.ormawa (nama, singkatan, deskripsi, visi, misi, email, phone, kategori_ormawa_id, fakultas_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		payload.Nama, payload.Singkatan, payload.Deskripsi, payload.Visi, payload.Misi, payload.Email, payload.Phone, katID, fakID, time.Now(), time.Now()).Error
 
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
@@ -2217,20 +2235,38 @@ func CreateOrmawa(c *fiber.Ctx) error {
 func UpdateOrmawa(c *fiber.Ctx) error {
 	id := c.Params("id")
 	var payload struct {
-		Nama      string `json:"Nama"`
-		Singkatan string `json:"Singkatan"`
-		Deskripsi string `json:"Deskripsi"`
-		Visi      string `json:"Visi"`
-		Misi      string `json:"Misi"`
-		Email     string `json:"Email"`
-		Phone     string `json:"Phone"`
+		Nama             string `json:"Nama"`
+		Singkatan        string `json:"Singkatan"`
+		Deskripsi        string `json:"Deskripsi"`
+		Visi             string `json:"Visi"`
+		Misi             string `json:"Misi"`
+		Email            string `json:"Email"`
+		Phone            string `json:"Phone"`
+		KategoriOrmawaID string `json:"KategoriOrmawaID"`
+		FakultasID       string `json:"FakultasID"`
 	}
 	if err := c.BodyParser(&payload); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid payload"})
 	}
 
-	err := config.DB.Exec("UPDATE ormawa.ormawa SET nama = ?, singkatan = ?, deskripsi = ?, visi = ?, misi = ?, email = ?, phone = ?, updated_at = ? WHERE id = ?",
-		payload.Nama, payload.Singkatan, payload.Deskripsi, payload.Visi, payload.Misi, payload.Email, payload.Phone, time.Now(), id).Error
+	var katID *uint
+	if payload.KategoriOrmawaID != "" {
+		if parsedID, err := strconv.ParseUint(payload.KategoriOrmawaID, 10, 32); err == nil {
+			val := uint(parsedID)
+			katID = &val
+		}
+	}
+
+	var fakID *uint
+	if payload.FakultasID != "" {
+		if parsedID, err := strconv.ParseUint(payload.FakultasID, 10, 32); err == nil {
+			val := uint(parsedID)
+			fakID = &val
+		}
+	}
+
+	err := config.DB.Exec("UPDATE ormawa.ormawa SET nama = ?, singkatan = ?, deskripsi = ?, visi = ?, misi = ?, email = ?, phone = ?, kategori_ormawa_id = ?, fakultas_id = ?, updated_at = ? WHERE id = ?",
+		payload.Nama, payload.Singkatan, payload.Deskripsi, payload.Visi, payload.Misi, payload.Email, payload.Phone, katID, fakID, time.Now(), id).Error
 
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})

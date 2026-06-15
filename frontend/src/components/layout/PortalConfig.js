@@ -168,17 +168,9 @@ export const PORTAL_CONFIG = {
             hasSubmenu: true,
             submenu: [
               { name: 'Kelola Fakultas', icon: 'corporate_fare', path: '/admin/faculties' },
-              { name: 'PKKMB', icon: 'school', path: '/admin/faculty-pkkmb' },
-              { name: 'Ormawa', icon: 'groups', path: '/admin/faculty-organisasi' },
-              { name: 'Proposal Ormawa', icon: 'assignment', path: '/admin/faculty-ormawa-proposals' },
-              { name: 'Prestasi', icon: 'emoji_events', path: '/admin/faculty-prestasi' },
-              { name: 'Beasiswa', icon: 'payments', path: '/admin/faculty-beasiswa' },
-              { name: 'Kesehatan', icon: 'favorite', path: '/admin/faculty-kesehatan' },
-              { name: 'Dosen / Psikolog', icon: 'psychology', path: '/admin/faculty-psikolog' },
               { name: 'Program Studi', icon: 'database', path: '/admin/prodi' },
-              { name: 'Periode Akademik', icon: 'calendar_month', path: '/admin/faculty-jadwal' },
+              { name: 'Aspirasi Masuk', icon: 'campaign', path: '/admin/faculty-aspirasi' },
               { name: 'Laporan', icon: 'description', path: '/admin/faculty-laporan' },
-              { name: 'Role & Akses (RBAC)', icon: 'security', path: '/admin/faculty-rbac' },
               { name: 'Akun Prodi', icon: 'manage_accounts', path: '/admin/faculty-prodi-users' },
             ]
           },
@@ -234,7 +226,6 @@ export const PORTAL_CONFIG = {
               { name: 'Laporan & LPJ', icon: 'assignment', path: '/admin/ormawa-lpj' },
               { name: 'Aspirasi Masuk', icon: 'campaign', path: '/admin/ormawa-aspirasi' },
               { name: 'Pengumuman', icon: 'campaign', path: '/admin/ormawa-pengumuman' },
-              { name: 'Role & Akses (RBAC)', icon: 'security', path: '/admin/ormawa-rbac' },
               { name: 'Setting Gamifikasi', icon: 'emoji_events', path: '/admin/gamifikasi' },
               { name: 'Proposal Organisasi', icon: 'description', path: '/admin/proposals' },
             ]

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from "react"
 import { useSearchParams } from "react-router-dom"
 import { toast, Toaster } from "react-hot-toast"
+import useAuthStore from '../../store/useAuthStore'
 import { cn } from "@/lib/utils"
 import api from "../../lib/axios"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/Select"
@@ -44,6 +45,9 @@ const JENJANG_COLORS = {
 const EMPTY_FORM = { ID: null, FakultasID: "", Kode: "", Nama: "", Jenjang: "S1", Akreditasi: "Baik", Kapasitas: 100 }
 
 export default function ProdiPage() {
+  const user = useAuthStore(state => state.user)
+  const userRoles = String(user?.role || user?.Role || '').toLowerCase().split(',').map(r => r.trim())
+  const isSuperadmin = userRoles.includes('super_admin')
   const [majors, setMajors] = useState([])
   const [faculties, setFaculties] = useState([])
   const [loading, setLoading] = useState(true)
@@ -612,131 +616,130 @@ export default function ProdiPage() {
           </>
         }
       >
-        <form id="prodi-form" onSubmit={handleSave} className="space-y-5 text-[var(--theme-text)] p-1">
-            {/* Fakultas Naungan Card */}
-            <div className="bg-white p-5 rounded-2xl border border-[var(--theme-border)] shadow-sm">
-              <label className="block text-[11px] font-extrabold text-[var(--theme-text-muted)] uppercase tracking-[0.15em] mb-2 flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[14px] text-[var(--theme-primary)]">domain</span> Fakultas Naungan
-              </label>
-              <div className="relative group">
-                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--theme-primary)]">
-                  <span className="material-symbols-outlined text-[16px]">school</span>
+        <form id="prodi-form" onSubmit={handleSave} className="space-y-4 text-[var(--theme-text)]">
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider ml-1">Fakultas Naungan</label>
+            {isSuperadmin ? (
+              <div className="relative">
+                <select
+                  value={formData.FakultasID || ''}
+                  onChange={e => set('FakultasID', e.target.value)}
+                  className="w-full h-10 pl-3 pr-10 rounded-xl border border-[var(--theme-border)] bg-white text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] text-sm font-body outline-none transition-colors cursor-pointer appearance-none"
+                >
+                  <option value="" disabled>Pilih Fakultas...</option>
+                  {faculties.map(f => (
+                    <option key={f.id || f.ID} value={String(f.id || f.ID)}>
+                      {f.Nama || f.nama}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none flex items-center">
+                  <span className="material-symbols-outlined text-[18px]">expand_more</span>
                 </div>
+              </div>
+            ) : (
+              <input
+                type="text"
+                value={
+                  faculties.find(f => String(f.ID) === String(formData.FakultasID))?.Nama ||
+                  (faculties.length > 0 ? faculties[0].Nama : "Universitas Bhakti Kencana")
+                }
+                readOnly
+                disabled
+                className="w-full h-10 px-3 rounded-xl border border-[var(--theme-border-muted)] bg-slate-50 text-[var(--theme-text-subtle)] text-sm font-body cursor-not-allowed select-none"
+              />
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider ml-1">Kode / Akronim</label>
+              <input
+                value={formData.Kode}
+                onChange={e => set('Kode', e.target.value.toUpperCase())}
+                placeholder="TI, SI, MN..."
+                required
+                className="w-full h-10 px-3 rounded-xl border border-[var(--theme-border)] bg-white text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] text-sm font-body outline-none transition-colors uppercase"
+              />
+            </div>
+            
+            <div className="space-y-1.5 relative">
+              <label className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider ml-1">Jenjang Pendidikan</label>
+              <div className="relative">
                 <input
-                  type="text"
-                  value={
-                    faculties.find(f => String(f.ID) === String(formData.FakultasID))?.Nama ||
-                    (faculties.length > 0 ? faculties[0].Nama : "Universitas Bhakti Kencana")
-                  }
-                  readOnly
-                  disabled
-                  className="pl-10 pr-4 w-full h-11 rounded-xl border border-[var(--theme-border-muted)] bg-[var(--theme-bg)] text-xs font-bold text-[var(--theme-text-subtle)] cursor-not-allowed select-none"
+                  value={formData.Jenjang}
+                  onChange={e => set('Jenjang', e.target.value)}
+                  onFocus={() => setJenjangOpen(true)}
+                  onBlur={() => setTimeout(() => setJenjangOpen(false), 200)}
+                  placeholder="Ketik atau pilih..."
+                  className="w-full h-10 pl-3 pr-10 rounded-xl border border-[var(--theme-border)] bg-white text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] text-sm font-body outline-none transition-colors"
                 />
-              </div>
-              <p className="text-[10px] text-[var(--theme-text-subtle)] font-semibold mt-2 flex items-start gap-1">
-                <span className="material-symbols-outlined text-[12px] mt-0.5">info</span>
-                Terdeteksi otomatis sebagai unit administrasi fakultas Anda.
-              </p>
-            </div>
-
-            {/* Identitas Prodi Card */}
-            <div className="bg-white p-5 rounded-2xl border border-[var(--theme-border)] shadow-sm space-y-4">
-              <label className="block text-[11px] font-extrabold text-[var(--theme-text-muted)] uppercase tracking-[0.15em] flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[14px] text-[var(--theme-info)]">badge</span> Identitas Program Studi
-              </label>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[10px] font-bold text-[var(--theme-text-muted)] mb-1.5">KODE / AKRONIM</label>
-                  <input
-                    value={formData.Kode}
-                    onChange={e => set('Kode', e.target.value.toUpperCase())}
-                    placeholder="TI, SI, MN..."
-                    required
-                    className="w-full h-11 px-3 border border-[var(--theme-border)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors uppercase font-bold"
-                  />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 flex items-center">
+                  <span className="material-symbols-outlined text-[18px]">expand_more</span>
                 </div>
-                <div className="relative">
-                  <label className="block text-[10px] font-bold text-[var(--theme-text-muted)] mb-1.5">JENJANG PENDIDIKAN</label>
-                  <div className="relative">
-                    <input
-                      value={formData.Jenjang}
-                      onChange={e => set('Jenjang', e.target.value)}
-                      onFocus={() => setJenjangOpen(true)}
-                      onBlur={() => setTimeout(() => setJenjangOpen(false), 200)}
-                      placeholder="Ketik atau pilih..."
-                      className="w-full h-11 pl-3 pr-10 border border-[var(--theme-border)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors cursor-text font-bold"
-                    />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--theme-text-subtle)]">
-                      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>expand_more</span>
+              </div>
+              {jenjangOpen && (
+                <div className="absolute z-50 w-full mt-1 bg-white border border-[var(--theme-border)] rounded-xl shadow-xl py-1 overflow-y-auto max-h-40">
+                  {['S1', 'S2', 'S3', 'D3', 'D4', 'Profesi', 'Spesialis'].map(opt => (
+                    <div
+                      key={opt}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        set('Jenjang', opt);
+                        setJenjangOpen(false);
+                      }}
+                      className="px-4 py-2 text-sm font-body hover:bg-slate-50 cursor-pointer transition-colors"
+                    >
+                      {opt}
                     </div>
-                  </div>
-
-                  {jenjangOpen && (
-                    <div className="absolute z-50 w-full mt-1 bg-white border border-[var(--theme-border)] rounded-xl shadow-xl py-1 overflow-y-auto max-h-40">
-                      {['S1', 'S2', 'S3', 'D3', 'D4', 'Profesi', 'Spesialis'].map(opt => (
-                        <div
-                          key={opt}
-                          onMouseDown={(e) => {
-                            e.preventDefault();
-                            set('Jenjang', opt);
-                            setJenjangOpen(false);
-                          }}
-                          className="px-4 py-2 text-xs font-bold text-[var(--theme-text)] hover:bg-[var(--theme-primary-light)] hover:text-[var(--theme-primary)] cursor-pointer transition-colors flex items-center gap-2"
-                        >
-                          <span className="material-symbols-outlined text-[16px] text-[var(--theme-text-muted)]">school</span>
-                          {opt}
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  ))}
                 </div>
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-bold text-[var(--theme-text-muted)] mb-1.5">NAMA LENGKAP PROGRAM STUDI</label>
-                <input
-                  value={formData.Nama}
-                  onChange={e => set('Nama', e.target.value)}
-                  placeholder="Contoh: Teknik Informatika..."
-                  required
-                  className="w-full h-11 px-3 border border-[var(--theme-border)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors font-bold"
-                />
-              </div>
+              )}
             </div>
+          </div>
 
-            {/* Pengaturan Akademik Card */}
-            <div className="bg-white p-5 rounded-2xl border border-[var(--theme-border)] shadow-sm space-y-4">
-              <label className="block text-[11px] font-extrabold text-[var(--theme-text-muted)] uppercase tracking-[0.15em] flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[14px] text-[var(--theme-success)]">verified</span> Pengaturan Akademik
-              </label>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[10px] font-bold text-[var(--theme-text-muted)] mb-1.5">AKREDITASI PRODI</label>
-                  <select
-                    value={formData.Akreditasi}
-                    onChange={e => set('Akreditasi', e.target.value)}
-                    className="w-full h-11 px-3 border border-[var(--theme-border)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors cursor-pointer font-bold"
-                  >
-                    <option value="Unggul">Unggul</option>
-                    <option value="Baik Sekali">Baik Sekali</option>
-                    <option value="Baik">Baik</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-[var(--theme-text-muted)] mb-1.5">KAPASITAS DAYA TAMPUNG</label>
-                  <input
-                    type="number"
-                    value={formData.Kapasitas}
-                    onChange={e => set('Kapasitas', e.target.value)}
-                    min={1}
-                    className="w-full h-11 px-3 border border-[var(--theme-border)] rounded-xl text-sm focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] outline-none bg-[var(--theme-surface)] text-[var(--theme-text)] transition-colors font-bold text-center"
-                  />
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider ml-1">Nama Lengkap Program Studi</label>
+            <input
+              value={formData.Nama}
+              onChange={e => set('Nama', e.target.value)}
+              placeholder="Contoh: Teknik Informatika..."
+              required
+              className="w-full h-10 px-3 rounded-xl border border-[var(--theme-border)] bg-white text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] text-sm font-body outline-none transition-colors"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider ml-1">Akreditasi Prodi</label>
+              <div className="relative">
+                <select
+                  value={formData.Akreditasi}
+                  onChange={e => set('Akreditasi', e.target.value)}
+                  className="w-full h-10 pl-3 pr-10 rounded-xl border border-[var(--theme-border)] bg-white text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] text-sm font-body outline-none transition-colors appearance-none cursor-pointer"
+                >
+                  <option value="Unggul">Unggul</option>
+                  <option value="Baik Sekali">Baik Sekali</option>
+                  <option value="Baik">Baik</option>
+                </select>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 flex items-center">
+                  <span className="material-symbols-outlined text-[18px]">expand_more</span>
                 </div>
               </div>
             </div>
-          </form>
+            
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-semibold text-[var(--theme-text-muted)] uppercase tracking-wider ml-1">Kapasitas Daya Tampung</label>
+              <input
+                type="number"
+                value={formData.Kapasitas}
+                onChange={e => set('Kapasitas', e.target.value)}
+                min={1}
+                className="w-full h-10 px-3 rounded-xl border border-[var(--theme-border)] bg-white text-[var(--theme-text)] focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] text-sm font-body outline-none transition-colors"
+              />
+            </div>
+          </div>
+        </form>
       </DialogModal>
 
       <DeleteConfirmModal
