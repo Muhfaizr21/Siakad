@@ -402,19 +402,29 @@ export default function AnalyticsTrends() {
               </div>
             </div>
 
-            <div className="space-y-5">
+            <div className="h-64 w-full flex flex-col items-center justify-center mt-4 pb-4">
               {topIssues.length > 0 ? (
-                topIssues.map((issue, index) => (
-                  <div key={`${issue.name}-${index}`}>
-                    <div className="mb-2 flex items-center justify-between gap-3">
-                      <span className="truncate text-[11px] font-bold text-slate-700">{issue.name || 'Tanpa Topik'}</span>
-                      <span className="text-[11px] font-black text-slate-900">{toNumber(issue.percentage)}%</span>
-                    </div>
-                    <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
-                      <div className="h-full rounded-full bg-amber-500" style={{ width: `${Math.min(100, toNumber(issue.percentage))}%` }} />
-                    </div>
-                  </div>
-                ))
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={topIssues.map(issue => ({ name: issue.name || 'Tanpa Topik', value: toNumber(issue.percentage) }))}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={65}
+                      outerRadius={85}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {topIssues.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={['#f59e0b', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6', '#ec4899'][index % 6]} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)', fontSize: '12px', fontWeight: 'bold' }}
+                    />
+                    <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 800, paddingTop: '10px' }} />
+                  </PieChart>
+                </ResponsiveContainer>
               ) : (
                 <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-5 text-center mt-auto">
                   <p className="text-xs font-black uppercase tracking-widest text-slate-500">Belum ada topik</p>
@@ -436,19 +446,29 @@ export default function AnalyticsTrends() {
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="h-64 w-full flex flex-col items-center justify-center mt-4 pb-4">
               {prodiPopularity.length > 0 ? (
-                prodiPopularity.map((prodi, index) => (
-                  <div key={`${prodi.name}-${index}`}>
-                    <div className="mb-1.5 flex items-center justify-between gap-3">
-                      <span className="truncate text-[10px] font-black uppercase tracking-wider text-slate-700">{prodi.name}</span>
-                      <span className="text-[10px] font-black text-slate-900">{prodi.count} Sesi ({prodi.percentage}%)</span>
-                    </div>
-                    <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
-                      <div className="h-full rounded-full bg-indigo-500" style={{ width: `${prodi.percentage}%` }} />
-                    </div>
-                  </div>
-                ))
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={prodiPopularity.map(prodi => ({ name: prodi.name, value: toNumber(prodi.count) }))}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={65}
+                      outerRadius={85}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {prodiPopularity.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={['#6366f1', '#ec4899', '#14b8a6', '#f59e0b', '#8b5cf6', '#ef4444'][index % 6]} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)', fontSize: '12px', fontWeight: 'bold' }}
+                    />
+                    <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 800, paddingTop: '10px' }} />
+                  </PieChart>
+                </ResponsiveContainer>
               ) : (
                 <div className="rounded-3xl border border-dashed border-slate-200 bg-slate-50 p-5 text-center">
                   <p className="text-xs font-black uppercase tracking-widest text-slate-500">Belum ada data prodi</p>

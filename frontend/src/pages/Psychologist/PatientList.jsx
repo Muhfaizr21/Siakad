@@ -244,14 +244,14 @@ export default function PatientList() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
           <PrimaryStatsCard
             title="Total Pasien"
-            value={`${patients.length} Orang`}
+            value={`${filteredPatients.length} Orang`}
             icon={GroupIcon}
             colorTheme="primary"
             badgeText="AKTIF"
           />
           <PrimaryStatsCard
             title="Sesi Bulan Ini"
-            value={`${patients.reduce((sum, item) => sum + Number(item.sessions || 0), 0)} Sesi`}
+            value={`${filteredPatients.reduce((sum, item) => sum + Number(item.sessions || 0), 0)} Sesi`}
             icon={ChartIcon}
             colorTheme="success"
             badgeText="LIVE"
@@ -259,14 +259,14 @@ export default function PatientList() {
           />
           <PrimaryStatsCard
             title="Perlu Perhatian"
-            value={`${patients.filter(p => p.status === 'Perlu Perhatian').length} Orang`}
+            value={`${filteredPatients.filter(p => p.status === 'Perlu Perhatian').length} Orang`}
             icon={WarningIcon}
             colorTheme="error"
             badgeText="URGENT"
           />
           <PrimaryStatsCard
             title="Pasien Stabil"
-            value={`${patients.filter(p => p.status === 'Stabil' || p.status === 'Pemulihan').length} Orang`}
+            value={`${filteredPatients.filter(p => p.status === 'Stabil' || p.status === 'Pemulihan').length} Orang`}
             icon={HeartIcon}
             colorTheme="info"
             badgeText="PROGRESS"

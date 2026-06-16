@@ -88,6 +88,8 @@ func SetupSuperAdminRoutes(r fiber.Router) {
 	r.Delete("/tenagakes/:id", controllers.DeleteTenagaKesehatan)
 	r.Get("/tenagakes/bookings", controllers.GetTenagaKesehatanBookingsAdmin)
 	r.Get("/tenagakes/medical-records", controllers.GetTenagaKesehatanMedicalRecordsAdmin)
+	r.Get("/tenagakes/referrals", controllers.GetTenagaKesehatanReferralsAdmin)
+	r.Post("/tenagakes/referrals/:id/approve", controllers.ApproveTenagaKesehatanReferral)
 	r.Get("/tenagakes/:id/schedules", controllers.GetTenagaKesehatanSchedulesAdmin)
 	r.Post("/tenagakes/:id/schedules", controllers.CreateTenagaKesehatanScheduleAdmin)
 	r.Put("/tenagakes/schedules/:id", controllers.UpdateTenagaKesehatanScheduleAdmin)

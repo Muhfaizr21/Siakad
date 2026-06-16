@@ -336,6 +336,7 @@ func GetDashboard(c *fiber.Ctx) error {
 		"bookings":              bookingItems,
 		"current_session":       currentSession,
 		"recent_activities":     recentActivities,
+		"profile":               psikolog,
 	})
 }
 

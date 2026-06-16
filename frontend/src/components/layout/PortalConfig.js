@@ -208,6 +208,7 @@ export const PORTAL_CONFIG = {
               { name: 'Direktori Tenaga Medis', icon: 'groups', path: '/admin/tenagakes/list' },
               { name: 'Booking Janji Temu', icon: 'calendar_month', path: '/admin/tenagakes/bookings' },
               { name: 'Rekam Medis & Screening', icon: 'medical_services', path: '/admin/tenagakes/medical-records' },
+              { name: 'Surat Rujukan', icon: 'forward_to_inbox', path: '/admin/tenagakes/referrals' },
             ]
           },
           {

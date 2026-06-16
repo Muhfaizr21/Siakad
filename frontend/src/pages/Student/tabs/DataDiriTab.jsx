@@ -136,8 +136,7 @@ export default function DataDiriTab({ profile }) {
     <form
       onSubmit={handleSubmit(
         (data) => {
-          setPendingData(data);
-          setConfirmDataOpen(true);
+          mutation.mutate(data);
         },
         (errs) => {
           const flatErrors = Object.keys(errs).reduce((acc, k) => ({ ...acc, [k]: errs[k].message }), {});

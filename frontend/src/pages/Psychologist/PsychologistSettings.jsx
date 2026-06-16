@@ -35,8 +35,8 @@ const EMPTY_PROFILE = {
   no_hp: '',
   bio: '',
   lokasi: '',
-
   bahasa: '',
+  is_aktif: true,
 };
 
 const DAYS = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
@@ -182,6 +182,7 @@ export default function PsychologistSettings() {
                             <p className="mt-1 max-w-xl text-xs font-semibold leading-relaxed text-[var(--theme-text-muted)]">
                               Data ini digunakan oleh portal booking mahasiswa dan dashboard psikolog.
                             </p>
+
                           </div>
                         </div>
 

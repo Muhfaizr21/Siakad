@@ -2,6 +2,7 @@ package routes
 
 import (
 	"siakad-backend/controllers/mahasiswa"
+	"siakad-backend/controllers/tenaga_kesehatan"
 	"siakad-backend/middleware"
 
 	"github.com/gofiber/fiber/v2"
@@ -76,6 +77,7 @@ func SetupMahasiswaRoutes(app *fiber.App) {
 	studentHealthGroup.Get("/bookings", mahasiswa.GetStudentHealthBookings)
 	studentHealthGroup.Post("/bookings", mahasiswa.CreateStudentHealthBooking)
 	studentHealthGroup.Delete("/bookings/:id", mahasiswa.CancelStudentHealthBooking)
+	studentHealthGroup.Get("/session-notes/:id/export-pdf", tenaga_kesehatan.ExportMedicalRecordPDF)
 
 	// Counseling
 	counselingGroup := api.Group("/counseling")

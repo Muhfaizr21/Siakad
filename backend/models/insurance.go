@@ -139,10 +139,20 @@ type RujukanKesehatan struct {
 	SpO2           int          `json:"spo2"`
 	Diagnosis      string       `gorm:"size:255" json:"diagnosis"`
 
+	// Rekomendasi Asuransi
+	RekomendasiAsuransi string `gorm:"size:50" json:"rekomendasi_asuransi"` // BPJS, BKU_Assurance, Asuransi_Lain
+
+
 	// Status publish (mahasiswa baru bisa download setelah di-publish)
 	IsPublished    bool         `gorm:"default:false" json:"is_published"`
 	PublishedAt    *time.Time   `json:"published_at,omitempty"`
 	PublishedBy    *uint        `gorm:"index" json:"published_by,omitempty"`
+
+	ApprovalStatus string       `gorm:"size:50;default:'pending'" json:"approval_status"` // pending, disetujui, ditolak
+	ApprovalNote   string       `gorm:"type:text" json:"approval_note"`
+	Status         string       `gorm:"size:50;default:'Menunggu Persetujuan'" json:"status"` // Menunggu Persetujuan, Selesai, Ditolak
+	TanggalDikirim *time.Time   `json:"tanggal_dikirim,omitempty"`
+	TanggalDiterima *time.Time  `json:"tanggal_diterima,omitempty"`
 
 	// PDF URL (generated)
 	SuratRujukanURL string      `gorm:"size:500" json:"surat_rujukan_url"`

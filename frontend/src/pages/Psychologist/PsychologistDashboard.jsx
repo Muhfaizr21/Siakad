@@ -51,12 +51,16 @@ export default function PsychologistDashboard() {
 
   const [catatan, setCatatan] = useState('')
   const [linkMeeting, setLinkMeeting] = useState('')
+  const [isAvailable, setIsAvailable] = useState(true)
 
   const fetchData = async () => {
     setLoading(true)
     try {
       const res = await psychologistService.getDashboard()
       setDashboard(res.data)
+      if (res.data?.profile?.is_aktif !== undefined) {
+        setIsAvailable(res.data.profile.is_aktif)
+      }
     } catch {
       toast.error('Gagal mengambil data dashboard psikolog')
     } finally {
@@ -80,6 +84,18 @@ export default function PsychologistDashboard() {
       toast.error(e.response?.data?.message || 'Server sibuk')
     } finally {
       setIsSub(false)
+    }
+  }
+
+  const handleToggleAvailability = async () => {
+    const newStatus = !isAvailable
+    setIsAvailable(newStatus)
+    try {
+      await psychologistService.updateProfile({ is_aktif: newStatus })
+      toast.success(`Status diubah menjadi: ${newStatus ? 'Tersedia' : 'Tidak Tersedia'}`)
+    } catch (e) {
+      setIsAvailable(!newStatus)
+      toast.error('Gagal mengubah status ketersediaan')
     }
   }
 
@@ -235,7 +251,29 @@ export default function PsychologistDashboard() {
   return (
     <PageContent>
       <Toaster position="top-right" />
-        <DashboardHero title="Dashboard" highlightedTitle="Psikolog" subtitle="Ringkasan metrik harian, jadwal sesi terdekat, dan notifikasi untuk efisiensi praktik." icon="dashboard" badges={[{ label: 'Beranda Utama', active: false }]} />
+        <DashboardHero 
+          title="Dashboard" 
+          highlightedTitle="Psikolog" 
+          subtitle="Ringkasan metrik harian, jadwal sesi terdekat, dan notifikasi untuk efisiensi praktik." 
+          icon="dashboard" 
+          badges={[{ label: 'Beranda Utama', active: false }, { label: 'Sesi Aktif', active: true }]}
+          actions={
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={handleToggleAvailability}
+                className={`flex-1 md:flex-initial px-4 py-2 h-10 rounded-xl font-bold text-xs transition-all shadow-sm flex items-center justify-center gap-1.5 ${
+                  isAvailable 
+                    ? 'bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-100' 
+                    : 'bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100'
+                }`}
+              >
+                <div className={`w-2 h-2 rounded-full ${isAvailable ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
+                {isAvailable ? 'Tersedia' : 'Tidak Tersedia'}
+                <span className="material-symbols-outlined text-sm ml-1">swap_horiz</span>
+              </button>
+            </div>
+          }
+        />
 
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-5 mb-6 mt-6">

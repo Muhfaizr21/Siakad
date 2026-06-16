@@ -14,8 +14,8 @@ import (
 	"siakad-backend/pkg/notifikasi"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/jung-kurt/gofpdf"
 	"github.com/google/uuid"
+	"github.com/jung-kurt/gofpdf"
 )
 
 // kirimNotifPsikolog mengirim notifikasi ke tabel psikolog.notifications
@@ -86,13 +86,13 @@ func CreateReferral(c *fiber.Ctx) error {
 	var body struct {
 		MahasiswaID uint   `json:"mahasiswa_id"`
 		BookingID   *uint  `json:"booking_id"`
-		Tipe        string `json:"tipe"`        // "Medis" atau "Akademik"
+		Tipe        string `json:"tipe"` // "Medis" atau "Akademik"
 		Alasan      string `json:"alasan"`
 		PihakTujuan string `json:"pihak_tujuan"`
 		EmailTujuan string `json:"email_tujuan"`
 	}
 	if err := c.BodyParser(&body); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Payload tidak valid: " + err.Error())
+		return fiber.NewError(fiber.StatusBadRequest, "Payload tidak valid: "+err.Error())
 	}
 
 	// Validasi mahasiswa_id
@@ -267,8 +267,8 @@ func SendReferral(c *fiber.Ctx) error {
 	// Update status
 	now := time.Now()
 	if err := config.DB.Model(&referral).Updates(map[string]any{
-		"status":           "Sent",
-		"tanggal_dikirim":  now,
+		"status":          "Sent",
+		"tanggal_dikirim": now,
 	}).Error; err != nil {
 		return err
 	}
@@ -360,12 +360,13 @@ func DownloadReferralPDF(c *fiber.Ctx) error {
 		}
 		newURL := "/uploads/referrals/" + newFile
 		config.DB.Model(&referral).Update("surat_rujiukan_url", newURL)
-		filePath = newPath
+		filePath = "." + newPath
 	}
 
 	// Set response headers
 	c.Set("Content-Type", "application/pdf")
-	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"surat_rujukan_%s.pdf\"", referral.Mahasiswa.Nama))
+	safeNama := strings.ReplaceAll(referral.Mahasiswa.Nama, " ", "_")
+	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"Surat_Rujukan_%s_%s.pdf\"", safeNama, time.Now().Format("02-01-2006")))
 
 	return c.SendFile(filePath)
 }
@@ -403,7 +404,7 @@ func BuildReferralLetterPDF(referral models.PsikologReferral) (string, string, e
 	pdf.Line(25, 41, 272, 41)
 	pdf.SetLineWidth(0.2)
 	pdf.Line(25, 42.5, 272, 42.5)
-	
+
 	pdf.SetY(48) // Give some breathing room before the title
 
 	// ── Title ────────────────────────────────────────────────────────────────
@@ -412,7 +413,7 @@ func BuildReferralLetterPDF(referral models.PsikologReferral) (string, string, e
 	pdf.CellFormat(0, 6, "SURAT RUJUKAN KONSELING (REFERRAL LETTER)", "", 1, "C", false, 0, "")
 	pdf.SetFont("Helvetica", "", 9.5)
 	pdf.SetTextColor(100, 116, 139) // Slate 500
-	refNum := fmt.Sprintf("Nomor: Ref/BKU-Care/%s/%05d", time.Now().Format("2006/01"), time.Now().UnixMilli()%100000)
+	refNum := fmt.Sprintf("Nomor: Ref/BKU-Care/%s/%05d", referral.TanggalDibuat.Format("2006/01"), generateStableRandom(referral.ID, 12345))
 	pdf.CellFormat(0, 5, refNum, "", 1, "C", false, 0, "")
 	pdf.Ln(5)
 
@@ -458,26 +459,14 @@ func BuildReferralLetterPDF(referral models.PsikologReferral) (string, string, e
 		pdf.Cell(0, 5, "Tidak ada riwayat sesi konseling sebelumnya yang tercatat di sistem.")
 		pdf.Ln(6)
 	} else {
-		// To prevent orphaned header, calculate height of first row
-		firstRowHeight := 20.0
-		if len(sessions) > 0 {
-			pdf.SetFont("Helvetica", "", 8.5)
-			linesKeluhan := len(pdf.SplitLines([]byte(sessions[0].Keluhan), 72))
-			linesRekom := len(pdf.SplitLines([]byte(sessions[0].Rekomendasi), 80))
-			maxL := linesKeluhan
-			if linesRekom > maxL { maxL = linesRekom }
-			if maxL < 1 { maxL = 1 }
-			firstRowHeight = float64(maxL)*4.5 + 6
-		}
-
-		if pdf.GetY() + 6 + firstRowHeight > 185 {
+		if pdf.GetY()+15 > 185 {
 			pdf.AddPage()
 		}
 
 		drawHeader := func() {
 			pdf.SetFont("Helvetica", "B", 8.5)
 			pdf.SetFillColor(241, 245, 249) // Slate 100
-			pdf.SetTextColor(51, 65, 85)   // Slate 700
+			pdf.SetTextColor(51, 65, 85)    // Slate 700
 			pdf.CellFormat(10, 6, "No", "1", 0, "C", true, 0, "")
 			pdf.CellFormat(35, 6, "Tanggal Sesi", "1", 0, "C", true, 0, "")
 			pdf.CellFormat(50, 6, "Psikolog / Konselor", "1", 0, "C", true, 0, "")
@@ -486,7 +475,7 @@ func BuildReferralLetterPDF(referral models.PsikologReferral) (string, string, e
 		}
 
 		drawHeader()
-		
+
 		for idx, s := range sessions {
 			noStr := fmt.Sprintf("%d", idx+1)
 			tglStr := s.Tanggal.Format("02 Jan 2006")
@@ -496,52 +485,109 @@ func BuildReferralLetterPDF(referral models.PsikologReferral) (string, string, e
 			}
 
 			pdf.SetFont("Helvetica", "", 8.5)
-			linesKeluhan := len(pdf.SplitLines([]byte(s.Keluhan), 72))
-			linesRekom := len(pdf.SplitLines([]byte(s.Rekomendasi), 80))
-			
-			maxLines := linesKeluhan
-			if linesRekom > maxLines {
-				maxLines = linesRekom
+
+			noLines := pdf.SplitLines([]byte(noStr), 10)
+			tglLines := pdf.SplitLines([]byte(tglStr), 35)
+			psikologLines := pdf.SplitLines([]byte(psikologNama), 50)
+			keluhanLines := pdf.SplitLines([]byte(s.Keluhan), 72)
+			rekomLines := pdf.SplitLines([]byte(s.Rekomendasi), 80)
+
+			maxL := len(keluhanLines)
+			if len(rekomLines) > maxL {
+				maxL = len(rekomLines)
 			}
-			if maxLines < 1 {
-				maxLines = 1
+			if len(psikologLines) > maxL {
+				maxL = len(psikologLines)
 			}
-			rowHeight := float64(maxLines)*4.5 + 6 // padding 3 atas, 3 bawah
-			if rowHeight < 8 {
-				rowHeight = 8
+			if maxL < 1 {
+				maxL = 1
 			}
 
-			// Page break validation before drawing row
-			if pdf.GetY() + rowHeight > 185 {
-				pdf.AddPage()
-				drawHeader()
-			}
+			lineHeight := 4.5
+			padding := 2.0 // top and bottom padding
 
-			// Matikan auto page break sementara agar tabel tidak berantakan jika teks panjang
-			pdf.SetAutoPageBreak(false, 0)
-
-			pdf.SetFont("Helvetica", "", 8.5)
-			pdf.SetTextColor(15, 23, 42)
-			
 			curX := pdf.GetX()
 			curY := pdf.GetY()
-			
-			pdf.Rect(curX, curY, 247, rowHeight, "D")
-			pdf.CellFormat(10, rowHeight, noStr, "R", 0, "C", false, 0, "")
-			pdf.CellFormat(35, rowHeight, tglStr, "R", 0, "C", false, 0, "")
-			pdf.CellFormat(50, rowHeight, psikologNama, "R", 0, "L", false, 0, "")
-			
-			// MultiCell for Keluhan
-			pdf.SetXY(curX + 95, curY + 3)
-			pdf.MultiCell(72, 4.5, s.Keluhan, "", "L", false)
-			
-			// MultiCell for Rekomendasi
-			pdf.SetXY(curX + 167, curY + 3)
-			pdf.MultiCell(80, 4.5, s.Rekomendasi, "", "L", false)
-			
-			// Reset cursor and nyalakan kembali auto page break
-			pdf.SetXY(curX, curY + rowHeight)
-			pdf.SetAutoPageBreak(true, 15)
+
+			// Preemptive page break check before drawing row
+			if curY+lineHeight+2*padding > 185 {
+				pdf.AddPage()
+				drawHeader()
+				pdf.SetFont("Helvetica", "", 8.5)
+				curY = pdf.GetY()
+			}
+
+			// Draw top boundary line for this row
+			pdf.Line(curX, curY, curX+247, curY)
+			rowStartY := curY
+			pdf.SetY(curY + padding)
+
+			for i := 0; i < maxL; i++ {
+				// Mid-row page break check
+				if pdf.GetY()+lineHeight > 185 {
+					// Draw bottom line for current page segment
+					pdf.Line(curX, pdf.GetY(), curX+247, pdf.GetY())
+
+					// Draw vertical grid lines for current page segment
+					segmentH := pdf.GetY() - rowStartY
+					pdf.Line(curX, rowStartY, curX, rowStartY+segmentH)
+					pdf.Line(curX+10, rowStartY, curX+10, rowStartY+segmentH)
+					pdf.Line(curX+45, rowStartY, curX+45, rowStartY+segmentH)
+					pdf.Line(curX+95, rowStartY, curX+95, rowStartY+segmentH)
+					pdf.Line(curX+167, rowStartY, curX+167, rowStartY+segmentH)
+					pdf.Line(curX+247, rowStartY, curX+247, rowStartY+segmentH)
+
+					// Trigger page break
+					pdf.AddPage()
+					drawHeader()
+					pdf.SetFont("Helvetica", "", 8.5)
+
+					rowStartY = pdf.GetY()
+					pdf.SetY(rowStartY + padding)
+					pdf.Line(curX, rowStartY, curX+247, rowStartY)
+				}
+
+				y := pdf.GetY()
+				if i < len(noLines) {
+					pdf.SetXY(curX, y)
+					pdf.CellFormat(10, lineHeight, string(noLines[i]), "", 0, "C", false, 0, "")
+				}
+				if i < len(tglLines) {
+					pdf.SetXY(curX+10, y)
+					pdf.CellFormat(35, lineHeight, string(tglLines[i]), "", 0, "C", false, 0, "")
+				}
+				if i < len(psikologLines) {
+					pdf.SetXY(curX+45, y)
+					pdf.CellFormat(50, lineHeight, string(psikologLines[i]), "", 0, "L", false, 0, "")
+				}
+				if i < len(keluhanLines) {
+					pdf.SetXY(curX+95, y)
+					pdf.CellFormat(72, lineHeight, string(keluhanLines[i]), "", 0, "L", false, 0, "")
+				}
+				if i < len(rekomLines) {
+					pdf.SetXY(curX+167, y)
+					pdf.CellFormat(80, lineHeight, string(rekomLines[i]), "", 0, "L", false, 0, "")
+				}
+				pdf.Ln(lineHeight)
+			}
+
+			// Add bottom padding
+			pdf.SetY(pdf.GetY() + padding)
+			curY = pdf.GetY()
+
+			// Draw final bottom line
+			pdf.Line(curX, curY, curX+247, curY)
+
+			// Draw vertical grid lines for the final segment
+			segmentH := curY - rowStartY
+			pdf.Line(curX, rowStartY, curX, rowStartY+segmentH)
+			pdf.Line(curX+10, rowStartY, curX+10, rowStartY+segmentH)
+			pdf.Line(curX+45, rowStartY, curX+45, rowStartY+segmentH)
+			pdf.Line(curX+95, rowStartY, curX+95, rowStartY+segmentH)
+			pdf.Line(curX+167, rowStartY, curX+167, rowStartY+segmentH)
+			pdf.Line(curX+247, rowStartY, curX+247, rowStartY+segmentH)
+
+			pdf.SetXY(curX, curY)
 		}
 		pdf.Ln(4)
 	}
@@ -549,7 +595,7 @@ func BuildReferralLetterPDF(referral models.PsikologReferral) (string, string, e
 	pdf.Ln(2)
 
 	// ── Alasan Rujukan / Catatan ──────────────────────────────────────────────
-	if pdf.GetY() + 15 > 190 {
+	if pdf.GetY()+15 > 190 {
 		pdf.AddPage()
 	}
 	pdf.SetFont("Helvetica", "B", 9.5)
@@ -557,42 +603,37 @@ func BuildReferralLetterPDF(referral models.PsikologReferral) (string, string, e
 	pdf.Ln(6)
 
 	pdf.SetFont("Helvetica", "", 9)
-	alasanLines := len(pdf.SplitLines([]byte(referral.Alasan), 247))
-	alasanHeight := float64(alasanLines) * 4.5
-	if pdf.GetY() + alasanHeight > 190 {
-		pdf.AddPage()
-	}
 	pdf.MultiCell(247, 4.5, referral.Alasan, "", "L", false)
 	pdf.Ln(6)
 
 	// ── Signature Block ──────────────────────────────────────────────────────
 	// Signature Block
-	if pdf.GetY() + 35 > 190 {
+	if pdf.GetY()+35 > 190 {
 		pdf.AddPage()
 	}
 
 	sigY := pdf.GetY()
 	pdf.SetFont("Helvetica", "", 9)
-	
+
 	// Bandung, [Date] placed on the right column
 	pdf.SetXY(180, sigY)
-	dateStr := fmt.Sprintf("Bandung, %s", time.Now().Format("02 January 2006"))
+	dateStr := fmt.Sprintf("Bandung, %s", formatIndoDate(referral.TanggalDibuat))
 	pdf.Cell(0, 5, dateStr)
-	
-	pdf.SetXY(180, sigY + 5)
+
+	pdf.SetXY(180, sigY+5)
 	pdf.Cell(0, 5, "Psikolog Perujuk,")
-	
+
 	// Signature space
-	pdf.SetXY(180, sigY + 23)
+	pdf.SetXY(180, sigY+23)
 	pdf.SetFont("Helvetica", "BU", 9.5) // Underlined
 	pdf.Cell(0, 5, referral.Psikolog.Nama)
-	
-	pdf.SetXY(180, sigY + 28)
+
+	pdf.SetXY(180, sigY+28)
 	pdf.SetFont("Helvetica", "", 8)
 	pdf.SetTextColor(100, 116, 139)
 	pdf.Cell(0, 4, "BKU Care Center")
-	
-	pdf.SetXY(180, sigY + 32)
+
+	pdf.SetXY(180, sigY+32)
 	pdf.Cell(0, 4, fmt.Sprintf("Spesialisasi: %s", referral.Psikolog.Spesialisasi))
 
 	// Jika rujukan sudah disetujui, tambahkan signature Kemahasiswaan di kiri
@@ -600,18 +641,18 @@ func BuildReferralLetterPDF(referral models.PsikologReferral) (string, string, e
 		adminName := "Kepala Bagian Kemahasiswaan"
 
 		pdf.SetTextColor(15, 23, 42) // Slate 900
-		pdf.SetXY(25, sigY + 5)
+		pdf.SetXY(25, sigY+5)
 		pdf.Cell(0, 5, "Mengetahui,")
-		
-		pdf.SetXY(25, sigY + 10)
+
+		pdf.SetXY(25, sigY+10)
 		pdf.Cell(0, 5, "Bagian Kemahasiswaan")
 
 		// Signature space admin
-		pdf.SetXY(25, sigY + 23)
+		pdf.SetXY(25, sigY+23)
 		pdf.SetFont("Helvetica", "BU", 9.5)
 		pdf.Cell(0, 5, adminName)
 
-		pdf.SetXY(25, sigY + 28)
+		pdf.SetXY(25, sigY+28)
 		pdf.SetFont("Helvetica", "", 8)
 		pdf.SetTextColor(100, 116, 139)
 		pdf.Cell(0, 4, "Direktorat Kemahasiswaan")

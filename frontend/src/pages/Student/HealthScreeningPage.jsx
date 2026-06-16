@@ -18,8 +18,9 @@ import {
   useHealthDetailQuery,
   useHealthMandiriMutation,
   useHealthTipsQuery,
+  useHealthRujukanQuery,
 } from '../../queries/useHealthQuery';
-import { healthBookingService, insuranceService } from '../../services/api';
+import { healthBookingService, insuranceService, fetchBlobWithAuth } from '../../services/api';
 import { Skeleton } from '@/components/ui/Skeleton';
 import toast from 'react-hot-toast';
 import { NavLink } from 'react-router-dom';
@@ -263,6 +264,7 @@ export default function HealthScreeningPage() {
   const { data: riwayat, isLoading: isRiwayatLoading } = useHealthRiwayatQuery({ sumber: filterSumber });
   const { data: detailRecord, isLoading: isDetailLoading } = useHealthDetailQuery(selectedDetailId);
   const { data: tips } = useHealthTipsQuery(terbaru?.bmi);
+  const { data: rujukans, isLoading: isRujukanLoading } = useHealthRujukanQuery();
   const mandiriMutation = useHealthMandiriMutation();
 
   const chartData = useMemo(() => {
@@ -329,10 +331,7 @@ export default function HealthScreeningPage() {
         actions={
           <div className="flex items-center gap-2">
             <button
-              onClick={() => {
-                const el = document.getElementById('jadwal-tersedia-section');
-                if (el) el.scrollIntoView({ behavior: 'smooth' });
-              }}
+              onClick={() => setIsBookingModalOpen(true)}
               className="flex items-center gap-2 px-4 py-2.5 bg-[var(--theme-primary)] text-[var(--theme-text-on-primary)] font-semibold rounded-xl hover:opacity-90 transition-all text-sm shadow-md shadow-[var(--theme-primary)]/20"
             >
               <span className="material-symbols-outlined" style={{ fontSize: '16px' }} strokeWidth={2.5}>calendar_month</span> Ambil Antrean
@@ -818,6 +817,84 @@ export default function HealthScreeningPage() {
                         <Bookmark size={20} className="text-[var(--theme-text-muted)]" />
                       </div>
                       <p className="text-sm font-semibold text-[var(--theme-text-muted)]">Belum ada rekam medis.</p>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* ── Referral History (Rujukan Medis) ── */}
+      <div className="glass-card overflow-hidden mb-6">
+        <div className="px-6 py-5 border-b border-[var(--theme-border-muted)] flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-indigo-50/80 rounded-xl flex justify-center items-center text-indigo-600">
+              <span className="material-symbols-outlined text-[24px]">home_health</span>
+            </div>
+            <div>
+              <span className="text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-widest block mb-0.5">Rujukan</span>
+              <h2 className="text-sm font-bold text-[var(--theme-text)] leading-tight">Riwayat Rujukan Medis</h2>
+            </div>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-border">
+                {['Tanggal', 'Faskes Tujuan', 'Alasan', 'Rekomendasi Asuransi'].map((h, i) => (
+                  <th key={i} className="px-5 py-3 text-[10px] font-bold text-[var(--theme-text-muted)] uppercase tracking-wider">
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {isRujukanLoading ? (
+                [...Array(2)].map((_, i) => (
+                  <tr key={i}><td colSpan="4" className="px-5 py-4"><Skeleton className="h-12 w-full rounded-xl" /></td></tr>
+                ))
+              ) : rujukans?.length > 0 ? (
+                rujukans.map((ruj) => (
+                  <tr key={ruj.id} className="group hover:bg-[var(--theme-bg)] transition-colors">
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-surface border border-border shadow-sm flex flex-col items-center justify-center shrink-0">
+                          <span className="text-xs font-black text-[var(--theme-text)] leading-none">{new Date(ruj.created_at || ruj.CreatedAt).getDate()}</span>
+                          <span className="text-[8px] font-bold text-[var(--theme-text-muted)] uppercase">{fmt(ruj.created_at || ruj.CreatedAt, { month: 'short' })}</span>
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-[var(--theme-text)]">{new Date(ruj.created_at || ruj.CreatedAt).getFullYear()}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-5 py-4">
+                      <p className="text-sm font-bold text-[var(--theme-text)]">{ruj.faskes_tujuan}</p>
+                    </td>
+                    <td className="px-5 py-4">
+                      <p className="text-xs text-[var(--theme-text-muted)] max-w-[200px] truncate" title={ruj.alasan_rujukan}>{ruj.alasan_rujukan}</p>
+                    </td>
+                    <td className="px-5 py-4">
+                      {ruj.rekomendasi_asuransi ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-[var(--theme-primary)]/10 text-[var(--theme-primary)] border border-[var(--theme-primary)]/20">
+                          {ruj.rekomendasi_asuransi.replace(/_/g, ' ')}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-[var(--theme-text-muted)]">-</span>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="4" className="py-16 text-center">
+                    <div className="inline-flex flex-col items-center gap-3">
+                      <div className="w-12 h-12 rounded-2xl bg-[var(--theme-bg)] border-2 border-dashed border-border flex items-center justify-center">
+                        <Bookmark size={20} className="text-[var(--theme-text-muted)]" />
+                      </div>
+                      <p className="text-sm font-semibold text-[var(--theme-text-muted)]">Belum ada riwayat rujukan medis.</p>
                     </div>
                   </td>
                 </tr>
@@ -1391,6 +1468,26 @@ function DetailModal({ record, isLoading, onClose, hasActiveInsuranceClaim }) {
     }
   }
 
+  const handleDownloadPDF = async () => {
+    const toastId = toast.loading('Menyiapkan PDF Rekam Medis...');
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5173/api';
+      const blob = await fetchBlobWithAuth(`${API_URL}/student-health/session-notes/${record.id}/export-pdf`);
+      
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Rekam_Medis_${record.id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success('Berhasil mengunduh PDF', { id: toastId });
+    } catch (error) {
+      console.error(error);
+      toast.error('Gagal mengunduh PDF', { id: toastId });
+    }
+  };
+
   return (
     <DialogModal
       open={true}
@@ -1422,6 +1519,12 @@ function DetailModal({ record, isLoading, onClose, hasActiveInsuranceClaim }) {
               <span className="material-symbols-outlined text-[16px]">health_and_safety</span> Ajukan Asuransi
             </NavLink>
           )}
+          <button
+            onClick={handleDownloadPDF}
+            className="py-3 px-5 bg-indigo-50 border border-indigo-100 text-indigo-600 text-xs font-black rounded-xl hover:bg-indigo-100 transition-all uppercase tracking-wider cursor-pointer flex items-center justify-center gap-1.5"
+          >
+            <span className="material-symbols-outlined text-[16px]">download</span> Unduh PDF
+          </button>
           <button
             onClick={onClose}
             className="py-3 px-6 bg-[var(--theme-bg)] border border-[var(--theme-border-muted)] text-[var(--theme-text-muted)] text-xs font-black rounded-xl hover:bg-surface transition-all uppercase tracking-wider cursor-pointer"
@@ -1801,152 +1904,169 @@ function BookingModal({
     return timeStr.substring(0, 5);
   };
 
-  if (!selectedSchedule) return null;
+
 
   return (
     <DialogModal
       open={true}
       onOpenChange={onClose}
-      maxWidth="max-w-md"
-      title="Konfirmasi Antrean Klinik"
-      subtitle="Isi keluhan untuk mengamankan jadwalmu"
-      icon="medical_services"
+      maxWidth="max-w-xl"
+      title="Ambil Antrean Klinik"
+      subtitle="Pilih Jadwal & Isi Keluhan"
+      icon="stethoscope"
       footer={
-        <div className="flex gap-3 w-full">
+        <div className="flex gap-3 w-full justify-end">
           <button
             onClick={onClose}
-            className="flex-1 py-3 border border-[var(--theme-border-muted)] text-[var(--theme-text-muted)] text-xs font-black rounded-xl hover:bg-[var(--theme-bg)] transition-all uppercase tracking-wider cursor-pointer bg-[var(--theme-surface)]"
+            className="px-6 py-3 border border-slate-200 text-slate-500 text-xs font-bold rounded-2xl hover:bg-slate-50 hover:text-slate-700 transition-all uppercase tracking-wider cursor-pointer"
           >
             Batal
           </button>
           <button
             onClick={onSubmit}
-            disabled={!bookingKeluhan.trim() || isSubmitting}
-            className="flex-1 py-3 bg-[var(--theme-primary)] text-[var(--theme-text-on-primary)] text-xs font-black rounded-xl hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 uppercase tracking-wider cursor-pointer border-none shadow-md shadow-[var(--theme-primary)]/20"
+            disabled={!selectedSchedule || !bookingKeluhan.trim() || isSubmitting}
+            className="flex-1 max-w-[200px] py-3 bg-[var(--theme-primary)] text-white text-xs font-bold rounded-2xl hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 uppercase tracking-wider cursor-pointer border-none shadow-[0_8px_15px_var(--theme-primary)]/20 group relative overflow-hidden"
           >
+            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
             {isSubmitting ? (
               <>
-                <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }}>progress_activity</span>
-                Memproses...
+                <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>progress_activity</span>
+                Memproses
               </>
             ) : (
               <>
-                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>check_circle</span>
-                Daftarkan
+                <span className="material-symbols-outlined relative z-10 group-hover:scale-110 transition-transform" style={{ fontSize: '18px' }}>event_available</span>
+                <span className="relative z-10">Konfirmasi</span>
               </>
             )}
           </button>
         </div>
       }
-      bodyClassName="p-5 sm:p-6 space-y-4"
+      bodyClassName="p-6 md:p-8 space-y-8 bg-white"
     >
-      <div className="text-left space-y-5">
-          {/* Jadwal Terpilih Info */}
-          <div className="bg-emerald-50/50 rounded-2xl p-4 border border-emerald-100 flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>medical_services</span>
-            </div>
-            <div>
-              <p className="text-sm font-bold text-emerald-900 mb-1">{selectedSchedule.tenaga_kes?.nama || 'Tenaga Kesehatan'}</p>
-              <div className="space-y-1">
-                <p className="text-xs text-emerald-700 flex items-center gap-1.5 font-semibold">
-                  <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>calendar_month</span>
-                  {formatDate(selectedSchedule.tanggal)}
-                </p>
-                <p className="text-xs text-emerald-700 flex items-center gap-1.5 font-semibold">
-                  <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>schedule</span>
-                  {formatTime(selectedSchedule.jam_mulai)} - {formatTime(selectedSchedule.jam_selesai)} WIB
-                </p>
-                <p className="text-xs text-emerald-700 flex items-center gap-1.5 font-semibold">
-                  <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>location_on</span>
-                  <span className="truncate">{selectedSchedule.lokasi}</span>
-                </p>
-              </div>
-            </div>
-          </div>
-          
-          {/* Available Schedules */}
-          <div>
-            <h4 className="text-xs font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-3 flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-              Jadwal Tersedia ({availableSchedules.length})
+      <div className="space-y-6">
+        
+        {/* Step 1: Jadwal */}
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="text-sm font-black text-slate-800 flex items-center gap-2">
+              <span className="flex items-center justify-center w-6 h-6 rounded-full bg-[var(--theme-primary)]/10 text-[var(--theme-primary)] text-xs">1</span>
+              Pilih Jadwal Tersedia
             </h4>
+            <span className="px-2.5 py-1 bg-slate-100 text-slate-500 rounded-lg text-[10px] font-bold">
+              {schedules.length} Tersedia
+            </span>
+          </div>
 
-            {loading ? (
-              <div className="space-y-3">
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="h-20 bg-[var(--theme-bg)] rounded-xl animate-pulse" />
-                ))}
-              </div>
-            ) : availableSchedules.length === 0 ? (
-              <div className="text-center py-8 bg-[var(--theme-bg)] rounded-xl border border-border">
-                <span className="material-symbols-outlined text-4xl text-[var(--theme-text-muted)]">event_busy</span>
-                <p className="text-sm text-[var(--theme-text-muted)] mt-2">Belum ada jadwal tersedia</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {availableSchedules.map((schedule) => {
-                  const isSelected = selectedSchedule?.id === schedule.id;
-                  return (
-                    <button
-                      key={schedule.id}
-                      onClick={() => setSelectedSchedule(schedule)}
-                      className={`w-full text-left p-4 rounded-xl border-2 transition-all cursor-pointer ${isSelected
-                          ? 'border-[var(--theme-primary)] bg-[var(--theme-primary)]/5'
-                          : 'border-border bg-surface hover:border-border'
-                        }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isSelected ? 'bg-[var(--theme-primary)] text-white' : 'bg-emerald-50 text-emerald-600'
-                            }`}>
-                            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>medical_services</span>
-                          </div>
-                          <div>
-                            <p className="text-sm font-bold text-[var(--theme-text)]">
-                              {schedule.tenaga_kes?.nama || 'Tenaga Kesehatan'} • {schedule.tipe_layanan}
-                            </p>
-                            <p className="text-xs text-[var(--theme-text-muted)] mt-0.5">
-                              {formatDate(schedule.tanggal)} • {formatTime(schedule.jam_mulai)} - {formatTime(schedule.jam_selesai)}
-                            </p>
-                            <p className="text-xs text-[var(--theme-text-muted)] mt-0.5 flex items-center gap-1">
-                              <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>location_on</span>
-                              {schedule.lokasi}
-                            </p>
-                          </div>
+          {loading ? (
+            <div className="space-y-3">
+              {[1, 2].map(i => (
+                <div key={i} className="h-24 bg-slate-50 rounded-2xl animate-pulse" />
+              ))}
+            </div>
+          ) : schedules.length === 0 ? (
+            <div className="text-center py-8 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+              <span className="material-symbols-outlined text-3xl text-slate-400 mb-2">event_busy</span>
+              <p className="text-sm text-slate-600 font-medium">Belum ada jadwal tersedia saat ini</p>
+            </div>
+          ) : (
+            <div className="grid gap-3 max-h-[300px] overflow-y-auto pr-1 snap-y custom-scrollbar">
+              {schedules.map((schedule) => {
+                const isSelected = selectedSchedule?.id === schedule.id;
+                const isFull = schedule.sisa_kuota === 0;
+                
+                return (
+                  <button
+                    key={schedule.id}
+                    disabled={isFull}
+                    onClick={() => setSelectedSchedule(schedule)}
+                    className={`relative w-full text-left p-4 rounded-2xl border-2 transition-all duration-200 outline-none snap-start group ${
+                      isSelected
+                        ? 'border-[var(--theme-primary)] bg-[var(--theme-primary)]/5 shadow-md shadow-[var(--theme-primary)]/5'
+                        : isFull
+                          ? 'border-transparent bg-slate-50 opacity-60 cursor-not-allowed'
+                          : 'border-slate-100 bg-white hover:border-slate-300 hover:shadow-sm cursor-pointer'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      
+                      <div className="flex flex-1 items-center gap-4">
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                          isSelected ? 'bg-[var(--theme-primary)] text-white shadow-sm' : 
+                          isFull ? 'bg-slate-200 text-slate-400' : 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100'
+                        }`}>
+                          <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>
+                            {schedule.tipe_layanan.toLowerCase().includes('gigi') ? 'dentistry' : 'stethoscope'}
+                          </span>
                         </div>
-                        <div className="text-right">
-                          <div className={`px-2.5 py-1 rounded-lg text-[10px] font-bold ${schedule.sisa_kuota <= 2 ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
-                            }`}>
-                            Sisa: {schedule.sisa_kuota}/{schedule.kuota}
+                        
+                        <div>
+                          <h5 className={`text-[15px] font-bold leading-tight ${isSelected ? 'text-[var(--theme-primary)]' : 'text-slate-800'}`}>
+                            {schedule.tenaga_kes?.nama || 'Tenaga Kesehatan'}
+                          </h5>
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">
+                            <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md uppercase tracking-wider">
+                              {schedule.tipe_layanan}
+                            </span>
+                            <span className="text-xs text-slate-500 flex items-center gap-1 font-medium">
+                              <span className="material-symbols-outlined text-[14px]">schedule</span>
+                              {formatTime(schedule.jam_mulai)}-{formatTime(schedule.jam_selesai)}
+                            </span>
                           </div>
-                          {isSelected && (
-                            <span className="material-symbols-outlined text-[var(--theme-primary)] mt-1 block" style={{ fontSize: '20px' }}>check_circle</span>
-                          )}
                         </div>
                       </div>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
 
-          {/* Keluhan Input */}
-          <div>
-            <label className="text-xs font-bold text-[var(--theme-text-muted)] uppercase tracking-wider mb-2 flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span>
-              Keluhan Anda
-            </label>
+                      <div className="flex flex-col items-end gap-2 shrink-0">
+                        <div className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${
+                          isFull ? 'bg-red-50 text-red-600' :
+                          schedule.sisa_kuota <= 2 ? 'bg-amber-50 text-amber-600' : 
+                          'bg-emerald-50 text-emerald-600'
+                        }`}>
+                          {isFull ? 'Penuh' : `Sisa ${schedule.sisa_kuota}`}
+                        </div>
+                        {isSelected ? (
+                          <span className="material-symbols-outlined text-[var(--theme-primary)] text-[22px] animate-in zoom-in">check_circle</span>
+                        ) : !isFull ? (
+                          <div className="w-5 h-5 rounded-full border-2 border-slate-200 group-hover:border-slate-400 transition-colors" />
+                        ) : null}
+                      </div>
+
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        {/* Step 2: Keluhan */}
+        <section className={`transition-opacity duration-300 ${!selectedSchedule ? 'opacity-40 pointer-events-none' : 'opacity-100'}`}>
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="text-sm font-black text-slate-800 flex items-center gap-2">
+              <span className={`flex items-center justify-center w-6 h-6 rounded-full text-xs transition-colors ${
+                selectedSchedule ? 'bg-[var(--theme-primary)]/10 text-[var(--theme-primary)]' : 'bg-slate-100 text-slate-400'
+              }`}>2</span>
+              Keluhan Saat Ini
+            </h4>
+          </div>
+          
+          <div className="relative group">
             <textarea
               value={bookingKeluhan}
               onChange={(e) => setBookingKeluhan(e.target.value)}
-              placeholder="Jelaskan secara singkat apa yang kamu rasakan (contoh: Pusing dan mual sejak 2 hari lalu)..."
-              rows={4}
-              className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-bku-primary/20 resize-none font-semibold text-[var(--theme-text)] bg-[var(--theme-bg)]"
+              placeholder="Jelaskan secara singkat apa yang kamu rasakan (contoh: Demam ringan sejak 2 hari lalu)..."
+              disabled={!selectedSchedule}
+              className="w-full min-h-[140px] p-5 bg-slate-50 border border-slate-200 rounded-2xl text-[14px] focus:outline-none focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-[var(--theme-primary)]/10 resize-none font-medium text-slate-700 transition-all leading-relaxed placeholder:text-slate-400 disabled:bg-slate-100/50"
             />
+            <div className={`absolute bottom-4 right-4 text-[10px] font-bold px-2 py-1 rounded-lg transition-colors ${
+              bookingKeluhan.length > 0 ? 'bg-[var(--theme-primary)]/10 text-[var(--theme-primary)]' : 'bg-slate-200 text-slate-500'
+            }`}>
+              {bookingKeluhan.length} karakter
+            </div>
           </div>
-        </div>
+        </section>
+
+      </div>
     </DialogModal>
   );
 }

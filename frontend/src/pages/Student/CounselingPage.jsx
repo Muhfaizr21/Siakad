@@ -52,6 +52,7 @@ export default function CounselingPage() {
   const [topik, setTopik] = useState('Psikologi');
   const [privacyAgreed, setPrivacyAgreed] = useState(false);
   const [filterTipe, setFilterTipe] = useState('Semua');
+  const [currentPage, setCurrentPage] = useState(1);
 
   const { data: jadwal, isLoading: isJadwalLoading } = useCounselingJadwalQuery();
   const { data: riwayat } = useCounselingRiwayatQuery();
@@ -109,11 +110,19 @@ export default function CounselingPage() {
     });
   };
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterTipe]);
+
   const filtered = jadwal?.filter(s => {
     if (filterTipe === 'Semua') return true;
     const mappedTipe = (s.Tipe === 'Personal' || s.Tipe === 'Karir' || s.Tipe === 'Psikologi') ? 'Psikologi' : 'Akademik';
     return mappedTipe === filterTipe;
   }) ?? [];
+
+  const itemsPerPage = 5;
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const currentSlots = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <PageContent className="font-body">
@@ -224,8 +233,8 @@ export default function CounselingPage() {
             <div className="space-y-3">
               {isJadwalLoading ? (
                 <CardGridSkeleton count={4} />
-              ) : filtered.length > 0 ? (
-                filtered.map((slot) => {
+              ) : currentSlots.length > 0 ? (
+                currentSlots.map((slot) => {
                   const slotTipeMapped = (slot.Tipe === 'Personal' || slot.Tipe === 'Karir') ? 'Psikologi' : slot.Tipe;
                   const tc = TIPE_CONFIG[slotTipeMapped] ?? TIPE_CONFIG.Akademik;
                   const isFull = slot.SisaKuota <= 0;
@@ -283,6 +292,28 @@ export default function CounselingPage() {
                   title="Tidak Ada Jadwal"
                   description={filterTipe === 'Semua' ? 'Belum ada jadwal tersedia. Cek kembali beberapa saat lagi.' : `Jadwal untuk kategori ${filterTipe} sedang kosong.`}
                 />
+              )}
+
+              {!isJadwalLoading && totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-6 pt-4">
+                  <button
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="w-10 h-10 flex items-center justify-center rounded-xl bg-[var(--theme-surface)] border border-[var(--theme-border-muted)] text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg)] hover:text-[var(--theme-primary)] disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">chevron_left</span>
+                  </button>
+                  <span className="text-[11px] font-bold text-[var(--theme-text-muted)] px-3 tracking-widest uppercase">
+                    Halaman {currentPage} dari {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="w-10 h-10 flex items-center justify-center rounded-xl bg-[var(--theme-surface)] border border-[var(--theme-border-muted)] text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg)] hover:text-[var(--theme-primary)] disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">chevron_right</span>
+                  </button>
+                </div>
               )}
             </div>
           </div>

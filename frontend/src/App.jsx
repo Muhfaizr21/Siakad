@@ -141,6 +141,8 @@ import AdminTenagaKesehatanDashboard from './pages/SuperAdmin/tenagakes/TenagaKe
 import AdminTenagaKesehatanList from './pages/SuperAdmin/tenagakes/TenagaKesehatanList'
 import AdminTenagaKesehatanBookings from './pages/SuperAdmin/tenagakes/TenagaKesehatanBookings'
 import AdminTenagaKesehatanMedicalRecords from './pages/SuperAdmin/tenagakes/TenagaKesehatanMedicalRecords'
+import AdminTenagaKesehatanReferrals from './pages/SuperAdmin/tenagakes/TenagaKesehatanReferrals'
+import AdminKlaimAsuransi from './pages/SuperAdmin/tenagakes/KlaimAsuransi'
 import KelolaFakultas from './pages/SuperAdmin/KelolaFakultas'
 import LecturerDirectory from './pages/SuperAdmin/LecturerDirectory'
 import KelolaBeasiswa from './pages/SuperAdmin/KelolaBeasiswa'
@@ -303,6 +305,8 @@ function App() {
                   <Route path="tenagakes/list" element={<AdminTenagaKesehatanList />} />
                   <Route path="tenagakes/bookings" element={<AdminTenagaKesehatanBookings />} />
                   <Route path="tenagakes/medical-records" element={<AdminTenagaKesehatanMedicalRecords />} />
+                  <Route path="tenagakes/referrals" element={<AdminTenagaKesehatanReferrals />} />
+                  <Route path="tenagakes/claims" element={<AdminKlaimAsuransi />} />
                   <Route path="insurance" element={<InsuranceManagement />} />
                   <Route path="config" element={<AcademicPortal />} />
                   <Route path="faculties" element={<KelolaFakultas />} />

@@ -3240,6 +3240,151 @@ func GetTenagaKesehatanMedicalRecordsAdmin(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"status": "success", "data": records})
 }
 
+// GetTenagaKesehatanReferralsAdmin returns all medical referrals
+func GetTenagaKesehatanReferralsAdmin(c *fiber.Ctx) error {
+	var referrals []models.RujukanKesehatan
+	err := config.DB.
+		Preload("Mahasiswa").
+		Preload("Mahasiswa.Fakultas").
+		Preload("Mahasiswa.ProgramStudi").
+		Order("created_at desc").
+		Find(&referrals).Error
+
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "success", "data": referrals})
+}
+
+// ApproveTenagaKesehatanReferral allows SuperAdmin to approve or reject a medical referral
+func ApproveTenagaKesehatanReferral(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	var referral models.RujukanKesehatan
+	if err := config.DB.
+		Preload("Mahasiswa").
+		Preload("Mahasiswa.ProgramStudi").
+		Where("id = ?", id).
+		First(&referral).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Referral tidak ditemukan"})
+	}
+
+	var body struct {
+		Action  string `json:"action"`  // "approve" atau "reject"
+		Catatan string `json:"catatan"` // alasan penolakan (opsional)
+	}
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload tidak valid"})
+	}
+
+	if body.Action != "approve" && body.Action != "reject" {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Action harus 'approve' atau 'reject'"})
+	}
+
+	var newApprovalStatus string
+	var newStatus string
+	var notifTitle, notifContent string
+
+	if body.Action == "approve" {
+		newApprovalStatus = "disetujui"
+		newStatus = "Selesai"
+		notifTitle = "Referral Medis Disetujui ✅"
+		notifContent = fmt.Sprintf(
+			"Surat rujukan medis Anda ke %s telah disetujui oleh administrator dan siap diunduh.",
+			referral.FaskesTujuan,
+		)
+	} else {
+		newApprovalStatus = "ditolak"
+		newStatus = "Ditolak"
+		catatan := body.Catatan
+		if catatan == "" {
+			catatan = "Tidak ada alasan yang diberikan"
+		}
+		notifTitle = "Referral Medis Ditolak ❌"
+		notifContent = fmt.Sprintf(
+			"Surat rujukan medis Anda ke %s ditolak oleh administrator. Alasan: %s",
+			referral.FaskesTujuan,
+			catatan,
+		)
+	}
+
+	now := time.Now()
+	updates := map[string]any{
+		"approval_status": newApprovalStatus,
+		"approval_note":   body.Catatan,
+		"status":          newStatus,
+	}
+
+	if newStatus == "Selesai" {
+		updates["tanggal_dikirim"] = now
+		updates["tanggal_diterima"] = now
+		updates["is_published"] = true
+		// Clear URL to trigger generation with double signature
+		updates["surat_rujukan_url"] = ""
+	}
+
+	if err := config.DB.Model(&referral).Updates(updates).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+
+	// If approved, regenerate PDF with the double signatures (Tenaga Kes + Kemahasiswaan)
+	if newApprovalStatus == "disetujui" {
+		if err := config.DB.Preload("Mahasiswa").Preload("Mahasiswa.ProgramStudi").First(&referral, id).Error; err == nil {
+			var screening models.Kesehatan
+			if referral.SelfScreeningID != nil {
+				config.DB.Preload("TenagaKes").First(&screening, *referral.SelfScreeningID)
+			}
+			fullUrl, _, pdfErr := BuildMedisReferralLetterPDF(referral, screening)
+			if pdfErr == nil && fullUrl != "" {
+				config.DB.Model(&referral).Update("surat_rujukan_url", fullUrl)
+			} else {
+				log.Println("Gagal generate PDF medis referral:", pdfErr)
+			}
+		}
+	}
+
+	mahasiswaID := referral.MahasiswaID
+	approvalAction := body.Action
+
+	go func() {
+		if mahasiswaID > 0 {
+			_ = notifikasi.Kirim(config.DB, notifikasi.KirimParams{
+				MahasiswaID: mahasiswaID,
+				Type:        "referral_medis",
+				Title:       notifTitle,
+				Content:     notifContent,
+				Link:        "/student/health",
+			})
+		}
+
+		// Notify Tenaga Kesehatan
+		var screening models.Kesehatan
+		if referral.SelfScreeningID != nil {
+			if err := config.DB.Preload("TenagaKes").First(&screening, *referral.SelfScreeningID).Error; err == nil {
+				if screening.TenagaKes != nil && screening.TenagaKes.UserID > 0 {
+					tkNotifTitle := fmt.Sprintf("Rujukan Medis %s", map[string]string{"approve": "Disetujui ✅", "reject": "Ditolak ❌"}[approvalAction])
+					tkNotifContent := fmt.Sprintf("Surat rujukan medis untuk mahasiswa %s telah %s oleh administrator.", referral.Mahasiswa.Nama, map[string]string{"approve": "disetujui", "reject": "ditolak"}[approvalAction])
+					_ = notifikasi.Kirim(config.DB, notifikasi.KirimParams{
+						UserID:  screening.TenagaKes.UserID,
+						Type:    "referral_medis",
+						Title:   tkNotifTitle,
+						Content: tkNotifContent,
+						Link:    "/tenagakes/referrals",
+					})
+				}
+			}
+		}
+
+		log.Printf("[Referral Medis] Action=%s, MahasiswaID=%d", approvalAction, mahasiswaID)
+	}()
+
+	return c.JSON(fiber.Map{
+		"status":          "success",
+		"message":         fmt.Sprintf("Referral berhasil %s", map[string]string{"approve": "disetujui", "reject": "ditolak"}[body.Action]),
+		"approval_status": newApprovalStatus,
+	})
+}
+
 // GetOrmawaLeaderboard returns all Ormawa ranked by points descending
 func GetOrmawaLeaderboard(c *fiber.Ctx) error {
 	var list []models.Ormawa

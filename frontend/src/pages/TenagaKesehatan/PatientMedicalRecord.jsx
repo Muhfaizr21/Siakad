@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
-import { tenagaKesehatanService } from '../../services/api';
+import { tenagaKesehatanService, rujukanService, fetchBlobWithAuth } from '../../services/api';
 import { PageContent } from '@/components/ui/page';
 import { DashboardHero } from '@/components/ui/dashboard';
+import toast from 'react-hot-toast';
 
 const BackIcon = () => <span className="material-symbols-outlined text-sm">arrow_back</span>;
 const HistoryIcon = () => <span className="material-symbols-outlined text-sm">history</span>;
@@ -57,8 +58,39 @@ export default function PatientMedicalRecord() {
 
   // Escalation Checkboxes
   const [eskalasiPsikolog, setEskalasiPsikolog] = useState(false);
-  const [eskalasiFakultas, setEskalasiFakultas] = useState(false);
+  
+  // Psikolog Escalation Data
+  const [psychologists, setPsychologists] = useState([]);
+  const [psikologId, setPsikologId] = useState('');
+  const [psikologSchedules, setPsikologSchedules] = useState([]);
+  const [psikologSlotId, setPsikologSlotId] = useState(null);
+  
+  // Rujukan Medis Form States
+  const [eskalasiFaskes, setEskalasiFaskes] = useState(false);
+  const [faskesTujuan, setFaskesTujuan] = useState('Klinik UBK');
+  const [faskesTujuanLainnya, setFaskesTujuanLainnya] = useState('');
+  const [alasanRujukan, setAlasanRujukan] = useState('Penanganan Lanjutan');
+  const [alasanRujukanLainnya, setAlasanRujukanLainnya] = useState('');
+  const [diagnosisSementara, setDiagnosisSementara] = useState('');
+  const [keluhanUtama, setKeluhanUtama] = useState('');
+  const [rekomendasiAsuransi, setRekomendasiAsuransi] = useState('BKU_Assurance');
+  
   const [submitting, setSubmitting] = useState(false);
+
+  const handleMarkAsDone = async () => {
+    if (!bookingId) return;
+    if (!window.confirm("Yakin ingin menandai sesi ini sebagai Selesai tanpa menyimpan/update rekam medis tambahan?")) return;
+    setSubmitting(true);
+    try {
+      await tenagaKesehatanService.updateBookingStatus(bookingId, 'Selesai');
+      toast.success('Sesi berhasil ditandai selesai');
+      setTimeout(() => navigate('/tenagakes/dashboard'), 1500);
+    } catch (err) {
+      toast.error('Gagal menyelesaikan sesi');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const loadData = () => {
     setLoading(true);
@@ -84,6 +116,26 @@ export default function PatientMedicalRecord() {
   useEffect(() => {
     loadData();
   }, [id]);
+
+  useEffect(() => {
+    if (eskalasiPsikolog && psychologists.length === 0) {
+      tenagaKesehatanService.getPsychologists().then(res => {
+        setPsychologists(res.data || []);
+      }).catch(err => console.error("Gagal memuat psikolog", err));
+    }
+  }, [eskalasiPsikolog]);
+
+  useEffect(() => {
+    if (psikologId) {
+      tenagaKesehatanService.getPsychologistSchedules(psikologId).then(res => {
+        setPsikologSchedules(res.data?.slots || []);
+        setPsikologSlotId(null);
+      }).catch(err => console.error("Gagal memuat jadwal", err));
+    } else {
+      setPsikologSchedules([]);
+      setPsikologSlotId(null);
+    }
+  }, [psikologId]);
 
   // Calculate BMI dynamically
   const bmi = useMemo(() => {
@@ -155,11 +207,9 @@ export default function PatientMedicalRecord() {
     return warnings;
   }, [suhuTubuh, spO2, sistole, diastole, bmi]);
 
-  // Auto trigger check-boxes for escalation based on critical values
   useEffect(() => {
-    // Auto check Fakultaskes/Fakultas if vitals are dangerous
+    // Auto set Hasil if vitals are dangerous
     if (suhuTubuh > 38.0 || spO2 < 92) {
-      setEskalasiFakultas(true);
       setHasil('Tidak Layak');
     }
   }, [suhuTubuh, spO2]);
@@ -205,13 +255,37 @@ export default function PatientMedicalRecord() {
       rekomendasi,
       booking_id: bookingId ? Number(bookingId) : null,
       eskalasi_psikolog: eskalasiPsikolog,
-      eskalasi_fakultas: eskalasiFakultas,
+      psikolog_id: eskalasiPsikolog && psikologId ? Number(psikologId) : undefined,
+      psikolog_slot_id: eskalasiPsikolog && psikologId && psikologSlotId ? Number(psikologSlotId) : undefined,
       sumber: sumber,
     };
 
     setSubmitting(true);
     try {
-      await tenagaKesehatanService.createScreening(id, payload);
+      const screenRes = await tenagaKesehatanService.createScreening(id, payload);
+      const createdScreeningId = screenRes.data?.id; // Assuming the API returns the created record
+
+      // Create Rujukan Medis if checked
+      if (eskalasiFaskes) {
+        const finalFaskes = faskesTujuan === 'Lainnya' ? faskesTujuanLainnya : faskesTujuan;
+        const finalAlasan = alasanRujukan === 'Lainnya' ? alasanRujukanLainnya : alasanRujukan;
+        
+        await rujukanService.createRujukan({
+          self_screening_id: createdScreeningId,
+          mahasiswa_id: patient?.id || Number(id),
+          faskes_tujuan: finalFaskes,
+          alasan_rujukan: finalAlasan,
+          keluhan_utama: keluhanUtama,
+          suhu_tubuh: Number(suhuTubuh),
+          sistole: Number(sistole),
+          diastole: Number(diastole),
+          denyut_nadi: Number(denyutNadi),
+          spo2: Number(spO2),
+          diagnosis: diagnosisSementara,
+          rekomendasi_asuransi: rekomendasiAsuransi
+        });
+      }
+
       alert('Pemeriksaan kesehatan berhasil disimpan!');
       
       // Reset form variables
@@ -222,8 +296,12 @@ export default function PatientMedicalRecord() {
       setCatatan('');
       setRekomendasi('');
       setEskalasiPsikolog(false);
-      setEskalasiFakultas(false);
+      setEskalasiFaskes(false);
       setSumber('klinik_kampus');
+      setDiagnosisSementara('');
+      setKeluhanUtama('');
+      setFaskesTujuan('Klinik UBK');
+      setAlasanRujukan('Penanganan Lanjutan');
       
       // Load updated history list
       loadData();
@@ -241,6 +319,26 @@ export default function PatientMedicalRecord() {
     if (clean === 'kritis') return 'bg-rose-500/10 text-rose-600 border border-rose-500/25';
     if (clean === 'pantauan') return 'bg-amber-500/10 text-amber-600 border border-amber-500/25';
     return 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/25';
+  };
+
+  const handleDownloadPDF = async (recordId) => {
+    const toastId = toast.loading('Menyiapkan PDF Rekam Medis...');
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5173/api';
+      const blob = await fetchBlobWithAuth(`${API_URL}/tenagakes/medical-records/${recordId}/export-pdf`);
+      
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Rekam_Medis_${recordId}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success('Berhasil mengunduh PDF', { id: toastId });
+    } catch (error) {
+      console.error(error);
+      toast.error('Gagal mengunduh PDF', { id: toastId });
+    }
   };
 
   return (
@@ -281,6 +379,15 @@ export default function PatientMedicalRecord() {
             >
               <AddIcon /> Screening Baru
             </button>
+            {bookingId && (
+              <button
+                onClick={handleMarkAsDone}
+                disabled={submitting}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm"
+              >
+                <span className="material-symbols-outlined text-sm">check_circle</span> Tandai Sesi Selesai
+              </button>
+            )}
           </div>
         }
       />
@@ -422,6 +529,12 @@ export default function PatientMedicalRecord() {
                           }`}>
                             Hasil: {rec.hasil}
                           </span>
+                          <button
+                            onClick={() => handleDownloadPDF(rec.id)}
+                            className="ml-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors flex items-center gap-1 border border-indigo-200"
+                          >
+                            <span className="material-symbols-outlined text-xs">download</span> Unduh PDF
+                          </button>
                         </div>
                       </div>
 
@@ -837,19 +950,163 @@ export default function PatientMedicalRecord() {
                       </div>
                     </label>
 
+                    {/* Admin Fakultas escalation removed per user request */}
+
+                    {eskalasiPsikolog && (
+                      <div className="mt-3 p-3 bg-slate-50 border border-slate-100 rounded-xl space-y-3 animate-in slide-in-from-top-2">
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Pilih Psikolog Tujuan (Opsional)</label>
+                          <select
+                            value={psikologId}
+                            onChange={(e) => setPsikologId(e.target.value)}
+                            className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-bku-primary"
+                          >
+                            <option value="">Semua Psikolog (Blast Notif)</option>
+                            {psychologists.map(psi => (
+                              <option key={psi.id} value={psi.id}>{psi.name} - {psi.specialization}</option>
+                            ))}
+                          </select>
+                        </div>
+                        
+                        {psikologId && (
+                          <div className="pt-2 border-t border-slate-200 space-y-2">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Jadwal Aktif Terdekat:</span>
+                            {psikologSchedules.length > 0 ? (
+                              <div className="flex flex-wrap gap-2 max-h-[100px] overflow-y-auto pr-1">
+                                {psikologSchedules.map(slot => (
+                                  <button 
+                                    key={slot.id} 
+                                    type="button"
+                                    onClick={() => setPsikologSlotId(psikologSlotId === slot.id ? null : slot.id)}
+                                    className={`border rounded-md p-1.5 text-[10px] font-medium transition-all text-left ${psikologSlotId === slot.id ? 'bg-bku-primary text-white border-bku-primary' : 'bg-white border-slate-200 text-slate-600 hover:border-bku-primary/50'}`}
+                                  >
+                                    <span className={`font-bold ${psikologSlotId === slot.id ? 'text-white' : 'text-slate-800'}`}>{slot.display_date}</span> ({slot.start}-{slot.end}) - {slot.location}
+                                  </button>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-[10px] text-slate-400 italic">Tidak ada jadwal aktif.</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     <label className="flex items-start gap-2.5 cursor-pointer select-none border-t border-slate-100 pt-3">
                       <input
                         type="checkbox"
-                        checked={eskalasiFakultas}
-                        onChange={(e) => setEskalasiFakultas(e.target.checked)}
-                        className="mt-0.5 rounded text-bku-primary focus:ring-bku-primary size-4"
+                        checked={eskalasiFaskes}
+                        onChange={(e) => setEskalasiFaskes(e.target.checked)}
+                        className="mt-0.5 rounded text-indigo-600 focus:ring-indigo-600 size-4"
                       />
                       <div>
-                        <span className="text-xs font-bold text-slate-700 uppercase tracking-wide">Lapor Admin Fakultas</span>
-                        <p className="text-[10px] text-slate-400 font-semibold leading-4 mt-0.5">Laporkan kondisi medis kritis mahasiswa ke Wakil Dekan / Admin Fakultas.</p>
+                        <span className="text-xs font-bold text-indigo-700 uppercase tracking-wide">Rujuk ke Faskes Lanjutan</span>
+                        <p className="text-[10px] text-slate-400 font-semibold leading-4 mt-0.5">Buat surat rujukan medis resmi untuk penanganan di luar klinik kampus.</p>
                       </div>
                     </label>
                   </div>
+                  
+                  {/* Formulir Surat Rujukan */}
+                  {eskalasiFaskes && (
+                    <div className="mt-4 p-4 rounded-xl border border-indigo-100 bg-indigo-50/50 space-y-4 animate-in slide-in-from-top-2">
+                      <h4 className="text-[10px] font-black uppercase tracking-widest text-indigo-800 flex items-center gap-1.5 border-b border-indigo-100 pb-2">
+                        <span className="material-symbols-outlined text-[14px]">local_hospital</span> Data Surat Rujukan Medis
+                      </h4>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Fasilitas Kesehatan Tujuan <span className="text-rose-500">*</span></label>
+                          <select
+                            value={faskesTujuan}
+                            onChange={(e) => setFaskesTujuan(e.target.value)}
+                            className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-indigo-400"
+                          >
+                            <option value="Klinik UBK">Klinik UBK</option>
+                            <option value="RSUD">RSUD</option>
+                            <option value="Puskesmas">Puskesmas</option>
+                            <option value="Lainnya">Lainnya</option>
+                          </select>
+                          {faskesTujuan === 'Lainnya' && (
+                            <input 
+                              type="text" 
+                              placeholder="Sebutkan nama Faskes..." 
+                              value={faskesTujuanLainnya}
+                              onChange={(e) => setFaskesTujuanLainnya(e.target.value)}
+                              className="w-full h-10 mt-2 px-3 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-700 outline-none focus:border-indigo-400"
+                            />
+                          )}
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Alasan Rujukan <span className="text-rose-500">*</span></label>
+                          <select
+                            value={alasanRujukan}
+                            onChange={(e) => setAlasanRujukan(e.target.value)}
+                            className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-indigo-400"
+                          >
+                            <option value="Penanganan Lanjutan">Penanganan Lanjutan</option>
+                            <option value="Pemeriksaan Penunjang">Pemeriksaan Penunjang</option>
+                            <option value="Gawat Darurat">Gawat Darurat</option>
+                            <option value="Lainnya">Lainnya</option>
+                          </select>
+                          {alasanRujukan === 'Lainnya' && (
+                            <input 
+                              type="text" 
+                              placeholder="Sebutkan alasan..." 
+                              value={alasanRujukanLainnya}
+                              onChange={(e) => setAlasanRujukanLainnya(e.target.value)}
+                              className="w-full h-10 mt-2 px-3 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-700 outline-none focus:border-indigo-400"
+                            />
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Keluhan Utama (Penyerta Rujukan) <span className="text-rose-500">*</span></label>
+                        <textarea
+                          required={eskalasiFaskes}
+                          value={keluhanUtama}
+                          onChange={(e) => setKeluhanUtama(e.target.value)}
+                          placeholder="Jelaskan keluhan utama pasien yang mendasari rujukan..."
+                          rows={2}
+                          className="w-full rounded-xl border border-slate-200 p-3 text-xs font-semibold text-slate-700 outline-none focus:border-indigo-400 bg-white resize-none"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Diagnosis Sementara <span className="text-rose-500">*</span></label>
+                          <textarea
+                            required={eskalasiFaskes}
+                            value={diagnosisSementara}
+                            onChange={(e) => setDiagnosisSementara(e.target.value)}
+                            placeholder="Sebutkan diagnosis klinis sementara..."
+                            rows={2}
+                            className="w-full rounded-xl border border-slate-200 p-3 text-xs font-semibold text-slate-700 outline-none focus:border-indigo-400 bg-white resize-none"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Saran Asuransi (Klaim) <span className="text-rose-500">*</span></label>
+                          <select
+                            value={rekomendasiAsuransi}
+                            onChange={(e) => setRekomendasiAsuransi(e.target.value)}
+                            className="w-full rounded-xl border border-slate-200 p-3 text-xs font-semibold text-slate-700 outline-none focus:border-indigo-400 bg-white h-[74px]"
+                          >
+                            <option value="BKU_Assurance">BKU Assurance</option>
+                            <option value="BPJS_Kesehatan">BPJS Kesehatan</option>
+                            <option value="Asuransi_Swasta">Asuransi Swasta / Pribadi</option>
+                            <option value="Mandiri">Mandiri / Tidak Menggunakan Asuransi</option>
+                          </select>
+                        </div>
+                      </div>
+                      
+                      <p className="text-[9px] font-bold text-indigo-600 flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[14px]">info</span>
+                        Data TTV (Suhu, TD, Nadi, SpO2) akan otomatis ditarik dari form pemeriksaan fisik di atas. Saran asuransi akan ditampilkan di halaman riwayat rujukan mahasiswa.
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Catatan Tambahan (UKS) */}
@@ -865,14 +1122,27 @@ export default function PatientMedicalRecord() {
                     />
                   </div>
 
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="w-full h-11 bg-bku-primary hover:bg-bku-hover text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-md shadow-bku-primary/10 flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    {submitting && <span className="material-symbols-outlined animate-spin text-sm">sync</span>}
-                    Simpan & Rilis Rekam Medis
-                  </button>
+                  <div className="flex gap-3">
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="w-full h-11 bg-bku-primary hover:bg-bku-hover text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-md shadow-bku-primary/10 flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                      {submitting && <span className="material-symbols-outlined animate-spin text-sm">sync</span>}
+                      Simpan & Rilis Rekam Medis
+                    </button>
+                    {bookingId && (
+                      <button
+                        type="button"
+                        onClick={handleMarkAsDone}
+                        disabled={submitting}
+                        className="w-full h-11 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-md flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-[0.98]"
+                      >
+                        <span className="material-symbols-outlined text-sm">check_circle</span>
+                        Tandai Selesai Saja
+                      </button>
+                    )}
+                  </div>
                 </div>
 
               </div>

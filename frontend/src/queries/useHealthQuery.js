@@ -126,3 +126,14 @@ export const useHealthTipsQuery = (bmi) => {
     enabled: !!bmi,
   });
 };
+
+// Get My Rujukans
+export const useHealthRujukanQuery = () => {
+  return useQuery({
+    queryKey: ['health', 'rujukan'],
+    queryFn: async () => {
+      const { data } = await api.get('/mahasiswa/rujukan');
+      return data?.data || [];
+    },
+  });
+};

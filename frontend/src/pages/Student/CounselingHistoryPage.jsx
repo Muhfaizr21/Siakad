@@ -8,6 +8,7 @@ import {
   useCounselingRiwayatQuery,
   useCounselingReferralsQuery,
   useRescheduleMutation,
+  useCounselingJadwalQuery,
 } from '../../queries/useCounselingQuery';
 import { API_BASE_URL, studentCounselingService } from '../../services/api';
 
@@ -90,6 +91,7 @@ export default function CounselingHistoryPage() {
   const [expandedScreening, setExpandedScreening] = useState(null);
   const cancelMutation = useCancelBookingMutation();
   const rescheduleMutation = useRescheduleMutation();
+  const { data: jadwalSemua = [] } = useCounselingJadwalQuery();
 
   // Reschedule state
   const [rescheduleItem, setRescheduleItem] = useState(null); // booking being rescheduled
@@ -309,7 +311,7 @@ export default function CounselingHistoryPage() {
                                   className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold text-blue-600 transition-all hover:bg-blue-50"
                                 >
                                   <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>event_repeat</span>
-                                  Reschedule
+                                  Jadwal Ulang
                                 </button>
                               )}
                               {item.status === 'Menunggu' && (
@@ -815,8 +817,8 @@ export default function CounselingHistoryPage() {
               <button
                 type="button"
                 onClick={handleReschedule}
-                disabled={rescheduleMutation.isPending}
-                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[var(--theme-primary)] py-3 text-[13px] font-black text-white shadow-sm transition-all hover:shadow-md disabled:opacity-60 cursor-pointer border-none tracking-widest uppercase"
+                disabled={rescheduleMutation.isPending || !rescheduleDate}
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[var(--theme-primary)] py-3 text-[13px] font-black text-white shadow-sm transition-all hover:shadow-md disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer border-none tracking-widest uppercase"
               >
                 {rescheduleMutation.isPending ? (
                   <>
@@ -846,48 +848,61 @@ export default function CounselingHistoryPage() {
               </p>
             </div>
 
-            {/* Date input */}
-            <div>
-              <label className="mb-2 block text-[11px] font-bold uppercase tracking-widest text-slate-500">
-                Tanggal Baru <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="date"
-                value={rescheduleDate}
-                min={new Date().toISOString().split('T')[0]}
-                onChange={(e) => setRescheduleDate(e.target.value)}
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[13px] font-semibold text-slate-800 focus:border-[var(--theme-primary)] focus:outline-none focus:ring-4 focus:ring-[var(--theme-primary)]/10 transition-all"
-              />
-            </div>
-
-            {/* Time inputs */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="mb-2 block text-[11px] font-bold uppercase tracking-widest text-slate-500">
-                  Jam Mulai <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="time"
-                  value={rescheduleStart}
-                  onChange={(e) => setRescheduleStart(e.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[13px] font-semibold text-slate-800 focus:border-[var(--theme-primary)] focus:outline-none focus:ring-4 focus:ring-[var(--theme-primary)]/10 transition-all"
-                />
-              </div>
-              <div>
-                <label className="mb-2 block text-[11px] font-bold uppercase tracking-widest text-slate-500">
-                  Jam Selesai
-                </label>
-                <input
-                  type="time"
-                  value={rescheduleEnd}
-                  onChange={(e) => setRescheduleEnd(e.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[13px] font-semibold text-slate-800 focus:border-[var(--theme-primary)] focus:outline-none focus:ring-4 focus:ring-[var(--theme-primary)]/10 transition-all"
-                />
-              </div>
-            </div>
+            {(() => {
+              const availableSchedules = jadwalSemua.filter(j => 
+                (j.PsikologID === rescheduleItem.psikolog_id || j.NamaKonselor === rescheduleItem.nama_konselor) && 
+                new Date(j.Tanggal) >= new Date(new Date().setHours(0,0,0,0))
+              );
+              if (availableSchedules.length === 0) return (
+                 <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 mb-2">
+                   <p className="text-[11px] text-rose-700 font-medium">
+                     <span className="font-bold">Info:</span> Psikolog ini belum memiliki jadwal baru yang tersedia. Silakan hubungi admin atau tunggu jadwal dibuka kembali.
+                   </p>
+                 </div>
+              );
+              return (
+                <div className="mb-2">
+                  <p className="mb-2 text-[11px] font-bold uppercase tracking-widest text-slate-500">Pilih Jadwal Tersedia <span className="text-rose-500">*</span></p>
+                  <div className="flex flex-col gap-2 max-h-[220px] overflow-y-auto pr-1">
+                    {availableSchedules.map(j => {
+                      const tDate = new Date(j.Tanggal).toISOString().split('T')[0];
+                      const isSelected = rescheduleDate === tDate && rescheduleStart === j.JamMulai;
+                      return (
+                        <button
+                          key={j.SlotID || Math.random()}
+                          type="button"
+                          onClick={() => {
+                            setRescheduleDate(tDate);
+                            setRescheduleStart(j.JamMulai);
+                            setRescheduleEnd(j.JamSelesai);
+                          }}
+                          className={`text-left w-full rounded-xl border p-3 transition-all ${
+                            isSelected
+                            ? 'border-[var(--theme-primary)] bg-[var(--theme-primary-light)] ring-1 ring-[var(--theme-primary)]'
+                            : 'border-slate-200 bg-white hover:border-[var(--theme-primary)] hover:bg-slate-50'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <p className={`text-[13px] font-extrabold ${isSelected ? 'text-[var(--theme-primary)]' : 'text-slate-800'}`}>
+                              {new Date(j.Tanggal).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                            </p>
+                            <p className={`text-xs font-bold ${isSelected ? 'text-[var(--theme-primary)]' : 'text-slate-500'}`}>
+                              {j.JamMulai} - {j.JamSelesai}
+                            </p>
+                          </div>
+                          <p className="text-[10px] mt-1 text-slate-400 font-semibold">
+                            Lokasi: <span className="text-slate-500">{j.Lokasi}</span> • Sisa Kuota: <span className="text-slate-500">{j.SisaKuota}</span>
+                          </p>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Warning */}
-            <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 mt-2">
+            <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 mt-4">
               <span className="material-symbols-outlined text-amber-500 mt-0.5 shrink-0" style={{ fontSize: '20px' }}>info</span>
               <p className="text-[12px] leading-relaxed text-amber-800 font-semibold">
                 Setelah reschedule, status booking akan kembali ke <strong>Menunggu</strong> dan psikolog perlu mengonfirmasi ulang jadwal baru.

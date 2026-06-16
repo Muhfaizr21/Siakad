@@ -46,12 +46,13 @@ func ExportSessionNotePDF(c *fiber.Ctx) error {
 	pdf.SetTextColor(15, 23, 42) // Slate 900
 
 	// Title
-	pdf.SetFont("Helvetica", "B", 12)
-	pdf.CellFormat(0, 5, "LAPORAN SESI KONSELING MAHASISWA", "", 1, "C", false, 0, "")
-	pdf.SetFont("Helvetica", "I", 8)
+	pdf.SetFont("Helvetica", "B", 13)
+	pdf.CellFormat(0, 6, "LAPORAN SESI KONSELING MAHASISWA", "", 1, "C", false, 0, "")
+	pdf.SetFont("Helvetica", "", 9.5)
 	pdf.SetTextColor(100, 116, 139)
-	pdf.CellFormat(0, 4, fmt.Sprintf("Dicetak pada: %s", time.Now().Format("02 January 2006, 15:04 WIB")), "", 1, "C", false, 0, "")
-	pdf.Ln(2)
+	refNum := fmt.Sprintf("Nomor: Ref/BKU-Care/%s/%05d", rec.Tanggal.Format("2006/01"), generateStableRandom(rec.ID, 54321))
+	pdf.CellFormat(0, 5, refNum, "", 1, "C", false, 0, "")
+	pdf.Ln(5)
 
 	// Divider
 	pdf.SetDrawColor(226, 232, 240)
@@ -72,7 +73,7 @@ func ExportSessionNotePDF(c *fiber.Ctx) error {
 
 	tglLahirStr := "-"
 	if !student.TanggalLahir.IsZero() {
-		tglLahirStr = student.TanggalLahir.Format("02 January 2006")
+		tglLahirStr = formatIndoDate(student.TanggalLahir)
 	}
 
 	details := [][]string{
@@ -111,7 +112,7 @@ func ExportSessionNotePDF(c *fiber.Ctx) error {
 	pdf.SetTextColor(15, 23, 42)
 
 	pdf.SetFont("Helvetica", "B", 8.5)
-	headerText := fmt.Sprintf(" Tanggal Sesi: %s  -  Waktu: %s WIB  -  Mode: %s", rec.Tanggal.Format("02 January 2006"), rec.Tanggal.Format("15:04"), rec.JenisSesi)
+	headerText := fmt.Sprintf(" Tanggal Sesi: %s  -  Waktu: %s WIB  -  Mode: %s", formatIndoDate(rec.Tanggal), rec.Tanggal.Format("15:04"), rec.JenisSesi)
 	pdf.CellFormat(257, 5.5, headerText, "1", 1, "L", true, 0, "")
 
 	// Sesi Meta info (Mood / Status Pasien)
@@ -127,9 +128,9 @@ func ExportSessionNotePDF(c *fiber.Ctx) error {
 	pdf.Cell(0, 3.5, "Tujuan Pemeriksaan / Asesmen:")
 	pdf.Ln(3)
 	pdf.SetFont("Helvetica", "", 8)
-	tujuan := rec.TujuanPemeriksaan
+	tujuan := strings.ReplaceAll(rec.TujuanPemeriksaan, "•", "-")
 	if tglAsesStr := ""; rec.TanggalAsesmen != nil {
-		tglAsesStr = rec.TanggalAsesmen.Format("02 January 2006")
+		tglAsesStr = formatIndoDate(*rec.TanggalAsesmen)
 		tujuan = tujuan + " (Tanggal Asesmen: " + tglAsesStr + ")"
 	}
 	if tujuan == "" {
@@ -142,9 +143,9 @@ func ExportSessionNotePDF(c *fiber.Ctx) error {
 	pdf.Cell(0, 3.5, "Riwayat Keluhan / Isu Utama:")
 	pdf.Ln(3)
 	pdf.SetFont("Helvetica", "", 8)
-	kel := rec.RiwayatKeluhan
+	kel := strings.ReplaceAll(rec.RiwayatKeluhan, "•", "-")
 	if kel == "" {
-		kel = rec.Keluhan
+		kel = strings.ReplaceAll(rec.Keluhan, "•", "-")
 	}
 	if kel == "" {
 		kel = "-"
@@ -153,15 +154,15 @@ func ExportSessionNotePDF(c *fiber.Ctx) error {
 	pdf.Ln(3)
 
 	// 2. Aspek Asesmen Klinis Table (3 columns: 85mm + 85mm + 87mm = 257mm)
-	cog := rec.AspekKognitif
+	cog := strings.ReplaceAll(rec.AspekKognitif, "•", "-")
 	if cog == "" {
 		cog = "-"
 	}
-	emo := rec.AspekEmosional
+	emo := strings.ReplaceAll(rec.AspekEmosional, "•", "-")
 	if emo == "" {
 		emo = "-"
 	}
-	beh := rec.AspekPerilaku
+	beh := strings.ReplaceAll(rec.AspekPerilaku, "•", "-")
 	if beh == "" {
 		beh = "-"
 	}
@@ -213,18 +214,18 @@ func ExportSessionNotePDF(c *fiber.Ctx) error {
 	pdf.Ln(3)
 
 	// 3. Rekomendasi
-	rekMhs := rec.RekomendasiMahasiswa
+	rekMhs := strings.ReplaceAll(rec.RekomendasiMahasiswa, "•", "-")
 	if rekMhs == "" && rec.Rekomendasi != "" {
-		rekMhs = rec.Rekomendasi
+		rekMhs = strings.ReplaceAll(rec.Rekomendasi, "•", "-")
 	}
 	if rekMhs == "" {
 		rekMhs = "-"
 	}
-	rekProdi := rec.RekomendasiProdi
+	rekProdi := strings.ReplaceAll(rec.RekomendasiProdi, "•", "-")
 	if rekProdi == "" {
 		rekProdi = "-"
 	}
-	rekOrtu := rec.RekomendasiOrangTua
+	rekOrtu := strings.ReplaceAll(rec.RekomendasiOrangTua, "•", "-")
 	if rekOrtu == "" {
 		rekOrtu = "-"
 	}
@@ -274,7 +275,7 @@ func ExportSessionNotePDF(c *fiber.Ctx) error {
 	pdf.Ln(3)
 
 	// 4. Tindak Lanjut & Kesimpulan
-	kes := rec.Kesimpulan
+	kes := strings.ReplaceAll(rec.Kesimpulan, "•", "-")
 	if kes == "" {
 		kes = "-"
 	}
@@ -335,7 +336,7 @@ func ExportSessionNotePDF(c *fiber.Ctx) error {
 	pdf.SetFont("Helvetica", "", 8)
 	pdf.SetTextColor(15, 23, 42)
 	pdf.SetXY(180, sigY)
-	pdf.CellFormat(0, 4, fmt.Sprintf("Bandung, %s", time.Now().Format("02 January 2006")), "", 1, "C", false, 0, "")
+	pdf.CellFormat(0, 4, fmt.Sprintf("Bandung, %s", formatIndoDate(rec.Tanggal)), "", 1, "C", false, 0, "")
 	pdf.SetX(180)
 	pdf.CellFormat(0, 4, "Psikolog Penanggung Jawab,", "", 1, "C", false, 0, "")
 
@@ -361,7 +362,8 @@ func ExportSessionNotePDF(c *fiber.Ctx) error {
 	}
 
 	c.Set("Content-Type", "application/pdf")
-	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"sesi_%d_rekam_medis_%s.pdf\"", rec.ID, student.Nama))
+	safeNama := strings.ReplaceAll(student.Nama, " ", "_")
+	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"Rekam_Medis_Sesi_%s_%s.pdf\"", safeNama, time.Now().Format("02-01-2006")))
 	return c.SendFile(filePath)
 }
 
@@ -699,7 +701,7 @@ func ExportPatientsRecapPDF(c *fiber.Ctx) error {
 	pdf.SetFont("Helvetica", "", 8)
 	pdf.SetTextColor(15, 23, 42)
 	pdf.SetXY(180, sigY)
-	pdf.CellFormat(0, 4, fmt.Sprintf("Bandung, %s", time.Now().Format("02 January 2006")), "", 1, "C", false, 0, "")
+	pdf.CellFormat(0, 4, fmt.Sprintf("Bandung, %s", formatIndoDate(time.Now())), "", 1, "C", false, 0, "")
 	pdf.SetX(180)
 	pdf.CellFormat(0, 4, "Psikolog Penanggung Jawab,", "", 1, "C", false, 0, "")
 
@@ -734,4 +736,22 @@ func orElse(val, fallback string) string {
 		return fallback
 	}
 	return val
+}
+
+var indoMonths = []string{"", "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"}
+
+func formatIndoDate(t time.Time) string {
+	return fmt.Sprintf("%02d %s %d", t.Day(), indoMonths[t.Month()], t.Year())
+}
+
+func generateStableRandom(seed uint, salt int64) int {
+	val := (int64(seed) * 2654435761) + salt
+	val = val ^ (val >> 16)
+	val = val * 2246822507
+	val = val ^ (val >> 13)
+	modVal := val % 90000
+	if modVal < 0 {
+		modVal = -modVal
+	}
+	return int(modVal) + 10000
 }

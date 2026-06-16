@@ -295,14 +295,14 @@ export default function MedicalRecords() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
           <PrimaryStatsCard
             title="Total Rekam Medis"
-            value={`${medicalRecords.length} Data`}
+            value={`${filteredRecords.length} Data`}
             icon={NoteIcon}
             colorTheme="primary"
             badgeText="ARSIP"
           />
           <PrimaryStatsCard
             title="Sesi Selesai"
-            value={`${medicalRecords.filter(r => r.status_pasien === 'Stabil' || r.status_pasien === 'Pemulihan').length} Data`}
+            value={`${filteredRecords.filter(r => r.status_pasien === 'Stabil' || r.status_pasien === 'Pemulihan').length} Data`}
             icon={CheckIcon}
             colorTheme="success"
             badgeText="DONE"
@@ -310,14 +310,14 @@ export default function MedicalRecords() {
           />
           <PrimaryStatsCard
             title="Perlu Perhatian"
-            value={`${medicalRecords.filter(r => r.status_pasien === 'Perlu Perhatian').length} Data`}
+            value={`${filteredRecords.filter(r => r.status_pasien === 'Perlu Perhatian').length} Data`}
             icon={WarningIcon}
             colorTheme="error"
             badgeText="URGENT"
           />
           <PrimaryStatsCard
             title="Pasien Stabil"
-            value={`${medicalRecords.filter(r => r.status_pasien === 'Stabil').length} Data`}
+            value={`${filteredRecords.filter(r => r.status_pasien === 'Stabil').length} Data`}
             icon={HeartIcon}
             colorTheme="info"
             badgeText="PROGRESS"

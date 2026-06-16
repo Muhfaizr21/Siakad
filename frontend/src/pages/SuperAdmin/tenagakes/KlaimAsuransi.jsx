@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { insuranceService } from '../../services/api';
+import { adminService, fetchBlobWithAuth } from '../../../services/api';
 import toast from 'react-hot-toast';
 import { PageContent } from '@/components/ui/page';
 import { DashboardHero } from '@/components/ui/dashboard';
@@ -73,7 +73,7 @@ const ProviderBadge = ({ provider }) => {
   );
 };
 
-export default function InsuranceReview() {
+export default function KlaimAsuransi() {
   const [claims, setClaims] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -94,7 +94,7 @@ export default function InsuranceReview() {
       if (filterStatus && filterStatus !== 'all') params.status = filterStatus;
       if (filterProvider && filterProvider !== 'all') params.jenis_provider = filterProvider;
 
-      const res = await insuranceService.getClaims(params);
+      const res = await adminService.getSuperAdminClaims(params);
       if (res.status === 'success') {
         setClaims(res.data || []);
       }
@@ -109,7 +109,7 @@ export default function InsuranceReview() {
   // Fetch stats
   const fetchStats = async () => {
     try {
-      const res = await insuranceService.getClaimStats();
+      const res = await adminService.getSuperAdminClaimStats();
       if (res.status === 'success') {
         setStats(res.data);
       }
@@ -135,13 +135,13 @@ export default function InsuranceReview() {
 
     setProcessing(true);
     try {
-      const res = await insuranceService.updateClaimStatus(selectedClaim.id, {
+      const res = await adminService.updateSuperAdminClaimStatus(selectedClaim.id, {
         status: newStatus,
         catatan_review: catatan,
       });
 
       if (res.status === 'success') {
-        toast.success(`Klaim berhasil ${newStatus === 'APPROVED_TK' ? 'disetujui' : 'ditolak'}`);
+        toast.success(`Klaim berhasil ${newStatus === 'APPROVED_FINAL' ? 'disetujui final' : newStatus === 'APPROVED_TK' ? 'disetujui' : 'ditolak'}`);
         setIsModalOpen(false);
         fetchClaims();
         fetchStats();
@@ -156,8 +156,8 @@ export default function InsuranceReview() {
   // Download PDF
   const handleDownloadPDF = async (id) => {
     try {
-      const response = await insuranceService.downloadClaimPDF(id);
-      const blob = await response.blob();
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5173/api';
+      const blob = await fetchBlobWithAuth(`${API_URL}/super-admin/health/claims/${id}/export-pdf`);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -432,12 +432,24 @@ export default function InsuranceReview() {
               </div>
             )}
 
-            {/* Removed Action Buttons for TenagaKesehatan as it's View Only */}
+            {/* Action Buttons for SuperAdmin */}
             {selectedClaim.status === 'PENDING_VERIFICATION' && (
               <div className="flex gap-3 pt-3 mt-4 border-t border-[var(--theme-border)]">
-                <div className="w-full py-2.5 rounded-xl border border-amber-500/30 text-amber-600 bg-amber-50 text-[11px] font-bold text-center">
-                  Menunggu Persetujuan SuperAdmin
-                </div>
+                <button
+                  onClick={() => handleUpdateStatus('REJECTED')}
+                  disabled={processing}
+                  className="w-full py-2.5 rounded-xl border border-rose-500/30 text-rose-600 bg-rose-50 hover:bg-rose-100 text-[11px] font-bold transition-colors disabled:opacity-50"
+                >
+                  Tolak Klaim
+                </button>
+                <button
+                  onClick={() => handleUpdateStatus('APPROVED_FINAL')}
+                  disabled={processing}
+                  className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm text-[11px] font-bold transition-colors disabled:opacity-50 flex justify-center items-center gap-1.5"
+                >
+                  {processing ? <span className="material-symbols-outlined animate-spin text-sm">sync</span> : null}
+                  Approve Klaim
+                </button>
               </div>
             )}
           </div>

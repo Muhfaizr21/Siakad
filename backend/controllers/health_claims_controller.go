@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"siakad-backend/config"
 	"siakad-backend/models"
+	"siakad-backend/pkg/notifikasi"
 	"strings"
 	"time"
 
@@ -32,14 +33,14 @@ func mapClaimToFrontend(claim models.PengajuanAsuransi) fiber.Map {
 		}
 
 		mhsMap = fiber.Map{
-			"id":            claim.Mahasiswa.ID,
-			"nama":          claim.Mahasiswa.Nama,
-			"nim":           claim.Mahasiswa.NIM,
+			"id":   claim.Mahasiswa.ID,
+			"nama": claim.Mahasiswa.Nama,
+			"nim":  claim.Mahasiswa.NIM,
 			"program_studi": fiber.Map{
 				"id":   claim.Mahasiswa.ProgramStudiID,
 				"nama": prodiName,
 			},
-			"fakultas":      fiber.Map{
+			"fakultas": fiber.Map{
 				"id":   claim.Mahasiswa.FakultasID,
 				"nama": fakName,
 			},
@@ -49,18 +50,20 @@ func mapClaimToFrontend(claim models.PengajuanAsuransi) fiber.Map {
 	}
 
 	// Dynamic PDF regeneration if missing on disk
-	if claim.Status == models.StatusAsuransiApprovedTK && claim.SuratPengantarURL != "" {
+	if (claim.Status == models.StatusAsuransiApprovedTK || claim.Status == models.StatusAsuransiApprovedFinal) && claim.SuratPengantarURL != "" {
 		filePath := "." + claim.SuratPengantarURL
 		if _, err := os.Stat(filePath); os.IsNotExist(err) {
 			fullClaim := claim
 			if fullClaim.Mahasiswa.ID == 0 {
 				config.DB.Preload("Mahasiswa.Fakultas").Preload("Mahasiswa.ProgramStudi").First(&fullClaim, claim.ID)
 			}
-			nomorSurat := fullClaim.SuratPengantarURL
-			nomorSurat = strings.TrimPrefix(nomorSurat, "/uploads/surat/")
-			nomorSurat = strings.TrimSuffix(nomorSurat, ".pdf")
+			filename := fullClaim.SuratPengantarURL
+			filename = strings.TrimPrefix(filename, "/uploads/surat/")
+			filename = strings.TrimSuffix(filename, ".pdf")
+			
+			nomorSurat := fmt.Sprintf("%03d/Direktorat-LK/Klaim-Assurance/%d", claim.ID, time.Now().Year())
 
-			_, errGen := BuildSuratPengantarPDF(fullClaim, nomorSurat)
+			_, errGen := BuildSuratPengantarPDF(fullClaim, nomorSurat, filename)
 			if errGen != nil {
 				log.Printf("[Asuransi] Gagal meregenerasi PDF surat pengantar: %v", errGen)
 			}
@@ -244,6 +247,108 @@ func CreateInsuranceClaim(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"status": "success", "data": mapClaimToFrontend(claim), "message": "Pengajuan klaim berhasil"})
 }
 
+// UpdateInsuranceClaim - Update claim (Mahasiswa only if pending)
+func UpdateInsuranceClaim(c *fiber.Ctx) error {
+	claimID := c.Params("id")
+	userID := c.Locals("user_id").(uint)
+	role := c.Locals("role").(string)
+
+	if role != "mahasiswa" {
+		return fiber.NewError(fiber.StatusForbidden, "Hanya mahasiswa yang bisa mengubah klaim")
+	}
+
+	var mahasiswa models.Mahasiswa
+	if err := config.DB.Where("pengguna_id = ?", userID).First(&mahasiswa).Error; err != nil {
+		return fiber.NewError(fiber.StatusNotFound, "Profil mahasiswa tidak ditemukan")
+	}
+
+	var claim models.PengajuanAsuransi
+	if err := config.DB.First(&claim, claimID).Error; err != nil {
+		return fiber.NewError(fiber.StatusNotFound, "Pengajuan tidak ditemukan")
+	}
+
+	if claim.MahasiswaID != mahasiswa.ID {
+		return fiber.NewError(fiber.StatusForbidden, "Akses ditolak")
+	}
+
+	if claim.Status != models.StatusAsuransiPending {
+		return fiber.NewError(fiber.StatusBadRequest, "Hanya pengajuan berstatus PENDING yang dapat diubah")
+	}
+
+	var body struct {
+		JenisProvider   string  `json:"jenis_provider"`
+		TanggalKejadian string  `json:"tanggal_kejadian"`
+		LokasiFaskes    string  `json:"lokasi_faskes"`
+		Deskripsi       string  `json:"deskripsi"`
+		EstimasiBiaya   float64 `json:"estimasi_biaya"`
+	}
+
+	if err := c.BodyParser(&body); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "Payload tidak valid")
+	}
+
+	updates := map[string]interface{}{}
+	if body.JenisProvider != "" {
+		updates["jenis_provider"] = body.JenisProvider
+	}
+	if body.TanggalKejadian != "" {
+		if parsed, err := time.Parse("2006-01-02", body.TanggalKejadian); err == nil {
+			updates["tanggal_kejadian"] = parsed
+		}
+	}
+	if body.LokasiFaskes != "" {
+		updates["lokasi_faskes"] = body.LokasiFaskes
+	}
+	if body.Deskripsi != "" {
+		updates["deskripsi"] = body.Deskripsi
+	}
+	if body.EstimasiBiaya > 0 {
+		updates["estimasi_biaya"] = body.EstimasiBiaya
+	}
+
+	if err := config.DB.Model(&claim).Updates(updates).Error; err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, "Gagal mengubah pengajuan")
+	}
+
+	config.DB.Preload("Mahasiswa.Fakultas").Preload("Mahasiswa.ProgramStudi").First(&claim, claim.ID)
+	return c.JSON(fiber.Map{"status": "success", "data": mapClaimToFrontend(claim), "message": "Pengajuan berhasil diubah"})
+}
+
+// DeleteInsuranceClaim - Delete claim (Mahasiswa only if pending)
+func DeleteInsuranceClaim(c *fiber.Ctx) error {
+	claimID := c.Params("id")
+	userID := c.Locals("user_id").(uint)
+	role := c.Locals("role").(string)
+
+	if role != "mahasiswa" {
+		return fiber.NewError(fiber.StatusForbidden, "Hanya mahasiswa yang bisa menghapus klaim")
+	}
+
+	var mahasiswa models.Mahasiswa
+	if err := config.DB.Where("pengguna_id = ?", userID).First(&mahasiswa).Error; err != nil {
+		return fiber.NewError(fiber.StatusNotFound, "Profil mahasiswa tidak ditemukan")
+	}
+
+	var claim models.PengajuanAsuransi
+	if err := config.DB.First(&claim, claimID).Error; err != nil {
+		return fiber.NewError(fiber.StatusNotFound, "Pengajuan tidak ditemukan")
+	}
+
+	if claim.MahasiswaID != mahasiswa.ID {
+		return fiber.NewError(fiber.StatusForbidden, "Akses ditolak")
+	}
+
+	if claim.Status != models.StatusAsuransiPending {
+		return fiber.NewError(fiber.StatusBadRequest, "Hanya pengajuan berstatus PENDING yang dapat dihapus")
+	}
+
+	if err := config.DB.Delete(&claim).Error; err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, "Gagal menghapus pengajuan")
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "message": "Pengajuan berhasil dihapus"})
+}
+
 // UpdateInsuranceClaimStatus - Update status (TK/Admin review)
 func UpdateInsuranceClaimStatus(c *fiber.Ctx) error {
 	claimID := c.Params("id")
@@ -267,9 +372,9 @@ func UpdateInsuranceClaimStatus(c *fiber.Ctx) error {
 	// Validate status
 	validStatuses := map[string]bool{
 		models.StatusAsuransiPending:       true,
-		models.StatusAsuransiApprovedTK:   true,
+		models.StatusAsuransiApprovedTK:    true,
 		models.StatusAsuransiApprovedFinal: true,
-		models.StatusAsuransiRejected:     true,
+		models.StatusAsuransiRejected:      true,
 	}
 
 	if !validStatuses[body.Status] {
@@ -290,20 +395,23 @@ func UpdateInsuranceClaimStatus(c *fiber.Ctx) error {
 		"reviewed_at":    &now,
 	}
 
-	if body.Status == models.StatusAsuransiApprovedTK {
-		// Generate nomor surat
-		nomorSurat := fmt.Sprintf("XX/Direktorat-LK/%s/%d", "Klaim-Assurance", now.Year())
-		updates["surat_pengantar_url"] = "/uploads/surat/" + nomorSurat + ".pdf"
+	if body.Status == models.StatusAsuransiApprovedTK || body.Status == models.StatusAsuransiApprovedFinal {
+		// Generate nomor surat if not generated yet
+		if claim.SuratPengantarURL == "" {
+			nomorSurat := fmt.Sprintf("%03s/Direktorat-LK/Klaim-Assurance/%d", claimID, now.Year())
+			filename := fmt.Sprintf("surat_pengantar_klaim_%s_%d", claimID, now.Unix())
+			updates["surat_pengantar_url"] = "/uploads/surat/" + filename + ".pdf"
 
-		// Preload Mahasiswa data to generate the PDF
-		var fullClaim models.PengajuanAsuransi
-		if err := config.DB.Preload("Mahasiswa.Fakultas").Preload("Mahasiswa.ProgramStudi").First(&fullClaim, claimID).Error; err == nil {
-			_, errGen := BuildSuratPengantarPDF(fullClaim, nomorSurat)
-			if errGen != nil {
-				log.Printf("[Asuransi] Gagal generate PDF surat pengantar: %v", errGen)
+			// Preload Mahasiswa data to generate the PDF
+			var fullClaim models.PengajuanAsuransi
+			if err := config.DB.Preload("Mahasiswa.Fakultas").Preload("Mahasiswa.ProgramStudi").First(&fullClaim, claimID).Error; err == nil {
+				_, errGen := BuildSuratPengantarPDF(fullClaim, nomorSurat, filename)
+				if errGen != nil {
+					log.Printf("[Asuransi] Gagal generate PDF surat pengantar: %v", errGen)
+				}
+			} else {
+				log.Printf("[Asuransi] Gagal load fullClaim untuk PDF: %v", err)
 			}
-		} else {
-			log.Printf("[Asuransi] Gagal load fullClaim untuk PDF: %v", err)
 		}
 	}
 
@@ -382,7 +490,11 @@ func UploadInsuranceDocument(c *fiber.Ctx) error {
 
 	// Generate filename
 	filename := fmt.Sprintf("insurance_%s_%d%s", claimID, time.Now().Unix(), ext)
-	savePath := "uploads/insurance/" + filename
+	saveDir := "uploads/insurance"
+	if err := os.MkdirAll(saveDir, os.ModePerm); err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, "Gagal membuat folder tujuan")
+	}
+	savePath := filepath.Join(saveDir, filename)
 
 	// Save file
 	if err := c.SaveFile(file, savePath); err != nil {
@@ -390,15 +502,20 @@ func UploadInsuranceDocument(c *fiber.Ctx) error {
 	}
 
 	// Update claim
+	dbPath := filepath.ToSlash(savePath)
+	// Add leading slash if not present
+	if !strings.HasPrefix(dbPath, "/") {
+		dbPath = "/" + dbPath
+	}
 	updates := map[string]interface{}{
-		"file_url":  savePath,
+		"file_url":  dbPath,
 		"nama_file": file.Filename,
 	}
 
 	// Check if second file
 	docNum := c.FormValue("doc_number")
 	if docNum == "2" {
-		updates["file_url_2"] = savePath
+		updates["file_url_2"] = dbPath
 		updates["nama_file_2"] = file.Filename
 	}
 
@@ -411,11 +528,11 @@ func UploadInsuranceDocument(c *fiber.Ctx) error {
 // GetInsuranceStats - Get insurance claim statistics
 func GetInsuranceStats(c *fiber.Ctx) error {
 	var stats struct {
-		TotalPengajuan   int64 `json:"total_pengajuan"`
-		Pending          int64 `json:"pending"`
-		ApprovedTK       int64 `json:"approved_tk"`
-		ApprovedFinal    int64 `json:"approved_final"`
-		Rejected         int64 `json:"rejected"`
+		TotalPengajuan     int64   `json:"total_pengajuan"`
+		Pending            int64   `json:"pending"`
+		ApprovedTK         int64   `json:"approved_tk"`
+		ApprovedFinal      int64   `json:"approved_final"`
+		Rejected           int64   `json:"rejected"`
 		TotalEstimasiBiaya float64 `json:"total_estimasi_biaya"`
 	}
 
@@ -425,17 +542,18 @@ func GetInsuranceStats(c *fiber.Ctx) error {
 	config.DB.Model(&models.PengajuanAsuransi{}).Where("status = ?", models.StatusAsuransiApprovedTK).Count(&stats.ApprovedTK)
 	config.DB.Model(&models.PengajuanAsuransi{}).Where("status = ?", models.StatusAsuransiApprovedFinal).Count(&stats.ApprovedFinal)
 	config.DB.Model(&models.PengajuanAsuransi{}).Where("status = ?", models.StatusAsuransiRejected).Count(&stats.Rejected)
-	config.DB.Model(&models.PengajuanAsuransi{}).Select("COALESCE(SUM(estimasi_biaya), 0)").Row().Scan(&stats.TotalEstimasiBiaya)
+	config.DB.Model(&models.PengajuanAsuransi{}).Where("status IN ?", []string{models.StatusAsuransiApprovedTK, models.StatusAsuransiApprovedFinal}).Select("COALESCE(SUM(estimasi_biaya), 0)").Row().Scan(&stats.TotalEstimasiBiaya)
 
 	// By provider
 	type ProviderStats struct {
-		Provider string `json:"provider"`
-		Count    int    `json:"count"`
+		Provider string  `json:"provider"`
+		Count    int     `json:"count"`
 		Total    float64 `json:"total"`
 	}
 
 	var byProvider []ProviderStats
 	config.DB.Model(&models.PengajuanAsuransi{}).
+		Where("status IN ?", []string{models.StatusAsuransiApprovedTK, models.StatusAsuransiApprovedFinal}).
 		Select("jenis_provider as provider, count(*) as count, COALESCE(sum(estimasi_biaya), 0) as total").
 		Group("jenis_provider").
 		Scan(&byProvider)
@@ -559,7 +677,7 @@ func CreateSelfScreening(c *fiber.Ctx) error {
 
 	// Create screening
 	screening := models.SelfScreening{
-		MahasiswaID:  mahasiswa.ID,
+		MahasiswaID:   mahasiswa.ID,
 		BookingID:     body.BookingID,
 		KeluhanUtama:  body.KeluhanUtama,
 		SkalaNyeri:    body.SkalaNyeri,
@@ -596,8 +714,8 @@ func CompleteSelfScreening(c *fiber.Ctx) error {
 	now := time.Now()
 	updates := map[string]interface{}{
 		"is_completed_tk": true,
-		"screened_at":      &now,
-		"tk_id":            userID,
+		"screened_at":     &now,
+		"tk_id":           userID,
 	}
 
 	if err := config.DB.Model(&screening).Updates(updates).Error; err != nil {
@@ -676,17 +794,17 @@ func CreateBAP(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(uint)
 
 	var body struct {
-		EventID          *uint  `json:"event_id"`
-		NamaKegiatan     string `json:"nama_kegiatan"`
+		EventID            *uint  `json:"event_id"`
+		NamaKegiatan       string `json:"nama_kegiatan"`
 		TanggalPelaksanaan string `json:"tanggal_pelaksanaan"`
-		WaktuMulai       string `json:"waktu_mulai"`
-		WaktuSelesai     string `json:"waktu_selesai"`
-		Tempat           string `json:"tempat"`
-		JumlahPeserta    int    `json:"jumlah_peserta"`
-		JumlahDiperiksa  int    `json:"jumlah_diperiksa"`
-		TotalLayak       int    `json:"total_layak"`
-		TotalPantauan    int    `json:"total_pantauan"`
-		TotalTidakLayak  int    `json:"total_tidak_layak"`
+		WaktuMulai         string `json:"waktu_mulai"`
+		WaktuSelesai       string `json:"waktu_selesai"`
+		Tempat             string `json:"tempat"`
+		JumlahPeserta      int    `json:"jumlah_peserta"`
+		JumlahDiperiksa    int    `json:"jumlah_diperiksa"`
+		TotalLayak         int    `json:"total_layak"`
+		TotalPantauan      int    `json:"total_pantauan"`
+		TotalTidakLayak    int    `json:"total_tidak_layak"`
 	}
 
 	if err := c.BodyParser(&body); err != nil {
@@ -704,19 +822,19 @@ func CreateBAP(c *fiber.Ctx) error {
 	}
 
 	bap := models.BeritaAcaraPemeriksaan{
-		EventID:             body.EventID,
-		TKID:                &userID,
-		NamaKegiatan:        body.NamaKegiatan,
-		TanggalPelaksanaan:  parsedDate,
-		WaktuMulai:          body.WaktuMulai,
-		WaktuSelesai:        body.WaktuSelesai,
-		Tempat:              body.Tempat,
-		JumlahPeserta:       body.JumlahPeserta,
-		JumlahDiperiksa:     body.JumlahDiperiksa,
-		TotalLayak:          body.TotalLayak,
-		TotalPantauan:       body.TotalPantauan,
-		TotalTidakLayak:     body.TotalTidakLayak,
-		Status:              models.BAPStatusDraft,
+		EventID:            body.EventID,
+		TKID:               &userID,
+		NamaKegiatan:       body.NamaKegiatan,
+		TanggalPelaksanaan: parsedDate,
+		WaktuMulai:         body.WaktuMulai,
+		WaktuSelesai:       body.WaktuSelesai,
+		Tempat:             body.Tempat,
+		JumlahPeserta:      body.JumlahPeserta,
+		JumlahDiperiksa:    body.JumlahDiperiksa,
+		TotalLayak:         body.TotalLayak,
+		TotalPantauan:      body.TotalPantauan,
+		TotalTidakLayak:    body.TotalTidakLayak,
+		Status:             models.BAPStatusDraft,
 	}
 
 	if err := config.DB.Create(&bap).Error; err != nil {
@@ -737,19 +855,19 @@ func UpdateBAP(c *fiber.Ctx) error {
 	}
 
 	var body struct {
-		NamaKegiatan     string `json:"nama_kegiatan"`
+		NamaKegiatan       string `json:"nama_kegiatan"`
 		TanggalPelaksanaan string `json:"tanggal_pelaksanaan"`
-		WaktuMulai       string `json:"waktu_mulai"`
-		WaktuSelesai     string `json:"waktu_selesai"`
-		Tempat           string `json:"tempat"`
-		JumlahPeserta    int    `json:"jumlah_peserta"`
-		JumlahDiperiksa  int    `json:"jumlah_diperiksa"`
-		TotalLayak       int    `json:"total_layak"`
-		TotalPantauan    int    `json:"total_pantauan"`
-		TotalTidakLayak  int    `json:"total_tidak_layak"`
-		Status           string `json:"status"`
-		TTDKepalaDivisi  string `json:"ttd_kepala_divisi"`
-		TTDTimMedis      string `json:"ttd_tim_medis"`
+		WaktuMulai         string `json:"waktu_mulai"`
+		WaktuSelesai       string `json:"waktu_selesai"`
+		Tempat             string `json:"tempat"`
+		JumlahPeserta      int    `json:"jumlah_peserta"`
+		JumlahDiperiksa    int    `json:"jumlah_diperiksa"`
+		TotalLayak         int    `json:"total_layak"`
+		TotalPantauan      int    `json:"total_pantauan"`
+		TotalTidakLayak    int    `json:"total_tidak_layak"`
+		Status             string `json:"status"`
+		TTDKepalaDivisi    string `json:"ttd_kepala_divisi"`
+		TTDTimMedis        string `json:"ttd_tim_medis"`
 	}
 
 	if err := c.BodyParser(&body); err != nil {
@@ -838,18 +956,19 @@ func CreateRujukan(c *fiber.Ctx) error {
 	}
 
 	var body struct {
-		SelfScreeningID *uint  `json:"self_screening_id"`
-		KesehatanID     *uint  `json:"kesehatan_id"`
-		MahasiswaID     uint   `json:"mahasiswa_id"`
-		FaskesTujuan    string `json:"faskes_tujuan"`
-		AlasanRujukan   string `json:"alasan_rujukan"`
-		KeluhanUtama    string `json:"keluhan_utama"`
-		SuhuTubuh       float64 `json:"suhu_tubuh"`
-		Sistole         int    `json:"sistole"`
-		Diastole        int    `json:"diastole"`
-		DenyutNadi      int    `json:"denyut_nadi"`
-		SpO2            int    `json:"spo2"`
-		Diagnosis       string `json:"diagnosis"`
+		SelfScreeningID     *uint   `json:"self_screening_id"`
+		KesehatanID         *uint   `json:"kesehatan_id"`
+		MahasiswaID         uint    `json:"mahasiswa_id"`
+		FaskesTujuan        string  `json:"faskes_tujuan"`
+		AlasanRujukan       string  `json:"alasan_rujukan"`
+		KeluhanUtama        string  `json:"keluhan_utama"`
+		SuhuTubuh           float64 `json:"suhu_tubuh"`
+		Sistole             int     `json:"sistole"`
+		Diastole            int     `json:"diastole"`
+		DenyutNadi          int     `json:"denyut_nadi"`
+		SpO2                int     `json:"spo2"`
+		Diagnosis           string  `json:"diagnosis"`
+		RekomendasiAsuransi string  `json:"rekomendasi_asuransi"`
 	}
 
 	if err := c.BodyParser(&body); err != nil {
@@ -861,19 +980,22 @@ func CreateRujukan(c *fiber.Ctx) error {
 	}
 
 	rujukan := models.RujukanKesehatan{
-		SelfScreeningID: body.SelfScreeningID,
-		KesehatanID:     body.KesehatanID,
-		MahasiswaID:     body.MahasiswaID,
-		FaskesTujuan:    body.FaskesTujuan,
-		AlasanRujukan:   body.AlasanRujukan,
-		KeluhanUtama:    body.KeluhanUtama,
-		SuhuTubuh:       body.SuhuTubuh,
-		Sistole:         body.Sistole,
-		Diastole:        body.Diastole,
-		DenyutNadi:      body.DenyutNadi,
-		SpO2:            body.SpO2,
-		Diagnosis:       body.Diagnosis,
-		IsPublished:     false,
+		SelfScreeningID:     body.SelfScreeningID,
+		KesehatanID:         body.KesehatanID,
+		MahasiswaID:         body.MahasiswaID,
+		FaskesTujuan:        body.FaskesTujuan,
+		AlasanRujukan:       body.AlasanRujukan,
+		KeluhanUtama:        body.KeluhanUtama,
+		SuhuTubuh:           body.SuhuTubuh,
+		Sistole:             body.Sistole,
+		Diastole:            body.Diastole,
+		DenyutNadi:          body.DenyutNadi,
+		SpO2:                body.SpO2,
+		Diagnosis:           body.Diagnosis,
+		RekomendasiAsuransi: body.RekomendasiAsuransi,
+		IsPublished:         false,
+		ApprovalStatus:      "pending",
+		Status:              "Menunggu Persetujuan",
 	}
 
 	if err := config.DB.Create(&rujukan).Error; err != nil {
@@ -884,11 +1006,74 @@ func CreateRujukan(c *fiber.Ctx) error {
 	if body.SelfScreeningID != nil {
 		config.DB.Model(&models.SelfScreening{}).Where("id = ?", *body.SelfScreeningID).Updates(map[string]interface{}{
 			"has_rujukan": true,
-			"rujukan_id":   rujukan.ID,
+			"rujukan_id":  rujukan.ID,
 		})
 	}
 
-	config.DB.Preload("Mahasiswa").First(&rujukan, rujukan.ID)
+	config.DB.Preload("Mahasiswa").Preload("Mahasiswa.ProgramStudi").First(&rujukan, rujukan.ID)
+
+	// Fetch screening if exists
+	var screening models.Kesehatan
+	if rujukan.SelfScreeningID != nil {
+		config.DB.Preload("TenagaKes").First(&screening, *rujukan.SelfScreeningID)
+	}
+
+	// Generate initial PDF (only Tenaga Kes signature)
+	pdfUrl, _, errGen := BuildMedisReferralLetterPDF(rujukan, screening)
+	if errGen == nil && pdfUrl != "" {
+		config.DB.Model(&rujukan).Update("surat_rujukan_url", pdfUrl)
+		rujukan.SuratRujukanURL = pdfUrl
+	} else {
+		log.Printf("Failed to generate medis referral PDF: %v", errGen)
+	}
+
+	// Notify admins about new referral waiting for approval
+	go func() {
+		// 1. Notify SuperAdmin
+		var adminUsers []models.User
+		if err := config.DB.Where("role = ?", "super_admin").Find(&adminUsers).Error; err == nil {
+			for _, admin := range adminUsers {
+				_ = notifikasi.Kirim(config.DB, notifikasi.KirimParams{
+					UserID: admin.ID,
+					Type:   "referral_medis",
+					Title:  "Rujukan Medis Perlu Persetujuan 🔔",
+					Content: fmt.Sprintf(
+						"Tenaga Kesehatan telah mengajukan surat rujukan medis untuk mahasiswa %s. Harap tinjau dan berikan persetujuan di portal admin.",
+						rujukan.Mahasiswa.Nama,
+					),
+					Link: "/admin/tenagakes/referrals",
+				})
+			}
+		}
+
+		// 2. Notify Mahasiswa
+		if rujukan.MahasiswaID > 0 {
+			_ = notifikasi.Kirim(config.DB, notifikasi.KirimParams{
+				MahasiswaID: rujukan.MahasiswaID,
+				Type:        "referral_medis",
+				Title:       "Surat Rujukan Medis Dibuat 📋",
+				Content: fmt.Sprintf(
+					"Tenaga Kesehatan telah membuat surat rujukan medis ke %s untuk Anda. Surat sedang menunggu persetujuan Kemahasiswaan sebelum dapat diunduh.",
+					rujukan.FaskesTujuan,
+				),
+				Link: "/student/health",
+			})
+		}
+
+		// 3. Notify Tenaga Kesehatan (if applicable)
+		if rujukan.SelfScreeningID != nil && screening.TenagaKes != nil && screening.TenagaKes.UserID > 0 {
+			_ = notifikasi.Kirim(config.DB, notifikasi.KirimParams{
+				UserID: screening.TenagaKes.UserID,
+				Type:   "referral_medis",
+				Title:  "Surat Rujukan Berhasil Diajukan 📋",
+				Content: fmt.Sprintf(
+					"Surat rujukan medis untuk %s berhasil diajukan dan sedang menunggu persetujuan Kemahasiswaan.",
+					rujukan.Mahasiswa.Nama,
+				),
+				Link: "/tenagakes/referrals",
+			})
+		}
+	}()
 
 	return c.JSON(fiber.Map{"status": "success", "data": rujukan, "message": "Rujukan berhasil dibuat"})
 }
@@ -960,8 +1145,8 @@ func PublishRujukan(c *fiber.Ctx) error {
 	now := time.Now()
 	updates := map[string]interface{}{
 		"is_published": true,
-		"published_at":  &now,
-		"published_by":   &userID,
+		"published_at": &now,
+		"published_by": &userID,
 	}
 
 	if err := config.DB.Model(&rujukan).Updates(updates).Error; err != nil {
@@ -1068,12 +1253,14 @@ func ExportSuratPengantarPDF(c *fiber.Ctx) error {
 	filePath := "." + claim.SuratPengantarURL
 	// Build/regenerate if file doesn't exist
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		nomorSurat := claim.SuratPengantarURL
-		nomorSurat = strings.TrimPrefix(nomorSurat, "/uploads/surat/")
-		nomorSurat = strings.TrimSuffix(nomorSurat, ".pdf")
+		filename := claim.SuratPengantarURL
+		filename = strings.TrimPrefix(filename, "/uploads/surat/")
+		filename = strings.TrimSuffix(filename, ".pdf")
+		
+		nomorSurat := fmt.Sprintf("%03d/Direktorat-LK/Klaim-Assurance/%d", claim.ID, time.Now().Year())
 
 		var errGen error
-		filePath, errGen = BuildSuratPengantarPDF(claim, nomorSurat)
+		filePath, errGen = BuildSuratPengantarPDF(claim, nomorSurat, filename)
 		if errGen != nil {
 			return fiber.NewError(fiber.StatusInternalServerError, "Gagal membuat PDF surat pengantar: "+errGen.Error())
 		}
@@ -1198,7 +1385,7 @@ func BuildBAPPDF(bap models.BeritaAcaraPemeriksaan, filePath string) error {
 	pdf.SetX(20)
 	pdf.CellFormat(0, 5, "A. INFORMASI KEGIATAN", "", 1, "L", false, 0, "")
 	pdf.SetFont("Helvetica", "", 10)
-	
+
 	pdf.SetX(25)
 	pdf.CellFormat(40, 5, "Nama Kegiatan", "", 0, "L", false, 0, "")
 	pdf.CellFormat(5, 5, ":", "", 0, "C", false, 0, "")
@@ -1225,7 +1412,7 @@ func BuildBAPPDF(bap models.BeritaAcaraPemeriksaan, filePath string) error {
 	pdf.SetX(20)
 	pdf.SetFont("Helvetica", "B", 9)
 	pdf.SetFillColor(240, 240, 240)
-	
+
 	// Table Headers
 	colWidths := []float64{45, 45, 49, 49, 49}
 	headers := []string{"Total Target Peserta", "Total Mahasiswa Diperiksa", "Hasil: Layak", "Hasil: Dalam Pantauan", "Hasil: Tidak Layak"}
@@ -1261,8 +1448,8 @@ func BuildBAPPDF(bap models.BeritaAcaraPemeriksaan, filePath string) error {
 	pdf.CellFormat(60, 5, fmt.Sprintf("Bandung, %d %s %d", bap.TanggalPelaksanaan.Day(), indMonth, bap.TanggalPelaksanaan.Year()), "", 1, "C", false, 0, "")
 	pdf.SetX(195)
 	pdf.CellFormat(60, 5, "Tenaga Kesehatan / Tim Medis,", "", 1, "C", false, 0, "")
-	
-	pdf.SetXY(195, sigY + 22)
+
+	pdf.SetXY(195, sigY+22)
 	pdf.CellFormat(60, 5, "(........................................)", "", 1, "C", false, 0, "")
 
 	return pdf.OutputFileAndClose(filePath)
@@ -1270,125 +1457,407 @@ func BuildBAPPDF(bap models.BeritaAcaraPemeriksaan, filePath string) error {
 
 // ExportRujukanPDF - Generate Rujukan Medis PDF
 func ExportRujukanPDF(c *fiber.Ctx) error {
-	rujukanID := c.Params("id")
-
+	id := c.Params("id")
 	var rujukan models.RujukanKesehatan
-	if err := config.DB.Preload("Mahasiswa.ProgramStudi").Preload("Mahasiswa.Fakultas").First(&rujukan, rujukanID).Error; err != nil {
+
+	if err := config.DB.Preload("Mahasiswa").Preload("Mahasiswa.ProgramStudi").Preload("Mahasiswa.Fakultas").First(&rujukan, id).Error; err != nil {
 		return fiber.NewError(fiber.StatusNotFound, "Rujukan tidak ditemukan")
 	}
 
-	return c.JSON(fiber.Map{
-		"status": "success",
-		"message": "Rujukan PDF export - to be implemented with gofpdf",
-		"data": fiber.Map{
-			"mahasiswa": rujukan.Mahasiswa.Nama,
-			"nim": rujukan.Mahasiswa.NIM,
-			"prodi": rujukan.Mahasiswa.ProgramStudi.Nama,
-			"faskes_tujuan": rujukan.FaskesTujuan,
-			"alasan_rujukan": rujukan.AlasanRujukan,
-			"diagnosis": rujukan.Diagnosis,
-			"tanggal": time.Now().Format("02 January 2006"),
-		},
-	})
+	var screening models.Kesehatan
+	if rujukan.SelfScreeningID != nil {
+		config.DB.Preload("TenagaKes").First(&screening, *rujukan.SelfScreeningID)
+	}
+
+	// Regenerate PDF if URL is empty or user requests to download it directly
+	fullUrl, filePath, err := BuildMedisReferralLetterPDF(rujukan, screening)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, "Gagal membuat PDF rujukan: "+err.Error())
+	}
+
+	if rujukan.SuratRujukanURL == "" {
+		config.DB.Model(&rujukan).Update("surat_rujukan_url", fullUrl)
+	}
+
+	c.Set("Content-Type", "application/pdf")
+	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"Surat_Rujukan_Medis_%s.pdf\"", rujukan.Mahasiswa.Nama))
+	return c.SendFile(filePath)
 }
 
-func BuildSuratPengantarPDF(claim models.PengajuanAsuransi, nomorSurat string) (string, error) {
-	pdf := gofpdf.New("L", "mm", "A4", "")
-	pdf.SetMargins(25, 45, 25)
-	pdf.SetAutoPageBreak(false, 0)
+// BuildMedisReferralLetterPDF - Creates the medical referral PDF
+func BuildMedisReferralLetterPDF(rujukan models.RujukanKesehatan, screening models.Kesehatan) (string, string, error) {
+	pdf := gofpdf.New("P", "mm", "A4", "")
+	pdf.SetMargins(25, 45, 25) // Leave space for header
+	pdf.SetAutoPageBreak(true, 15)
 	pdf.AliasNbPages("")
 
+	kopImage := "assets/kop_kesehatan2.jpg"
+
 	pdf.SetHeaderFunc(func() {
-		pdf.Image("assets/kop_rektorat_landscape.jpeg", 0, 0, 297, 210, false, "JPEG", 0, "")
+		// Draw full A4 page background (210x297mm)
+		if strings.HasSuffix(kopImage, ".jpg") || strings.HasSuffix(kopImage, ".jpeg") {
+			pdf.ImageOptions(kopImage, 0, 0, 210, 297, false, gofpdf.ImageOptions{ImageType: "JPEG", ReadDpi: true}, 0, "")
+		} else {
+			pdf.ImageOptions(kopImage, 0, 0, 210, 297, false, gofpdf.ImageOptions{ReadDpi: true}, 0, "")
+		}
 	})
 
 	pdf.AddPage()
 
-	// Title
+	pdf.Ln(5)
+
 	pdf.SetFont("Helvetica", "B", 13)
-	pdf.SetTextColor(15, 23, 42) // Slate 900
-	pdf.CellFormat(0, 6, "SURAT PENGANTAR KLAIM ASURANSI", "", 1, "C", false, 0, "")
-	pdf.SetFont("Helvetica", "", 9.5)
-	pdf.SetTextColor(100, 116, 139) // Slate 500
-	refNum := fmt.Sprintf("Nomor: %s", nomorSurat)
-	pdf.CellFormat(0, 5, refNum, "", 1, "C", false, 0, "")
-	pdf.Ln(4)
+	pdf.CellFormat(0, 6, "FORMULIR RUJUKAN PELAYANAN KESEHATAN", "", 1, "C", false, 0, "")
+	pdf.SetFont("Helvetica", "", 11)
+	pdf.CellFormat(0, 5, "UNIT KESEHATAN KAMPUS (UKK)", "", 1, "C", false, 0, "")
+	pdf.CellFormat(0, 5, "Universitas Bhakti Kencana", "", 1, "C", false, 0, "")
 
-	// Content
+	pdf.Ln(8)
+
+	// Helper function for rendering table rows
+	renderTableRow := func(no, uraian, keterangan string) {
+		pdf.SetFont("Helvetica", "", 10)
+		lines := pdf.SplitLines([]byte(keterangan), 98)
+		expectedH := float64(len(lines)) * 7.0
+		if expectedH < 7.0 {
+			expectedH = 7.0
+		}
+		
+		if pdf.GetY()+expectedH > 275 {
+			pdf.AddPage()
+		}
+
+		yStart := pdf.GetY()
+		
+		// MultiCell for Keterangan to support long texts
+		pdf.SetXY(85, yStart)
+		pdf.MultiCell(100, 7, keterangan, "1", "L", false)
+		h := pdf.GetY() - yStart
+		if h < 7.0 {
+			h = 7.0
+		}
+		
+		pdf.SetXY(25, yStart)
+		pdf.CellFormat(10, h, no, "1", 0, "C", false, 0, "")
+		pdf.CellFormat(50, h, uraian, "1", 0, "L", false, 0, "")
+		pdf.SetY(yStart + h)
+	}
+
+	renderTableHeader := func(title string) {
+		if pdf.GetY()+25 > 275 {
+			pdf.AddPage()
+		}
+		pdf.SetFont("Helvetica", "B", 10)
+		pdf.Cell(0, 8, title)
+		pdf.Ln(8)
+		
+		pdf.SetFillColor(240, 240, 240)
+		pdf.CellFormat(10, 7, "No", "1", 0, "C", true, 0, "")
+		pdf.CellFormat(50, 7, "Uraian", "1", 0, "C", true, 0, "")
+		pdf.CellFormat(100, 7, "Keterangan", "1", 0, "C", true, 0, "")
+		pdf.Ln(7)
+	}
+
+	// A. IDENTITAS PASIEN
+	renderTableHeader("A. IDENTITAS PASIEN")
+	
+	jk := "Laki-laki [ ]  Perempuan [ ]"
+	if rujukan.Mahasiswa.JenisKelamin == "L" {
+		jk = "Laki-laki [X]  Perempuan [ ]"
+	} else if rujukan.Mahasiswa.JenisKelamin == "P" {
+		jk = "Laki-laki [ ]  Perempuan [X]"
+	}
+
+	tglLahir := "......................................................."
+	if !rujukan.Mahasiswa.TanggalLahir.IsZero() {
+		tglLahir = rujukan.Mahasiswa.TanggalLahir.Format("02-01-2006")
+	}
+
+	renderTableRow("1", "Nama Lengkap", rujukan.Mahasiswa.Nama)
+	renderTableRow("2", "NIM/NIP", rujukan.Mahasiswa.NIM)
+	renderTableRow("3", "Program Studi", rujukan.Mahasiswa.ProgramStudi.Nama)
+	renderTableRow("4", "Jenis Kelamin", jk)
+	renderTableRow("5", "Tanggal Lahir", tglLahir)
+	renderTableRow("6", "Nomor HP Aktif", rujukan.Mahasiswa.NoHP)
+
+	pdf.Ln(6)
+
+	// B. INFORMASI MEDIS
+	renderTableHeader("B. INFORMASI MEDIS")
+
+	ttv := fmt.Sprintf("TD: %d/%d mmHg   N: %d x/menit\nRR: - x/menit     S: %.1f °C", 
+		rujukan.Sistole, rujukan.Diastole, rujukan.DenyutNadi, rujukan.SuhuTubuh)
+
+	tindakan := screening.TindakanDiberikan
+	if tindakan == "" {
+		tindakan = "......................................................."
+	}
+	
+	pemeriksaanFisik := screening.Hasil
+	if pemeriksaanFisik == "" {
+		pemeriksaanFisik = "......................................................."
+	}
+
+	renderTableRow("1", "Keluhan Utama", rujukan.KeluhanUtama)
+	renderTableRow("2", "TTV (Tanda Vital)", ttv)
+	renderTableRow("3", "Pemeriksaan Fisik Singkat", pemeriksaanFisik)
+	renderTableRow("4", "Diagnosis Sementara", rujukan.Diagnosis)
+	renderTableRow("5", "Tindakan Diberikan", tindakan)
+	renderTableRow("6", "Alasan Rujukan", rujukan.AlasanRujukan)
+
+	pdf.Ln(6)
+
+	// C. INFORMASI RUJUKAN
+	renderTableHeader("C. INFORMASI RUJUKAN")
+
+	faskesStr := "Klinik UBK [ ]  RSUD [ ]  Puskesmas [ ]\nLainnya: __________________"
+	if rujukan.FaskesTujuan == "Klinik UBK" {
+		faskesStr = "Klinik UBK [X]  RSUD [ ]  Puskesmas [ ]"
+	} else if rujukan.FaskesTujuan == "RSUD" {
+		faskesStr = "Klinik UBK [ ]  RSUD [X]  Puskesmas [ ]"
+	} else if rujukan.FaskesTujuan == "Puskesmas" {
+		faskesStr = "Klinik UBK [ ]  RSUD [ ]  Puskesmas [X]"
+	} else {
+		faskesStr = fmt.Sprintf("Klinik UBK [ ]  RSUD [ ]  Puskesmas [ ]\nLainnya: %s", rujukan.FaskesTujuan)
+	}
+
+	namaTenagaKes := "......................................................."
+	if screening.TenagaKes != nil {
+		namaTenagaKes = screening.TenagaKes.Nama
+	} else if screening.DiperiksaOleh != "" {
+		namaTenagaKes = screening.DiperiksaOleh
+	}
+
+	catatan := screening.Catatan
+	if catatan == "" {
+		catatan = "......................................................."
+	}
+
+	renderTableRow("1", "Fasilitas Rujukan", faskesStr)
+	renderTableRow("2", "Nakes Pengantar", namaTenagaKes)
+	renderTableRow("3", "Catatan Tambahan", catatan)
+
+	pdf.Ln(6)
+
+	// D. TANDA TANGAN DAN PENGESAHAN
+	if pdf.GetY()+45 > 275 {
+		pdf.AddPage()
+	}
+	pdf.SetFont("Helvetica", "B", 10)
+	pdf.Cell(0, 8, "D. TANDA TANGAN DAN PENGESAHAN")
+	pdf.Ln(8)
+
+	// Signature Block
+	sigY := pdf.GetY()
 	pdf.SetFont("Helvetica", "", 10)
+
+	// Tenaga Kesehatan di Kanan
+	pdf.SetXY(130, sigY)
+	dateStr := fmt.Sprintf("Bandung, %s", time.Now().Format("02 Jan 2006"))
+	if rujukan.TanggalDikirim != nil {
+		dateStr = fmt.Sprintf("Bandung, %s", rujukan.TanggalDikirim.Format("02 Jan 2006"))
+	}
+	pdf.Cell(0, 5, dateStr)
+
+	pdf.SetXY(130, sigY+5)
+	pdf.Cell(0, 5, "Tenaga Kesehatan Pengantar,")
+
+	// Signature space Tenaga Kesehatan
+	pdf.SetXY(130, sigY+23)
+	pdf.SetFont("Helvetica", "BU", 10)
+	pdf.Cell(0, 5, namaTenagaKes)
+
+	pdf.SetXY(130, sigY+28)
+	pdf.SetFont("Helvetica", "", 9)
+	pdf.SetTextColor(100, 116, 139)
+	pdf.Cell(0, 4, "Unit Kesehatan Kampus (UKK)")
+
+	// Jika rujukan sudah disetujui, tambahkan signature Kemahasiswaan di kiri
+	if rujukan.ApprovalStatus == "disetujui" {
+		adminName := "Kepala Bagian Kemahasiswaan"
+
+		pdf.SetTextColor(15, 23, 42) // Slate 900
+		pdf.SetXY(25, sigY+5)
+		pdf.Cell(0, 5, "Mengetahui,")
+
+		pdf.SetXY(25, sigY+10)
+		pdf.Cell(0, 5, "Bagian Kemahasiswaan")
+
+		// Signature space admin
+		pdf.SetXY(25, sigY+23)
+		pdf.SetFont("Helvetica", "BU", 10)
+		pdf.Cell(0, 5, adminName)
+
+		pdf.SetXY(25, sigY+28)
+		pdf.SetFont("Helvetica", "", 9)
+		pdf.SetTextColor(100, 116, 139)
+		pdf.Cell(0, 4, "Direktorat Kemahasiswaan")
+	}
+
 	pdf.SetTextColor(15, 23, 42)
-	pdf.MultiCell(0, 5, "Yang bertanda tangan di bawah ini, Direktorat Kemahasiswaan Universitas Bhakti Kencana menerangkan bahwa mahasiswa berikut ini mengajukan klaim asuransi kesehatan:", "", "L", false)
-	pdf.Ln(4)
+	pdf.SetY(sigY + 40)
 
-	// Student Profile Table Grid (2 Columns)
-	col1 := [][]string{
-		{"Nama Mahasiswa", claim.Mahasiswa.Nama},
-		{"NIM", claim.Mahasiswa.NIM},
-		{"Program Studi", claim.Mahasiswa.ProgramStudi.Nama},
-		{"Fakultas", claim.Mahasiswa.Fakultas.Nama},
+	// Catatan
+	pdf.SetFont("Helvetica", "B", 9)
+	pdf.CellFormat(0, 5, "Catatan:", "", 1, "L", false, 0, "")
+	pdf.SetFont("Helvetica", "I", 9)
+	pdf.CellFormat(0, 5, "- Mohon membawa serta dokumen ini saat ke fasilitas rujukan.", "", 1, "L", false, 0, "")
+	pdf.CellFormat(0, 5, "- Simpan salinan sebagai dokumentasi UKK.", "", 1, "L", false, 0, "")
+
+	pdf.SetFooterFunc(func() {
+		pdf.SetY(-15)
+		pdf.SetFont("Helvetica", "I", 8)
+		pdf.SetTextColor(128, 128, 128)
+		pdf.CellFormat(0, 10, fmt.Sprintf("Surat ini di-generate secara otomatis oleh Sistem pada %s", time.Now().Format("2006-01-02 15:04")), "", 0, "C", false, 0, "")
+	})
+
+	dirPath := filepath.Dir("uploads/rujukan")
+	os.MkdirAll(dirPath, 0755)
+
+	fileName := fmt.Sprintf("rujukan_medis_%d_%d.pdf", rujukan.MahasiswaID, time.Now().Unix())
+	filePath := filepath.Join(dirPath, fileName)
+
+	if err := pdf.OutputFileAndClose(filePath); err != nil {
+		return "", "", err
 	}
 
-	col2 := [][]string{
-		{"Jenis Provider", claim.JenisProvider},
-		{"Tanggal Kejadian", claim.TanggalKejadian.Format("02 January 2006")},
-		{"Fasilitas Kesehatan", claim.LokasiFaskes},
-		{"Estimasi Biaya", fmt.Sprintf("Rp %.0f", claim.EstimasiBiaya)},
+	fullUrl := "/uploads/rujukan/" + fileName
+	return fullUrl, filePath, nil
+}
+
+func formatIndonesianDate(t time.Time) string {
+	months := []string{"Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"}
+	if int(t.Month()) >= 1 && int(t.Month()) <= 12 {
+		return fmt.Sprintf("%02d %s %d", t.Day(), months[t.Month()-1], t.Year())
 	}
+	return t.Format("02 January 2006")
+}
 
-	yStartTable := pdf.GetY()
-	for i := 0; i < 4; i++ {
-		// Draw Column 1
-		pdf.SetXY(25, yStartTable + float64(i)*5)
-		pdf.SetFont("Helvetica", "B", 9)
-		pdf.CellFormat(35, 5, col1[i][0], "", 0, "L", false, 0, "")
-		pdf.SetFont("Helvetica", "", 9)
-		pdf.CellFormat(5, 5, ":", "", 0, "C", false, 0, "")
-		pdf.CellFormat(80, 5, col1[i][1], "", 0, "L", false, 0, "")
+func BuildSuratPengantarPDF(claim models.PengajuanAsuransi, nomorSurat string, filename string) (string, error) {
+	pdf := gofpdf.New("P", "mm", "A4", "")
+	// Margin atas 42mm agar ada space bernafas di bawah garis kop surat
+	pdf.SetMargins(25, 42, 25)
+	pdf.SetAutoPageBreak(false, 0)
+	pdf.AliasNbPages("")
 
-		// Draw Column 2
-		pdf.SetXY(150, yStartTable + float64(i)*5)
-		pdf.SetFont("Helvetica", "B", 9)
-		pdf.CellFormat(35, 5, col2[i][0], "", 0, "L", false, 0, "")
-		pdf.SetFont("Helvetica", "", 9)
-		pdf.CellFormat(5, 5, ":", "", 0, "C", false, 0, "")
-		pdf.CellFormat(80, 5, col2[i][1], "", 0, "L", false, 0, "")
-	}
-	pdf.SetY(yStartTable + 20)
-	pdf.Ln(4)
+	pdf.SetHeaderFunc(func() {
+		pdf.Image("assets/kop_asuransi_header.jpg", 0, 0, 210, 35, false, "JPEG", 0, "")
+		pdf.SetDrawColor(180, 180, 180)
+		pdf.Line(15, 36, 195, 36)
+	})
 
-	pdf.SetFont("Helvetica", "B", 9.5)
-	pdf.Cell(0, 5, "Deskripsi Kronologis Kejadian:")
+	pdf.AddPage()
+
+	pdf.SetFont("Helvetica", "", 11)
+	pdf.SetTextColor(0, 0, 0)
+
+	// Tempat dan Tanggal (Bahasa Indonesia)
+	tanggalStr := formatIndonesianDate(time.Now())
+	pdf.CellFormat(0, 5, fmt.Sprintf("Bandung, %s", tanggalStr), "", 1, "R", false, 0, "")
 	pdf.Ln(6)
 
-	pdf.SetFont("Helvetica", "", 9)
-	pdf.MultiCell(0, 4.5, claim.Deskripsi, "", "L", false)
+	// Header Info
+	pdf.CellFormat(18, 5, "Nomor", "", 0, "L", false, 0, "")
+	pdf.CellFormat(4, 5, ":", "", 0, "L", false, 0, "")
+	pdf.CellFormat(0, 5, nomorSurat, "", 1, "L", false, 0, "")
+
+	pdf.CellFormat(18, 5, "Lampiran", "", 0, "L", false, 0, "")
+	pdf.CellFormat(4, 5, ":", "", 0, "L", false, 0, "")
+	pdf.CellFormat(0, 5, "-", "", 1, "L", false, 0, "")
+
+	pdf.CellFormat(18, 5, "Perihal", "", 0, "L", false, 0, "")
+	pdf.CellFormat(4, 5, ":", "", 0, "L", false, 0, "")
+	pdf.SetFont("Helvetica", "B", 11)
+	pdf.CellFormat(0, 5, "Surat Pengantar Klaim Assurance", "", 1, "L", false, 0, "")
+	pdf.SetFont("Helvetica", "", 11)
+	pdf.Ln(8)
+
+	// Kepada
+	pdf.CellFormat(0, 5, "Kepada", "", 1, "L", false, 0, "")
+	pdf.CellFormat(0, 5, "Yth. Tim BKU Assurance", "", 1, "L", false, 0, "")
+	pdf.CellFormat(0, 5, "di Tempat", "", 1, "L", false, 0, "")
+	pdf.Ln(8)
+
+	// Opening
+	pdf.CellFormat(0, 5, "Dengan hormat,", "", 1, "L", false, 0, "")
+	pdf.Ln(2)
+	pdf.MultiCell(0, 6, "Bersama surat ini kami dari Direktorat Layanan Kemahasiswaan, mengajukan klaim asuransi mahasiswa dengan data sebagai berikut:", "", "J", false)
+	pdf.Ln(4)
+
+	// Student Data List (NOT 2 columns, just single column as in docx)
+	pdf.SetX(35)
+	pdf.CellFormat(35, 6, "Nama", "", 0, "L", false, 0, "")
+	pdf.CellFormat(5, 6, ":", "", 0, "C", false, 0, "")
+	pdf.SetFont("Helvetica", "B", 11)
+	pdf.CellFormat(0, 6, claim.Mahasiswa.Nama, "", 1, "L", false, 0, "")
+	pdf.SetFont("Helvetica", "", 11)
+
+	pdf.SetX(35)
+	pdf.CellFormat(35, 6, "NIM", "", 0, "L", false, 0, "")
+	pdf.CellFormat(5, 6, ":", "", 0, "C", false, 0, "")
+	pdf.CellFormat(0, 6, claim.Mahasiswa.NIM, "", 1, "L", false, 0, "")
+
+	pdf.SetX(35)
+	pdf.CellFormat(35, 6, "Program Studi", "", 0, "L", false, 0, "")
+	pdf.CellFormat(5, 6, ":", "", 0, "C", false, 0, "")
+	if claim.Mahasiswa.ProgramStudi.Nama != "" {
+		pdf.CellFormat(0, 6, claim.Mahasiswa.ProgramStudi.Nama, "", 1, "L", false, 0, "")
+	} else {
+		pdf.CellFormat(0, 6, ".........................", "", 1, "L", false, 0, "")
+	}
 	pdf.Ln(6)
 
-	pdf.SetFont("Helvetica", "", 10)
-	pdf.MultiCell(0, 5, "Demikian surat pengantar ini dibuat agar dapat dipergunakan sebagaimana mestinya untuk proses klaim ke provider asuransi yang bersangkutan.", "", "L", false)
+	// Body Paragraph
+	tglKejadian := formatIndonesianDate(claim.TanggalKejadian)
+	lokasiFaskes := claim.LokasiFaskes
+	if lokasiFaskes == "" {
+		lokasiFaskes = "...................."
+	}
 
-	// Signature Block (Fixed at the bottom of Page 1)
-	sigY := 142.0
-	pdf.SetFont("Helvetica", "", 9)
-	pdf.SetXY(180, sigY)
-	pdf.Cell(0, 5, fmt.Sprintf("Bandung, %s", time.Now().Format("02 January 2006")))
-	pdf.SetXY(180, sigY+5)
-	pdf.Cell(0, 5, "Mengetahui,")
-	pdf.SetXY(180, sigY+10)
-	pdf.Cell(0, 5, "Direktur Kemahasiswaan BKU")
+	kronologiStr := fmt.Sprintf("Mahasiswa tersebut diatas mengalami kejadian kesehatan pada %s dan telah melakukan pemeriksaan dan/atau penanganan kesehatan di Rumah Sakit/klinik %s. Berdasarkan penilaian kami, yang bersangkutan memenuhi syarat untuk pengajuan klaim asuransi.", tglKejadian, lokasiFaskes)
+	pdf.MultiCell(0, 6, kronologiStr, "", "J", false)
+	pdf.Ln(4)
 
-	// Signature space (increased to 30mm space)
-	pdf.SetXY(180, sigY+40)
-	pdf.SetFont("Helvetica", "BU", 9.5)
-	pdf.Cell(0, 5, "Bagian Pelayanan Kesehatan BKU")
+	// Closing
+	pdf.MultiCell(0, 6, "Bersama ini kami lampirkan dokumen pendukung yang diperlukan untuk proses klaim. Kami mohon bantuan dari pihak BKU Assurance untuk memproses klaim asuransi sesuai dengan ketentuan yang berlaku. Atas perhatian dan kerjasamanya, kami ucapkan terima kasih.", "", "J", false)
+	pdf.Ln(12)
 
-	dirPath := filepath.Dir("uploads/surat/" + nomorSurat + ".pdf")
+	// Signature Section
+	pdf.CellFormat(0, 5, "Mengetahui,", "", 1, "L", false, 0, "")
+	pdf.Ln(5)
+
+	ySig := pdf.GetY()
+	
+	// Left Signature
+	pdf.SetXY(25, ySig)
+	pdf.CellFormat(80, 5, "Universitas Bhakti Kencana", "", 2, "C", false, 0, "")
+	pdf.CellFormat(80, 5, "Direktur Layanan Kemahasiswaan", "", 2, "C", false, 0, "")
+	pdf.Ln(25)
+	pdf.SetX(25)
+	pdf.CellFormat(80, 5, "Ttd + Cap", "", 2, "C", false, 0, "")
+	pdf.SetFont("Helvetica", "B", 11)
+	pdf.CellFormat(80, 5, "................................", "", 2, "C", false, 0, "")
+	pdf.SetFont("Helvetica", "", 11)
+	pdf.CellFormat(80, 5, "NIK ...........................", "", 2, "C", false, 0, "")
+
+	// Right Signature
+	pdf.SetXY(110, ySig)
+	pdf.CellFormat(80, 5, "Universitas Bhakti Kencana", "", 2, "C", false, 0, "")
+	pdf.CellFormat(80, 5, "Kepala Divisi Konseling, Karir, dan Alumni", "", 2, "C", false, 0, "")
+	pdf.Ln(25)
+	pdf.SetX(110)
+	pdf.CellFormat(80, 5, "Ttd", "", 2, "C", false, 0, "")
+	pdf.SetFont("Helvetica", "B", 11)
+	pdf.CellFormat(80, 5, "................................", "", 2, "C", false, 0, "")
+	pdf.SetFont("Helvetica", "", 11)
+	pdf.CellFormat(80, 5, "NIK. ...........................", "", 2, "C", false, 0, "")
+
+	dirPath := filepath.Dir("uploads/surat/" + filename + ".pdf")
 	if err := os.MkdirAll(dirPath, 0755); err != nil {
 		return "", err
 	}
 
-	filePath := "uploads/surat/" + nomorSurat + ".pdf"
-	// Delete existing file first if it exists to overwrite cleanly
+	filePath := "uploads/surat/" + filename + ".pdf"
 	_ = os.Remove(filePath)
 
 	if err := pdf.OutputFileAndClose(filePath); err != nil {

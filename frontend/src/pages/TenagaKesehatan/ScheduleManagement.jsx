@@ -58,7 +58,7 @@ const dayIcons = {
 
 const normalizeSchedule = (apiData) => {
   const grouped = defaultSchedule.map(g => ({ ...g, slots: [] }))
-  
+
   // Group slots by day
   if (Array.isArray(apiData)) {
     apiData.forEach(sch => {
@@ -101,7 +101,7 @@ export default function ScheduleManagement() {
         setSchedule(nextSchedule);
         setSavedSnapshot(JSON.stringify(nextSchedule));
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => {
         setLoading(false);
       });
@@ -234,12 +234,12 @@ export default function ScheduleManagement() {
 
   return (
     <PageContent>
-      <DashboardHero 
-        title="Manajemen" 
-        highlightedTitle="Jadwal" 
-        subtitle="Kelola jam praktik, cuti, dan ketersediaan waktu untuk layanan medis." 
-        icon="event_note" 
-        badges={[{ label: 'Jadwal Saya', active: false }]} 
+      <DashboardHero
+        title="Manajemen"
+        highlightedTitle="Jadwal"
+        subtitle="Kelola jam praktik, cuti, dan ketersediaan waktu untuk layanan medis."
+        icon="event_note"
+        badges={[{ label: 'Jadwal Saya', active: false }]}
         actions={hasUnsavedChanges ? (
           <div className="flex items-center gap-2">
             <button

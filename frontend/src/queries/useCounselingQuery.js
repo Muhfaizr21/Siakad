@@ -27,6 +27,7 @@ const normalizeRiwayatItem = (item = {}) => {
     tanggal: tanggalDate ? tanggalDate.toISOString() : null,
     status: item.status || item.Status || 'Menunggu',
     tipe: item.topic || item.tipe || item.Tipe || item.topik || item.Topik || 'Konseling',
+    psikolog_id: item.psikolog_id || item.psikologId || psychologist.id || psychologist.ID || dosen.id || dosen.ID || 0,
     nama_konselor: item.nama_konselor || item.NamaKonselor || psychologist.name || psychologist.nama || dosen.nama || dosen.Nama || '-',
     jam_mulai: jamMulai,
     jam_selesai: item.end || item.jam_selesai || item.JamSelesai || '',

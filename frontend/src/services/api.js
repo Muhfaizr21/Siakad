@@ -68,6 +68,43 @@ export const fetchWithAuth = (url, options = {}) => {
   return fetch(url, { ...options, headers }).then(handleResponse);
 };
 
+export const fetchBlobWithAuth = async (url, options = {}) => {
+  const token = getAuthToken();
+
+  const selectedFacultyId = localStorage.getItem('superadmin_fakultas_id');
+  const selectedProdiId = localStorage.getItem('superadmin_prodi_id');
+  const selectedPeriodId = localStorage.getItem('superadmin_period_id');
+  const impersonatedStudentId = localStorage.getItem('superadmin_impersonate_student_id');
+  const selectedOrmawaId = localStorage.getItem('superadmin_ormawa_id');
+  
+  const headers = {
+    ...options.headers,
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    ...(selectedFacultyId && selectedFacultyId !== 'all' ? { 'X-Faculty-ID': selectedFacultyId } : {}),
+    ...(selectedProdiId && selectedProdiId !== 'all' ? { 'X-Prodi-ID': selectedProdiId } : {}),
+    ...(selectedPeriodId && selectedPeriodId !== 'all' ? { 'X-Academic-Period-ID': selectedPeriodId } : {}),
+    ...(selectedOrmawaId ? { 'X-Ormawa-ID': selectedOrmawaId } : {})
+  };
+
+  if (impersonatedStudentId && impersonatedStudentId !== 'undefined' && impersonatedStudentId !== 'null') {
+    if (!headers['X-Student-ID']) {
+      headers['X-Student-ID'] = impersonatedStudentId;
+    }
+  }
+
+  const impersonateRole = localStorage.getItem('impersonate_role');
+  const impersonateEntity = localStorage.getItem('impersonate_entity');
+
+  if (impersonateRole && impersonateEntity) {
+    headers['X-Impersonate-Role'] = impersonateRole;
+    headers['X-Impersonate-Entity-Id'] = impersonateEntity;
+  }
+
+  const res = await fetch(url, { ...options, headers });
+  if (!res.ok) throw new Error(`Error ${res.status}`);
+  return res.blob();
+};
+
 export const psychologistService = {
   getMe: () => fetchWithAuth(`${API_BASE_URL}/psychologist/me`),
   updateProfile: (data) => fetchWithAuth(`${API_BASE_URL}/psychologist/profile`, {
@@ -239,6 +276,11 @@ export const tenagaKesehatanService = {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
   }),
+  
+  // Psikolog Escalation
+  getPsychologists: () => fetchWithAuth(`${API_BASE_URL}/tenagakes/psychologists`),
+  getPsychologistSchedules: (id) => fetchWithAuth(`${API_BASE_URL}/tenagakes/psychologists/${id}/schedules`),
+
   lookupStudent: (query) => fetchWithAuth(`${API_BASE_URL}/tenagakes/students/lookup?query=${encodeURIComponent(query)}`),
   exportExcel: async () => {
     const token = getAuthToken();
@@ -601,6 +643,29 @@ export const adminService = {
   }),
   getTenagaKesehatanBookings: () => fetchWithAuth(`${API_BASE_URL}/admin/tenagakes/bookings`),
   getTenagaKesehatanMedicalRecords: () => fetchWithAuth(`${API_BASE_URL}/admin/tenagakes/medical-records`),
+  getTenagaKesehatanReferrals: () => fetchWithAuth(`${API_BASE_URL}/admin/tenagakes/referrals`),
+  approveTenagaKesehatanReferral: (id, action, catatan = '') =>
+    fetchWithAuth(`${API_BASE_URL}/admin/tenagakes/referrals/${id}/approve`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, catatan }),
+    }),
+    
+  // SuperAdmin Insurance Claims endpoints
+  getSuperAdminClaims: (params = {}) => {
+    const q = new URLSearchParams()
+    if (params.status) q.append('status', params.status)
+    if (params.jenis_provider) q.append('jenis_provider', params.jenis_provider)
+    if (params.start_date) q.append('start_date', params.start_date)
+    if (params.end_date) q.append('end_date', params.end_date)
+    return fetchWithAuth(`${API_BASE_URL}/super-admin/health/claims?${q.toString()}`)
+  },
+  getSuperAdminClaimStats: () => fetchWithAuth(`${API_BASE_URL}/super-admin/health/claims/stats`),
+  updateSuperAdminClaimStatus: (id, data) => fetchWithAuth(`${API_BASE_URL}/super-admin/health/claims/${id}/status`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
   getAllOrmawa: () => fetchWithAuth(`${API_BASE_URL}/admin/ormawa`),
   createOrmawa: (data) => fetchWithAuth(`${API_BASE_URL}/admin/ormawa`, {
     method: 'POST',
@@ -843,6 +908,14 @@ export const insuranceService = {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
+  }),
+  updateClaim: (id, data) => fetchWithAuth(`${API_BASE_URL}/mahasiswa/insurance/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  deleteClaim: (id) => fetchWithAuth(`${API_BASE_URL}/mahasiswa/insurance/${id}`, {
+    method: 'DELETE'
   }),
   uploadClaimDocument: (id, formData) => fetchWithAuth(`${API_BASE_URL}/mahasiswa/insurance/${id}/upload`, {
     method: 'POST',

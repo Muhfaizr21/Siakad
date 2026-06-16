@@ -4,12 +4,15 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"os"
+	"path/filepath"
 
 	"siakad-backend/config"
 	"siakad-backend/models"
 	"siakad-backend/pkg/notifikasi"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/jung-kurt/gofpdf"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -853,8 +856,8 @@ func CreateScreening(c *fiber.Ctx) error {
 
 		// Eskalasi flags
 		EskalasiPsikolog bool `json:"eskalasi_psikolog"`
-		EskalasiFakultas bool `json:"eskalasi_fakultas"`
 		PsikologID       uint `json:"psikolog_id"` // chosen psychologist if any
+		PsikologSlotID   uint `json:"psikolog_slot_id"` // chosen slot if any
 	}
 
 	if err := c.BodyParser(&body); err != nil {
@@ -971,6 +974,54 @@ func CreateScreening(c *fiber.Ctx) error {
 	// 4. Eskalasi Logic
 	// Eskalasi ke Psikolog
 	if body.EskalasiPsikolog || body.KondisiPsikologis == "Perlu Rujukan Psikolog" {
+		// Jika slot dipilih, auto-booking
+		if body.PsikologSlotID != 0 {
+			var slot models.PsikologScheduleSlot
+			if err := config.DB.Preload("Psikolog").First(&slot, body.PsikologSlotID).Error; err == nil {
+				// Helper untuk hitung tanggal
+				days := map[string]time.Weekday{"Minggu": time.Sunday, "Senin": time.Monday, "Selasa": time.Tuesday, "Rabu": time.Wednesday, "Kamis": time.Thursday, "Jumat": time.Friday, "Sabtu": time.Saturday}
+				targetDay := days[slot.Hari]
+				now := time.Now()
+				daysUntil := (int(targetDay) - int(now.Weekday()) + 7) % 7
+				if daysUntil == 0 {
+					daysUntil = 7
+				}
+				nextDate := now.AddDate(0, 0, daysUntil).Truncate(24 * time.Hour)
+
+				booking := models.PsikologBooking{
+					PsikologID:  slot.PsikologID,
+					MahasiswaID: student.ID,
+					Tanggal:     nextDate,
+					JamMulai:    slot.JamMulai,
+					JamSelesai:  slot.JamSelesai,
+					Topik:       "Rujukan Medis",
+					Keluhan:     "Rujukan dari klinik: " + body.Catatan,
+					Status:      "Dikonfirmasi", // Auto confirm since it's a direct referral
+					Mode:        "Tatap Muka",
+				}
+				if err := config.DB.Create(&booking).Error; err == nil {
+					// Notifikasi ke sistem psikolog internal
+					notifPsi := models.PsikologNotification{
+						PsikologID: slot.PsikologID,
+						UserID:     slot.Psikolog.UserID,
+						Judul:      "Rujukan Medis & Auto-Booking",
+						Deskripsi:  fmt.Sprintf("Tenaga Kesehatan %s merujuk dan membuat booking untuk mahasiswa %s (%s) pada %s pukul %s. Catatan medis: %s", tk.Nama, student.Nama, student.NIM, nextDate.Format("02 Jan 2006"), slot.JamMulai, body.Catatan),
+						Tipe:       "booking",
+						IsRead:     false,
+					}
+					_ = config.DB.Create(&notifPsi).Error
+
+					// Beri notif spesifik bahwa jadwal sudah dibuatkan ke Mahasiswa
+					_ = notifikasi.Kirim(config.DB, notifikasi.KirimParams{
+						MahasiswaID: student.ID,
+						Type:        "success",
+						Title:       "Jadwal Konseling Rujukan Dibuat 📅",
+						Content:     fmt.Sprintf("Tenaga Kesehatan %s telah mendaftarkan jadwal konseling psikologi untuk Anda pada %s jam %s. Silakan cek menu Konseling.", tk.Nama, nextDate.Format("02 Jan 2006"), slot.JamMulai),
+					})
+				}
+			}
+		}
+
 		go func() {
 			if body.PsikologID != 0 {
 				var psi models.Psikolog
@@ -1004,21 +1055,7 @@ func CreateScreening(c *fiber.Ctx) error {
 		}()
 	}
 
-	// Eskalasi ke Admin Fakultas
-	if body.EskalasiFakultas || hasilText == "Tidak Layak" {
-		go func() {
-			var adminUsers []models.User
-			config.DB.Where("role = ? AND fakultas_id = ?", "faculty_admin", student.FakultasID).Find(&adminUsers)
-			for _, admin := range adminUsers {
-				_ = notifikasi.Kirim(config.DB, notifikasi.KirimParams{
-					UserID:  admin.ID,
-					Type:    "error",
-					Title:   "Laporan Kondisi Kritis Mahasiswa 🚨",
-					Content: fmt.Sprintf("Tenaga Kesehatan %s melaporkan kondisi kesehatan kritis/tidak layak untuk mahasiswa %s (%s) dari Fakultas %s. Catatan: %s", tk.Nama, student.Nama, student.NIM, student.Fakultas.Nama, body.Catatan),
-				})
-			}
-		}()
-	}
+	// Eskalasi Fakultas removed per user request
 
 	logActivity(c, tk.UserID, "Input Rekam Medis", fmt.Sprintf("Menginput rekam medis baru untuk mahasiswa %s (%s)", student.Nama, student.NIM))
 
@@ -1050,6 +1087,146 @@ func ExportExcel(c *fiber.Ctx) error {
 
 func ExportPDF(c *fiber.Ctx) error {
 	return jsonOK(c, fiber.Map{"message": "Export PDF successfully stubbed"})
+}
+
+// ExportMedicalRecordPDF - Generate Rekam Medis / Sesi PDF
+func ExportMedicalRecordPDF(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	var record models.Kesehatan
+	if err := config.DB.Preload("Mahasiswa").Preload("Mahasiswa.ProgramStudi").Preload("Mahasiswa.Fakultas").Preload("TenagaKes").First(&record, id).Error; err != nil {
+		return fiber.NewError(fiber.StatusNotFound, "Rekam medis tidak ditemukan")
+	}
+
+	// Role validation: if student, make sure they own it
+	role := c.Locals("role")
+	if role == "mahasiswa" {
+		userID := c.Locals("user_id").(uint)
+		var student models.Mahasiswa
+		config.DB.Where("pengguna_id = ?", userID).First(&student)
+		if record.MahasiswaID != student.ID {
+			return fiber.NewError(fiber.StatusForbidden, "Anda tidak memiliki akses ke rekam medis ini")
+		}
+	}
+
+	pdf := gofpdf.New("P", "mm", "A4", "")
+	pdf.SetMargins(20, 45, 20)
+	pdf.SetAutoPageBreak(false, 0)
+	pdf.AliasNbPages("")
+
+	kopImage := "assets/kop_kesehatan2.jpg"
+
+	pdf.SetHeaderFunc(func() {
+		// Draw full A4 page background (210x297mm)
+		if strings.HasSuffix(kopImage, ".jpg") || strings.HasSuffix(kopImage, ".jpeg") {
+			pdf.ImageOptions(kopImage, 0, 0, 210, 297, false, gofpdf.ImageOptions{ImageType: "JPEG", ReadDpi: true}, 0, "")
+		} else {
+			pdf.ImageOptions(kopImage, 0, 0, 210, 297, false, gofpdf.ImageOptions{ReadDpi: true}, 0, "")
+		}
+	})
+
+	pdf.AddPage()
+
+	pdf.Ln(5)
+
+	pdf.SetFont("Helvetica", "B", 13)
+	pdf.CellFormat(0, 6, "FORM ASESMEN DAN REKAM MEDIS", "", 1, "C", false, 0, "")
+	pdf.SetFont("Helvetica", "", 10)
+	pdf.CellFormat(0, 5, fmt.Sprintf("Nomor Rekam Medis: %04d/RM/%d", record.ID, record.Tanggal.Year()), "", 1, "C", false, 0, "")
+
+	pdf.Ln(8)
+
+	pdf.SetFont("Helvetica", "B", 10)
+	pdf.SetFillColor(240, 240, 240)
+	pdf.CellFormat(0, 6, " I. IDENTITAS PASIEN", "1", 1, "L", true, 0, "")
+	pdf.Ln(3)
+
+	pdf.SetFont("Helvetica", "", 10)
+	details1 := [][]string{
+		{"Nama Lengkap", record.Mahasiswa.Nama},
+		{"NIM / ID", record.Mahasiswa.NIM},
+		{"Program Studi", record.Mahasiswa.ProgramStudi.Nama},
+		{"Jenis Kelamin", record.Mahasiswa.JenisKelamin},
+		{"Golongan Darah", record.GolonganDarah},
+		{"Alergi Obat", record.AlergiObat},
+	}
+
+	yStart := pdf.GetY()
+	for i, row := range details1 {
+		pdf.SetXY(25, yStart+float64(i)*6)
+		pdf.CellFormat(40, 5, row[0], "", 0, "L", false, 0, "")
+		pdf.CellFormat(5, 5, ":", "", 0, "C", false, 0, "")
+		pdf.CellFormat(100, 5, row[1], "", 0, "L", false, 0, "")
+	}
+	pdf.SetY(yStart + float64(len(details1)*6) + 4)
+
+	pdf.SetFont("Helvetica", "B", 10)
+	pdf.CellFormat(0, 6, " II. HASIL PEMERIKSAAN MEDIS", "1", 1, "L", true, 0, "")
+	pdf.Ln(3)
+
+	pdf.SetFont("Helvetica", "", 10)
+	details2 := [][]string{
+		{"Tanggal Pemeriksaan", record.Tanggal.Format("02 Jan 2006")},
+		{"Keluhan / Penyakit", record.RiwayatPenyakit},
+		{"Kondisi Psikologis", record.KondisiPsikologis},
+		{"Tanda Vital", fmt.Sprintf("Suhu: %.1f C | Tensi: %d/%d | Nadi: %d | SpO2: %d%%", record.SuhuTubuh, record.Sistole, record.Diastole, record.DenyutNadi, record.SpO2)},
+		{"Skala Nyeri", fmt.Sprintf("%d / 10", record.SkalaNyeri)},
+		{"Tindakan", record.TindakanDiberikan},
+		{"Obat", record.ObatDiberikan},
+		{"Catatan", record.Catatan},
+		{"Hasil / Kesimpulan", record.Hasil},
+		{"Rekomendasi", record.Rekomendasi},
+	}
+
+	yStart2 := pdf.GetY()
+	for i, row := range details2 {
+		pdf.SetXY(25, yStart2+float64(i)*6)
+		pdf.CellFormat(40, 5, row[0], "", 0, "L", false, 0, "")
+		pdf.CellFormat(5, 5, ":", "", 0, "C", false, 0, "")
+		pdf.MultiCell(100, 5, row[1], "", "L", false)
+		if i != len(details2)-1 {
+			yStart2 = pdf.GetY() - float64(i+1)*6
+		}
+	}
+	pdf.SetY(pdf.GetY() + 4)
+
+	pdf.Ln(10)
+
+	sigY := pdf.GetY()
+	
+	pdf.SetXY(130, sigY)
+	pdf.CellFormat(60, 5, fmt.Sprintf("Bandung, %s", record.Tanggal.Format("02 Jan 2006")), "", 1, "C", false, 0, "")
+	pdf.SetX(130)
+	pdf.CellFormat(60, 5, "Tenaga Kesehatan / Medis", "", 1, "C", false, 0, "")
+
+	pdf.SetXY(130, sigY+25)
+	pdf.SetFont("Helvetica", "B", 10)
+	namaTK := record.DiperiksaOleh
+	if record.TenagaKes != nil {
+		namaTK = record.TenagaKes.Nama
+	}
+	pdf.CellFormat(60, 5, fmt.Sprintf("( %s )", namaTK), "", 1, "C", false, 0, "")
+
+	pdf.SetFooterFunc(func() {
+		pdf.SetY(-15)
+		pdf.SetFont("Helvetica", "I", 8)
+		pdf.SetTextColor(128, 128, 128)
+		pdf.CellFormat(0, 10, fmt.Sprintf("Dokumen ini dihasilkan secara otomatis oleh sistem pada %s", time.Now().Format("2006-01-02 15:04")), "", 0, "C", false, 0, "")
+	})
+
+	dirPath := filepath.Dir("uploads/kesehatan/rekam_medis.pdf")
+	os.MkdirAll(dirPath, 0755)
+
+	fileName := fmt.Sprintf("rekam_medis_%d.pdf", record.ID)
+	filePath := filepath.Join(filepath.Dir("uploads/kesehatan/rekam_medis.pdf"), fileName)
+
+	if err := pdf.OutputFileAndClose(filePath); err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, "Gagal generate PDF")
+	}
+
+	c.Set("Content-Type", "application/pdf")
+	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"Rekam_Medis_%s.pdf\"", record.Mahasiswa.Nama))
+	return c.SendFile(filePath)
 }
 
 func logActivity(c *fiber.Ctx, userID uint, aktivitas, deskripsi string) {

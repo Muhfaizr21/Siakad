@@ -22,6 +22,8 @@ func SetupHealthRoutes(app *fiber.App) {
 	mahasiswa.Get("/insurance", controllers.GetInsuranceClaims)
 	mahasiswa.Get("/insurance/:id", controllers.GetInsuranceClaimDetail)
 	mahasiswa.Post("/insurance", controllers.CreateInsuranceClaim)
+	mahasiswa.Put("/insurance/:id", controllers.UpdateInsuranceClaim)
+	mahasiswa.Delete("/insurance/:id", controllers.DeleteInsuranceClaim)
 	mahasiswa.Post("/insurance/:id/upload", controllers.UploadInsuranceDocument)
 
 	// Rujukan (Mahasiswa - published only)
@@ -82,4 +84,6 @@ func SetupHealthRoutes(app *fiber.App) {
 	superadmin.Get("/bap/:id", controllers.GetBAPDetail)
 	superadmin.Put("/bap/:id", controllers.UpdateBAP)
 	superadmin.Get("/bap/:id/export-pdf", controllers.ExportBAPPDF)
+
+	superadmin.Get("/rujukan/:id/export-pdf", controllers.ExportRujukanPDF)
 }
