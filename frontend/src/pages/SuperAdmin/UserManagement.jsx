@@ -411,6 +411,25 @@ const classifyPermission = (p) => {
 export default function UserManagement() {
   const [activeTab, setActiveTab] = useState('identities')
   const [users, setUsers] = useState([])
+
+  // ── Global Filter dari Topbar (localStorage) ────────────────────────────
+  const [activeFacultyId, setActiveFacultyId] = useState(
+    localStorage.getItem('superadmin_fakultas_id') || 'all'
+  )
+  const [activeProdiId, setActiveProdiId] = useState(
+    localStorage.getItem('superadmin_prodi_id') || 'all'
+  )
+
+  // Sync filter ketika topbar mengubah localStorage
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setActiveFacultyId(localStorage.getItem('superadmin_fakultas_id') || 'all')
+      setActiveProdiId(localStorage.getItem('superadmin_prodi_id') || 'all')
+    }
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
+  }, [])
+
   const [rbacRoles, setRbacRoles] = useState([])
   const [permissionCatalog, setPermissionCatalog] = useState([])
   const [faculties, setFaculties] = useState([])
@@ -430,6 +449,8 @@ export default function UserManagement() {
   const [newFakultasId, setNewFakultasId] = useState('')
   const [newProdiId, setNewProdiId] = useState('')
   const [newKencanaScopeType, setNewKencanaScopeType] = useState('faculty')
+  const [editNama, setEditNama] = useState('')
+
   const [showPassword, setShowPassword] = useState(false)
   const [ormawas, setOrmawas] = useState([])
   const [roleForm, setRoleForm] = useState(emptyRoleForm)
@@ -501,6 +522,77 @@ export default function UserManagement() {
     [roleOptions, selectedRoleKey]
   )
   const permissionSet = useMemo(() => new Set(permissionDraft), [permissionDraft])
+
+  // ── Users yang sudah difilter berdasarkan Fakultas & Prodi terpilih ──────
+  // Root cause: users.fakultas_id bisa NULL untuk mahasiswa karena fakultas
+  // mereka di-derive melalui relasi mahasiswa.program_studi → program_studi.fakultas_id
+  // Solusi: 3-lapis lookup: (1) FakultasID langsung, (2) via allProdi, (3) via nama string
+  const filteredUsers = useMemo(() => {
+    if (activeFacultyId === 'all' && activeProdiId === 'all') return users
+
+    // Bangun Set prodi IDs yang masuk dalam fakultas terpilih (untuk lookup mahasiswa)
+    const prodiIdsByFakultas = activeFacultyId !== 'all'
+      ? new Set(
+          allProdi
+            .filter(p => String(p.fakultas_id || p.FakultasID) === String(activeFacultyId))
+            .map(p => String(p.id || p.ID))
+        )
+      : null
+
+    // Nama fakultas terpilih untuk fallback string-match
+    const selectedFaculty = activeFacultyId !== 'all'
+      ? faculties.find(f => String(f.id || f.ID) === String(activeFacultyId))
+      : null
+    const selectedFacultyNama = selectedFaculty ? (selectedFaculty.nama || selectedFaculty.Nama || '').toLowerCase() : ''
+
+    // Role yang dianggap "system-level" (tidak punya afiliasi fakultas spesifik)
+    const SYSTEM_ROLES = new Set(['super_admin', 'psychologist', 'psikolog', 'tenaga_kesehatan'])
+
+    return users.filter(u => {
+      const userRoles = (u.role || u.Role || '').split(',').map(r => r.trim().toLowerCase()).filter(Boolean)
+
+      // ── Filter Prodi (jika aktif) ─────────────────────────────────────────
+      if (activeProdiId !== 'all') {
+        const userProdiId = String(u.program_studi_id || u.ProgramStudiID || '')
+        // Jika tidak match dengan activeProdiId, jangan tampilkan.
+        // Pengecualian hanya untuk role system (super_admin).
+        if (userProdiId !== String(activeProdiId)) {
+          const isSystemRole = userRoles.some(r => SYSTEM_ROLES.has(r))
+          if (!isSystemRole) return false
+        }
+      }
+
+      // ── Filter Fakultas (jika aktif) ──────────────────────────────────────
+      if (activeFacultyId === 'all') return true
+
+      // 1️⃣ Cek FakultasID langsung di tabel users
+      const directFakId = u.fakultas_id || u.FakultasID
+      if (directFakId && String(directFakId) !== '0') {
+        return String(directFakId) === String(activeFacultyId)
+      }
+
+      // 2️⃣ Cek via program_studi_id → lookup ke allProdi → cek FakultasID prodi
+      const userProdiId = String(u.program_studi_id || u.ProgramStudiID || '')
+      if (userProdiId && userProdiId !== '0' && prodiIdsByFakultas) {
+        return prodiIdsByFakultas.has(userProdiId)
+      }
+
+      // 3️⃣ Fallback: cek via nama fakultas (dari kolom JOIN backend)
+      const userFakNama = (u.fakultas_nama || '').toLowerCase()
+      if (userFakNama) {
+        return userFakNama === selectedFacultyNama
+      }
+
+      // 4️⃣ User tanpa afiliasi fakultas sama sekali (super_admin, psikolog, dll.)
+      //    → tetap tampilkan jika rolenya system-level
+      const isSystemRole = userRoles.some(r => SYSTEM_ROLES.has(r))
+      if (isSystemRole) return true
+
+      // User yang tidak bisa diidentifikasi fakultasnya → sembunyikan saat filter aktif
+      return false
+    })
+  }, [users, activeFacultyId, activeProdiId, allProdi, faculties])
+
 
   const [matrixDraft, setMatrixDraft] = useState({})
   const [expandedModules, setExpandedModules] = useState({})
@@ -844,6 +936,7 @@ export default function UserManagement() {
       ["dosen", "tenaga_kesehatan"],
       ["faculty_admin", "ormawa_admin"],
       ["faculty_admin", "ormawa"],
+      ["ormawa_admin", "prodi_admin"], // Tambah: sinkron dengan backend
     ];
 
     for (const combo of invalidCombinations) {
@@ -1087,8 +1180,20 @@ export default function UserManagement() {
     if (!newRole) { toast.error('Seleksi level akses diperlukan'); return }
     setIsSubmitting(true)
     try {
+      const userId = selected?.id || selected?.ID
+
+      // Jika nama diubah, update nama terlebih dahulu
+      const originalNama = selected?.identity_name || selected?.nama_lengkap || ''
+      if (editNama.trim() && editNama.trim() !== originalNama.trim()) {
+        const namaRes = await adminService.updateUser(userId, { nama_lengkap: editNama.trim() })
+        if (namaRes.status !== 'success') {
+          toast.error(namaRes.message || 'Gagal memperbarui nama')
+          return
+        }
+      }
+
       const res = await adminService.updateUserRole({
-        userId: selected?.id || selected?.ID,
+        userId,
         role: newRole,
         action: 'add',
         ormawaId: Number(newOrmawaId) || 0,
@@ -1098,7 +1203,7 @@ export default function UserManagement() {
         kencanaScopeType: String(newKencanaScopeType || 'faculty').trim()
       })
       if (res.status === 'success') {
-        toast.success('Level otorisasi berhasil diperbarui')
+        toast.success('Level otorisasi & identitas berhasil diperbarui')
         setIsRoleOpen(false)
         fetchData()
       } else {
@@ -1109,15 +1214,21 @@ export default function UserManagement() {
     } finally { setIsSubmitting(false) }
   }
 
+
   const handleDelete = async () => {
     setIsSubmitting(true)
     try {
-      await adminService.deleteUser(selected?.id || selected?.ID)
+      const res = await adminService.deleteUser(selected?.id || selected?.ID)
+      // Backend mengembalikan JSON error (bukan exception), cek status
+      if (res && res.status === 'error') {
+        toast.error(res.message || 'Gagal mencabut entitas akun')
+        return
+      }
       toast.success('Entitas akun berhasil dicabut')
       setIsDelOpen(false)
       fetchData()
-    } catch {
-      toast.error('Gagal mencabut entitas akun')
+    } catch (err) {
+      toast.error(err?.message || 'Gagal mencabut entitas akun')
     } finally {
       setIsSubmitting(false)
     }
@@ -1127,7 +1238,7 @@ export default function UserManagement() {
     {
       key: 'email', label: 'Identitas Digital', className: 'min-w-[320px]',
       render: (v, row) => {
-        const linkedName = row.identity_name || (row.role === 'super_admin' ? 'System Administrator' : 'Pending Identity')
+        const linkedName = row.identity_name || row.nama_lengkap || (row.role === 'super_admin' ? 'System Administrator' : 'Pending Identity')
         return (
           <div className="flex items-center gap-4 py-2 group/avatar">
             <StudentAvatar
@@ -1250,12 +1361,12 @@ export default function UserManagement() {
           <>
             <div className="hidden lg:flex items-center gap-8 pr-8 border-r border-slate-200/40">
               <div className="text-right">
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 font-headline">Total Identity</p>
-                <p className="text-xl font-black text-primary font-headline tabular-nums leading-none">{users.length}</p>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 font-headline">Total Identity{activeFacultyId !== 'all' ? ' (Terfilter)' : ''}</p>
+                <p className="text-xl font-black text-primary font-headline tabular-nums leading-none">{filteredUsers.length}</p>
               </div>
               <div className="text-right">
                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 font-headline">Privileged Nodes</p>
-                <p className="text-xl font-black text-rose-600 font-headline tabular-nums leading-none">{users.filter(u => u.role?.includes('admin') || u.Role?.includes('admin')).length}</p>
+                <p className="text-xl font-black text-rose-600 font-headline tabular-nums leading-none">{filteredUsers.filter(u => u.role?.includes('admin') || u.Role?.includes('admin')).length}</p>
               </div>
             </div>
 
@@ -1300,7 +1411,7 @@ export default function UserManagement() {
         <CardContent className="p-0">
           <DataTable
             columns={columns}
-            data={users}
+            data={filteredUsers}
             loading={loading}
             searchPlaceholder="Search by identity handle, email, or authorization level..."
             onAdd={() => { setForm({ Email: '', Password: '', Role: '', Nama: '', FakultasID: '', ProgramStudiID: '', OrmawaAssign: '', OrmawaID: '', KencanaScopeType: 'faculty', Phone: '' }); setIsCrudOpen(true) }}
@@ -1318,8 +1429,10 @@ export default function UserManagement() {
                     setNewFakultasId(row.fakultas_id || row.FakultasID || '');
                     setNewProdiId(row.program_studi_id || row.ProgramStudiID || '');
                     setNewKencanaScopeType(row.kencana_scope_type || row.KencanaScopeType || 'faculty');
+                    setEditNama(row.identity_name || row.nama_lengkap || '');
                     setIsRoleOpen(true)
                   }}
+
                   variant="ghost"
                   className="h-8 px-3 gap-2 text-slate-400 hover:text-bku-primary hover:bg-bku-primary/5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all border-none shadow-none cursor-pointer"
                 >
@@ -1957,11 +2070,26 @@ export default function UserManagement() {
           <div className="space-y-6 font-inter">
             <div className="space-y-6 px-1">
               <div className="p-5 rounded-2xl bg-white border border-slate-200/50 flex items-center justify-between group">
-                <div className="space-y-1">
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] font-headline">Target Identity</p>
-                  <p className="text-xs font-bold font-inter text-slate-700 truncate max-w-[200px] lowercase">{selected?.Email || selected?.email}</p>
+                <div className="flex items-center gap-3 min-w-0">
+                  {/* Avatar initials */}
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-bku-primary/20 to-bku-primary/10 border border-bku-primary/20 flex items-center justify-center shrink-0">
+                    <span className="text-bku-primary font-black text-sm uppercase">
+                      {(selected?.identity_name || selected?.nama_lengkap || selected?.Email || selected?.email || '?').charAt(0)}
+                    </span>
+                  </div>
+                  <div className="space-y-0.5 min-w-0">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] font-headline">Target Identity</p>
+                    {/* Nama */}
+                    <p className="text-sm font-black font-inter text-slate-800 truncate max-w-[180px] leading-tight">
+                      {selected?.identity_name || selected?.nama_lengkap || '—'}
+                    </p>
+                    {/* Email */}
+                    <p className="text-[10px] font-semibold font-inter text-slate-400 truncate max-w-[180px] lowercase">
+                      {selected?.Email || selected?.email}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-1.5 justify-end max-w-[180px]">
+                <div className="flex flex-wrap gap-1.5 justify-end max-w-[160px] shrink-0">
                   {(selected?.role || selected?.Role || '').split(',').map(r => r.trim()).filter(Boolean).map(r => {
                     const roleOption = roleOptions.find(role => role.value === r)
                     const cfg = roleDetails[r] || { label: roleOption?.label || r, cls: 'bg-neutral-100 text-slate-500 border border-slate-200/60' }
@@ -1972,6 +2100,20 @@ export default function UserManagement() {
                     )
                   })}
                 </div>
+              </div>
+
+              {/* Edit Nama */}
+              <div className="space-y-2">
+                <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">
+                  Edit Nama Identitas
+                </Label>
+                <Input
+                  value={editNama}
+                  onChange={e => setEditNama(e.target.value)}
+                  placeholder="Nama lengkap..."
+                  className="h-11 rounded-xl border-slate-200 bg-slate-50/70 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/20 font-bold text-xs text-slate-800 transition-all font-inter"
+                />
+                <p className="text-[9px] text-slate-400 ml-1">Nama akan diperbarui di semua tabel profil yang terhubung.</p>
               </div>
 
               <div className="space-y-2">

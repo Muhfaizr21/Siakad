@@ -82,7 +82,7 @@ type ProgramStudi struct {
 	Fakultas   Fakultas `gorm:"foreignKey:FakultasID"`
 
 	Nama             string
-	Kode             string `gorm:"uniqueIndex"`
+	Kode             string `gorm:"uniqueIndex:idx_prodi_kode,where:deleted_at IS NULL"`
 	Jenjang          string
 	Akreditasi       string
 	Kapasitas        int

@@ -109,10 +109,11 @@ func ensureDefaultRBACRoles(db *gorm.DB) {
 	for _, role := range defaultRBACRoles {
 		var existing models.RBACRole
 		if err := db.Where("key = ?", role.Key).First(&existing).Error; err == gorm.ErrRecordNotFound {
+			// Role belum ada, buat baru dengan permissions default
 			db.Create(&role)
 		} else {
-			// Update system roles to make sure they are synced with the code
-			existing.Permissions = role.Permissions
+			// Role sudah ada: hanya sync Label & Description, JANGAN overwrite Permissions
+			// agar konfigurasi kustom admin tidak tertimpa setiap restart.
 			existing.Label = role.Label
 			existing.Description = role.Description
 			existing.IsSystem = true
@@ -139,7 +140,7 @@ func GetUsers(c *fiber.Ctx) error {
 		Select(`
 			"public"."users".*, 
 			f.nama as fakultas_nama,
-			COALESCE(m.nama, d.nama, ps.nama, km.name, tk.nama) as identity_name,
+			COALESCE(m.nama, d.nama, ps.nama, km.name, tk.nama, NULLIF(TRIM("public"."users".nama_lengkap), '')) as identity_name,
 			COALESCE(m.nim, d.n_id_n) as identity_code,
 			p.nama as prodi_nama,
 			km.scope_type as kencana_scope_type,
@@ -239,6 +240,10 @@ func UpdateRBACRole(c *fiber.Ctx) error {
 	if err := config.DB.First(&role, c.Params("id")).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Role tidak ditemukan"})
 	}
+	// Proteksi: role super_admin tidak boleh dinonaktifkan
+	if role.Key == "super_admin" && req.Status == "inactive" {
+		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Role super_admin tidak dapat dinonaktifkan"})
+	}
 	if strings.TrimSpace(req.Label) != "" {
 		role.Label = strings.TrimSpace(req.Label)
 	}
@@ -330,36 +335,28 @@ func UpdateUserRole(c *fiber.Ctx) error {
 
 	// 5. Super Admin validations
 	if assignerRole == "super_admin" {
-		// Super Admin CANNOT assign org-level roles directly
-		// pengurus_ormawa harus di-assign via admin_ormawa
-		if req.Role == "pengurus_ormawa" {
+		// Super Admin TIDAK boleh assign role 'ormawa' (pengurus ormawa) langsung.
+		// Harus di-assign oleh ormawa_admin.
+		if req.Role == "ormawa" {
 			return c.Status(403).JSON(fiber.Map{
 				"status":  "error",
-				"message": "Super Admin tidak boleh assign 'pengurus_ormawa' langsung. Role ini harus di-assign oleh admin_ormawa.",
-			})
-		}
-
-		// Super Admin CANNOT assign admin_prodi directly
-		// admin_prodi harus di-assign via admin_fakultas
-		if req.Role == "admin_prodi" && req.FakultasID == 0 {
-			return c.Status(403).JSON(fiber.Map{
-				"status":  "error",
-				"message": "Super Admin tidak boleh assign 'admin_prodi' tanpa scope. Gunakan admin_fakultas untuk assign role ini.",
+				"message": "Super Admin tidak boleh assign role 'ormawa' langsung. Role ini harus di-assign oleh ormawa_admin.",
 			})
 		}
 	}
 
 	// 6. Admin Ormawa validations
-	if assignerRole == "admin_ormawa" {
-		// Admin Ormawa ONLY dapat assign pengurus_ormawa
-		if req.Role != "pengurus_ormawa" {
+	// Key DB yang benar adalah 'ormawa_admin' (bukan 'admin_ormawa')
+	if assignerRole == "ormawa_admin" {
+		// ormawa_admin hanya boleh assign role 'ormawa' (pengurus ormawa)
+		if req.Role != "ormawa" {
 			return c.Status(403).JSON(fiber.Map{
 				"status":  "error",
-				"message": "Admin Ormawa hanya boleh assign 'pengurus_ormawa'",
+				"message": "Admin Ormawa hanya boleh assign role 'ormawa'",
 			})
 		}
 
-		// Admin Ormawa harus punya OrmawaID
+		// ormawa_admin harus sertakan OrmawaID
 		if req.OrmawaID == 0 {
 			return c.Status(400).JSON(fiber.Map{
 				"status":  "error",
@@ -386,17 +383,18 @@ func UpdateUserRole(c *fiber.Ctx) error {
 	}
 
 	// 7. Admin Fakultas validations
-	if assignerRole == "admin_fakultas" {
-		// Admin Fakultas hanya bisa assign admin_prodi
-		allowedRoles := map[string]bool{"admin_prodi": true}
+	// Key DB yang benar adalah 'faculty_admin' (bukan 'admin_fakultas')
+	if assignerRole == "faculty_admin" {
+		// faculty_admin hanya bisa assign prodi_admin
+		allowedRoles := map[string]bool{"prodi_admin": true}
 		if !allowedRoles[req.Role] {
 			return c.Status(403).JSON(fiber.Map{
 				"status":  "error",
-				"message": "Admin Fakultas hanya boleh assign 'admin_prodi'",
+				"message": "Admin Fakultas hanya boleh assign 'prodi_admin'",
 			})
 		}
 
-		// Admin Fakultas harus select FakultasID
+		// faculty_admin harus sertakan FakultasID
 		if req.FakultasID == 0 {
 			return c.Status(400).JSON(fiber.Map{
 				"status":  "error",
@@ -630,14 +628,18 @@ func hasRoleConflict(roles []string) bool {
 	}
 
 	// Define invalid combinations
+	// PENTING: Gunakan key yang sama dengan database (rbac_roles.key)
 	invalidCombinations := [][]string{
 		{"super_admin", "mahasiswa"},
 		{"super_admin", "dosen"},
 		{"super_admin", "psikolog"},
 		{"super_admin", "tenaga_kesehatan"},
-		{"admin_ormawa", "admin_fakultas"},
-		{"admin_ormawa", "admin_prodi"},
-		{"admin_fakultas", "pengurus_ormawa"},
+		// ormawa_admin dan faculty_admin tidak boleh digabung
+		{"ormawa_admin", "faculty_admin"},
+		// ormawa_admin tidak boleh punya prodi_admin sekaligus
+		{"ormawa_admin", "prodi_admin"},
+		// faculty_admin tidak boleh menjadi pengurus ormawa biasa
+		{"faculty_admin", "ormawa"},
 	}
 
 	for _, combo := range invalidCombinations {
@@ -750,6 +752,7 @@ func CreateUser(c *fiber.Ctx) error {
 			Password:     string(hashedPassword),
 			Role:         req.Role,
 			OrmawaAssign: req.OrmawaAssign,
+			NamaLengkap:  req.Nama, // Simpan nama lengkap ke public.users
 		}
 
 		// Set FakultasID for Admin/Faculty roles
@@ -896,10 +899,94 @@ func CreateUser(c *fiber.Ctx) error {
 
 func DeleteUser(c *fiber.Ctx) error {
 	id := c.Params("id")
+
+	// Cari user yang akan dihapus
+	var user models.User
+	if err := config.DB.First(&user, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "User tidak ditemukan"})
+	}
+
+	// Proteksi: akun super_admin tidak boleh dihapus langsung
+	if strings.Contains(user.Role, "super_admin") {
+		// Pastikan masih ada super_admin aktif lainnya
+		var count int64
+		config.DB.Model(&models.User{}).Where("role LIKE ? AND id != ? AND deleted_at IS NULL", "%super_admin%", user.ID).Count(&count)
+		if count == 0 {
+			return c.Status(403).JSON(fiber.Map{
+				"status":  "error",
+				"message": "Tidak dapat menghapus satu-satunya akun Super Admin yang tersisa",
+			})
+		}
+	}
+
 	if err := config.DB.Delete(&models.User{}, id).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to delete user"})
 	}
 	return c.JSON(fiber.Map{"status": "success", "message": "User deleted"})
+}
+
+// UpdateUser allows updating nama_lengkap and no_hp of an existing user,
+// and propagates the name change to linked profile tables.
+func UpdateUser(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	type UpdateRequest struct {
+		NamaLengkap string `json:"nama_lengkap"`
+		NoHP        string `json:"no_hp"`
+	}
+	var req UpdateRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Format data tidak valid"})
+	}
+
+	req.NamaLengkap = strings.TrimSpace(req.NamaLengkap)
+	if req.NamaLengkap == "" {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Nama lengkap tidak boleh kosong"})
+	}
+
+	var user models.User
+	if err := config.DB.First(&user, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "User tidak ditemukan"})
+	}
+
+	// Proteksi: super_admin hanya bisa diupdate oleh super_admin sendiri (sudah dijamin middleware)
+	err := config.DB.Transaction(func(tx *gorm.DB) error {
+		// 1. Update public.users
+		updates := map[string]interface{}{"nama_lengkap": req.NamaLengkap}
+		if req.NoHP != "" {
+			updates["no_hp"] = strings.TrimSpace(req.NoHP)
+		}
+		if err := tx.Model(&user).Updates(updates).Error; err != nil {
+			return err
+		}
+
+		// 2. Propagate ke tabel profil yang relevan
+		roleLower := strings.ToLower(user.Role)
+
+		if strings.Contains(roleLower, "mahasiswa") || strings.Contains(roleLower, "ormawa") {
+			tx.Exec(`UPDATE mahasiswa.mahasiswa SET nama = ?, updated_at = NOW() WHERE pengguna_id = ?`, req.NamaLengkap, user.ID)
+		}
+		if strings.Contains(roleLower, "dosen") {
+			tx.Exec(`UPDATE fakultas.dosen SET nama = ?, updated_at = NOW() WHERE pengguna_id = ?`, req.NamaLengkap, user.ID)
+		}
+		if strings.Contains(roleLower, "psikolog") {
+			tx.Exec(`UPDATE psikolog.profiles SET nama = ?, updated_at = NOW() WHERE user_id = ?`, req.NamaLengkap, user.ID)
+		}
+		if strings.Contains(roleLower, "kencana_mentor") {
+			tx.Exec(`UPDATE mahasiswa.kencana_mentors SET name = ?, updated_at = NOW() WHERE user_id = ?`, req.NamaLengkap, user.ID)
+		}
+		if strings.Contains(roleLower, "tenaga_kesehatan") || strings.Contains(roleLower, "tenagakes") {
+			tx.Exec(`UPDATE public.tenaga_kesehatan SET nama = ?, updated_at = NOW() WHERE user_id = ?`, req.NamaLengkap, user.ID)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menyimpan perubahan: " + err.Error()})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "message": "Identitas berhasil diperbarui"})
 }
 
 // GetDashboardStats returns high-level metrics for University oversight with optional filters
@@ -1909,6 +1996,18 @@ func CreateProgramStudi(c *fiber.Ctx) error {
 	if err := c.BodyParser(&prodi); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Gagal memproses body request: " + err.Error()})
 	}
+
+	// Validasi field wajib
+	if prodi.FakultasID == 0 {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "FakultasID wajib diisi"})
+	}
+	if prodi.Nama == "" {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Nama Program Studi wajib diisi"})
+	}
+	if prodi.Kode == "" {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Kode Program Studi wajib diisi"})
+	}
+
 	if err := config.DB.Create(&prodi).Error; err != nil {
 		fmt.Printf("[ERROR] CreateProgramStudi: %v\n", err)
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menyimpan Prodi: " + err.Error()})

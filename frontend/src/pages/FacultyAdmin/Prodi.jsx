@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils"
 import api from "../../lib/axios"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/Select"
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
-import { pddiktiService, API_BASE_URL } from "../../services/api"
+import { pddiktiService, API_BASE_URL, adminService } from "../../services/api"
 import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "@/components/ui/ResponsiveLayout"
 import { DataTable } from "@/components/ui/DataTable"
 import { Badge } from "@/components/ui/Badge"
@@ -83,8 +83,17 @@ export default function ProdiPage() {
       }
 
       // 2. Fetch real program studies from database
-      const res = await api.get('/faculty/courses');
-      let list = res.data?.data || res.data || [];
+      //    super_admin: /api/admin/prodi (semua prodi)
+      //    faculty_admin / prodi_admin: /faculty/courses (scope ke fakultas)
+      let list = []
+      if (isSuperadmin) {
+        const adminRes = await adminService.getAllProdi()
+        list = adminRes?.data || []
+      } else {
+        const res = await api.get('/faculty/courses')
+        list = res.data?.data || res.data || []
+      }
+
 
       // 3. Auto-seed / Sync to database if database is completely empty so that everything works immediately!
       if (list.length === 0) {
@@ -143,11 +152,21 @@ export default function ProdiPage() {
 
   const fetchFaculties = async () => {
     try {
-      const res = await api.get('/faculty/faculties');
-      const list = res.data?.data || res.data || [];
-      setFaculties(list);
+      // super_admin: gunakan endpoint admin yang mengembalikan SEMUA fakultas
+      // faculty_admin: gunakan endpoint faculty yang scope ke fakultas sendiri
+      if (isSuperadmin) {
+        const res = await adminService.getAllFaculties()
+        // fetchWithAuth mengembalikan {status, data} langsung (bukan axios .data.data)
+        const list = res?.data || []
+        setFaculties(list)
+      } else {
+        const res = await api.get('/faculty/faculties')
+        const list = res.data?.data || res.data || []
+        setFaculties(list)
+      }
     } catch { }
   }
+
 
   useEffect(() => { fetchMajors(); fetchFaculties() }, [])
 
@@ -188,31 +207,86 @@ export default function ProdiPage() {
 
   const handleSave = async (e) => {
     e.preventDefault()
+
+    // ── Validasi wajib ──────────────────────────────────────────
+    const parsedFakID = parseInt(formData.FakultasID)
+    if (!parsedFakID || isNaN(parsedFakID) || parsedFakID === 0) {
+      toast.error('Pilih Fakultas Naungan terlebih dahulu')
+      return
+    }
+    if (!formData.Kode || !formData.Kode.trim()) {
+      toast.error('Kode / Akronim prodi wajib diisi')
+      return
+    }
+    if (!formData.Nama || !formData.Nama.trim()) {
+      toast.error('Nama lengkap Program Studi wajib diisi')
+      return
+    }
+
     setIsSub(true)
     try {
       const payload = {
-        ...formData,
-        FakultasID: parseInt(formData.FakultasID),
-        Kapasitas: parseInt(formData.Kapasitas)
-      }
-      
-      let res;
-      if (isEditMode) {
-        res = await api.put(`/faculty/courses/${formData.ID}`, payload)
-      } else {
-        res = await api.post('/faculty/courses', payload)
+        FakultasID: parsedFakID,
+        Kode:       String(formData.Kode).trim().toUpperCase(),
+        Nama:       String(formData.Nama).trim(),
+        Jenjang:    String(formData.Jenjang || 'S1').trim(),
+        Akreditasi: String(formData.Akreditasi || 'Baik').trim(),
+        Kapasitas:  parseInt(formData.Kapasitas) || 100,
       }
 
-      if (res.data?.status === 'success' || res.status === 200 || res.status === 201) {
-        toast.success(isEditMode ? "Prodi diperbarui" : "Prodi ditambahkan")
-        setIsModal(false)
-        fetchMajors()
+      let res;
+      if (isEditMode) {
+        // Edit: pakai endpoint yang sesuai role
+        if (isSuperadmin) {
+          res = await adminService.updateProdi(formData.ID, payload)
+          if (res?.status === 'success') {
+            toast.success('Program Studi berhasil diperbarui')
+            setIsModal(false)
+            fetchMajors()
+          } else {
+            toast.error(res?.message || 'Gagal memperbarui prodi')
+          }
+        } else {
+          res = await api.put(`/faculty/courses/${formData.ID}`, payload)
+          if (res.data?.status === 'success' || res.status === 200) {
+            toast.success('Program Studi berhasil diperbarui')
+            setIsModal(false)
+            fetchMajors()
+          } else {
+            toast.error(res.data?.message || 'Gagal memperbarui prodi')
+          }
+        }
       } else {
-        toast.error(res.data?.message || 'Gagal menyimpan')
+        // Tambah baru: super_admin → /api/admin/prodi, faculty_admin → /faculty/courses
+        if (isSuperadmin) {
+          res = await adminService.createProdi(payload)
+          if (res?.status === 'success') {
+            toast.success('Program Studi berhasil ditambahkan')
+            setIsModal(false)
+            fetchMajors()
+          } else {
+            toast.error(res?.message || 'Gagal menambahkan prodi')
+          }
+        } else {
+          res = await api.post('/faculty/courses', payload)
+          if (res.data?.status === 'success' || res.status === 200 || res.status === 201) {
+            toast.success('Program Studi berhasil ditambahkan')
+            setIsModal(false)
+            fetchMajors()
+          } else {
+            toast.error(res.data?.message || 'Gagal menambahkan prodi')
+          }
+        }
       }
     } catch (err) {
-      const msg = err.response?.data?.message
-      toast.error(msg?.includes('Duplicate') ? 'Kode/Nama sudah digunakan' : msg || "Sistem sibuk, coba lagi")
+      const serverMsg = err.response?.data?.message || err.message || ''
+      if (serverMsg.toLowerCase().includes('duplicate') || serverMsg.toLowerCase().includes('unique')) {
+        toast.error('Kode atau Nama Prodi sudah terdaftar, gunakan kode/nama lain')
+      } else if (serverMsg) {
+        toast.error(serverMsg)
+      } else {
+        toast.error('Gagal menyimpan. Coba lagi.')
+      }
     } finally {
       setIsSub(false)
     }
