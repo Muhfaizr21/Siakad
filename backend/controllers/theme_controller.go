@@ -18,6 +18,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 // ============================================================
@@ -85,7 +86,14 @@ func (tc *ThemeCache) refresh() error {
 
 	var theme models.ThemeSettings
 	if err := config.DB.First(&theme).Error; err != nil {
-		return fmt.Errorf("failed to fetch theme: %w", err)
+		if err == gorm.ErrRecordNotFound {
+			config.SeedThemeSettings(config.DB)
+			if err = config.DB.First(&theme).Error; err != nil {
+				return fmt.Errorf("failed to fetch theme after seeding: %w", err)
+			}
+		} else {
+			return fmt.Errorf("failed to fetch theme: %w", err)
+		}
 	}
 
 	data, err := json.Marshal(map[string]interface{}{"status": "success", "data": theme})
@@ -259,10 +267,20 @@ func GetPublicTheme(c *fiber.Ctx) error {
 func GetTheme(c *fiber.Ctx) error {
 	var theme models.ThemeSettings
 	if err := config.DB.First(&theme).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"success": false,
-			"message": "Failed to load theme configuration",
-		})
+		if err == gorm.ErrRecordNotFound {
+			config.SeedThemeSettings(config.DB)
+			if err = config.DB.First(&theme).Error; err != nil {
+				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+					"success": false,
+					"message": "Failed to load theme configuration after seeding: " + err.Error(),
+				})
+			}
+		} else {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"success": false,
+				"message": "Failed to load theme configuration: " + err.Error(),
+			})
+		}
 	}
 
 	return c.JSON(fiber.Map{"success": true, "data": theme})
@@ -305,10 +323,20 @@ func UpdateTheme(c *fiber.Ctx) error {
 
 	var theme models.ThemeSettings
 	if err := config.DB.First(&theme).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"success": false,
-			"message": "Theme not found",
-		})
+		if err == gorm.ErrRecordNotFound {
+			config.SeedThemeSettings(config.DB)
+			if err = config.DB.First(&theme).Error; err != nil {
+				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+					"success": false,
+					"message": "Theme not found and failed to seed: " + err.Error(),
+				})
+			}
+		} else {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"success": false,
+				"message": "Theme not found: " + err.Error(),
+			})
+		}
 	}
 
 	allowedFields := map[string]*string{
@@ -471,10 +499,20 @@ func ResetTheme(c *fiber.Ctx) error {
 
 	var theme models.ThemeSettings
 	if err := config.DB.First(&theme).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"success": false,
-			"message": "Theme not found",
-		})
+		if err == gorm.ErrRecordNotFound {
+			config.SeedThemeSettings(config.DB)
+			if err = config.DB.First(&theme).Error; err != nil {
+				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+					"success": false,
+					"message": "Theme not found and failed to seed: " + err.Error(),
+				})
+			}
+		} else {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"success": false,
+				"message": "Theme not found: " + err.Error(),
+			})
+		}
 	}
 
 	for key, value := range defaults {
@@ -570,11 +608,22 @@ func handleUpload(c *fiber.Ctx, field string) error {
 
 	var theme models.ThemeSettings
 	if err := config.DB.First(&theme).Error; err != nil {
-		os.Remove(savePath)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"success": false,
-			"message": "Theme not found",
-		})
+		if err == gorm.ErrRecordNotFound {
+			config.SeedThemeSettings(config.DB)
+			if err = config.DB.First(&theme).Error; err != nil {
+				os.Remove(savePath)
+				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+					"success": false,
+					"message": "Theme not found and failed to seed: " + err.Error(),
+				})
+			}
+		} else {
+			os.Remove(savePath)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"success": false,
+				"message": "Theme not found: " + err.Error(),
+			})
+		}
 	}
 
 	url := fmt.Sprintf("/uploads/branding/%s", filename)

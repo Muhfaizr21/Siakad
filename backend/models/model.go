@@ -126,7 +126,7 @@ func (Dosen) TableName() string {
 
 type Mahasiswa struct {
 	BaseModel
-	PenggunaID uint
+	PenggunaID uint `gorm:"unique;not null"`
 	Pengguna   User `gorm:"foreignKey:PenggunaID;references:ID"`
 
 	NIM  string `gorm:"uniqueIndex"`

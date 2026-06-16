@@ -1364,7 +1364,7 @@ func GetAllFakultas(c *fiber.Ctx) error {
 		JumlahProdi int `json:"jumlah_prodi"`
 	}
 
-	var result []FacultyWithCount
+	result := []FacultyWithCount{}
 	for _, f := range faks {
 		result = append(result, FacultyWithCount{
 			Fakultas:    f,

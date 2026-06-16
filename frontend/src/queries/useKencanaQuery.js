@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'react-router-dom';
 import api from '../lib/axios';
 
-const unwrap = (res) => res.data?.data ?? res.data;
+const unwrap = (res) => res.data && typeof res.data === 'object' && 'data' in res.data ? res.data.data : res.data;
 const isKencanaPath = (pathname) => pathname.startsWith('/student/kencana');
 
 export const useKencanaDashboardQuery = (options = {}) => {

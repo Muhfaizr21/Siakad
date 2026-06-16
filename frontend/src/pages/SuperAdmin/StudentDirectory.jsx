@@ -24,6 +24,17 @@ import { PageContent, PageCard } from '@/components/ui/page'
 import { DashboardHero, DashboardStatGrid, DashboardStatCard } from '@/components/ui/dashboard'
 import { PrimaryStatsCard, SecondaryStatsCard } from '@/components/ui/StatsCard'
 
+const toArray = (x) => {
+  if (!x) return [];
+  if (Array.isArray(x)) return x;
+  if (x.data) {
+    if (Array.isArray(x.data)) return x.data;
+    if (x.data.data && Array.isArray(x.data.data)) return x.data.data;
+  }
+  if (Array.isArray(x.data)) return x.data;
+  return [];
+};
+
 /* ═══════════════════════════════════════════════════════════════════════════ */
 /*  SearchableSelect — A styled, searchable dropdown option list               */
 /* ═══════════════════════════════════════════════════════════════════════════ */
@@ -292,7 +303,7 @@ export default function StudentDirectory() {
       try {
         const res = await api.get('/kencana/progress', config)
         if (res.data?.success || res.data) {
-          setTabData(prev => ({ ...prev, kencana: res.data?.data || res.data }))
+          setTabData(prev => ({ ...prev, kencana: toArray(res) }))
         }
       } catch (err) {
         console.error("Gagal memuat data PKKMB:", err)
@@ -310,9 +321,9 @@ export default function StudentDirectory() {
           api.get('/student-health/riwayat', config)
         ])
 
-        const counselingData = counsRes.status === 'fulfilled' ? (counsRes.value.data?.data || counsRes.value.data) : []
-        const healthBookingsData = hbRes.status === 'fulfilled' ? (hbRes.value.data?.data || hbRes.value.data) : []
-        const healthRecordsData = hrRes.status === 'fulfilled' ? (hrRes.value.data?.data || hrRes.value.data) : []
+        const counselingData = counsRes.status === 'fulfilled' ? toArray(counsRes.value) : []
+        const healthBookingsData = hbRes.status === 'fulfilled' ? toArray(hbRes.value) : []
+        const healthRecordsData = hrRes.status === 'fulfilled' ? toArray(hrRes.value) : []
 
         setTabData(prev => ({
           ...prev,
@@ -335,8 +346,8 @@ export default function StudentDirectory() {
           api.get('/achievement', config)
         ])
 
-        const scholarshipsData = schRes.status === 'fulfilled' ? (schRes.value.data?.data || schRes.value.data) : []
-        const achievementsData = achRes.status === 'fulfilled' ? (achRes.value.data?.data || achRes.value.data) : []
+        const scholarshipsData = schRes.status === 'fulfilled' ? toArray(schRes.value) : []
+        const achievementsData = achRes.status === 'fulfilled' ? toArray(achRes.value) : []
 
         setTabData(prev => ({
           ...prev,
@@ -358,8 +369,8 @@ export default function StudentDirectory() {
           api.get('/student-voice', config)
         ])
 
-        const organisasiData = orgRes.status === 'fulfilled' ? (orgRes.value.data?.data || orgRes.value.data) : []
-        const aspirasiData = aspRes.status === 'fulfilled' ? (aspRes.value.data?.data || aspRes.value.data) : []
+        const organisasiData = orgRes.status === 'fulfilled' ? toArray(orgRes.value) : []
+        const aspirasiData = aspRes.status === 'fulfilled' ? toArray(aspRes.value) : []
 
         setTabData(prev => ({
           ...prev,

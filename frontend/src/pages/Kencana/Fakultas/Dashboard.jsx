@@ -26,7 +26,8 @@ const Dashboard = () => {
   const { data: groups, isLoading: isGroupsLoading } = useGroupsQuery({ limit: 10000 }, 'fakultas');
   const { data: scores, isLoading: isScoresLoading } = useFakultasScoresQuery({ limit: 10000 });
 
-  const totalParticipants = participants?.length || 0;
+  const participantsList = Array.isArray(participants) ? participants : [];
+  const totalParticipants = participantsList.length;
   const facultyMentors = mentors?.filter(m => m.scope_type === 'faculty' || m.scopeType === 'faculty') || [];
   const totalMentors = facultyMentors.length;
   const totalGroups = groups?.length || 0;
@@ -38,8 +39,9 @@ const Dashboard = () => {
   let scoreSum = 0;
   let scoreCount = 0;
   let cogSum = 0, psySum = 0, affSum = 0;
+  const scoresList = Array.isArray(scores) ? scores : [];
 
-  scores?.forEach(s => {
+  scoresList.forEach(s => {
     const status = (s.graduation_status || s.GraduationStatus || '').toLowerCase();
     if (status === 'passed') passedCount++;
     else if (status === 'remedial') remedialCount++;
@@ -65,7 +67,7 @@ const Dashboard = () => {
 
   // Breakdown per program studi (major)
   const prodiMap = {};
-  participants?.forEach(p => {
+  participantsList.forEach(p => {
     const pname = p.program_studi_name || 'Tanpa Prodi';
     if (!prodiMap[pname]) {
       prodiMap[pname] = { count: 0 };

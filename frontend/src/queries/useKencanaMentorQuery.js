@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/axios';
 
-const unwrap = (res) => res.data?.data ?? res.data;
+const unwrap = (res) => res.data && typeof res.data === 'object' && 'data' in res.data ? res.data.data : res.data;
 const asArray = (value) => Array.isArray(value) ? value : [];
 
 // ─── Mentor Dashboard ───

@@ -43,6 +43,16 @@ const JENJANG_COLORS = {
 }
 
 const EMPTY_FORM = { ID: null, FakultasID: "", Kode: "", Nama: "", Jenjang: "S1", Akreditasi: "Baik", Kapasitas: 100 }
+const toArray = (x) => {
+  if (!x) return [];
+  if (Array.isArray(x)) return x;
+  if (x.data) {
+    if (Array.isArray(x.data)) return x.data;
+    if (x.data.data && Array.isArray(x.data.data)) return x.data.data;
+  }
+  if (Array.isArray(x.data)) return x.data;
+  return [];
+};
 
 export default function ProdiPage() {
   const user = useAuthStore(state => state.user)
@@ -74,7 +84,7 @@ export default function ProdiPage() {
       if (!activeFacultyID) {
         try {
           const facRes = await api.get('/faculty/faculties');
-          const facList = facRes.data?.data || facRes.data || [];
+          const facList = toArray(facRes);
           if (facList.length > 0) {
             activeFacultyID = facList[0].ID;
             setFaculties(facList);
@@ -88,43 +98,28 @@ export default function ProdiPage() {
       let list = []
       if (isSuperadmin) {
         const adminRes = await adminService.getAllProdi()
-        list = adminRes?.data || []
+        list = toArray(adminRes)
       } else {
         const res = await api.get('/faculty/courses')
-        list = res.data?.data || res.data || []
+        list = toArray(res)
       }
 
 
       // 3. Auto-seed / Sync to database if database is completely empty so that everything works immediately!
       if (list.length === 0) {
-        // Fetch raw template from PDDIKTI
-        const pddiktiRes = await pddiktiService.fetchData('Bhakti Kencana', 'prodi');
-        const rawProdis = pddiktiRes?.prodi || pddiktiRes?.data?.prodi || (Array.isArray(pddiktiRes) ? pddiktiRes : []);
+        // Fetch raw template from PDDIKTI (this triggers backend background sync)
+        await pddiktiService.fetchData('Bhakti Kencana', 'prodi');
         
-        if (rawProdis.length > 0) {
-          toast.loading("Mensinkronisasikan Program Studi ke database...", { id: "seeding-prodi" });
-          for (const [idx, p] of rawProdis.entries()) {
-            try {
-              // Generate realistic unique code
-              const generatedCode = p.nama?.substring(0, 3).toUpperCase() + "-" + p.jenjang + (idx + 1);
-              const payload = {
-                FakultasID: activeFacultyID || 1,
-                Nama: p.nama,
-                Jenjang: p.jenjang,
-                Kode: generatedCode,
-                Akreditasi: ['Unggul', 'Baik Sekali', 'Baik'][idx % 3],
-                Kapasitas: 120
-              };
-              await api.post('/faculty/courses', payload);
-            } catch (err) {
-              console.error("Auto-sync failed for course row:", err);
-            }
-          }
-          toast.success("Sinkronisasi otomatis prodi berhasil!", { id: "seeding-prodi" });
-          
-          // Re-fetch from database now that it is synced!
+        // Wait 1.5 seconds for the backend background worker to write initial records to database
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // Re-fetch from database now that it is synced!
+        if (isSuperadmin) {
+          const adminRes = await adminService.getAllProdi();
+          list = toArray(adminRes);
+        } else {
           const reFetch = await api.get('/faculty/courses');
-          list = reFetch.data?.data || reFetch.data || [];
+          list = toArray(reFetch);
         }
       }
 
@@ -156,12 +151,11 @@ export default function ProdiPage() {
       // faculty_admin: gunakan endpoint faculty yang scope ke fakultas sendiri
       if (isSuperadmin) {
         const res = await adminService.getAllFaculties()
-        // fetchWithAuth mengembalikan {status, data} langsung (bukan axios .data.data)
-        const list = res?.data || []
+        const list = toArray(res)
         setFaculties(list)
       } else {
         const res = await api.get('/faculty/faculties')
-        const list = res.data?.data || res.data || []
+        const list = toArray(res)
         setFaculties(list)
       }
     } catch { }

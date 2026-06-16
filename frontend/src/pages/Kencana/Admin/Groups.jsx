@@ -104,12 +104,13 @@ const Groups = ({ portal: propPortal, facultyId: propFacultyId }) => {
     setShowMembersModal(true);
   };
 
+  const periodsList = Array.isArray(periods) ? periods : [];
   useEffect(() => {
-    if (!selectedPeriodId && periods?.length) {
-      const active = periods.find(p => p.status === 'active' || p.status === 'published') || periods[0];
+    if (!selectedPeriodId && periodsList.length) {
+      const active = periodsList.find(p => p.status === 'active' || p.status === 'published') || periodsList[0];
       setSelectedPeriodId(String(active.id));
     }
-  }, [periods, selectedPeriodId]);
+  }, [periodsList, selectedPeriodId]);
 
   useEffect(() => {
     if (propFacultyId && String(selectedFacultyFilter) !== String(propFacultyId)) {
@@ -210,7 +211,7 @@ const Groups = ({ portal: propPortal, facultyId: propFacultyId }) => {
                 placeholder="Pilih Periode..."
                 className="min-w-[160px] h-8 bg-white/90 border-0"
               >
-                {periods?.map(p => (
+                {periodsList.map(p => (
                   <SelectOption key={p.id} value={String(p.id)}>
                     {p.name}
                   </SelectOption>

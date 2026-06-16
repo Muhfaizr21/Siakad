@@ -71,12 +71,7 @@ export default function KelolaOrganisasi() {
 
   // Gamification states
   const [sortBy, setSortBy] = useState('xp') // 'xp' | 'lpj' | 'bintang'
-  const [lpjSubmissions, setLpjSubmissions] = useState([
-    { id: 'lpj-1', ormawaName: 'BEM Farmasi', ormawaSingkatan: 'BEM-F', title: 'LPJ Seminar Kesehatan Nasional 2026', date: '2026-05-24', status: 'Pending', xpReward: 100 },
-    { id: 'lpj-2', ormawaName: 'HIMA Informatika', ormawaSingkatan: 'HIMA-IF', title: 'LPJ BKU Tech Olympiad & Hackathon', date: '2026-05-26', status: 'Pending', xpReward: 100 },
-    { id: 'lpj-3', ormawaName: 'HIMA Keperawatan', ormawaSingkatan: 'HIMA-KP', title: 'LPJ Pengabdian Masyarakat & Bakti Sosial', date: '2026-05-20', status: 'Overdue', xpReward: -50 },
-    { id: 'lpj-4', ormawaName: 'KSR PMI Unit BKU', ormawaSingkatan: 'MAPALA-BKU', title: 'LPJ Donor Darah Serentak', date: '2026-05-28', status: 'Approved', xpReward: 100 }
-  ])
+  const [lpjSubmissions, setLpjSubmissions] = useState([])
 
   const [selectedLpj, setSelectedLpj] = useState(null)
   const [isLpjDetailOpen, setIsLpjDetailOpen] = useState(false)
@@ -145,7 +140,7 @@ export default function KelolaOrganisasi() {
       if (katRes && katRes.data) setKategoris(katRes.data.data || katRes.data)
       if (fakRes && fakRes.data) setFakultasList(fakRes.data.data || fakRes.data)
 
-      if (res.status === 'success' && res.data && res.data.length > 0) {
+      if (res.status === 'success' && res.data) {
         let fetchedData = res.data
 
         // Apply ormawa filter from topbar switcher (same pattern as KelolaFakultas)
@@ -156,20 +151,26 @@ export default function KelolaOrganisasi() {
           )
         }
 
-        setData(enrichOrmawaData(fetchedData.length > 0 ? fetchedData : res.data))
+        setData(enrichOrmawaData(fetchedData))
       } else {
-        setData(enrichOrmawaData(offlineOrmawaSeed))
+        setData([])
       }
 
-      if (lpjRes && lpjRes.status === 'success' && lpjRes.data && lpjRes.data.length > 0) {
+      if (lpjRes && lpjRes.status === 'success' && lpjRes.data) {
         setLpjSubmissions(lpjRes.data)
+      } else {
+        setLpjSubmissions([])
       }
 
       if (propRes && propRes.status === 'success' && propRes.data) {
         setProposals(propRes.data)
+      } else {
+        setProposals([])
       }
     } catch {
-      setData(enrichOrmawaData(offlineOrmawaSeed))
+      setData([])
+      setLpjSubmissions([])
+      setProposals([])
     } finally {
       setLoading(false)
     }

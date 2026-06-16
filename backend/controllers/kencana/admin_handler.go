@@ -953,7 +953,7 @@ func ListParticipants(c *fiber.Ctx) error {
 		}
 	}
 
-	var results []fiber.Map
+	results := []fiber.Map{}
 	for _, s := range students {
 		mentorName := "-"
 		if a, ok := assignmentMap[s.ID]; ok {
@@ -2425,7 +2425,7 @@ func SearchStudents(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": err.Error()})
 	}
 	
-	var results []map[string]interface{}
+	results := []map[string]interface{}{}
 	for _, s := range students {
 		results = append(results, map[string]interface{}{
 			"id": s.ID,
