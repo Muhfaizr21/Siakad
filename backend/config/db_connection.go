@@ -47,6 +47,8 @@ func ConnectDB() {
 		log.Println("Migrations Completed")
 		SeedThemeSettings(db)
 		InitialSyncLandingSettings(db)
+		InitialSyncKategoriOrmawa(db)
+		InitialSyncGamifikasiRules(db)
 		// Migrate mobile theme columns if not exists
 		MigrateMobileThemeColumns(db)
 	}
