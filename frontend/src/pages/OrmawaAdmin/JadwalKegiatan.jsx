@@ -1,457 +1,839 @@
+"use client"
 import React, { useState, useEffect } from 'react';
-import Sidebar from './components/Sidebar';
-import TopNavBar from './components/TopNavBar';
-import { useAuth } from '../../context/AuthContext';
+import { PageContent } from '@/components/ui/page';
+import { DashboardHero } from '@/components/ui/dashboard';
+import { DataTable } from '@/components/ui/DataTable'
 
-const JadwalKegiatan = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user } = useAuth();
-  const ormawaId = user?.ormawaId || 1;
-  const [events, setEvents] = useState([]);
-  const [viewMode, setViewMode] = useState('calendar'); 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false); // New state for custom picker
-  const [editingId, setEditingId] = useState(null);
-  const [conflictWarning, setConflictWarning] = useState(null);
-  const [currDate, setCurrDate] = useState(new Date()); // New state for navigation
-  const [formData, setFormData] = useState({
-    title: '', date: '', startTime: '', endTime: '', location: '', type: 'internal', reminder: false
-  });
 
-  const openAddModal = (initialDate = null) => {
-    setFormData({
-      title: '', 
-      date: initialDate || '', 
-      startTime: '', 
-      endTime: '', 
-      location: '', 
-      type: 'internal', 
-      reminder: false
-    });
-    setIsModalOpen(true);
-  };
 
-  useEffect(() => {
-    fetchEvents();
-  }, [ormawaId]);
+import { Badge } from '@/components/ui/Badge'
+import { Button } from '@/components/ui/Button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
+import { DialogModal, ModalCancelButton, ModalSaveButton } from '@/components/ui/DialogModal'
+import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
+import { SelectField, SelectOption } from '@/components/ui/SelectField'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { PrimaryStatsCard } from '@/components/ui/StatsCard'
+import { Input } from '@/components/ui/Input'
+import { Label } from '@/components/ui/Label'
+import { Textarea } from '@/components/ui/Textarea'
+import { Calendar } from '@/components/ui/Calendar'
+
+import { toast, Toaster } from 'react-hot-toast'
+import { cn } from '@/lib/utils'
+
+import { fetchWithAuth, API_BASE_URL } from '../../services/api'
+import useAuthStore from '../../store/useAuthStore'
+import { getOrmawaId } from '../../utils/getOrmawaId'
+
+const API = `${API_BASE_URL}/ormawa`
+
+const CalendarMonthIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>calendar_month</span>;
+const PendingIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>pending</span>;
+const ScheduleIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>schedule</span>;
+const CheckCircleIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>check_circle</span>;
+
+const STATUS_CFG = {
+  terjadwal: { label: 'Terjadwal', cls: 'bg-blue-50 text-blue-700 border-blue-100/60 shadow-sm', icon: 'schedule' },
+  berlangsung: { label: 'Berlangsung', cls: 'bg-amber-50 text-amber-700 border-amber-100/60 shadow-sm', icon: 'pending' },
+  selesai: { label: 'Selesai', cls: 'bg-emerald-50 text-emerald-700 border-emerald-100/60 shadow-sm', icon: 'check_circle' },
+  dibatalkan: { label: 'Dibatalkan', cls: 'bg-rose-50 text-rose-700 border-rose-100/60 shadow-sm', icon: 'cancel' },
+}
+
+const formatRp = (n) => {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0
+  }).format(n || 0)
+}
+
+const formatRupiahInput = (value) => {
+  if (!value) return ''
+  const numberString = value.toString().replace(/[^,\d]/g, '')
+  const split = numberString.split(',')
+  const sisa = split[0].length % 3
+  let rupiah = split[0].substr(0, sisa)
+  const ribuan = split[0].substr(sisa).match(/\d{3}/gi)
+
+  if (ribuan) {
+    const separator = sisa ? '.' : ''
+    rupiah += separator + ribuan.join('.')
+  }
+
+  rupiah = split[1] !== undefined ? rupiah + ',' + split[1] : rupiah
+  return rupiah
+}
+
+const parseRupiahInput = (value) => {
+  if (!value) return 0
+  return Number(value.toString().replace(/[^0-9]/g, ''))
+}
+
+
+export default function JadwalKegiatan() {
+  const [data, setData] = useState([])
+  const [proposals, setProposals] = useState([])
+  const [announcements, setAnnouncements] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [selected, setSelected] = useState(null)
+  const [isDetailOpen, setIsDetailOpen] = useState(false)
+  const [isCrudOpen, setIsCrudOpen] = useState(false)
+  const [isDelOpen, setIsDelOpen] = useState(false)
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [selectedFilterDate, setSelectedFilterDate] = useState(null)
+  const ormawaId = getOrmawaId()
+  const [form, setForm] = useState({
+    Judul: '',
+    Deskripsi: '',
+    TanggalMulai: '',
+    TanggalSelesai: '',
+    Lokasi: '',
+    Status: 'terjadwal',
+    OrmawaID: ormawaId,
+    LandasanKegiatan: '',
+    BentukKegiatan: '',
+    Mitra: '',
+    LatarBelakang: '',
+    TujuanKegiatan: '',
+    JadwalPelaksanaan: '',
+    SasaranKegiatan: '',
+    IndikatorKeberhasilan: '',
+    SumberDana: '',
+    EstimasiDana: '',
+    PJKegiatan: ''
+  })
 
   const fetchEvents = async () => {
+    setLoading(true)
     try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/events?ormawaId=${ormawaId}`);
-      const data = await res.json();
-      if (data.status === 'success') setEvents(data.data);
-    } catch (e) { console.error(e); }
-  };
+      const [resEv, resProp, resAnn] = await Promise.all([
+        fetchWithAuth(`${API}/events?ormawaId=${ormawaId}`),
+        fetchWithAuth(`${API}/proposals?ormawaId=${ormawaId}`),
+        fetchWithAuth(`${API}/announcements?ormawaId=${ormawaId}`)
+      ])
+      if (resEv.status === 'success') setData(resEv.data || [])
+      if (resProp.status === 'success') setProposals(resProp.data || [])
+      if (resAnn.status === 'success') setAnnouncements(resAnn.data || [])
+    } catch {
+      toast.error('Koneksi gagal')
+    } finally {
+      setLoading(false)
+    }
+  }
 
-  const deleteEvent = async (id) => {
-    if (!window.confirm("Hapus permanen kegiatan ini?")) return;
+  useEffect(() => {
+    fetchEvents()
+  }, [ormawaId])
+
+  const handleOpenAdd = () => {
+    setIsEditMode(false)
+    setForm({
+      Judul: '',
+      Deskripsi: '',
+      Lokasi: '',
+      TanggalMulai: '',
+      TanggalSelesai: '',
+      Status: 'terjadwal',
+      OrmawaID: ormawaId,
+      LandasanKegiatan: '',
+      BentukKegiatan: '',
+      Mitra: '',
+      LatarBelakang: '',
+      TujuanKegiatan: '',
+      JadwalPelaksanaan: '',
+      SasaranKegiatan: '',
+      IndikatorKeberhasilan: '',
+      SumberDana: '',
+      EstimasiDana: '',
+      PJKegiatan: ''
+    })
+    setIsCrudOpen(true)
+  }
+
+  const handleOpenEdit = (row) => {
+    setIsEditMode(true)
+    setForm({
+      ID: row.id || row.ID,
+      Judul: row.Judul || row.judul || '',
+      Deskripsi: row.Deskripsi || row.deskripsi || '',
+      Lokasi: row.Lokasi || row.lokasi || '',
+      TanggalMulai: row.TanggalMulai ? row.TanggalMulai.split('T')[0] : (row.tanggalMulai ? row.tanggalMulai.split('T')[0] : ''),
+      TanggalSelesai: row.TanggalSelesai ? row.TanggalSelesai.split('T')[0] : (row.tanggalSelesai ? row.tanggalSelesai.split('T')[0] : ''),
+      Status: row.Status || row.status || 'terjadwal',
+      OrmawaID: ormawaId,
+
+      LandasanKegiatan: row.LandasanKegiatan || row.landasan_kegiatan || '',
+      BentukKegiatan: row.BentukKegiatan || row.bentuk_kegiatan || '',
+      Mitra: row.Mitra || row.mitra || '',
+      LatarBelakang: row.LatarBelakang || row.latar_belakang || '',
+      TujuanKegiatan: row.TujuanKegiatan || row.tujuan_kegiatan || '',
+      JadwalPelaksanaan: row.JadwalPelaksanaan || row.jadwal_pelaksanaan || '',
+      SasaranKegiatan: row.SasaranKegiatan || row.sasaran_kegiatan || '',
+      IndikatorKeberhasilan: row.IndikatorKeberhasilan || row.indikator_keberhasilan || '',
+      SumberDana: row.SumberDana || row.sumber_dana || '',
+      EstimasiDana: row.EstimasiDana || row.estimasi_dana || '',
+      PJKegiatan: row.PJKegiatan || row.pj_kegiatan || '',
+    })
+    setIsCrudOpen(true)
+  }
+
+  const handleSave = async (e) => {
+    e.preventDefault()
+
+    if (form.TanggalSelesai && new Date(form.TanggalSelesai) < new Date(form.TanggalMulai)) {
+      toast.error('Tanggal selesai tidak boleh sebelum tanggal mulai')
+      return
+    }
+
+    setIsSubmitting(true)
+    const url = isEditMode ? `${API}/events/${form.ID || form.id}` : `${API}/events`
+    const method = isEditMode ? 'PUT' : 'POST'
+    const payload = {
+      ...form,
+      OrmawaID: Number(form.OrmawaID),
+      EstimasiDana: Number(form.EstimasiDana || 0),
+      TanggalMulai: form.TanggalMulai ? new Date(form.TanggalMulai).toISOString() : null,
+      TanggalSelesai: form.TanggalSelesai ? new Date(form.TanggalSelesai).toISOString() : null
+    }
     try {
-       const res = await fetch(`http://localhost:8000/api/ormawa/events/${id}`, { method: 'DELETE' });
-       if (res.ok) fetchEvents();
-    } catch (e) { console.error(e); }
-  };
-
-  const loadEventForEdit = (ev) => {
-    setEditingId(ev.id);
-    setFormData({
-      title: ev.title,
-      date: ev.startDate ? ev.startDate.split('T')[0] : '',
-      startTime: ev.startDate ? new Date(ev.startDate).toTimeString().slice(0,5) : '',
-      endTime: ev.endDate ? new Date(ev.endDate).toTimeString().slice(0,5) : '',
-      location: ev.location,
-      type: ev.description || 'internal',
-      reminder: ev.reminder || false
-    });
-    setIsModalOpen(true);
-  };
-
-  const getDayGrid = () => {
-    const year = currDate.getFullYear();
-    const month = currDate.getMonth();
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    
-    let grid = [];
-    // Padding from prev month
-    for(let i = 0; i < firstDay; i++) {
-       grid.push({ type: 'empty', id: `empty-${i}` });
-    }
-    // Days in current month
-    for(let i = 1; i <= daysInMonth; i++) {
-      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-      grid.push({ type: 'day', dateStr, dayNum: i });
-    }
-    return grid;
-  };
-
-  const days = getDayGrid();
-
-  const changeMonth = (offset) => {
-    setCurrDate(new Date(currDate.getFullYear(), currDate.getMonth() + offset, 1));
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
-    setConflictWarning(null); 
-  };
-
-  const checkConflict = () => {
-    const conflict = (events || []).find(ev => ev.startDate && ev.startDate.startsWith(formData.date) && ev.status === 'terjadwal');
-    if(conflict) {
-      setConflictWarning(`Peringatan Konflik! Sudah ada kegiatan: "${conflict.title}" pada lokasi ${conflict.location} di hari yang sama.`);
-      return true;
-    }
-    return false;
-  };
-
-  const saveEvent = async (e) => {
-    e.preventDefault();
-    if(checkConflict() && !conflictWarning) return; 
-    
-    try {
-      const payload = {
-        title: formData.title,
-        description: formData.type,
-        startDate: new Date(`${formData.date}T${formData.startTime}`).toISOString(),
-        endDate: new Date(`${formData.date}T${formData.endTime}`).toISOString(),
-        location: formData.location,
-        ormawaId: Number(ormawaId)
-      };
-
-      if (editingId) {
-        await ormawaService.updateEvent(editingId, payload);
+      const data = await fetchWithAuth(url, { method, body: JSON.stringify(payload), headers: { 'Content-Type': 'application/json' } })
+      if (data.status === 'success') {
+        toast.success(isEditMode ? 'Kegiatan diperbarui' : 'Kegiatan dijadwalkan')
+        setIsCrudOpen(false)
+        fetchEvents()
       } else {
-        await ormawaService.createEvent(payload);
+        toast.error(data.message || 'Gagal menyimpan')
       }
+    } catch {
+      toast.error('Terjadi kesalahan')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
-      setIsModalOpen(false);
-      setEditingId(null);
-      setFormData({ title: '', date: '', startTime: '', endTime: '', location: '', type: 'internal', reminder: false });
-      fetchEvents();
-    } catch (e) { console.error(e); }
-  };
-
-  const cancelEvent = async (id) => {
-    if (!window.confirm("Hapus kegiatan ini?")) return;
+  const handleDelete = async () => {
+    setIsSubmitting(true)
     try {
-      await ormawaService.updateEvent(id, { status: 'dibatalkan' });
-      fetchEvents();
-    } catch (e) { console.error(e); }
-  };
+      const data = await fetchWithAuth(`${API}/events/${selected.id || selected.ID}`, { method: 'DELETE' })
+      if (data.status === 'success') {
+        toast.success('Kegiatan dibatalkan')
+        setIsDelOpen(false)
+        fetchEvents()
+      } else {
+        toast.error('Gagal menghapus')
+      }
+    } catch {
+      toast.error('Terjadi kesalahan')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const columns = [
+    {
+      key: 'Judul',
+      label: 'Nama Kegiatan',
+      className: 'min-w-[280px]',
+      render: (v, row) => (
+        <div className="flex flex-col leading-none gap-1">
+          <span className="font-bold text-[var(--theme-text)] font-headline tracking-tighter text-[13px]">{v || '—'}</span>
+          <span className="text-[10px] text-[var(--theme-text-subtle)] font-semibold tracking-tight font-mono flex items-center gap-1">
+            <span className="material-symbols-outlined normal-case" style={{ fontSize: '11px' }}>location_on</span>
+            <span>{row.Lokasi || 'Belum ditentukan'}</span>
+          </span>
+        </div>
+      )
+    },
+    {
+      key: 'TanggalMulai',
+      label: 'Jadwal Pelaksanaan',
+      className: 'w-[240px]',
+      render: (v, row) => {
+        const start = v || row.tanggalMulai
+        const end = row.TanggalSelesai || row.tanggalSelesai
+        return (
+          <div className="flex flex-col leading-none gap-1">
+            <span className="font-bold text-[var(--theme-text)] font-headline text-[11px]">
+              {start ? new Date(start).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+            </span>
+            {end && (
+              <span className="text-[9px] text-[var(--theme-text-subtle)] font-bold tracking-wider uppercase">
+                s/d {new Date(end).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+              </span>
+            )}
+          </div>
+        )
+      }
+    },
+    {
+      key: 'Status',
+      label: 'Status Agenda',
+      className: 'w-[160px] text-center',
+      cellClassName: 'text-center',
+      render: (v) => {
+        const cfg = STATUS_CFG[v] || { label: v, cls: 'bg-[var(--theme-bg)] text-[var(--theme-text-subtle)]', icon: 'info' }
+        return (
+          <div className="flex justify-center">
+            <Badge className={cn('font-semibold text-[9px] tracking-wider uppercase px-2.5 py-1 border-none shadow-none flex items-center gap-1 w-max mx-auto rounded-full', cfg.cls)}>
+              <span className="material-symbols-outlined normal-case" style={{ fontSize: '11px' }}>{cfg.icon}</span>
+              <span>{cfg.label}</span>
+            </Badge>
+          </div>
+        )
+      }
+    }
+  ]
+
+  const totalEvents = data.length
+  const activeEvents = data.filter(e => (e.Status || e.status) === 'berlangsung').length
+  const upcomingEvents = data.filter(e => (e.Status || e.status) === 'terjadwal').length
+  const completedEvents = data.filter(e => (e.Status || e.status) === 'selesai').length
+
+  const eventDates = React.useMemo(() => {
+    const dates = [];
+    data.forEach(d => {
+      const dStr = d.TanggalMulai || d.tanggalMulai;
+      if (dStr) dates.push(new Date(dStr));
+    });
+    proposals.forEach(p => {
+      const pStr = p.TanggalKegiatan || p.tanggal_kegiatan || p.CreatedAt || p.created_at;
+      if (pStr) dates.push(new Date(pStr));
+    });
+    announcements.forEach(a => {
+      const aStr = a.TanggalMulai || a.CreatedAt || a.created_at || a.createdat;
+      if (aStr) dates.push(new Date(aStr));
+    });
+    return dates;
+  }, [data, proposals, announcements]);
+
+  const modifiers = {
+    event: eventDates,
+  }
+
+  const modifiersClassNames = {
+    event: 'has-events after:content-[""] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1.5 after:h-1.5 after:bg-[var(--theme-primary)] after:rounded-full font-bold [&:not([data-selected-single=true])]:text-[var(--theme-primary)] [&:not([data-selected-single=true])]:bg-[var(--theme-primary)]/5',
+  }
+
+  const displayedData = React.useMemo(() => {
+    if (!selectedFilterDate) return data;
+    return data.filter(d => {
+      const startStr = d.TanggalMulai || d.tanggalMulai;
+      const endStr = d.TanggalSelesai || d.tanggalSelesai;
+
+      if (!startStr || String(startStr).startsWith('0001')) return false;
+
+      const start = new Date(startStr);
+      const end = (endStr && !String(endStr).startsWith('0001')) ? new Date(endStr) : start;
+      
+      const target = new Date(selectedFilterDate);
+      target.setHours(0, 0, 0, 0);
+      
+      const s = new Date(start);
+      s.setHours(0, 0, 0, 0);
+      
+      const e = new Date(end);
+      e.setHours(23, 59, 59, 999);
+      
+      return target >= s && target <= e;
+    });
+  }, [data, selectedFilterDate]);
+
+  const selectedDateEvents = React.useMemo(() => {
+    if (!selectedFilterDate) return [];
+    
+    const target = new Date(selectedFilterDate);
+    target.setHours(0, 0, 0, 0);
+
+    const isMatch = (startStr, endStr) => {
+      if (!startStr || String(startStr).startsWith('0001')) return false;
+      const s = new Date(startStr);
+      s.setHours(0, 0, 0, 0);
+      const e = (endStr && !String(endStr).startsWith('0001')) ? new Date(endStr) : new Date(s);
+      e.setHours(23, 59, 59, 999);
+      return target >= s && target <= e;
+    };
+
+    const evs = data.filter(d => isMatch(d.TanggalMulai || d.tanggalMulai, d.TanggalSelesai || d.tanggalSelesai)).map(d => ({ ...d, typeLabel: 'Kegiatan', typeCls: 'bg-blue-100 text-blue-700' }));
+    const props = proposals.filter(p => isMatch(p.TanggalKegiatan || p.tanggal_kegiatan || p.CreatedAt || p.created_at, null)).map(p => ({ ...p, Judul: p.JudulKegiatan || p.judul_kegiatan || 'Proposal', typeLabel: 'Proposal', typeCls: 'bg-amber-100 text-amber-700' }));
+    const anns = announcements.filter(a => isMatch(a.TanggalMulai || a.CreatedAt || a.created_at || a.createdat, a.TanggalSelesai)).map(a => ({ ...a, typeLabel: 'Pengumuman', typeCls: 'bg-emerald-100 text-emerald-700' }));
+
+    return [...evs, ...props, ...anns];
+  }, [data, proposals, announcements, selectedFilterDate]);
 
   return (
-    <div className="bg-surface text-on-surface min-h-screen">
-      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      <main className="lg:ml-60 min-h-screen pb-12 transition-all duration-300">
-        <TopNavBar setIsOpen={setSidebarOpen} />
-        
-        <div className="pt-20 px-4 lg:px-6">
-          
-          {/* Header */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-            <div className="max-w-xl">
-              <h1 className="text-xl lg:text-2xl font-extrabold font-headline mb-1 text-on-surface">Jadwal & Kalender</h1>
-              <p className="text-on-surface-variant text-[12px] font-medium leading-relaxed">Manajemen operasional dan blokir jadwal demi kelancaran kegiatan.</p>
+    <PageContent className="font-body">
+      <Toaster position="top-right" />
+
+      {/* ── Welcome Banner ─────────────────────────────────────────── */}
+      <DashboardHero 
+        title="Jadwal"
+        highlightedTitle="Kegiatan"
+        subtitle="Manajemen agenda operasional, sinkronisasi jadwal kegiatan, serta pemantauan jadwal program kerja rutin ormawa."
+        icon="event_note"
+        badges={[{ label: 'Kalender Organisasi', active: true }]}
+        actions={
+          <Button
+            onClick={handleOpenAdd}
+            className="h-11 px-6 rounded-xl bg-slate-800 text-white font-black font-headline text-[10px] uppercase tracking-widest gap-2 hover:bg-slate-900 transition-all active:scale-95 shadow-none border-none cursor-pointer"
+          >
+            <span className="material-symbols-outlined normal-case text-[16px] stroke-[3px]">add</span> Tambah Kegiatan Baru
+          </Button>
+        }
+      />
+
+      {/* ── Stats Overview ────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+        <PrimaryStatsCard
+          title="Total Kegiatan"
+          value={totalEvents}
+          icon={CalendarMonthIcon}
+          colorTheme="info"
+          badgeText="Semua Agenda"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">list_alt</span>}
+        />
+
+        <PrimaryStatsCard
+          title="Berlangsung"
+          value={activeEvents}
+          icon={PendingIcon}
+          colorTheme="warning"
+          badgeText="Saat ini"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">update</span>}
+        />
+
+        <PrimaryStatsCard
+          title="Terjadwal"
+          value={upcomingEvents}
+          icon={ScheduleIcon}
+          colorTheme="primary"
+          badgeText="Akan Datang"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">event_upcoming</span>}
+        />
+
+        <PrimaryStatsCard
+          title="Selesai"
+          value={completedEvents}
+          icon={CheckCircleIcon}
+          colorTheme="success"
+          badgeText="Tuntas"
+          badgeIcon={<span className="material-symbols-outlined text-[12px]">task_alt</span>}
+        />
+      </div>
+
+      {/* ── Content Area ───────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mt-4">
+        <Card className="xl:col-span-1 glass-card shadow-sm rounded-xl overflow-hidden animate-in slide-in-from-bottom-4 duration-500 delay-150 h-fit">
+          <CardHeader className="bg-slate-50/50 border-b border-border p-5 flex flex-row items-center justify-between">
+            <CardTitle className="text-sm font-black font-headline tracking-tight uppercase flex items-center gap-2">
+              <span className="material-symbols-outlined text-[18px] text-primary">calendar_month</span>
+              Kalender Kegiatan
+            </CardTitle>
+            {selectedFilterDate && (
+              <Button variant="ghost" size="sm" onClick={() => setSelectedFilterDate(null)} className="h-7 text-[10px] uppercase tracking-wider text-rose-500 hover:text-rose-600 hover:bg-rose-50 px-2 rounded-lg font-bold">
+                Reset Filter
+              </Button>
+            )}
+          </CardHeader>
+          <CardContent className="p-3 sm:p-4 flex flex-col items-center w-full">
+            <div className="w-full flex justify-center pb-2">
+              <Calendar
+                mode="single"
+                selected={selectedFilterDate}
+                onSelect={setSelectedFilterDate}
+                modifiers={modifiers}
+                modifiersClassNames={modifiersClassNames}
+                className="w-fit rounded-2xl border border-[var(--theme-border)] shadow-sm p-4 bg-[var(--theme-bg)]"
+              />
             </div>
-            <div className="flex items-center gap-3 bg-surface-container-low p-1.5 rounded-xl border border-outline-variant/20 shadow-sm w-full md:w-auto overflow-x-auto no-scrollbar">
-                <button 
-                  onClick={() => setViewMode('calendar')}
-                  className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-black transition-all whitespace-nowrap uppercase tracking-wider ${viewMode === 'calendar' ? 'bg-primary text-white shadow-md' : 'text-on-surface-variant hover:bg-surface-container-high'}`}
-                >
-                  <span className="material-symbols-outlined text-[16px]">calendar_month</span>
-                  Kalender
-                </button>
-                <button 
-                  onClick={() => setViewMode('list')}
-                  className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-black transition-all whitespace-nowrap uppercase tracking-wider ${viewMode === 'list' ? 'bg-primary text-white shadow-md' : 'text-on-surface-variant hover:bg-surface-container-high'}`}
-                >
-                  <span className="material-symbols-outlined text-[16px]">view_list</span>
-                  Daftar
-                </button>
+            {selectedFilterDate && (
+              <div className="w-full mt-4 flex flex-col gap-2">
+                <h4 className="text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1 border-b border-slate-100 pb-2 text-center">
+                  Acara pada {new Date(selectedFilterDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}
+                </h4>
+                <div className="max-h-[300px] overflow-y-auto pr-1 space-y-2 no-scrollbar">
+                  {selectedDateEvents.length > 0 ? selectedDateEvents.map((d, idx) => (
+                    <div key={idx} onClick={() => { if(d.typeLabel === 'Kegiatan') { setSelected(d); setIsDetailOpen(true); } }} className={cn("bg-slate-50 border border-slate-100 rounded-lg p-3 text-left transition-colors", d.typeLabel === 'Kegiatan' ? 'hover:bg-slate-100 cursor-pointer' : '')}>
+                      <div className="flex items-center justify-between mb-1">
+                        <Badge className={cn('text-[8px] px-1.5 py-0 uppercase border-none tracking-wider', d.typeCls)}>{d.typeLabel}</Badge>
+                      </div>
+                      <p className="text-xs font-bold text-slate-800 leading-tight">{d.Judul || d.judul}</p>
+                      {d.Lokasi && (
+                        <p className="text-[10px] text-slate-500 mt-1 flex items-center gap-1">
+                          <span className="material-symbols-outlined text-[10px]">location_on</span>
+                          {d.Lokasi || d.lokasi || 'Belum ditentukan'}
+                        </p>
+                      )}
+                    </div>
+                  )) : (
+                    <p className="text-[10px] text-slate-400 italic text-center py-4 bg-slate-50 rounded-lg border border-dashed border-slate-200">Tidak ada agenda</p>
+                  )}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="xl:col-span-2 glass-card shadow-sm rounded-xl overflow-hidden animate-in slide-in-from-bottom-4 duration-500 delay-300">
+          <CardContent className="p-0">
+            <DataTable
+              columns={columns}
+              data={displayedData}
+              loading={loading}
+              searchPlaceholder="Cari nama atau lokasi kegiatan..."
+              filters={[{ key: 'Status', placeholder: 'Filter Status', options: Object.entries(STATUS_CFG).map(([v, { label }]) => ({ label, value: v })) }]}
+              actions={(row) => (
+                <div className="flex items-center justify-end gap-1">
+                  <Button variant="ghost" size="icon" onClick={() => { setSelected(row); setIsDetailOpen(true) }} title="Detail"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }}>visibility</span></Button>
+                  <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(row)} title="Edit"><span className="material-symbols-outlined block text-[var(--theme-warning)]" style={{ fontSize: '18px' }}>edit</span></Button>
+                  <Button variant="ghost" size="icon" onClick={() => { setSelected(row); setIsDelOpen(true) }} title="Hapus"><span className="material-symbols-outlined block text-[var(--theme-error)]" style={{ fontSize: '18px' }}>delete</span></Button>
+                </div>
+              )}
+            />
+          </CardContent>
+        </Card>
+      </div>
+
+      <DialogModal
+        open={isDetailOpen}
+        onOpenChange={setIsDetailOpen}
+        title={selected?.Judul || "Detail Agenda"}
+        subtitle="DETAIL AGENDA"
+        description="Informasi rincian jadwal dan rencana agenda."
+        icon="calendar_today"
+        maxWidth="max-w-4xl"
+        bodyClassName="p-0"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setIsDetailOpen(false)}>
+              Tutup
+            </ModalCancelButton>
+            <Button onClick={() => { setIsDetailOpen(false); handleOpenEdit(selected) }} className="text-[11px] font-bold tracking-wider h-11 px-8 rounded-xl bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white shadow-sm active:scale-95 transition-all flex items-center gap-1.5 border-none">
+              <span className="material-symbols-outlined normal-case text-[16px]">edit</span> Edit Agenda
+            </Button>
+          </>
+        }
+      >
+        {selected && (
+          <div className="flex flex-col">
+            <div className="flex items-center justify-between gap-4 p-6 sm:p-8 border-b border-[var(--theme-border)]">
+              <div className="space-y-1">
+                <h2 className="text-xl font-bold font-headline tracking-tight text-[var(--theme-text)]">{selected.Judul}</h2>
+              </div>
+              <Badge className={cn('font-bold text-[10px] tracking-wider uppercase px-2.5 py-1 border-none flex items-center gap-1 shadow-sm', STATUS_CFG[selected.Status]?.cls || 'bg-slate-50 text-slate-650')}>
+                <span className="material-symbols-outlined normal-case text-[12px]">{STATUS_CFG[selected.Status]?.icon || 'info'}</span>
+                <span>{STATUS_CFG[selected.Status]?.label || 'Terjadwal'}</span>
+              </Badge>
             </div>
-          </div>
 
-          <div className="mb-6 flex flex-col xl:flex-row justify-between items-stretch xl:items-center bg-surface-container-lowest p-3.5 rounded-2xl border border-outline-variant/20 shadow-sm gap-4">
-             <div className="flex items-center justify-between xl:justify-start gap-1">
-                <button onClick={() => changeMonth(-1)} className="w-9 h-9 rounded-xl hover:bg-surface-container flex items-center justify-center text-on-surface-variant border border-outline-variant/10">
-                  <span className="material-symbols-outlined text-[20px]">chevron_left</span>
-                </button>
-                
-                <button 
-                  onClick={() => setIsDatePickerOpen(!isDatePickerOpen)}
-                  className="px-4 h-9 rounded-xl hover:bg-surface-container flex items-center justify-center gap-2 text-primary border border-outline-variant/10 flex-1 xl:flex-none transition-colors"
-                >
-                    <span className="material-symbols-outlined text-primary text-[18px]">event_note</span>
-                    <span className="text-sm font-black font-headline tracking-tight whitespace-nowrap">
-                      {currDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}
-                    </span>
-                    <span className="material-symbols-outlined text-outline text-[16px]">expand_more</span>
-                </button>
-
-                <button onClick={() => changeMonth(1)} className="w-9 h-9 rounded-xl hover:bg-surface-container flex items-center justify-center text-on-surface-variant border border-outline-variant/10">
-                  <span className="material-symbols-outlined text-[20px]">chevron_right</span>
-                </button>
-
-                {/* Custom Date Picker Popup */}
-                {isDatePickerOpen && (
-                  <div className="absolute top-[3.5rem] left-0 z-[100] bg-white border border-outline-variant/30 shadow-[0_20px_50px_rgba(0,0,0,0.15)] rounded-[2rem] p-6 animate-in fade-in slide-in-from-top-2 duration-300 min-w-[340px] backdrop-blur-md">
-                    <div className="flex justify-between items-center mb-4 pb-2 border-b border-outline-variant/10">
-                      <h3 className="text-sm font-bold text-primary font-headline uppercase tracking-widest">Pilih Waktu</h3>
-                      <button onClick={() => setIsDatePickerOpen(false)} className="material-symbols-outlined text-on-surface-variant hover:text-primary">close</button>
-                    </div>
-                    
-                    <div className="grid grid-cols-3 gap-2 mb-6">
-                      {['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'].map((m, i) => (
-                        <button 
-                          key={m}
-                          onClick={() => {
-                            setCurrDate(new Date(currDate.getFullYear(), i, 1));
-                            setIsDatePickerOpen(false);
-                          }}
-                          className={`py-3 rounded-xl text-xs font-bold transition-all ${currDate.getMonth() === i ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-105' : 'hover:bg-surface-container text-on-surface-variant'}`}
-                        >
-                          {m}
-                        </button>
-                      ))}
-                    </div>
-                    
-                    <div className="grid grid-cols-4 gap-2 border-t border-outline-variant/10 pt-4 max-h-56 overflow-y-auto pr-2 custom-scrollbar">
-                      {Array.from({ length: 100 }, (_, i) => 2000 + i).map(y => (
-                        <button 
-                          key={y}
-                          id={y === currDate.getFullYear() ? 'selected-year' : ''}
-                          onClick={() => {
-                            setCurrDate(new Date(y, currDate.getMonth(), 1));
-                            setIsDatePickerOpen(false);
-                          }}
-                          className={`py-3 rounded-xl text-xs font-bold transition-all ${currDate.getFullYear() === y ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-105' : 'hover:bg-surface-container text-on-surface-variant'}`}
-                        >
-                          {y}
-                        </button>
-                      ))}
-                    </div>
+            {/* Quick Info Grid */}
+            <div className="p-6 sm:p-8 space-y-6 bg-[var(--theme-bg)]/30">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-2xl p-4 flex items-center gap-3.5 shadow-sm">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--theme-bg)] text-[var(--theme-text-muted)] flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined normal-case" style={{ fontSize: '20px' }}>calendar_today</span>
                   </div>
-                )}
-             </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] tracking-wider uppercase">Mulai Pelaksanaan</p>
+                    <p className="text-[13px] font-bold text-[var(--theme-text)] font-headline mt-0.5">
+                      {selected.TanggalMulai ? new Date(selected.TanggalMulai).toLocaleDateString('id-ID', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }) : '—'}
+                    </p>
+                  </div>
+                </div>
 
-             <div className="flex gap-3">
-                <button 
-                  onClick={() => setCurrDate(new Date())}
-                  className="px-4 py-2 bg-surface-container-high text-on-surface-variant font-bold rounded-xl border border-outline-variant/20 transition-all hover:bg-surface-container-highest active:scale-95 flex items-center gap-2 text-[11px] uppercase tracking-wider"
-                >
-                  Hari Ini
-                </button>
-                <button 
-                   onClick={() => openAddModal()}
-                   className="px-4 py-2 bg-primary text-white font-black rounded-xl shadow-lg shadow-primary/10 flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-95 text-[11px] uppercase tracking-wider"
-                >
-                  <span className="material-symbols-outlined text-[20px]">add_circle</span> Tambah Kegiatan
-                </button>
-             </div>
-          </div>
+                <div className="bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-2xl p-4 flex items-center gap-3.5 shadow-sm">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--theme-bg)] text-[var(--theme-text-muted)] flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined normal-case" style={{ fontSize: '20px' }}>event_available</span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] tracking-wider uppercase">Selesai Pelaksanaan</p>
+                    <p className="text-[13px] font-bold text-[var(--theme-text)] font-headline mt-0.5">
+                      {selected.TanggalSelesai ? new Date(selected.TanggalSelesai).toLocaleDateString('id-ID', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }) : '—'}
+                    </p>
+                  </div>
+                </div>
 
-          {/* Render Calendar View */}
-          {viewMode === 'calendar' && (
-            <div className="overflow-x-auto no-scrollbar pb-6">
-              <div className="min-w-[800px] grid grid-cols-7 gap-px bg-outline-variant/20 border border-outline-variant/20 rounded-2xl overflow-hidden shadow-sm">
-              {['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'].map(day => (
-                <div key={day} className="bg-surface-container-low text-center py-3 font-bold text-[11px] text-secondary uppercase tracking-[0.2em]">{day}</div>
-              ))}
-              
-              {days.map(item => {
-                 if (item.type === 'empty') return <div key={item.id} className="bg-surface-container-low/20 h-24 border-t border-outline-variant/10"></div>;
-                 
-                 const dateStr = item.dateStr;
-                 const dayEvents = (events || []).filter(e => e.startDate && e.startDate.startsWith(dateStr));
-                 return (
-                   <div 
-                     key={dateStr} 
-                     onClick={() => openAddModal(dateStr)}
-                     className="bg-surface p-2 h-24 hover:bg-surface-container-lowest transition-all relative border-t border-outline-variant/10 overflow-y-auto cursor-pointer group/day"
-                   >
-                     <div className="flex justify-between items-start mb-1">
-                       <span className="text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full text-on-surface-variant group-hover/day:bg-primary group-hover/day:text-white transition-colors">
-                         {item.dayNum}
-                       </span>
-                       <span className="material-symbols-outlined text-[14px] opacity-0 group-hover/day:opacity-100 text-primary transition-opacity">add</span>
-                     </div>
-                     <div className="flex flex-col gap-1">
-                       {dayEvents.map(ev => (
-                         <div 
-                           key={ev.id} 
-                           onClick={(e) => e.stopPropagation()} // Prevent opening modal when clicking on event
-                           className="px-2 py-1 flex flex-col rounded-md text-[10px] font-semibold border-l-2 leading-tight bg-blue-50 border-blue-500 text-blue-700"
-                         >
-                           <span className="truncate">{ev.startDate ? new Date(ev.startDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''} {ev.title}</span>
-                         </div>
-                       ))}
-                     </div>
-                   </div>
-                 )
-              })}
-            </div>
-          </div>
-          )}
+                <div className="bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-2xl p-4 flex items-center gap-3.5 shadow-sm">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--theme-bg)] text-[var(--theme-text-muted)] flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined normal-case" style={{ fontSize: '20px' }}>location_on</span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] tracking-wider uppercase">Lokasi Kegiatan</p>
+                    <p className="text-[13px] font-bold text-[var(--theme-text)] font-headline mt-0.5">
+                      {selected.Lokasi || 'Belum ditentukan'}
+                    </p>
+                  </div>
+                </div>
 
-          {/* Render List View */}
-          {viewMode === 'list' && (
-            <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-2xl shadow-sm overflow-hidden">
-               <div className="overflow-x-auto">
-                 <table className="w-full text-left text-sm">
-                 <thead className="bg-surface-container-low/50 text-[10px] uppercase text-on-surface-variant font-black tracking-widest border-b border-outline-variant/20">
-                   <tr>
-                     <th className="px-5 py-3.5">Informasi Kegiatan</th>
-                     <th className="px-5 py-3.5">Waktu & Tempat</th>
-                     <th className="px-5 py-3.5 text-center">Notifikasi</th>
-                     <th className="px-5 py-3.5 text-center">Status</th>
-                     <th className="px-5 py-3.5 text-right">Aksi</th>
-                   </tr>
-                 </thead>
-                 <tbody className="divide-y divide-outline-variant/10">
-                    {(events || []).map((ev) => (
-                      <tr key={ev.id} className="hover:bg-surface-container-low/30 group">
-                        <td className="px-6 py-4">
-                          <div className="font-bold font-headline text-base text-primary mb-1">{ev.title}</div>
-                          <div className="text-xs font-semibold text-on-surface-variant flex items-center gap-2">
-                            <span className={`px-2 py-0.5 rounded-md ${ev.description === 'internal' ? 'bg-blue-100 text-blue-700' : ev.description === 'eksternal' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                              {ev.description ? ev.description.toUpperCase() : 'EVENT'}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="font-semibold">{new Date(ev.startDate).toLocaleDateString()}</div>
-                          <div className="text-xs text-on-surface-variant mt-1 flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">schedule</span> {new Date(ev.startDate).toLocaleTimeString()} - {new Date(ev.endDate).toLocaleTimeString()}</div>
-                          <div className="text-xs text-on-surface-variant mt-1 flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">location_on</span> {ev.location}</div>
-                        </td>
-                        <td className="px-6 py-4 text-center">
-                          {ev.reminder ? (
-                            <div className="flex flex-col items-center justify-center text-emerald-600 gap-1">
-                              <span className="material-symbols-outlined text-[20px]">notifications_active</span>
-                              <span className="text-[10px] font-bold uppercase">H-1 Auto</span>
-                            </div>
-                          ) : (
-                            <span className="material-symbols-outlined text-slate-500">notifications_off</span>
-                          )}
-                        </td>
-                        <td className="px-5 py-3 text-center">
-                          {ev.status === 'terjadwal' ? (
-                            <span className="bg-blue-100 text-blue-700 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider">Terjadwal</span>
-                          ) : (
-                            <span className="bg-surface-container-high text-on-surface-variant px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider line-through">Batal</span>
-                          )}
-                        </td>
-                        <td className="px-5 py-3 text-right">
-                          <div className="flex justify-end gap-1">
-                            <button onClick={() => loadEventForEdit(ev)} className="p-1.5 text-on-surface-variant hover:text-primary transition-colors"><span className="material-symbols-outlined text-[18px]">edit</span></button>
-                            <button onClick={() => deleteEvent(ev.id)} className="p-1.5 text-on-surface-variant hover:text-rose-500 transition-colors"><span className="material-symbols-outlined text-[18px]">delete</span></button>
-                            {ev.status === 'terjadwal' && (
-                              <button onClick={() => cancelEvent(ev.id)} className="p-1.5 text-on-surface-variant hover:text-amber-600 transition-colors" title="Batalkan Kegiatan"><span className="material-symbols-outlined text-[18px]">block</span></button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                 </tbody>
-               </table>
+                <div className="bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-2xl p-4 flex items-center gap-3.5 shadow-sm">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--theme-bg)] text-[var(--theme-text-muted)] flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined normal-case" style={{ fontSize: '20px' }}>payments</span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] tracking-wider uppercase">Estimasi Dana</p>
+                    <p className="text-[13px] font-bold text-[var(--theme-success)] font-headline mt-0.5">
+                      {selected.EstimasiDana || selected.estimasi_dana ? formatRp(selected.EstimasiDana || selected.estimasi_dana) : '—'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Detail Fields Grid */}
+              <div className="bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-2xl p-6 space-y-4 shadow-sm">
+                <h3 className="text-sm font-bold text-[var(--theme-text)] uppercase tracking-wider font-headline">Informasi Detail Kegiatan</h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                  <div className="bg-[var(--theme-bg)] p-3 rounded-xl border border-[var(--theme-border)] space-y-1">
+                    <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider">Landasan Kegiatan</p>
+                    <p className="font-bold text-[var(--theme-text)]">{selected.LandasanKegiatan || selected.landasan_kegiatan || "—"}</p>
+                  </div>
+                  <div className="bg-[var(--theme-bg)] p-3 rounded-xl border border-[var(--theme-border)] space-y-1">
+                    <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider">Bentuk Kegiatan</p>
+                    <p className="font-bold text-[var(--theme-text)]">{selected.BentukKegiatan || selected.bentuk_kegiatan || "—"}</p>
+                  </div>
+                  <div className="bg-[var(--theme-bg)] p-3 rounded-xl border border-[var(--theme-border)] space-y-1">
+                    <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider">Mitra Kerja</p>
+                    <p className="font-bold text-[var(--theme-text)]">{selected.Mitra || selected.mitra || "—"}</p>
+                  </div>
+                  <div className="bg-[var(--theme-bg)] p-3 rounded-xl border border-[var(--theme-border)] space-y-1">
+                    <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider">PJ Kegiatan</p>
+                    <p className="font-bold text-[var(--theme-text)]">{selected.PJKegiatan || selected.pj_kegiatan || "—"}</p>
+                  </div>
+                  <div className="bg-[var(--theme-bg)] p-3 rounded-xl border border-[var(--theme-border)] space-y-1">
+                    <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider">Jadwal Pelaksanaan</p>
+                    <p className="font-bold text-[var(--theme-text)]">{selected.JadwalPelaksanaan || selected.jadwal_pelaksanaan || "—"}</p>
+                  </div>
+                  <div className="bg-[var(--theme-bg)] p-3 rounded-xl border border-[var(--theme-border)] space-y-1">
+                    <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider">Sasaran Kegiatan</p>
+                    <p className="font-bold text-[var(--theme-text)]">{selected.SasaranKegiatan || selected.sasaran_kegiatan || "—"}</p>
+                  </div>
+                  <div className="bg-[var(--theme-bg)] p-3 rounded-xl border border-[var(--theme-border)] space-y-1">
+                    <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider">Sumber Dana</p>
+                    <p className="font-bold text-[var(--theme-text)]">{selected.SumberDana || selected.sumber_dana || "—"}</p>
+                  </div>
+                  <div className="bg-[var(--theme-bg)] p-3 rounded-xl border border-[var(--theme-border)] space-y-1">
+                    <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider">Indikator Keberhasilan</p>
+                    <p className="font-bold text-[var(--theme-text)]">{selected.IndikatorKeberhasilan || selected.indikator_keberhasilan || "—"}</p>
+                  </div>
+                </div>
+
+                <div className="bg-[var(--theme-bg)] p-4 rounded-xl border border-[var(--theme-border)] space-y-1.5 text-xs text-[var(--theme-text)]">
+                  <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider">Latar Belakang</p>
+                  <p className="font-medium leading-relaxed whitespace-pre-line">{selected.LatarBelakang || selected.latar_belakang || "—"}</p>
+                </div>
+
+                <div className="bg-[var(--theme-bg)] p-4 rounded-xl border border-[var(--theme-border)] space-y-1.5 text-xs text-[var(--theme-text)]">
+                  <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider">Tujuan Kegiatan</p>
+                  <p className="font-medium leading-relaxed whitespace-pre-line">{selected.TujuanKegiatan || selected.tujuan_kegiatan || "—"}</p>
+                </div>
+
+                <div className="bg-[var(--theme-bg)] p-4 rounded-xl border border-[var(--theme-border)] space-y-1.5 text-xs text-[var(--theme-text)]">
+                  <p className="text-[10px] font-bold text-[var(--theme-text-subtle)] uppercase tracking-wider">Deskripsi Kegiatan</p>
+                  <p className="font-medium leading-relaxed whitespace-pre-line">{selected.Deskripsi || selected.deskripsi || "—"}</p>
+                </div>
               </div>
             </div>
-          )}
+          </div>
+        )}
+      </DialogModal>
 
-          {isModalOpen && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/30 backdrop-blur-sm p-4 text-[13px]">
-               <div className="bg-surface w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-outline-variant/10">
-                  <div className="px-6 py-4 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-low/50">
-                    <div>
-                      <h2 className="text-xl font-black font-headline text-primary flex items-center gap-2 uppercase tracking-tight">
-                        <span className="material-symbols-outlined text-[20px]">{editingId ? 'edit' : 'edit_calendar'}</span> {editingId ? 'Update' : 'Setup Kegiatan'}
-                      </h2>
-                    </div>
-                    <button onClick={() => { setIsModalOpen(false); setConflictWarning(null); }} className="w-8 h-8 hover:bg-rose-50 hover:text-rose-600 rounded-full flex justify-center items-center text-on-surface-variant transition-colors"><span className="material-symbols-outlined text-[18px]">close</span></button>
-                  </div>
-
-                  <form onSubmit={saveEvent} className="p-8">
-                    
-                    {conflictWarning && (
-                      <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl flex gap-3 shadow-inner">
-                        <span className="material-symbols-outlined flex-shrink-0 animate-pulse">warning</span>
-                        <div>
-                          <p className="font-bold text-sm">Bentrok Jadwal Ditemukan!</p>
-                          <p className="text-xs mt-1 leading-relaxed">{conflictWarning}</p>
-                          <button type="button" onClick={() => setConflictWarning(null)} className="mt-2 text-xs font-bold underline hover:text-rose-900">Tetap Paksakan Simpan</button>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-2 gap-6 mb-6">
-                      <div className="col-span-2">
-                        <label className="block text-xs font-bold text-on-surface uppercase tracking-widest mb-2">Nama Kegiatan</label>
-                        <input required name="title" value={formData.title} onChange={handleInputChange} type="text" className="w-full p-4 bg-surface-container flex border border-outline-variant/20 rounded-xl focus:border-primary text-sm font-medium" placeholder="Ex: Pelatihan Desain Grafis" />
-                      </div>
-                      
-                      <div className="col-span-2 md:col-span-1">
-                        <label className="block text-xs font-bold text-on-surface uppercase tracking-widest mb-2">Tanggal Pelaksanaan</label>
-                        <input required name="date" value={formData.date} onChange={handleInputChange} type="date" className="w-full p-4 bg-surface-container flex border border-outline-variant/20 rounded-xl focus:border-primary text-sm font-medium cursor-pointer" />
-                      </div>
-                      
-                      <div className="col-span-2 md:col-span-1">
-                        <label className="block text-xs font-bold text-on-surface uppercase tracking-widest mb-2">Kategori Skala</label>
-                        <select name="type" value={formData.type} onChange={handleInputChange} className="w-full p-4 bg-surface-container flex border border-outline-variant/20 rounded-xl focus:border-primary text-sm font-bold appearance-none">
-                           <option value="internal">Rapat Internal</option>
-                           <option value="eksternal">Event Kampus (Eksternal)</option>
-                           <option value="sosial">Sosial / Pengabdian</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-bold text-on-surface uppercase tracking-widest mb-2">Jam Mulai</label>
-                        <input required name="startTime" value={formData.startTime} onChange={handleInputChange} type="time" className="w-full p-4 bg-surface-container flex border border-outline-variant/20 rounded-xl focus:border-primary text-sm font-medium" />
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-bold text-on-surface uppercase tracking-widest mb-2">Jam Selesai</label>
-                        <input required name="endTime" value={formData.endTime} onChange={handleInputChange} type="time" className="w-full p-4 bg-surface-container flex border border-outline-variant/20 rounded-xl focus:border-primary text-sm font-medium" />
-                      </div>
-
-                      <div className="col-span-2">
-                        <label className="block text-xs font-bold text-on-surface uppercase tracking-widest mb-2">Lokasi / Ruangan</label>
-                        <input required name="location" value={formData.location} onChange={handleInputChange} type="text" className="w-full p-4 bg-surface-container flex border border-outline-variant/20 rounded-xl focus:border-primary text-sm font-medium" placeholder="Ex: Auditorium Gedung B" />
-                      </div>
-
-                      <div className="col-span-2 mt-2 bg-primary/5 p-4 rounded-xl border border-primary/20 flex flex-row items-center justify-between">
-                         <div>
-                            <h4 className="font-bold text-primary font-headline text-sm">Aktifkan Pengingat Otomatis (H-1)</h4>
-                            <p className="text-xs text-on-surface-variant font-medium mt-1">Kirim broadcast notifikasi via platform dan email ke semua anggota pengurus.</p>
-                         </div>
-                         <label className="relative inline-flex items-center cursor-pointer">
-                           <input type="checkbox" name="reminder" checked={formData.reminder} onChange={handleInputChange} className="sr-only peer" />
-                           <div className="w-14 h-7 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-1 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500 shadow-inner"></div>
-                         </label>
-                      </div>
-
-                    </div>
-
-                    <div className="flex gap-4 pt-4 border-t border-outline-variant/10">
-                      <button type="button" onClick={() => checkConflict()} className="flex-1 py-4 bg-surface-container hover:bg-surface-container-high text-on-surface rounded-xl font-bold transition-all text-sm border border-outline-variant/30 flex items-center justify-center gap-2">
-                        <span className="material-symbols-outlined text-[18px]">rule</span>
-                        Cek Konflik Area
-                      </button>
-                      <button type="submit" className="flex-1 py-4 bg-primary hover:bg-primary-fixed hover:-translate-y-1 text-white rounded-xl font-bold transition-all text-sm shadow-xl shadow-primary/20 flex items-center justify-center gap-2">
-                        <span className="material-symbols-outlined text-[18px]">check_circle</span>
-                        Simpan Jadwal Utama
-                      </button>
-                    </div>
-
-                  </form>
-
-               </div>
+      <DialogModal
+        open={isCrudOpen}
+        onOpenChange={setIsCrudOpen}
+        title={isEditMode ? 'Edit Kegiatan' : 'Jadwalkan Kegiatan'}
+        description="Tambahkan agenda dan jadwal pelaksanaan kegiatan resmi organisasi."
+        icon={isEditMode ? "edit" : "calendar_add_on"}
+        maxWidth="max-w-3xl"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setIsCrudOpen(false)} disabled={isSubmitting} />
+            <ModalSaveButton loading={isSubmitting} label={isEditMode ? 'Simpan Perubahan' : 'Jadwalkan'} onClick={handleSave} />
+          </>
+        }
+      >
+        <form id="crud-form" onSubmit={handleSave} className="flex flex-col">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">Nama Kegiatan</Label>
+              <Input
+                required
+                value={form.Judul}
+                onChange={e => setForm({ ...form, Judul: e.target.value })}
+                placeholder="Contoh: Pekan Olahraga Mahasiswa..."
+              />
             </div>
-          )}
 
-        </div>
-      </main>
-    </div>
-  );
-};
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">Landasan Kegiatan *</Label>
+                <Input
+                  required
+                  value={form.LandasanKegiatan}
+                  onChange={e => setForm({ ...form, LandasanKegiatan: e.target.value })}
+                  placeholder="Contoh: Program Kerja Himpunan 2026..."
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">Bentuk Kegiatan</Label>
+                <Input
+                  value={form.BentukKegiatan}
+                  onChange={e => setForm({ ...form, BentukKegiatan: e.target.value })}
+                  placeholder="Contoh: Kompetisi & Seminar..."
+                />
+              </div>
+            </div>
 
-export default JadwalKegiatan;
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">Mitra **</Label>
+                <Input
+                  value={form.Mitra}
+                  onChange={e => setForm({ ...form, Mitra: e.target.value })}
+                  placeholder="Contoh: PT. Djarum, Pemda..."
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">PJ Kegiatan</Label>
+                <Input
+                  value={form.PJKegiatan}
+                  onChange={e => setForm({ ...form, PJKegiatan: e.target.value })}
+                  placeholder="Contoh: Budi Santoso (Ketua Panitia)..."
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">Jadwal Pelaksanaan (Hari, Waktu)</Label>
+                <Input
+                  value={form.JadwalPelaksanaan}
+                  onChange={e => setForm({ ...form, JadwalPelaksanaan: e.target.value })}
+                  placeholder="Contoh: Senin, 15 Juli 2026, 09.00 - 15.00 WIB..."
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">Sasaran Kegiatan</Label>
+                <Input
+                  value={form.SasaranKegiatan}
+                  onChange={e => setForm({ ...form, SasaranKegiatan: e.target.value })}
+                  placeholder="Contoh: Seluruh Mahasiswa Fakultas Teknik..."
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">Sumber Dana</Label>
+                <Input
+                  value={form.SumberDana}
+                  onChange={e => setForm({ ...form, SumberDana: e.target.value })}
+                  placeholder="Contoh: Dana Kemahasiswaan & Sponsor..."
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">Indikator Keberhasilan</Label>
+                <Input
+                  value={form.IndikatorKeberhasilan}
+                  onChange={e => setForm({ ...form, IndikatorKeberhasilan: e.target.value })}
+                  placeholder="Contoh: Target 200 Peserta Hadir..."
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">Estimasi Dana (Rp)</Label>
+                <Input
+                  required
+                  type="text"
+                  value={formatRupiahInput(form.EstimasiDana)}
+                  onChange={e => {
+                     const rawVal = parseRupiahInput(e.target.value)
+                     setForm({ ...form, EstimasiDana: rawVal })
+                  }}
+                  placeholder="Cth: 10.000.000"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">Status Agenda</Label>
+                <SelectField
+                  value={form.Status}
+                  onValueChange={val => setForm({ ...form, Status: val })}
+                >
+                  {Object.entries(STATUS_CFG).map(([v, { label }]) => (
+                    <SelectOption key={v} value={v}>{label}</SelectOption>
+                  ))}
+                </SelectField>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">Tanggal Mulai</Label>
+                <Input
+                  required
+                  type="date"
+                  value={form.TanggalMulai}
+                  onChange={e => setForm({ ...form, TanggalMulai: e.target.value })}
+                  className="cursor-pointer"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">Tanggal Selesai</Label>
+                <Input
+                  type="date"
+                  value={form.TanggalSelesai}
+                  onChange={e => setForm({ ...form, TanggalSelesai: e.target.value })}
+                  className="cursor-pointer"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">Lokasi Kegiatan</Label>
+              <Input
+                value={form.Lokasi}
+                onChange={e => setForm({ ...form, Lokasi: e.target.value })}
+                placeholder="Contoh: Gedung Rektorat Lt. 3..."
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">Latar Belakang</Label>
+              <Textarea
+                value={form.LatarBelakang}
+                onChange={e => setForm({ ...form, LatarBelakang: e.target.value })}
+                placeholder="Deskripsikan latar belakang pengajuan kegiatan..."
+                className="min-h-[80px]"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">Tujuan Kegiatan</Label>
+              <Textarea
+                value={form.TujuanKegiatan}
+                onChange={e => setForm({ ...form, TujuanKegiatan: e.target.value })}
+                placeholder="Deskripsikan tujuan dari kegiatan..."
+                className="min-h-[80px]"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-[var(--theme-text-subtle)] uppercase">Deskripsi Detail Kegiatan</Label>
+              <Textarea
+                value={form.Deskripsi}
+                onChange={e => setForm({ ...form, Deskripsi: e.target.value })}
+                placeholder="Deskripsikan rincian detail/mekanisme kegiatan..."
+                className="min-h-[80px]"
+              />
+            </div>
+          </div>
+        </form>
+      </DialogModal>
+
+      <DeleteConfirmModal isOpen={isDelOpen} onClose={() => setIsDelOpen(false)} onConfirm={handleDelete}
+        title="Hapus Kegiatan?" description="Data kegiatan ini akan dihapus permanen dari jadwal." loading={isSubmitting} />
+    </PageContent>
+  )
+}

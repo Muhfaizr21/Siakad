@@ -1,0 +1,3352 @@
+[
+  {
+    "file": "AchievementPage.jsx",
+    "issues": [
+      {
+        "lineNum": 222,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: <span className=\"text-[10px] font-bold text-[#00236F] bg-[#eef4ff] px-1.5 py-0.5 rounded\">{category}</span>"
+      },
+      {
+        "lineNum": 222,
+        "type": "hardcoded-color",
+        "text": "Found #eef4ff in: <span className=\"text-[10px] font-bold text-[#00236F] bg-[#eef4ff] px-1.5 py-0.5 rounded\">{category}</span>"
+      },
+      {
+        "lineNum": 258,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: return <span className=\"font-semibold text-[#00236F]\">{val}</span>;"
+      },
+      {
+        "lineNum": 275,
+        "type": "hardcoded-color",
+        "text": "Found #f0fdf4 in: if (val === 'Diverifikasi' || val === 'Valid' || val === 'Disetujui') style = 'bg-[#f0fdf4] text-[#16a34a] border-[#bbf7d0]';"
+      },
+      {
+        "lineNum": 275,
+        "type": "hardcoded-color",
+        "text": "Found #16a34a in: if (val === 'Diverifikasi' || val === 'Valid' || val === 'Disetujui') style = 'bg-[#f0fdf4] text-[#16a34a] border-[#bbf7d0]';"
+      },
+      {
+        "lineNum": 275,
+        "type": "hardcoded-color",
+        "text": "Found #bbf7d0 in: if (val === 'Diverifikasi' || val === 'Valid' || val === 'Disetujui') style = 'bg-[#f0fdf4] text-[#16a34a] border-[#bbf7d0]';"
+      },
+      {
+        "lineNum": 276,
+        "type": "hardcoded-color",
+        "text": "Found #eef4ff in: if (val === 'Menunggu' || val === 'Pending') style = 'bg-[#eef4ff] text-[#00236F] border-[#c9d8ff]';"
+      },
+      {
+        "lineNum": 276,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: if (val === 'Menunggu' || val === 'Pending') style = 'bg-[#eef4ff] text-[#00236F] border-[#c9d8ff]';"
+      },
+      {
+        "lineNum": 276,
+        "type": "hardcoded-color",
+        "text": "Found #c9d8ff in: if (val === 'Menunggu' || val === 'Pending') style = 'bg-[#eef4ff] text-[#00236F] border-[#c9d8ff]';"
+      },
+      {
+        "lineNum": 277,
+        "type": "hardcoded-color",
+        "text": "Found #fef2f2 in: if (val === 'Ditolak') style = 'bg-[#fef2f2] text-[#dc2626] border-[#fecaca]';"
+      },
+      {
+        "lineNum": 277,
+        "type": "hardcoded-color",
+        "text": "Found #dc2626 in: if (val === 'Ditolak') style = 'bg-[#fef2f2] text-[#dc2626] border-[#fecaca]';"
+      },
+      {
+        "lineNum": 277,
+        "type": "hardcoded-color",
+        "text": "Found #fecaca in: if (val === 'Ditolak') style = 'bg-[#fef2f2] text-[#dc2626] border-[#fecaca]';"
+      },
+      {
+        "lineNum": 296,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: className=\"p-1.5 text-[#00236F] bg-[#eef4ff] rounded hover:bg-[#dbe7ff] transition-colors\""
+      },
+      {
+        "lineNum": 296,
+        "type": "hardcoded-color",
+        "text": "Found #eef4ff in: className=\"p-1.5 text-[#00236F] bg-[#eef4ff] rounded hover:bg-[#dbe7ff] transition-colors\""
+      },
+      {
+        "lineNum": 296,
+        "type": "hardcoded-color",
+        "text": "Found #dbe7ff in: className=\"p-1.5 text-[#00236F] bg-[#eef4ff] rounded hover:bg-[#dbe7ff] transition-colors\""
+      },
+      {
+        "lineNum": 304,
+        "type": "hardcoded-color",
+        "text": "Found #dc2626 in: className=\"p-1.5 text-[#dc2626] bg-[#fef2f2] rounded hover:bg-[#fee2e2] transition-colors\""
+      },
+      {
+        "lineNum": 304,
+        "type": "hardcoded-color",
+        "text": "Found #fef2f2 in: className=\"p-1.5 text-[#dc2626] bg-[#fef2f2] rounded hover:bg-[#fee2e2] transition-colors\""
+      },
+      {
+        "lineNum": 304,
+        "type": "hardcoded-color",
+        "text": "Found #fee2e2 in: className=\"p-1.5 text-[#dc2626] bg-[#fef2f2] rounded hover:bg-[#fee2e2] transition-colors\""
+      },
+      {
+        "lineNum": 345,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"bg-[var(--theme-primary)] text-white px-4 py-2.5 rounded-xl text-sm font-bold flex justify-center items-center gap-2 hover:opacity-90 transition-colors shadow-sm shadow-[var(--theme-primary)]/20 w-full sm:w-auto\""
+      },
+      {
+        "lineNum": 356,
+        "type": "bg-white",
+        "text": "<div className=\"bg-white p-4 rounded-2xl border border-border shadow-sm flex items-center gap-3\">"
+      },
+      {
+        "lineNum": 357,
+        "type": "hardcoded-color",
+        "text": "Found #eef4ff in: <div className=\"w-10 h-10 bg-[#eef4ff] rounded-xl flex justify-center items-center text-[#00236F]\">"
+      },
+      {
+        "lineNum": 357,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: <div className=\"w-10 h-10 bg-[#eef4ff] rounded-xl flex justify-center items-center text-[#00236F]\">"
+      },
+      {
+        "lineNum": 365,
+        "type": "bg-white",
+        "text": "<div className=\"bg-white p-4 rounded-2xl border border-border shadow-sm flex items-center gap-3\">"
+      },
+      {
+        "lineNum": 366,
+        "type": "hardcoded-color",
+        "text": "Found #f0fdf4 in: <div className=\"w-10 h-10 bg-[#f0fdf4] rounded-xl flex justify-center items-center text-[#16a34a]\">"
+      },
+      {
+        "lineNum": 366,
+        "type": "hardcoded-color",
+        "text": "Found #16a34a in: <div className=\"w-10 h-10 bg-[#f0fdf4] rounded-xl flex justify-center items-center text-[#16a34a]\">"
+      },
+      {
+        "lineNum": 374,
+        "type": "bg-white",
+        "text": "<div className=\"bg-white p-4 rounded-2xl border border-border shadow-sm flex items-center gap-3\">"
+      },
+      {
+        "lineNum": 375,
+        "type": "hardcoded-color",
+        "text": "Found #eef4ff in: <div className=\"w-10 h-10 bg-[#eef4ff] rounded-xl flex justify-center items-center text-[#00236F]\">"
+      },
+      {
+        "lineNum": 375,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: <div className=\"w-10 h-10 bg-[#eef4ff] rounded-xl flex justify-center items-center text-[#00236F]\">"
+      },
+      {
+        "lineNum": 387,
+        "type": "hardcoded-color",
+        "text": "Found #f4f8ff in: <div className=\"p-4 md:p-5 border-b border-border flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-[#f4f8ff]\">"
+      },
+      {
+        "lineNum": 400,
+        "type": "bg-white",
+        "text": "className=\"w-full pl-10 pr-4 py-2 rounded-xl border border-border focus:outline-none focus:border-[#00236F] text-sm bg-white\""
+      },
+      {
+        "lineNum": 400,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: className=\"w-full pl-10 pr-4 py-2 rounded-xl border border-border focus:outline-none focus:border-[#00236F] text-sm bg-white\""
+      },
+      {
+        "lineNum": 400,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"w-full pl-10 pr-4 py-2 rounded-xl border border-border focus:outline-none focus:border-[#00236F] text-sm bg-white\""
+      },
+      {
+        "lineNum": 406,
+        "type": "bg-white",
+        "text": "className=\"h-9 pl-3 pr-8 rounded-xl border border-border text-xs font-bold bg-white text-[#525252] focus:outline-none focus:border-[#00236F] appearance-none cursor-pointer\">"
+      },
+      {
+        "lineNum": 406,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: className=\"h-9 pl-3 pr-8 rounded-xl border border-border text-xs font-bold bg-white text-[#525252] focus:outline-none focus:border-[#00236F] appearance-none cursor-pointer\">"
+      },
+      {
+        "lineNum": 406,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"h-9 pl-3 pr-8 rounded-xl border border-border text-xs font-bold bg-white text-[#525252] focus:outline-none focus:border-[#00236F] appearance-none cursor-pointer\">"
+      },
+      {
+        "lineNum": 417,
+        "type": "bg-white",
+        "text": "className=\"h-9 pl-3 pr-8 rounded-xl border border-border text-xs font-bold bg-white text-[#525252] focus:outline-none focus:border-[#00236F] appearance-none cursor-pointer\">"
+      },
+      {
+        "lineNum": 417,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: className=\"h-9 pl-3 pr-8 rounded-xl border border-border text-xs font-bold bg-white text-[#525252] focus:outline-none focus:border-[#00236F] appearance-none cursor-pointer\">"
+      },
+      {
+        "lineNum": 417,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"h-9 pl-3 pr-8 rounded-xl border border-border text-xs font-bold bg-white text-[#525252] focus:outline-none focus:border-[#00236F] appearance-none cursor-pointer\">"
+      },
+      {
+        "lineNum": 428,
+        "type": "bg-white",
+        "text": "className=\"h-9 pl-3 pr-8 rounded-xl border border-border text-xs font-bold bg-white text-[#525252] focus:outline-none focus:border-[#00236F] appearance-none cursor-pointer\">"
+      },
+      {
+        "lineNum": 428,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: className=\"h-9 pl-3 pr-8 rounded-xl border border-border text-xs font-bold bg-white text-[#525252] focus:outline-none focus:border-[#00236F] appearance-none cursor-pointer\">"
+      },
+      {
+        "lineNum": 428,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"h-9 pl-3 pr-8 rounded-xl border border-border text-xs font-bold bg-white text-[#525252] focus:outline-none focus:border-[#00236F] appearance-none cursor-pointer\">"
+      },
+      {
+        "lineNum": 452,
+        "type": "hardcoded-color",
+        "text": "Found #f4f8ff in: <tr key={headerGroup.id} className=\"bg-[#f4f8ff] border-b border-[#dbe7ff]\">"
+      },
+      {
+        "lineNum": 452,
+        "type": "hardcoded-color",
+        "text": "Found #dbe7ff in: <tr key={headerGroup.id} className=\"bg-[#f4f8ff] border-b border-[#dbe7ff]\">"
+      },
+      {
+        "lineNum": 454,
+        "type": "hardcoded-color",
+        "text": "Found #1E3A8A in: <th key={header.id} className=\"px-4 md:px-6 py-3.5 text-xs font-bold text-[#1E3A8A] uppercase tracking-wider\">"
+      },
+      {
+        "lineNum": 473,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: iconColor=\"text-[#00236F]\""
+      },
+      {
+        "lineNum": 474,
+        "type": "hardcoded-color",
+        "text": "Found #eef4ff in: iconBgClass=\"bg-[#eef4ff]\""
+      },
+      {
+        "lineNum": 475,
+        "type": "hardcoded-color",
+        "text": "Found #c9d8ff in: iconBorderClass=\"border-[#c9d8ff]\""
+      },
+      {
+        "lineNum": 479,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: actionClassName=\"bg-[#00236F] hover:bg-[#0B4FAE]\""
+      },
+      {
+        "lineNum": 479,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: actionClassName=\"bg-[#00236F] hover:bg-[#0B4FAE]\""
+      },
+      {
+        "lineNum": 486,
+        "type": "hardcoded-color",
+        "text": "Found #eef1f6 in: <tr key={row.id} className=\"border-b border-[#eef1f6] hover:bg-[#f7faff] transition-colors\">"
+      },
+      {
+        "lineNum": 486,
+        "type": "hardcoded-color",
+        "text": "Found #f7faff in: <tr key={row.id} className=\"border-b border-[#eef1f6] hover:bg-[#f7faff] transition-colors\">"
+      },
+      {
+        "lineNum": 508,
+        "type": "bg-white",
+        "text": "className=\"px-3 py-1 border border-border rounded bg-white hover:bg-[#eef4ff] disabled:opacity-50\""
+      },
+      {
+        "lineNum": 508,
+        "type": "hardcoded-color",
+        "text": "Found #eef4ff in: className=\"px-3 py-1 border border-border rounded bg-white hover:bg-[#eef4ff] disabled:opacity-50\""
+      },
+      {
+        "lineNum": 515,
+        "type": "bg-white",
+        "text": "className=\"px-3 py-1 border border-border rounded bg-white hover:bg-[#eef4ff] disabled:opacity-50\""
+      },
+      {
+        "lineNum": 515,
+        "type": "hardcoded-color",
+        "text": "Found #eef4ff in: className=\"px-3 py-1 border border-border rounded bg-white hover:bg-[#eef4ff] disabled:opacity-50\""
+      },
+      {
+        "lineNum": 526,
+        "type": "bg-white",
+        "text": "<div className=\"bg-white w-full max-w-2xl rounded-2xl shadow-xl flex flex-col max-h-[90vh]\">"
+      },
+      {
+        "lineNum": 537,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: <select {...register('tipe')} defaultValue=\"Laporan Prestasi\" className=\"w-full border border-border rounded-xl px-4 py-2 focus:border-[#00236F] outline-none text-on-surface\">"
+      },
+      {
+        "lineNum": 547,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: <input {...register('nama_lomba')} className=\"w-full border border-border rounded-xl px-4 py-2 focus:border-[#00236F] outline-none\" placeholder=\"Cth: Gemastik 2026\" />"
+      },
+      {
+        "lineNum": 552,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: <select {...register('kategori')} className=\"w-full border border-border rounded-xl px-4 py-2 focus:border-[#00236F] outline-none text-on-surface\">"
+      },
+      {
+        "lineNum": 567,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: <select {...register('tingkat')} className=\"w-full border border-border rounded-xl px-4 py-2 focus:border-[#00236F] outline-none text-on-surface\">"
+      },
+      {
+        "lineNum": 578,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: <input {...register('penyelenggara')} className=\"w-full border border-border rounded-xl px-4 py-2 focus:border-[#00236F] outline-none\" placeholder=\"Cth: Kemendikbud\" />"
+      },
+      {
+        "lineNum": 586,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: <input type=\"date\" {...register('tanggal')} className=\"w-full border border-border rounded-xl px-4 py-2 focus:border-[#00236F] outline-none text-on-surface\" />"
+      },
+      {
+        "lineNum": 592,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: <select {...register('peringkat')} className=\"w-full border border-border rounded-xl px-4 py-2 focus:border-[#00236F] outline-none text-on-surface\">"
+      },
+      {
+        "lineNum": 607,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: <input type=\"number\" {...register('dana_diajukan')} className=\"w-full border border-border rounded-xl px-4 py-2 focus:border-[#00236F] outline-none\" placeholder=\"Cth: 1500000\" />"
+      },
+      {
+        "lineNum": 615,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: <select {...register('riwayat_organisasi_id')} className=\"w-full border border-border rounded-xl px-4 py-2 focus:border-[#00236F] outline-none text-on-surface\">"
+      },
+      {
+        "lineNum": 627,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"border-2 border-dashed border-border rounded-xl p-6 text-center hover:bg-background transition-colors relative\">"
+      },
+      {
+        "lineNum": 631,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: <p className=\"text-sm font-semibold text-[#00236F]\">Klik untuk Upload File</p>"
+      },
+      {
+        "lineNum": 634,
+        "type": "hardcoded-color",
+        "text": "Found #eef4ff in: <div className=\"mt-3 px-3 py-1 bg-[#eef4ff] border border-[#c9d8ff] text-[#00236F] text-xs font-bold rounded-lg truncate w-full max-w-xs\">"
+      },
+      {
+        "lineNum": 634,
+        "type": "hardcoded-color",
+        "text": "Found #c9d8ff in: <div className=\"mt-3 px-3 py-1 bg-[#eef4ff] border border-[#c9d8ff] text-[#00236F] text-xs font-bold rounded-lg truncate w-full max-w-xs\">"
+      },
+      {
+        "lineNum": 634,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: <div className=\"mt-3 px-3 py-1 bg-[#eef4ff] border border-[#c9d8ff] text-[#00236F] text-xs font-bold rounded-lg truncate w-full max-w-xs\">"
+      },
+      {
+        "lineNum": 645,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: <button type=\"submit\" disabled={createMutation.isLoading} className=\"px-5 py-2.5 rounded-xl font-bold bg-[#00236F] text-white hover:bg-[#0B4FAE] disabled:opacity-50\">"
+      },
+      {
+        "lineNum": 645,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: <button type=\"submit\" disabled={createMutation.isLoading} className=\"px-5 py-2.5 rounded-xl font-bold bg-[#00236F] text-white hover:bg-[#0B4FAE] disabled:opacity-50\">"
+      },
+      {
+        "lineNum": 659,
+        "type": "bg-white",
+        "text": "<div className=\"bg-white w-full max-w-xl rounded-2xl shadow-xl flex flex-col\">"
+      },
+      {
+        "lineNum": 671,
+        "type": "hardcoded-color",
+        "text": "Found #fef2f2 in: <div className={`p-4 rounded-xl mb-6 border ${selectedDetail.status === 'Ditolak' || selectedDetail.Status === 'Ditolak' ? 'bg-[#fef2f2] border-[#fecaca] text-[#991b1b]' : 'bg-[#f0fdf4] border-[#bbf7d0] text-[#166534]'}`}>"
+      },
+      {
+        "lineNum": 671,
+        "type": "hardcoded-color",
+        "text": "Found #fecaca in: <div className={`p-4 rounded-xl mb-6 border ${selectedDetail.status === 'Ditolak' || selectedDetail.Status === 'Ditolak' ? 'bg-[#fef2f2] border-[#fecaca] text-[#991b1b]' : 'bg-[#f0fdf4] border-[#bbf7d0] text-[#166534]'}`}>"
+      },
+      {
+        "lineNum": 671,
+        "type": "hardcoded-color",
+        "text": "Found #991b1b in: <div className={`p-4 rounded-xl mb-6 border ${selectedDetail.status === 'Ditolak' || selectedDetail.Status === 'Ditolak' ? 'bg-[#fef2f2] border-[#fecaca] text-[#991b1b]' : 'bg-[#f0fdf4] border-[#bbf7d0] text-[#166534]'}`}>"
+      },
+      {
+        "lineNum": 671,
+        "type": "hardcoded-color",
+        "text": "Found #f0fdf4 in: <div className={`p-4 rounded-xl mb-6 border ${selectedDetail.status === 'Ditolak' || selectedDetail.Status === 'Ditolak' ? 'bg-[#fef2f2] border-[#fecaca] text-[#991b1b]' : 'bg-[#f0fdf4] border-[#bbf7d0] text-[#166534]'}`}>"
+      },
+      {
+        "lineNum": 671,
+        "type": "hardcoded-color",
+        "text": "Found #bbf7d0 in: <div className={`p-4 rounded-xl mb-6 border ${selectedDetail.status === 'Ditolak' || selectedDetail.Status === 'Ditolak' ? 'bg-[#fef2f2] border-[#fecaca] text-[#991b1b]' : 'bg-[#f0fdf4] border-[#bbf7d0] text-[#166534]'}`}>"
+      },
+      {
+        "lineNum": 671,
+        "type": "hardcoded-color",
+        "text": "Found #166534 in: <div className={`p-4 rounded-xl mb-6 border ${selectedDetail.status === 'Ditolak' || selectedDetail.Status === 'Ditolak' ? 'bg-[#fef2f2] border-[#fecaca] text-[#991b1b]' : 'bg-[#f0fdf4] border-[#bbf7d0] text-[#166534]'}`}>"
+      },
+      {
+        "lineNum": 688,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: <td className=\"py-2 font-bold text-[#00236F]\">Rp {(selectedDetail.dana_diajukan || selectedDetail.DanaDiajukan || 0).toLocaleString('id-ID')}</td>"
+      },
+      {
+        "lineNum": 698,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: <tr className=\"border-b border-[#f5f5f5]\"><td className=\"py-2.5 font-semibold text-[#a3a3a3]\">Peringkat</td><td className=\"py-2 font-bold text-[#00236F]\">{selectedDetail.peringkat || selectedDetail.Peringkat || '—'}</td></tr>"
+      },
+      {
+        "lineNum": 715,
+        "type": "hardcoded-color",
+        "text": "Found #eef4ff in: <a href={`${API_BASE_URL.replace('/api', '')}${selectedDetail.bukti_url || selectedDetail.BuktiURL}`} target=\"_blank\" rel=\"noreferrer\" className=\"flex items-center justify-center p-3 border border-border rounded-xl hover:bg-[#eef4ff] hover:border-[#00236F] transition-colors text-sm font-bold text-[#00236F]\">"
+      },
+      {
+        "lineNum": 715,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: <a href={`${API_BASE_URL.replace('/api', '')}${selectedDetail.bukti_url || selectedDetail.BuktiURL}`} target=\"_blank\" rel=\"noreferrer\" className=\"flex items-center justify-center p-3 border border-border rounded-xl hover:bg-[#eef4ff] hover:border-[#00236F] transition-colors text-sm font-bold text-[#00236F]\">"
+      },
+      {
+        "lineNum": 715,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: <a href={`${API_BASE_URL.replace('/api', '')}${selectedDetail.bukti_url || selectedDetail.BuktiURL}`} target=\"_blank\" rel=\"noreferrer\" className=\"flex items-center justify-center p-3 border border-border rounded-xl hover:bg-[#eef4ff] hover:border-[#00236F] transition-colors text-sm font-bold text-[#00236F]\">"
+      }
+    ]
+  },
+  {
+    "file": "BkuDashboard.jsx",
+    "issues": [
+      {
+        "lineNum": 158,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"flex-1 md:flex-initial px-4 py-2 rounded-lg font-bold text-xs transition-all text-white hover:opacity-90 shadow-sm flex items-center justify-center gap-1.5\""
+      }
+    ]
+  },
+  {
+    "file": "components\\AvatarUploadModal.jsx",
+    "issues": [
+      {
+        "lineNum": 87,
+        "type": "hardcoded-color",
+        "text": "Found #EAF1FF in: <div className=\"border-2 border-dashed border-border rounded-[2rem] p-10 flex flex-col items-center justify-center gap-4 bg-background hover:bg-[#EAF1FF] hover:border-[#C9D8FF] transition-all group cursor-pointer relative\">"
+      },
+      {
+        "lineNum": 87,
+        "type": "hardcoded-color",
+        "text": "Found #C9D8FF in: <div className=\"border-2 border-dashed border-border rounded-[2rem] p-10 flex flex-col items-center justify-center gap-4 bg-background hover:bg-[#EAF1FF] hover:border-[#C9D8FF] transition-all group cursor-pointer relative\">"
+      },
+      {
+        "lineNum": 87,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"border-2 border-dashed border-border rounded-[2rem] p-10 flex flex-col items-center justify-center gap-4 bg-background hover:bg-[#EAF1FF] hover:border-[#C9D8FF] transition-all group cursor-pointer relative\">"
+      },
+      {
+        "lineNum": 94,
+        "type": "bg-white",
+        "text": "<div className=\"w-14 h-14 bg-white rounded-2xl shadow-sm flex items-center justify-center text-bku-primary group-hover:scale-110 transition-transform\">"
+      },
+      {
+        "lineNum": 104,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"relative h-64 w-full bg-bku-primary rounded-[1.5rem] overflow-hidden shadow-inner\">"
+      },
+      {
+        "lineNum": 142,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: className=\"flex-[2] py-3 px-4 rounded-2xl bg-bku-primary text-white font-bold text-sm hover:bg-[#0B4FAE] transition-all shadow-md shadow-bku-primary/20 flex items-center justify-center gap-2 disabled:opacity-50\""
+      }
+    ]
+  },
+  {
+    "file": "components\\TopNavBar.jsx",
+    "issues": [
+      {
+        "lineNum": 41,
+        "type": "hardcoded-color",
+        "text": "Found #fcf9f8 in: <nav className=\"fixed top-0 w-full z-50 bg-[#fcf9f8]/80 backdrop-blur-md shadow-sm flex justify-between items-center px-6 h-16\">"
+      },
+      {
+        "lineNum": 60,
+        "type": "bg-white",
+        "text": "<div className=\"h-9 w-9 rounded-full overflow-hidden border border-border bg-white flex items-center justify-center\">"
+      },
+      {
+        "lineNum": 74,
+        "type": "bg-white",
+        "text": "<DropdownMenuContent align=\"end\" className=\"w-56 mt-2 rounded-2xl p-1.5 shadow-xl border border-slate-100 bg-white\">"
+      }
+    ]
+  },
+  {
+    "file": "CounselingHistoryPage.jsx",
+    "issues": [
+      {
+        "lineNum": 181,
+        "type": "bg-white",
+        "text": "<div key={item.label} className=\"rounded-2xl border border-border bg-white p-4 shadow-sm\">"
+      },
+      {
+        "lineNum": 191,
+        "type": "bg-white",
+        "text": "<div className=\"overflow-hidden rounded-2xl border border-border bg-white shadow-sm\">"
+      },
+      {
+        "lineNum": 208,
+        "type": "bg-white",
+        "text": "<article key={item.id} className=\"overflow-hidden rounded-2xl border border-border bg-white shadow-sm\">"
+      },
+      {
+        "lineNum": 240,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"rounded-xl border border-border bg-neutral-50 p-3\">"
+      },
+      {
+        "lineNum": 247,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"rounded-xl border border-border bg-neutral-50 p-3\">"
+      },
+      {
+        "lineNum": 273,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"rounded-xl border border-border bg-neutral-50 p-3 sm:col-span-2 md:col-span-1\">"
+      },
+      {
+        "lineNum": 319,
+        "type": "hardcoded-color",
+        "text": "Found #eef4ff in: iconBgClass=\"bg-[#eef4ff]\""
+      },
+      {
+        "lineNum": 320,
+        "type": "hardcoded-color",
+        "text": "Found #c9d8ff in: iconBorderClass=\"border-[#c9d8ff]\""
+      },
+      {
+        "lineNum": 330,
+        "type": "bg-white",
+        "text": "<div className=\"rounded-2xl border border-border bg-white shadow-sm\">"
+      },
+      {
+        "lineNum": 417,
+        "type": "bg-white",
+        "text": "<article key={record.id} className=\"overflow-hidden rounded-2xl border border-border bg-white shadow-sm transition-shadow hover:shadow-md\">"
+      },
+      {
+        "lineNum": 455,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-600 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 border border-border rounded-xl transition-all shadow-sm\""
+      },
+      {
+        "lineNum": 479,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"rounded-xl border border-border bg-neutral-50 p-3\">"
+      },
+      {
+        "lineNum": 597,
+        "type": "bg-white",
+        "text": "<article key={record.id} className=\"rounded-2xl border border-border bg-white p-4 shadow-sm\">"
+      },
+      {
+        "lineNum": 614,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-600 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 border border-border rounded-xl transition-all shadow-sm\""
+      },
+      {
+        "lineNum": 623,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"rounded-xl border border-border bg-neutral-50 p-3\">"
+      },
+      {
+        "lineNum": 642,
+        "type": "bg-white",
+        "text": "<div className=\"rounded-xl border border-border bg-white p-3 shadow-sm\">"
+      },
+      {
+        "lineNum": 642,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"rounded-xl border border-border bg-white p-3 shadow-sm\">"
+      },
+      {
+        "lineNum": 677,
+        "type": "hardcoded-color",
+        "text": "Found #eef4ff in: iconBgClass=\"bg-[#eef4ff]\""
+      },
+      {
+        "lineNum": 678,
+        "type": "hardcoded-color",
+        "text": "Found #c9d8ff in: iconBorderClass=\"border-[#c9d8ff]\""
+      },
+      {
+        "lineNum": 706,
+        "type": "bg-white",
+        "text": "<article key={ref.id} className=\"rounded-2xl border border-border bg-white p-4 shadow-sm\">"
+      },
+      {
+        "lineNum": 722,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"rounded-xl border border-border bg-neutral-50 p-3\">"
+      },
+      {
+        "lineNum": 733,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"rounded-xl border border-border bg-neutral-50 p-3\">"
+      },
+      {
+        "lineNum": 745,
+        "type": "bg-white",
+        "text": "className=\"inline-flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-[11px] font-bold text-neutral-700 shadow-sm transition-all hover:bg-neutral-50\""
+      },
+      {
+        "lineNum": 745,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"inline-flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-[11px] font-bold text-neutral-700 shadow-sm transition-all hover:bg-neutral-50\""
+      },
+      {
+        "lineNum": 756,
+        "type": "bg-white",
+        "text": "className=\"inline-flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-[11px] font-bold text-neutral-700 shadow-sm transition-all hover:bg-neutral-50\""
+      },
+      {
+        "lineNum": 756,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"inline-flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-[11px] font-bold text-neutral-700 shadow-sm transition-all hover:bg-neutral-50\""
+      },
+      {
+        "lineNum": 774,
+        "type": "hardcoded-color",
+        "text": "Found #eef4ff in: iconBgClass=\"bg-[#eef4ff]\""
+      },
+      {
+        "lineNum": 775,
+        "type": "hardcoded-color",
+        "text": "Found #c9d8ff in: iconBorderClass=\"border-[#c9d8ff]\""
+      },
+      {
+        "lineNum": 790,
+        "type": "bg-white",
+        "text": "<div className=\"w-full max-w-md rounded-2xl bg-white shadow-2xl overflow-hidden\">"
+      },
+      {
+        "lineNum": 836,
+        "type": "bg-white",
+        "text": "className=\"w-full rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm font-semibold text-neutral-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100\""
+      },
+      {
+        "lineNum": 850,
+        "type": "bg-white",
+        "text": "className=\"w-full rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm font-semibold text-neutral-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100\""
+      },
+      {
+        "lineNum": 861,
+        "type": "bg-white",
+        "text": "className=\"w-full rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm font-semibold text-neutral-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100\""
+      },
+      {
+        "lineNum": 879,
+        "type": "bg-white",
+        "text": "className=\"flex-1 rounded-xl border border-neutral-200 bg-white py-2.5 text-sm font-bold text-neutral-600 transition-all hover:bg-neutral-50\""
+      },
+      {
+        "lineNum": 887,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"flex-1 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:shadow-md disabled:opacity-60\""
+      }
+    ]
+  },
+  {
+    "file": "CounselingPage.jsx",
+    "issues": [
+      {
+        "lineNum": 147,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"w-10 h-10 bg-surface/70 backdrop-blur-md rounded-xl flex items-center justify-center border border-inherit shadow-inner\">"
+      },
+      {
+        "lineNum": 270,
+        "type": "hardcoded-color",
+        "text": "Found #eef4ff in: iconBgClass=\"bg-[#eef4ff]\""
+      },
+      {
+        "lineNum": 271,
+        "type": "hardcoded-color",
+        "text": "Found #c9d8ff in: iconBorderClass=\"border-[#c9d8ff]\""
+      },
+      {
+        "lineNum": 281,
+        "type": "bg-white",
+        "text": "<div className=\"overflow-hidden rounded-2xl border border-border bg-white shadow-sm\">"
+      },
+      {
+        "lineNum": 311,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: className=\"mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-bku-primary px-4 py-3 text-sm font-bold text-white transition-all hover:bg-[#0B4FAE]\""
+      },
+      {
+        "lineNum": 333,
+        "type": "bg-white",
+        "text": "<div className=\"bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col\">"
+      },
+      {
+        "lineNum": 387,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: ? 'border-[#00236F] bg-blue-50/20 ring-2 ring-[#00236F]/5'"
+      },
+      {
+        "lineNum": 387,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: ? 'border-[#00236F] bg-blue-50/20 ring-2 ring-[#00236F]/5'"
+      },
+      {
+        "lineNum": 388,
+        "type": "bg-white",
+        "text": ": 'border-neutral-200 hover:border-neutral-300 bg-white'"
+      },
+      {
+        "lineNum": 391,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: <span className={`material-symbols-outlined text-[18px] mt-0.5 shrink-0 ${mode === opt.value ? 'text-[#00236F]' : 'text-neutral-400'}`}>"
+      },
+      {
+        "lineNum": 395,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: <p className={`text-xs font-bold ${mode === opt.value ? 'text-[#00236F]' : 'text-neutral-700'}`}>"
+      },
+      {
+        "lineNum": 419,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: ? 'border-[#00236F] bg-blue-50/20 text-[#00236F] ring-2 ring-[#00236F]/5'"
+      },
+      {
+        "lineNum": 419,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: ? 'border-[#00236F] bg-blue-50/20 text-[#00236F] ring-2 ring-[#00236F]/5'"
+      },
+      {
+        "lineNum": 419,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: ? 'border-[#00236F] bg-blue-50/20 text-[#00236F] ring-2 ring-[#00236F]/5'"
+      },
+      {
+        "lineNum": 420,
+        "type": "bg-white",
+        "text": ": 'border-neutral-200 hover:border-neutral-300 bg-white text-neutral-600'"
+      },
+      {
+        "lineNum": 437,
+        "type": "bg-white",
+        "text": "className=\"w-full bg-neutral-50 border border-neutral-200 rounded-2xl px-4 py-3 text-sm text-neutral-700 focus:outline-none focus:border-[#00236F] focus:bg-white transition-all resize-none placeholder:text-neutral-300\""
+      },
+      {
+        "lineNum": 437,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: className=\"w-full bg-neutral-50 border border-neutral-200 rounded-2xl px-4 py-3 text-sm text-neutral-700 focus:outline-none focus:border-[#00236F] focus:bg-white transition-all resize-none placeholder:text-neutral-300\""
+      },
+      {
+        "lineNum": 450,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: className=\"w-4 h-4 mt-0.5 rounded border-blue-200 text-[#00236F] focus:ring-[#00236F] shrink-0 cursor-pointer\""
+      },
+      {
+        "lineNum": 450,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: className=\"w-4 h-4 mt-0.5 rounded border-blue-200 text-[#00236F] focus:ring-[#00236F] shrink-0 cursor-pointer\""
+      },
+      {
+        "lineNum": 467,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: className=\"flex-1 py-3 rounded-2xl bg-[#00236F] text-white text-sm font-bold hover:bg-[#0B4FAE] disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20\""
+      },
+      {
+        "lineNum": 467,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: className=\"flex-1 py-3 rounded-2xl bg-[#00236F] text-white text-sm font-bold hover:bg-[#0B4FAE] disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20\""
+      }
+    ]
+  },
+  {
+    "file": "HealthScreeningPage.jsx",
+    "issues": [
+      {
+        "lineNum": 325,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"flex justify-center items-center gap-2 px-4 py-2.5 bg-success text-white font-bold rounded-xl hover:bg-success/90 transition-all text-sm shadow-md shadow-success/20 w-full sm:w-auto\""
+      },
+      {
+        "lineNum": 331,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"flex justify-center items-center gap-2 px-4 py-2.5 bg-[var(--theme-primary)] text-white font-bold rounded-xl hover:opacity-90 transition-all text-sm shadow-md shadow-[var(--theme-primary)]/20 w-full sm:w-auto\""
+      },
+      {
+        "lineNum": 346,
+        "type": "bg-white",
+        "text": "<div className=\"lg:col-span-8 bg-white rounded-2xl border border-border shadow-sm overflow-hidden\">"
+      },
+      {
+        "lineNum": 347,
+        "type": "bg-white",
+        "text": "<div className=\"px-5 py-4 border-b border-border flex items-center justify-between bg-white bg-opacity-50\">"
+      },
+      {
+        "lineNum": 349,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className={`flex items-center justify-center p-2 rounded-xl text-white shadow-md ${statusInfo.iconBg}`}>"
+      },
+      {
+        "lineNum": 359,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-600 shadow-sm\">"
+      },
+      {
+        "lineNum": 374,
+        "type": "bg-white",
+        "text": "<div className=\"p-6 bg-white border-t border-border flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden\">"
+      },
+      {
+        "lineNum": 396,
+        "type": "hardcoded-color",
+        "text": "Found #10b981 in: const ringColor = score >= 85 ? \"#10b981\" : score >= 70 ? \"#f59e0b\" : \"#f43f5e\";"
+      },
+      {
+        "lineNum": 396,
+        "type": "hardcoded-color",
+        "text": "Found #f59e0b in: const ringColor = score >= 85 ? \"#10b981\" : score >= 70 ? \"#f59e0b\" : \"#f43f5e\";"
+      },
+      {
+        "lineNum": 396,
+        "type": "hardcoded-color",
+        "text": "Found #f43f5e in: const ringColor = score >= 85 ? \"#10b981\" : score >= 70 ? \"#f59e0b\" : \"#f43f5e\";"
+      },
+      {
+        "lineNum": 432,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <span className={`text-[11px] font-black uppercase px-2.5 py-1 rounded-lg ${bpStat.bg} ${bpStat.color} shadow-sm border border-black/5`}>"
+      },
+      {
+        "lineNum": 568,
+        "type": "bg-white",
+        "text": "<div className=\"lg:col-span-2 bg-white rounded-2xl border border-border shadow-sm p-5\">"
+      },
+      {
+        "lineNum": 585,
+        "type": "bg-white",
+        "text": "? 'bg-white text-bku-primary shadow-sm'"
+      },
+      {
+        "lineNum": 602,
+        "type": "hardcoded-color",
+        "text": "Found #f59e0b in: stopColor={activeChartTab === 'skor' ? '#f59e0b' : activeChartTab === 'bmi' ? '#10b981' : 'var(--theme-primary)'}"
+      },
+      {
+        "lineNum": 602,
+        "type": "hardcoded-color",
+        "text": "Found #10b981 in: stopColor={activeChartTab === 'skor' ? '#f59e0b' : activeChartTab === 'bmi' ? '#10b981' : 'var(--theme-primary)'}"
+      },
+      {
+        "lineNum": 607,
+        "type": "hardcoded-color",
+        "text": "Found #f59e0b in: stopColor={activeChartTab === 'skor' ? '#f59e0b' : activeChartTab === 'bmi' ? '#10b981' : 'var(--theme-primary)'}"
+      },
+      {
+        "lineNum": 607,
+        "type": "hardcoded-color",
+        "text": "Found #10b981 in: stopColor={activeChartTab === 'skor' ? '#f59e0b' : activeChartTab === 'bmi' ? '#10b981' : 'var(--theme-primary)'}"
+      },
+      {
+        "lineNum": 617,
+        "type": "hardcoded-color",
+        "text": "Found #f59e0b in: stroke: activeChartTab === 'skor' ? '#f59e0b' : activeChartTab === 'bmi' ? '#10b981' : 'var(--theme-primary)',"
+      },
+      {
+        "lineNum": 617,
+        "type": "hardcoded-color",
+        "text": "Found #10b981 in: stroke: activeChartTab === 'skor' ? '#f59e0b' : activeChartTab === 'bmi' ? '#10b981' : 'var(--theme-primary)',"
+      },
+      {
+        "lineNum": 622,
+        "type": "hardcoded-color",
+        "text": "Found #d97706 in: itemStyle={{ color: activeChartTab === 'skor' ? '#d97706' : activeChartTab === 'bmi' ? '#059669' : 'var(--theme-primary)' }}"
+      },
+      {
+        "lineNum": 622,
+        "type": "hardcoded-color",
+        "text": "Found #059669 in: itemStyle={{ color: activeChartTab === 'skor' ? '#d97706' : activeChartTab === 'bmi' ? '#059669' : 'var(--theme-primary)' }}"
+      },
+      {
+        "lineNum": 627,
+        "type": "hardcoded-color",
+        "text": "Found #f59e0b in: stroke={activeChartTab === 'skor' ? '#f59e0b' : activeChartTab === 'bmi' ? '#10b981' : 'var(--theme-primary)'}"
+      },
+      {
+        "lineNum": 627,
+        "type": "hardcoded-color",
+        "text": "Found #10b981 in: stroke={activeChartTab === 'skor' ? '#f59e0b' : activeChartTab === 'bmi' ? '#10b981' : 'var(--theme-primary)'}"
+      },
+      {
+        "lineNum": 720,
+        "type": "bg-white",
+        "text": "<div className=\"w-9 h-9 rounded-xl bg-white border border-border shadow-sm flex flex-col items-center justify-center group-hover:border-bku-primary/30 transition-colors shrink-0\">"
+      },
+      {
+        "lineNum": 720,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"w-9 h-9 rounded-xl bg-white border border-border shadow-sm flex flex-col items-center justify-center group-hover:border-bku-primary/30 transition-colors shrink-0\">"
+      },
+      {
+        "lineNum": 782,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <span className=\"text-[9px] font-medium text-neutral-400 bg-neutral-100 px-2 py-0.5 rounded-md border border-neutral-200/50 max-w-[120px] truncate shadow-sm\" title={rec.diperiksa_oleh}>"
+      },
+      {
+        "lineNum": 792,
+        "type": "bg-white",
+        "text": "className=\"w-8 h-8 rounded-xl bg-white border border-neutral-200 flex items-center justify-center text-bku-primary hover:bg-bku-primary hover:text-white transition-all ml-auto shadow-sm\""
+      },
+      {
+        "lineNum": 792,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"w-8 h-8 rounded-xl bg-white border border-neutral-200 flex items-center justify-center text-bku-primary hover:bg-bku-primary hover:text-white transition-all ml-auto shadow-sm\""
+      },
+      {
+        "lineNum": 835,
+        "type": "bg-white",
+        "text": "className=\"flex items-center gap-2 px-4 py-2.5 bg-white text-emerald-600 text-sm font-bold rounded-xl hover:bg-emerald-50 transition-all w-fit\""
+      },
+      {
+        "lineNum": 855,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"p-3 bg-neutral-50 rounded-xl border border-border flex items-start gap-2\">"
+      },
+      {
+        "lineNum": 856,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: <span className=\"material-symbols-outlined text-[#0B4FAE] shrink-0 mt-0.5\" style={{ fontSize: '14px' }} >error</span>"
+      },
+      {
+        "lineNum": 924,
+        "type": "bg-white",
+        "text": "<div className=\"relative overflow-hidden bg-white border border-border rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow group/stat flex flex-col justify-between\">"
+      },
+      {
+        "lineNum": 960,
+        "type": "bg-white",
+        "text": "className=\"bg-white rounded-2xl p-10 border-2 border-dashed border-neutral-200 text-center mb-6\""
+      },
+      {
+        "lineNum": 971,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: className=\"inline-flex items-center gap-2 px-5 py-2.5 bg-bku-primary text-white text-sm font-bold rounded-xl hover:bg-[#0B4FAE] transition-all\""
+      },
+      {
+        "lineNum": 1013,
+        "type": "bg-white",
+        "text": "className=\"relative bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh]\""
+      },
+      {
+        "lineNum": 1070,
+        "type": "bg-white",
+        "text": "<div className=\"flex-1 p-6 overflow-y-auto bg-white flex flex-col justify-between max-h-[90vh]\">"
+      },
+      {
+        "lineNum": 1110,
+        "type": "bg-white",
+        "text": "className=\"w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-bold focus:outline-none focus:border-bku-primary transition-all text-on-surface h-[40px]\""
+      },
+      {
+        "lineNum": 1122,
+        "type": "bg-white",
+        "text": "className=\"w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-bold focus:outline-none focus:border-bku-primary transition-all text-on-surface h-[40px]\""
+      },
+      {
+        "lineNum": 1136,
+        "type": "bg-white",
+        "text": "className=\"w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-bold focus:outline-none focus:border-bku-primary transition-all text-on-surface h-[40px]\""
+      },
+      {
+        "lineNum": 1148,
+        "type": "bg-white",
+        "text": "className=\"w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-bold focus:outline-none focus:border-bku-primary transition-all text-on-surface h-[40px]\""
+      },
+      {
+        "lineNum": 1186,
+        "type": "bg-white",
+        "text": "className=\"w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-bold focus:outline-none focus:border-bku-primary transition-all text-on-surface h-[40px]\""
+      },
+      {
+        "lineNum": 1198,
+        "type": "bg-white",
+        "text": "className=\"w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-bold focus:outline-none focus:border-bku-primary transition-all text-on-surface h-[40px]\""
+      },
+      {
+        "lineNum": 1228,
+        "type": "bg-white",
+        "text": ": 'bg-white border-neutral-200 text-neutral-600 hover:bg-neutral-50'"
+      },
+      {
+        "lineNum": 1260,
+        "type": "bg-white",
+        "text": "className=\"w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-bold focus:outline-none focus:border-bku-primary transition-all text-on-surface h-[40px]\""
+      },
+      {
+        "lineNum": 1299,
+        "type": "bg-white",
+        "text": "<div className=\"mt-6 flex gap-3 border-t border-border pt-4 shrink-0 bg-white\">"
+      },
+      {
+        "lineNum": 1302,
+        "type": "bg-white",
+        "text": "className=\"flex-1 py-3 bg-white border border-neutral-200 text-neutral-500 text-xs font-black rounded-xl hover:bg-neutral-50 transition-all uppercase tracking-wider\""
+      },
+      {
+        "lineNum": 1339,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: className=\"flex-1 py-3 bg-bku-primary text-white text-xs font-black rounded-xl hover:bg-[#0B4FAE] transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-md shadow-bku-primary/20 uppercase tracking-wider\""
+      },
+      {
+        "lineNum": 1339,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"flex-1 py-3 bg-bku-primary text-white text-xs font-black rounded-xl hover:bg-[#0B4FAE] transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-md shadow-bku-primary/20 uppercase tracking-wider\""
+      },
+      {
+        "lineNum": 1386,
+        "type": "bg-white",
+        "text": "className=\"relative bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden p-5\""
+      },
+      {
+        "lineNum": 1429,
+        "type": "bg-white",
+        "text": "className=\"relative bg-white w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col\""
+      },
+      {
+        "lineNum": 1434,
+        "type": "bg-white",
+        "text": "<span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-white border shadow-sm ${bmiCat.color}`}>"
+      },
+      {
+        "lineNum": 1615,
+        "type": "bg-white",
+        "text": "<div className=\"p-6 border-t border-border shrink-0 bg-white flex flex-col sm:flex-row gap-3\">"
+      },
+      {
+        "lineNum": 1623,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"flex-1 py-3 bg-emerald-500 text-white text-xs font-black rounded-xl hover:bg-emerald-600 transition-all uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/20\""
+      },
+      {
+        "lineNum": 1659,
+        "type": "hardcoded-color",
+        "text": "Found #10b981 in: let ringColor = \"#10b981\";"
+      },
+      {
+        "lineNum": 1664,
+        "type": "hardcoded-color",
+        "text": "Found #f43f5e in: ringColor = \"#f43f5e\";"
+      },
+      {
+        "lineNum": 1668,
+        "type": "hardcoded-color",
+        "text": "Found #f59e0b in: ringColor = \"#f59e0b\";"
+      },
+      {
+        "lineNum": 1688,
+        "type": "bg-white",
+        "text": "className=\"relative bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden border border-border flex flex-col max-h-[90vh]\""
+      },
+      {
+        "lineNum": 1710,
+        "type": "bg-white",
+        "text": "<div className=\"flex flex-col items-center justify-center p-2 bg-white rounded-xl shadow-sm border border-border\">"
+      },
+      {
+        "lineNum": 1710,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"flex flex-col items-center justify-center p-2 bg-white rounded-xl shadow-sm border border-border\">"
+      },
+      {
+        "lineNum": 1821,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: className=\"w-full py-3 bg-bku-primary text-white text-xs font-bold rounded-xl hover:bg-[#0B4FAE] transition-all shadow-md shadow-bku-primary/10 flex items-center justify-center gap-1.5\""
+      },
+      {
+        "lineNum": 1821,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"w-full py-3 bg-bku-primary text-white text-xs font-bold rounded-xl hover:bg-[#0B4FAE] transition-all shadow-md shadow-bku-primary/10 flex items-center justify-center gap-1.5\""
+      },
+      {
+        "lineNum": 1883,
+        "type": "bg-white",
+        "text": "className=\"bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col\""
+      },
+      {
+        "lineNum": 1910,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div key={booking.id} className=\"bg-neutral-50 rounded-xl p-3 border border-border\">"
+      },
+      {
+        "lineNum": 1913,
+        "type": "bg-white",
+        "text": "<div className=\"w-10 h-10 rounded-lg bg-white border border-neutral-200 flex items-center justify-center\">"
+      },
+      {
+        "lineNum": 1955,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"text-center py-8 bg-neutral-50 rounded-xl border border-border\">"
+      },
+      {
+        "lineNum": 1970,
+        "type": "bg-white",
+        "text": ": 'border-border bg-white hover:border-neutral-200'"
+      },
+      {
+        "lineNum": 2040,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: className=\"flex-1 py-3 bg-bku-primary text-white text-sm font-bold rounded-xl hover:bg-[#0B4FAE] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2\""
+      }
+    ]
+  },
+  {
+    "file": "InsurancePage.jsx",
+    "issues": [
+      {
+        "lineNum": 42,
+        "type": "hardcoded-color",
+        "text": "Found #eef4ff in: { value: 'BKU_Assurance', label: 'BKU Assurance (Kampus)', color: 'bg-bku-primary', textColor: 'text-bku-primary', border: 'border-bku-primary', bg: 'bg-[#eef4ff]' },"
+      },
+      {
+        "lineNum": 236,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"w-10 h-10 bg-bku-primary rounded-xl flex items-center justify-center shadow-md shadow-bku-primary/20\">"
+      },
+      {
+        "lineNum": 245,
+        "type": "bg-white",
+        "text": "<div className=\"flex p-1 bg-white rounded-2xl shadow-sm border border-border w-fit\">"
+      },
+      {
+        "lineNum": 288,
+        "type": "hardcoded-color",
+        "text": "Found #eef4ff in: <div className=\"bg-[#eef4ff] border border-[#c9d8ff] rounded-[24px] p-6 shadow-sm\">"
+      },
+      {
+        "lineNum": 288,
+        "type": "hardcoded-color",
+        "text": "Found #c9d8ff in: <div className=\"bg-[#eef4ff] border border-[#c9d8ff] rounded-[24px] p-6 shadow-sm\">"
+      },
+      {
+        "lineNum": 288,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"bg-[#eef4ff] border border-[#c9d8ff] rounded-[24px] p-6 shadow-sm\">"
+      },
+      {
+        "lineNum": 290,
+        "type": "bg-white",
+        "text": "<div className=\"w-10 h-10 rounded-xl bg-white text-bku-primary flex items-center justify-center shrink-0 border border-[#c9d8ff]\">"
+      },
+      {
+        "lineNum": 290,
+        "type": "hardcoded-color",
+        "text": "Found #c9d8ff in: <div className=\"w-10 h-10 rounded-xl bg-white text-bku-primary flex items-center justify-center shrink-0 border border-[#c9d8ff]\">"
+      },
+      {
+        "lineNum": 314,
+        "type": "bg-white",
+        "text": "<div className=\"bg-white rounded-[24px] border border-border p-6 shadow-sm space-y-4\">"
+      },
+      {
+        "lineNum": 314,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"bg-white rounded-[24px] border border-border p-6 shadow-sm space-y-4\">"
+      },
+      {
+        "lineNum": 317,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"bg-background border border-border rounded-xl p-3 text-center\">"
+      },
+      {
+        "lineNum": 340,
+        "type": "bg-white",
+        "text": "<div className=\"bg-white rounded-[24px] border border-border p-6 md:p-8 shadow-sm space-y-6\">"
+      },
+      {
+        "lineNum": 340,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"bg-white rounded-[24px] border border-border p-6 md:p-8 shadow-sm space-y-6\">"
+      },
+      {
+        "lineNum": 353,
+        "type": "hardcoded-color",
+        "text": "Found #eef4ff in: ? 'border-bku-primary bg-[#eef4ff] text-bku-primary shadow-sm shadow-bku-primary/5'"
+      },
+      {
+        "lineNum": 387,
+        "type": "bg-white",
+        "text": "className=\"w-full p-3.5 pl-4 bg-background border border-border rounded-2xl text-sm focus:border-bku-primary focus:bg-white outline-none transition-all font-bold\""
+      },
+      {
+        "lineNum": 399,
+        "type": "bg-white",
+        "text": "className=\"w-full p-3.5 pl-4 bg-background border border-border rounded-2xl text-sm focus:border-bku-primary focus:bg-white outline-none transition-all font-bold\""
+      },
+      {
+        "lineNum": 412,
+        "type": "bg-white",
+        "text": "className=\"w-full p-3.5 pl-4 bg-background border border-border rounded-2xl text-sm focus:border-bku-primary focus:bg-white outline-none transition-all font-bold\""
+      },
+      {
+        "lineNum": 424,
+        "type": "bg-white",
+        "text": "className=\"w-full p-4 bg-background border border-border rounded-2xl text-sm focus:border-bku-primary focus:bg-white outline-none transition-all font-medium resize-none leading-relaxed\""
+      },
+      {
+        "lineNum": 434,
+        "type": "bg-white",
+        "text": ": 'border-border hover:border-bku-primary bg-background hover:bg-white'"
+      },
+      {
+        "lineNum": 446,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"w-10 h-10 rounded-xl bg-green-600 text-white flex items-center justify-center shadow-md\">"
+      },
+      {
+        "lineNum": 468,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: className=\"w-full py-4 bg-bku-primary text-white font-black rounded-2xl shadow-xl shadow-bku-primary/20 hover:bg-[#0B4FAE] transition-all hover:scale-[1.01] disabled:opacity-50 flex items-center justify-center gap-2\""
+      },
+      {
+        "lineNum": 500,
+        "type": "bg-white",
+        "text": "<div key={i} className=\"bg-white rounded-2xl p-5 border border-border animate-pulse space-y-3\">"
+      },
+      {
+        "lineNum": 508,
+        "type": "bg-white",
+        "text": "<div className=\"bg-white rounded-[24px] p-12 border border-border text-center max-w-lg mx-auto shadow-sm\">"
+      },
+      {
+        "lineNum": 508,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"bg-white rounded-[24px] p-12 border border-border text-center max-w-lg mx-auto shadow-sm\">"
+      },
+      {
+        "lineNum": 516,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: className=\"px-6 py-3 bg-bku-primary text-white text-xs font-black rounded-xl hover:bg-[#0B4FAE] transition-all\""
+      },
+      {
+        "lineNum": 535,
+        "type": "bg-white",
+        "text": "className={`bg-white rounded-2xl p-5 border border-border border-l-4 ${statusBorder} hover:shadow-md transition-all flex flex-col justify-between`}"
+      },
+      {
+        "lineNum": 566,
+        "type": "bg-white",
+        "text": "className=\"px-4 py-2 rounded-xl bg-white border border-border text-xs font-black hover:border-bku-primary hover:text-bku-primary transition-all\""
+      },
+      {
+        "lineNum": 566,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"px-4 py-2 rounded-xl bg-white border border-border text-xs font-black hover:border-bku-primary hover:text-bku-primary transition-all\""
+      },
+      {
+        "lineNum": 575,
+        "type": "hardcoded-color",
+        "text": "Found #eef4ff in: className=\"px-4 py-2 rounded-xl bg-[#eef4ff] border border-[#c9d8ff] text-xs font-black text-bku-primary hover:bg-bku-primary hover:text-white transition-all flex items-center gap-1 shadow-sm shadow-bku-primary/5\""
+      },
+      {
+        "lineNum": 575,
+        "type": "hardcoded-color",
+        "text": "Found #c9d8ff in: className=\"px-4 py-2 rounded-xl bg-[#eef4ff] border border-[#c9d8ff] text-xs font-black text-bku-primary hover:bg-bku-primary hover:text-white transition-all flex items-center gap-1 shadow-sm shadow-bku-primary/5\""
+      },
+      {
+        "lineNum": 575,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"px-4 py-2 rounded-xl bg-[#eef4ff] border border-[#c9d8ff] text-xs font-black text-bku-primary hover:bg-bku-primary hover:text-white transition-all flex items-center gap-1 shadow-sm shadow-bku-primary/5\""
+      },
+      {
+        "lineNum": 599,
+        "type": "bg-white",
+        "text": "className=\"bg-white w-full max-w-2xl rounded-[28px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]\""
+      },
+      {
+        "lineNum": 599,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"bg-white w-full max-w-2xl rounded-[28px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]\""
+      },
+      {
+        "lineNum": 602,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: <div className=\"relative h-24 bg-gradient-to-r from-bku-primary to-[#0B4FAE] p-6 flex items-center text-white\">"
+      },
+      {
+        "lineNum": 671,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"bg-background p-5 rounded-[20px] border border-border leading-relaxed font-medium text-slate-700\">"
+      },
+      {
+        "lineNum": 680,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"flex justify-between items-center bg-background p-4 rounded-xl border border-border group hover:border-bku-primary transition-all\">"
+      },
+      {
+        "lineNum": 694,
+        "type": "bg-white",
+        "text": "className=\"px-3 py-1.5 bg-white border border-border rounded-lg text-xs font-black text-[#525252] hover:text-bku-primary hover:border-bku-primary transition-all flex items-center gap-1 shadow-sm\""
+      },
+      {
+        "lineNum": 694,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"px-3 py-1.5 bg-white border border-border rounded-lg text-xs font-black text-[#525252] hover:text-bku-primary hover:border-bku-primary transition-all flex items-center gap-1 shadow-sm\""
+      },
+      {
+        "lineNum": 709,
+        "type": "bg-white",
+        "text": "className=\"flex-1 py-3.5 rounded-2xl font-black text-xs md:text-sm border border-border text-[#a3a3a3] hover:text-on-surface transition-all bg-white\""
+      },
+      {
+        "lineNum": 718,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: className=\"flex-1 py-3.5 rounded-2xl font-black text-xs md:text-sm bg-bku-primary text-white hover:bg-[#0B4FAE] text-center flex items-center justify-center gap-1.5 shadow-xl shadow-bku-primary/10 transition-all hover:scale-[1.01]\""
+      }
+    ]
+  },
+  {
+    "file": "Kencana\\components.jsx",
+    "issues": [
+      {
+        "lineNum": 131,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"grid size-11 place-items-center rounded-xl bg-[var(--theme-primary)] text-[var(--theme-text-on-primary)] shadow-sm\">"
+      },
+      {
+        "lineNum": 156,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: const cls = `inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-black transition ${disabled ? 'bg-[var(--theme-border-muted)] text-[var(--theme-text-subtle)] cursor-not-allowed' : 'bg-[var(--theme-primary)] text-[var(--theme-text-on-primary)] hover:bg-[var(--theme-primary-hover)] shadow-sm'}`;"
+      }
+    ]
+  },
+  {
+    "file": "Kencana\\KencanaAssignmentPage.jsx",
+    "issues": [
+      {
+        "lineNum": 33,
+        "type": "bg-white",
+        "text": "<div className=\"rounded-2xl border border-border bg-white p-6 shadow-sm\">"
+      },
+      {
+        "lineNum": 83,
+        "type": "bg-white",
+        "text": "<div className=\"rounded-2xl border border-border bg-white p-6 shadow-sm\">"
+      },
+      {
+        "lineNum": 117,
+        "type": "bg-white",
+        "text": "<div className=\"rounded-2xl border border-border bg-white p-6 shadow-sm flex items-center justify-between\">"
+      }
+    ]
+  },
+  {
+    "file": "Kencana\\KencanaAttendancePage.jsx",
+    "issues": [
+      {
+        "lineNum": 28,
+        "type": "hardcoded-color",
+        "text": "Found #1d1b16 in: <h2 className=\"text-xl font-black text-[#1d1b16]\">Status Kehadiran</h2>"
+      },
+      {
+        "lineNum": 32,
+        "type": "hardcoded-color",
+        "text": "Found #756b5a in: <p className=\"mt-4 text-sm font-semibold text-[#756b5a]\">"
+      },
+      {
+        "lineNum": 40,
+        "type": "hardcoded-color",
+        "text": "Found #1d1b16 in: <h2 className=\"text-xl font-black text-[#1d1b16] mb-4\">Riwayat Kehadiran Sesi</h2>"
+      },
+      {
+        "lineNum": 42,
+        "type": "hardcoded-color",
+        "text": "Found #756b5a in: <p className=\"text-sm font-bold text-[#756b5a] p-4 text-center border border-dashed border-border rounded-2xl bg-[#fffaf0]\">"
+      },
+      {
+        "lineNum": 42,
+        "type": "hardcoded-color",
+        "text": "Found #fffaf0 in: <p className=\"text-sm font-bold text-[#756b5a] p-4 text-center border border-dashed border-border rounded-2xl bg-[#fffaf0]\">"
+      },
+      {
+        "lineNum": 49,
+        "type": "hardcoded-color",
+        "text": "Found #9b8f7a in: <tr className=\"border-b border-border text-xs font-black uppercase tracking-wider text-[#9b8f7a]\">"
+      },
+      {
+        "lineNum": 56,
+        "type": "hardcoded-color",
+        "text": "Found #e8dfcf in: <tbody className=\"divide-y divide-[#e8dfcf] text-sm\">"
+      },
+      {
+        "lineNum": 58,
+        "type": "hardcoded-color",
+        "text": "Found #fffaf0 in: <tr key={item.session_id} className=\"hover:bg-[#fffaf0]/40 transition-colors\">"
+      },
+      {
+        "lineNum": 59,
+        "type": "hardcoded-color",
+        "text": "Found #1d1b16 in: <td className=\"py-4 px-4 font-black text-[#1d1b16]\">"
+      },
+      {
+        "lineNum": 69,
+        "type": "hardcoded-color",
+        "text": "Found #6f6759 in: <td className=\"py-4 px-4 font-bold text-[#6f6759]\">"
+      },
+      {
+        "lineNum": 81,
+        "type": "hardcoded-color",
+        "text": "Found #1d1b16 in: <td className=\"py-4 px-4 font-black text-[#1d1b16]\">"
+      },
+      {
+        "lineNum": 88,
+        "type": "hardcoded-color",
+        "text": "Found #8d826d in: <span className=\"text-[#8d826d] font-bold\">—</span>"
+      }
+    ]
+  },
+  {
+    "file": "Kencana\\KencanaCertificatePage.jsx",
+    "issues": [
+      {
+        "lineNum": 23,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"rounded-[2rem] border border-border bg-white/85 p-8 shadow-sm\">"
+      },
+      {
+        "lineNum": 26,
+        "type": "hardcoded-color",
+        "text": "Found #9b8f7a in: <p className=\"text-[10px] font-black uppercase tracking-[0.28em] text-[#9b8f7a]\">Certificate Gate</p>"
+      },
+      {
+        "lineNum": 27,
+        "type": "hardcoded-color",
+        "text": "Found #1d1b16 in: <h2 className=\"mt-2 text-3xl font-black text-[#1d1b16]\">{eligible ? 'Sertifikat siap diakses' : 'Sertifikat masih terkunci'}</h2>"
+      },
+      {
+        "lineNum": 39,
+        "type": "hardcoded-color",
+        "text": "Found #0f4c5c in: <a href={fileUrl} target=\"_blank\" rel=\"noreferrer\" className=\"inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0f4c5c] px-5 py-3 text-sm font-black text-white transition hover:bg-[#123f4b]\">"
+      },
+      {
+        "lineNum": 39,
+        "type": "hardcoded-color",
+        "text": "Found #123f4b in: <a href={fileUrl} target=\"_blank\" rel=\"noreferrer\" className=\"inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0f4c5c] px-5 py-3 text-sm font-black text-white transition hover:bg-[#123f4b]\">"
+      },
+      {
+        "lineNum": 50,
+        "type": "hardcoded-color",
+        "text": "Found #1f2f33 in: <div className=\"rounded-[2rem] border border-border bg-[#1f2f33] p-8 text-white shadow-sm\">"
+      },
+      {
+        "lineNum": 50,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"rounded-[2rem] border border-border bg-[#1f2f33] p-8 text-white shadow-sm\">"
+      },
+      {
+        "lineNum": 51,
+        "type": "hardcoded-color",
+        "text": "Found #d8a84f in: <p className=\"text-[10px] font-black uppercase tracking-[0.28em] text-[#d8a84f]\">Syarat Wajib</p>"
+      },
+      {
+        "lineNum": 68,
+        "type": "hardcoded-color",
+        "text": "Found #f7f1e5 in: <div className=\"rounded-2xl bg-[#f7f1e5] p-5\">"
+      },
+      {
+        "lineNum": 69,
+        "type": "hardcoded-color",
+        "text": "Found #9b8f7a in: <p className=\"text-[10px] font-black uppercase tracking-[0.24em] text-[#9b8f7a]\">{label}</p>"
+      },
+      {
+        "lineNum": 70,
+        "type": "hardcoded-color",
+        "text": "Found #1d1b16 in: <p className=\"mt-2 text-lg font-black text-[#1d1b16]\">{value}</p>"
+      }
+    ]
+  },
+  {
+    "file": "Kencana\\KencanaHandbookPage.jsx",
+    "issues": [
+      {
+        "lineNum": 44,
+        "type": "hardcoded-color",
+        "text": "Found #9b8f7a in: function Field({ label, value, onChange }) { return <label className=\"block\"><span className=\"text-xs font-black uppercase tracking-widest text-[#9b8f7a]\">{label}</span><textarea value={value} onChange={(e) => onChange(e.target.value)} rows={5} className=\"mt-2 w-full rounded-2xl border border-border bg-[#fffaf0] p-4 text-sm font-medium outline-none focus:border-[#0f4c5c]\" /></label>; }"
+      },
+      {
+        "lineNum": 44,
+        "type": "hardcoded-color",
+        "text": "Found #fffaf0 in: function Field({ label, value, onChange }) { return <label className=\"block\"><span className=\"text-xs font-black uppercase tracking-widest text-[#9b8f7a]\">{label}</span><textarea value={value} onChange={(e) => onChange(e.target.value)} rows={5} className=\"mt-2 w-full rounded-2xl border border-border bg-[#fffaf0] p-4 text-sm font-medium outline-none focus:border-[#0f4c5c]\" /></label>; }"
+      },
+      {
+        "lineNum": 44,
+        "type": "hardcoded-color",
+        "text": "Found #0f4c5c in: function Field({ label, value, onChange }) { return <label className=\"block\"><span className=\"text-xs font-black uppercase tracking-widest text-[#9b8f7a]\">{label}</span><textarea value={value} onChange={(e) => onChange(e.target.value)} rows={5} className=\"mt-2 w-full rounded-2xl border border-border bg-[#fffaf0] p-4 text-sm font-medium outline-none focus:border-[#0f4c5c]\" /></label>; }"
+      },
+      {
+        "lineNum": 44,
+        "type": "radius-button-input",
+        "text": "Button/input should be rounded-xl: function Field({ label, value, onChange }) { return <label className=\"block\"><span className=\"text-xs font-black uppercase tracking-widest text-[#9b8f7a]\">{label}</span><textarea value={value} onChange={(e) => onChange(e.target.value)} rows={5} className=\"mt-2 w-full rounded-2xl border border-border bg-[#fffaf0] p-4 text-sm font-medium outline-none focus:border-[#0f4c5c]\" /></label>; }"
+      }
+    ]
+  },
+  {
+    "file": "Kencana\\KencanaMentorInvitationsPage.jsx",
+    "issues": [
+      {
+        "lineNum": 63,
+        "type": "hardcoded-color",
+        "text": "Found #f7f1e5 in: {message && <p className=\"rounded-2xl bg-[#f7f1e5] p-4 text-sm font-black text-[#1d1b16]\">{message}</p>}"
+      },
+      {
+        "lineNum": 63,
+        "type": "hardcoded-color",
+        "text": "Found #1d1b16 in: {message && <p className=\"rounded-2xl bg-[#f7f1e5] p-4 text-sm font-black text-[#1d1b16]\">{message}</p>}"
+      },
+      {
+        "lineNum": 104,
+        "type": "hardcoded-color",
+        "text": "Found #756b5a in: <p className=\"rounded-[2rem] border border-border bg-white/85 p-8 text-center text-sm font-bold text-[#756b5a]\">Belum ada undangan Dewan Pembimbing.</p>"
+      },
+      {
+        "lineNum": 104,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <p className=\"rounded-[2rem] border border-border bg-white/85 p-8 text-center text-sm font-bold text-[#756b5a]\">Belum ada undangan Dewan Pembimbing.</p>"
+      },
+      {
+        "lineNum": 118,
+        "type": "hardcoded-color",
+        "text": "Found #fdfcf9 in: <div className=\"w-full max-w-2xl rounded-2xl bg-[#fdfcf9] p-8 shadow-2xl relative overflow-hidden\">"
+      },
+      {
+        "lineNum": 119,
+        "type": "hardcoded-color",
+        "text": "Found #0f4c5c in: <div className=\"absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#0f4c5c] to-emerald-500\"></div>"
+      },
+      {
+        "lineNum": 120,
+        "type": "hardcoded-color",
+        "text": "Found #9b8f7a in: <button onClick={onClose} className=\"absolute right-6 top-6 text-[#9b8f7a] hover:text-[#1d1b16]\">"
+      },
+      {
+        "lineNum": 120,
+        "type": "hardcoded-color",
+        "text": "Found #1d1b16 in: <button onClick={onClose} className=\"absolute right-6 top-6 text-[#9b8f7a] hover:text-[#1d1b16]\">"
+      },
+      {
+        "lineNum": 124,
+        "type": "hardcoded-color",
+        "text": "Found #1d1b16 in: <h2 className=\"text-2xl font-black text-[#1d1b16]\">Detail Kelompok</h2>"
+      },
+      {
+        "lineNum": 125,
+        "type": "hardcoded-color",
+        "text": "Found #756b5a in: <p className=\"text-sm font-semibold text-[#756b5a] mt-1\">{group.name || group.Name || '-'}</p>"
+      },
+      {
+        "lineNum": 128,
+        "type": "bg-white",
+        "text": "<div className=\"rounded-2xl border border-border bg-white p-5\">"
+      },
+      {
+        "lineNum": 129,
+        "type": "hardcoded-color",
+        "text": "Found #9b8f7a in: <p className=\"text-xs font-black uppercase tracking-[0.24em] text-[#9b8f7a]\">Dewan Pembimbing</p>"
+      },
+      {
+        "lineNum": 130,
+        "type": "hardcoded-color",
+        "text": "Found #1d1b16 in: <p className=\"mt-2 text-lg font-bold text-[#1d1b16]\">{mentor.name || mentor.Name || '-'}</p>"
+      },
+      {
+        "lineNum": 131,
+        "type": "hardcoded-color",
+        "text": "Found #756b5a in: <p className=\"text-sm text-[#756b5a]\">{mentor.email || mentor.Email || '-'}</p>"
+      },
+      {
+        "lineNum": 134,
+        "type": "bg-white",
+        "text": "<div className=\"rounded-2xl border border-border bg-white p-5\">"
+      },
+      {
+        "lineNum": 135,
+        "type": "hardcoded-color",
+        "text": "Found #9b8f7a in: <p className=\"text-xs font-black uppercase tracking-[0.24em] text-[#9b8f7a]\">Informasi Grup</p>"
+      },
+      {
+        "lineNum": 136,
+        "type": "hardcoded-color",
+        "text": "Found #1d1b16 in: <p className=\"mt-2 text-sm font-bold text-[#1d1b16]\">Kode: {group.code || group.Code || '-'}</p>"
+      },
+      {
+        "lineNum": 137,
+        "type": "hardcoded-color",
+        "text": "Found #1d1b16 in: <p className=\"mt-1 text-sm font-bold text-[#1d1b16]\">Lingkup: {(group.scope_type || group.ScopeType) === 'faculty' ? 'Fakultas' : 'Universitas'}</p>"
+      },
+      {
+        "lineNum": 138,
+        "type": "hardcoded-color",
+        "text": "Found #1d1b16 in: <p className=\"mt-1 text-sm font-bold text-[#1d1b16]\">Jumlah Anggota: {members.length}</p>"
+      },
+      {
+        "lineNum": 143,
+        "type": "hardcoded-color",
+        "text": "Found #9b8f7a in: <p className=\"text-xs font-black uppercase tracking-[0.24em] text-[#9b8f7a] mb-3\">Daftar Anggota Saat Ini</p>"
+      },
+      {
+        "lineNum": 144,
+        "type": "bg-white",
+        "text": "<div className=\"max-h-48 overflow-y-auto rounded-2xl border border-border bg-white\">"
+      },
+      {
+        "lineNum": 146,
+        "type": "hardcoded-color",
+        "text": "Found #e8dfcf in: <ul className=\"divide-y divide-[#e8dfcf]\">"
+      },
+      {
+        "lineNum": 151,
+        "type": "hardcoded-color",
+        "text": "Found #1d1b16 in: <span className=\"font-bold text-[#1d1b16]\">{student.nama || student.Nama || `Mahasiswa ${m.student_id}`}</span>"
+      },
+      {
+        "lineNum": 163,
+        "type": "hardcoded-color",
+        "text": "Found #756b5a in: <p className=\"p-4 text-center text-sm text-[#756b5a] font-medium\">Belum ada anggota.</p>"
+      },
+      {
+        "lineNum": 169,
+        "type": "bg-white",
+        "text": "<button onClick={onClose} className=\"rounded-xl border border-[#d8c9ad] bg-white px-5 py-2.5 text-sm font-black text-[#1d1b16] hover:bg-[#f7f1e5]\">"
+      },
+      {
+        "lineNum": 169,
+        "type": "hardcoded-color",
+        "text": "Found #d8c9ad in: <button onClick={onClose} className=\"rounded-xl border border-[#d8c9ad] bg-white px-5 py-2.5 text-sm font-black text-[#1d1b16] hover:bg-[#f7f1e5]\">"
+      },
+      {
+        "lineNum": 169,
+        "type": "hardcoded-color",
+        "text": "Found #1d1b16 in: <button onClick={onClose} className=\"rounded-xl border border-[#d8c9ad] bg-white px-5 py-2.5 text-sm font-black text-[#1d1b16] hover:bg-[#f7f1e5]\">"
+      },
+      {
+        "lineNum": 169,
+        "type": "hardcoded-color",
+        "text": "Found #f7f1e5 in: <button onClick={onClose} className=\"rounded-xl border border-[#d8c9ad] bg-white px-5 py-2.5 text-sm font-black text-[#1d1b16] hover:bg-[#f7f1e5]\">"
+      },
+      {
+        "lineNum": 184,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <section className=\"rounded-[2rem] border border-border bg-white/60 p-5\">"
+      },
+      {
+        "lineNum": 186,
+        "type": "hardcoded-color",
+        "text": "Found #1d1b16 in: <h2 className=\"text-xl font-black text-[#1d1b16]\">{title}</h2>"
+      },
+      {
+        "lineNum": 187,
+        "type": "hardcoded-color",
+        "text": "Found #756b5a in: <p className=\"mt-1 text-sm font-semibold text-[#756b5a]\">{description}</p>"
+      },
+      {
+        "lineNum": 196,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <article key={inv.id || inv.ID} className=\"rounded-[2rem] border border-border bg-white/90 p-6 shadow-sm\">"
+      },
+      {
+        "lineNum": 199,
+        "type": "hardcoded-color",
+        "text": "Found #9b8f7a in: <p className=\"text-xs font-black uppercase tracking-[0.24em] text-[#9b8f7a]\">Undangan Kelompok</p>"
+      },
+      {
+        "lineNum": 200,
+        "type": "hardcoded-color",
+        "text": "Found #1d1b16 in: <h3 className=\"mt-2 text-2xl font-black text-[#1d1b16]\">{group.name || group.Name || 'Kelompok'}</h3>"
+      },
+      {
+        "lineNum": 201,
+        "type": "hardcoded-color",
+        "text": "Found #756b5a in: <p className=\"mt-1 text-sm font-bold text-[#756b5a]\">Kode: {group.code || group.Code || '-'}</p>"
+      },
+      {
+        "lineNum": 202,
+        "type": "hardcoded-color",
+        "text": "Found #f7f1e5 in: <div className=\"mt-3 p-3 bg-[#f7f1e5] rounded-xl border border-[#d8c9ad]/30\">"
+      },
+      {
+        "lineNum": 202,
+        "type": "hardcoded-color",
+        "text": "Found #d8c9ad in: <div className=\"mt-3 p-3 bg-[#f7f1e5] rounded-xl border border-[#d8c9ad]/30\">"
+      },
+      {
+        "lineNum": 203,
+        "type": "hardcoded-color",
+        "text": "Found #9b8f7a in: <p className=\"text-[10px] font-black uppercase tracking-wider text-[#9b8f7a]\">Dewan Pembimbing</p>"
+      },
+      {
+        "lineNum": 204,
+        "type": "hardcoded-color",
+        "text": "Found #1d1b16 in: <p className=\"font-bold text-[#1d1b16]\">{mentor.name || mentor.Name || '-'}</p>"
+      },
+      {
+        "lineNum": 206,
+        "type": "hardcoded-color",
+        "text": "Found #0f4c5c in: <button onClick={() => setSelectedGroup(group)} className=\"mt-4 text-sm font-bold text-[#0f4c5c] hover:underline flex items-center gap-1\">"
+      },
+      {
+        "lineNum": 215,
+        "type": "hardcoded-color",
+        "text": "Found #0f4c5c in: <button onClick={() => handleRespond(inv.id || inv.ID, 'accept')} disabled={respond.isPending || hasActive} className=\"rounded-2xl bg-[#0f4c5c] px-5 py-3 text-sm font-black text-white disabled:bg-slate-300\">Terima Undangan</button>"
+      },
+      {
+        "lineNum": 215,
+        "type": "radius-button-input",
+        "text": "Button/input should be rounded-xl: <button onClick={() => handleRespond(inv.id || inv.ID, 'accept')} disabled={respond.isPending || hasActive} className=\"rounded-2xl bg-[#0f4c5c] px-5 py-3 text-sm font-black text-white disabled:bg-slate-300\">Terima Undangan</button>"
+      },
+      {
+        "lineNum": 216,
+        "type": "hardcoded-color",
+        "text": "Found #d8c9ad in: <button onClick={() => handleRespond(inv.id || inv.ID, 'reject')} disabled={respond.isPending} className=\"rounded-2xl border border-[#d8c9ad] px-5 py-3 text-sm font-black text-[#1d1b16] disabled:opacity-50\">Tolak</button>"
+      },
+      {
+        "lineNum": 216,
+        "type": "hardcoded-color",
+        "text": "Found #1d1b16 in: <button onClick={() => handleRespond(inv.id || inv.ID, 'reject')} disabled={respond.isPending} className=\"rounded-2xl border border-[#d8c9ad] px-5 py-3 text-sm font-black text-[#1d1b16] disabled:opacity-50\">Tolak</button>"
+      },
+      {
+        "lineNum": 216,
+        "type": "radius-button-input",
+        "text": "Button/input should be rounded-xl: <button onClick={() => handleRespond(inv.id || inv.ID, 'reject')} disabled={respond.isPending} className=\"rounded-2xl border border-[#d8c9ad] px-5 py-3 text-sm font-black text-[#1d1b16] disabled:opacity-50\">Tolak</button>"
+      },
+      {
+        "lineNum": 236,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <section className=\"rounded-[2rem] border border-border bg-white/60 p-5\">"
+      },
+      {
+        "lineNum": 238,
+        "type": "hardcoded-color",
+        "text": "Found #1d1b16 in: <h2 className=\"text-xl font-black text-[#1d1b16]\">{title}</h2>"
+      },
+      {
+        "lineNum": 239,
+        "type": "hardcoded-color",
+        "text": "Found #756b5a in: <p className=\"mt-1 text-sm font-semibold text-[#756b5a]\">{description}</p>"
+      },
+      {
+        "lineNum": 246,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <article key={inv.id || inv.ID} className=\"rounded-[2rem] border border-border bg-white/90 p-6 shadow-sm\">"
+      },
+      {
+        "lineNum": 249,
+        "type": "hardcoded-color",
+        "text": "Found #9b8f7a in: <p className=\"text-xs font-black uppercase tracking-[0.24em] text-[#9b8f7a]\">Undangan Pembimbing</p>"
+      },
+      {
+        "lineNum": 250,
+        "type": "hardcoded-color",
+        "text": "Found #1d1b16 in: <h3 className=\"mt-2 text-2xl font-black text-[#1d1b16]\">{mentor.name || mentor.Name || 'Dewan Pembimbing'}</h3>"
+      },
+      {
+        "lineNum": 251,
+        "type": "hardcoded-color",
+        "text": "Found #756b5a in: <p className=\"mt-1 text-sm font-bold text-[#756b5a]\">{mentor.email || mentor.Email || '-'}</p>"
+      },
+      {
+        "lineNum": 252,
+        "type": "hardcoded-color",
+        "text": "Found #756b5a in: <p className=\"mt-1 text-sm font-semibold text-[#756b5a]\">Scope: {mentor.scope_type || mentor.ScopeType || '-'}</p>"
+      },
+      {
+        "lineNum": 258,
+        "type": "hardcoded-color",
+        "text": "Found #0f4c5c in: <button onClick={() => handleRespond(inv.id || inv.ID, 'accept')} disabled={respond.isPending || !!activeMentor} className=\"rounded-2xl bg-[#0f4c5c] px-5 py-3 text-sm font-black text-white disabled:bg-slate-300\">Terima Undangan</button>"
+      },
+      {
+        "lineNum": 258,
+        "type": "radius-button-input",
+        "text": "Button/input should be rounded-xl: <button onClick={() => handleRespond(inv.id || inv.ID, 'accept')} disabled={respond.isPending || !!activeMentor} className=\"rounded-2xl bg-[#0f4c5c] px-5 py-3 text-sm font-black text-white disabled:bg-slate-300\">Terima Undangan</button>"
+      },
+      {
+        "lineNum": 259,
+        "type": "hardcoded-color",
+        "text": "Found #d8c9ad in: <button onClick={() => handleRespond(inv.id || inv.ID, 'reject')} disabled={respond.isPending} className=\"rounded-2xl border border-[#d8c9ad] px-5 py-3 text-sm font-black text-[#1d1b16] disabled:opacity-50\">Tolak</button>"
+      },
+      {
+        "lineNum": 259,
+        "type": "hardcoded-color",
+        "text": "Found #1d1b16 in: <button onClick={() => handleRespond(inv.id || inv.ID, 'reject')} disabled={respond.isPending} className=\"rounded-2xl border border-[#d8c9ad] px-5 py-3 text-sm font-black text-[#1d1b16] disabled:opacity-50\">Tolak</button>"
+      },
+      {
+        "lineNum": 259,
+        "type": "radius-button-input",
+        "text": "Button/input should be rounded-xl: <button onClick={() => handleRespond(inv.id || inv.ID, 'reject')} disabled={respond.isPending} className=\"rounded-2xl border border-[#d8c9ad] px-5 py-3 text-sm font-black text-[#1d1b16] disabled:opacity-50\">Tolak</button>"
+      }
+    ]
+  },
+  {
+    "file": "Kencana\\KencanaPascaKencanaPage.jsx",
+    "issues": [
+      {
+        "lineNum": 36,
+        "type": "hardcoded-color",
+        "text": "Found #e8dfcf in: <div className=\"mt-4 divide-y divide-[#e8dfcf]\">"
+      },
+      {
+        "lineNum": 37,
+        "type": "hardcoded-color",
+        "text": "Found #9b8f7a in: {(data?.items || []).map((item) => <div key={item.id} className=\"flex items-center justify-between py-3\"><div><p className=\"font-black\">{item.item_name}</p><p className=\"text-xs font-bold uppercase tracking-widest text-[#9b8f7a]\">{item.component}</p></div><p className=\"text-xl font-black\">{Number(item.score || 0).toFixed(1)}</p></div>)}"
+      },
+      {
+        "lineNum": 44,
+        "type": "hardcoded-color",
+        "text": "Found #f7f1e5 in: function Weighted({ label, value }) { return <div className=\"rounded-2xl bg-[#f7f1e5] p-4\"><p className=\"text-[10px] font-black uppercase tracking-widest text-[#9b8f7a]\">{label} Weighted</p><p className=\"mt-1 text-2xl font-black\">{Number(value || 0).toFixed(2)}</p></div>; }"
+      },
+      {
+        "lineNum": 44,
+        "type": "hardcoded-color",
+        "text": "Found #9b8f7a in: function Weighted({ label, value }) { return <div className=\"rounded-2xl bg-[#f7f1e5] p-4\"><p className=\"text-[10px] font-black uppercase tracking-widest text-[#9b8f7a]\">{label} Weighted</p><p className=\"mt-1 text-2xl font-black\">{Number(value || 0).toFixed(2)}</p></div>; }"
+      }
+    ]
+  },
+  {
+    "file": "Kencana\\KencanaRemedialPage.jsx",
+    "issues": [
+      {
+        "lineNum": 20,
+        "type": "hardcoded-color",
+        "text": "Found #f7f1e5 in: {(data?.remedials || []).map((r) => <div key={r.id} className=\"rounded-2xl bg-[#f7f1e5] p-4\"><div className=\"flex justify-between gap-3\"><p className=\"font-black\">{r.component}</p><StatusBadge status={r.status} /></div><p className=\"mt-2 text-sm font-semibold text-[#756b5a]\">{r.reason}</p></div>)}"
+      },
+      {
+        "lineNum": 20,
+        "type": "hardcoded-color",
+        "text": "Found #756b5a in: {(data?.remedials || []).map((r) => <div key={r.id} className=\"rounded-2xl bg-[#f7f1e5] p-4\"><div className=\"flex justify-between gap-3\"><p className=\"font-black\">{r.component}</p><StatusBadge status={r.status} /></div><p className=\"mt-2 text-sm font-semibold text-[#756b5a]\">{r.reason}</p></div>)}"
+      }
+    ]
+  },
+  {
+    "file": "Kencana\\KencanaScorePage.jsx",
+    "issues": [
+      {
+        "lineNum": 15,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <section className=\"mb-6 rounded-[2rem] bg-gradient-to-r from-blue-600 to-indigo-600 p-8 shadow-xl text-white flex flex-col md:flex-row items-center justify-between gap-6\">"
+      },
+      {
+        "lineNum": 23,
+        "type": "bg-white",
+        "text": "<a href={certData.certificate.file_url} target=\"_blank\" rel=\"noreferrer\" className=\"flex items-center gap-2 rounded-2xl bg-white px-8 py-4 text-sm font-black text-blue-700 transition hover:bg-blue-50 shadow-lg hover:-translate-y-1 hover:shadow-xl shrink-0\">"
+      },
+      {
+        "lineNum": 52,
+        "type": "hardcoded-color",
+        "text": "Found #e8dfcf in: <div className=\"mt-4 divide-y divide-[#e8dfcf]\">"
+      },
+      {
+        "lineNum": 53,
+        "type": "hardcoded-color",
+        "text": "Found #9b8f7a in: {(data?.items || []).map((item) => <div key={item.id} className=\"flex items-center justify-between py-3\"><div><p className=\"font-black\">{item.item_name}</p><p className=\"text-xs font-bold uppercase tracking-widest text-[#9b8f7a]\">{item.component}</p></div><p className=\"text-xl font-black\">{Number(item.score || 0).toFixed(1)}</p></div>)}"
+      },
+      {
+        "lineNum": 60,
+        "type": "hardcoded-color",
+        "text": "Found #f7f1e5 in: function Weighted({ label, value }) { return <div className=\"rounded-2xl bg-[#f7f1e5] p-4\"><p className=\"text-[10px] font-black uppercase tracking-widest text-[#9b8f7a]\">{label} Weighted</p><p className=\"mt-1 text-2xl font-black\">{Number(value || 0).toFixed(2)}</p></div>; }"
+      },
+      {
+        "lineNum": 60,
+        "type": "hardcoded-color",
+        "text": "Found #9b8f7a in: function Weighted({ label, value }) { return <div className=\"rounded-2xl bg-[#f7f1e5] p-4\"><p className=\"text-[10px] font-black uppercase tracking-widest text-[#9b8f7a]\">{label} Weighted</p><p className=\"mt-1 text-2xl font-black\">{Number(value || 0).toFixed(2)}</p></div>; }"
+      }
+    ]
+  },
+  {
+    "file": "Kencana\\KencanaSessionPage.jsx",
+    "issues": [
+      {
+        "lineNum": 20,
+        "type": "bg-white",
+        "text": "<section className=\"rounded-2xl border border-border bg-white p-6 shadow-sm\">"
+      },
+      {
+        "lineNum": 48,
+        "type": "bg-white",
+        "text": "<section className=\"rounded-2xl border border-border bg-white p-6 shadow-sm\">"
+      },
+      {
+        "lineNum": 65,
+        "type": "bg-white",
+        "text": "<span className=\"px-2 py-1 bg-white rounded-lg text-[10px] font-bold text-slate-500 border border-border\">"
+      },
+      {
+        "lineNum": 65,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <span className=\"px-2 py-1 bg-white rounded-lg text-[10px] font-bold text-slate-500 border border-border\">"
+      },
+      {
+        "lineNum": 99,
+        "type": "bg-white",
+        "text": "<section className=\"rounded-2xl border border-border bg-white p-6 shadow-sm\">"
+      }
+    ]
+  },
+  {
+    "file": "Kencana\\KencanaStagePage.jsx",
+    "issues": [
+      {
+        "lineNum": 37,
+        "type": "bg-white",
+        "text": "<section className=\"rounded-2xl border border-border bg-white p-6 shadow-sm mt-6\">"
+      },
+      {
+        "lineNum": 69,
+        "type": "bg-white",
+        "text": "function Info({ label, value }) { return <div className=\"rounded-2xl border border-border bg-white p-5\"><p className=\"text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400\">{label}</p><div className=\"mt-2 text-lg font-black text-slate-800\">{value}</div></div>; }"
+      },
+      {
+        "lineNum": 70,
+        "type": "bg-white",
+        "text": "function Mini({ label, value }) { return <div className=\"rounded-2xl bg-white border border-slate-100 p-3 text-center\"><p className=\"font-black text-slate-800\">{value || 0}</p><p className=\"text-[9px] font-bold uppercase tracking-widest text-slate-400\">{label}</p></div>; }"
+      }
+    ]
+  },
+  {
+    "file": "Kencana\\KencanaTimelinePage.jsx",
+    "issues": [
+      {
+        "lineNum": 16,
+        "type": "hardcoded-color",
+        "text": "Found #0f4c5c in: <div className=\"grid size-16 place-items-center rounded-2xl bg-[#0f4c5c] text-xl font-black text-white\">{index + 1}</div>"
+      },
+      {
+        "lineNum": 19,
+        "type": "hardcoded-color",
+        "text": "Found #756b5a in: <p className=\"mt-2 text-sm font-medium text-[#756b5a]\">{stage.description}</p>"
+      },
+      {
+        "lineNum": 20,
+        "type": "hardcoded-color",
+        "text": "Found #9b8f7a in: <p className=\"mt-3 text-xs font-black uppercase tracking-widest text-[#9b8f7a]\">{fmtDate(stage.start_date)} - {fmtDate(stage.end_date)}</p>"
+      },
+      {
+        "lineNum": 36,
+        "type": "hardcoded-color",
+        "text": "Found #f7f1e5 in: return <div className=\"rounded-2xl bg-[#f7f1e5] p-3\"><p className=\"text-lg font-black\">{value || 0}</p><p className=\"text-[10px] font-black uppercase tracking-widest text-[#9b8f7a]\">{label}</p></div>;"
+      },
+      {
+        "lineNum": 36,
+        "type": "hardcoded-color",
+        "text": "Found #9b8f7a in: return <div className=\"rounded-2xl bg-[#f7f1e5] p-3\"><p className=\"text-lg font-black\">{value || 0}</p><p className=\"text-[10px] font-black uppercase tracking-widest text-[#9b8f7a]\">{label}</p></div>;"
+      }
+    ]
+  },
+  {
+    "file": "KencanaKuisPage.jsx",
+    "issues": [
+      {
+        "lineNum": 56,
+        "type": "bg-white",
+        "text": "<section className=\"mx-auto max-w-xl rounded-[2rem] border border-border bg-white p-8 text-center shadow-sm\">"
+      },
+      {
+        "lineNum": 56,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <section className=\"mx-auto max-w-xl rounded-[2rem] border border-border bg-white p-8 text-center shadow-sm\">"
+      },
+      {
+        "lineNum": 59,
+        "type": "hardcoded-color",
+        "text": "Found #756b5a in: <p className=\"mt-2 text-sm font-semibold text-[#756b5a]\">Benar {result.correct_count || result.jumlah_benar || 0} dari {result.total_questions || result.total_soal || 0} soal.</p>"
+      },
+      {
+        "lineNum": 70,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <section className=\"rounded-[2rem] border border-border bg-white/85 p-6 shadow-sm\">"
+      },
+      {
+        "lineNum": 73,
+        "type": "hardcoded-color",
+        "text": "Found #756b5a in: <p className=\"mt-2 text-sm font-medium leading-relaxed text-[#756b5a]\">{data?.instruction}</p>"
+      },
+      {
+        "lineNum": 83,
+        "type": "hardcoded-color",
+        "text": "Found #9b8f7a in: <p className=\"text-[10px] font-black uppercase tracking-widest text-[#9b8f7a]\">Waktu Dibuka</p>"
+      },
+      {
+        "lineNum": 89,
+        "type": "hardcoded-color",
+        "text": "Found #9b8f7a in: <p className=\"text-[10px] font-black uppercase tracking-widest text-[#9b8f7a]\">Waktu Ditutup (Tenggat)</p>"
+      },
+      {
+        "lineNum": 111,
+        "type": "hardcoded-color",
+        "text": "Found #0f4c5c in: <label key={opt.id} className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition ${Number(answers[q.id]) === Number(opt.id) ? 'border-[#0f4c5c] bg-[#e8f0ef]' : 'border-border bg-[#fffaf0]'}`}>"
+      },
+      {
+        "lineNum": 111,
+        "type": "hardcoded-color",
+        "text": "Found #e8f0ef in: <label key={opt.id} className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition ${Number(answers[q.id]) === Number(opt.id) ? 'border-[#0f4c5c] bg-[#e8f0ef]' : 'border-border bg-[#fffaf0]'}`}>"
+      },
+      {
+        "lineNum": 111,
+        "type": "hardcoded-color",
+        "text": "Found #fffaf0 in: <label key={opt.id} className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition ${Number(answers[q.id]) === Number(opt.id) ? 'border-[#0f4c5c] bg-[#e8f0ef]' : 'border-border bg-[#fffaf0]'}`}>"
+      },
+      {
+        "lineNum": 120,
+        "type": "hardcoded-color",
+        "text": "Found #756b5a in: <p className=\"text-sm font-black text-[#756b5a]\">Timer: {fmt(timeLeft)}</p>"
+      },
+      {
+        "lineNum": 128,
+        "type": "hardcoded-color",
+        "text": "Found #f7f1e5 in: function Mini({ label, value }) { return <div className=\"rounded-2xl bg-[#f7f1e5] p-4\"><p className=\"text-xl font-black\">{value}</p><p className=\"text-[10px] font-black uppercase tracking-widest text-[#9b8f7a]\">{label}</p></div>; }"
+      },
+      {
+        "lineNum": 128,
+        "type": "hardcoded-color",
+        "text": "Found #9b8f7a in: function Mini({ label, value }) { return <div className=\"rounded-2xl bg-[#f7f1e5] p-4\"><p className=\"text-xl font-black\">{value}</p><p className=\"text-[10px] font-black uppercase tracking-widest text-[#9b8f7a]\">{label}</p></div>; }"
+      }
+    ]
+  },
+  {
+    "file": "KencanaPage.jsx",
+    "issues": [
+      {
+        "lineNum": 63,
+        "type": "bg-white",
+        "text": "<div className=\"rounded-2xl border border-border bg-white p-5 shadow-sm\">"
+      },
+      {
+        "lineNum": 91,
+        "type": "bg-white",
+        "text": "<div className=\"rounded-2xl border border-border bg-white p-5 shadow-sm\">"
+      },
+      {
+        "lineNum": 110,
+        "type": "bg-white",
+        "text": "<div className=\"rounded-2xl border border-border bg-white p-5 shadow-sm\">"
+      },
+      {
+        "lineNum": 162,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className={`grid size-12 place-items-center rounded-xl ${stage.status === 'active' ? 'bg-[var(--theme-primary)] text-[var(--theme-text-on-primary)] shadow-md' : 'bg-[var(--theme-border-muted)] text-[var(--theme-text-muted)]'} text-lg font-black font-headline`}>"
+      },
+      {
+        "lineNum": 207,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"grid size-12 place-items-center rounded-xl bg-[var(--theme-warning)] text-white mb-4 shadow-sm\">"
+      },
+      {
+        "lineNum": 215,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"grid size-12 place-items-center rounded-xl bg-[var(--theme-primary)] text-[var(--theme-text-on-primary)] mb-4 shadow-sm\">"
+      },
+      {
+        "lineNum": 223,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"grid size-12 place-items-center rounded-xl bg-[var(--theme-info)] text-white mb-4 shadow-sm\">"
+      }
+    ]
+  },
+  {
+    "file": "NotificationPage.jsx",
+    "issues": [
+      {
+        "lineNum": 198,
+        "type": "hardcoded-color",
+        "text": "Found #EAF1FF in: className=\"w-full sm:w-auto px-5 py-2.5 bg-[#EAF1FF] text-bku-primary rounded-xl text-sm font-bold border border-[#C9D8FF] hover:bg-[#D5E2FF] transition-all disabled:opacity-50 flex items-center justify-center gap-2\""
+      },
+      {
+        "lineNum": 198,
+        "type": "hardcoded-color",
+        "text": "Found #C9D8FF in: className=\"w-full sm:w-auto px-5 py-2.5 bg-[#EAF1FF] text-bku-primary rounded-xl text-sm font-bold border border-[#C9D8FF] hover:bg-[#D5E2FF] transition-all disabled:opacity-50 flex items-center justify-center gap-2\""
+      },
+      {
+        "lineNum": 198,
+        "type": "hardcoded-color",
+        "text": "Found #D5E2FF in: className=\"w-full sm:w-auto px-5 py-2.5 bg-[#EAF1FF] text-bku-primary rounded-xl text-sm font-bold border border-[#C9D8FF] hover:bg-[#D5E2FF] transition-all disabled:opacity-50 flex items-center justify-center gap-2\""
+      },
+      {
+        "lineNum": 205,
+        "type": "bg-white",
+        "text": "className=\"w-full sm:w-auto px-5 py-2.5 bg-white text-[#737373] rounded-xl text-sm font-bold border border-[#e5e5e5] hover:bg-[#fafafa] transition-all flex items-center justify-center gap-2\""
+      },
+      {
+        "lineNum": 224,
+        "type": "bg-white",
+        "text": ": 'bg-white text-[#737373] border-[#e5e5e5] hover:border-bku-primary'"
+      },
+      {
+        "lineNum": 236,
+        "type": "bg-white",
+        "text": "<SelectTrigger className=\"w-[160px] h-10 rounded-xl bg-white border-[#e5e5e5] font-bold\">"
+      },
+      {
+        "lineNum": 268,
+        "type": "hardcoded-color",
+        "text": "Found #fca5a5 in: className=\"text-xs sm:text-sm font-bold text-[#fca5a5] hover:text-[#ef4444] transition-colors flex items-center gap-2\""
+      },
+      {
+        "lineNum": 268,
+        "type": "hardcoded-color",
+        "text": "Found #ef4444 in: className=\"text-xs sm:text-sm font-bold text-[#fca5a5] hover:text-[#ef4444] transition-colors flex items-center gap-2\""
+      },
+      {
+        "lineNum": 299,
+        "type": "bg-white",
+        "text": "className={`group relative bg-white border rounded-2xl p-4 sm:p-5 transition-all hover:shadow-md flex flex-row gap-3 sm:gap-5 items-start cursor-pointer ${"
+      },
+      {
+        "lineNum": 316,
+        "type": "hardcoded-color",
+        "text": "Found #EAF1FF in: !notif.is_read ? 'bg-[#EAF1FF] border-[#C9D8FF]' : 'bg-[#fafafa] border-[#e5e5e5]'"
+      },
+      {
+        "lineNum": 316,
+        "type": "hardcoded-color",
+        "text": "Found #C9D8FF in: !notif.is_read ? 'bg-[#EAF1FF] border-[#C9D8FF]' : 'bg-[#fafafa] border-[#e5e5e5]'"
+      },
+      {
+        "lineNum": 362,
+        "type": "hardcoded-color",
+        "text": "Found #f0fdf4 in: className=\"w-8 h-8 flex items-center justify-center bg-[#f0fdf4] text-[#16a34a] rounded-lg border border-[#dcfce7] hover:shadow-sm\""
+      },
+      {
+        "lineNum": 362,
+        "type": "hardcoded-color",
+        "text": "Found #16a34a in: className=\"w-8 h-8 flex items-center justify-center bg-[#f0fdf4] text-[#16a34a] rounded-lg border border-[#dcfce7] hover:shadow-sm\""
+      },
+      {
+        "lineNum": 362,
+        "type": "hardcoded-color",
+        "text": "Found #dcfce7 in: className=\"w-8 h-8 flex items-center justify-center bg-[#f0fdf4] text-[#16a34a] rounded-lg border border-[#dcfce7] hover:shadow-sm\""
+      },
+      {
+        "lineNum": 362,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"w-8 h-8 flex items-center justify-center bg-[#f0fdf4] text-[#16a34a] rounded-lg border border-[#dcfce7] hover:shadow-sm\""
+      },
+      {
+        "lineNum": 370,
+        "type": "hardcoded-color",
+        "text": "Found #fef2f2 in: className=\"w-8 h-8 flex items-center justify-center bg-[#fef2f2] text-[#ef4444] rounded-lg border border-[#fecaca] hover:shadow-sm\""
+      },
+      {
+        "lineNum": 370,
+        "type": "hardcoded-color",
+        "text": "Found #ef4444 in: className=\"w-8 h-8 flex items-center justify-center bg-[#fef2f2] text-[#ef4444] rounded-lg border border-[#fecaca] hover:shadow-sm\""
+      },
+      {
+        "lineNum": 370,
+        "type": "hardcoded-color",
+        "text": "Found #fecaca in: className=\"w-8 h-8 flex items-center justify-center bg-[#fef2f2] text-[#ef4444] rounded-lg border border-[#fecaca] hover:shadow-sm\""
+      },
+      {
+        "lineNum": 370,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"w-8 h-8 flex items-center justify-center bg-[#fef2f2] text-[#ef4444] rounded-lg border border-[#fecaca] hover:shadow-sm\""
+      }
+    ]
+  },
+  {
+    "file": "OrganisasiPage.jsx",
+    "issues": [
+      {
+        "lineNum": 324,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"mb-2 sm:mb-0 bg-primary text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 hover:opacity-90 transition-all shadow-sm shadow-primary/20 active:scale-95\""
+      },
+      {
+        "lineNum": 359,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <span className=\"px-2.5 py-1 rounded-md text-[10px] font-bold bg-background text-text-muted border border-border\">Selesai/Purna</span>"
+      },
+      {
+        "lineNum": 517,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: <span className=\"px-2 py-0.5 rounded bg-primary/10 text-[#0B4FAE] text-[10px] font-black uppercase tracking-wide border border-primary/20/35\">"
+      },
+      {
+        "lineNum": 537,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"text-xs bg-background p-3 rounded-xl border border-border-muted\">"
+      },
+      {
+        "lineNum": 571,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"px-4 py-2 rounded-xl bg-background text-text-muted/40 text-xs font-bold border border-border cursor-not-allowed\""
+      },
+      {
+        "lineNum": 707,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: isActive ? 'text-primary border-[#00236F] bg-[#EEF4FF]' : 'text-text-muted border-transparent hover:text-bku-text'"
+      },
+      {
+        "lineNum": 707,
+        "type": "hardcoded-color",
+        "text": "Found #EEF4FF in: isActive ? 'text-primary border-[#00236F] bg-[#EEF4FF]' : 'text-text-muted border-transparent hover:text-bku-text'"
+      },
+      {
+        "lineNum": 741,
+        "type": "hardcoded-color",
+        "text": "Found #fff7ed in: iconBgClass=\"bg-[#fff7ed]\""
+      },
+      {
+        "lineNum": 742,
+        "type": "hardcoded-color",
+        "text": "Found #fed7aa in: iconBorderClass=\"border-[#fed7aa]\""
+      },
+      {
+        "lineNum": 817,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"text-[11px] font-bold text-text-muted flex items-center gap-1.5 bg-background border border-border p-2.5 rounded-xl\">"
+      },
+      {
+        "lineNum": 886,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"w-full px-4 py-3 bg-background border border-border rounded-xl font-bold text-sm focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none\""
+      },
+      {
+        "lineNum": 902,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"w-full px-4 py-3 bg-background border border-border rounded-xl font-bold text-sm focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none\""
+      },
+      {
+        "lineNum": 940,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"w-full px-4 py-3 bg-background border border-border rounded-xl font-bold text-sm focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none\""
+      },
+      {
+        "lineNum": 953,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"w-full px-4 py-3 bg-background border border-border rounded-xl font-bold text-sm focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none resize-none\""
+      },
+      {
+        "lineNum": 964,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"w-full px-4 py-3 bg-background border border-border rounded-xl font-bold text-sm focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none\""
+      },
+      {
+        "lineNum": 1008,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: : 'bg-primary/10 border-primary/20 text-[#0B4FAE] hover:bg-[#D9E7FF]'"
+      },
+      {
+        "lineNum": 1008,
+        "type": "hardcoded-color",
+        "text": "Found #D9E7FF in: : 'bg-primary/10 border-primary/20 text-[#0B4FAE] hover:bg-[#D9E7FF]'"
+      },
+      {
+        "lineNum": 1030,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: className=\"flex items-center gap-1.5 text-xs text-[#0B4FAE] font-semibold hover:underline\""
+      },
+      {
+        "lineNum": 1051,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"w-full h-28 px-4 py-3 bg-background border border-border rounded-xl font-bold text-sm focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none resize-none\""
+      },
+      {
+        "lineNum": 1063,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"w-full px-4 py-3 bg-background border border-border rounded-xl font-bold text-sm focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none\""
+      },
+      {
+        "lineNum": 1072,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: <div className=\"p-4 bg-primary/10 border border-primary/20 rounded-xl flex gap-3 text-xs text-[#0B4FAE] font-medium leading-relaxed\">"
+      },
+      {
+        "lineNum": 1083,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"flex-1 py-3 bg-surface border border-border text-text-muted font-black rounded-xl hover:bg-background transition-all uppercase tracking-wide text-xs active:scale-95\""
+      },
+      {
+        "lineNum": 1107,
+        "type": "bg-white",
+        "text": "<div className=\"fixed inset-0 z-50 bg-bku-primary/45 backdrop-blur-sm flex items-center justify-center p-4 print:p-0 print:bg-white overflow-hidden\">"
+      },
+      {
+        "lineNum": 1110,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: <div className=\"bg-[#00236F] text-white p-5 flex items-center justify-between print:hidden shrink-0\">"
+      },
+      {
+        "lineNum": 1132,
+        "type": "bg-white",
+        "text": "<div className=\"p-6 md:p-10 flex-1 flex justify-start lg:justify-center bg-gray-50 print:bg-white print:p-0 overflow-auto\">"
+      },
+      {
+        "lineNum": 1135,
+        "type": "bg-white",
+        "text": "className=\"w-[842px] h-[595px] bg-white border-[16px] border-double border-warning/30 p-8 relative flex flex-col justify-between shadow-lg print:shadow-none print:border-double print:m-0 shrink-0\""
+      },
+      {
+        "lineNum": 1137,
+        "type": "hardcoded-color",
+        "text": "Found #fffbeb in: backgroundImage: 'radial-gradient(circle, #fff 60%, #fffbeb 100%)',"
+      },
+      {
+        "lineNum": 1227,
+        "type": "hardcoded-color",
+        "text": "Found #b45309 in: border: 16px double #b45309 !important;"
+      },
+      {
+        "lineNum": 1266,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: className=\"w-full px-4 py-2.5 bg-background border border-border rounded-xl font-semibold text-sm focus:outline-none focus:border-[#00236F] transition-all outline-none\""
+      },
+      {
+        "lineNum": 1266,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"w-full px-4 py-2.5 bg-background border border-border rounded-xl font-semibold text-sm focus:outline-none focus:border-[#00236F] transition-all outline-none\""
+      },
+      {
+        "lineNum": 1277,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: className=\"w-full px-4 py-2.5 bg-background border border-border rounded-xl font-semibold text-sm focus:outline-none focus:border-[#00236F] transition-all outline-none text-bku-text\""
+      },
+      {
+        "lineNum": 1277,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"w-full px-4 py-2.5 bg-background border border-border rounded-xl font-semibold text-sm focus:outline-none focus:border-[#00236F] transition-all outline-none text-bku-text\""
+      },
+      {
+        "lineNum": 1296,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: className=\"w-full px-4 py-2.5 bg-background border border-border rounded-xl font-semibold text-sm focus:outline-none focus:border-[#00236F] transition-all outline-none\""
+      },
+      {
+        "lineNum": 1296,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"w-full px-4 py-2.5 bg-background border border-border rounded-xl font-semibold text-sm focus:outline-none focus:border-[#00236F] transition-all outline-none\""
+      },
+      {
+        "lineNum": 1310,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: className=\"w-full px-4 py-2.5 bg-background border border-border rounded-xl font-semibold text-sm focus:outline-none focus:border-[#00236F] transition-all outline-none\""
+      },
+      {
+        "lineNum": 1310,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"w-full px-4 py-2.5 bg-background border border-border rounded-xl font-semibold text-sm focus:outline-none focus:border-[#00236F] transition-all outline-none\""
+      },
+      {
+        "lineNum": 1322,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: className=\"w-full px-4 py-2.5 bg-background border border-border rounded-xl font-semibold text-sm focus:outline-none focus:border-[#00236F] transition-all outline-none\""
+      },
+      {
+        "lineNum": 1322,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"w-full px-4 py-2.5 bg-background border border-border rounded-xl font-semibold text-sm focus:outline-none focus:border-[#00236F] transition-all outline-none\""
+      },
+      {
+        "lineNum": 1333,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: className=\"w-full px-4 py-2 bg-background border border-border rounded-xl font-semibold text-sm focus:outline-none focus:border-[#00236F] transition-all outline-none h-20 resize-none\""
+      },
+      {
+        "lineNum": 1333,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"w-full px-4 py-2 bg-background border border-border rounded-xl font-semibold text-sm focus:outline-none focus:border-[#00236F] transition-all outline-none h-20 resize-none\""
+      },
+      {
+        "lineNum": 1344,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: className=\"w-full px-4 py-2.5 bg-background border border-border rounded-xl font-semibold text-sm focus:outline-none focus:border-[#00236F] transition-all outline-none\""
+      },
+      {
+        "lineNum": 1344,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"w-full px-4 py-2.5 bg-background border border-border rounded-xl font-semibold text-sm focus:outline-none focus:border-[#00236F] transition-all outline-none\""
+      },
+      {
+        "lineNum": 1352,
+        "type": "bg-white",
+        "text": "className=\"flex-1 py-2.5 bg-white border border-border text-text-muted font-black rounded-xl hover:bg-background transition-all uppercase tracking-wide text-xs\""
+      },
+      {
+        "lineNum": 1352,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"flex-1 py-2.5 bg-white border border-border text-text-muted font-black rounded-xl hover:bg-background transition-all uppercase tracking-wide text-xs\""
+      },
+      {
+        "lineNum": 1359,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: className=\"flex-1 py-2.5 bg-[#00236F] text-white font-black rounded-xl hover:bg-[#0B4FAE] transition-all text-xs uppercase tracking-wide flex items-center justify-center gap-1.5\""
+      },
+      {
+        "lineNum": 1359,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: className=\"flex-1 py-2.5 bg-[#00236F] text-white font-black rounded-xl hover:bg-[#0B4FAE] transition-all text-xs uppercase tracking-wide flex items-center justify-center gap-1.5\""
+      }
+    ]
+  },
+  {
+    "file": "PresensiPage.jsx",
+    "issues": [
+      {
+        "lineNum": 89,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <Card className=\"w-full max-w-md border-none shadow-2xl rounded-[2.5rem] bg-surface overflow-hidden\">"
+      },
+      {
+        "lineNum": 94,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: <span className=\"text-[9px] font-black text-[#00236F] tracking-[0.25em] uppercase font-headline\">PRESENSI DIGITAL</span>"
+      },
+      {
+        "lineNum": 105,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: <div className=\"w-16 h-16 rounded-full bg-[#00236F] flex items-center justify-center text-white relative z-10 shadow-lg shadow-blue-900/30\">"
+      }
+    ]
+  },
+  {
+    "file": "ScholarshipDetailPage.jsx",
+    "issues": [
+      {
+        "lineNum": 127,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"w-8 h-8 rounded-xl border border-border group-hover:border-primary flex items-center justify-center transition-all\">"
+      },
+      {
+        "lineNum": 248,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"mt-4 p-5 bg-background rounded-[24px] border border-border flex gap-4\""
+      },
+      {
+        "lineNum": 250,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"p-2.5 bg-surface rounded-xl shadow-sm border border-border text-primary shrink-0 h-fit\">"
+      },
+      {
+        "lineNum": 282,
+        "type": "hardcoded-color",
+        "text": "Found #dbe7ff in: <h4 className=\"text-[10px] font-black uppercase tracking-[0.4em] text-white/60 mb-5 flex items-center gap-2\"><Sparkles size={14} className=\"text-[#dbe7ff]\" /> Snapshot Motivasi</h4>"
+      },
+      {
+        "lineNum": 293,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div key={file.id} className=\"group p-4 bg-background rounded-xl border border-border flex items-center justify-between hover:border-primary/50 transition-all\">"
+      },
+      {
+        "lineNum": 295,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"w-10 h-10 bg-surface rounded-xl border border-border group-hover:border-primary/50 flex items-center justify-center text-text-muted group-hover:text-primary\">"
+      },
+      {
+        "lineNum": 331,
+        "type": "bg-white",
+        "text": "<div className=\"bg-white p-6 rounded-2xl border border-border shadow-sm\">"
+      },
+      {
+        "lineNum": 333,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: <span className=\"material-symbols-outlined text-[#00236F]\" style={{ fontSize: '16px' }}>assignment</span>"
+      },
+      {
+        "lineNum": 344,
+        "type": "bg-white",
+        "text": "<div className=\"flex items-center justify-between bg-white p-2.5 rounded-lg border border-border mt-1\">"
+      },
+      {
+        "lineNum": 344,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"flex items-center justify-between bg-white p-2.5 rounded-lg border border-border mt-1\">"
+      },
+      {
+        "lineNum": 350,
+        "type": "hardcoded-color",
+        "text": "Found #00236F in: className=\"text-[#00236F] hover:underline text-xs font-black flex items-center gap-1\""
+      },
+      {
+        "lineNum": 370,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"w-16 h-16 bg-surface rounded-[24px] flex items-center justify-center text-success border border-border shadow-sm mb-4\">"
+      }
+    ]
+  },
+  {
+    "file": "ScholarshipPage.jsx",
+    "issues": [
+      {
+        "lineNum": 190,
+        "type": "bg-white",
+        "text": "className=\"bg-white w-full max-w-4xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]\""
+      },
+      {
+        "lineNum": 190,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"bg-white w-full max-w-4xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]\""
+      },
+      {
+        "lineNum": 201,
+        "type": "bg-white",
+        "text": "<button onClick={onClose} className=\"p-2 hover:bg-white rounded-full transition-colors border border-transparent hover:border-border\">"
+      },
+      {
+        "lineNum": 223,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"w-full h-48 p-5 rounded-xl border border-border focus:border-[var(--theme-primary)] outline-none text-sm leading-relaxed resize-none shadow-inner bg-[var(--theme-bg)] transition-all\""
+      },
+      {
+        "lineNum": 249,
+        "type": "hardcoded-color",
+        "text": "Found #16a34a in: files[item.key] ? 'border-[#16a34a] bg-green-50' : 'border-border hover:border-[var(--theme-primary)] bg-[var(--theme-bg)]'"
+      },
+      {
+        "lineNum": 252,
+        "type": "bg-white",
+        "text": "<div className={`p-2 rounded-xl ${files[item.key] ? 'bg-green-600 text-white' : 'bg-white text-[var(--theme-text-muted)]'}`}>"
+      },
+      {
+        "lineNum": 259,
+        "type": "hardcoded-color",
+        "text": "Found #16a34a in: {files[item.key] && <span className=\"material-symbols-outlined text-[#16a34a]\" style={{ fontSize: 16 }}>check</span>}"
+      },
+      {
+        "lineNum": 300,
+        "type": "bg-white",
+        "text": "className=\"w-full h-10 px-4 rounded-xl border border-border focus:border-[var(--theme-primary)] outline-none text-sm bg-white\""
+      },
+      {
+        "lineNum": 300,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"w-full h-10 px-4 rounded-xl border border-border focus:border-[var(--theme-primary)] outline-none text-sm bg-white\""
+      },
+      {
+        "lineNum": 310,
+        "type": "bg-white",
+        "text": "className=\"w-full h-28 p-4 rounded-xl border border-border focus:border-[var(--theme-primary)] outline-none text-sm bg-white resize-none\""
+      },
+      {
+        "lineNum": 310,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"w-full h-28 p-4 rounded-xl border border-border focus:border-[var(--theme-primary)] outline-none text-sm bg-white resize-none\""
+      },
+      {
+        "lineNum": 319,
+        "type": "bg-white",
+        "text": "className=\"w-full h-10 px-3 rounded-xl border border-border focus:border-[var(--theme-primary)] outline-none text-sm bg-white\""
+      },
+      {
+        "lineNum": 319,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"w-full h-10 px-3 rounded-xl border border-border focus:border-[var(--theme-primary)] outline-none text-sm bg-white\""
+      },
+      {
+        "lineNum": 329,
+        "type": "bg-white",
+        "text": "<div className=\"space-y-2 bg-white p-4 rounded-xl border border-border\">"
+      },
+      {
+        "lineNum": 329,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"space-y-2 bg-white p-4 rounded-xl border border-border\">"
+      },
+      {
+        "lineNum": 358,
+        "type": "bg-white",
+        "text": "customAnswers[label] ? 'border-[#16a34a] bg-green-50' : 'border-border hover:border-[var(--theme-primary)] bg-white'"
+      },
+      {
+        "lineNum": 358,
+        "type": "hardcoded-color",
+        "text": "Found #16a34a in: customAnswers[label] ? 'border-[#16a34a] bg-green-50' : 'border-border hover:border-[var(--theme-primary)] bg-white'"
+      },
+      {
+        "lineNum": 429,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <label className=\"flex items-start gap-4 p-5 bg-[var(--theme-bg)] rounded-xl border border-border cursor-pointer group text-left\">"
+      },
+      {
+        "lineNum": 461,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"flex items-center gap-2 px-8 py-3.5 rounded-xl font-black bg-[var(--theme-primary)] text-white hover:bg-[var(--theme-primary-hover)] transition-all shadow-xl shadow-[var(--theme-primary)]/20 disabled:opacity-30\""
+      },
+      {
+        "lineNum": 469,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"flex items-center gap-2 px-10 py-3.5 rounded-xl font-black bg-[var(--theme-primary)] text-white hover:bg-[var(--theme-primary-hover)] transition-all shadow-xl shadow-[var(--theme-primary)]/20 disabled:opacity-50\""
+      },
+      {
+        "lineNum": 522,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"flex p-1 bg-[var(--theme-bg)] rounded-xl shadow-inner border border-border w-fit\">"
+      },
+      {
+        "lineNum": 532,
+        "type": "bg-white",
+        "text": "? 'bg-white text-[var(--theme-text)] shadow-sm border border-border'"
+      },
+      {
+        "lineNum": 550,
+        "type": "bg-white",
+        "text": "className=\"flex flex-wrap items-center gap-3 mb-6 bg-white p-3.5 rounded-xl border border-border shadow-sm\""
+      },
+      {
+        "lineNum": 550,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"flex flex-wrap items-center gap-3 mb-6 bg-white p-3.5 rounded-xl border border-border shadow-sm\""
+      },
+      {
+        "lineNum": 576,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"bg-[var(--theme-bg)] border border-border rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-[var(--theme-primary)]\""
+      },
+      {
+        "lineNum": 616,
+        "type": "bg-white",
+        "text": "className=\"group bg-white rounded-xl border border-border overflow-hidden hover:border-[var(--theme-primary-light)] hover:shadow-md transition-all flex flex-col relative\""
+      },
+      {
+        "lineNum": 616,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"group bg-white rounded-xl border border-border overflow-hidden hover:border-[var(--theme-primary-light)] hover:shadow-md transition-all flex flex-col relative\""
+      },
+      {
+        "lineNum": 622,
+        "type": "hardcoded-color",
+        "text": "Found #eff6ff in: beasiswaKategori === 'Mitra' ? 'bg-[#eff6ff] text-[#3b82f6] border-[#dbeafe]' :"
+      },
+      {
+        "lineNum": 622,
+        "type": "hardcoded-color",
+        "text": "Found #3b82f6 in: beasiswaKategori === 'Mitra' ? 'bg-[#eff6ff] text-[#3b82f6] border-[#dbeafe]' :"
+      },
+      {
+        "lineNum": 622,
+        "type": "hardcoded-color",
+        "text": "Found #dbeafe in: beasiswaKategori === 'Mitra' ? 'bg-[#eff6ff] text-[#3b82f6] border-[#dbeafe]' :"
+      },
+      {
+        "lineNum": 624,
+        "type": "hardcoded-color",
+        "text": "Found #f0fdf4 in: 'bg-[#f0fdf4] text-[#16a34a] border-[#bbf7d0]'"
+      },
+      {
+        "lineNum": 624,
+        "type": "hardcoded-color",
+        "text": "Found #16a34a in: 'bg-[#f0fdf4] text-[#16a34a] border-[#bbf7d0]'"
+      },
+      {
+        "lineNum": 624,
+        "type": "hardcoded-color",
+        "text": "Found #bbf7d0 in: 'bg-[#f0fdf4] text-[#16a34a] border-[#bbf7d0]'"
+      },
+      {
+        "lineNum": 629,
+        "type": "hardcoded-color",
+        "text": "Found #16a34a in: <div className=\"flex items-center gap-1 text-[#16a34a] bg-green-50 border border-green-200 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm\">"
+      },
+      {
+        "lineNum": 633,
+        "type": "hardcoded-color",
+        "text": "Found #dc2626 in: <div className=\"flex items-center gap-1 text-[#dc2626] bg-red-50 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter\">"
+      },
+      {
+        "lineNum": 646,
+        "type": "hardcoded-color",
+        "text": "Found #f0fdf4 in: <div className=\"w-9 h-9 bg-[#f0fdf4] text-[#16a34a] rounded-xl flex items-center justify-center\">"
+      },
+      {
+        "lineNum": 646,
+        "type": "hardcoded-color",
+        "text": "Found #16a34a in: <div className=\"w-9 h-9 bg-[#f0fdf4] text-[#16a34a] rounded-xl flex items-center justify-center\">"
+      },
+      {
+        "lineNum": 679,
+        "type": "hardcoded-color",
+        "text": "Found #f0fdf4 in: className=\"w-full bg-[#f0fdf4] hover:bg-[#dcfce7] text-[#16a34a] border border-[#bbf7d0] py-2.5 rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all hover:scale-[1.02] shadow-sm animate-fade-in\""
+      },
+      {
+        "lineNum": 679,
+        "type": "hardcoded-color",
+        "text": "Found #dcfce7 in: className=\"w-full bg-[#f0fdf4] hover:bg-[#dcfce7] text-[#16a34a] border border-[#bbf7d0] py-2.5 rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all hover:scale-[1.02] shadow-sm animate-fade-in\""
+      },
+      {
+        "lineNum": 679,
+        "type": "hardcoded-color",
+        "text": "Found #16a34a in: className=\"w-full bg-[#f0fdf4] hover:bg-[#dcfce7] text-[#16a34a] border border-[#bbf7d0] py-2.5 rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all hover:scale-[1.02] shadow-sm animate-fade-in\""
+      },
+      {
+        "lineNum": 679,
+        "type": "hardcoded-color",
+        "text": "Found #bbf7d0 in: className=\"w-full bg-[#f0fdf4] hover:bg-[#dcfce7] text-[#16a34a] border border-[#bbf7d0] py-2.5 rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all hover:scale-[1.02] shadow-sm animate-fade-in\""
+      },
+      {
+        "lineNum": 679,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"w-full bg-[#f0fdf4] hover:bg-[#dcfce7] text-[#16a34a] border border-[#bbf7d0] py-2.5 rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all hover:scale-[1.02] shadow-sm animate-fade-in\""
+      },
+      {
+        "lineNum": 714,
+        "type": "bg-white",
+        "text": "{ label: 'Total Diajukan', val: stats.total, color: 'text-[var(--theme-text)]', bg: 'bg-white', icon: 'description' },"
+      },
+      {
+        "lineNum": 716,
+        "type": "hardcoded-color",
+        "text": "Found #16a34a in: { label: 'Lulus Seleksi', val: stats.diterima, color: 'text-[#16a34a]', bg: 'bg-[#f0fdf4]', icon: 'emoji_events' },"
+      },
+      {
+        "lineNum": 716,
+        "type": "hardcoded-color",
+        "text": "Found #f0fdf4 in: { label: 'Lulus Seleksi', val: stats.diterima, color: 'text-[#16a34a]', bg: 'bg-[#f0fdf4]', icon: 'emoji_events' },"
+      },
+      {
+        "lineNum": 717,
+        "type": "hardcoded-color",
+        "text": "Found #dc2626 in: { label: 'Ditolak', val: stats.ditolak, color: 'text-[#dc2626]', bg: 'bg-[#fef2f2]', icon: 'close' }"
+      },
+      {
+        "lineNum": 717,
+        "type": "hardcoded-color",
+        "text": "Found #fef2f2 in: { label: 'Ditolak', val: stats.ditolak, color: 'text-[#dc2626]', bg: 'bg-[#fef2f2]', icon: 'close' }"
+      },
+      {
+        "lineNum": 719,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div key={s.label} className={`${s.bg} p-4 rounded-xl border border-border shadow-sm`}>"
+      },
+      {
+        "lineNum": 721,
+        "type": "bg-white",
+        "text": "<div className={`p-2 rounded-lg ${s.bg === 'bg-white' ? 'bg-[var(--theme-bg)]' : 'bg-white'} ${s.color} flex items-center justify-center`}>"
+      },
+      {
+        "lineNum": 732,
+        "type": "bg-white",
+        "text": "<div className=\"bg-white rounded-xl border border-border shadow-sm overflow-hidden\">"
+      },
+      {
+        "lineNum": 732,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"bg-white rounded-xl border border-border shadow-sm overflow-hidden\">"
+      },
+      {
+        "lineNum": 736,
+        "type": "hardcoded-color",
+        "text": "Found #f4f8ff in: <tr className=\"bg-[#f4f8ff] border-b border-[#dbe7ff]\">"
+      },
+      {
+        "lineNum": 736,
+        "type": "hardcoded-color",
+        "text": "Found #dbe7ff in: <tr className=\"bg-[#f4f8ff] border-b border-[#dbe7ff]\">"
+      },
+      {
+        "lineNum": 753,
+        "type": "hardcoded-color",
+        "text": "Found #f7faff in: <tr key={`riwayat-${itemId || idx}`} className=\"hover:bg-[#f7faff] transition-colors group\">"
+      },
+      {
+        "lineNum": 786,
+        "type": "bg-white",
+        "text": "className=\"px-4 py-2 rounded-xl bg-white border border-border text-xs font-black hover:border-[var(--theme-primary)] hover:text-[var(--theme-primary)] transition-all flex items-center justify-center gap-2 mx-auto\""
+      },
+      {
+        "lineNum": 786,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"px-4 py-2 rounded-xl bg-white border border-border text-xs font-black hover:border-[var(--theme-primary)] hover:text-[var(--theme-primary)] transition-all flex items-center justify-center gap-2 mx-auto\""
+      },
+      {
+        "lineNum": 835,
+        "type": "bg-white",
+        "text": "className=\"bg-white w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]\""
+      },
+      {
+        "lineNum": 835,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"bg-white w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]\""
+      },
+      {
+        "lineNum": 849,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"p-3.5 bg-[var(--theme-bg)] rounded-xl border border-border\">"
+      },
+      {
+        "lineNum": 853,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"p-3.5 bg-[var(--theme-bg)] rounded-xl border border-border\">"
+      },
+      {
+        "lineNum": 857,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"p-3.5 bg-[var(--theme-bg)] rounded-xl border border-border\">"
+      },
+      {
+        "lineNum": 861,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className={`p-3.5 rounded-xl border ${getDaysLeft(schDeadline) < 7 ? 'bg-red-50 border-red-200' : 'bg-[var(--theme-bg)] border-border'}`}>"
+      },
+      {
+        "lineNum": 875,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"bg-[var(--theme-bg)] p-6 rounded-xl border border-border\">"
+      },
+      {
+        "lineNum": 899,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"bg-[var(--theme-bg)] p-5 rounded-xl border border-border space-y-3\">"
+      },
+      {
+        "lineNum": 942,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"flex-1 py-4 rounded-xl font-black text-sm border border-border text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] transition-all\""
+      },
+      {
+        "lineNum": 949,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"flex-1 py-4 rounded-xl font-black text-sm bg-[var(--theme-primary)] text-white hover:bg-[var(--theme-primary-hover)] shadow-xl shadow-[var(--theme-primary)]/20 transition-all hover:scale-[1.02]\""
+      }
+    ]
+  },
+  {
+    "file": "SelfScreeningPage.jsx",
+    "issues": [
+      {
+        "lineNum": 159,
+        "type": "bg-white",
+        "text": "<div className=\"flex bg-white rounded-xl p-1 shadow-sm border border-border\">"
+      },
+      {
+        "lineNum": 159,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"flex bg-white rounded-xl p-1 shadow-sm border border-border\">"
+      },
+      {
+        "lineNum": 196,
+        "type": "bg-white",
+        "text": "<div className=\"bg-white rounded-xl p-4 border border-border space-y-4\">"
+      },
+      {
+        "lineNum": 196,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"bg-white rounded-xl p-4 border border-border space-y-4\">"
+      },
+      {
+        "lineNum": 296,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"w-full py-3 bg-gradient-to-r from-teal-500 to-emerald-500 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50\""
+      },
+      {
+        "lineNum": 327,
+        "type": "bg-white",
+        "text": "<div key={i} className=\"bg-white rounded-xl p-4 border border-border animate-pulse\">"
+      },
+      {
+        "lineNum": 327,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div key={i} className=\"bg-white rounded-xl p-4 border border-border animate-pulse\">"
+      },
+      {
+        "lineNum": 334,
+        "type": "bg-white",
+        "text": "<div className=\"bg-white rounded-xl p-8 border border-border text-center\">"
+      },
+      {
+        "lineNum": 334,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"bg-white rounded-xl p-8 border border-border text-center\">"
+      },
+      {
+        "lineNum": 348,
+        "type": "bg-white",
+        "text": "<div key={screening.id} className=\"bg-white rounded-xl p-4 border border-border\">"
+      },
+      {
+        "lineNum": 348,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div key={screening.id} className=\"bg-white rounded-xl p-4 border border-border\">"
+      }
+    ]
+  },
+  {
+    "file": "StudentVoiceDetailPage.jsx",
+    "issues": [
+      {
+        "lineNum": 46,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"w-10 h-10 bg-surface border border-border rounded-xl flex items-center justify-center text-text-muted hover:text-bku-primary hover:border-bku-primary transition-all shadow-sm shrink-0 hover:-translate-x-0.5\""
+      },
+      {
+        "lineNum": 52,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <span className=\"px-2 py-0.5 bg-bku-primary text-white text-xs font-semibold rounded-md shadow-sm\">"
+      },
+      {
+        "lineNum": 70,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <span className={`px-3 py-1.5 rounded-lg text-xs font-bold border shadow-sm ${getCategoryStyle(ticket.kategori)}`}>"
+      },
+      {
+        "lineNum": 91,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"flex items-center gap-2 px-3 py-1.5 bg-background border border-border rounded-lg shrink-0 self-start\">"
+      },
+      {
+        "lineNum": 122,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"w-12 h-12 bg-surface rounded-xl border border-border flex items-center justify-center text-text-muted group-hover/file:text-bku-primary transition-colors shadow-sm\">"
+      },
+      {
+        "lineNum": 144,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"relative aspect-video max-w-md rounded-xl overflow-hidden border border-border shadow-sm mt-2 bg-surface\">"
+      },
+      {
+        "lineNum": 160,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"w-10 h-10 bg-surface rounded-xl flex items-center justify-center text-primary shadow-sm border border-primary/20\">"
+      },
+      {
+        "lineNum": 213,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"text-xs text-text-muted bg-background border border-border rounded-xl px-3 py-2\">"
+      },
+      {
+        "lineNum": 258,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className={`p-4 rounded-xl border transition-colors overflow-hidden ${isLatest ? 'bg-primary/5 border-primary/20 shadow-sm' : 'bg-surface border-border'}`}>"
+      },
+      {
+        "lineNum": 369,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <span className={`px-3 py-1 rounded-lg text-xs font-bold border shadow-sm ${styles[level] || styles.selesai}`}>"
+      },
+      {
+        "lineNum": 389,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <span className={`px-3 py-1 rounded-lg text-xs font-bold border shadow-sm capitalize ${styles[key] || styles.menunggu}`}>"
+      },
+      {
+        "lineNum": 452,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"px-6 py-2.5 bg-surface border border-border text-bku-text font-medium rounded-xl hover:bg-background transition-colors text-sm\""
+      }
+    ]
+  },
+  {
+    "file": "StudentVoicePage.jsx",
+    "issues": [
+      {
+        "lineNum": 65,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"flex items-center justify-center gap-2 px-5 py-3 bg-[var(--theme-primary)] text-white font-bold rounded-xl hover:opacity-90 transition-all shadow-md shadow-[var(--theme-primary)]/20 text-sm group\""
+      },
+      {
+        "lineNum": 99,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"pl-12 pr-4 py-2.5 bg-background border border-border text-bku-text rounded-xl text-sm font-semibold focus:outline-none focus:border-bku-primary focus:ring-4 focus:ring-bku-primary/10 transition-all w-full md:w-64\""
+      },
+      {
+        "lineNum": 139,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <span className=\"flex items-center gap-1 text-[8px] font-black text-text-muted uppercase tracking-widest bg-background border border-border px-2 py-0.5 rounded-md\">"
+      },
+      {
+        "lineNum": 157,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"w-9 h-9 rounded-xl bg-red-50 text-red-500 border border-red-100 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm\""
+      },
+      {
+        "lineNum": 165,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"w-9 h-9 rounded-xl bg-surface border border-border flex items-center justify-center text-bku-primary hover:bg-bku-primary hover:text-white transition-all shadow-sm\""
+      },
+      {
+        "lineNum": 223,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"w-10 h-10 bg-surface/70 backdrop-blur-md rounded-xl flex items-center justify-center border border-inherit shadow-inner\">"
+      },
+      {
+        "lineNum": 358,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"w-full px-4 py-3 bg-background border border-border text-bku-text rounded-xl font-bold text-sm focus:outline-none focus:border-bku-primary focus:ring-4 focus:ring-bku-primary/10 transition-all outline-none\""
+      },
+      {
+        "lineNum": 379,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"w-full px-4 py-3 bg-background border border-border text-bku-text rounded-xl font-bold text-base focus:outline-none focus:border-bku-primary focus:ring-4 focus:ring-bku-primary/10 transition-all\""
+      },
+      {
+        "lineNum": 397,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"w-full px-4 py-3 bg-background border border-border text-bku-text rounded-xl font-medium text-sm md:text-base focus:outline-none focus:border-bku-primary focus:ring-4 focus:ring-bku-primary/10 transition-all resize-none\""
+      },
+      {
+        "lineNum": 415,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"flex items-center justify-between px-4 py-3 bg-background border border-dashed border-border rounded-xl group-hover/upload:border-bku-primary transition-all\">"
+      },
+      {
+        "lineNum": 434,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className={`p-2 rounded-xl ${formData.is_anonim ? 'bg-white/20' : 'bg-white shadow-sm'}`}>"
+      },
+      {
+        "lineNum": 440,
+        "type": "bg-white",
+        "text": "<div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${formData.is_anonim ? 'left-6' : 'left-1'}`} />"
+      },
+      {
+        "lineNum": 463,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"flex-1 py-3 bg-surface border border-border text-text-muted font-black rounded-xl hover:bg-background hover:text-bku-primary hover:border-bku-primary transition-all uppercase tracking-wide text-xs\""
+      },
+      {
+        "lineNum": 470,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: className=\"flex-[2] py-3 bg-bku-primary text-white font-black rounded-xl hover:opacity-90 transition-all shadow-md shadow-bku-primary/20 text-sm uppercase tracking-wide flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50\""
+      }
+    ]
+  },
+  {
+    "file": "tabs\\DataDiriTab.jsx",
+    "issues": [
+      {
+        "lineNum": 143,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: {errors.nik && <p className=\"text-xs font-bold text-[#0B4FAE]\">{errors.nik.message}</p>}"
+      },
+      {
+        "lineNum": 154,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: {errors.birth_place && <p className=\"text-xs font-bold text-[#0B4FAE]\">{errors.birth_place.message}</p>}"
+      },
+      {
+        "lineNum": 159,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: {errors.birth_date && <p className=\"text-xs font-bold text-[#0B4FAE]\">{errors.birth_date.message}</p>}"
+      },
+      {
+        "lineNum": 174,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: {errors.gender && <p className=\"text-xs font-bold text-[#0B4FAE]\">{errors.gender.message}</p>}"
+      },
+      {
+        "lineNum": 187,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: {errors.religion && <p className=\"text-xs font-bold text-[#0B4FAE]\">{errors.religion.message}</p>}"
+      },
+      {
+        "lineNum": 231,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: {errors.email && <p className=\"text-xs font-bold text-[#0B4FAE]\">{errors.email.message}</p>}"
+      },
+      {
+        "lineNum": 236,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: {errors.phone && <p className=\"text-xs font-bold text-[#0B4FAE]\">{errors.phone.message}</p>}"
+      },
+      {
+        "lineNum": 242,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: {errors.address && <p className=\"text-xs font-bold text-[#0B4FAE]\">{errors.address.message}</p>}"
+      },
+      {
+        "lineNum": 247,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: {errors.city && <p className=\"text-xs font-bold text-[#0B4FAE]\">{errors.city.message}</p>}"
+      },
+      {
+        "lineNum": 252,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: {errors.zip_code && <p className=\"text-xs font-bold text-[#0B4FAE]\">{errors.zip_code.message}</p>}"
+      },
+      {
+        "lineNum": 259,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: <h3 className=\"text-lg font-bold font-headline mb-5 flex items-center gap-2 text-[#0B4FAE]\">"
+      },
+      {
+        "lineNum": 290,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: <h3 className=\"text-lg font-bold font-headline mb-5 flex items-center gap-2 text-[#0B4FAE]\">"
+      },
+      {
+        "lineNum": 306,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: className=\"flex-1 bg-bku-primary text-white py-3.5 px-8 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#0B4FAE] transition-all shadow-md shadow-bku-primary/20 disabled:opacity-50\""
+      },
+      {
+        "lineNum": 314,
+        "type": "bg-white",
+        "text": "className=\"bg-white border border-border text-on-surface py-3.5 px-8 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-background transition-all\""
+      }
+    ]
+  },
+  {
+    "file": "tabs\\KeamananTab.jsx",
+    "issues": [
+      {
+        "lineNum": 141,
+        "type": "hardcoded-color",
+        "text": "Found #EAF1FF in: <div className=\"bg-[#EAF1FF] text-bku-primary p-3 rounded-2xl\">"
+      },
+      {
+        "lineNum": 163,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: {passwordErrors.old_password && <p className=\"text-xs font-bold text-[#0B4FAE]\">{passwordErrors.old_password.message}</p>}"
+      },
+      {
+        "lineNum": 181,
+        "type": "hardcoded-color",
+        "text": "Found #93B4FF in: strength < 50 ? 'bg-[#93B4FF]' :"
+      },
+      {
+        "lineNum": 182,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: strength < 100 ? 'bg-[#0B4FAE]' : 'bg-bku-primary'"
+      },
+      {
+        "lineNum": 187,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: {passwordErrors.new_password && <p className=\"text-xs font-bold text-[#0B4FAE]\">{passwordErrors.new_password.message}</p>}"
+      },
+      {
+        "lineNum": 193,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: {passwordErrors.confirm_password && <p className=\"text-xs font-bold text-[#0B4FAE]\">{passwordErrors.confirm_password.message}</p>}"
+      },
+      {
+        "lineNum": 200,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: className=\"bg-bku-primary text-white py-3 px-8 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#0B4FAE] transition-all disabled:opacity-50\""
+      },
+      {
+        "lineNum": 212,
+        "type": "hardcoded-color",
+        "text": "Found #EAF1FF in: <div className=\"bg-[#EAF1FF] text-bku-primary p-3 rounded-2xl\">"
+      },
+      {
+        "lineNum": 230,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: {emailErrors.email && <p className=\"text-xs font-bold text-[#0B4FAE]\">{emailErrors.email.message}</p>}"
+      },
+      {
+        "lineNum": 241,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: {emailErrors.confirm_email && <p className=\"text-xs font-bold text-[#0B4FAE]\">{emailErrors.confirm_email.message}</p>}"
+      },
+      {
+        "lineNum": 257,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: {emailErrors.password && <p className=\"text-xs font-bold text-[#0B4FAE]\">{emailErrors.password.message}</p>}"
+      },
+      {
+        "lineNum": 264,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: className=\"bg-bku-primary text-white py-3 px-8 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#0B4FAE] transition-all disabled:opacity-50\""
+      },
+      {
+        "lineNum": 277,
+        "type": "hardcoded-color",
+        "text": "Found #EAF1FF in: <div className=\"bg-[#EAF1FF] text-bku-primary p-3 rounded-2xl\">"
+      },
+      {
+        "lineNum": 286,
+        "type": "hardcoded-color",
+        "text": "Found #EAF1FF in: className=\"text-xs font-black text-bku-primary uppercase tracking-widest px-4 py-2 bg-[#EAF1FF] rounded-xl hover:bg-[#DCE8FF] transition-colors\""
+      },
+      {
+        "lineNum": 286,
+        "type": "hardcoded-color",
+        "text": "Found #DCE8FF in: className=\"text-xs font-black text-bku-primary uppercase tracking-widest px-4 py-2 bg-[#EAF1FF] rounded-xl hover:bg-[#DCE8FF] transition-colors\""
+      },
+      {
+        "lineNum": 297,
+        "type": "bg-white",
+        "text": "<div className=\"w-12 h-12 rounded-xl bg-white border border-border shadow-sm flex items-center justify-center text-[#525252]\">"
+      },
+      {
+        "lineNum": 297,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"w-12 h-12 rounded-xl bg-white border border-border shadow-sm flex items-center justify-center text-[#525252]\">"
+      },
+      {
+        "lineNum": 303,
+        "type": "hardcoded-color",
+        "text": "Found #EAF1FF in: {s.is_current && <span className=\"bg-[#EAF1FF] text-[#0B4FAE] text-[10px] font-black uppercase px-2 py-0.5 rounded-full\">Perangkat Ini</span>}"
+      },
+      {
+        "lineNum": 303,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: {s.is_current && <span className=\"bg-[#EAF1FF] text-[#0B4FAE] text-[10px] font-black uppercase px-2 py-0.5 rounded-full\">Perangkat Ini</span>}"
+      },
+      {
+        "lineNum": 309,
+        "type": "hardcoded-color",
+        "text": "Found #EAF1FF in: <button className=\"p-2 text-[#a3a3a3] hover:text-bku-primary hover:bg-[#EAF1FF] rounded-xl transition-all\">"
+      },
+      {
+        "lineNum": 322,
+        "type": "hardcoded-color",
+        "text": "Found #EEF4FF in: <div className=\"bg-[#EEF4FF] text-[#1D4E9E] p-3 rounded-2xl\">"
+      },
+      {
+        "lineNum": 322,
+        "type": "hardcoded-color",
+        "text": "Found #1D4E9E in: <div className=\"bg-[#EEF4FF] text-[#1D4E9E] p-3 rounded-2xl\">"
+      },
+      {
+        "lineNum": 349,
+        "type": "hardcoded-color",
+        "text": "Found #EAF1FF in: h.status === 'Berhasil' ? 'bg-[#EAF1FF] text-[#0B4FAE] border-[#C9D8FF]' : 'bg-[#EDF3FF] text-[#1D4E9E] border-[#D3E1FF]'"
+      },
+      {
+        "lineNum": 349,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: h.status === 'Berhasil' ? 'bg-[#EAF1FF] text-[#0B4FAE] border-[#C9D8FF]' : 'bg-[#EDF3FF] text-[#1D4E9E] border-[#D3E1FF]'"
+      },
+      {
+        "lineNum": 349,
+        "type": "hardcoded-color",
+        "text": "Found #C9D8FF in: h.status === 'Berhasil' ? 'bg-[#EAF1FF] text-[#0B4FAE] border-[#C9D8FF]' : 'bg-[#EDF3FF] text-[#1D4E9E] border-[#D3E1FF]'"
+      },
+      {
+        "lineNum": 349,
+        "type": "hardcoded-color",
+        "text": "Found #EDF3FF in: h.status === 'Berhasil' ? 'bg-[#EAF1FF] text-[#0B4FAE] border-[#C9D8FF]' : 'bg-[#EDF3FF] text-[#1D4E9E] border-[#D3E1FF]'"
+      },
+      {
+        "lineNum": 349,
+        "type": "hardcoded-color",
+        "text": "Found #1D4E9E in: h.status === 'Berhasil' ? 'bg-[#EAF1FF] text-[#0B4FAE] border-[#C9D8FF]' : 'bg-[#EDF3FF] text-[#1D4E9E] border-[#D3E1FF]'"
+      },
+      {
+        "lineNum": 349,
+        "type": "hardcoded-color",
+        "text": "Found #D3E1FF in: h.status === 'Berhasil' ? 'bg-[#EAF1FF] text-[#0B4FAE] border-[#C9D8FF]' : 'bg-[#EDF3FF] text-[#1D4E9E] border-[#D3E1FF]'"
+      }
+    ]
+  },
+  {
+    "file": "tabs\\PreferensiTab.jsx",
+    "issues": [
+      {
+        "lineNum": 11,
+        "type": "hardcoded-color",
+        "text": "Found #EAF1FF in: { id: 'EmailAchievement', label: 'Prestasi', desc: 'Update verifikasi dan penolakan laporan prestasi.', icon: 'emoji_events', color: 'text-bku-primary bg-[#EAF1FF]' },"
+      },
+      {
+        "lineNum": 12,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: { id: 'EmailBeasiswa', label: 'Beasiswa', desc: 'Perubahan status pengajuan dan pengingat deadline beasiswa.', icon: 'menu_book', color: 'text-[#0B4FAE] bg-[#EEF4FF]' },"
+      },
+      {
+        "lineNum": 12,
+        "type": "hardcoded-color",
+        "text": "Found #EEF4FF in: { id: 'EmailBeasiswa', label: 'Beasiswa', desc: 'Perubahan status pengajuan dan pengingat deadline beasiswa.', icon: 'menu_book', color: 'text-[#0B4FAE] bg-[#EEF4FF]' },"
+      },
+      {
+        "lineNum": 13,
+        "type": "hardcoded-color",
+        "text": "Found #1D4E9E in: { id: 'EmailCounseling', label: 'Konseling', desc: 'Konfirmasi booking dan pengingat sesi konseling.', icon: 'handshake', color: 'text-[#1D4E9E] bg-[#EDF3FF]' },"
+      },
+      {
+        "lineNum": 13,
+        "type": "hardcoded-color",
+        "text": "Found #EDF3FF in: { id: 'EmailCounseling', label: 'Konseling', desc: 'Konfirmasi booking dan pengingat sesi konseling.', icon: 'handshake', color: 'text-[#1D4E9E] bg-[#EDF3FF]' },"
+      },
+      {
+        "lineNum": 14,
+        "type": "hardcoded-color",
+        "text": "Found #113A80 in: { id: 'EmailVoice', label: 'Student Voice', desc: 'Notifikasi saat aspirasi atau pengaduanmu direspons admin.', icon: 'forum', color: 'text-[#113A80] bg-[#F3F7FF]' },"
+      },
+      {
+        "lineNum": 14,
+        "type": "hardcoded-color",
+        "text": "Found #F3F7FF in: { id: 'EmailVoice', label: 'Student Voice', desc: 'Notifikasi saat aspirasi atau pengaduanmu direspons admin.', icon: 'forum', color: 'text-[#113A80] bg-[#F3F7FF]' },"
+      },
+      {
+        "lineNum": 15,
+        "type": "hardcoded-color",
+        "text": "Found #294D8D in: { id: 'EmailKencana', label: 'KENCANA', desc: 'Pengingat kuis dan materi yang belum diselesaikan.', icon: 'school', color: 'text-[#294D8D] bg-[#EEF4FF]' },"
+      },
+      {
+        "lineNum": 15,
+        "type": "hardcoded-color",
+        "text": "Found #EEF4FF in: { id: 'EmailKencana', label: 'KENCANA', desc: 'Pengingat kuis dan materi yang belum diselesaikan.', icon: 'school', color: 'text-[#294D8D] bg-[#EEF4FF]' },"
+      },
+      {
+        "lineNum": 16,
+        "type": "hardcoded-color",
+        "text": "Found #2A4C86 in: { id: 'EmailNews', label: 'Pengumuman Kampus', desc: 'Berita dan informasi terbaru dari pihak universitas.', icon: 'notifications', color: 'text-[#2A4C86] bg-[#EDF3FF]' },"
+      },
+      {
+        "lineNum": 16,
+        "type": "hardcoded-color",
+        "text": "Found #EDF3FF in: { id: 'EmailNews', label: 'Pengumuman Kampus', desc: 'Berita dan informasi terbaru dari pihak universitas.', icon: 'notifications', color: 'text-[#2A4C86] bg-[#EDF3FF]' },"
+      },
+      {
+        "lineNum": 63,
+        "type": "hardcoded-color",
+        "text": "Found #EAF1FF in: <div className=\"bg-[#EAF1FF] text-bku-primary p-2.5 rounded-xl\">"
+      },
+      {
+        "lineNum": 71,
+        "type": "bg-white",
+        "text": "<div className=\"w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-bku-primary\">"
+      },
+      {
+        "lineNum": 71,
+        "type": "radius-card",
+        "text": "Card/panel should be rounded-2xl: <div className=\"w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-bku-primary\">"
+      },
+      {
+        "lineNum": 80,
+        "type": "bg-white",
+        "text": "<span className=\"text-[10px] font-black uppercase text-[#a3a3a3] tracking-widest bg-white px-2 py-0.5 rounded-lg\">Wajib Aktif</span>"
+      },
+      {
+        "lineNum": 90,
+        "type": "hardcoded-color",
+        "text": "Found #EAF1FF in: <div className=\"bg-[#EAF1FF] text-bku-primary p-2.5 rounded-xl\">"
+      },
+      {
+        "lineNum": 102,
+        "type": "hardcoded-color",
+        "text": "Found #C9D8FF in: <div key={cat.id} className=\"p-4 rounded-2xl border border-[#f5f5f5] hover:border-[#C9D8FF] transition-all flex items-start justify-between group\">"
+      },
+      {
+        "lineNum": 122,
+        "type": "hardcoded-color",
+        "text": "Found #EAF1FF in: <div className=\"mt-10 p-5 rounded-2xl bg-[#EAF1FF] border border-[#C9D8FF] flex items-start gap-3\">"
+      },
+      {
+        "lineNum": 122,
+        "type": "hardcoded-color",
+        "text": "Found #C9D8FF in: <div className=\"mt-10 p-5 rounded-2xl bg-[#EAF1FF] border border-[#C9D8FF] flex items-start gap-3\">"
+      },
+      {
+        "lineNum": 123,
+        "type": "hardcoded-color",
+        "text": "Found #0B4FAE in: <span className=\"material-symbols-outlined text-[#0B4FAE] shrink-0 mt-0.5\" style={{ fontSize: 18 }}>info</span>"
+      },
+      {
+        "lineNum": 124,
+        "type": "hardcoded-color",
+        "text": "Found #1D4E9E in: <p className=\"text-xs font-medium text-[#1D4E9E] leading-relaxed\">"
+      }
+    ]
+  }
+]

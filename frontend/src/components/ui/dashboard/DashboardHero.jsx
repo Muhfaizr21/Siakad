@@ -1,0 +1,119 @@
+import React from 'react';
+import { cn } from '../../../lib/utils';
+import { Link } from 'react-router-dom';
+
+export function DashboardHero({ 
+  title, 
+  highlightedTitle, 
+  subtitle, 
+  icon = 'admin_panel_settings',
+  badges = [], // Array of { label, active: boolean, color: 'emerald' | 'primary' }
+  breadcrumbs = [], // Array of { label, path }
+  actions, // ReactNode for buttons
+  className 
+}) {
+  return (
+    <section className={cn(
+      "relative overflow-hidden rounded-2xl p-6 md:p-8 border border-border bg-surface shadow-sm mb-6",
+      className
+    )}>
+      {/* Subtle geometric grid background overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-surface via-background/40 to-background/30" />
+      <div className="absolute inset-0 opacity-[0.02] pointer-events-none"
+        style={{
+          backgroundImage: `radial-gradient(circle at 20% 50%, var(--theme-primary) 1px, transparent 1px), radial-gradient(circle at 80% 20%, var(--theme-primary) 1px, transparent 1px)`,
+          backgroundSize: '40px 40px'
+        }}
+      />
+      
+      {/* Accent glow blobs */}
+      <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full blur-3xl animate-pulse pointer-events-none" 
+        style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)' }} />
+      <div className="absolute -bottom-10 right-40 w-48 h-48 rounded-full blur-2xl pointer-events-none" 
+        style={{ backgroundColor: 'color-mix(in srgb, var(--theme-secondary) 5%, transparent)' }} />
+
+      <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div className="flex-1 space-y-3">
+          <div className="flex items-start gap-4 md:gap-5">
+            {/* Visual Anchor Icon */}
+            <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl border flex items-center justify-center shrink-0 shadow-sm relative overflow-hidden group/icon" 
+              style={{ 
+                backgroundColor: 'color-mix(in srgb, var(--theme-primary) 10%, transparent)', 
+                borderColor: 'color-mix(in srgb, var(--theme-primary) 20%, transparent)', 
+                color: 'var(--theme-primary)' 
+              }}>
+              <div className="absolute inset-0 opacity-0 group-hover/icon:opacity-100 transition-opacity duration-300" 
+                style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)' }} />
+              <span className="material-symbols-outlined relative z-10 transition-transform duration-300 group-hover/icon:scale-110" 
+                style={{ fontSize: '26px' }}>{icon}</span>
+            </div>
+
+            <div className="flex-1 flex flex-col justify-center min-h-[48px] md:min-h-[56px] py-1">
+              {/* Badges */}
+              {badges && badges.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2 mb-2">
+                  {badges.map((badge, idx) => (
+                    <span key={idx} className={cn(
+                      "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-wider border",
+                      badge.active 
+                        ? "bg-[var(--theme-success-light)] text-[var(--theme-success)] border-[var(--theme-success-light)]" 
+                        : "bg-[var(--theme-primary-light)] text-[var(--theme-primary)] border-[var(--theme-primary-light)]"
+                    )}>
+                      {badge.active && <span className="w-1.5 h-1.5 rounded-full bg-[var(--theme-success)] animate-pulse" />}
+                      {badge.label}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Breadcrumbs */}
+              {breadcrumbs && breadcrumbs.length > 0 && (
+                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted font-headline mb-1.5">
+                  {breadcrumbs.map((crumb, idx) => (
+                    <React.Fragment key={idx}>
+                      {crumb.path ? (
+                        <Link to={crumb.path} className="hover:text-primary transition-colors">
+                          {crumb.label}
+                        </Link>
+                      ) : (
+                        <span className="text-primary">{crumb.label}</span>
+                      )}
+                      {idx < breadcrumbs.length - 1 && (
+                        <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>chevron_right</span>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </div>
+              )}
+
+              {/* Title */}
+              <h1 className="text-2xl md:text-3xl font-bold text-on-surface tracking-tight font-headline leading-none">
+                {title} {highlightedTitle && (
+                  <span className="text-primary">
+                    {highlightedTitle}
+                  </span>
+                )}
+              </h1>
+
+              {/* Subtitle */}
+              {subtitle && (
+                <p className="text-muted font-medium text-xs md:text-sm max-w-3xl leading-relaxed mt-2.5">
+                  {subtitle}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Action Button Area */}
+        {actions && (
+          <div className="flex flex-row lg:flex-col items-end gap-3 shrink-0 self-stretch lg:self-auto justify-between lg:justify-center border-t lg:border-t-0 pt-4 lg:pt-0 border-border-muted">
+            <div className="flex items-center gap-2">
+              {actions}
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}

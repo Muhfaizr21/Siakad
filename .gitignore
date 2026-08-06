@@ -1,0 +1,66 @@
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+bin/
+obj/
+
+# Logs
+*.log
+backend/server_*.log
+
+# Go
+.gocache/
+backend/vendor/
+backend/go.sum~
+backend/*.test
+backend/*.out
+backend/coverage.out
+backend/coverage.html
+backend/main
+backend/test_bin
+backend/test_json.go
+backend/SIAKAD.db
+backend/*.db
+
+# Local scratch scripts
+backend/scratch_*.go
+backend/verify_*.go
+
+# Runtime generated files
+backend/uploads/
+
+# Node
+node_modules/
+dist/
+build/
+.eslintcache
+frontend/.vite/
+frontend/coverage/
+
+# Environment
+.env
+.env.*
+!.env.example
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+backend/.env
+frontend/.env
+
+# Tooling artifacts
+.agents/
+.opencode/

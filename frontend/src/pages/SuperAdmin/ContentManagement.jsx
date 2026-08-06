@@ -1,89 +1,933 @@
-import React from 'react';
-import Sidebar from './components/Sidebar';
-import TopNavBar from './components/TopNavBar';
+"use client"
 
-const ContentManagement = () => {
-    const newsList = [
-        { id: 1, title: "Pembukaan Beasiswa Unggulan BKU 2024", category: "Beasiswa", date: "6 April 2024", views: "2,450", status: "Published" },
-        { id: 2, title: "Pembaruan Protokol KRS Semester Ganjil", category: "Akademik", date: "5 April 2024", views: "1,200", status: "Published" },
-        { id: 3, title: "Informasi Maintenance Sistem (Patch 2.1)", category: "Sistem", date: "4 April 2024", views: "0", status: "Draft" },
-    ];
+import React, { useState, useEffect, useMemo } from 'react'
+import { adminService, landingService } from '../../services/api'
+import { toast, Toaster } from 'react-hot-toast'
+
+import { DialogModal, ModalCancelButton, ModalSaveButton } from '@/components/ui/DialogModal'
+import { Badge } from '@/components/ui/Badge'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { Label } from '@/components/ui/Label'
+import { Textarea } from '@/components/ui/Textarea'
+import { Card, CardContent } from '@/components/ui/Card'
+import { PageContent } from '@/components/ui/page'
+import { PrimaryStatsCard } from '@/components/ui/StatsCard'
+import { DashboardHero } from '@/components/ui/dashboard'
+import { DataTable } from '@/components/ui/DataTable'
+import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
+import { cn } from '@/lib/utils'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts"
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const NewspaperIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>newspaper</span>;
+const CheckCircleIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>check_circle</span>;
+const EditNoteIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>edit_note</span>;
+const GroupIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>group</span>;
+
+
+
+export default function ContentManagement() {
+    const [news, setNews] = useState([])
+    const [faculties, setFaculties] = useState([])
+    const [ormawas, setOrmawas] = useState([])
+    const [students, setStudents] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [isCrudOpen, setIsCrudOpen] = useState(false)
+    const [isDelOpen, setIsDelOpen] = useState(false)
+    const [isEditMode, setIsEditMode] = useState(false)
+    const [selected, setSelected] = useState(null)
+    const [form, setForm] = useState({
+        Judul: '',
+        Isi: '',
+        Status: 'Published',
+        Kategori: 'Pengumuman',
+        GambarURL: '',
+        target_audience: 'semua',
+        target_fakultas_id: '',
+        target_ormawa_id: '',
+        target_mahasiswa_ids: '',
+        target_ormawa_ids: ''
+    })
+
+    // Detailed Checklist states
+    const [studentSearch, setStudentSearch] = useState('')
+    const [ormawaSearch, setOrmawaSearch] = useState('')
+    const [mahasiswaSubtype, setMahasiswaSubtype] = useState('global') // 'global', 'fakultas', 'spesifik'
+    const [ormawaSubtype, setOrmawaSubtype] = useState('all') // 'all', 'spesifik'
+
+    const filteredStudents = useMemo(() => {
+        if (!studentSearch) return students
+        const term = studentSearch.toLowerCase()
+        return students.filter(s =>
+            (s.Nama || s.nama || '').toLowerCase().includes(term) ||
+            (s.NIM || s.nim || '').toLowerCase().includes(term)
+        )
+    }, [students, studentSearch])
+
+    const filteredOrmawas = useMemo(() => {
+        if (!ormawaSearch) return ormawas
+        const term = ormawaSearch.toLowerCase()
+        return ormawas.filter(o =>
+            (o.Nama || o.nama || '').toLowerCase().includes(term)
+        )
+    }, [ormawas, ormawaSearch])
+
+    const contentStatusData = useMemo(() => {
+        const published = news.filter(n => n.Status === 'Published').length
+        const draft = news.filter(n => n.Status !== 'Published').length
+        return [
+            { name: 'Published', value: published },
+            { name: 'Draft', value: draft }
+        ].filter(d => d.value > 0)
+    }, [news])
+
+    const audienceData = useMemo(() => {
+        const counts = { semua: 0, fakultas: 0, ormawa: 0, mahasiswa: 0 }
+        news.forEach(n => {
+            const a = n.target_audience || n.TargetAudience || 'semua'
+            const key = a.toLowerCase()
+            if (counts[key] !== undefined) {
+                counts[key]++
+            } else {
+                counts.semua++
+            }
+        })
+        return [
+            { name: 'Semua', value: counts.semua },
+            { name: 'Fakultas', value: counts.fakultas },
+            { name: 'Ormawa', value: counts.ormawa },
+            { name: 'Mahasiswa', value: counts.mahasiswa }
+        ].filter(d => d.value > 0)
+    }, [news])
+
+    const monthlyTrendData = useMemo(() => {
+        const byMonth = {}
+        news.forEach(n => {
+            const date = n.TanggalPublish || n.tanggal_publish
+            if (!date) return
+            const d = new Date(date)
+            if (isNaN(d.getTime())) return
+            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+            byMonth[key] = (byMonth[key] || 0) + 1
+        })
+        return Object.entries(byMonth)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([month, count]) => {
+                const [y, m] = month.split('-')
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des']
+                return { month: `${months[parseInt(m) - 1]} ${y}`, value: count }
+            })
+    }, [news])
+
+    const PIE_COLORS = ['#10b981', '#f59e0b', '#3b82f6', '#8b5cf6']
+
+    const fetchNews = async () => {
+        setLoading(true)
+        try {
+            const data = await adminService.getAllNews()
+            if (data.status === 'success') setNews(data.data || [])
+            else toast.error('Gagal memuat database berita')
+        } catch {
+            toast.error('Koneksi sistem terputus')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const fetchMasterData = async () => {
+        try {
+            const [facRes, ormawaRes, studentRes] = await Promise.all([
+                adminService.getAllFaculties(),
+                adminService.getAllOrmawa(),
+                adminService.getAllStudents()
+            ])
+            if (facRes?.status === 'success') setFaculties(facRes.data || [])
+            if (ormawaRes?.status === 'success') setOrmawas(ormawaRes.data || [])
+            if (studentRes?.status === 'success') setStudents(studentRes.data || [])
+        } catch (e) {
+            console.error("Gagal memuat data master untuk target berita", e)
+        }
+    }
+
+    useEffect(() => {
+        fetchNews()
+        fetchMasterData()
+    }, [])
+
+    const handleOpenAdd = () => {
+        setIsEditMode(false)
+        setSelected(null)
+        setForm({
+            Judul: '',
+            Isi: '',
+            Status: 'Published',
+            Kategori: 'Pengumuman',
+            GambarURL: '',
+            target_audience: 'semua',
+            target_fakultas_id: '',
+            target_ormawa_id: '',
+            target_mahasiswa_ids: '',
+            target_ormawa_ids: ''
+        })
+        setMahasiswaSubtype('global')
+        setOrmawaSubtype('all')
+        setStudentSearch('')
+        setOrmawaSearch('')
+        setIsCrudOpen(true)
+    }
+
+    const handleOpenEdit = (row) => {
+        setIsEditMode(true)
+        setSelected(row)
+        const mhsIds = row.target_mahasiswa_ids || row.TargetMahasiswaIDs || ''
+        const ormIds = row.target_ormawa_ids || row.TargetOrmawaIDs || ''
+        setForm({
+            Judul: row.Judul || '',
+            Isi: row.Isi || '',
+            Status: row.Status || 'Published',
+            Kategori: row.Kategori || 'Pengumuman',
+            GambarURL: row.GambarURL || '',
+            target_audience: row.target_audience || row.TargetAudience || 'semua',
+            target_fakultas_id: row.target_fakultas_id || row.TargetFakultasID || '',
+            target_ormawa_id: row.target_ormawa_id || row.TargetOrmawaID || '',
+            target_mahasiswa_ids: mhsIds,
+            target_ormawa_ids: ormIds
+        })
+
+        const mSub = mhsIds ? 'spesifik' : (row.target_fakultas_id || row.TargetFakultasID ? 'fakultas' : 'global')
+        setMahasiswaSubtype(mSub)
+
+        const oSub = ormIds ? 'spesifik' : 'all'
+        setOrmawaSubtype(oSub)
+
+        setStudentSearch('')
+        setOrmawaSearch('')
+        setIsCrudOpen(true)
+    }
+
+    const handleAudienceChange = (aud) => {
+        setForm(prev => ({
+            ...prev,
+            target_audience: aud,
+            target_fakultas_id: '',
+            target_ormawa_id: '',
+            target_mahasiswa_ids: '',
+            target_ormawa_ids: ''
+        }))
+        setMahasiswaSubtype('global')
+        setOrmawaSubtype('all')
+    }
+
+    const handleMahasiswaSubtypeChange = (subtype) => {
+        setMahasiswaSubtype(subtype)
+        setForm(prev => ({
+            ...prev,
+            target_fakultas_id: '',
+            target_mahasiswa_ids: ''
+        }))
+    }
+
+    const handleOrmawaSubtypeChange = (subtype) => {
+        setOrmawaSubtype(subtype)
+        setForm(prev => ({
+            ...prev,
+            target_ormawa_id: '',
+            target_ormawa_ids: ''
+        }))
+    }
+
+    const handleImageUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const formData = new FormData();
+        formData.append('image', file);
+        
+        setIsSubmitting(true);
+        try {
+            const res = await landingService.uploadImage(formData);
+            if (res.status === 'success' || res.url) {
+                setForm({ ...form, GambarURL: res.url });
+                toast.success('Gambar berhasil diunggah');
+            } else {
+                toast.error(res.message || 'Gagal mengunggah gambar');
+            }
+        } catch (error) {
+            toast.error(error.message || 'Error saat mengunggah gambar');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleSave = async (e) => {
+        if (e) e.preventDefault()
+        setIsSubmitting(true)
+        try {
+            const targetId = selected?.id || selected?.ID
+            const payload = {
+                ...form,
+                target_fakultas_id: form.target_fakultas_id ? Number(form.target_fakultas_id) : null,
+                target_ormawa_id: form.target_ormawa_id ? Number(form.target_ormawa_id) : null,
+                target_mahasiswa_ids: form.target_mahasiswa_ids || "",
+                target_ormawa_ids: form.target_ormawa_ids || ""
+            }
+            const res = isEditMode
+                ? await adminService.updateNews(targetId, payload)
+                : await adminService.createNews(payload)
+            if (res.status === 'success') {
+                toast.success(isEditMode ? 'Konten diperbarui' : 'Berita berhasil diterbitkan')
+                setIsCrudOpen(false)
+                fetchNews()
+            } else {
+                toast.error(res.message || 'Gagal menyimpan konten')
+            }
+        } catch {
+            toast.error('Terjadi kesalahan sistem')
+        } finally {
+            setIsSubmitting(false)
+        }
+    }
+
+    const handleDelete = async () => {
+        setIsSubmitting(true)
+        try {
+            await adminService.deleteNews(selected?.id || selected?.ID)
+            toast.success('Konten berhasil dihapus')
+            setIsDelOpen(false)
+            fetchNews()
+        } catch {
+            toast.error('Gagal menghapus konten')
+        } finally {
+            setIsSubmitting(false)
+        }
+    }
+
+    const columns = [
+        {
+            key: 'Judul',
+            label: 'Informasi & Pratinjau',
+            className: 'min-w-[350px]',
+            render: (v, row) => (
+                <div className="flex flex-col gap-1 py-2">
+                    <span className="font-bold text-slate-800 font-headline tracking-tight text-[14px] leading-tight uppercase">{v || '—'}</span>
+                    <span className="text-[11px] text-slate-500 font-medium line-clamp-1 max-w-sm">{row.Isi || 'Tidak ada deskripsi konten.'}</span>
+                </div>
+            )
+        },
+        {
+            key: 'TanggalPublish',
+            label: 'Tgl Publikasi',
+            className: 'w-[200px]',
+            render: v => (
+                <div className="flex items-center gap-2 text-slate-500">
+                    <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '12px' }} >schedule</span>
+                    <span className="text-[11px] font-bold font-headline uppercase tabular-nums">
+                        {v ? new Date(v).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                    </span>
+                </div>
+            )
+        },
+        {
+            key: 'target_audience',
+            label: 'Target Penerima',
+            className: 'w-[180px]',
+            render: (v, row) => {
+                const aud = v || row.TargetAudience || 'semua'
+                let label = 'Semua Sivitas'
+                let details = ''
+
+                if (aud === 'fakultas') {
+                    label = 'Fakultas'
+                    const facId = row.target_fakultas_id || row.TargetFakultasID
+                    const fac = faculties.find(f => (f.ID || f.id) === facId)
+                    details = fac ? fac.Nama || fac.nama : `Fakultas ID: ${facId}`
+                } else if (aud === 'ormawa') {
+                    label = 'Ormawa'
+                    const ormIdsStr = row.target_ormawa_ids || row.TargetOrmawaIDs || ''
+                    if (ormIdsStr) {
+                        const count = ormIdsStr.split(',').filter(Boolean).length
+                        details = `${count} Ormawa Terpilih`
+                    } else {
+                        const ormId = row.target_ormawa_id || row.TargetOrmawaID
+                        if (ormId) {
+                            const orm = ormawas.find(o => (o.id || o.ID) === ormId)
+                            details = orm ? orm.Nama || orm.nama : `Ormawa ID: ${ormId}`
+                        } else {
+                            details = 'Semua Ormawa'
+                        }
+                    }
+                } else if (aud === 'mahasiswa') {
+                    label = 'Mahasiswa'
+                    const mhsIdsStr = row.target_mahasiswa_ids || row.TargetMahasiswaIDs || ''
+                    if (mhsIdsStr) {
+                        const count = mhsIdsStr.split(',').filter(Boolean).length
+                        details = `${count} Mahasiswa Terpilih`
+                    } else {
+                        const facId = row.target_fakultas_id || row.TargetFakultasID
+                        if (facId) {
+                            const fac = faculties.find(f => (f.ID || f.id) === facId)
+                            details = fac ? `Fakultas ${fac.Singkatan || fac.Nama || fac.nama}` : `Fakultas ID: ${facId}`
+                        } else {
+                            details = 'Global'
+                        }
+                    }
+                }
+
+                return (
+                    <div className="flex flex-col gap-0.5">
+                        <Badge className="px-2 py-0.5 rounded-lg border-none shadow-none bg-bku-primary/10 text-bku-primary text-[9px] font-black uppercase tracking-widest w-fit font-headline">
+                            {label}
+                        </Badge>
+                        {details && <span className="text-[10px] font-bold text-slate-400 mt-1 max-w-[160px] truncate leading-tight uppercase tracking-widest">{details}</span>}
+                    </div>
+                )
+            }
+        },
+        {
+            key: 'Status',
+            label: 'Status Rilis',
+            className: 'w-[140px] text-center',
+            cellClassName: 'text-center',
+            render: v => (
+                <Badge className={cn('px-3 py-0.5 rounded-lg border-none shadow-none text-[9px] font-black uppercase tracking-widest font-headline',
+                    v === 'Published' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700')}>
+                    {v || 'Draft'}
+                </Badge>
+            )
+        }
+    ]
 
     return (
-        <div className="bg-surface text-on-surface min-h-screen flex font-headline font-body select-none">
-          <Sidebar />
-          <main className="pl-80 flex flex-col min-h-screen w-full">
-            <TopNavBar />
-            <div className="p-8 space-y-8 ">
-              <header className="flex justify-between items-end ">
-                <div>
-                  <h1 className="text-3xl font-extrabold text-primary tracking-tight font-headline uppercase  tracking-widest leading-none">Pusat Berita & Konten</h1>
-                  <p className="text-secondary mt-2 font-medium ">Otoritas pusat untuk publikasi informasi resmi ke seluruh ekosistem universitas.</p>
-                </div>
-                <button className="bg-primary text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 transition-all  leading-tight">
-                    Tulis Berita Baru
-                </button>
-              </header>
+        <PageContent>
+            <Toaster position="top-right" />
 
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                 <div className="bg-white p-8 rounded-[2.5rem] border border-outline-variant/30 space-y-2 ">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-secondary/40 leading-tight">Total Artikel</p>
-                    <h3 className="text-4xl font-black text-primary  leading-none">124</h3>
-                 </div>
-                 <div className="bg-white p-8 rounded-[2.5rem] border border-outline-variant/30 space-y-2 ">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-secondary/40 leading-tight">Total Pembaca</p>
-                    <h3 className="text-4xl font-black text-emerald-600  leading-none">45.2K</h3>
-                 </div>
-              </div>
+            <div className="max-w-[1600px] mx-auto space-y-8 select-none">
 
-              <section className="bg-white border border-outline-variant/30 rounded-[3.5rem] overflow-hidden shadow-sm ">
-                <table className="w-full text-left ">
-                  <thead>
-                    <tr className="bg-surface-container-low/30 text-[10px] font-black uppercase tracking-[0.2em] text-secondary/70  leading-tight">
-                      <th className="px-10 py-6">Judul Konten</th>
-                      <th className="px-10 py-6 text-center">Kategori</th>
-                      <th className="px-10 py-6">Tanggal Rilis</th>
-                      <th className="px-10 py-6 text-center">Viewers</th>
-                      <th className="px-10 py-6">Status</th>
-                      <th className="px-10 py-6 text-right">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-outline-variant/10 font-body select-text ">
-                    {newsList.map((news, idx) => (
-                      <tr key={idx} className="hover:bg-primary/[0.01] transition-all group ">
-                        <td className="px-10 py-6 ">
-                            <span className="font-extrabold text-primary uppercase tracking-tight  group-hover:text-blue-700 transition-colors leading-tight">{news.title}</span>
-                        </td>
-                        <td className="px-10 py-6 text-center ">
-                            <span className="px-3 py-1 bg-slate-100 text-secondary text-[9px] font-black rounded-lg border border-outline-variant/10 ">
-                                {news.category}
-                            </span>
-                        </td>
-                        <td className="px-10 py-6 text-sm font-bold text-secondary  opacity-90 leading-tight tracking-tighter uppercase">{news.date}</td>
-                        <td className="px-10 py-6 text-center font-black text-primary  leading-none">{news.views}</td>
-                        <td className="px-10 py-6 ">
-                            <div className="flex items-center gap-2.5 ">
-                                <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest  border ${
-                                    news.status === 'Published' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-50 text-slate-600 border-slate-100'
-                                }`}>
-                                    {news.status}
-                                </span>
+                {/* ── Page Header ─────────────────────────────────────────── */}
+                <DashboardHero
+                    title="Kelola"
+                    highlightedTitle="Konten"
+                    subtitle="Manajemen publikasi berita, pengumuman akademik, dan informasi resmi universitas untuk seluruh sivitas akademika."
+                    icon="newspaper"
+                    badges={[
+                        { label: 'Public Relations', active: true }
+                    ]}
+                    actions={
+                        <Button
+                            onClick={handleOpenAdd}
+                            className="h-11 px-6 rounded-xl bg-slate-800 text-white font-black font-headline text-[10px] uppercase tracking-widest gap-2 hover:bg-slate-900 transition-all active:scale-95 shadow-none border-none cursor-pointer"
+                        >
+                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }} strokeWidth={3}>add</span>
+                            Tulis Berita
+                        </Button>
+                    }
+                />
+
+                {/* ── Stat Cards ─────────────────────────────────────────── */}
+                {!loading && (
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 animate-in fade-in duration-300 mb-6">
+                        <PrimaryStatsCard
+                            title="Total Berita"
+                            value={news.length}
+                            icon={NewspaperIcon}
+                            colorTheme="info"
+                        />
+                        <PrimaryStatsCard
+                            title="Published"
+                            value={news.filter(n => n.Status === 'Published').length}
+                            icon={CheckCircleIcon}
+                            colorTheme="success"
+                        />
+                        <PrimaryStatsCard
+                            title="Draft"
+                            value={news.filter(n => n.Status !== 'Published').length}
+                            icon={EditNoteIcon}
+                            colorTheme="warning"
+                        />
+                        <PrimaryStatsCard
+                            title="Target Audien"
+                            value={new Set(news.map(n => n.target_audience || n.TargetAudience || 'semua')).size}
+                            icon={GroupIcon}
+                            colorTheme="primary"
+                        />
+                    </div>
+                )}
+
+                {/* ── Charts Section ──────────────────────────────────────── */}
+                {!loading && (
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-300">
+                        {/* Bar Chart: Target Penerima */}
+                        <div className="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none">
+                            <div className="flex items-center gap-3 mb-3">
+                                <div className="w-10 h-10 bg-bku-primary/10 rounded-xl flex justify-center items-center text-bku-primary flex-shrink-0">
+                                    <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '18px' }} >bar_chart</span>
+                                </div>
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Distribusi Target Penerima Berita</span>
                             </div>
-                        </td>
-                        <td className="px-10 py-6 text-right ">
-                           <button className="px-4 py-3 hover:bg-primary/5 rounded-xl text-primary transition-all  leading-none">
-                                <span className="material-symbols-outlined text-[20px] ">edit_note</span>
-                            </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </section>
+                            <div className="h-[200px] w-full">
+                                <ResponsiveContainer width="100%" height={200}>
+                                    <BarChart data={audienceData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                        <XAxis dataKey="name" tick={{ fontSize: 8.5, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                                        <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                                        <Tooltip
+                                            cursor={{ fill: '#f8fafc' }}
+                                            contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "11px", fontWeight: "bold" }}
+                                        />
+                                        <Bar dataKey="value" name="Jumlah Berita" fill="var(--theme-primary, #00236f)" radius={[4, 4, 0, 0]} barSize={24} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+
+                        {/* Pie Chart: Status Rilis */}
+                        <div className="lg:col-span-1 bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none flex flex-col justify-between">
+                            <div className="flex items-center gap-3 mb-3">
+                                <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex justify-center items-center text-emerald-600 flex-shrink-0">
+                                    <span className="material-symbols-outlined text-emerald-600" style={{ fontSize: '18px' }} >pie_chart</span>
+                                </div>
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Status Publikasi</span>
+                            </div>
+                            <div className="h-[140px] w-full flex items-center justify-center">
+                                {contentStatusData.length > 0 ? (
+                                    <ResponsiveContainer width="100%" height={140}>
+                                        <PieChart>
+                                            <Pie
+                                                data={contentStatusData}
+                                                cx="50%"
+                                                cy="50%"
+                                                innerRadius={40}
+                                                outerRadius={60}
+                                                paddingAngle={4}
+                                                dataKey="value"
+                                                stroke="none"
+                                            >
+                                                {contentStatusData.map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip
+                                                contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }}
+                                            />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <span className="text-xs text-slate-400 italic">Tidak ada data</span>
+                                )}
+                            </div>
+                            <div className="grid grid-cols-2 gap-1.5 mt-2">
+                                {contentStatusData.slice(0, 4).map((item, idx) => (
+                                    <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50 border border-slate-100">
+                                        <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
+                                        <div className="min-w-0">
+                                            <p className="text-[9px] font-bold text-slate-400 truncate leading-none">{item.name}</p>
+                                            <p className="text-xs font-extrabold text-slate-800 leading-none mt-1">{item.value}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* ── Line Chart: Tren Publikasi ──────────────────────────── */}
+                {!loading && monthlyTrendData.length > 1 && (
+                    <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none animate-in fade-in duration-300">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-10 h-10 bg-indigo-500/10 rounded-xl flex justify-center items-center text-indigo-600 flex-shrink-0">
+                                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>trending_up</span>
+                            </div>
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Tren Publikasi per Bulan</span>
+                        </div>
+                        <div className="h-[200px] w-full">
+                            <ResponsiveContainer width="100%" height={200}>
+                                <LineChart data={monthlyTrendData} margin={{ top: 10, right: 20, left: -20, bottom: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                    <XAxis dataKey="month" tick={{ fontSize: 8.5, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                                    <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                                    <Tooltip
+                                        contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "11px", fontWeight: "bold" }}
+                                    />
+                                    <Line type="monotone" dataKey="value" name="Jumlah Berita" stroke="#00236f" strokeWidth={2.5} dot={{ fill: '#00236f', r: 3 }} activeDot={{ r: 5, fill: '#00236f' }} />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+                )}
+
+                {/* ── Table Section ────────────────────────────────────────── */}
+                <Card className="glass-card shadow-sm rounded-xl overflow-hidden animate-in slide-in-from-bottom-4 duration-500 delay-300">
+                    <CardContent className="p-0">
+                        <DataTable
+                            columns={columns}
+                            data={news}
+                            loading={loading}
+                            searchPlaceholder="Cari judul atau topik berita..."
+                            onAdd={handleOpenAdd}
+                            addLabel="Tambah Konten"
+                            filters={[
+                                { key: 'Status', placeholder: 'Semua Status', options: [{ label: 'Published', value: 'Published' }, { label: 'Draft', value: 'Draft' }] }
+                            ]}
+                            actions={(row) => (
+                                <div className="flex items-center gap-1.5">
+                                    <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >edit</span></Button>
+                                    <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >delete</span></Button>
+                                </div>
+                            )}
+                        />
+                    </CardContent>
+                </Card>
+
+
             </div>
-          </main>
-        </div>
+
+            {/* ── CRUD Dialog ───────────────────────────────────────────── */}
+            <DialogModal
+                open={isCrudOpen}
+                onOpenChange={setIsCrudOpen}
+                icon={isEditMode ? "edit" : "add"}
+                subtitle="Content Registry"
+                title={isEditMode ? 'Update Konten' : 'Publikasi Baru'}
+                description="Editor publikasi berita dan pengumuman resmi universitas."
+                maxWidth="max-w-2xl"
+                footer={
+                    <>
+                        <ModalCancelButton onClick={() => setIsCrudOpen(false)} />
+                        <ModalSaveButton onClick={handleSave} loading={isSubmitting}>
+                            {isEditMode ? 'Update Konten' : 'Terbitkan Berita'}
+                        </ModalSaveButton>
+                    </>
+                }
+            >
+                <form id="announcement-form" onSubmit={handleSave}>
+                    <div className="space-y-5 px-1 font-inter">
+                        <div className="space-y-2">
+                            <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Judul Utama Berita</Label>
+                            <Input required value={form.Judul} onChange={e => setForm({ ...form, Judul: e.target.value })} placeholder="Tulis judul yang informatif..." className="h-11 rounded-xl border-slate-200 bg-white focus:bg-white font-bold text-sm font-headline focus:ring-bku-primary/20" />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Kategori Berita</Label>
+                                <Select value={form.Kategori} onValueChange={(v) => setForm({ ...form, Kategori: v })}>
+                                    <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-white font-bold text-sm font-headline focus:ring-bku-primary/20">
+                                        <SelectValue placeholder="Pilih Kategori" />
+                                    </SelectTrigger>
+                                    <SelectContent className="rounded-xl shadow-xl border-slate-200">
+                                        <SelectItem value="Pengumuman" className="text-[11px] font-bold uppercase tracking-widest font-headline">Pengumuman</SelectItem>
+                                        <SelectItem value="Prestasi" className="text-[11px] font-bold uppercase tracking-widest font-headline">Prestasi</SelectItem>
+                                        <SelectItem value="Acara" className="text-[11px] font-bold uppercase tracking-widest font-headline">Acara</SelectItem>
+                                        <SelectItem value="Kerja Sama" className="text-[11px] font-bold uppercase tracking-widest font-headline">Kerja Sama</SelectItem>
+                                        <SelectItem value="Pengabdian" className="text-[11px] font-bold uppercase tracking-widest font-headline">Pengabdian</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Visibilitas Publikasi</Label>
+                                <Select value={form.Status} onValueChange={(v) => setForm({ ...form, Status: v })}>
+                                    <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-white font-bold text-sm font-headline focus:ring-bku-primary/20">
+                                        <SelectValue placeholder="Pilih Visibilitas" />
+                                    </SelectTrigger>
+                                    <SelectContent className="rounded-xl shadow-xl border-slate-200">
+                                        <SelectItem value="Published" className="text-[11px] font-bold uppercase tracking-widest font-headline text-emerald-600">Published</SelectItem>
+                                        <SelectItem value="Draft" className="text-[11px] font-bold uppercase tracking-widest font-headline text-amber-600">Draft</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Gambar Cover / Thumbnail (Opsional)</Label>
+                            <div className="flex gap-3 items-center">
+                                {form.GambarURL && (
+                                    <img src={form.GambarURL.startsWith('http') ? form.GambarURL : `http://localhost:8000${form.GambarURL}`} alt="Thumbnail" className="w-16 h-16 object-cover rounded-xl border border-slate-200" />
+                                )}
+                                <Input type="file" accept="image/*" onChange={handleImageUpload} className="h-11 rounded-xl border-slate-200 bg-white focus:bg-white text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-[10px] file:font-black file:uppercase file:tracking-widest file:bg-slate-100 file:text-slate-600 hover:file:bg-slate-200 transition-all cursor-pointer flex-1" />
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Isi Konten & Informasi</Label>
+                            <Textarea required value={form.Isi} onChange={e => setForm({ ...form, Isi: e.target.value })} placeholder="Tulis narasi berita secara lengkap..." className="min-h-[150px] rounded-2xl border-slate-200 bg-white focus:bg-white p-4 font-medium text-sm font-inter leading-relaxed focus:ring-bku-primary/20" />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Target Penerima Berita (Audience)</Label>
+                            <Select value={form.target_audience} onValueChange={handleAudienceChange}>
+                                <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-white font-bold text-sm font-headline focus:ring-bku-primary/20"><SelectValue /></SelectTrigger>
+                                <SelectContent className="rounded-xl shadow-xl border-slate-200">
+                                    <SelectItem value="semua" className="text-[11px] font-bold uppercase tracking-widest font-headline">Semua Sivitas</SelectItem>
+                                    <SelectItem value="fakultas" className="text-[11px] font-bold uppercase tracking-widest font-headline">Spesifik Fakultas</SelectItem>
+                                    <SelectItem value="ormawa" className="text-[11px] font-bold uppercase tracking-widest font-headline">Spesifik Ormawa</SelectItem>
+                                    <SelectItem value="mahasiswa" className="text-[11px] font-bold uppercase tracking-widest font-headline">Mahasiswa (Global / Fakultas)</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {form.target_audience === 'fakultas' && (
+                            <div className="space-y-2 animate-in fade-in duration-200">
+                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Pilih Fakultas Penerima</Label>
+                                <Select
+                                    value={form.target_fakultas_id ? String(form.target_fakultas_id) : undefined}
+                                    onValueChange={v => setForm({ ...form, target_fakultas_id: Number(v) })}
+                                >
+                                    <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-white font-bold text-sm font-headline focus:ring-bku-primary/20">
+                                        <SelectValue placeholder="PILIH FAKULTAS" />
+                                    </SelectTrigger>
+                                    <SelectContent className="rounded-xl shadow-xl border-slate-200 max-h-[200px] overflow-y-auto">
+                                        {faculties.map(f => (
+                                            <SelectItem key={f.ID || f.id} value={String(f.ID || f.id)} className="text-[11px] font-bold uppercase tracking-widest font-headline">
+                                                {f.Nama || f.nama}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
+
+                        {form.target_audience === 'ormawa' && (
+                            <div className="space-y-3 animate-in fade-in duration-200">
+                                <div className="space-y-2">
+                                    <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Tipe Pengiriman Ormawa</Label>
+                                    <Select value={ormawaSubtype} onValueChange={handleOrmawaSubtypeChange}>
+                                        <SelectTrigger className="h-11 rounded-lg border-neutral-200 bg-white font-medium text-sm"><SelectValue /></SelectTrigger>
+                                        <SelectContent className="rounded-xl shadow-xl">
+                                            <SelectItem value="all" className="text-xs font-medium uppercase">Kirim ke Satu Ormawa Tertentu</SelectItem>
+                                            <SelectItem value="spesifik" className="text-xs font-medium uppercase text-primary">Kirim ke Beberapa Ormawa (Pilih/Ceklis)</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                {ormawaSubtype === 'all' && (
+                                    <div className="space-y-2 animate-in fade-in duration-200">
+                                        <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Pilih Ormawa Penerima</Label>
+                                        <Select
+                                            value={form.target_ormawa_id ? String(form.target_ormawa_id) : undefined}
+                                            onValueChange={v => setForm({ ...form, target_ormawa_id: Number(v) })}
+                                        >
+                                            <SelectTrigger className="h-11 rounded-lg border-neutral-200 bg-white font-medium text-sm">
+                                                <SelectValue placeholder="PILIH ORMAWA" />
+                                            </SelectTrigger>
+                                            <SelectContent className="rounded-xl shadow-xl max-h-[200px] overflow-y-auto">
+                                                {ormawas.map(o => (
+                                                    <SelectItem key={o.id || o.ID} value={String(o.id || o.ID)} className="text-xs font-bold uppercase">
+                                                        {o.nama || o.Nama}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
+
+                                {ormawaSubtype === 'spesifik' && (
+                                    <div className="space-y-2 animate-in fade-in duration-200">
+                                        <div className="flex items-center justify-between text-xs font-bold text-neutral-500 font-jakarta ml-1">
+                                            <span>Pilih Daftar Ormawa (Ceklis)</span>
+                                            <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-none font-bold text-[10px]">
+                                                {(form.target_ormawa_ids || '').split(',').filter(Boolean).length} Terpilih
+                                            </Badge>
+                                        </div>
+                                        <Input
+                                            placeholder="Cari nama ormawa..."
+                                            value={ormawaSearch}
+                                            onChange={e => setOrmawaSearch(e.target.value)}
+                                            className="h-10 rounded-lg border-neutral-200 bg-white font-medium text-sm font-jakarta"
+                                        />
+                                        <div className="border border-neutral-200 rounded-xl p-3 bg-white space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
+                                            <div className="flex items-center gap-2 pb-2 border-b border-neutral-200">
+                                                <input
+                                                    type="checkbox"
+                                                    id="select-all-ormawas"
+                                                    checked={filteredOrmawas.length > 0 && filteredOrmawas.every(o => (form.target_ormawa_ids || '').split(',').includes(String(o.id || o.ID)))}
+                                                    onChange={e => {
+                                                        const checked = e.target.checked
+                                                        const currentIds = (form.target_ormawa_ids || '').split(',').filter(Boolean)
+                                                        let nextIds
+                                                        if (checked) {
+                                                            nextIds = Array.from(new Set([...currentIds, ...filteredOrmawas.map(o => String(o.id || o.ID))]))
+                                                        } else {
+                                                            const filteredSet = new Set(filteredOrmawas.map(o => String(o.id || o.ID)))
+                                                            nextIds = currentIds.filter(id => !filteredSet.has(id))
+                                                        }
+                                                        setForm({ ...form, target_ormawa_ids: nextIds.join(',') })
+                                                    }}
+                                                    className="rounded border-neutral-300 text-primary focus:ring-primary size-4"
+                                                />
+                                                <Label htmlFor="select-all-ormawas" className="text-xs font-bold text-neutral-600 cursor-pointer">Pilih Semua Hasil Pencarian</Label>
+                                            </div>
+
+                                            {filteredOrmawas.length === 0 ? (
+                                                <p className="text-xs text-neutral-400 italic text-center py-4">Ormawa tidak ditemukan.</p>
+                                            ) : (
+                                                filteredOrmawas.map(o => {
+                                                    const oid = String(o.id || o.ID)
+                                                    const selectedIds = (form.target_ormawa_ids || '').split(',').filter(Boolean)
+                                                    const isChecked = selectedIds.includes(oid)
+                                                    return (
+                                                        <div key={oid} className="flex items-center gap-2 py-0.5">
+                                                            <input
+                                                                type="checkbox"
+                                                                id={`orm-chk-${oid}`}
+                                                                checked={isChecked}
+                                                                onChange={() => {
+                                                                    let nextIds
+                                                                    if (isChecked) {
+                                                                        nextIds = selectedIds.filter(id => id !== oid)
+                                                                    } else {
+                                                                        nextIds = [...selectedIds, oid]
+                                                                    }
+                                                                    setForm({ ...form, target_ormawa_ids: nextIds.join(',') })
+                                                                }}
+                                                                className="rounded border-neutral-300 text-primary focus:ring-primary size-4"
+                                                            />
+                                                            <Label htmlFor={`orm-chk-${oid}`} className="text-xs font-medium text-neutral-700 cursor-pointer flex flex-1 justify-between items-center">
+                                                                <span>{o.nama || o.Nama}</span>
+                                                            </Label>
+                                                        </div>
+                                                    )
+                                                })
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {form.target_audience === 'mahasiswa' && (
+                            <div className="space-y-3 animate-in fade-in duration-200">
+                                <div className="space-y-2">
+                                    <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Tipe Pengiriman Mahasiswa</Label>
+                                    <Select value={mahasiswaSubtype} onValueChange={handleMahasiswaSubtypeChange}>
+                                        <SelectTrigger className="h-11 rounded-lg border-neutral-200 bg-white font-medium text-sm"><SelectValue /></SelectTrigger>
+                                        <SelectContent className="rounded-xl shadow-xl">
+                                            <SelectItem value="global" className="text-xs font-medium uppercase">Kirim ke Semua Mahasiswa (Global)</SelectItem>
+                                            <SelectItem value="fakultas" className="text-xs font-medium uppercase">Kirim ke Mahasiswa Fakultas Tertentu</SelectItem>
+                                            <SelectItem value="spesifik" className="text-xs font-medium uppercase text-primary">Kirim ke Mahasiswa Spesifik (Pilih/Ceklis)</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                {mahasiswaSubtype === 'fakultas' && (
+                                    <div className="space-y-2 animate-in fade-in duration-200">
+                                        <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Pilih Fakultas Mahasiswa</Label>
+                                        <Select
+                                            value={form.target_fakultas_id ? String(form.target_fakultas_id) : undefined}
+                                            onValueChange={v => setForm({ ...form, target_fakultas_id: Number(v) })}
+                                        >
+                                            <SelectTrigger className="h-11 rounded-lg border-neutral-200 bg-white font-medium text-sm">
+                                                <SelectValue placeholder="PILIH FAKULTAS" />
+                                            </SelectTrigger>
+                                            <SelectContent className="rounded-xl shadow-xl max-h-[200px] overflow-y-auto">
+                                                {faculties.map(f => (
+                                                    <SelectItem key={f.ID || f.id} value={String(f.ID || f.id)} className="text-xs font-bold uppercase">
+                                                        {f.Nama || f.nama}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
+
+                                {mahasiswaSubtype === 'spesifik' && (
+                                    <div className="space-y-2 animate-in fade-in duration-200">
+                                        <div className="flex items-center justify-between text-xs font-bold text-neutral-500 font-jakarta ml-1">
+                                            <span>Pilih Daftar Mahasiswa (Ceklis)</span>
+                                            <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-none font-bold text-[10px]">
+                                                {(form.target_mahasiswa_ids || '').split(',').filter(Boolean).length} Terpilih
+                                            </Badge>
+                                        </div>
+                                        <Input
+                                            placeholder="Cari nama atau NIM mahasiswa..."
+                                            value={studentSearch}
+                                            onChange={e => setStudentSearch(e.target.value)}
+                                            className="h-10 rounded-lg border-neutral-200 bg-white font-medium text-sm font-jakarta"
+                                        />
+                                        <div className="border border-neutral-200 rounded-xl p-3 bg-white space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
+                                            <div className="flex items-center gap-2 pb-2 border-b border-neutral-200">
+                                                <input
+                                                    type="checkbox"
+                                                    id="select-all-students"
+                                                    checked={filteredStudents.length > 0 && filteredStudents.every(s => (form.target_mahasiswa_ids || '').split(',').includes(String(s.ID || s.id)))}
+                                                    onChange={e => {
+                                                        const checked = e.target.checked
+                                                        const currentIds = (form.target_mahasiswa_ids || '').split(',').filter(Boolean)
+                                                        let nextIds
+                                                        if (checked) {
+                                                            nextIds = Array.from(new Set([...currentIds, ...filteredStudents.map(s => String(s.ID || s.id))]))
+                                                        } else {
+                                                            const filteredSet = new Set(filteredStudents.map(s => String(s.ID || s.id)))
+                                                            nextIds = currentIds.filter(id => !filteredSet.has(id))
+                                                        }
+                                                        setForm({ ...form, target_mahasiswa_ids: nextIds.join(',') })
+                                                    }}
+                                                    className="rounded border-neutral-300 text-primary focus:ring-primary size-4"
+                                                />
+                                                <Label htmlFor="select-all-students" className="text-xs font-bold text-neutral-600 cursor-pointer">Pilih Semua Hasil Pencarian</Label>
+                                            </div>
+
+                                            {filteredStudents.length === 0 ? (
+                                                <p className="text-xs text-neutral-400 italic text-center py-4">Mahasiswa tidak ditemukan.</p>
+                                            ) : (
+                                                filteredStudents.map(s => {
+                                                    const sid = String(s.ID || s.id)
+                                                    const selectedIds = (form.target_mahasiswa_ids || '').split(',').filter(Boolean)
+                                                    const isChecked = selectedIds.includes(sid)
+                                                    return (
+                                                        <div key={sid} className="flex items-center gap-2 py-0.5">
+                                                            <input
+                                                                type="checkbox"
+                                                                id={`mhs-chk-${sid}`}
+                                                                checked={isChecked}
+                                                                onChange={() => {
+                                                                    let nextIds
+                                                                    if (isChecked) {
+                                                                        nextIds = selectedIds.filter(id => id !== sid)
+                                                                    } else {
+                                                                        nextIds = [...selectedIds, sid]
+                                                                    }
+                                                                    setForm({ ...form, target_mahasiswa_ids: nextIds.join(',') })
+                                                                }}
+                                                                className="rounded border-neutral-300 text-primary focus:ring-primary size-4"
+                                                            />
+                                                            <Label htmlFor={`mhs-chk-${sid}`} className="text-xs font-medium text-neutral-700 cursor-pointer flex flex-1 justify-between items-center">
+                                                                <span>{s.Nama || s.nama}</span>
+                                                                <span className="text-[10px] text-neutral-400 font-mono">NIM: {s.NIM || s.nim}</span>
+                                                            </Label>
+                                                        </div>
+                                                    )
+                                                })
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        <div className="space-y-2">
+                            <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Visibilitas Publikasi</Label>
+                            <Select value={form.Status} onValueChange={v => setForm({ ...form, Status: v })}>
+                                <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-white font-bold text-sm font-headline focus:ring-bku-primary/20"><SelectValue /></SelectTrigger>
+                                <SelectContent className="rounded-xl shadow-xl border-slate-200">
+                                    <SelectItem value="Published" className="text-[11px] font-bold uppercase tracking-widest font-headline text-emerald-600">Terbitkan Sekarang</SelectItem>
+                                    <SelectItem value="Draft" className="text-[11px] font-bold uppercase tracking-widest font-headline">Simpan Sebagai Draft</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                </form>
+            </DialogModal>
+
+            <DeleteConfirmModal
+                isOpen={isDelOpen}
+                onClose={() => setIsDelOpen(false)}
+                onConfirm={handleDelete}
+                title="Hapus Konten Publikasi?"
+                description="Berita ini akan dihapus secara permanen dari portal mahasiswa dan dosen."
+                loading={isSubmitting}
+            />
+        </PageContent>
     )
 }
-
-export default ContentManagement;

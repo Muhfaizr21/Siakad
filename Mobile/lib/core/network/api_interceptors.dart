@@ -1,0 +1,50 @@
+import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:developer';
+
+class ApiInterceptor extends Interceptor {
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
+    // Inject token if available
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('access_token');
+    
+    final isLoginRequest = options.path.contains('/auth/login');
+    
+    if (token != null && !isLoginRequest) {
+      options.headers['Authorization'] = 'Bearer $token';
+    }
+
+    log('--> ${options.method} ${options.uri}');
+    log('Headers: ${options.headers}');
+    if (options.data != null) {
+      log('Body: ${options.data}');
+    }
+
+    super.onRequest(options, handler);
+  }
+
+  @override
+  void onResponse(Response response, ResponseInterceptorHandler handler) {
+    log('<-- ${response.statusCode} ${response.requestOptions.uri}');
+    super.onResponse(response, handler);
+  }
+
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) async {
+    log('<-- Error ${err.response?.statusCode} ${err.requestOptions.uri}');
+    log('Message: ${err.message}');
+    log('Response body: ${err.response?.data}');
+    log('Type: ${err.type}');
+
+    // Handle global 401 Unauthorized
+    if (err.response?.statusCode == 401) {
+      log('Unauthorized! Session expired or invalid token.');
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('access_token');
+      // TODO: Handle global navigation to Login Screen
+    }
+
+    super.onError(err, handler);
+  }
+}

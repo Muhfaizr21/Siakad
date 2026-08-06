@@ -1,0 +1,39 @@
+FORMULIR RUJUKAN PELAYANAN KESEHATAN
+UNIT KESEHATAN KAMPUS (UKK)
+Universitas Bhakti Kencana
+
+A. IDENTITAS PASIEN
+B. INFORMASI MEDIS
+C. INFORMASI RUJUKAN
+D. TANDA TANGAN DAN PENGESAHAN
+
+Catatan:
+- Mohon membawa serta dokumen ini saat ke fasilitas rujukan.
+- Simpan salinan sebagai dokumentasi UKK.
+      
+       
+       
+--- TABLE ---
+No | Uraian | Keterangan
+1 | Nama Lengkap | .......................................................
+2 | NIM/NIP | .......................................................
+3 | Program Studi/Jabatan | .......................................................
+4 | Jenis Kelamin |  Laki-laki   Perempuan
+5 | Tanggal Lahir | .......................................................
+6 | Nomor HP Aktif | .......................................................
+--- TABLE ---
+No | Uraian | Keterangan
+1 | Keluhan Utama | .......................................................
+2 | TTV (Tanda-Tanda Vital) | TD: ____ mmHg N: ____ x/menit           RR: ____ x/menit S: ____ °C
+3 | Pemeriksaan Fisik Singkat | .......................................................
+4 | Diagnosis Sementara | .......................................................
+5 | Tindakan yang Telah Diberikan | .......................................................
+6 | Alasan Rujukan |  Penanganan Lanjutan     Pemeriksaan Penunjang   Gawat Darurat   Lainnya: ____________
+--- TABLE ---
+No | Uraian | Keterangan
+1 | Fasilitas Kesehatan Rujukan |  Klinik UBK    RSUD    Puskesmas    Lainnya: __________________
+2 | Nama Tenaga Kesehatan Pengantar | .......................................................
+3 | Catatan Tambahan | .......................................................
+--- TABLE ---
+Nama Petugas UKK | Tanda Tangan | Tanggal
+................................ | ............................ | ....../....../2025

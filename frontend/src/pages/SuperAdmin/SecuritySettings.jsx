@@ -1,86 +1,186 @@
-import React from 'react';
-import Sidebar from './components/Sidebar';
-import TopNavBar from './components/TopNavBar';
+"use client"
+
+import React from 'react'
+
+import { Card, CardContent } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
+import { Input } from '@/components/ui/Input'
+import { Label } from '@/components/ui/Label'
+import { PageContent, PageCard } from '@/components/ui/page'
+import { DashboardHero } from '@/components/ui/dashboard'
+import { cn } from '@/lib/utils'
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const RefreshCcw = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>sync</span>;
+const Monitor = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>desktop_windows</span>;
+const UserX = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>person_off</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Lock = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>lock</span>;
+const Zap = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>bolt</span>;
+const KeyRound = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>vpn_key</span>;
+
+
 
 const SecuritySettings = () => {
     return (
-        <div className="bg-surface text-on-surface min-h-screen flex font-headline font-body font-sans select-none">
-          <Sidebar />
-          <main className="pl-80 flex flex-col min-h-screen w-full">
-            <TopNavBar />
-            <div className="p-8 space-y-8">
-              <header className="flex justify-between items-end">
-                <div>
-                  <h1 className="text-3xl font-extrabold text-primary tracking-tight font-headline uppercase tracking-widest ">Security Node & Protocol</h1>
-                  <p className="text-secondary mt-1">Institutional security configuration and global session management.</p>
-                </div>
-              </header>
+        <PageContent>
+            
+            <div className="max-w-[1600px] mx-auto space-y-8 select-none">
+                
+                {/* ── Page Header ─────────────────────────────────────────── */}
+                <DashboardHero
+                    title="Security"
+                    highlightedTitle="Protocols"
+                    subtitle="Konfigurasi tingkat tinggi untuk keamanan institusional, manajemen akses IP, dan otorisasi sesi administratif global."
+                    icon="security"
+                    badges={[
+                        { label: 'Security Hub', active: true }
+                    ]}
+                    action={
+                        <Button 
+                            className="h-11 px-6 rounded-xl bg-slate-800 text-white hover:bg-rose-600 shadow-none gap-2 transition-all active:scale-95 border-none cursor-pointer font-headline"
+                        >
+                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >save</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest">Save Protocols</span>
+                        </Button>
+                    }
+                />
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-                    <section className="bg-white p-12 rounded-[3.5rem] border border-outline-variant/30 space-y-12 shadow-sm relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:rotate-12 transition-transform duration-700">
-                            <span className="material-symbols-outlined text-[150px] text-primary">security</span>
-                        </div>
-                        <h3 className="text-xl font-black text-primary uppercase tracking-widest font-headline ">Global Identity Protocol</h3>
-                        <div className="space-y-6">
-                            <div className="flex flex-col gap-3">
-                                <label className="text-[10px] font-black uppercase text-secondary/50 tracking-widest px-2">Authorized IP Whitelist</label>
-                                <div className="p-6 bg-surface-container-low border border-outline-variant/10 rounded-[2rem] space-y-4">
-                                    <div className="flex gap-4 items-center">
-                                        <span className="px-3.5 py-1.5 bg-primary text-white rounded-lg text-[10px] font-black tracking-widest uppercase shadow-lg shadow-primary/20">103.212.xx (Home)</span>
-                                        <span className="px-3.5 py-1.5 bg-primary text-white rounded-lg text-[10px] font-black tracking-widest uppercase shadow-lg shadow-primary/20">127.0.0.1 (Local)</span>
-                                        <button className="p-2 hover:bg-primary/5 rounded-full text-primary"><span className="material-symbols-outlined">add_circle</span></button>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                    
+                    {/* ── Identity & Access Control ────────────────────────── */}
+                    <Card className="glass-card border border-slate-200/60 shadow-none rounded-2xl overflow-hidden group">
+                        <CardContent className="p-8 md:p-10 space-y-8 relative">
+                            <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:scale-110 transition-transform"><Lock size={120} /></div>
+                            
+                            <div className="space-y-1 relative z-10">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '14px' }} >language</span>
+                                    <span className="text-[10px] font-black text-bku-primary uppercase tracking-widest font-headline">Access Policy</span>
+                                </div>
+                                <h3 className="text-lg font-black font-headline tracking-tight" style={{ color: 'var(--theme-h3)' }}>Identity Guard</h3>
+                                <p className="text-[11px] font-medium text-slate-400 font-inter">Konfigurasi IP Whitelist & Session Lifecycle</p>
+                            </div>
+
+                            <div className="space-y-6 relative z-10">
+                                <div className="space-y-3">
+                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline ml-1">Authorized IP Whitelist</Label>
+                                    <div className="p-6 bg-slate-50/50 rounded-xl border border-slate-200/60 space-y-4">
+                                        <div className="flex flex-wrap gap-2 items-center">
+                                            {['103.212.xx (HOME)', '127.0.0.1 (LOCAL)'].map((ip, idx) => (
+                                                <Badge key={idx} className="px-3 py-1.5 bg-slate-800 text-white border-none rounded-lg text-[10px] font-black font-headline uppercase tracking-widest shadow-none">
+                                                    {ip}
+                                                </Badge>
+                                            ))}
+                                            <Button variant="outline" className="h-9 w-9 rounded-lg border-slate-200 text-slate-400 hover:text-bku-primary hover:border-bku-primary transition-all p-0 shadow-none cursor-pointer">
+                                                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}  strokeWidth={3}>add</span>
+                                            </Button>
+                                        </div>
+                                        <p className="text-[11px] font-medium text-slate-400 leading-relaxed italic border-t border-slate-200/40 pt-4 font-inter">
+                                            Peringatan: Akses ke panel Super Admin akan diblokir total dari alamat IP yang tidak terdaftar di atas.
+                                        </p>
                                     </div>
-                                    <p className="text-xs text-secondary/60 font-medium font-body leading-relaxed  opacity-80 border-t border-outline-variant/10 pt-4 mt-2">Access to the Super Admin panel is strictly prohibited from non-whitelisted IP addresses.</p>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline ml-1">Session Expiration Lifecycle</Label>
+                                    <div className="relative group/select">
+                                        <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 size-4 text-slate-400 group-focus-within/select:text-bku-primary transition-colors" >schedule</span>
+                                        <select className="w-full h-12 bg-white/50 border border-slate-200/60 pl-11 pr-6 rounded-xl text-xs font-black font-headline text-slate-800 uppercase tracking-widest focus:ring-2 ring-bku-primary/20 transition-all outline-none appearance-none cursor-pointer">
+                                            <option>30 Menit (STANDAR KEAMANAN)</option>
+                                            <option>1 Jam (MODERAT)</option>
+                                            <option>Revoke Instan saat Idle</option>
+                                        </select>
+                                        <RefreshCcw size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="flex flex-col gap-2">
-                                <label className="text-[10px] font-black uppercase text-secondary/50 tracking-widest px-2">Global Session Timeout</label>
-                                <select className="bg-white border border-outline-variant/30 px-6 py-4 rounded-2xl text-sm font-bold text-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none appearance-none">
-                                    <option>30 Minutes (Recommended)</option>
-                                    <option>1 Hour</option>
-                                    <option>Immediate Revoke on Idle</option>
-                                </select>
+                            <div className="pt-4 relative z-10">
+                               <Button className="w-full h-12 rounded-xl bg-slate-800 text-white font-black font-headline text-[10px] uppercase tracking-widest hover:bg-bku-primary shadow-none transition-all active:scale-95 cursor-pointer border-none">
+                                  Simpan Konfigurasi <Zap size={14} className="ml-2" />
+                               </Button>
                             </div>
-                        </div>
-                    </section>
+                        </CardContent>
+                    </Card>
 
-                    <section className="bg-secondary-container p-12 rounded-[3.5rem] border border-secondary/20 space-y-12 shadow-sm relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-10 opacity-5 transition-transform duration-700">
-                            <span className="material-symbols-outlined text-[150px] text-primary">key_visualizer</span>
-                        </div>
-                        <h3 className="text-xl font-black text-primary uppercase tracking-widest font-headline ">Active Administrative Sessions</h3>
-                        <div className="space-y-6">
-                            {[ 
-                                { user: "Dr. Vance (Self)", ip: "127.0.0.1", device: "Chrome / macOS", status: "Active Now" },
-                                { user: "Siti (Faculty)", ip: "103.xxx.xxx.xxx", device: "Firefox / Windows", status: "2 mins ago" }
-                            ].map((session, i) => (
-                                <div key={i} className="p-8 bg-white/40 border border-white/20 rounded-[2.5rem] flex items-center justify-between group hover:bg-white/60 transition-all border-dashed shadow-sm">
-                                    <div className="flex items-center gap-5">
-                                        <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary font-bold">
-                                            SA
-                                        </div>
-                                        <div>
-                                            <p className="font-bold text-primary tracking-tight">{session.user}</p>
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-[10px] font-black uppercase text-secondary/60 tracking-widest ">{session.device} • {session.ip}</span>
+                    {/* ── Active Sessions Monitoring ───────────────────────── */}
+                    <Card className="glass-card bg-slate-900 text-white border-none shadow-none rounded-2xl overflow-hidden relative group">
+                        <CardContent className="p-8 md:p-10 space-y-8 relative">
+                            <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:scale-110 transition-transform"><KeyRound size={120} /></div>
+                            
+                            <div className="space-y-1 relative z-10">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Monitor size={14} className="text-bku-primary" />
+                                    <span className="text-[10px] font-black text-bku-primary uppercase tracking-widest font-headline">Live Monitoring</span>
+                                </div>
+                                <h3 className="text-lg font-black font-headline tracking-tight" style={{ color: 'var(--theme-h3)' }}>Active Administrative Sessions</h3>
+                                <p className="text-[11px] font-medium text-slate-400 font-inter">Sesi operasional yang sedang aktif secara real-time.</p>
+                            </div>
+
+                            <div className="space-y-4 relative z-10">
+                                {[
+                                    { user: "Super Admin (Self)", ip: "127.0.0.1", device: "Chrome · macOS", status: "Active Now", active: true },
+                                    { user: "Siti (Faculty Admin)", ip: "103.xxx.xxx.xxx", device: "Firefox · Windows", status: "2 menit lalu", active: false },
+                                ].map((session, i) => (
+                                    <div key={i} className="p-5 bg-white/[0.03] border border-white/10 rounded-xl flex items-center justify-between group/session hover:bg-white/[0.06] transition-all">
+                                        <div className="flex items-center gap-4">
+                                            <div className="size-11 bg-bku-primary/20 rounded-xl flex items-center justify-center text-bku-primary font-black font-headline text-sm border border-bku-primary/20 shadow-none">
+                                                {session.user[0]}
+                                            </div>
+                                            <div className="space-y-0.5">
+                                                <div className="flex items-center gap-2">
+                                                    {session.active && <div className="size-1.5 bg-emerald-500 rounded-full animate-pulse" />}
+                                                    <p className="font-black text-white text-[13px] tracking-tight uppercase font-headline">{session.user}</p>
+                                                </div>
+                                                <p className="text-[10px] font-black uppercase text-slate-400 font-headline tracking-widest">{session.device} · {session.ip}</p>
                                             </div>
                                         </div>
+                                        <div className="flex flex-col items-end gap-1.5">
+                                            <Button variant="ghost" className="h-8 px-3 rounded-lg text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 text-[9px] font-black font-headline uppercase tracking-widest transition-all gap-1.5 shadow-none cursor-pointer">
+                                                <UserX size={12} /> Terminate
+                                            </Button>
+                                            <span className="text-[9px] text-slate-500 font-black font-headline tracking-widest uppercase">{session.status}</span>
+                                        </div>
                                     </div>
-                                    <div className="flex flex-col items-end">
-                                        <span className="text-xs font-black text-emerald-600 uppercase tracking-widest group-hover:underline cursor-pointer">Terminate Session</span>
-                                        <span className="text-[10px] text-secondary/40 font-black tracking-widest  mt-1">{session.status}</span>
+                                ))}
+                            </div>
+
+                            {/* Emergency Shutdown Section */}
+                            <div className="pt-6 relative z-10">
+                                <div className="p-6 bg-rose-500/10 border border-rose-500/20 rounded-xl space-y-4 group/emergency">
+                                    <div className="flex items-center gap-3">
+                                       <div className="p-2 bg-rose-500/10 rounded-lg text-rose-500">
+                                          <span className="material-symbols-outlined group-hover/emergency:animate-bounce" style={{ fontSize: '18px' }} Alert >security</span>
+                                       </div>
+                                       <div className="space-y-0.5">
+                                          <p className="text-[11px] font-black font-headline text-rose-400 uppercase tracking-widest">Global Emergency Lockdown</p>
+                                          <p className="text-[10px] text-rose-500/50 font-medium font-inter">Matikan seluruh sesi administratif secara instan.</p>
+                                       </div>
                                     </div>
+                                    <Button className="w-full h-11 bg-rose-600 text-white rounded-xl text-[10px] font-black font-headline uppercase tracking-widest shadow-none hover:bg-rose-500 transition-all border-none cursor-pointer">
+                                        Execute Lockdown ⚡
+                                    </Button>
                                 </div>
-                            ))}
-                        </div>
-                    </section>
-              </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                </div>
+
+                {/* ── Security Status Footer ────────────────────────────── */}
+                <div className="flex items-center justify-center gap-3 py-6 grayscale opacity-40">
+                   <span className="material-symbols-outlined text-slate-400" style={{ fontSize: '20px' }} >security</span>
+                   <span className="text-[10px] font-black text-slate-400 font-headline uppercase tracking-[0.4em]">Military Grade Encryption Active</span>
+                </div>
+
             </div>
-          </main>
-        </div>
+        </PageContent>
     )
 }
 
-export default SecuritySettings;
+export default SecuritySettings

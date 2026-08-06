@@ -1,197 +1,396 @@
+"use client"
 import React, { useState, useEffect } from 'react';
-import Sidebar from './components/Sidebar';
-import TopNavBar from './components/TopNavBar';
-import { useAuth } from '../../context/AuthContext';
-import { ormawaService } from '../../services/api';
+import { PageContent } from '@/components/ui/page';
+import { DashboardHero } from '@/components/ui/dashboard';
 
-const Pengumuman = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user } = useAuth();
-  const ormawaId = user?.ormawaId || 1;
-  const [announcements, setAnnouncements] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedId, setSelectedId] = useState(null);
-  const [formData, setFormData] = useState({ title: '', target: 'Semua Anggota', content: '', startDate: '', endDate: '' });
+import { DataTable } from '@/components/ui/DataTable'
+import { Badge } from '@/components/ui/Badge'
+import { Button } from '@/components/ui/Button'
+import { DialogModal, ModalCancelButton, ModalSaveButton } from '@/components/ui/DialogModal'
+import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
+import { Input } from '@/components/ui/Input'
+import { Label } from '@/components/ui/Label'
+import { Textarea } from '@/components/ui/Textarea'
+
+import { toast, Toaster } from 'react-hot-toast'
+import { cn } from '@/lib/utils'
+
+import { fetchWithAuth, API_BASE_URL } from '../../services/api'
+import useAuthStore from '../../store/useAuthStore'
+import { getOrmawaId } from '../../utils/getOrmawaId'
+
+const API = `${API_BASE_URL}/ormawa`
+
+const KATEGORI_CFG = {
+  umum: { label: 'Umum', cls: 'bg-slate-50 text-slate-600 border-border' },
+  kegiatan: { label: 'Kegiatan', cls: 'bg-blue-50 text-blue-700 border-blue-200' },
+  penting: { label: 'Penting', cls: 'bg-rose-50 text-rose-700 border-rose-200' },
+  prestasi: { label: 'Prestasi', cls: 'bg-amber-50 text-amber-700 border-amber-200' }
+}
+
+export default function Pengumuman() {
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [selected, setSelected] = useState(null)
+  const [isDetailOpen, setIsDetailOpen] = useState(false)
+  const [isCrudOpen, setIsCrudOpen] = useState(false)
+  const [isDelOpen, setIsDelOpen] = useState(false)
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const ormawaId = getOrmawaId()
+
+  const [form, setForm] = useState({ Judul: '', Isi: '', Kategori: 'umum', OrmawaID: ormawaId, TanggalMulai: '' })
+
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      const res = await fetchWithAuth(`${API}/announcements?ormawaId=${ormawaId}`)
+      if (res.status === 'success') {
+        setData(res.data || [])
+      } else {
+        toast.error('Gagal memuat daftar pengumuman')
+      }
+    } catch (err) {
+      toast.error('Koneksi database backend gagal')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    if (ormawaId) {
-      fetchAnnouncements();
-    }
-  }, [ormawaId]);
+    fetchData()
+  }, [ormawaId])
 
-  const fetchAnnouncements = async () => {
-    try {
-      const data = await ormawaService.getAnnouncements(ormawaId);
-      if (data.status === 'success') setAnnouncements(data.data || []);
-    } catch (e) {
-      console.error("Gagal memuat pengumuman:", e);
-    }
-  };
+  const handleOpenAdd = () => {
+    setIsEditMode(false)
+    setForm({ Judul: '', Isi: '', Kategori: 'umum', OrmawaID: ormawaId, TanggalMulai: '' })
+    setIsCrudOpen(true)
+  }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleOpenEdit = (row) => {
+    setIsEditMode(true)
+    setForm({
+      ID: row.id || row.ID,
+      Judul: row.Judul || row.judul || '',
+      Isi: row.Isi || row.isi || '',
+      Kategori: row.Kategori || row.kategori || row.Target || 'umum',
+      OrmawaID: ormawaId,
+      TanggalMulai: row.TanggalMulai ? String(row.TanggalMulai).substring(0, 10) : ''
+    })
+    setIsCrudOpen(true)
+  }
+
+  const handleSave = async (e) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    const url = isEditMode ? `${API}/announcements/${form.ID || form.id}` : `${API}/announcements`
+    const method = isEditMode ? 'PUT' : 'POST'
     try {
-      if (selectedId) {
-        await ormawaService.updateAnnouncement(selectedId, {
-          ...formData,
-          ormawaId: Number(ormawaId),
-          startDate: new Date(formData.startDate).toISOString(),
-          endDate: new Date(formData.endDate).toISOString()
-        });
+      const res = await fetchWithAuth(url, {
+        method,
+        body: JSON.stringify({ 
+          ...form, 
+          Target: form.Kategori, 
+          OrmawaID: Number(form.OrmawaID),
+          TanggalMulai: form.TanggalMulai ? new Date(form.TanggalMulai).toISOString() : undefined
+        }),
+        headers: { 'Content-Type': 'application/json' }
+      })
+      if (res.status === 'success') {
+        toast.success(isEditMode ? 'Pengumuman diperbarui!' : 'Pengumuman baru berhasil diterbitkan!')
+        setIsCrudOpen(false)
+        fetchData()
       } else {
-        await ormawaService.createAnnouncement({
-          ...formData,
-          ormawaId: Number(ormawaId),
-          startDate: new Date(formData.startDate).toISOString(),
-          endDate: new Date(formData.endDate).toISOString()
-        });
+        toast.error(res.message || 'Gagal menyimpan pengumuman')
       }
-      setIsModalOpen(false);
-      setSelectedId(null);
-      setFormData({ title: '', target: 'Semua Anggota', content: '', startDate: '', endDate: '' });
-      fetchAnnouncements();
-    } catch (e) { alert("⚠️ Gagal memproses pengumuman."); }
-  };
+    } catch (err) {
+      console.error(err); toast.error(err.message || 'Terjadi kesalahan koneksi backend')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
-  const deleteItem = async (id) => {
-    if (!window.confirm("Yakin ingin menghapus pengumuman ini?")) return;
+  const handleDelete = async () => {
+    setIsSubmitting(true)
     try {
-      await ormawaService.deleteAnnouncement(id);
-      fetchAnnouncements();
-    } catch (e) { alert("⚠️ Gagal menghapus pengumuman."); }
-  };
+      const res = await fetchWithAuth(`${API}/announcements/${selected?.id || selected?.ID}`, {
+        method: 'DELETE'
+      })
+      if (res.status === 'success') {
+        toast.success('Pengumuman berhasil dihapus')
+        setIsDelOpen(false)
+        fetchData()
+      } else {
+        toast.error('Gagal menghapus pengumuman')
+      }
+    } catch (err) {
+      console.error(err); toast.error(err.message || 'Terjadi kesalahan koneksi backend')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
-  const openEdit = (item) => {
-    setSelectedId(item.id);
-    setFormData({
-      title: item.title,
-      target: item.target,
-      content: item.content,
-      startDate: item.startDate.split('T')[0],
-      endDate: item.endDate.split('T')[0]
-    });
-    setIsModalOpen(true);
-  };
+  const columns = [
+    {
+      key: 'Judul',
+      label: 'Judul Pengumuman',
+      className: 'min-w-[300px]',
+      render: (v, row) => <span className="font-bold text-slate-900 text-[13px] font-headline tracking-tighter">{row.Judul || row.judul || v || '—'}</span>
+    },
+    {
+      key: 'Kategori',
+      label: 'Kategori',
+      className: 'w-[140px] text-center',
+      cellClassName: 'text-center',
+      render: (v, row) => {
+        const cat = row.Kategori || row.kategori || row.Target || 'umum'
+        const cfg = KATEGORI_CFG[cat] || { label: cat || 'Umum', cls: 'bg-slate-50 text-slate-600 border-border' }
+        return (
+          <Badge className={cn('font-bold text-[10px] uppercase tracking-wider px-3.5 py-1 border rounded-full', cfg.cls)}>
+            {cfg.label}
+          </Badge>
+        )
+      }
+    },
+    {
+      key: 'CreatedAt',
+      label: 'Diterbitkan',
+      className: 'w-[180px]',
+      render: (v, row) => {
+        const dateVal = row.created_at || row.CreatedAt || row.TanggalMulai || v
+        return (
+          <span className="font-bold text-slate-400 text-[11px] font-headline">
+            {dateVal ? new Date(dateVal).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+          </span>
+        )
+      }
+    }
+  ]
 
   return (
-    <div className="bg-surface text-on-surface min-h-screen">
-      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      <main className="lg:ml-60 min-h-screen pb-12 transition-all duration-300">
-        <TopNavBar setIsOpen={setSidebarOpen} />
-        
-        <div className="pt-20 px-4 lg:px-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-            <div>
-              <h1 className="text-2xl font-black font-headline mb-1 text-on-surface">Siaran & Pengumuman</h1>
-              <p className="text-on-surface-variant text-xs font-medium">Broadcast informasi penting dengan sistem auto-deaktivasi.</p>
-            </div>
-            <button 
-              onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-white font-black rounded-xl hover:bg-primary-fixed hover:-translate-y-1 transition-all shadow-md text-xs uppercase tracking-wider"
-            >
-              <span className="material-symbols-outlined text-[18px]">campaign</span>
-              Buat Siaran
-            </button>
-          </div>
+    <PageContent className="font-body">
+      <Toaster position="top-right" />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {announcements.map((item) => (
-              <div key={item.id} className="bg-surface-container-lowest border border-outline-variant/20 rounded-2xl overflow-hidden shadow-sm flex flex-col group hover:shadow-md transition-all duration-300">
-                <div className={`h-1.5 w-full ${new Date(item.endDate) > new Date() ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
-                <div className="p-5 flex-grow flex flex-col">
-                  <div className="flex justify-between items-start mb-3">
-                    <span className="text-[9px] uppercase tracking-wider font-black bg-surface-container px-2 py-0.5 rounded text-primary">{item.target}</span>
-                    {new Date(item.endDate) > new Date() ? (
-                      <span className="text-[9px] font-black uppercase tracking-wider text-emerald-600 flex items-center gap-1 bg-emerald-50 px-2 py-0.5 border border-emerald-200 rounded-md animate-pulse">
-                         Live
-                      </span>
-                    ) : (
-                      <span className="text-[9px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1 bg-slate-100 px-2 py-0.5 border border-slate-300 rounded-md">
-                         Arsip
-                      </span>
-                    )}
-                  </div>
-                  
-                  <h3 className="text-[17px] font-bold font-headline leading-tight mb-1.5 text-on-surface group-hover:text-primary transition-colors">{item.title}</h3>
-                  <p className="text-[13px] text-on-surface-variant leading-relaxed line-clamp-3 flex-grow opacity-85">{item.content}</p>
-                  
-                  <div className="mt-5 pt-3 border-t border-outline-variant/10 flex justify-between items-center text-[10px] font-bold text-secondary uppercase tracking-tight">
-                     <div className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">calendar_today</span> {new Date(item.startDate).toLocaleDateString()}</div>
-                     <div className="flex items-center gap-1">{new Date(item.endDate).toLocaleDateString()} <span className="material-symbols-outlined text-[14px]">event_available</span></div>
+      {/* ── Welcome Banner ─────────────────────────────────────────── */}
+      <DashboardHero
+        title="Siaran &"
+        highlightedTitle="Pengumuman"
+        subtitle="Publikasi pengumuman penting, agenda rapat, dan regulasi resmi bagi seluruh anggota."
+        icon="campaign"
+        badges={[
+          { label: 'Pusat Informasi', active: true }
+        ]}
+      />
+
+      {/* ── Pengumuman DataTable Container ────────────────────────────── */}
+      <div className="glass-card mb-8 animate-in slide-in-from-bottom-4 duration-500 fade-in border border-white/20 overflow-hidden">
+        <div className="p-0">
+          <DataTable
+            containerClassName="border-0 shadow-none rounded-none"
+            columns={columns}
+            data={data}
+            loading={loading}
+            searchPlaceholder="Cari judul pengumuman..."
+            onAdd={handleOpenAdd}
+            addLabel="Buat Pengumuman"
+            filters={[
+              {
+                key: 'Kategori',
+                placeholder: 'Filter Kategori',
+                options: Object.entries(KATEGORI_CFG).map(([v, { label }]) => ({ label, value: v }))
+              }
+            ]}
+            actions={(row) => (
+              <div className="flex items-center justify-end gap-1.5">
+                <Button
+                  onClick={() => {
+                    setSelected(row)
+                    setIsDetailOpen(true)
+                  }}
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-[var(--theme-text-subtle)] hover:text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)] rounded-xl active:scale-95 transition-all"
+                  title="Lihat Detail Pengumuman"
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>visibility</span>
+                </Button>
+                <Button
+                  onClick={() => handleOpenEdit(row)}
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-[var(--theme-text-subtle)] hover:text-amber-600 hover:bg-amber-50 rounded-xl active:scale-95 transition-all"
+                  title="Edit Pengumuman"
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>edit_note</span>
+                </Button>
+                <Button
+                  onClick={() => {
+                    setSelected(row)
+                    setIsDelOpen(true)
+                  }}
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-[var(--theme-text-subtle)] hover:text-rose-600 hover:bg-rose-50 rounded-xl active:scale-95 transition-all"
+                  title="Hapus Pengumuman"
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>delete</span>
+                </Button>
+              </div>
+            )}
+          />
+        </div>
+      </div>
+
+      {/* ── Detail View Dialog ── */}
+      <DialogModal
+        open={isDetailOpen}
+        onOpenChange={setIsDetailOpen}
+        title={selected ? selected.Judul || selected.judul : 'Detail Pengumuman'}
+        subtitle={selected ? `SIARAN ANN-${selected.id || selected.ID} • ${new Date(selected.created_at || selected.CreatedAt || selected.TanggalMulai).toLocaleDateString('id-ID')}` : 'Detail'}
+        icon="campaign"
+        maxWidth="max-w-2xl"
+        footer={
+          <div className="flex items-center justify-end gap-2">
+            <ModalCancelButton onClick={() => setIsDetailOpen(false)}>TUTUP</ModalCancelButton>
+            <Button
+              type="button"
+              onClick={() => {
+                setIsDetailOpen(false);
+                handleOpenEdit(selected);
+              }}
+              className="h-11 px-6 sm:px-8 rounded-xl bg-[var(--theme-primary)] text-white hover:opacity-90 shadow-lg active:translate-y-0 transition-all border-none font-black text-[11px] uppercase tracking-[0.1em] flex items-center justify-center cursor-pointer hover:-translate-y-0.5"
+            >
+              EDIT PENGUMUMAN
+            </Button>
+          </div>
+        }
+      >
+        {selected && (
+          <div className="flex flex-col">
+              <div className="p-6 space-y-6 max-h-[50vh] overflow-y-auto no-scrollbar">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Left Metadata Column */}
+                  <div className="space-y-4 md:col-span-1 md:border-r md:border-slate-100 md:pr-4">
+                    <div className="space-y-1">
+                      <span className="text-[9px] font-black text-slate-400 tracking-wider uppercase font-headline block">Oleh Ormawa</span>
+                      <span className="text-xs font-bold text-slate-700 block bg-slate-50 border border-slate-100 px-3 py-2 rounded-xl">Badan Pengurus Harian</span>
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[9px] font-black text-slate-400 tracking-wider uppercase font-headline block">Target Pembaca</span>
+                      <span className="text-xs font-bold text-slate-700 block bg-slate-50 border border-slate-100 px-3 py-2 rounded-xl">Seluruh Anggota</span>
+                    </div>
                   </div>
                 </div>
-                <div className="flex bg-surface-container-low/30 border-t border-outline-variant/10">
-                  <button onClick={() => openEdit(item)} className="flex-1 py-2.5 text-on-surface-variant hover:text-primary text-[11px] font-black font-headline flex justify-center items-center gap-2 transition-all hover:bg-primary/5 uppercase tracking-wider">
-                     <span className="material-symbols-outlined text-[14px]">edit_note</span> Edit
-                  </button>
-                  <div className="w-px bg-outline-variant/10 min-h-full"></div>
-                  <button onClick={() => deleteItem(item.id)} className="flex-1 py-2.5 text-on-surface-variant hover:text-rose-500 text-[11px] font-black font-headline flex justify-center items-center gap-2 transition-all hover:bg-rose-50 uppercase tracking-wider">
-                     <span className="material-symbols-outlined text-[14px]">delete</span> Tarik
-                  </button>
+
+                {/* Right Content Column */}
+                <div className="space-y-2 md:col-span-2">
+                  <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 uppercase font-headline">Isi Pengumuman Resmi</Label>
+                  <div className="text-sm font-medium text-[var(--theme-text)] leading-relaxed bg-[var(--theme-surface)] p-5 rounded-2xl border border-[var(--theme-border)] shadow-sm min-h-[120px] whitespace-pre-line">
+                    {selected.Isi || selected.isi || '—'}
+                  </div>
                 </div>
               </div>
-            ))}
-            {announcements.length === 0 && <p className="col-span-full text-center py-20 text-on-surface-variant ">Belum ada siaran aktif</p>}
           </div>
+        )}
+      </DialogModal>
 
-          {isModalOpen && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/30 backdrop-blur-sm p-4">
-               <div className="bg-surface w-full max-w-xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-outline-variant/10">
-                  <div className="px-8 py-6 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-low/50">
-                    <div>
-                      <h2 className="text-xl font-bold font-headline text-primary flex items-center gap-2">
-                        <span className="material-symbols-outlined">campaign</span> {selectedId ? 'Update Siaran' : 'Buat Siaran'}
-                      </h2>
-                    </div>
-                    <button onClick={() => { setIsModalOpen(false); setSelectedId(null); }} className="w-8 h-8 hover:bg-surface-container-highest rounded-full flex justify-center items-center"><span className="material-symbols-outlined text-[20px]">close</span></button>
-                  </div>
+      {/* ── CRUD Dialog ── */}
+      <DialogModal
+        open={isCrudOpen}
+        onOpenChange={setIsCrudOpen}
+        title={isEditMode ? 'Edit Pengumuman' : 'Buat Pengumuman Baru'}
+        subtitle="Kelola informasi resmi organisasi."
+        icon="campaign"
+        maxWidth="max-w-xl"
+        footer={
+          <div className="flex items-center justify-end gap-2">
+            <ModalCancelButton onClick={() => setIsCrudOpen(false)} />
+            <ModalSaveButton loading={isSubmitting} form="pengumuman-form">
+              {isEditMode ? 'SIMPAN PERUBAHAN' : 'PUBLIKASIKAN'}
+            </ModalSaveButton>
+          </div>
+        }
+      >
+        <form id="pengumuman-form" onSubmit={handleSave} className="flex flex-col">
+          <div className="p-6 space-y-5 max-h-[50vh] overflow-y-auto no-scrollbar font-inter">
+              {/* Judul Pengumuman */}
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Judul Pengumuman</Label>
+                <Input
+                  required
+                  value={form.Judul}
+                  onChange={e => setForm({ ...form, Judul: e.target.value })}
+                  placeholder="Masukkan judul atau tajuk utama pengumuman..."
+                  className="font-bold text-xs"
+                />
+              </div>
 
-                  <form onSubmit={handleSubmit} className="p-8 space-y-5">
-                    <div>
-                      <label className="block text-xs font-bold text-on-surface uppercase tracking-widest mb-2">Judul Siaran</label>
-                      <input required type="text" className="w-full p-4 bg-surface-container flex border border-outline-variant/20 rounded-xl focus:border-primary text-sm font-medium" 
-                        value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="Penting: ..." />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-on-surface uppercase tracking-widest mb-2">Target Penerima</label>
-                      <select className="w-full p-4 bg-surface-container flex border border-outline-variant/20 rounded-xl focus:border-primary text-sm font-bold"
-                         value={formData.target} onChange={e => setFormData({...formData, target: e.target.value})}>
-                          <option value="Semua Anggota">Publik (Semua Anggota)</option>
-                          <option value="Divisi Keuangan">Divisi Keuangan</option>
-                          <option value="Divisi Medkom">Divisi Media & Komunikasi</option>
-                          <option value="Panitia Khusus">Panitia Event Berjalan</option>
-                      </select>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                           <label className="block text-xs font-bold text-on-surface uppercase tracking-widest mb-2">Mulai Tayang</label>
-                           <input required type="date" className="w-full p-3 bg-surface-container flex border border-outline-variant/20 rounded-xl text-sm" 
-                            value={formData.startDate} onChange={e => setFormData({...formData, startDate: e.target.value})} />
-                        </div>
-                        <div>
-                           <label className="block text-xs font-bold text-on-surface uppercase tracking-widest mb-2">Akhir Tayang (Auto-Archived)</label>
-                           <input required type="date" className="w-full p-3 bg-surface-container flex border border-outline-variant/20 rounded-xl text-sm" 
-                            value={formData.endDate} onChange={e => setFormData({...formData, endDate: e.target.value})} />
-                        </div>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-on-surface uppercase tracking-widest mb-2">Isi Pesan Detail</label>
-                      <textarea required rows="4" className="w-full p-4 bg-surface-container flex border border-outline-variant/20 rounded-xl focus:border-primary text-sm font-medium resize-none shadow-inner" 
-                        value={formData.content} onChange={e => setFormData({...formData, content: e.target.value})} placeholder="Jabarkan pengumuman di sini..."></textarea>
-                    </div>
-                    
-                    <button type="submit" className="w-full py-4 bg-primary text-on-primary font-bold rounded-2xl shadow-xl shadow-primary/20 hover:bg-primary/90 transition-all active:scale-95 flex items-center justify-center gap-2 mt-4">
-                      <span className="material-symbols-outlined text-[20px]">send</span>
-                      Broadcast Siaran Sekarang
+              {/* Premium Selector Grid Buttons for Kategori */}
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Pilih Kategori Siaran</Label>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {[
+                    { id: 'umum', label: 'UMUM', icon: 'feed', cls: 'hover:bg-slate-50 text-slate-600', activeCls: 'bg-slate-900 text-white border-transparent shadow-md' },
+                    { id: 'kegiatan', label: 'KEGIATAN', icon: 'event', cls: 'hover:bg-bku-primary/10 text-bku-primary', activeCls: 'bg-bku-primary text-white border-transparent shadow-md shadow-bku-primary/20' },
+                    { id: 'penting', label: 'PENTING', icon: 'warning', cls: 'hover:bg-rose-50 text-rose-600', activeCls: 'bg-rose-600 text-white border-transparent shadow-md shadow-rose-500/20' },
+                    { id: 'info', label: 'INFORMASI', icon: 'info', cls: 'hover:bg-sky-50 text-sky-600', activeCls: 'bg-sky-600 text-white border-transparent shadow-md shadow-sky-500/20' }
+                  ].map(cat => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setForm({ ...form, Kategori: cat.id })}
+                      className={cn(
+                        "h-12 flex items-center justify-center gap-2 rounded-xl text-[10px] font-black tracking-widest uppercase transition-all duration-300 border-2 cursor-pointer",
+                        form.Kategori === cat.id
+                          ? "bg-primary text-white border-primary shadow-lg shadow-primary/20 scale-[1.02]"
+                          : "bg-transparent text-slate-400 border-slate-100 hover:border-slate-300 hover:bg-slate-50"
+                      )}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>{cat.icon}</span>
+                      <span>{cat.label}</span>
                     </button>
-                  </form>
-               </div>
-            </div>
-          )}
-        </div>
-      </main>
-    </div>
-  );
-};
+                  ))}
+                </div>
+              </div>
 
-export default Pengumuman;
+              {/* Isi Pengumuman */}
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Isi Pengumuman</Label>
+                <Textarea
+                  required
+                  value={form.Isi}
+                  onChange={e => setForm({ ...form, Isi: e.target.value })}
+                  placeholder="Tuliskan isi pengumuman secara lengkap, jelas, dan lugas di sini..."
+                  className="min-h-[140px] border-slate-200 bg-white shadow-sm focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-xl p-4 font-medium text-xs leading-relaxed"
+                />
+              </div>
+
+              {/* Tanggal Penjadwalan */}
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Tanggal Rilis (Opsional)</Label>
+                <Input
+                  type="date"
+                  value={form.TanggalMulai}
+                  onChange={e => setForm({ ...form, TanggalMulai: e.target.value })}
+                  className="font-bold text-xs"
+                />
+                <p className="text-[10px] text-slate-400 ml-1 font-medium">Jika diisi, pengumuman & notifikasi akan muncul pada tanggal tersebut.</p>
+              </div>
+            </div>
+
+        </form>
+      </DialogModal>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={isDelOpen}
+        onClose={() => setIsDelOpen(false)}
+        onConfirm={handleDelete}
+        title="Hapus Pengumuman?"
+        description="Apakah Anda yakin ingin menghapus siaran pengumuman ini? Tindakan ini bersifat permanen."
+        loading={isSubmitting}
+      />
+    </PageContent>
+  )
+}

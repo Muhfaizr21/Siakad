@@ -1,68 +1,142 @@
-import React from 'react';
-import Sidebar from './components/Sidebar';
-import TopNavBar from './components/TopNavBar';
+"use client"
 
-const AuditLog = () => {
-    const logs = [
-        { id: "LOG-001", user: "Dr. Alistair Vance", action: "Perubahan Role Pengguna", target: "John Doe (FT Admin)", timestamp: "Hari ini, 10:45", ip: "192.168.1.1", status: "Sudah Diverifikasi" },
-        { id: "LOG-002", user: "John Doe", action: "Pencetakan Raport Global", target: "Fakultas Teknik", timestamp: "Hari ini, 09:20", ip: "192.168.1.45", status: "Sistem Log" },
-        { id: "LOG-003", user: "Jane Smith", action: "Persetujuan Proposal Ormawa", target: "HIMA Informatika", timestamp: "Kemarin, 16:00", ip: "172.16.0.4", status: "Sistem Log" },
-    ];
+import React, { useState, useEffect } from 'react'
+import { DataTable } from '@/components/ui/DataTable'
+import { Badge } from '@/components/ui/Badge'
+import { Button } from '@/components/ui/Button'
+import { Card, CardContent } from '@/components/ui/Card'
+import { PageContent, PageCard } from '@/components/ui/page'
+import { DashboardHero } from '@/components/ui/dashboard'
 
-    return (
-        <div className="bg-surface text-on-surface min-h-screen flex font-headline font-body select-none">
-          <Sidebar />
-          <main className="pl-80 flex flex-col min-h-screen w-full">
-            <TopNavBar />
-            <div className="p-8 space-y-8">
-              <header className="flex justify-between items-end">
-                <div>
-                  <h1 className="text-3xl font-extrabold text-primary tracking-tight font-headline uppercase  tracking-widest">Log Audit Absolut (Immutable)</h1>
-                  <p className="text-secondary mt-1 font-medium  leading-relaxed">Rekaman jejak forensik seluruh aksi administratif sistem yang tidak dapat diubah.</p>
-                </div>
-                <div className="flex gap-4">
-                     <button className="bg-white border border-outline-variant/30 px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-surface-container transition-all">
-                        Cek Integritas
-                    </button>
-                    <button className="bg-primary text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 transition-all">
-                        Ekspor Log Forensik
-                    </button>
-                </div>
-              </header>
+import { toast, Toaster } from 'react-hot-toast'
+import { cn } from '@/lib/utils'
+import { adminService } from '../../services/api'
 
-              <section className="bg-white border border-outline-variant/30 rounded-[3.5rem] overflow-hidden shadow-sm">
-                <table className="w-full text-left">
-                  <thead>
-                    <tr className="bg-surface-container-low/30 text-[10px] font-black uppercase tracking-[0.2em] text-secondary/70 ">
-                      <th className="px-10 py-6">Operator Admin</th>
-                      <th className="px-10 py-6">Aksi & Deskripsi</th>
-                      <th className="px-10 py-6">Entitas Target</th>
-                      <th className="px-10 py-6 text-center">Jejak Waktu</th>
-                      <th className="px-10 py-6">IP Address</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-outline-variant/10 font-body select-text text-sm">
-                    {logs.map((log, idx) => (
-                      <tr key={idx} className="hover:bg-primary/[0.01] transition-all group">
-                        <td className="px-10 py-6">
-                            <div className="flex items-center gap-4">
-                                <span className="material-symbols-outlined text-secondary opacity-30">account_circle</span>
-                                <span className="font-extrabold text-primary group-hover:text-blue-700 transition-colors uppercase  leading-tight">{log.user}</span>
-                            </div>
-                        </td>
-                        <td className="px-10 py-6 font-bold text-secondary  tracking-tight">{log.action}</td>
-                        <td className="px-10 py-6 uppercase tracking-widest text-[10px] font-black text-primary/60">{log.target}</td>
-                        <td className="px-10 py-6 text-center text-xs font-black text-secondary/40 ">{log.timestamp}</td>
-                        <td className="px-10 py-6 text-[10px] font-black text-secondary tracking-widest opacity-80 leading-tight ">{log.ip}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </section>
-            </div>
-          </main>
-        </div>
-    )
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Terminal = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>terminal</span>;
+const Download = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>download</span>;
+
+
+
+const ACTION_STYLES = {
+  LOGIN: 'bg-emerald-100 text-emerald-700',
+  LOGOUT: 'bg-neutral-100 text-neutral-500',
+  CREATE: 'bg-blue-100 text-blue-700',
+  UPDATE: 'bg-amber-100 text-amber-700',
+  DELETE: 'bg-rose-100 text-rose-700',
+  APPROVE: 'bg-violet-100 text-violet-700',
+  REJECT: 'bg-rose-100 text-rose-700',
+  DEFAULT: 'bg-neutral-100 text-neutral-500'
 }
 
-export default AuditLog;
+const getActionStyle = (action = '') => {
+  const k = Object.keys(ACTION_STYLES).find(k => action.toUpperCase().includes(k))
+  return ACTION_STYLES[k] || ACTION_STYLES.DEFAULT
+}
+
+export default function AuditLog() {
+  const [logs, setLogs] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      const res = await adminService.getAuditLogs()
+      if (res.status === 'success') setLogs(res.data || [])
+      else toast.error('Gagal memuat log sistem')
+    } catch { toast.error('Koneksi sistem terputus') } finally { setLoading(false) }
+  }
+  useEffect(() => { fetchData() }, [])
+
+  const columns = [
+    {
+      key: 'Aktivitas',
+      label: 'Tindakan',
+      className: 'w-[180px]',
+      render: v => (
+        <Badge className={cn('px-3 py-0.5 rounded-lg border-none shadow-none text-[9px] font-black uppercase tracking-widest font-headline', getActionStyle(v))}>
+          {(v || '—').replace(/_/g, ' ')}
+        </Badge>
+      )
+    },
+    {
+      key: 'Deskripsi',
+      label: 'Detail Aktivitas',
+      className: 'min-w-[350px]',
+      render: v => <span className="font-medium text-neutral-900 text-[13px] font-inter leading-relaxed">{v || '—'}</span>
+    },
+    {
+      key: 'AdminNama',
+      label: 'Operator / Alamat IP',
+      className: 'w-[250px]',
+      render: (v, row) => (
+        <div className="flex flex-col">
+          <span className="font-bold text-neutral-900 text-[13px] font-jakarta tracking-tight leading-tight">{v || row.AdminEmail || '—'}</span>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <Terminal size={10} className="text-neutral-300" />
+            <span className="text-[10px] text-neutral-400 font-bold tabular-nums tracking-widest uppercase">{row.IPAddress || '0.0.0.0'}</span>
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'CreatedAt',
+      label: 'Timestamp',
+      className: 'w-[180px]',
+      render: v => (
+        <div className="flex flex-col">
+          <span className="font-bold text-neutral-900 text-[11px] font-jakarta">
+            {v ? new Date(v).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+          </span>
+          <span className="text-[10px] font-medium text-neutral-400 tabular-nums uppercase">
+            {v ? new Date(v).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '—'} WIB
+          </span>
+        </div>
+      )
+    }
+  ]
+
+  return (
+    <PageContent>
+      <Toaster position="top-right" />
+
+      <div className="max-w-[1600px] mx-auto space-y-10">
+
+        {/* ── Page Header ─────────────────────────────────────────── */}
+        <DashboardHero
+          title="Audit"
+          highlightedTitle="Log"
+          subtitle="Rekaman jejak operasional sistem, perubahan data, dan aktivitas otentikasi secara transparan."
+          icon="history"
+          badges={[
+            { label: 'Security Forensics', active: true }
+          ]}
+          actions={
+            <Button
+              onClick={() => toast.success('Memulai ekspor log forensik...')}
+              className="h-11 px-6 rounded-xl bg-slate-800 text-white font-black font-headline text-[10px] uppercase tracking-widest gap-2 hover:bg-slate-900 transition-all active:scale-95 shadow-none border-none cursor-pointer"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }} strokeWidth={3}>download</span>
+              Ekspor Forensik
+            </Button>
+          }
+        />
+
+        {/* ── Table Section ────────────────────────────────────────── */}
+        <Card className="glass-card shadow-sm rounded-xl overflow-hidden animate-in slide-in-from-bottom-4 duration-500 delay-300 mb-6">
+          <CardContent className="p-0">
+            <DataTable
+              columns={columns}
+              data={logs}
+              loading={loading}
+              searchPlaceholder="Cari operator, aktivitas, atau alamat IP..."
+              searchWidth="max-w-md"
+            />
+          </CardContent>
+        </Card>
+
+
+      </div>
+    </PageContent>
+  )
+}

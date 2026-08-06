@@ -1,192 +1,351 @@
+"use client"
 import React, { useState, useEffect } from 'react';
-import Sidebar from './components/Sidebar';
-import TopNavBar from './components/TopNavBar';
-import { useAuth } from '../../context/AuthContext';
-import { ormawaService } from '../../services/api';
+import { PageContent, PageHeader } from '@/components/ui/page';
+import { DashboardHero } from '@/components/ui/dashboard';
 
-const CATEGORIES = [
-  { id: 'Fasilitas', icon: 'domain', color: 'rose' },
-  { id: 'Akademik', icon: 'school', color: 'primary' },
-  { id: 'Dana Hibah', icon: 'payments', color: 'emerald' },
-  { id: 'Kegiatan', icon: 'event', color: 'amber' },
-  { id: 'Lainnya', icon: 'info', color: 'slate' }
-];
+import { DataTable } from '@/components/ui/DataTable'
+import { Badge } from '@/components/ui/Badge'
+import { Button } from '@/components/ui/Button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
+import { DialogModal, ModalCancelButton, ModalSaveButton } from '@/components/ui/DialogModal'
+import { Card, CardContent } from '@/components/ui/Card'
+import { PrimaryStatsCard } from '@/components/ui/StatsCard'
+import { Label } from '@/components/ui/Label'
+import { Textarea } from '@/components/ui/Textarea'
 
-const AspirationManagement = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user } = useAuth();
-  const ormawaId = user?.ormawaId || 1;
-  const [aspirations, setAspirations] = useState([]);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [newAspiration, setNewAspiration] = useState({ title: '', category: 'Kegiatan', description: '' });
+
+import { toast, Toaster } from 'react-hot-toast'
+import { cn } from '@/lib/utils'
+
+import { fetchWithAuth, API_BASE_URL } from '../../services/api'
+import useAuthStore from '../../store/useAuthStore'
+import { getOrmawaId } from '../../utils/getOrmawaId'
+
+const API = `${API_BASE_URL}/ormawa`
+
+const QuestionAnswerIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>question_answer</span>;
+const MarkChatReadIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>mark_chat_read</span>;
+const QuickreplyIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>quickreply</span>;
+const CancelIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>cancel</span>;
+
+export default function AspirationManagement() {
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [selected, setSelected] = useState(null)
+  const [isDetailOpen, setIsDetailOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [tanggapan, setTanggapan] = useState('')
+
+  const ormawaId = getOrmawaId()
+
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      const res = await fetchWithAuth(`${API}/aspirations?ormawaId=${ormawaId}`)
+      if (res.status === 'success') {
+        const normalizedData = (res.data || []).map(a => {
+          const createdAt = a.created_at || a.CreatedAt || new Date();
+          const year = new Date(createdAt).getFullYear();
+          return {
+            ...a,
+            ID: a.id || a.ID,
+            Judul: a.judul || a.Judul || '—',
+            Isi: a.isi || a.Isi || '—',
+            Status: (a.status || a.Status || 'pending').toLowerCase(),
+            Tanggapan: a.tanggapan || a.Tanggapan || '',
+            CreatedAt: createdAt,
+            OrmawaNama: a.ormawa?.nama || a.Ormawa?.Nama || 'Organisasi Mahasiswa',
+            PeriodeFilter: String(year)
+          };
+        });
+        setData(normalizedData)
+      } else {
+        toast.error('Gagal memuat aspirasi')
+      }
+    } catch (err) {
+      toast.error('Koneksi ke database backend gagal')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    loadInitialData();
-  }, [ormawaId]);
+    fetchData()
+  }, [ormawaId])
 
-  const loadInitialData = async () => {
-    try {
-      const data = await ormawaService.getAspirations(ormawaId);
-      if (data.status === 'success') setAspirations(data.data || []);
-    } catch (e) { 
-      console.error("Gagal memuat aspirasi:", e);
-      alert("⚠️ Eror: Gagal memuat data dari server.");
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (!newAspiration.title || !newAspiration.description) return alert("Mohon lengkapi data!");
-    try {
-      const data = await ormawaService.createAspiration({
-        ...newAspiration,
-        ormawaId: Number(ormawaId),
-        status: 'pending'
-      });
-      
-      if (data.status === 'success') {
-        setShowAddModal(false);
-        setNewAspiration({ title: '', category: 'Kegiatan', description: '' });
-        fetchData();
+  const periodeOptions = React.useMemo(() => {
+    const periods = new Set()
+    data.forEach(a => {
+      if (a.PeriodeFilter) {
+        periods.add(a.PeriodeFilter)
       }
-    } catch (e) { 
-      console.error("Gagal mengirim aspirasi:", e);
-      alert(`⚠️ Eror: ${e.message}`);
+    })
+    return Array.from(periods).sort((a, b) => Number(b) - Number(a)).map(p => ({
+      label: `Tahun ${p}`, value: p
+    }))
+  }, [data])
+
+  const handleTanggapi = async () => {
+    if (!tanggapan.trim()) {
+      toast.error('Isi tanggapan terlebih dahulu')
+      return
     }
-  };
+    setIsSubmitting(true)
+    try {
+      const res = await fetchWithAuth(`${API}/aspirations/${selected?.id || selected?.ID}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ Tanggapan: tanggapan, Status: 'ditanggapi' })
+      })
+      if (res.status === 'success') {
+        toast.success('Tanggapan resmi berhasil dikirim!')
+        setIsDetailOpen(false)
+        setTanggapan('')
+        fetchData()
+      } else {
+        toast.error(res.message || 'Gagal mengirim tanggapan')
+      }
+    } catch (err) {
+      toast.error('Koneksi ke backend gagal')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
-  return (
-    <div className="bg-surface text-on-surface min-h-screen font-body">
-      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      <main className="lg:ml-60 min-h-screen pb-12 transition-all duration-300 text-[13px]">
-        <TopNavBar setIsOpen={setSidebarOpen} />
-        
-        <div className="pt-20 px-4 lg:px-6">
-          <div className="flex justify-between items-end mb-8">
-            <div>
-              <h1 className="text-2xl font-black font-headline text-primary tracking-tight mb-1 text-on-surface">Saluran Aspirasi</h1>
-              <p className="text-on-surface-variant font-medium text-xs leading-relaxed max-w-xl">Sampaikan masukan & usulan Himpunan Anda langsung ke Fakultas.</p>
-            </div>
-            <button 
-              onClick={() => setShowAddModal(true)}
-              className="px-5 py-2.5 bg-primary text-white rounded-xl font-black font-headline shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center gap-2 text-xs uppercase tracking-wider"
-            >
-              <span className="material-symbols-outlined text-[20px]">add_circle</span>
-              Buat Aspirasi
-            </button>
+  const columns = [
+    {
+      key: 'Judul',
+      label: 'Topik Aspirasi',
+      className: 'min-w-[280px]',
+      render: (v, row) => (
+        <div className="flex items-center gap-3 py-1">
+          <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100/50">
+            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>forum</span>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {aspirations.length === 0 ? (
-              <div className="col-span-full py-20 bg-white rounded-[3rem] border-2 border-dashed border-outline-variant/20 flex flex-col items-center">
-                <div className="w-20 h-20 bg-surface-container rounded-full flex items-center justify-center mb-4 opacity-30">
-                  <span className="material-symbols-outlined text-4xl">inventory_2</span>
-                </div>
-                <p className="font-bold text-on-surface-variant opacity-70">Himpunan Anda belum pernah mengirim aspirasi.</p>
-              </div>
-            ) : (
-              aspirations.map(item => (
-                <div key={item.id} className="bg-white rounded-2xl border border-outline-variant/10 p-6 hover:shadow-xl transition-all group flex flex-col justify-between">
-                  <div>
-                    <div className="flex justify-between items-start mb-4">
-                      <div className={`px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 ${CATEGORIES.find(c => c.id === item.category)?.color === 'rose' ? 'bg-rose-100 text-rose-700' : 'bg-primary/10 text-primary'}`}>
-                        <span className="material-symbols-outlined text-[13px]">{CATEGORIES.find(c => c.id === item.category)?.icon}</span>
-                        {item.category}
-                      </div>
-                      <div className={`px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-wider border ${item.status === 'responded' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
-                        {item.status === 'responded' ? 'DIBALAS' : 'PENDING'}
-                      </div>
-                    </div>
-                    
-                    <h3 className="text-lg font-bold text-on-surface mb-2 font-headline leading-tight">{item.title}</h3>
-                    <p className="text-[12.5px] text-on-surface-variant leading-relaxed line-clamp-3 mb-4 opacity-80">{item.description}</p>
-
-                    {item.response && (
-                      <div className="mt-6 pt-6 border-t border-dashed border-emerald-100">
-                        <p className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
-                          <span className="material-symbols-outlined text-[16px]">how_to_reg</span> TANGGAPAN FAKULTAS
-                        </p>
-                        <div className="bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100  text-sm text-emerald-800">
-                           "{item.response}"
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="mt-8 pt-6 border-t border-outline-variant/5 flex justify-between items-center text-[10px] font-bold text-on-surface-variant opacity-40">
-                    <span>Dikirim: {new Date(item.createdAt).toLocaleDateString()}</span>
-                    <span>#{item.id}</span>
-                  </div>
-                </div>
-              ))
-            )}
+          <div className="flex flex-col leading-tight min-w-0">
+            <span className="font-bold text-slate-900 text-[13px] font-headline tracking-tighter truncate">{v || '—'}</span>
+            <span className="text-[10px] text-slate-500 font-bold tracking-tight mt-0.5 truncate flex items-center gap-1">
+              <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>group</span>
+              {row.OrmawaNama || 'Organisasi Mahasiswa'}
+            </span>
           </div>
         </div>
+      )
+    },
+    {
+      key: 'Status',
+      label: 'Status',
+      className: 'w-[150px] text-center',
+      cellClassName: 'text-center',
+      render: v => {
+        const isDitanggapi = v === 'ditanggapi'
+        return (
+          <Badge className={cn(
+            'inline-flex items-center justify-center gap-1 font-bold text-[10px] uppercase tracking-wider px-3 py-1 border rounded-full',
+            isDitanggapi
+              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+              : 'bg-amber-50 text-amber-700 border-amber-200'
+          )}>
+            <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>
+              {isDitanggapi ? 'mark_chat_read' : 'quickreply'}
+            </span>
+            {isDitanggapi ? 'Ditanggapi' : 'Menunggu'}
+          </Badge>
+        )
+      }
+    },
+    {
+      key: 'CreatedAt',
+      label: 'Tanggal Dikirim',
+      className: 'w-[160px]',
+      render: v => (
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Masuk Pada</span>
+          <span className="font-bold text-slate-700 text-[12px] font-headline">
+            {v ? new Date(v).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+          </span>
+        </div>
+      )
+    }
+  ]
 
-        {/* Modal Submit Baru */}
-        {showAddModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-on-surface/40 backdrop-blur-sm animate-in fade-in duration-300">
-            <div className="bg-white rounded-3xl w-full max-w-xl p-6 lg:p-8 shadow-2xl animate-in zoom-in-95 duration-300 border border-outline-variant/20">
-              <h2 className="text-xl font-black text-on-surface mb-1 font-headline uppercase tracking-tight">Kirim Aspirasi</h2>
-              <p className="text-on-surface-variant text-xs mb-8 leading-relaxed font-medium">Sampaikan saran, keluhan, atau ide strategis ke Pimpinan Fakultas.</p>
-              
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest mb-3 opacity-40">Kategori Permohonan</label>
-                  <div className="grid grid-cols-3 gap-3">
-                    {CATEGORIES.map(cat => (
-                      <button 
-                        key={cat.id}
-                        onClick={() => setNewAspiration({...newAspiration, category: cat.id})}
-                        className={`py-3 rounded-2xl font-bold text-xs flex items-center justify-center gap-2 border-2 transition-all ${newAspiration.category === cat.id ? 'bg-primary text-white border-primary shadow-lg' : 'bg-surface border-outline-variant/10 hover:border-primary/20 text-on-surface-variant'}`}
-                      >
-                        <span className="material-symbols-outlined text-[18px]">{cat.icon}</span>
-                        {cat.id}
-                      </button>
-                    ))}
+  // Calculated Stats
+  const totalAspirasi = data.length
+  const answeredAspirasi = data.filter(x => x.Status === 'ditanggapi').length
+  const pendingAspirasi = data.filter(x => x.Status === 'pending' || !x.Status).length
+  const rejectedAspirasi = data.filter(x => x.Status === 'ditolak').length
+
+  return (
+    <PageContent className="font-body">
+      <Toaster position="top-right" />
+
+      <div className="w-full relative space-y-6 scroll-smooth">
+        {/* ── Welcome Banner ─────────────────────────────────────────── */}
+        <DashboardHero
+          title="Manajemen"
+          highlightedTitle="Aspirasi"
+          subtitle="Tampung gagasan, kritik, dan berikan tanggapan resmi atas aspirasi dari mahasiswa secara transparan."
+          icon="forum"
+          badges={[{ label: 'Suara Mahasiswa', active: false }]}
+          actions={
+            <div className="px-4 py-2 bg-[var(--theme-primary)]/5 border border-[var(--theme-primary)]/20 rounded-xl flex items-center gap-3 w-full lg:w-auto justify-center">
+              <span className="material-symbols-outlined text-[var(--theme-primary)]" style={{ fontSize: '16px' }}>group</span>
+              <div className="flex flex-col leading-tight">
+                <span className="text-[10px] font-bold text-[var(--theme-primary)]/70 uppercase tracking-widest">Akses Validasi</span>
+                <span className="text-[12px] font-bold text-[var(--theme-primary)] font-jakarta">Ormawa Portal</span>
+              </div>
+            </div>
+          }
+        />
+
+        {/* ── Statistics Summary Cards ────────────────────────────────── */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+          <PrimaryStatsCard
+            title="Total Aspirasi Masuk"
+            value={totalAspirasi}
+            icon={QuestionAnswerIcon}
+            colorTheme="primary"
+            badgeText="Semua"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">forum</span>}
+          />
+
+          <PrimaryStatsCard
+            title="Sudah Ditanggapi"
+            value={answeredAspirasi}
+            icon={MarkChatReadIcon}
+            colorTheme="success"
+            badgeText="Selesai"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">verified</span>}
+          />
+
+          <PrimaryStatsCard
+            title="Menunggu Tanggapan"
+            value={pendingAspirasi}
+            icon={QuickreplyIcon}
+            colorTheme="warning"
+            badgeText="Pending"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">schedule</span>}
+          />
+
+          <PrimaryStatsCard
+            title="Aspirasi Ditolak"
+            value={rejectedAspirasi}
+            icon={CancelIcon}
+            colorTheme="error"
+            badgeText="Ditolak"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">cancel</span>}
+          />
+        </div>
+
+        <div className="space-y-5 w-full">
+          <DataTable
+            columns={columns}
+            data={data}
+            loading={loading}
+            searchPlaceholder="Cari topik atau konten aspirasi..."
+            filters={[
+              {
+                key: 'PeriodeFilter',
+                placeholder: 'Periode Akademik',
+                options: periodeOptions
+              },
+              {
+                key: 'Status',
+                placeholder: 'Filter Status',
+                options: [
+                  { label: 'Menunggu', value: 'pending' },
+                  { label: 'Ditanggapi', value: 'ditanggapi' }
+                ]
+              }
+            ]}
+            actions={(row) => (
+              <Button
+                onClick={() => { setSelected(row); setTanggapan(''); setIsDetailOpen(true) }}
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-[var(--theme-text-subtle)] hover:text-[var(--theme-primary)] hover:bg-[var(--theme-primary-light)] rounded-xl active:scale-95 transition-all"
+                title="Lihat Detail & Tanggapi"
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>visibility</span>
+              </Button>
+            )}
+          />
+        </div>
+      </div>
+
+      <DialogModal
+        open={isDetailOpen}
+        onOpenChange={setIsDetailOpen}
+        title={selected?.Judul || "Detail Aspirasi"}
+        subtitle={`ASP-${selected?.id || selected?.ID || ''}`}
+        description="Rincian informasi aspirasi yang masuk dari mahasiswa."
+        icon="chat"
+        maxWidth="max-w-2xl"
+        bodyClassName="p-0"
+        footer={
+          <ModalCancelButton onClick={() => setIsDetailOpen(false)}>
+            TUTUP DIALOG
+          </ModalCancelButton>
+        }
+      >
+        {selected && (
+          <div className="flex flex-col">
+            {/* Dialog Content Grid */}
+            <div className="p-6 sm:p-8 space-y-5 max-h-[60vh] overflow-y-auto no-scrollbar">
+              <div className="flex items-center justify-between gap-4 mb-2">
+                <Badge className={cn(
+                  'font-bold text-[10px] uppercase tracking-wider px-3.5 py-1 border shrink-0 rounded-full',
+                  selected.Status === 'ditanggapi'
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    : 'bg-amber-50 text-amber-700 border-amber-200'
+                )}>
+                  {selected.Status === 'ditanggapi' ? 'Ditanggapi' : 'Menunggu'}
+                </Badge>
+              </div>
+
+              {/* Content Box */}
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 uppercase font-headline">Konten & Uraian Aspirasi</Label>
+                <div className="text-sm font-medium text-[var(--theme-text)] leading-relaxed bg-[var(--theme-surface)] p-5 rounded-2xl border border-[var(--theme-border)] shadow-sm">
+                  {selected.Isi || selected.Konten || '—'}
+                </div>
+              </div>
+
+              {/* Response / Tanggapan Box */}
+              {selected.Tanggapan ? (
+                <div className="space-y-2 animate-in fade-in duration-200">
+                  <Label className="text-[10px] font-black text-emerald-600 tracking-[0.2em] ml-1 uppercase font-headline flex items-center gap-1.5">
+                    <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>check_circle</span>
+                    Tanggapan Resmi Pengurus
+                  </Label>
+                  <div className="text-sm font-medium text-[var(--theme-text)] leading-relaxed bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100 shadow-sm">
+                    {selected.Tanggapan}
                   </div>
                 </div>
+              ) : (
+                <div className="space-y-3.5 pt-2">
+                  <Label className="text-[10px] font-black text-[var(--theme-text-subtle)] tracking-[0.2em] ml-1 uppercase font-headline">Berikan Balasan / Tanggapan Resmi</Label>
+                  <Textarea
+                    rows={3}
+                    value={tanggapan}
+                    onChange={e => setTanggapan(e.target.value)}
+                    placeholder="Ketik tanggapan atau resolusi resmi dari pengurus organisasi..."
+                  />
 
-                <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest mb-3 opacity-40">Judul Aspirasi / Perihal</label>
-                  <input 
-                    className="w-full bg-surface-container-low p-5 rounded-2xl border-2 border-outline-variant/10 focus:border-primary/40 outline-none font-bold"
-                    placeholder="Contoh: Pengajuan Perbaikan Sekret Himarpl"
-                    value={newAspiration.title}
-                    onChange={(e) => setNewAspiration({...newAspiration, title: e.target.value})}
+                  <ModalSaveButton
+                    label="KIRIM TANGGAPAN RESMI"
+                    icon="send"
+                    disabled={isSubmitting}
+                    loading={isSubmitting}
+                    onClick={handleTanggapi}
+                    className="w-full"
                   />
                 </div>
-
-                <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest mb-3 opacity-40">Detail Aspirasi & Harapan</label>
-                  <textarea 
-                    className="w-full bg-surface-container-low p-6 rounded-[2rem] border-2 border-outline-variant/10 focus:border-primary/40 outline-none text-sm min-h-[180px]"
-                    placeholder="Tuliskan detail permohonan atau aspirasi secara lengkap..."
-                    value={newAspiration.description}
-                    onChange={(e) => setNewAspiration({...newAspiration, description: e.target.value})}
-                  ></textarea>
-                </div>
-              </div>
-
-              <div className="flex gap-4 mt-12">
-                <button 
-                  onClick={() => setShowAddModal(false)}
-                  className="flex-1 py-5 rounded-[2rem] font-bold bg-surface-container-high text-on-surface-variant hover:bg-surface-container transition-all"
-                >
-                   BATAL
-                </button>
-                <button 
-                  onClick={handleSubmit}
-                  className="flex-2 px-12 py-5 bg-primary text-white rounded-[2rem] font-black shadow-2xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-widest"
-                >
-                  KIRIM ASPIRASI SEKARANG
-                </button>
-              </div>
+              )}
             </div>
           </div>
         )}
-      </main>
-    </div>
-  );
-};
-
-export default AspirationManagement;
+      </DialogModal>
+    </PageContent>
+  )
+}

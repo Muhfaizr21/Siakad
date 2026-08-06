@@ -1,467 +1,464 @@
 "use client"
 
-import React, { useState } from 'react';
-import Sidebar from './components/Sidebar';
-import TopNavBar from './components/TopNavBar';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./components/card"
-import { Button } from "./components/button"
-import { Avatar, AvatarFallback } from "./components/avatar"
 import {
-  Users,
-  GraduationCap,
-  BookOpen,
-  UserCheck,
-  TrendingUp,
-  TrendingDown,
-  ArrowUpRight,
-  Calendar,
-  Clock,
-  FileText,
-} from "lucide-react"
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  LineChart,
-  Line,
-  Legend,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, PieChart, Pie, Cell,
 } from "recharts"
+import { API_BASE_URL, fetchWithAuth } from "../../services/api"
+import useAuthStore from '../../store/useAuthStore';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/Select"
+import { PageContent, PageCard, PageCardHeader } from '@/components/ui/page'
+import { DashboardHero, DashboardQuickActions } from '@/components/ui/dashboard'
+import { PrimaryStatsCard } from '@/components/ui/StatsCard'
+import { Button } from '@/components/ui/Button'
 
-const statsData = [
-  {
-    title: "Total Mahasiswa",
-    value: "2,847",
-    change: "+12.5%",
-    trend: "up",
-    icon: Users,
-    description: "dari tahun lalu",
-  },
-  {
-    title: "Mahasiswa Aktif",
-    value: "2,634",
-    change: "+8.2%",
-    trend: "up",
-    icon: UserCheck,
-    description: "92.5% dari total",
-  },
-  {
-    title: "Program Studi",
-    value: "8",
-    change: "+2",
-    trend: "up",
-    icon: GraduationCap,
-    description: "prodi aktif",
-  },
-  {
-    title: "Total Dosen",
-    value: "156",
-    change: "+5.1%",
-    trend: "up",
-    icon: BookOpen,
-    description: "dosen aktif",
-  },
-]
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Group = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>group</span>;
+const School = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>school</span>;
+const CheckCircle = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>check_circle</span>;
+const Block = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>block</span>;
+const PauseCircle = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>pause_circle</span>;
+const Award = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>emoji_events</span>;
 
-const mahasiswaPerProdi = [
-  { name: "Teknik Informatika", jumlah: 520 },
-  { name: "Sistem Informasi", jumlah: 480 },
-  { name: "Teknik Elektro", jumlah: 380 },
-  { name: "Teknik Mesin", jumlah: 350 },
-  { name: "Teknik Sipil", jumlah: 420 },
-  { name: "Arsitektur", jumlah: 280 },
-  { name: "Teknik Industri", jumlah: 310 },
-  { name: "Teknik Kimia", jumlah: 107 },
-]
+export default function FacultyDashboard() {
+  const navigate = useNavigate();
+  const { user } = useAuthStore();
+  const [loading, setLoading] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
+  const [filterPeriod, setFilterPeriod] = useState('all');
+  const [filterProdi, setFilterProdi] = useState('all');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [summaryData, setSummaryData] = useState({
+    totalStudents: 0,
+    totalLecturers: 0,
+    totalPrestasi: 0,
+    totalProdi: 0,
+    statusCounts: [],
+    prodiDistribution: [],
+    trendData: [],
+    recentActivity: [],
+    activePeriod: null,
+    periods: []
+  });
 
-const statusMahasiswa = [
-  { name: "Aktif", value: 2634, color: "#22c55e" },
-  { name: "Cuti", value: 89, color: "#eab308" },
-  { name: "Lulus", value: 98, color: "#3b82f6" },
-  { name: "DO", value: 26, color: "#ef4444" },
-]
+  const firstName = user?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'Admin';
 
-const trendPendaftaran = [
-  { tahun: "2020", pendaftar: 1200, diterima: 820 },
-  { tahun: "2021", pendaftar: 1350, diterima: 890 },
-  { tahun: "2022", pendaftar: 1480, diterima: 920 },
-  { tahun: "2023", pendaftar: 1650, diterima: 980 },
-  { tahun: "2024", pendaftar: 1820, diterima: 1050 },
-  { tahun: "2025", pendaftar: 2100, diterima: 1180 },
-]
+  const fetchDashboardData = React.useCallback(async (periodId, start, end, prodiId) => {
+    Promise.resolve().then(() => setLoading(true));
+    try {
+      let url = `${API_BASE_URL}/faculty/summary`;
+      const params = [];
+      if (start && end) {
+        params.push(`start_date=${start}`);
+        params.push(`end_date=${end}`);
+      } else if (periodId && periodId !== 'all') {
+        params.push(`period_id=${periodId}`);
+      }
+      if (prodiId && prodiId !== 'all') {
+        params.push(`prodi_id=${prodiId}`);
+      }
+      if (params.length > 0) {
+        url += `?${params.join('&')}`;
+      }
+      const result = await fetchWithAuth(url);
+      if (result.status === 'success') {
+        setSummaryData(result.data);
+      }
+    } catch (error) {
+      console.error("Error fetching dashboard statistics:", error);
+    } finally {
+      Promise.resolve().then(() => setLoading(false));
+    }
+  }, []);
 
-const aktivitasTerbaru = [
-  {
-    id: 1,
-    user: "Dr. Ahmad Yani",
-    action: "menginput nilai Algoritma",
-    time: "5 menit lalu",
-    avatar: "AY",
-  },
-  {
-    id: 2,
-    user: "Staff TU",
-    action: "memvalidasi KRS mahasiswa",
-    time: "15 menit lalu",
-    avatar: "ST",
-  },
-  {
-    id: 3,
-    user: "Kaprodi TI",
-    action: "mengupdate kurikulum",
-    time: "1 jam lalu",
-    avatar: "KT",
-  },
-  {
-    id: 4,
-    user: "Admin PMB",
-    action: "menambah pendaftar baru",
-    time: "2 jam lalu",
-    avatar: "AP",
-  },
-  {
-    id: 5,
-    user: "Dr. Siti Rahayu",
-    action: "mengupload materi kuliah",
-    time: "3 jam lalu",
-    avatar: "SR",
-  },
-]
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
-const jadwalHariIni = [
-  {
-    matakuliah: "Algoritma & Pemrograman",
-    jam: "08:00 - 10:30",
-    ruangan: "Lab Komputer 1",
-    dosen: "Dr. Ahmad Yani",
-  },
-  {
-    matakuliah: "Basis Data",
-    jam: "10:30 - 13:00",
-    ruangan: "R.301",
-    dosen: "Dr. Budi Santoso",
-  },
-  {
-    matakuliah: "Jaringan Komputer",
-    jam: "13:00 - 15:30",
-    ruangan: "Lab Jaringan",
-    dosen: "Dr. Rina Wijaya",
-  },
-  {
-    matakuliah: "Kecerdasan Buatan",
-    jam: "15:30 - 18:00",
-    ruangan: "R.405",
-    dosen: "Dr. Hendra Kusuma",
-  },
-]
+  useEffect(() => {
+    fetchDashboardData(filterPeriod, startDate, endDate, filterProdi);
+  }, [filterPeriod, startDate, endDate, filterProdi, fetchDashboardData]);
 
-export default function DashboardPage() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const handlePeriodChange = (val) => {
+    setFilterPeriod(val);
+    if (val !== 'all') {
+      setStartDate('');
+      setEndDate('');
+    }
+  };
+
+  const handleResetFilters = () => {
+    setStartDate('');
+    setEndDate('');
+    setFilterPeriod('all');
+    setFilterProdi('all');
+  };
+
+  const statusColors = {
+    'Aktif': '#10b981',     // emerald-500
+    'Cuti': '#f59e0b',      // amber-500
+    'Lulus': '#3b82f6',     // blue-500
+    'DO': '#ef4444',        // red-500
+    'NON-AKTIF': '#94a3b8', // slate-400
+  };
+
+  const allStatusNames = [...new Set(['Aktif', 'Cuti', 'Lulus', 'DO', ...(summaryData.statusCounts?.map(s => s.status) || [])])];
+  const dynamicStatusData = allStatusNames.map(name => {
+    const found = summaryData.statusCounts?.find(s => s.status === name);
+    return { name, value: found ? found.count : 0, color: statusColors[name] || '#cbd5e1' };
+  });
+
+  const totalAktif = dynamicStatusData.find(d => d.name === 'Aktif')?.value || 0;
+  const totalLulus = dynamicStatusData.find(d => d.name === 'Lulus')?.value || 0;
+  const totalCuti = dynamicStatusData.find(d => d.name === 'Cuti')?.value || 0;
+  const totalDO = dynamicStatusData.find(d => d.name === 'DO')?.value || 0;
+
+  const rasioAktifPct = summaryData.totalStudents > 0 ? Math.round((totalAktif / summaryData.totalStudents) * 100) : 0;
+
+  // Chart 1: Kapasitas/Distribusi Mahasiswa per Prodi (List)
+  const prodiDistributionData = useMemo(() => {
+    return (summaryData.prodiDistribution || [])
+      .sort((a, b) => b.jumlah - a.jumlah);
+  }, [summaryData.prodiDistribution]);
+  const maxStudentsInProdi = Math.max(...prodiDistributionData.map(d => d.jumlah), 1);
+
+  // Chart 3: Top 5 Prodi Terbesar (Bar Chart)
+  const topProdiChartData = useMemo(() => {
+    return [...prodiDistributionData].slice(0, 5).map(item => ({
+      name: item.name.length > 15 ? item.name.substring(0, 15) + '...' : item.name,
+      fullName: item.name,
+      jumlah: item.jumlah
+    }));
+  }, [prodiDistributionData]);
+
+  const quickActions = [
+    { label: 'Validasi Prestasi', icon: 'emoji_events', path: '/faculty/prestasi', iconBg: 'bg-success/10 text-success border border-success/20' },
+    { label: 'Monitor PKKMB', icon: 'check_circle', path: '/faculty/pkkmb', iconBg: 'bg-primary/10 text-primary border border-primary/20' },
+    { label: 'Screening Kesehatan', icon: 'monitor_heart', path: '/faculty/kesehatan', iconBg: 'bg-warning/10 text-warning border border-warning/20' },
+    { label: 'Aspirasi Mahasiswa', icon: 'chat', path: '/faculty/aspirasi', iconBg: 'bg-error/10 text-error border border-error/20' },
+    { label: 'Proposal ORMAWA', icon: 'description', path: '/faculty/ormawa/proposals', iconBg: 'bg-info/10 text-info border border-info/20' },
+    { label: 'Jadwal Konseling', icon: 'calendar_today', path: '/faculty/konseling', iconBg: 'bg-secondary/10 text-secondary border border-secondary/20' },
+  ];
 
   return (
-    <div className="bg-[#F8FAFC] text-slate-900 min-h-screen font-body">
-      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      <main className="lg:ml-64 min-h-screen pb-12 transition-all duration-300">
-        <TopNavBar setIsOpen={setSidebarOpen} />
+    <PageContent>
+      {/* ── Page Header ────────────────────────────────────────── */}
+      <DashboardHero 
+        title="Selamat datang,"
+        highlightedTitle={`${firstName}!`}
+        subtitle="Kelola data akademik, pantau kinerja mahasiswa, dan verifikasi layanan kampus dari satu panel terpusat."
+        icon="admin_panel_settings"
+        badges={[
+          { label: 'SIAKAD Portal', active: false },
+          { label: 'Active Session', active: true }
+        ]}
+        actions={
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <Select value={filterPeriod} onValueChange={handlePeriodChange}>
+              <SelectTrigger className="w-[150px] h-10 bg-white/80 backdrop-blur-sm border border-[var(--theme-border)] rounded-xl font-bold text-xs text-[var(--theme-text-muted)] hover:border-[var(--theme-primary)]/50 focus:ring-0 transition-colors">
+                <SelectValue placeholder="Semua Periode" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl border border-[var(--theme-border)] shadow-md bg-white">
+                <SelectItem value="all" className="text-xs rounded-lg py-1.5 font-medium">Semua Periode</SelectItem>
+                {summaryData.periods?.map(p => (
+                  <SelectItem key={p.id} value={String(p.id)} className="text-xs rounded-lg py-1.5 font-medium">{p.Name || p.nama_periode}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-        <div className="pt-24 px-4 lg:px-8">
-          <div className="flex flex-col gap-6">
-            {/* Page Header */}
-            <div className="flex flex-col gap-1">
-              <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-              <p className="text-muted-foreground">
-                Selamat datang di SIAKAD Fakultas. Berikut ringkasan data akademik terkini.
-              </p>
+            <Select value={filterProdi} onValueChange={setFilterProdi}>
+              <SelectTrigger className="w-[180px] h-10 bg-white/80 backdrop-blur-sm border border-[var(--theme-border)] rounded-xl font-bold text-xs text-[var(--theme-text-muted)] hover:border-[var(--theme-primary)]/50 focus:ring-0 transition-colors">
+                <SelectValue placeholder="Semua Prodi" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl border border-[var(--theme-border)] shadow-md bg-white">
+                <SelectItem value="all" className="text-xs rounded-lg py-1.5 font-medium">Semua Prodi</SelectItem>
+                {summaryData.prodis?.map(p => (
+                  <SelectItem key={p.id} value={String(p.id)} className="text-xs rounded-lg py-1.5 font-medium">{p.Nama || p.nama} ({p.Jenjang || p.jenjang})</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <button onClick={() => navigate('/faculty/mahasiswa')}
+              className="h-10 px-4 rounded-xl text-white text-xs font-bold uppercase tracking-wider gap-2 flex items-center transition-all active:scale-95 shadow-lg shrink-0"
+              style={{
+                backgroundColor: 'var(--theme-primary)',
+                boxShadow: '0 10px 15px -3px color-mix(in srgb, var(--theme-primary) 30%, transparent)'
+              }}>
+              <span className="material-symbols-outlined text-[16px]">groups</span> Mahasiswa
+            </button>
+            <button onClick={() => navigate('/faculty/laporan')}
+              className="h-10 px-4 rounded-xl border border-[var(--theme-border)] bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-[var(--theme-text-muted)] hover:text-[var(--theme-primary)] hover:border-[var(--theme-primary)]/30 hover:bg-[var(--theme-surface-hover)] shadow-sm transition-all duration-200 active:scale-95 flex items-center gap-2 cursor-pointer shrink-0">
+              <span className="material-symbols-outlined text-[16px]">download</span> Laporan
+            </button>
+          </div>
+        }
+      />
+
+      {/* ── Enriched Stats Grid (Like KelolaFakultas) ─────────────────────────────────── */}
+      <div className="space-y-6 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <PrimaryStatsCard
+            title="Total Mahasiswa"
+            value={summaryData.totalStudents}
+            icon={Group}
+            colorTheme="info"
+            badgeText="Keseluruhan"
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">verified</span>}
+            onClick={() => navigate('/faculty/mahasiswa')}
+          />
+          <PrimaryStatsCard
+            title="Total Program Studi"
+            value={summaryData.totalProdi}
+            icon={School}
+            colorTheme="primary"
+            onClick={() => navigate('/faculty/prodi')}
+          />
+          <PrimaryStatsCard
+            title="Mahasiswa Aktif"
+            value={totalAktif}
+            icon={CheckCircle}
+            colorTheme="success"
+            badgeText={`${rasioAktifPct}% Aktif`}
+            badgeIcon={<span className="material-symbols-outlined text-[12px]">trending_up</span>}
+          />
+          <PrimaryStatsCard
+            title="Prestasi Baru"
+            value={summaryData.totalPrestasi}
+            icon={Award}
+            colorTheme="warning"
+            badgeText="Menunggu Validasi"
+            onClick={() => navigate('/faculty/prestasi')}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <PrimaryStatsCard
+            title="Mahasiswa Lulus"
+            value={totalLulus}
+            subtitle="Alumni tercetak"
+            icon={Award}
+            colorTheme="info"
+          />
+          <PrimaryStatsCard
+            title="Mahasiswa Cuti"
+            value={totalCuti}
+            subtitle="Sedang Cuti Akademik"
+            icon={PauseCircle}
+            colorTheme="warning"
+          />
+          <PrimaryStatsCard
+            title="Mahasiswa DO"
+            value={totalDO}
+            subtitle="Drop Out / Putus Studi"
+            icon={Block}
+            colorTheme="error"
+          />
+          <PrimaryStatsCard
+            title="Rata-rata Mahasiswa"
+            value={`${summaryData.totalProdi > 0 ? Math.round(summaryData.totalStudents / summaryData.totalProdi) : 0} Mhs`}
+            subtitle="Per Program Studi"
+            icon={Group}
+            colorTheme="primary"
+          />
+        </div>
+      </div>
+
+      {/* ── Enriched Visual Charts Grid ─────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        {/* Chart 1: Distribusi Mahasiswa per Prodi (List) */}
+        <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+          <div className="flex flex-col h-full">
+            <div className="flex items-center gap-4 mb-4 shrink-0">
+              <div className="w-12 h-12 bg-blue-50/80 rounded-xl flex justify-center items-center text-blue-600 group-hover:scale-110 group-hover:-rotate-6 transition-all duration-300">
+                <span className="material-symbols-outlined text-[24px]">groups</span>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Statistik Distribusi</span>
+                <h3 className="text-sm font-bold text-slate-800 leading-tight">Mahasiswa per Prodi</h3>
+              </div>
             </div>
+            <div className="h-[200px] w-full mt-2 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+              {prodiDistributionData.length > 0 ? (
+                prodiDistributionData.map((item, idx) => {
+                  const percentage = Math.round((item.jumlah / maxStudentsInProdi) * 100);
+                  const colors = [
+                    { bg: 'bg-blue-500', text: 'text-blue-600', iconBg: 'bg-blue-50 text-blue-600 border-blue-100' },
+                    { bg: 'bg-indigo-500', text: 'text-indigo-600', iconBg: 'bg-indigo-50 text-indigo-600 border-indigo-100' },
+                    { bg: 'bg-emerald-500', text: 'text-emerald-600', iconBg: 'bg-emerald-50 text-emerald-600 border-emerald-100' },
+                    { bg: 'bg-amber-500', text: 'text-amber-600', iconBg: 'bg-amber-50 text-amber-600 border-amber-100' },
+                    { bg: 'bg-rose-500', text: 'text-rose-600', iconBg: 'bg-rose-50 text-rose-600 border-rose-100' }
+                  ];
+                  const color = colors[idx % colors.length];
 
-            {/* Stats Cards */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {statsData.map((stat) => (
-                <Card key={stat.title}>
-                  <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
-                      {stat.title}
-                    </CardTitle>
-                    <stat.icon className="size-5 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{stat.value}</div>
-                    <div className="flex items-center gap-1 text-xs">
-                      {stat.trend === "up" ? (
-                        <TrendingUp className="size-3 text-green-500" />
-                      ) : (
-                        <TrendingDown className="size-3 text-destructive" />
-                      )}
-                      <span className={stat.trend === "up" ? "text-green-500" : "text-destructive"}>
-                        {stat.change}
-                      </span>
-                      <span className="text-muted-foreground">{stat.description}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {/* Charts Row */}
-            <div className="grid gap-6 lg:grid-cols-2">
-              {/* Mahasiswa per Prodi Chart */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Mahasiswa per Program Studi</CardTitle>
-                  <CardDescription>
-                    Distribusi jumlah mahasiswa aktif di setiap prodi
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={mahasiswaPerProdi} layout="vertical">
-                        <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
-                        <XAxis type="number" />
-                        <YAxis
-                          dataKey="name"
-                          type="category"
-                          width={100}
-                          tick={{ fontSize: 12 }}
-                        />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "hsl(var(--card))",
-                            border: "1px solid hsl(var(--border))",
-                            borderRadius: "var(--radius)",
-                          }}
-                        />
-                        <Bar dataKey="jumlah" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Status Mahasiswa Pie Chart */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Status Mahasiswa</CardTitle>
-                  <CardDescription>
-                    Persentase status mahasiswa saat ini
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={statusMahasiswa}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={100}
-                          paddingAngle={2}
-                          dataKey="value"
-                          label={({ name, percent }) =>
-                            `${name} ${(percent * 100).toFixed(0)}%`
-                          }
-                          labelLine={false}
-                        >
-                          {statusMahasiswa.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "hsl(var(--card))",
-                            border: "1px solid hsl(var(--border))",
-                            borderRadius: "var(--radius)",
-                          }}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="mt-4 flex flex-wrap justify-center gap-4">
-                    {statusMahasiswa.map((item) => (
-                      <div key={item.name} className="flex items-center gap-2">
-                        <div
-                          className="size-3 rounded-full"
-                          style={{ backgroundColor: item.color }}
-                        />
-                        <span className="text-sm text-muted-foreground">
-                          {item.name}: {item.value.toLocaleString()}
+                  return (
+                    <div key={idx} className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex flex-col justify-between transition-colors hover:bg-white hover:border-slate-200 hover:shadow-sm cursor-default">
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 border", color.iconBg)}>
+                            <span className="material-symbols-outlined text-base">school</span>
+                          </div>
+                          <div className="text-left min-w-0">
+                            <span className="text-[11px] font-bold text-slate-800 block truncate" title={item.name}>{item.name}</span>
+                          </div>
+                        </div>
+                        <span className={cn("px-2 py-0.5 rounded-lg text-[9px] font-extrabold tracking-wide shrink-0 border bg-white shadow-sm", color.text, color.iconBg)}>
+                          {item.jumlah} Mhs
                         </span>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
 
-            {/* Trend & Activity Row */}
-            <div className="grid gap-6 lg:grid-cols-3">
-              {/* Trend Pendaftaran */}
-              <Card className="lg:col-span-2">
-                <CardHeader>
-                  <CardTitle>Trend Pendaftaran Mahasiswa Baru</CardTitle>
-                  <CardDescription>
-                    Perbandingan pendaftar dan yang diterima per tahun
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={trendPendaftaran}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="tahun" />
-                        <YAxis />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "hsl(var(--card))",
-                            border: "1px solid hsl(var(--border))",
-                            borderRadius: "var(--radius)",
-                          }}
-                        />
-                        <Legend />
-                        <Line
-                          type="monotone"
-                          dataKey="pendaftar"
-                          stroke="hsl(var(--primary))"
-                          strokeWidth={2}
-                          dot={{ r: 4 }}
-                          name="Pendaftar"
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="diterima"
-                          stroke="#22c55e"
-                          strokeWidth={2}
-                          dot={{ r: 4 }}
-                          name="Diterima"
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Aktivitas Terbaru */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Aktivitas Terbaru</CardTitle>
-                  <CardDescription>Aktivitas pengguna sistem</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-col gap-4">
-                    {aktivitasTerbaru.map((activity) => (
-                      <div key={activity.id} className="flex items-start gap-3">
-                        <Avatar className="size-8">
-                          <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                            {activity.avatar}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm">
-                            <span className="font-medium">{activity.user}</span>{" "}
-                            <span className="text-muted-foreground">
-                              {activity.action}
-                            </span>
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {activity.time}
-                          </p>
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center text-[9px] font-bold text-slate-400">
+                          <span>Rasio terhadap Tertinggi</span>
+                          <span className={color.text}>{percentage}%</span>
+                        </div>
+                        <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                          <div className={cn("h-full rounded-full transition-all duration-500", color.bg)} style={{ width: `${percentage}%` }} />
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                    </div>
+                  )
+                })
+              ) : (
+                <div className="py-8 text-center text-xs text-slate-400 italic">Tidak ada data program studi</div>
+              )}
             </div>
+          </div>
+        </div>
 
-            {/* Jadwal Hari Ini */}
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle>Jadwal Kuliah Hari Ini</CardTitle>
-                  <CardDescription>
-                    Jadwal perkuliahan yang berlangsung hari ini
-                  </CardDescription>
-                </div>
-                <Button variant="outline" size="sm">
-                  <Calendar className="mr-2 size-4" />
-                  Lihat Semua Jadwal
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  {jadwalHariIni.map((jadwal, index) => (
-                    <div
-                      key={index}
-                      className="rounded-lg border bg-card p-4 transition-colors hover:bg-muted/50"
+        {/* Chart 2: Donut Chart - Status Akademik */}
+        <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+          <div>
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 bg-emerald-50/80 rounded-xl flex justify-center items-center text-emerald-600 group-hover:scale-110 group-hover:-rotate-6 transition-all duration-300">
+                <span className="material-symbols-outlined text-[24px]">donut_small</span>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Komposisi Akademik</span>
+                <h3 className="text-sm font-bold text-slate-800 leading-tight">Sebaran Status Mahasiswa</h3>
+              </div>
+            </div>
+            <div className="h-[180px] w-full flex items-center justify-center relative">
+              {isMounted && (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={dynamicStatusData.filter(d => d.value > 0)}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={75}
+                      paddingAngle={4}
+                      dataKey="value"
+                      stroke="none"
                     >
-                      <div className="mb-3 flex items-center gap-2">
-                        <Clock className="size-4 text-primary" />
-                        <span className="text-sm font-medium text-primary">
-                          {jadwal.jam}
-                        </span>
+                      {dynamicStatusData.filter(d => d.value > 0).map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)", fontSize: "11px", fontWeight: "bold" }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2 mt-4">
+            {dynamicStatusData.filter(d => d.value > 0).map((item, idx) => (
+              <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-md bg-slate-50 border border-slate-100 hover:bg-white transition-colors">
+                <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+                <div className="min-w-0">
+                  <p className="text-[9px] font-bold text-slate-400 truncate leading-none">{item.name}</p>
+                  <p className="text-sm font-black text-slate-700 leading-none mt-1">{item.value}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Chart 3: Top 5 Prodi Terbesar */}
+        <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between group hover:shadow-md transition-all duration-300">
+          <div>
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 bg-indigo-50/80 rounded-xl flex justify-center items-center text-indigo-600 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                <span className="material-symbols-outlined text-[24px]">bar_chart</span>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Top Distribusi</span>
+                <h3 className="text-sm font-bold text-slate-800 leading-tight">5 Prodi Terbesar</h3>
+              </div>
+            </div>
+            <div className="h-[200px] w-full mt-2">
+              {isMounted && (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={topProdiChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="name" tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                    <Tooltip
+                      cursor={{ fill: '#f8fafc' }}
+                      contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)", fontSize: "11px", fontWeight: "bold" }}
+                    />
+                    <Bar dataKey="jumlah" name="Jumlah Mhs" fill="#8b5cf6" radius={[4, 4, 0, 0]} barSize={24} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Activity Log */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
+        <div className="lg:col-span-12">
+          <PageCard>
+            <PageCardHeader title="Aktivitas Terbaru" description="Log aktivitas sistem terbaru di tingkat fakultas" icon="schedule" />
+          <div className="p-5">
+            {summaryData.recentActivity?.length > 0
+              ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {summaryData.recentActivity.map((activity, idx) => (
+                    <div key={idx} className="h-full flex items-start gap-3.5 p-4 rounded-xl bg-[var(--theme-bg)] border border-[var(--theme-border-muted)] group hover:border-[var(--theme-border)] hover:bg-[var(--theme-surface)] transition-all shadow-sm hover:shadow">
+                      <div className="w-10 h-10 rounded-lg flex items-center justify-center font-black text-sm flex-shrink-0 border" style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 10%, transparent)', color: 'var(--theme-primary)', borderColor: 'color-mix(in srgb, var(--theme-primary) 20%, transparent)' }}>
+                        {activity.avatar || '—'}
                       </div>
-                      <h4 className="font-medium text-balance">{jadwal.matakuliah}</h4>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {jadwal.ruangan}
-                      </p>
-                      <div className="mt-3 flex items-center gap-2">
-                        <Avatar className="size-6">
-                          <AvatarFallback className="bg-primary/10 text-primary text-[10px]">
-                            {jadwal.dosen
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")
-                              .slice(0, 2)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="text-xs text-muted-foreground">
-                          {jadwal.dosen}
-                        </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-[var(--theme-text)] truncate">{activity.user}</p>
+                        <p className="text-[11px] text-[var(--theme-text-muted)] leading-relaxed mt-1 line-clamp-2">{activity.action}</p>
                       </div>
+                      <span className="text-[10px] font-medium text-[var(--theme-text-muted)] bg-[var(--theme-border-muted)]/30 px-2 py-1 rounded-md self-start whitespace-nowrap shrink-0 ml-1">{activity.time}</span>
                     </div>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Aksi Cepat</CardTitle>
-                <CardDescription>Pintasan untuk tugas yang sering dilakukan</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4">
-                  <Button variant="outline" className="h-auto flex-col gap-2 p-4">
-                    <Users className="size-6 text-primary" />
-                    <span className="text-sm">Tambah Mahasiswa</span>
-                  </Button>
-                  <Button variant="outline" className="h-auto flex-col gap-2 p-4">
-                    <FileText className="size-6 text-primary" />
-                    <span className="text-sm">Validasi KRS</span>
-                  </Button>
-                  <Button variant="outline" className="h-auto flex-col gap-2 p-4">
-                    <Calendar className="size-6 text-primary" />
-                    <span className="text-sm">Atur Jadwal</span>
-                  </Button>
-                  <Button variant="outline" className="h-auto flex-col gap-2 p-4">
-                    <ArrowUpRight className="size-6 text-primary" />
-                    <span className="text-sm">Export Laporan</span>
-                  </Button>
+              )
+              : (
+                <div className="py-16 text-center">
+                  <div className="w-12 h-12 bg-[var(--theme-bg)] border border-[var(--theme-border-muted)] rounded-xl flex items-center justify-center text-[var(--theme-text-muted)] mx-auto mb-3">
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >notifications</span>
+                  </div>
+                  <p className="text-xs font-medium text-[var(--theme-text-muted)]">Belum ada aktivitas</p>
                 </div>
-              </CardContent>
-            </Card>
+              )
+            }
           </div>
+          </PageCard>
         </div>
-      </main>
-    </div>
-  )
+      </div>
+
+      {/* Quick Actions */}
+      <DashboardQuickActions 
+        title="Aksi Cepat"
+        description="Pintasan Menu"
+        actions={quickActions.map(ql => ({
+          label: ql.label,
+          icon: ql.icon,
+          path: ql.path,
+          iconBg: ql.iconBg
+        }))}
+      />
+    </PageContent>
+  );
 }
